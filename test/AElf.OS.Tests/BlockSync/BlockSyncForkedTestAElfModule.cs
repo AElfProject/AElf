@@ -46,7 +46,7 @@ namespace AElf.OS.BlockSync
 
                         return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
-                
+
                 networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(new PeerInfo());
 
                 return networkServiceMock.Object;
@@ -74,14 +74,13 @@ namespace AElf.OS.BlockSync
 
                 // no choice need to execute the block to finalize it.
                 var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(),
-                    new List<Transaction>(), CancellationToken.None));
+                    new List<Transaction>(), CancellationToken.None)).Block;
 
                 previousBlockHash = newBlock.GetHash();
                 height++;
 
                 _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
             }
-
         }
     }
 }

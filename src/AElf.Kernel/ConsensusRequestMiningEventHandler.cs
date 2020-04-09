@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -71,8 +71,8 @@ namespace AElf.Kernel
                     Block block;
                     try
                     {
-                        block = await _minerService.MineAsync(eventData.PreviousBlockHash,
-                            eventData.PreviousBlockHeight, eventData.BlockTime, blockExecutionDuration);
+                        block = (await _minerService.MineAsync(eventData.PreviousBlockHash,
+                            eventData.PreviousBlockHeight, eventData.BlockTime, blockExecutionDuration)).Block;
                     }
                     catch (Exception)
                     {
@@ -87,7 +87,7 @@ namespace AElf.Kernel
                         Logger.LogTrace("Before enqueue attach job.");
                         _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                             KernelConstants.UpdateChainQueueName);
-                        
+
                         Logger.LogTrace("Before publish block.");
 
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
@@ -105,7 +105,7 @@ namespace AElf.Kernel
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
-                
+
                 return Task.CompletedTask;
             }
             catch (Exception e)
@@ -129,14 +129,14 @@ namespace AElf.Kernel
         {
             if (IsGenesisBlockMining(blockTime))
                 return true;
-            
+
             if (miningDueTime < blockTime + blockExecutionDuration)
             {
                 Logger.LogWarning(
                     $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
                 return false;
             }
-                    
+
             if (blockTime + blockExecutionDuration < TimestampHelper.GetUtcNow())
             {
                 Logger.LogTrace($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
@@ -151,7 +151,7 @@ namespace AElf.Kernel
         {
             if (IsGenesisBlockMining(blockTime))
                 return expectedDuration;
-            
+
             return blockTime + expectedDuration - TimestampHelper.GetUtcNow();
         }
 

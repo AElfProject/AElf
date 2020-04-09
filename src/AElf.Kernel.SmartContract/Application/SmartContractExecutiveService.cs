@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
                 var smartContractRegistration =
                     await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
                 if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash ||
-                    chainContext.BlockHeight <= Constants.GenesisBlockHeight)
+                    chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight)
                 {
                     executive.LastUsedTime = TimestampHelper.GetUtcNow();
                     pool.Add(executive);
@@ -143,7 +143,7 @@ namespace AElf.Kernel.SmartContract.Application
                 if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
                 {
                     var smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
-                    if (chainContext.BlockHeight <= Constants.GenesisBlockHeight) return smartContractRegistration;
+                    if (chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight) return smartContractRegistration;
                     //if Height > GenesisBlockHeight, maybe there is a new zero contract,
                     //the current smartContractRegistration is from code,
                     //not from zero contract, so we need to load new zero contract from the old smartContractRegistration,

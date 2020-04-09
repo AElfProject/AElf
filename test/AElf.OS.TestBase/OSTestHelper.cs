@@ -17,15 +17,16 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -292,7 +293,7 @@ namespace AElf.OS
                 Transactions = transactions
             };
 
-            await _txHub.HandleTransactionsReceivedAsync(transactionsReceivedEvent);
+            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)
@@ -304,8 +305,8 @@ namespace AElf.OS
                 previousBlockHeight = chain.BestChainHeight;
             }
 
-            var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
+            var block = (await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000))).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -424,6 +425,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,

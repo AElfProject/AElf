@@ -1,6 +1,7 @@
 using Acs4;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 

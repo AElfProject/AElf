@@ -30,7 +30,7 @@ service ACS0 {
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
     // Views
-    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
+    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
@@ -57,9 +57,9 @@ service ACS0 {
 
 message ContractInfo
 {
-    uint64 serial_number = 1;
+    int64 serial_number = 1;
     aelf.Address author = 2;
-    int32 category = 3;
+    sint32 category = 3;
     aelf.Hash code_hash = 4;
     bool is_system_contract = 5;
     int32 version = 6;
@@ -94,7 +94,7 @@ message ContractCodeCheckInput{
     bool is_contract_deployment = 2;
     string code_check_release_method = 3;
     aelf.Hash proposed_contract_input_hash = 4;
-    int32 category = 5;
+    sint32 category = 5;
 }
 
 // Events
@@ -118,7 +118,7 @@ message CodeCheckRequired
     option (aelf.is_event) = true;
     bytes code = 1;
     aelf.Hash proposed_contract_input_hash = 2;
-    int32 category = 3;
+    sint32 category = 3;
 }
 
 message CodeUpdated

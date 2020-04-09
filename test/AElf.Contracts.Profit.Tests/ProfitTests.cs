@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
@@ -107,7 +108,7 @@ namespace AElf.Contracts.Profit
                     });
                 releasedProfitInformation.IsReleased.ShouldBe(false);
                 releasedProfitInformation.TotalShares.ShouldBe(0);
-                releasedProfitInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
+                releasedProfitInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
             }
         }
 
@@ -158,7 +159,7 @@ namespace AElf.Contracts.Profit
                         SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                releasedProfitsInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(amountReleasedByCreator);
                 // total_Shares is 0 before releasing.
                 releasedProfitsInformation.TotalShares.ShouldBe(0);
@@ -182,8 +183,10 @@ namespace AElf.Contracts.Profit
             {
                 SchemeId = schemeId,
                 Period = 1,
-                Amount = amountReleasedByCreator,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amountReleasedByCreator}
+                }
             });
 
             // Creator can release profits of this period.
@@ -194,7 +197,7 @@ namespace AElf.Contracts.Profit
                         SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                releasedProfitsInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
                 releasedProfitsInformation.TotalShares.ShouldBe(shares);
                 releasedProfitsInformation.IsReleased.ShouldBe(true);
@@ -384,8 +387,10 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -453,8 +458,10 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount / 3,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
+                },
                 Period = 1
             });
 
@@ -476,8 +483,10 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount / 3,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
+                },
                 Period = 2
             });
 
@@ -499,15 +508,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount / 3,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
+                },
                 Period = 3
             });
 
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
@@ -557,8 +567,10 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -578,7 +590,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
@@ -634,8 +645,10 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -663,8 +676,10 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 2
             });
 
@@ -687,8 +702,10 @@ namespace AElf.Contracts.Profit
             var executionResult = await anotherGuy.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -706,8 +723,10 @@ namespace AElf.Contracts.Profit
             var executionResult = await user.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -737,8 +756,10 @@ namespace AElf.Contracts.Profit
                 var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
                     SchemeId = schemeId,
-                    Amount = amount,
-                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    AmountsMap =
+                    {
+                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    },
                     Period = 1
                 });
 
@@ -750,8 +771,10 @@ namespace AElf.Contracts.Profit
                 var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
                     SchemeId = schemeId,
-                    Amount = amount,
-                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    AmountsMap =
+                    {
+                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    },
                     Period = 2
                 });
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -802,8 +825,10 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
@@ -862,15 +887,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -924,15 +950,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
             await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 1.
@@ -948,7 +975,6 @@ namespace AElf.Contracts.Profit
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 2.
@@ -1014,15 +1040,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
             await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 1.
@@ -1038,7 +1065,6 @@ namespace AElf.Contracts.Profit
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Check balance of Beneficiary 2.
@@ -1060,7 +1086,6 @@ namespace AElf.Contracts.Profit
             var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -1082,15 +1107,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 Period = 1
             });
 
             var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -1128,8 +1154,10 @@ namespace AElf.Contracts.Profit
                 await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
                     SchemeId = schemeId,
-                    Amount = amount,
-                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    AmountsMap =
+                    {
+                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    },
                     Period = i + 1
                 });
             }
@@ -1137,7 +1165,6 @@ namespace AElf.Contracts.Profit
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             {
@@ -1159,15 +1186,16 @@ namespace AElf.Contracts.Profit
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 Period = periodCount + 1,
-                Amount = amount,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                AmountsMap =
+                {
+                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                },
                 SchemeId = schemeId
             });
 
             await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             {
@@ -1228,8 +1256,10 @@ namespace AElf.Contracts.Profit
                 var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
                     SchemeId = schemeId,
-                    Amount = amount,
-                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    AmountsMap =
+                    {
+                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    },
                     Period = 1
                 });
 

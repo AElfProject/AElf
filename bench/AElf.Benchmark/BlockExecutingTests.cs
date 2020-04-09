@@ -51,7 +51,7 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+            _block = (await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions)).Block;
         }
 
         [IterationCleanup]
@@ -61,7 +61,7 @@ namespace AElf.Benchmark
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetPreMiningHash());
+                _block.Header.GetDisambiguatingHash());
         }
     }
 }

@@ -36,7 +36,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
-            if (block.Header.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
                 return true;
 
             if (block.Header.ExtraData.Count == 0)
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            if (block.Header.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Header.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);

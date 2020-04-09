@@ -1,8 +1,7 @@
 using System.Linq;
 using AElf.Cryptography.SecretSharing;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {

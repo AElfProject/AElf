@@ -5,7 +5,6 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
@@ -37,10 +36,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
+            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBestChainFoundLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
-            context.Services.AddSingleton<IBestChainFoundLogEventProcessor, SecretSharingInformationLogEventProcessor>();
+                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
             
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
 

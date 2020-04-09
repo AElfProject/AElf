@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var behaviour = IsMainChain
                 ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                         GetMaximumBlocksCount(),
-                        Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
+                        Context.CurrentBlockTime, blockchainStartTimestamp, State.PeriodSeconds.Value)
                     .GetConsensusBehaviour()
                 : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
                     GetMaximumBlocksCount(),

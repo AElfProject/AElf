@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,16 +16,19 @@ namespace AElf.Kernel.ChainController.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockchainExecutingService blockchainExecutingService)
+            IBlockExecutionResultProcessingService blockExecutionResultProcessingService
+            , IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
+            _blockExecutionResultProcessingService = blockExecutionResultProcessingService;
             _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -46,18 +46,18 @@ namespace AElf.Kernel.ChainController.Application
             {
                 var blockHeader = new BlockHeader
                 {
-                    Height = Constants.GenesisBlockHeight,
+                    Height = AElfConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     Time = new Timestamp {Seconds = 0},
                     ChainId = _blockchainService.GetChainId()
                 };
 
                 var transactions = genesisTransactions.ToList();
-                    
+
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
-                var chain = await _blockchainService.CreateChainAsync(block, transactions);
-                
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
+                var chain = await _blockchainService.CreateChainAsync(block.Block, transactions);
+                var blockExecutionResult = await _blockchainExecutingService.ExecuteBlocksAsync(new[] {block.Block});
+                await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, blockExecutionResult);
 
                 return await _blockchainService.GetChainAsync();
             }
