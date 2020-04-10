@@ -126,11 +126,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task AEDPoSContract_SetMaximumMinersCount_NoPermission()
         {
-            var transactionResult =
-                (await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new Int32Value {Value = 100}))
-                .TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("No permission");
+            var exception =
+                await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new Int32Value {Value = 100})
+                    .ShouldThrowAsync<Exception>();
+
+            exception.Message.ShouldContain("No permission");
         }
     }
 }

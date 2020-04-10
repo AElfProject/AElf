@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -64,14 +65,13 @@ namespace AElf.Contracts.Election
                         }
                     });
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.TransactionResult.ReturnValue);
-            var result = await ElectionContractStub.ChangeMethodFeeController.SendAsync(new AuthorityInfo
+            var exception = await ElectionContractStub.ChangeMethodFeeController.SendAsync(new AuthorityInfo
             {
                 OwnerAddress = organizationAddress,
                 ContractAddress = ParliamentContractAddress
-            });
+            }).ShouldThrowAsync<Exception>();
 
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+            exception.Message.ShouldContain("Unauthorized behavior.");
         }
 
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
