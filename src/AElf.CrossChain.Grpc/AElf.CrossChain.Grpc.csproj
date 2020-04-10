@@ -24,7 +24,7 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc" Version="2.27.0" />
-        <PackageReference Include="Grpc.Tools" Version="2.27.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.28.1" />
     </ItemGroup>
 
     <ItemGroup>
