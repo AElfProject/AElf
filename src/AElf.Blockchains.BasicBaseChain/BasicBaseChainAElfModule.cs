@@ -33,6 +33,7 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
+        typeof(CrossChainModule),
         typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
         typeof(TokenKernelAElfModule),
@@ -42,7 +43,6 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(CrossChainModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
