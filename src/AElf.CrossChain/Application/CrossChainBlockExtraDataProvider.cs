@@ -33,5 +33,7 @@ namespace AElf.CrossChain.Application
 
             return bytes;
         }
+
+        public string ExtraDataName => CrossChainConstants.CrossChainExtraDataNamePrefix;
     }
 }

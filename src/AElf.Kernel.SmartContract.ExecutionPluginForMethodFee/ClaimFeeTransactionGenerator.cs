@@ -68,5 +68,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger.LogInformation("Tx ClaimTransactionFees generated.");
             return generatedTransactions;
         }
+
+        public string SystemTransactionGeneratorName => nameof(ClaimFeeTransactionGenerator);
     }
 }

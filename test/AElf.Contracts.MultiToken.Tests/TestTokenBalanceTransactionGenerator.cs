@@ -22,5 +22,7 @@ namespace AElf.Contracts.MultiToken
             res.Add(GenerateTransactionFunc(from, preBlockHeight, preBlockHash));
             return Task.FromResult(res);
         }
+
+        public string SystemTransactionGeneratorName => nameof(TestTokenBalanceTransactionGenerator);
     }
 }

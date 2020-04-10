@@ -178,6 +178,11 @@ namespace AElf.CrossChain
 
         public class MockConsensusExtraDataProvider : IConsensusExtraDataNameProvider
         {
+            public Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
+            {
+                throw new NotImplementedException();
+            }
+
             public string ExtraDataName => "Consensus";
         }
 
