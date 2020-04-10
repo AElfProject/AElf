@@ -29,5 +29,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<VoteWeightInterestList> VoteWeightInterestList { get; set; }
         public SingletonState<AuthorityInfo> VoteWeightInterestController { get; set; }
         public SingletonState<SymbolList> SymbolList { get; set; }
+        public SingletonState<DividendPoolWeightSetting> DividendPoolWeightSetting { get; set; }
+        public SingletonState<MinerRewardWeightSetting> MinerRewardWeightSetting { get; set; }
     }
 }
