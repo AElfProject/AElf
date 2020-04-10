@@ -62,7 +62,10 @@ namespace AElf
         /// <returns></returns>
         public static byte[] ComputeHash(this byte[] bytes)
         {
-            return SHA256.Create().ComputeHash(bytes);
+            using (SHA256 sha256 = new SHA256Managed())
+            {
+                return sha256.ComputeHash(bytes);
+            }
         }
 
         public static byte[] LeftPad(this byte[] bytes, int length)

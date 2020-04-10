@@ -168,7 +168,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogTrace("Start world state calculation.");
             Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
-            using (var hashAlgorithm = SHA256.Create())
+            using (var hashAlgorithm = new SHA256Managed())
             {
                 foreach (var bytes in byteArrays)
                 {
