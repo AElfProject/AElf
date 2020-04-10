@@ -24,6 +24,11 @@ namespace AElf.Cryptography
             });
         }
 
+        public static void ResetPoolObjectCount(int n)
+        {
+            CryptoObjects.ResetObjectCount(n);
+        }
+
 
         public static ECKeyPair FromPrivateKey(byte[] privateKey)
         {
@@ -124,23 +129,38 @@ namespace AElf.Cryptography
     }
 
 
-    public class ObjectPool<T>
+    internal class ObjectPool<T>
     {
-        private ConcurrentBag<T> _objects;
-        private Func<T> _objectGenerator;
+        private readonly BlockingCollection<T> _objects;
+        private readonly Func<T> _objectGenerator;
 
-        public ObjectPool(Func<T> objectGenerator)
+        public ObjectPool(Func<T> objectGenerator, int count = 2)
         {
-            if (objectGenerator == null) throw new ArgumentNullException("objectGenerator");
-            _objects = new ConcurrentBag<T>();
+            if (objectGenerator == null)
+                throw new ArgumentNullException(nameof(objectGenerator));
+            _objects = new BlockingCollection<T>();
             _objectGenerator = objectGenerator;
+
+            for (int i = 0; i < count; i++)
+            {
+                _objects.Add(_objectGenerator());
+            }
+        }
+
+        public void ResetObjectCount(int n)
+        {
+            if (_objects.Count < n)
+            {
+                for (int i = 0; i < n - _objects.Count; i++)
+                {
+                    _objects.Add(_objectGenerator());
+                }
+            }
         }
 
         public T GetObject()
         {
-            T item;
-            if (_objects.TryTake(out item)) return item;
-            return _objectGenerator();
+            return _objects.Take();
         }
 
         public void PutObject(T item)
@@ -149,7 +169,7 @@ namespace AElf.Cryptography
         }
     }
 
-    public class CryptoObject : IDisposable
+    internal class CryptoObject : IDisposable
     {
         private readonly Secp256k1 _secp256K1 = new Secp256k1();
         private readonly VirgilCrypto _crypto = new VirgilCrypto(KeyPairType.EC_SECP256K1);

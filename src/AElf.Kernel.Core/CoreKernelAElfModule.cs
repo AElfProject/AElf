@@ -1,4 +1,5 @@
-﻿using AElf.Database;
+﻿using System;
+using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
@@ -19,6 +20,8 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            AElf.Cryptography.CryptoHelper.ResetPoolObjectCount(Environment.ProcessorCount * 2);
+
             var services = context.Services;
 
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
@@ -36,14 +39,14 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
             services.AddStoreKeyPrefixProvide<VersionedState>("vs");
-            
+
 
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
             services.AddSingleton(typeof(ICachedBlockchainExecutedDataService<>),
                 typeof(CachedBlockchainExecutedDataService<>));
-            
+
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
         }
