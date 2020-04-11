@@ -115,6 +115,13 @@ namespace AElf.Contracts.TestKit
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
+            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
+            {
+                var option = provider.GetService<IOptions<RunnerOptions>>();
+                return new UnitTestCSharpSmartContractRunner(
+                    option.Value.SdkDir);
+            });
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
         }
 
         public int ChainId { get; } = 500;
