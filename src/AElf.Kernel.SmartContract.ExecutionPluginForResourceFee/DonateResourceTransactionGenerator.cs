@@ -85,7 +85,5 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Logger.LogInformation("Tx DonateResourceToken generated.");
             return generatedTransactions;
         }
-
-        public string SystemTransactionGeneratorName => nameof(DonateResourceTransactionGenerator);
     }
 }

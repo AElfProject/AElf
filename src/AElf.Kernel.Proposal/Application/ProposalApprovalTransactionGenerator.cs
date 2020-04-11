@@ -68,7 +68,5 @@ namespace AElf.Kernel.Proposal.Application
 
             return generatedTransactions;
         }
-
-        public string SystemTransactionGeneratorName => nameof(ProposalApprovalTransactionGenerator);
     }
 }

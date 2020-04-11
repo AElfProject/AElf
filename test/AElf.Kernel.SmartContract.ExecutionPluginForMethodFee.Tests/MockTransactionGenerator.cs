@@ -41,7 +41,5 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             transactions.Add(transaction);
             return Task.FromResult(transactions);
         }
-
-        public string SystemTransactionGeneratorName => nameof(MockTransactionGenerator);
     }
 }

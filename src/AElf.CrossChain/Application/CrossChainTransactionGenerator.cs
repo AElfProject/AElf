@@ -56,8 +56,6 @@ namespace AElf.CrossChain.Application
             return generatedTransactions;
         }
 
-        public string SystemTransactionGeneratorName => nameof(CrossChainTransactionGenerator);
-
         /// <summary>
         /// Create a txn with provided data.
         /// </summary>
@@ -81,5 +79,7 @@ namespace AElf.CrossChain.Application
                 Params = bytes,
             };
         }
+
+        
     }
 }

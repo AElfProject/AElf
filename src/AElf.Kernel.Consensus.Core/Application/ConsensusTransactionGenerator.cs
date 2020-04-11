@@ -20,7 +20,5 @@ namespace AElf.Kernel.Consensus.Application
             return await _consensusService.GenerateConsensusTransactionsAsync(new ChainContext
                 {BlockHash = preBlockHash, BlockHeight = preBlockHeight});
         }
-        
-        public string SystemTransactionGeneratorName => nameof(ConsensusTransactionGenerator);
     }
 }
