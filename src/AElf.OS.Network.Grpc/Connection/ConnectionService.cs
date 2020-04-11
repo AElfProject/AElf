@@ -89,11 +89,13 @@ namespace AElf.OS.Network.Grpc.Connection
         public async Task<bool> ConnectAsync(DnsEndPoint endpoint)
         {
             Logger.LogDebug($"Attempting to reach {endpoint}.");
+
             var dialedPeer = await GetDialedPeerWithEndpointAsync(endpoint);
             if (dialedPeer == null)
             {
                 return false;
             }
+
             var inboundPeer = _peerPool.FindPeerByPublicKey(dialedPeer.Info.Pubkey) as GrpcPeer;
             
             /* A connection already exists, this can happen when both peers dial each other at the same time. To make
@@ -150,7 +152,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
+                Logger.LogInformation(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
                 _peerPool.RemovePeer(currentPeer.Info.Pubkey);
                 await currentPeer.DisconnectAsync(false);
                 throw;
@@ -236,6 +238,12 @@ namespace AElf.OS.Network.Grpc.Connection
                 // create the connection to the peer
                 var peerEndpoint = new AElfPeerEndpoint(endpoint.Host, handshake.HandshakeData.ListeningPort);
                 var grpcPeer = await _peerDialer.DialBackPeerAsync(peerEndpoint, handshake);
+                
+                if (grpcPeer == null)
+                {
+                    Logger.LogWarning($"Could not dial back {peerEndpoint}.");
+                    return new HandshakeReply {Error = HandshakeError.InvalidConnection};
+                }
 
                 // add the new peer to the pool
                 if (!_peerPool.TryAddPeer(grpcPeer))

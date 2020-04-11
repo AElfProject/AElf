@@ -138,6 +138,14 @@ namespace AElf.OS
                     
                     return peers;
                 });
+            peerPoolMock.Setup(p => p.FindPeerByEndpoint(It.IsAny<DnsEndPoint>()))
+                .Returns<DnsEndPoint>(dnsEndPoint =>
+                {
+                    var peer = new Mock<IPeer>();
+                    peer.Setup(p => p.RemoteEndpoint).Returns(dnsEndPoint);
+                    peer.Setup(p => p.Info).Returns(new PeerConnectionInfo {Pubkey = "pubkey", ConnectionTime = TimestampHelper.GetUtcNow()});
+                    return peer.Object;
+                });
             
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
 

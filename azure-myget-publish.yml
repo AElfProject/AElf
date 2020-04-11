@@ -1,0 +1,20 @@
+  pool:
+    vmImage: ubuntu-latest
+  pr: none 
+  trigger: none
+  schedules:
+  - cron: "28 04 * * *"
+    displayName: "daily build and publish myget"
+    branches:
+      include:
+      - dev
+    always: true
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      version: 3.1.102
+  - script: bash scripts/install_protobuf.sh
+  - script: bash scripts/download_binary.sh
+  - script: bash build.sh -target=Publish-MyGet
+    displayName: 'publish myget cron'

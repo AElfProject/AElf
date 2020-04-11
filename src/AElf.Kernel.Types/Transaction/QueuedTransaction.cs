@@ -17,5 +17,6 @@ namespace AElf.Kernel
         public Hash TransactionId { get; set; }
         public Timestamp EnqueueTime { get; set; }
         public RefBlockStatus RefBlockStatus { get; set; }
+        public long BucketIndex { get; set; }
     }
 }
