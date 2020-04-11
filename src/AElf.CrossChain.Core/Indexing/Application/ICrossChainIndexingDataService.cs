@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Indexing.Infrastructure;

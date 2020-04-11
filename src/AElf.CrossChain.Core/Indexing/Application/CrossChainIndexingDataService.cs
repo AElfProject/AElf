@@ -21,12 +21,14 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
+
         private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
             _contractReaderFactory;
+
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
-        
+
         private Address CrossChainContractAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
@@ -230,7 +232,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
-        { 
+        {
             var utcNow = TimestampHelper.GetUtcNow();
             var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, utcNow);
 
@@ -271,12 +273,17 @@ namespace AElf.CrossChain.Indexing.Application
             // clear useless cache
             _transactionInputForBlockMiningDataProvider.ClearExpiredTransactionInput(blockHeight);
         }
-        
+
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
-                .CallAsync(new Int32Value
+            return await _contractReaderFactory
+                .Create(new ContractReaderContext
+                {
+                    BlockHash = libDto.BlockHash,
+                    BlockHeight = libDto.BlockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetChainInitializationData.CallAsync(new Int32Value
                 {
                     Value = chainId
                 });
@@ -294,7 +301,13 @@ namespace AElf.CrossChain.Indexing.Application
             if (!isReadyToCreateChainCache)
                 return new SideChainIdAndHeightDict();
             var lib = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            return await _readerFactory.Create(lib.BlockHash, lib.BlockHeight).GetAllChainsIdAndHeight
+            return await _contractReaderFactory
+                .Create(new ContractReaderContext
+                {
+                    BlockHash = lib.BlockHash,
+                    BlockHeight = lib.BlockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetAllChainsIdAndHeight
                 .CallAsync(new Empty());
         }
 

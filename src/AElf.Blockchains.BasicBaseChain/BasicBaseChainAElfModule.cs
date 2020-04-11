@@ -42,7 +42,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(CrossChainModule),
+        typeof(CrossChainAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module

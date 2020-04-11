@@ -14,7 +14,7 @@ using Volo.Abp.Modularity;
 namespace AElf.CrossChain
 {
     [DependsOn(
-        typeof(CrossChainModule),
+        typeof(CrossChainAElfModule),
         typeof(KernelCoreTestAElfModule),
         typeof(SmartContractAElfModule)
     )]

@@ -15,6 +15,7 @@ namespace AElf.CrossChain
     [DependsOn(
         typeof(CoreKernelAElfModule),
         typeof(CrossChainCoreModule),
+        typeof(KernelAElfModule),
         typeof(KernelCoreTestAElfModule)
     )]
     public class CrossChainTestModule : AElfModule

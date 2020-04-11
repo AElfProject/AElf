@@ -211,9 +211,9 @@ namespace AElf.CrossChain.Grpc.Client
                         });
                 return sideChainInitializationResponse;
             }
-            catch (RpcException)
+            catch (RpcException e)
             {
-                return null;
+                throw new GrpcCrossChainRequestException("Request initialization data failed.", e);
             }
         }
     }
