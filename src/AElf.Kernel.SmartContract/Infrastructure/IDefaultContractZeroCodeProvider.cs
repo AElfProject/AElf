@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         public SmartContractRegistration DefaultContractZeroRegistration { get; set; }
         public Address ContractZeroAddress => _staticChainInformationProvider.ZeroSmartContractAddress;
 
-        public virtual void SetDefaultContractZeroRegistrationByType(Type defaultZero)
+        public void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
             var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
@@ -42,29 +42,20 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             var code = File.ReadAllBytes(dllPath);
             DefaultContractZeroRegistration = new SmartContractRegistration()
             {
-                Category = KernelConstants.DefaultRunnerCategory,
+                Category = GetCategory(),
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
         }
 
+        protected virtual int GetCategory()
+        {
+            return KernelConstants.DefaultRunnerCategory;
+        }
+
         public Address GetZeroSmartContractAddress(int chainId)
         {
             return _staticChainInformationProvider.GetZeroSmartContractAddress(chainId);
-        }
-    }
-    
-    public class UnitTestContractZeroCodeProvider : DefaultContractZeroCodeProvider
-    {
-        public UnitTestContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider,
-            IOptionsSnapshot<ContractOptions> contractOptions) : base(staticChainInformationProvider, contractOptions)
-        {
-        }
-
-        public override void SetDefaultContractZeroRegistrationByType(Type defaultZero)
-        {
-            base.SetDefaultContractZeroRegistrationByType(defaultZero);
-            DefaultContractZeroRegistration.Category = KernelConstants.CodeCoverageRunnerCategory;
         }
     }
 }
