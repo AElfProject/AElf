@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Application;
 using AElf.CrossChain.Indexing.Application;
-using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
@@ -14,7 +13,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
-    [DependsOn(typeof(CoreKernelAElfModule),
+    [DependsOn(
         typeof(CrossChainModule),
         typeof(KernelCoreTestAElfModule),
         typeof(SmartContractAElfModule)
