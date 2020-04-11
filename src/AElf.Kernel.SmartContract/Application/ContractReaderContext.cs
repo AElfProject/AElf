@@ -3,6 +3,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    //TODO Need to add state cache
     public class ContractReaderContext
     {
         public Address Sender { get; set; }
