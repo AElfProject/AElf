@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Proposal.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -12,15 +13,23 @@ namespace AElf.Kernel.Proposal.Application
     internal class ProposalService : IProposalService, ITransientDependency
     {
         private readonly IProposalProvider _proposalProvider;
-        private readonly IParliamentContractReaderFactory _parliamentContractReaderFactory;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+
+        private readonly IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub>
+            _contractReaderFactory;
 
         public ILogger<ProposalService> Logger { get; set; }
 
+        private Address ParliamentContractAddress =>
+            _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
+
         public ProposalService(IProposalProvider proposalProvider,
-            IParliamentContractReaderFactory parliamentContractReaderFactory)
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<ParliamentContractContainer.ParliamentContractStub> contractReaderFactory)
         {
             _proposalProvider = proposalProvider;
-            _parliamentContractReaderFactory = parliamentContractReaderFactory;
+            _smartContractAddressService = smartContractAddressService;
+            _contractReaderFactory = contractReaderFactory;
         }
 
         public void AddNotApprovedProposal(Hash proposalId, long height)
@@ -31,8 +40,13 @@ namespace AElf.Kernel.Proposal.Application
         public async Task<List<Hash>> GetNotApprovedProposalIdListAsync(Address @from, Hash blockHash, long blockHeight)
         {
             var proposalIdList = _proposalProvider.GetAllProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight, from)
-                .GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
+            var result = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight,
+                ContractAddress = ParliamentContractAddress,
+                Sender = from
+            }).GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
 
             return result?.ProposalIds.ToList();
         }
@@ -40,8 +54,14 @@ namespace AElf.Kernel.Proposal.Application
         public async Task ClearProposalByLibAsync(Hash blockHash, long blockHeight)
         {
             var proposalIdList = _proposalProvider.GetAllProposals();
-            var result = await _parliamentContractReaderFactory.Create(blockHash, blockHeight).GetNotVotedPendingProposals
+            var result = await _contractReaderFactory.Create(new ContractReaderContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight,
+                    ContractAddress = ParliamentContractAddress
+                }).GetNotVotedPendingProposals
                 .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
+            
             if (result == null)
                 return;
 
