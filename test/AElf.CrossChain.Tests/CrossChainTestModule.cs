@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
@@ -13,7 +14,7 @@ using Volo.Abp.Modularity;
 namespace AElf.CrossChain
 {
     [DependsOn(
-        typeof(CoreKernelAElfModule),
+        typeof(SmartContractAElfModule),
         typeof(CrossChainAElfModule),
         typeof(KernelCoreTestAElfModule)
     )]
