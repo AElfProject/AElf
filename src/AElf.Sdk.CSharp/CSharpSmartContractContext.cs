@@ -78,7 +78,7 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         public Address Origin => _smartContractBridgeContextImplementation.Origin;
 
-        public Hash OriginTransactionId { get; }
+        public Hash OriginTransactionId => _smartContractBridgeContextImplementation.OriginTransactionId;
 
         /// <summary>
         /// The height of the block that contains the transaction currently executing.
