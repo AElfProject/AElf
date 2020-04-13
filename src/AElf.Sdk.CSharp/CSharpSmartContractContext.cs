@@ -29,7 +29,7 @@ namespace AElf.Sdk.CSharp
         /// Provides access to the underlying state provider.
         /// </summary>
         public IStateProvider StateProvider => _smartContractBridgeContextImplementation.StateProvider;
-        
+
         /// <summary>
         /// The chain id of the chain on which the contract is currently running.
         /// </summary>
@@ -69,7 +69,7 @@ namespace AElf.Sdk.CSharp
         /// The address of the contract currently being executed. This changes for every transaction and inline transaction.
         /// </summary>
         public Address Self => _smartContractBridgeContextImplementation.Self;
-        
+
         /// <summary>
         /// The address of the sender (signer) of the transaction being executed. It’s type is an AElf address. It
         /// corresponds to the From field of the transaction. This value never changes, even for nested inline calls.
@@ -173,7 +173,8 @@ namespace AElf.Sdk.CSharp
         /// definition of the input type.</param>
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
         {
-            _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName, args);
+            _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
+                args);
         }
 
         /// <summary>
@@ -184,7 +185,8 @@ namespace AElf.Sdk.CSharp
         /// <param name="methodName">the name of method you want to invoke.</param>
         /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
-        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+            ByteString args)
         {
             _smartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
                 methodName, args);
@@ -199,7 +201,7 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress);
         }
-        
+
         /// <summary>
         /// Converts a virtual address to the contracts address.
         /// </summary>
@@ -209,6 +211,19 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
                 virtualAddress);
+        }
+
+        public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
+        {
+            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress,
+                contractAddress);
+        }
+
+        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
+            Address contractAddress)
+        {
+            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
+                virtualAddress, contractAddress);
         }
 
         /// <summary>
@@ -241,7 +256,7 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
         }
-        
+
         /// <summary>
         /// Get the mapping that associates the system contract addresses and their name's hash.
         /// </summary>
@@ -250,7 +265,7 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GetSystemContractNameToAddressMapping();
         }
-        
+
         /// <summary>
         /// Encrypts a message with the given public key.
         /// </summary>

@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
-            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options, 
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options,
             IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _smartContractBridgeService = smartContractBridgeService;
@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
-        
+
         public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
         {
             return _smartContractBridgeService.GetSystemContractNameToAddressMapping();
@@ -194,7 +194,8 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
-        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+            ByteString args)
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction
             {
@@ -207,21 +208,33 @@ namespace AElf.Kernel.SmartContract
 
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
-            return Address.FromPublicKey(Self.Value.Concat(
+            return ConvertVirtualAddressToContractAddress(virtualAddress, Self);
+        }
+
+        public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
+        {
+            return Address.FromPublicKey(contractAddress.Value.Concat(
                 virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
         {
-            var systemHashName = GetSystemContractNameToAddressMapping().First(kv => kv.Value == Self).Key;
-            return Address.FromPublicKey(systemHashName.Value.Concat(virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
+            return ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress, Self);
+        }
+
+        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
+            Address contractAddress)
+        {
+            var systemHashName = GetSystemContractNameToAddressMapping().First(kv => kv.Value == contractAddress).Key;
+            return Address.FromPublicKey(systemHashName.Value.Concat(virtualAddress.Value.ToByteArray().ComputeHash())
+                .ToArray());
         }
 
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
-        
+
         public Address GetZeroSmartContractAddress(int chainId)
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress(chainId);
@@ -244,7 +257,7 @@ namespace AElf.Kernel.SmartContract
             {
                 throw new NoPermissionException();
             }
-            
+
             var contractDto = new ContractDto
             {
                 BlockHeight = CurrentHeight,
