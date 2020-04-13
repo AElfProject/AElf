@@ -19,7 +19,7 @@ namespace AElf.Cryptography
             CryptoObjects = new ObjectPool<CryptoObject>(() =>
             {
                 var obj = new CryptoObject();
-                AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { obj.Dispose(); };
+                //AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { obj.Dispose(); };
                 return obj;
             });
         }
