@@ -14,11 +14,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
         typeof(KernelTestAElfModule),
+        typeof(SmartContractAElfModule),
         typeof(AEDPoSAElfModule))]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSTestAElfModule : AElfModule

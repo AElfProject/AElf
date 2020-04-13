@@ -14,15 +14,19 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceConsumptionPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
+    internal class ResourceConsumptionPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
         ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
-        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService) :
+        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
             base("acs8")
         {
             _contextService = contextService;
+            _contractReaderFactory = contractReaderFactory;
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -43,14 +47,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractImplContainer.TokenContractImplStub
+            var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
             {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = tokenContractAddress
-                }
-            };
+                ContractAddress = tokenContractAddress,
+                Sender = transactionContext.Transaction.To
+            });
+            
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
@@ -64,8 +66,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
 
-            var checkResourceTokenTransaction =
-                (await tokenStub.CheckResourceToken.SendAsync(new Empty())).Transaction;
+            var checkResourceTokenTransaction = tokenStub.CheckResourceToken.GetTransaction(new Empty());
 
             return new List<Transaction>
             {

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
@@ -15,21 +16,25 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     internal class MethodFeeAffordableValidationProvider : ITransactionValidationProvider
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionFeeExemptionService _feeExemptionService;
 
         public ILogger<MethodFeeAffordableValidationProvider> Logger { get; set; }
 
         public MethodFeeAffordableValidationProvider(IBlockchainService blockchainService,
-            ITokenContractReaderFactory tokenContractReaderFactory,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            ITransactionFeeExemptionService feeExemptionService)
+            ITransactionFeeExemptionService feeExemptionService,
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
         {
             _blockchainService = blockchainService;
-            _tokenContractReaderFactory = tokenContractReaderFactory;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _feeExemptionService = feeExemptionService;
+            _smartContractAddressService = smartContractAddressService;
+            _contractReaderFactory = contractReaderFactory;
         }
 
         public bool ValidateWhileSyncing => false;
@@ -56,7 +61,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return true;
             }
 
-            var tokenStub = _tokenContractReaderFactory.Create(chainContext);
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = chainContext.BlockHash,
+                BlockHeight = chainContext.BlockHeight,
+                ContractAddress = tokenContractAddress
+            });
             var balance = (await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = transaction.From,

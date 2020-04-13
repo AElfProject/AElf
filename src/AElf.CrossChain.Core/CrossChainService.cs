@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -15,15 +17,23 @@ namespace AElf.CrossChain
     {
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
         private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
-        private readonly IReaderFactory _readerFactory;
+        private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
+            _contractReaderFactory;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<CrossChainService> Logger { get; set; }
 
+        private Address CrossChainContractAddress =>
+            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+
         public CrossChainService(IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            IReaderFactory readerFactory, ICrossChainCacheEntityService crossChainCacheEntityService)
+            ICrossChainCacheEntityService crossChainCacheEntityService,
+            IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
+            ISmartContractAddressService smartContractAddressService)
         {
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
-            _readerFactory = readerFactory;
             _crossChainCacheEntityService = crossChainCacheEntityService;
+            _contractReaderFactory = contractReaderFactory;
+            _smartContractAddressService = smartContractAddressService;
         }
 
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
@@ -68,7 +78,13 @@ namespace AElf.CrossChain
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
         {
             var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            return await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight).GetChainInitializationData
+            return await _contractReaderFactory.Create(
+                    new ContractReaderContext
+                    {
+                        BlockHash = libDto.BlockHash,
+                        BlockHeight = libDto.BlockHeight,
+                        ContractAddress = CrossChainContractAddress
+                    }).GetChainInitializationData
                 .CallAsync(new Int32Value
                 {
                     Value = chainId
@@ -97,7 +113,13 @@ namespace AElf.CrossChain
 
         private async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAsync(Hash blockHash, long blockHeight)
         {
-            return await _readerFactory.Create(blockHash, blockHeight).GetAllChainsIdAndHeight
+            return await _contractReaderFactory.Create(
+                    new ContractReaderContext
+                    {
+                        BlockHash = blockHash,
+                        BlockHeight = blockHeight,
+                        ContractAddress = CrossChainContractAddress
+                    }).GetAllChainsIdAndHeight
                 .CallAsync(new Empty());
         }
     }
