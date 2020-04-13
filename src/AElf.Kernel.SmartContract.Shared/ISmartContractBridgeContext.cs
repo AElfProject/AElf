@@ -25,6 +25,8 @@ namespace AElf.Kernel.SmartContract
 
         Address Origin { get; }
 
+        Hash OriginTransactionId { get; }
+
         long CurrentHeight { get; }
 
         Timestamp CurrentBlockTime { get; }
@@ -48,8 +50,6 @@ namespace AElf.Kernel.SmartContract
         void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
             ByteString args);
 
-        Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
-        Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress);
 
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress);
 
@@ -69,6 +69,39 @@ namespace AElf.Kernel.SmartContract
         byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
 
         byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
+
+        Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
+    }
+
+    public static class SmartContractBridgeContextExtensions
+    {
+        public static Hash GenerateId(this ISmartContractBridgeContext @this, IEnumerable<byte> bytes)
+        {
+            return @this.GenerateId(@this.Self, bytes);
+        }
+
+        public static Hash GenerateId(this ISmartContractBridgeContext @this, string token)
+        {
+            return @this.GenerateId(@this.Self, token.GetBytes());
+        }
+
+        public static Hash GenerateId(this ISmartContractBridgeContext @this, Hash token)
+        {
+            return @this.GenerateId(@this.Self, token.Value);
+        }
+
+
+        public static Address ConvertVirtualAddressToContractAddress(this ISmartContractBridgeContext @this,
+            Hash virtualAddress)
+        {
+            return @this.ConvertVirtualAddressToContractAddress(virtualAddress, @this.Self);
+        }
+
+        public static Address ConvertVirtualAddressToContractAddressWithContractHashName(
+            this ISmartContractBridgeContext @this, Hash virtualAddress)
+        {
+            return @this.ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress, @this.Self);
+        }
     }
 
     [Serializable]

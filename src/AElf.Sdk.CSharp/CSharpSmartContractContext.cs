@@ -78,6 +78,8 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         public Address Origin => _smartContractBridgeContextImplementation.Origin;
 
+        public Hash OriginTransactionId { get; }
+
         /// <summary>
         /// The height of the block that contains the transaction currently executing.
         /// </summary>
@@ -286,6 +288,11 @@ namespace AElf.Sdk.CSharp
         public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
             return _smartContractBridgeContextImplementation.DecryptMessage(senderPublicKey, cipherMessage);
+        }
+
+        public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
+        {
+            return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
     }
 }

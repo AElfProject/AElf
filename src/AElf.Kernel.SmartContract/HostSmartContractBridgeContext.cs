@@ -115,11 +115,17 @@ namespace AElf.Kernel.SmartContract
             return AsyncHelper.RunSync(() => _accountService.DecryptMessageAsync(senderPublicKey, cipherMessage));
         }
 
+        public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
+        {
+            return Hash.FromRawBytes(OriginTransactionId.Value.Concat(contractAddress.Value).Concat(bytes).ToArray());
+        }
+
         public Transaction Transaction => TransactionContext.Transaction.Clone();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
         public Address Self => TransactionContext.Transaction.To.Clone();
         public Address Origin => TransactionContext.Origin.Clone();
+        public Hash OriginTransactionId => TransactionContext.OriginTransactionId;
         public long CurrentHeight => TransactionContext.BlockHeight;
         public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
@@ -153,7 +159,7 @@ namespace AElf.Kernel.SmartContract
 
                 var tx = new Transaction()
                 {
-                    From = this.Self,
+                    From = Self,
                     To = address,
                     MethodName = methodName,
                     Params = args
@@ -187,7 +193,7 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = ConvertVirtualAddressToContractAddress(fromVirtualAddress),
+                From = this.ConvertVirtualAddressToContractAddress(fromVirtualAddress),
                 To = toAddress,
                 MethodName = methodName,
                 Params = args
@@ -199,27 +205,17 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction
             {
-                From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress),
+                From = this.ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress),
                 To = toAddress,
                 MethodName = methodName,
                 Params = args
             });
         }
 
-        public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
-        {
-            return ConvertVirtualAddressToContractAddress(virtualAddress, Self);
-        }
-
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
         {
             return Address.FromPublicKey(contractAddress.Value.Concat(
                 virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
-        }
-
-        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
-        {
-            return ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress, Self);
         }
 
         public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
