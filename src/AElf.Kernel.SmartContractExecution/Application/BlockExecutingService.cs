@@ -225,7 +225,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return HashHelper.ComputeFrom(rawBytes);
+            return HashHelper.ComputeFromByteArray(rawBytes);
         }
     }
 }

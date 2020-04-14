@@ -19,7 +19,7 @@ namespace AElf.CrossChain.Cache
             {
                 Height = height,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(height.ToString())
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(height.ToString())
             });
             Assert.True(res);
             Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
@@ -50,13 +50,13 @@ namespace AElf.CrossChain.Cache
             {
                 Height = height,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(height++.ToString())
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(height++.ToString())
             });
             var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = height,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(height.ToString())
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(height.ToString())
             });
             Assert.True(res);
             Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
@@ -77,7 +77,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = 2 * j + 1,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom((2 * j + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString((2 * j + 1).ToString())
                 }));
                 taskList.Add(t);
                 i++;
@@ -100,7 +100,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = i,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i++.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i++.ToString())
                 });
             }
 
@@ -117,13 +117,13 @@ namespace AElf.CrossChain.Cache
             {
                 Height = 1,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("1")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("1")
             });
             blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 2,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("2")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("2")
             });
 
             // 3 is absent.
@@ -131,7 +131,7 @@ namespace AElf.CrossChain.Cache
             {
                 Height = 4,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("4")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("4")
             });
             Assert.True(blockInfoCache.TargetChainHeight() == 3);
         }
@@ -150,7 +150,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = initTarget,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(initTarget.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(initTarget.ToString())
                 }));
                 taskList.Add(t);
             }
@@ -201,7 +201,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = i,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i.ToString())
                 });
             }
 
@@ -220,7 +220,7 @@ namespace AElf.CrossChain.Cache
             {
                 Height = 1,
                 ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("1")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("1")
             });
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, false);
             Assert.True(res);
@@ -240,7 +240,7 @@ namespace AElf.CrossChain.Cache
                 {
                     ChainId = chainId,
                     Height = i,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i.ToString())
                 });
             }
 
@@ -262,7 +262,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = i,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i.ToString())
                 });
             }
 
@@ -286,7 +286,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = i,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i.ToString())
                 });
             }
 
@@ -306,13 +306,13 @@ namespace AElf.CrossChain.Cache
             {
                 Height = 1,
                 ChainId = sideChainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("1")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("1")
             });
             blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 2,
                 ChainId = sideChainId,
-                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("2")
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("2")
             });
             blockInfoCache.TryTake(1, out _, false);
             blockInfoCache.TryTake(2, out _, false);
@@ -333,7 +333,7 @@ namespace AElf.CrossChain.Cache
                 {
                     Height = i,
                     ChainId = chainId,
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom(i.ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(i.ToString())
                 });
             }
             

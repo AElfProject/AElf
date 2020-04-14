@@ -76,9 +76,6 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToHex()
         {
-            if (Value.Length != AElfConstants.HashByteArrayLength)
-                throw new ArgumentException("Invalid bytes.", nameof(Value));
-
             return Value.ToHex();
         }
 

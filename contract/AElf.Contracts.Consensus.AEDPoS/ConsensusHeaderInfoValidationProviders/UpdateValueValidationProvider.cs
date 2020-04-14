@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
             if (previousInValue == Hash.Empty) return true;
 
-            return HashHelper.ComputeFrom(previousInValue) == previousOutValue;
+            return HashHelper.ComputeFromIMessage(previousInValue) == previousOutValue;
         }
     }
 }

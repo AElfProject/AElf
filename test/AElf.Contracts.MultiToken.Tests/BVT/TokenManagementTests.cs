@@ -207,7 +207,7 @@ namespace AElf.Contracts.MultiToken
                     DeploySystemSmartContract(
                         KernelConstants.CodeCoverageRunnerCategory,
                         ConsensusContractCode,
-                        HashHelper.ComputeFrom("AElf.ContractNames.Consensus"),
+                        HashHelper.ComputeFromString("AElf.ContractNames.Consensus"),
                         DefaultKeyPair
                     ));
                 AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);

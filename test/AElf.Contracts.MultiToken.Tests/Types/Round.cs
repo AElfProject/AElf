@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
-            return HashHelper.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
+            return HashHelper.ComputeFromByteArray(GetCheckableRound(isContainPreviousInValue));
         }
         
         /// <summary>

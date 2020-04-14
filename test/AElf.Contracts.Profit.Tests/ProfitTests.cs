@@ -420,7 +420,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
             {
-                SchemeId = HashHelper.ComputeFrom("SchemeId"),
+                SchemeId = HashHelper.ComputeFromString("SchemeId"),
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
             });
 
@@ -619,7 +619,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.RemoveBeneficiary.SendWithExceptionAsync(new RemoveBeneficiaryInput
             {
-                SchemeId = HashHelper.ComputeFrom("SchemeId"),
+                SchemeId = HashHelper.ComputeFromString("SchemeId"),
                 Beneficiary = SampleAddress.AddressList[0]
             });
 
@@ -722,7 +722,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await user.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
-                SchemeId = HashHelper.ComputeFrom("SchemeId"),
+                SchemeId = HashHelper.ComputeFromString("SchemeId"),
                 AmountsMap =
                 {
                     {ProfitContractTestConstants.NativeTokenSymbol, amount}
@@ -1085,7 +1085,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await beneficiary.ClaimProfits.SendWithExceptionAsync(new ClaimProfitsInput
             {
-                SchemeId = HashHelper.ComputeFrom("SchemeId"),
+                SchemeId = HashHelper.ComputeFromString("SchemeId"),
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

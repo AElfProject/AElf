@@ -30,7 +30,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
                 requestSlot != null && requestSlot.BlockHeight.Add(CommitmentSchemeContractConstants.WaitBlockHeight) <=
                 Context.CurrentHeight, "Incorrect request slot.");
             var userCommitment = State.Commitments[Context.Sender];
-            Assert(HashHelper.ComputeFrom(input) == userCommitment, "Incorrect commitment.");
+            Assert(HashHelper.ComputeFromIMessage(input) == userCommitment, "Incorrect commitment.");
             var properInValue = GetNextInValueOfSlot(State.RequestSlots[Context.Sender]);
             return HashHelper.ConcatAndCompute(input, properInValue);
         }

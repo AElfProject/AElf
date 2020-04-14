@@ -10,7 +10,7 @@ namespace AElf.Types
         public Hash GetHash()
         {
             if (_transactionId == null)
-                _transactionId = HashHelper.ComputeFrom(GetSignatureData());
+                _transactionId = HashHelper.ComputeFromByteArray(GetSignatureData());
 
             return _transactionId;
         }

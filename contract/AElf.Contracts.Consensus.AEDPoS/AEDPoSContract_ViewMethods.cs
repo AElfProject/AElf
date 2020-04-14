@@ -373,7 +373,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private static Hash GetMinerListHash(IEnumerable<string> minerList)
         {
-            return HashHelper.ComputeFrom(
+            return HashHelper.ComputeFromString(
                 minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
         }
 

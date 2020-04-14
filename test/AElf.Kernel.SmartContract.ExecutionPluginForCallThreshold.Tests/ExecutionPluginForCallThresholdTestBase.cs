@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
             //Test contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFrom("TestContract"),
+                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFromString("TestContract"),
                     DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

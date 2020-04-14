@@ -34,7 +34,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task InputFormatter_Context_With_Message_Test()
         {
-            var hashValue = HashHelper.ComputeFrom("test").ToByteArray();
+            var hashValue = HashHelper.ComputeFromString("test").ToByteArray();
             var content = hashValue.ToString();
             var context = GenerateInputFormatterContext(content, typeof(Hash), "application/x-protobuf");
 

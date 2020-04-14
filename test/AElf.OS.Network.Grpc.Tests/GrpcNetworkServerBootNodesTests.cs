@@ -48,11 +48,11 @@ namespace AElf.OS.Network
             exHealthCheck.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
             
             var exGetBlocks = await Assert.ThrowsAsync<NetworkException>(
-                async () => await peer.GetBlocksAsync(HashHelper.ComputeFrom("blockHash"), 10));
+                async () => await peer.GetBlocksAsync(HashHelper.ComputeFromString("blockHash"), 10));
             exGetBlocks.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
             
             var exGetBlock = await Assert.ThrowsAsync<NetworkException>(
-                async () => await peer.GetBlockByHashAsync(HashHelper.ComputeFrom("blockHash")));
+                async () => await peer.GetBlockByHashAsync(HashHelper.ComputeFromString("blockHash")));
             exGetBlock.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
             
             var exGetNodes = await Assert.ThrowsAsync<NetworkException>(

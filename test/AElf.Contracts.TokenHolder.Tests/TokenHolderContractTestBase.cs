@@ -128,7 +128,7 @@ namespace AElf.Contracts.TokenHolder
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DAppContract).Assembly.Location)),
-                        Name = HashHelper.ComputeFrom("AElf.ContractNames.DApp"),
+                        Name = HashHelper.ComputeFromString("AElf.ContractNames.DApp"),
                         TransactionMethodCallList =
                             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
                             {

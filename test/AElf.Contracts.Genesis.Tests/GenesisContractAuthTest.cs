@@ -228,7 +228,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = CodeUpdated.Parser
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).Indexed[0]).Address;
             contractAddress.ShouldBe(newAddress);
-            var codeHash = HashHelper.ComputeFrom(code);
+            var codeHash = HashHelper.ComputeFromByteArray(code);
             var newHash = CodeUpdated.Parser
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
@@ -390,7 +390,7 @@ namespace AElf.Contracts.Genesis
             var address = CodeUpdated.Parser.ParseFrom(result.Logs[1].Indexed[0]).Address;
             address.ShouldBe(BasicContractZeroAddress);
             var codeHash = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).NewCodeHash;
-            codeHash.ShouldBe(HashHelper.ComputeFrom(code));
+            codeHash.ShouldBe(HashHelper.ComputeFromByteArray(code));
             var contractVersion = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).Version;
             contractVersion.ShouldBe(2);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,

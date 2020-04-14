@@ -261,19 +261,19 @@ namespace AElf.Contracts.Economic.TestBase
             switch (contract)
             {
                 case Contracts.Parliament:
-                    hash = HashHelper.ComputeFrom("AElf.ContractNames.Parliament");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Parliament");
                     break;
                 case Contracts.AEDPoS:
-                    hash = HashHelper.ComputeFrom("AElf.ContractNames.Consensus");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Consensus");
                     break;
                 case Contracts.MultiToken:
-                    hash = HashHelper.ComputeFrom("AElf.ContractNames.Token");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Token");
                     break;
                 case Contracts.TransactionFee:
-                    hash = HashHelper.ComputeFrom("AElf.ContractNames.TransactionFeeCharging");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.TransactionFeeCharging");
                     break;
                 default:
-                    hash = HashHelper.ComputeFrom($"AElf.ContractNames.{contract.ToString()}");
+                    hash = HashHelper.ComputeFromString($"AElf.ContractNames.{contract.ToString()}");
                     break;
             }
 
@@ -285,7 +285,7 @@ namespace AElf.Contracts.Economic.TestBase
         private async Task<Address> DeployContract(TestContracts contract)
         {
             var code = Codes.Single(kv => kv.Key.Contains(contract.ToString())).Value;
-            var hash = HashHelper.ComputeFrom($"AElf.ContractNames.{contract.ToString()}");
+            var hash = HashHelper.ComputeFromString($"AElf.ContractNames.{contract.ToString()}");
             var address = await DeploySystemSmartContract(Category, code, hash, BootMinerKeyPair);
 
             return address;

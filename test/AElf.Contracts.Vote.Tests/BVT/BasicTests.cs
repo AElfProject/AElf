@@ -47,7 +47,7 @@ namespace AElf.Contracts.Vote
             //voting item not exist
             {
                 var transactionResult =
-                    await VoteWithException(DefaultSenderKeyPair, HashHelper.ComputeFrom("hash"), string.Empty, 100);
+                    await VoteWithException(DefaultSenderKeyPair, HashHelper.ComputeFromString("hash"), string.Empty, 100);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Voting item not found").ShouldBeTrue();
             }
@@ -99,7 +99,7 @@ namespace AElf.Contracts.Vote
             //without vote
             {
                 var withdrawResult =
-                    await WithdrawWithException(SampleECKeyPairs.KeyPairs[1], HashHelper.ComputeFrom("hash1"));
+                    await WithdrawWithException(SampleECKeyPairs.KeyPairs[1], HashHelper.ComputeFromString("hash1"));
                 withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 withdrawResult.Error.Contains("Voting record not found").ShouldBeTrue();
             }

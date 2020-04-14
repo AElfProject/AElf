@@ -74,7 +74,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Has_Block_ReturnFalse()
         {
-            var result = await _fullBlockchainService.HasBlockAsync(HashHelper.ComputeFrom("Not Exist Block"));
+            var result = await _fullBlockchainService.HasBlockAsync(HashHelper.ComputeFromString("Not Exist Block"));
             result.ShouldBeFalse();
         }
 
@@ -143,7 +143,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await _fullBlockchainService.GetChainAsync();
 
-            var result = await _fullBlockchainService.GetReversedBlockIndexes(HashHelper.ComputeFrom("not exist"), 1);
+            var result = await _fullBlockchainService.GetReversedBlockIndexes(HashHelper.ComputeFromString("not exist"), 1);
             result.Count.ShouldBe(0);
 
             result = await _fullBlockchainService.GetReversedBlockIndexes(chain.GenesisBlockHash, 1);
@@ -183,7 +183,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_Blocks_ReturnEmpty()
         {
-            var result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(HashHelper.ComputeFrom("not exist"), 3);
+            var result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(HashHelper.ComputeFromString("not exist"), 3);
             result.Count.ShouldBe(0);
         }
 
@@ -217,7 +217,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_GetBlockHashes_ReturnEmpty()
         {
             var chain = await _fullBlockchainService.GetChainAsync();
-            var notExistHash = HashHelper.ComputeFrom("not exist");
+            var notExistHash = HashHelper.ComputeFromString("not exist");
 
             var result = await _fullBlockchainService.GetBlockHashesAsync(chain, notExistHash, 1, chain.BestChainHash);
             result.Count.ShouldBe(0);
@@ -327,7 +327,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_Block_ByHash_ReturnNull()
         {
-            var result = await _fullBlockchainService.GetBlockByHashAsync(HashHelper.ComputeFrom("Not Exist Block"));
+            var result = await _fullBlockchainService.GetBlockByHashAsync(HashHelper.ComputeFromString("Not Exist Block"));
             result.ShouldBeNull();
         }
 
@@ -352,7 +352,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await _fullBlockchainService.GetChainAsync();
 
-            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, HashHelper.ComputeFrom("New Branch"));
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, HashHelper.ComputeFromString("New Branch"));
 
             await _fullBlockchainService.AddBlockAsync(newBlock);
             chain = await _fullBlockchainService.GetChainAsync();

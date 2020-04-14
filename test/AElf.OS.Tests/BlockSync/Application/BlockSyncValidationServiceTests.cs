@@ -37,7 +37,7 @@ namespace AElf.OS.BlockSync.Application
 
             var blockAnnouncement = new BlockAnnouncement
             {
-                BlockHash = HashHelper.ComputeFrom("SyncBlockHash"),
+                BlockHash = HashHelper.ComputeFromString("SyncBlockHash"),
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
@@ -55,7 +55,7 @@ namespace AElf.OS.BlockSync.Application
 
             var blockAnnouncement = new BlockAnnouncement
             {
-                BlockHash = HashHelper.ComputeFrom("SyncBlockHash"),
+                BlockHash = HashHelper.ComputeFromString("SyncBlockHash"),
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
@@ -77,7 +77,7 @@ namespace AElf.OS.BlockSync.Application
 
             var blockAnnouncement = new BlockAnnouncement
             {
-                BlockHash = HashHelper.ComputeFrom("SyncBlockHash"),
+                BlockHash = HashHelper.ComputeFromString("SyncBlockHash"),
                 BlockHeight = chain.LastIrreversibleBlockHeight
             };
 
@@ -107,7 +107,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("SyncBlockHash"),
+            var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
             var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
@@ -121,7 +121,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("SyncBlockHash"),
+            var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
             var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
@@ -141,7 +141,7 @@ namespace AElf.OS.BlockSync.Application
         {
             for (var i = 0; i < 120; i++)
             {
-                var blockHash = HashHelper.ComputeFrom(Guid.NewGuid().ToString());
+                var blockHash = HashHelper.ComputeFromString(Guid.NewGuid().ToString());
                 var blockHeight = i;
                 var result = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, GetEncodedPubKeyString());
                 result.ShouldBeTrue();

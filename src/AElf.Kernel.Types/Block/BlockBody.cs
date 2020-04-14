@@ -14,7 +14,7 @@ namespace AElf.Kernel
             if (!VerifyFields())
                 throw new InvalidOperationException($"Invalid block body.");
 
-            _blockBodyHash = HashHelper.ComputeFrom(this.ToByteArray());
+            _blockBodyHash = HashHelper.ComputeFromByteArray(this.ToByteArray());
             return _blockBodyHash;
         }
 

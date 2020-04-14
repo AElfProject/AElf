@@ -30,7 +30,7 @@ namespace AElf.Types.Tests
 
             messageDescriptor.Name.ShouldBe("Hash");
 
-            var hash = HashHelper.ComputeFrom("hello");
+            var hash = HashHelper.ComputeFromString("hello");
 
             var json = JsonFormatter.Default.Format(hash);
 

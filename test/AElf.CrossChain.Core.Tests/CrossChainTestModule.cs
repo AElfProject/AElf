@@ -24,9 +24,9 @@ namespace AElf.CrossChain
         {
             var dictionary = new Dictionary<long, Hash>
             {
-                {1, HashHelper.ComputeFrom("1")},
-                {2, HashHelper.ComputeFrom("2")},
-                {3, HashHelper.ComputeFrom("3")}
+                {1, HashHelper.ComputeFromString("1")},
+                {2, HashHelper.ComputeFromString("2")},
+                {3, HashHelper.ComputeFromString("3")}
             };
             
             Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });

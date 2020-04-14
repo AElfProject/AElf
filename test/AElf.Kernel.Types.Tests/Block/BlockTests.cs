@@ -66,9 +66,9 @@ namespace AElf.Kernel.Types.Tests
                 {
                     new[]
                     {
-                        HashHelper.ComputeFrom("tx1"),
-                        HashHelper.ComputeFrom("tx2"),
-                        HashHelper.ComputeFrom("tx3"),
+                        HashHelper.ComputeFromString("tx1"),
+                        HashHelper.ComputeFromString("tx2"),
+                        HashHelper.ComputeFromString("tx3"),
                     }
                 }
             };
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void Block_Test()
         {
-            var block = CreateBlock(HashHelper.ComputeFrom("hash"), 1234, 10);
+            var block = CreateBlock(HashHelper.ComputeFromString("hash"), 1234, 10);
             block.Height.ShouldBe(10u);
 
             var hash = block.GetHash();
@@ -118,7 +118,7 @@ namespace AElf.Kernel.Types.Tests
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
-            var block = new Block(HashHelper.ComputeFrom("hash1"));
+            var block = new Block(HashHelper.ComputeFromString("hash1"));
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -165,7 +165,7 @@ namespace AElf.Kernel.Types.Tests
             {
                 ChainId = 1234,
                 Height = 10,
-                PreviousBlockHash = HashHelper.ComputeFrom("hash3"),
+                PreviousBlockHash = HashHelper.ComputeFromString("hash3"),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
                 ExtraData = {ByteString.Empty},

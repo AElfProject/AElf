@@ -45,7 +45,7 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             input.Options.Clear();
-            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(sender));
+            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFromIMessage(input), HashHelper.ComputeFromIMessage(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = votingItemId

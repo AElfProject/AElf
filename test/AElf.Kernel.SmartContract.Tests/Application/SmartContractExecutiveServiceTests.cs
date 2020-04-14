@@ -22,8 +22,8 @@ namespace AElf.Kernel.SmartContract.Application
             var registration = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = HashHelper.ComputeFrom("TestPutExecutive").ToByteString(),
-                CodeHash = HashHelper.ComputeFrom("TestPutExecutive")
+                Code = HashHelper.ComputeFromString("TestPutExecutive").ToByteString(),
+                CodeHash = HashHelper.ComputeFromString("TestPutExecutive")
             };
 
             var mockExecutive = new Mock<IExecutive>();

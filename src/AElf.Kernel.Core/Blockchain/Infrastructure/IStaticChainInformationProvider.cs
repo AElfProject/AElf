@@ -29,7 +29,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
 
         private static Address BuildZeroContractAddress(int chainId)
         {
-            var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(chainId), HashHelper.ComputeFrom(0L));
+            var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFromInt32(chainId), HashHelper.ComputeFromInt64(0L));
             return Address.FromBytes(hash.ToByteArray());
         }
     }

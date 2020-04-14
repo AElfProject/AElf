@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task BlockState_NoNeed_To_Merge_Test()
         {
             var lastIrreversibleBlockHeight = -2;
-            var lastIrreversibleBlockHash = HashHelper.ComputeFrom("hash");
+            var lastIrreversibleBlockHash = HashHelper.ComputeFromString("hash");
 
             await _blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash);
@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task BlockState_Merge_GotException_Test()
         {
             var lastIrreversibleBlockHeight = 1;
-            var lastIrreversibleBlockHash = HashHelper.ComputeFrom("hash");
+            var lastIrreversibleBlockHash = HashHelper.ComputeFromString("hash");
 
             await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash));
@@ -59,19 +59,19 @@ namespace AElf.Kernel.SmartContract.Application
             var blockStateSet1 = new BlockStateSet()
             {
                 BlockHeight = 1,
-                BlockHash = HashHelper.ComputeFrom("hash"),
+                BlockHash = HashHelper.ComputeFromString("hash"),
                 PreviousHash = Hash.Empty
             };
             var blockStateSet2 = new BlockStateSet()
             {
                 BlockHeight = 2,
-                BlockHash = HashHelper.ComputeFrom("hash2"),
+                BlockHash = HashHelper.ComputeFromString("hash2"),
                 PreviousHash = blockStateSet1.BlockHash
             };
             var blockStateSet3 = new BlockStateSet()
             {
                 BlockHeight = 3,
-                BlockHash = HashHelper.ComputeFrom("hash3"),
+                BlockHash = HashHelper.ComputeFromString("hash3"),
                 PreviousHash = blockStateSet2.BlockHash
             };
 

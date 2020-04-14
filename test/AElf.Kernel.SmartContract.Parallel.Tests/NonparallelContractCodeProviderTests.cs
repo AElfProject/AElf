@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             
             var nonparallelContractCode = new NonparallelContractCode
             {
-                CodeHash = HashHelper.ComputeFrom(blockExecutedDataKey)
+                CodeHash = HashHelper.ComputeFromString(blockExecutedDataKey)
             };
 
             var dictionary = new Dictionary<Address, NonparallelContractCode>
