@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -46,18 +48,19 @@ namespace AElf.Contracts.Economic.TestBase
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
+            
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
-                OutValue = HashHelper.ComputeFrom("OutValue"),
-                Signature = HashHelper.ComputeFrom("Signature"),
+                OutValue = minerInRound.OutValue,
+                Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
-                ActualMiningTime = minerInRound.ExpectedMiningTime,
+                ActualMiningTime = minerInRound.ExpectedMiningTime, 
                 SupposedOrderOfNextRound = 1
             });
         }
-        
+
         protected async Task ProduceBlocks(ECKeyPair keyPair, int roundsCount, bool changeTerm = false)
         {
             for (var i = 0; i < roundsCount; i++)
