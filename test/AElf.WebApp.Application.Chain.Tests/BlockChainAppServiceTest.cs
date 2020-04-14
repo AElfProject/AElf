@@ -304,7 +304,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                Hash.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -1146,7 +1146,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             tx.From.ShouldBe(AddressHelper.Base58StringToAddress(fromAddressInBase58));
             tx.To.ShouldBe(contractAddress);
             tx.RefBlockNumber.ShouldBe(2788);
-            tx.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(HashHelper.HexStringToHash(refHashInHex)));
+            tx.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(Hash.LoadFromHex(refHashInHex)));
             tx.MethodName.ShouldBe("Transfer");
             var transferInput = TransferInput.Parser.ParseFrom(tx.Params);
             transferInput.Amount.ShouldBe(100);
@@ -1181,7 +1181,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                Hash.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -1362,7 +1362,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 merklePath.MerklePathNodes.Add(new MerklePathNode
                 {
-                    Hash = HashHelper.HexStringToHash(res.Hash), IsLeftChildNode = res.IsLeftChildNode
+                    Hash = Hash.LoadFromHex(res.Hash), IsLeftChildNode = res.IsLeftChildNode
                 });
             }
 
@@ -1440,7 +1440,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return Hash.ComputeFrom(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
     }
 }

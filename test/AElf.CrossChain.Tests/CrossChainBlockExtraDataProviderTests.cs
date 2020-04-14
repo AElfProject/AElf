@@ -28,7 +28,7 @@ namespace AElf.CrossChain
         {
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 1
             };
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
@@ -40,7 +40,7 @@ namespace AElf.CrossChain
         {
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 2
             };
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
@@ -52,7 +52,7 @@ namespace AElf.CrossChain
         {
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 2
             };
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
@@ -62,11 +62,11 @@ namespace AElf.CrossChain
         [Fact]
         public async Task FIllExtraData_TransactionPackingDisabled()
         {
-            var merkleTreeRoot = Hash.ComputeFrom("MerkleTreeRoot");
+            var merkleTreeRoot = HashHelper.ComputeFrom("MerkleTreeRoot");
             var expected = new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot};
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 2
             };
             _crossChainTestHelper.AddFakeExtraData(header.PreviousBlockHash, expected);
@@ -78,11 +78,11 @@ namespace AElf.CrossChain
         [Fact]
         public async Task FillExtraData_Test()
         {
-            var merkleTreeRoot = Hash.ComputeFrom("MerkleTreeRoot");
+            var merkleTreeRoot = HashHelper.ComputeFrom("MerkleTreeRoot");
             var expected = new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot};
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 2
             };
             _crossChainTestHelper.AddFakeExtraData(header.PreviousBlockHash, expected);

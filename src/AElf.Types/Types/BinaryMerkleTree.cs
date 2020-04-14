@@ -87,7 +87,7 @@ namespace AElf.Types
 
                 path.MerklePathNodes.Add(new MerklePathNode
                 {
-                    Hash = Hash.LoadFrom(neighbor.ToByteArray()),
+                    Hash = Hash.LoadFromBytes(neighbor.ToByteArray()),
                     IsLeftChildNode = isLeftNeighbor
                 });
 

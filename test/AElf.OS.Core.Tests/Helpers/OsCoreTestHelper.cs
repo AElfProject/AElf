@@ -16,7 +16,7 @@ namespace AElf.OS.Helpers
             {
                 ChainId = chainId,
                 Height = height,
-                PreviousBlockHash = Hash.ComputeFrom(new byte[] {1, 2, 3} ),
+                PreviousBlockHash = HashHelper.ComputeFrom(new byte[] {1, 2, 3} ),
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,

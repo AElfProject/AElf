@@ -16,14 +16,14 @@ namespace AElf.OS.Network
                 Version = KernelConstants.ProtocolVersion,
                 ListeningPort = port,
                 Pubkey = ByteString.CopyFrom(producer.PublicKey),
-                BestChainHash = Hash.ComputeFrom("BestChainHash"),
+                BestChainHash = HashHelper.ComputeFrom("BestChainHash"),
                 BestChainHeight = bestChainHeight,
-                LastIrreversibleBlockHash = Hash.ComputeFrom("LastIrreversibleBlockHash"),
+                LastIrreversibleBlockHash = HashHelper.ComputeFrom("LastIrreversibleBlockHash"),
                 LastIrreversibleBlockHeight = 1,
                 Time = TimestampHelper.GetUtcNow()
             };
             
-            var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, Hash.ComputeFrom(data).ToByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, HashHelper.ComputeFrom(data).ToByteArray());
             
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
@@ -34,7 +34,7 @@ namespace AElf.OS.Network
             {
                 ChainId = chainId,
                 Height = height,
-                PreviousBlockHash = Hash.ComputeFrom(new byte[]{1, 2, 3}),
+                PreviousBlockHash = HashHelper.ComputeFrom(new byte[]{1, 2, 3}),
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,

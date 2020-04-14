@@ -17,7 +17,7 @@ namespace AElf.Kernel.Proposal.Tests.Infrastructure
         [Fact]
         public void GetAllProposalsTest()
         {
-            var proposalId = Hash.ComputeFrom("ProposalId");
+            var proposalId = HashHelper.ComputeFrom("ProposalId");
             var blockHeight = 10;
             var proposalIdList = _proposalProvider.GetAllProposals();
             proposalIdList.ShouldBeEmpty();
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Proposal.Tests.Infrastructure
         [Fact]
         public void AddProposalTest()
         {
-            var proposalId = Hash.ComputeFrom("ProposalId");
+            var proposalId = HashHelper.ComputeFrom("ProposalId");
             var blockHeight = 10;
             _proposalProvider.AddProposal(proposalId, blockHeight);
             var exist = _proposalProvider.TryGetProposalCreatedHeight(proposalId, out var height);

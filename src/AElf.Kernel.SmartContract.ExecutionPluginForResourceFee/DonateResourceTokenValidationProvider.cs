@@ -81,10 +81,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
                 return hashFromState.Value.IsEmpty || hashFromState ==
-                       Hash.ComputeFrom(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                       HashHelper.ComputeFrom(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
 
-            var hashFromProvider = Hash.ComputeFrom(totalResourceTokensMapsFromProvider);
+            var hashFromProvider = HashHelper.ComputeFrom(totalResourceTokensMapsFromProvider);
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
             if (!result)
             {

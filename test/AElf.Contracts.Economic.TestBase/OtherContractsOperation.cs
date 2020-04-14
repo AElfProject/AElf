@@ -48,8 +48,8 @@ namespace AElf.Contracts.Economic.TestBase
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
-                OutValue = Hash.ComputeFrom("OutValue"),
-                Signature = Hash.ComputeFrom("Signature"),
+                OutValue = HashHelper.ComputeFrom("OutValue"),
+                Signature = HashHelper.ComputeFrom("Signature"),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,

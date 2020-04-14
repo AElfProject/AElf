@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
         private const string NativeToken = "ELF";
         private static long _totalSupply = 1000L;
         private readonly int _parentChainHeightOfCreation = 9;
-        private readonly Hash _fakeBlockHeader = Hash.ComputeFrom("fakeBlockHeader");
+        private readonly Hash _fakeBlockHeader = HashHelper.ComputeFrom("fakeBlockHeader");
         private string sideChainSymbol = "STA";
 
         #region register test
@@ -1020,12 +1020,12 @@ namespace AElf.Contracts.MultiToken
 
         private MerklePath GetTransactionMerklePathAndRoot(Transaction transaction, out Hash root)
         {
-            var fakeHash1 = Hash.ComputeFrom("fake1");
-            var fakeHash2 = Hash.ComputeFrom("fake2");
+            var fakeHash1 = HashHelper.ComputeFrom("fake1");
+            var fakeHash2 = HashHelper.ComputeFrom("fake2");
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString())).ToArray();
-            var hash = Hash.ComputeFrom(rawBytes);
+            var hash = HashHelper.ComputeFrom(rawBytes);
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes((new[] {hash, fakeHash1, fakeHash2}));
 
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
@@ -1174,12 +1174,12 @@ namespace AElf.Contracts.MultiToken
             long sideHeight,
             List<Hash> indexedSideChainBlockRoots)
         {
-            var fakeHash1 = Hash.ComputeFrom("fake1");
-            var fakeHash2 = Hash.ComputeFrom("fake2");
+            var fakeHash1 = HashHelper.ComputeFrom("fake1");
+            var fakeHash2 = HashHelper.ComputeFrom("fake2");
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString())).ToArray();
-            var hash = Hash.ComputeFrom(rawBytes);
+            var hash = HashHelper.ComputeFrom(rawBytes);
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRootHash = binaryMerkleTree.Root;
 

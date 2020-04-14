@@ -30,7 +30,7 @@ namespace AElf.Kernel.Miner
         public async Task Generate_SystemTransactions_Test()
         {
             var transactionList = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(
-                SampleAddress.AddressList[0], 1L, Hash.ComputeFrom("hash"));
+                SampleAddress.AddressList[0], 1L, HashHelper.ComputeFrom("hash"));
             transactionList.ShouldNotBeNull();
             transactionList.Count.ShouldBe(2);
         }

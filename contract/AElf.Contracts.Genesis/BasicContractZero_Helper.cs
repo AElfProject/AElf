@@ -19,7 +19,7 @@ namespace AElf.Contracts.Genesis
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
 
-            var codeHash = Hash.ComputeFrom(code);
+            var codeHash = HashHelper.ComputeFrom(code);
             
             Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
             
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Genesis
 
         private Hash CalculateHashFromInput(IMessage input)
         {
-            return Hash.ComputeFrom(input);
+            return HashHelper.ComputeFrom(input);
         }
 
         private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
@@ -216,13 +216,13 @@ namespace AElf.Contracts.Genesis
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber));
+            var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFrom(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(Hash.ComputeFrom(chainId), serialNumber);
+            return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
         }
     }
 }

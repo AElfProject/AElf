@@ -70,7 +70,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
-            return Hash.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
+            return HashHelper.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
         }
 
         public string GetCurrentMinerPubkey(Timestamp currentBlockTime)
@@ -148,9 +148,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash CalculateSignature(Hash inValue)
         {
-            return inValue ^
+            return HashHelper.XorAndCompute(inValue,
                    RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
-                       (current, minerInRound) => current ^ minerInRound.Signature);
+                       (current, minerInRound) => HashHelper.XorAndCompute(current, minerInRound.Signature)));
         }
 
         public Timestamp GetExtraBlockMiningTime()

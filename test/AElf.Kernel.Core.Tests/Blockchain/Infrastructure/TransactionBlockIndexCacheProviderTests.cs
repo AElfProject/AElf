@@ -16,10 +16,10 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         [Fact]
         public void TransactionBlockIndexCacheTest()
         {
-            var txId1 = Hash.ComputeFrom("TxId1");
+            var txId1 = HashHelper.ComputeFrom("TxId1");
             var transactionBlockIndex1 = new TransactionBlockIndex
             {
-                BlockHash = Hash.ComputeFrom("BlockHash"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash"),
                 BlockHeight = 100
             };
 
@@ -28,40 +28,40 @@ namespace AElf.Kernel.Blockchain.Infrastructure
             getResult.ShouldBeTrue();
             cachedTransactionBlockIndex.ShouldBe(transactionBlockIndex1);
 
-            var txId2 = Hash.ComputeFrom("TxId2");
+            var txId2 = HashHelper.ComputeFrom("TxId2");
             var transactionBlockIndex2 = new TransactionBlockIndex
             {
-                BlockHash = Hash.ComputeFrom("BlockHash2"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash2"),
                 BlockHeight = 101,
                 PreviousExecutionBlockIndexList =
                 {
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash"), BlockHeight = 100}
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash"), BlockHeight = 100}
                 }
             };
             _transactionBlockIndexProvider.AddTransactionBlockIndex(txId2, transactionBlockIndex2);
 
-            var txId3 = Hash.ComputeFrom("TxId3");
+            var txId3 = HashHelper.ComputeFrom("TxId3");
             var transactionBlockIndex3 = new TransactionBlockIndex
             {
-                BlockHash = Hash.ComputeFrom("BlockHash3"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash3"),
                 BlockHeight = 101,
                 PreviousExecutionBlockIndexList =
                 {
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash2"), BlockHeight = 102},
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash3"), BlockHeight = 103}
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash2"), BlockHeight = 102},
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash3"), BlockHeight = 103}
                 }
             };
             _transactionBlockIndexProvider.AddTransactionBlockIndex(txId3, transactionBlockIndex3);
             
             var transactionBlockIndex4 = new TransactionBlockIndex
             {
-                BlockHash = Hash.ComputeFrom("BlockHash4"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash4"),
                 BlockHeight = 104,
                 PreviousExecutionBlockIndexList =
                 {
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash1"), BlockHeight = 101},
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash2"), BlockHeight = 102},
-                    new BlockIndex {BlockHash = Hash.ComputeFrom("PreviousBlockHash3"), BlockHeight = 103}
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash1"), BlockHeight = 101},
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash2"), BlockHeight = 102},
+                    new BlockIndex {BlockHash = HashHelper.ComputeFrom("PreviousBlockHash3"), BlockHeight = 103}
                 }
             };
             _transactionBlockIndexProvider.AddTransactionBlockIndex(txId3, transactionBlockIndex4);

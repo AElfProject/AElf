@@ -89,7 +89,7 @@ namespace AElf.Kernel
             ForkBranchBlockList =
                 await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList = await AddForkBranch(9, Hash.ComputeFrom("UnlinkBlock"));
+            UnlinkedBranchBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,

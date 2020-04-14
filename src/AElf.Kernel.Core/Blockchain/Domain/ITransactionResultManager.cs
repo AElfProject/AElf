@@ -32,7 +32,7 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash)
         {
             await _transactionResultStore.SetAsync(
-                (transactionResult.TransactionId ^ disambiguationHash).ToStorageKey(),
+                HashHelper.XorAndCompute(transactionResult.TransactionId, disambiguationHash).ToStorageKey(),
                 transactionResult);
         }
 
@@ -40,30 +40,30 @@ namespace AElf.Kernel.Blockchain.Domain
             Hash disambiguationHash)
         {
             await _transactionResultStore.SetAllAsync(
-                transactionResults.ToDictionary(t => (t.TransactionId ^ disambiguationHash).ToStorageKey(), t => t));
+                transactionResults.ToDictionary(t => HashHelper.XorAndCompute(t.TransactionId, disambiguationHash).ToStorageKey(), t => t));
         }
 
         public async Task RemoveTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash)
         {
-            await _transactionResultStore.RemoveAllAsync(txIds.Select(t => (t ^ disambiguationHash).ToStorageKey())
+            await _transactionResultStore.RemoveAllAsync(txIds.Select(t => HashHelper.XorAndCompute(t, disambiguationHash).ToStorageKey())
                 .ToList());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)
         {
-            return await _transactionResultStore.GetAsync((txId ^ disambiguationHash).ToStorageKey());
+            return await _transactionResultStore.GetAsync(HashHelper.XorAndCompute(txId, disambiguationHash).ToStorageKey());
         }
 
         public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> txIds,
             Hash disambiguationHash)
         {
-            return await _transactionResultStore.GetAllAsync(txIds.Select(t => (t ^ disambiguationHash).ToStorageKey())
+            return await _transactionResultStore.GetAllAsync(txIds.Select(t => HashHelper.XorAndCompute(t, disambiguationHash).ToStorageKey())
                 .ToList());
         }
 
         public async Task<bool> HasTransactionResultAsync(Hash transactionId, Hash disambiguationHash)
         {
-            return await _transactionResultStore.IsExistsAsync((transactionId ^ disambiguationHash).ToStorageKey());
+            return await _transactionResultStore.IsExistsAsync(HashHelper.XorAndCompute(transactionId, disambiguationHash).ToStorageKey());
         }
     }
 }

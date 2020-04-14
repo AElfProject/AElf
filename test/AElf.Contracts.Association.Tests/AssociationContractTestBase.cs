@@ -92,7 +92,7 @@ namespace AElf.Contracts.Association
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ConsensusContractCode,
-                    Hash.ComputeFrom("AElf.ContractNames.Consensus"),
+                    HashHelper.ComputeFrom("AElf.ContractNames.Consensus"),
                     DefaultSenderKeyPair
                 ));
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);

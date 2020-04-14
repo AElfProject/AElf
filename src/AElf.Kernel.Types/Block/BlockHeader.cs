@@ -16,7 +16,7 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             if (_blockHash == null)
-                _blockHash = Hash.ComputeFrom(GetSignatureData());
+                _blockHash = HashHelper.ComputeFrom(GetSignatureData());
 
             return _blockHash;
         }

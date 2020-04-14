@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void Serialization_ByteArray_Test()
         {
             //Hash test
-            var hash = Hash.ComputeFrom("hash");
+            var hash = HashHelper.ComputeFrom("hash");
             var hashArray = SerializationHelper.Serialize(hash);
             var hash1 = SerializationHelper.Deserialize<Hash>(hashArray);
             hash.ShouldBe(hash1);
@@ -113,11 +113,11 @@ namespace AElf.Sdk.CSharp.Tests
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
                 Height = AElfConstants.GenesisBlockHeight,
                 Bloom = ByteString.CopyFromUtf8("bloom"),
-                PreviousBlockHash = Hash.ComputeFrom("PreviousBlockHash"),
-                MerkleTreeRootOfTransactions = Hash.ComputeFrom("MerkleTreeRootOfTransactions"),
-                MerkleTreeRootOfWorldState = Hash.ComputeFrom("MerkleTreeRootOfWorldState"),
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash"),
+                MerkleTreeRootOfTransactions = HashHelper.ComputeFrom("MerkleTreeRootOfTransactions"),
+                MerkleTreeRootOfWorldState = HashHelper.ComputeFrom("MerkleTreeRootOfWorldState"),
                 Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfTransactionStatus = Hash.ComputeFrom("MerkleTreeRootOfTransactionStatus")
+                MerkleTreeRootOfTransactionStatus = HashHelper.ComputeFrom("MerkleTreeRootOfTransactionStatus")
             };
             var headerArray = SerializationHelper.Serialize(header);
             var header1 = SerializationHelper.Deserialize<BlockHeader>(headerArray);

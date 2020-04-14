@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.ComputeFrom(code)
+                CodeHash = HashHelper.ComputeFrom(code)
             };
         }
 

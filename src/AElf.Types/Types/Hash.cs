@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -10,7 +9,7 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
-        public static readonly Hash Empty = LoadFrom(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
+        public static readonly Hash Empty = LoadFromBytes(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
         /// <summary>
@@ -22,22 +21,13 @@ namespace AElf.Types
             return $@"""{ToHex()}""";
         }
 
-        // Make private to avoid confusion
-        private Hash(byte[] bytes)
-        {
-            if (bytes.Length != AElfConstants.HashByteArrayLength)
-                throw new ArgumentException("Invalid bytes.", nameof(bytes));
-
-            Value = ByteString.CopyFrom(bytes);
-        }
-        
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Hash LoadFrom(byte[] bytes)
+        public static Hash LoadFromBytes(byte[] bytes)
         {
             if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
@@ -49,55 +39,28 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Compute hash from a byte array.
+        /// Loads the content value represented in base64.
         /// </summary>
-        /// <param name="bytes"></param>
+        /// <param name="base64"></param>
         /// <returns></returns>
-        public static Hash ComputeFrom(byte[] bytes)
+        public static Hash LoadFromBase64(string base64)
         {
-            return new Hash(bytes.ComputeHash());
+            var bytes = Convert.FromBase64String(base64);
+            return LoadFromBytes(bytes);
         }
 
         /// <summary>
-        /// Compute hash from a string encoded in UTF8.
+        /// Loads the content value represented in hex string.
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="hex"></param>
         /// <returns></returns>
-        public static Hash ComputeFrom(string str)
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Hash LoadFromHex(string hex)
         {
-            return ComputeFrom(Encoding.UTF8.GetBytes(str));
-        }
-
-        /// <summary>
-        /// Compute hash from int32 value.
-        /// </summary>
-        /// <param name="intValue"></param>
-        /// <returns></returns>
-        public static Hash ComputeFrom(int intValue)
-        {
-            return ComputeFrom(intValue.ToBytes(false));
+            var bytes = ByteArrayHelper.HexStringToByteArray(hex);
+            return LoadFromBytes(bytes);
         }
         
-        /// <summary>
-        /// Compute hash from int64 value.
-        /// </summary>
-        /// <param name="intValue"></param>
-        /// <returns></returns>
-        public static Hash ComputeFrom(long intValue)
-        {
-            return ComputeFrom(intValue.ToBytes(false));
-        }
-
-        /// <summary>
-        /// Gets the hash from a Protobuf Message. Its serialized byte array is used for hash calculation.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static Hash ComputeFrom(IMessage message)
-        {
-            return ComputeFrom(message.ToByteArray());
-        }
-
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -107,6 +70,15 @@ namespace AElf.Types
             return Value.ToByteArray();
         }
 
+        /// <summary>
+        /// Dumps the content value to base64 string.
+        /// </summary>
+        /// <returns></returns>
+        public string ToBase64()
+        {
+            return Convert.ToBase64String(Value.ToByteArray());
+        }
+        
         /// <summary>
         /// Dumps the content value to hex string.
         /// </summary>
@@ -119,6 +91,11 @@ namespace AElf.Types
             return Value.ToHex();
         }
 
+        public Int64 ToInt32()
+        {
+            return ToByteArray().ToInt64(true);
+        }
+        
         public Int64 ToInt64()
         {
             return ToByteArray().ToInt64(true);
@@ -142,23 +119,6 @@ namespace AElf.Types
         public static bool operator >(Hash h1, Hash h2)
         {
             return CompareHash(h1, h2) > 0;
-        }
-
-        /// <summary>
-        /// Gets a new hash from two input hashes from bitwise xor operation.
-        /// </summary>
-        /// <param name="h1"></param>
-        /// <param name="h2"></param>
-        /// <returns></returns>
-        public static Hash operator ^(Hash h1, Hash h2)
-        {
-            var newBytes = new byte[AElfConstants.HashByteArrayLength];
-            for (var i = 0; i < newBytes.Length; i++)
-            {
-                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
-            }
-
-            return ComputeFrom(newBytes);
         }
 
         public int CompareTo(Hash that)

@@ -20,8 +20,8 @@ namespace AElf.Kernel.SmartContract.Application
             var registration = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.ComputeFrom("TestDeployContract").ToByteString(),
-                CodeHash = Hash.ComputeFrom("TestDeployContract")
+                Code = HashHelper.ComputeFrom("TestDeployContract").ToByteString(),
+                CodeHash = HashHelper.ComputeFrom("TestDeployContract")
             };
 
 
@@ -42,22 +42,22 @@ namespace AElf.Kernel.SmartContract.Application
             var registrationA = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.ComputeFrom("TestContractA").ToByteString(),
-                CodeHash = Hash.ComputeFrom("TestContractA")
+                Code = HashHelper.ComputeFrom("TestContractA").ToByteString(),
+                CodeHash = HashHelper.ComputeFrom("TestContractA")
             };
 
             var registrationANew = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.ComputeFrom("TestContractA_New").ToByteString(),
-                CodeHash = Hash.ComputeFrom("TestContractA")
+                Code = HashHelper.ComputeFrom("TestContractA_New").ToByteString(),
+                CodeHash = HashHelper.ComputeFrom("TestContractA")
             };
 
             var registrationB = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.ComputeFrom("TestContractB").ToByteString(),
-                CodeHash = Hash.ComputeFrom("TestContractB")
+                Code = HashHelper.ComputeFrom("TestContractB").ToByteString(),
+                CodeHash = HashHelper.ComputeFrom("TestContractB")
             };
 
             await _smartContractService.DeployContractAsync(new ContractDto

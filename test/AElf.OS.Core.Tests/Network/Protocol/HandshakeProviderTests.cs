@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Protocol
                 Time = TimestampHelper.GetUtcNow()
             };
             
-            var signature = CryptoHelper.SignWithPrivateKey(initiatorPeer.PrivateKey, Hash.ComputeFrom(data).ToByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(initiatorPeer.PrivateKey, HashHelper.ComputeFrom(data).ToByteArray());
             
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
@@ -75,7 +75,7 @@ namespace AElf.OS.Network.Protocol
 
             handshake = CreateHandshake(remoteKeyPair);
             var maliciousPeer = CryptoHelper.GenerateKeyPair();
-            var signature = CryptoHelper.SignWithPrivateKey(maliciousPeer.PrivateKey, Hash
+            var signature = CryptoHelper.SignWithPrivateKey(maliciousPeer.PrivateKey, HashHelper
                 .ComputeFrom(handshake.HandshakeData)
                 .ToByteArray());
             handshake.Signature = ByteString.CopyFrom(signature);

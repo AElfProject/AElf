@@ -19,9 +19,9 @@ namespace AElf.CrossChain.Grpc
         {
             var dictionary = new Dictionary<long, Hash>
             {
-                {1, Hash.ComputeFrom("1")},
-                {2, Hash.ComputeFrom("2")},
-                {3, Hash.ComputeFrom("3")}
+                {1, HashHelper.ComputeFrom("1")},
+                {2, HashHelper.ComputeFrom("2")},
+                {3, HashHelper.ComputeFrom("3")}
             };
             context.Services.AddTransient(provider =>
             {

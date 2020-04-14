@@ -154,7 +154,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     .Select(s => s.ToByteArray()).ToList();
 
                 var revealedInValue =
-                    Hash.ComputeFrom(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+                    HashHelper.ComputeFrom(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
                 Logger.LogDebug($"Revealed in value of {pubkey} of round {round.RoundNumber}: {revealedInValue}");
 
@@ -205,9 +205,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private async Task<Hash> GenerateInValueAsync(IMessage message)
         {
-            var data = Hash.ComputeFrom(message.ToByteArray());
+            var data = HashHelper.ComputeFrom(message.ToByteArray());
             var bytes = await _accountService.SignAsync(data.ToByteArray());
-            return Hash.ComputeFrom(bytes);
+            return HashHelper.ComputeFrom(bytes);
         }
     }
 }

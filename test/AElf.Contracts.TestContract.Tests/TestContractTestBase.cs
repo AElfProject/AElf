@@ -32,10 +32,10 @@ namespace AElf.Contract.TestContract
     public class TestContractTestBase : ContractTestBase<TestContractAElfModule>
     {
         protected readonly Hash TestBasicFunctionContractSystemName =
-            Hash.ComputeFrom("AElf.ContractNames.TestContract.BasicFunction");
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicFunction");
 
         protected readonly Hash TestBasicSecurityContractSystemName =
-            Hash.ComputeFrom("AElf.ContractNames.TestContract.BasicSecurity");
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicSecurity");
 
         public TestContractTestBase()
         {

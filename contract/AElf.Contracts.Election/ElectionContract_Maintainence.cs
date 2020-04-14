@@ -68,8 +68,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(Hash.ComputeFrom(votingRegisterInput),
-                Hash.ComputeFrom(Context.Self));
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(votingRegisterInput),
+                HashHelper.ComputeFrom(Context.Self));
 
             State.VotingEventRegistered.Value = true;
             return new Empty();

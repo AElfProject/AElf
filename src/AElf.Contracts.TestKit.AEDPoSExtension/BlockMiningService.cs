@@ -422,8 +422,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                InValue = Hash.ComputeFrom($"InValueOf{pubkey}"),
-                PreviousInValue = Hash.ComputeFrom($"InValueOf{pubkey}"),
+                InValue = HashHelper.ComputeFrom($"InValueOf{pubkey}"),
+                PreviousInValue = HashHelper.ComputeFrom($"InValueOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
 

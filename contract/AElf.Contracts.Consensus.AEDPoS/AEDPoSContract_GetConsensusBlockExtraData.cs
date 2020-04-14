@@ -73,7 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(triggerInformation.InValue != null, "In value should not be null.");
 
-            var outValue = Hash.ComputeFrom(triggerInformation.InValue);
+            var outValue = HashHelper.ComputeFrom(triggerInformation.InValue);
             var signature =
                 HashHelper.ConcatAndCompute(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                     // Self check.
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) &&
-                        Hash.ComputeFrom(triggerInformation.PreviousInValue) !=
+                        HashHelper.ComputeFrom(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    var fakePreviousInValue = Hash.ComputeFrom(pubkey.Append(Context.CurrentHeight.ToString()));
+                    var fakePreviousInValue = HashHelper.ComputeFrom(pubkey.Append(Context.CurrentHeight.ToString()));
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) && previousRound.RoundNumber != 1)
                     {
                         var appointedPreviousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;

@@ -39,7 +39,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         }
 
         internal CommitmentSchemeContractContainer.CommitmentSchemeContractStub CommitmentSchemeStub;
-        private Hash Secret => Hash.ComputeFrom("Secret");
+        private Hash Secret => HashHelper.ComputeFrom("Secret");
         
         [Fact]
         public async Task<Hash> RequestRandomNumberWithCommitmentSchemeTest()
@@ -50,7 +50,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 GetTester<CommitmentSchemeContractContainer.CommitmentSchemeContractStub>(dict.First().Value,
                     SampleECKeyPairs.KeyPairs[0]);
 
-            var commitment = Hash.ComputeFrom(Secret);
+            var commitment = HashHelper.ComputeFrom(Secret);
             var requestTx = CommitmentSchemeStub.RequestRandomNumber.GetTransaction(commitment);
             await BlockMiningService.MineBlockAsync(new List<Transaction> {requestTx});
             var requestTrace = TransactionTraceProvider.GetTransactionTrace(requestTx.GetHash());

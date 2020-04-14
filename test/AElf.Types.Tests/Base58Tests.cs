@@ -10,7 +10,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Encode_And_Decode_Hash()
         {
-            var hash = Hash.ComputeFrom("hash");
+            var hash = HashHelper.ComputeFrom("hash");
             var data = hash.ToByteArray();
 
             var enCode = Base58CheckEncoding.Encode(data);
@@ -37,7 +37,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void EncodePlain_And_DecodePlain_Hash()
         {
-            var hash = Hash.ComputeFrom("hash");
+            var hash = HashHelper.ComputeFrom("hash");
             var data = hash.ToByteArray();
             var bytes = new byte[]{0};
 

@@ -6,7 +6,7 @@ namespace AElf.Contracts.TestContract.Events
     {
         public Hash GetIssueOrderId(OrderInput input)
         {
-            var hash1 = Hash.ComputeFrom(input);
+            var hash1 = HashHelper.ComputeFrom(input);
             var hash2 = Context.TransactionId;
 
             return HashHelper.ConcatAndCompute(hash1, hash2);

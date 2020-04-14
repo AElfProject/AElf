@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         }
 
         public Address ContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(Hash.ComputeFrom("TestContract"));
+            _smartContractAddressService.GetAddressByContractName(HashHelper.ComputeFrom("TestContract"));
 
         public string MethodName => string.Empty;
 
