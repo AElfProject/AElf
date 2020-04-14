@@ -26,7 +26,7 @@ namespace AElf.Benchmark
         private Chain _chain;
         private readonly List<Hash> _transactionIdList = new List<Hash>();
 
-        [Params(3000, 5000, 10000)] public int TransactionCount;
+        [Params(1000, 3000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()

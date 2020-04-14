@@ -12,14 +12,17 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Indexing.Application
 {
-    internal class CrossChainIndexingDataValidationService : ICrossChainIndexingDataValidationService, ITransientDependency
+    internal class CrossChainIndexingDataValidationService : ICrossChainIndexingDataValidationService,
+        ITransientDependency
     {
         public ILogger<CrossChainIndexingDataValidationService> Logger { get; set; }
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
+
         private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
             _contractReaderFactory;
+
         private readonly ISmartContractAddressService _smartContractAddressService;
-        
+
         private Address CrossChainContractAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
@@ -33,22 +36,25 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
 
-        public async Task<bool> ValidateCrossChainIndexingDataAsync(CrossChainBlockData crossChainBlockData, 
+        public async Task<bool> ValidateCrossChainIndexingDataAsync(CrossChainBlockData crossChainBlockData,
             Hash blockHash, long blockHeight)
         {
             var sideChainBlockDataValidationResult =
-                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockDataList, blockHash, blockHeight);
+                await ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockDataList, blockHash,
+                    blockHeight);
             if (!sideChainBlockDataValidationResult)
                 return false;
 
             var parentChainBlockDataValidationResult =
-                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockDataList, blockHash, blockHeight);
-            
+                await ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockDataList, blockHash,
+                    blockHeight);
+
             return parentChainBlockDataValidationResult;
         }
-        
-        
-        private async Task<bool> ValidateSideChainBlockDataAsync(IEnumerable<SideChainBlockData> multiSideChainBlockData, 
+
+
+        private async Task<bool> ValidateSideChainBlockDataAsync(
+            IEnumerable<SideChainBlockData> multiSideChainBlockData,
             Hash blockHash, long blockHeight)
         {
             var sideChainValidatedHeightDict = new Dictionary<int, long>(); // chain id => validated height
@@ -71,7 +77,7 @@ namespace AElf.CrossChain.Indexing.Application
                     validatedHeight = height?.Value ?? 0;
                 }
 
-                var targetHeight = validatedHeight + 1; 
+                var targetHeight = validatedHeight + 1;
 
                 if (targetHeight != sideChainBlockData.Height)
                     // this should not happen if it is good data.
@@ -121,12 +127,12 @@ namespace AElf.CrossChain.Indexing.Application
             var length = parentChainBlockDataList.Count;
             var i = 0;
             var targetHeight = (await _contractReaderFactory.Create(new ContractReaderContext
-                                   {
-                                       BlockHash = blockHash,
-                                       BlockHeight = blockHeight,
-                                       ContractAddress = CrossChainContractAddress
-                                   }).GetParentChainHeight
-                                   .CallAsync(new Empty())).Value + 1;
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetParentChainHeight
+                .CallAsync(new Empty())).Value + 1;
             while (i < length)
             {
                 var parentChainBlockData =

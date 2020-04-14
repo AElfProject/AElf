@@ -13,7 +13,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -22,20 +21,20 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
+
         private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
             _contractReaderFactory;
+
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
-        
+
         private Address CrossChainContractAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
 
         public CrossChainIndexingDataService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
             ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
             IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
             IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
             ISmartContractAddressService smartContractAddressService)
         {
@@ -44,7 +43,6 @@ namespace AElf.CrossChain.Indexing.Application
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
             _contractReaderFactory = contractReaderFactory;
             _smartContractAddressService = smartContractAddressService;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
@@ -235,9 +233,6 @@ namespace AElf.CrossChain.Indexing.Application
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
-            if (!_transactionPackingOptions.IsTransactionPackable)
-                return ByteString.Empty;
-
             var utcNow = TimestampHelper.GetUtcNow();
             var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, utcNow);
 
@@ -269,31 +264,51 @@ namespace AElf.CrossChain.Indexing.Application
                         nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
                     Value = pendingProposal.ProposalId.ToByteString()
                 });
-            return ExtractCrossChainExtraDataFromCrossChainBlockData(pendingProposal.ProposedCrossChainBlockData);
-        }
-
-
-        public ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData)
-        {
-            if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
-                return ByteString.Empty;
-
-            var txRootHashList = crossChainBlockData.SideChainBlockDataList
-                .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
-
-            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
             Logger.LogInformation("Cross chain extra data generated.");
-            return new CrossChainExtraData
-                {
-                    TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot
-                }
-                .ToByteString();
+            return pendingProposal.ProposedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
         }
 
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
             _transactionInputForBlockMiningDataProvider.ClearExpiredTransactionInput(blockHeight);
+        }
+
+        public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
+        {
+            var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
+            return await _contractReaderFactory
+                .Create(new ContractReaderContext
+                {
+                    BlockHash = libDto.BlockHash,
+                    BlockHeight = libDto.BlockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetChainInitializationData.CallAsync(new Int32Value
+                {
+                    Value = chainId
+                });
+        }
+
+        public async Task<Block> GetNonIndexedBlockAsync(long height)
+        {
+            return await _irreversibleBlockStateProvider.GetNotIndexedIrreversibleBlockByHeightAsync(height);
+        }
+
+        public async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
+        {
+            var isReadyToCreateChainCache =
+                await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
+            if (!isReadyToCreateChainCache)
+                return new SideChainIdAndHeightDict();
+            var lib = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
+            return await _contractReaderFactory
+                .Create(new ContractReaderContext
+                {
+                    BlockHash = lib.BlockHash,
+                    BlockHeight = lib.BlockHeight,
+                    ContractAddress = CrossChainContractAddress
+                }).GetAllChainsIdAndHeight
+                .CallAsync(new Empty());
         }
 
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
