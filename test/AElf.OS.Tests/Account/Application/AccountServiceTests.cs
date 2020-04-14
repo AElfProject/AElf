@@ -25,7 +25,7 @@ namespace AElf.OS.Account.Application
         {
             var publicKey = await _accountService.GetPublicKeyAsync();
 
-            Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
+            Assert.Equal(Address.FromPublicKey(publicKey).ToBase58(), _accountOptions.NodeAccount);
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace AElf.OS.Account.Application
         {
             var account = await _accountService.GetAccountAsync();
 
-            Assert.Equal(account.GetFormatted(), _accountOptions.NodeAccount);
+            Assert.Equal(account.ToBase58(), _accountOptions.NodeAccount);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace AElf.OS.Account.Application
             _accountOptions.NodeAccount = string.Empty;
             var account = await _accountService.GetAccountAsync();
 
-            Assert.NotEqual(account.GetFormatted(), _accountOptions.NodeAccount);
+            Assert.NotEqual(account.ToBase58(), _accountOptions.NodeAccount);
         }
     }
 }

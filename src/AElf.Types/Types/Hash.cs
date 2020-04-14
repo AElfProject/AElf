@@ -9,7 +9,7 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
-        public static readonly Hash Empty = LoadFromBytes(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
+        public static readonly Hash Empty = LoadFromByteArray(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace AElf.Types
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Hash LoadFromBytes(byte[] bytes)
+        public static Hash LoadFromByteArray(byte[] bytes)
         {
             if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
@@ -46,7 +46,7 @@ namespace AElf.Types
         public static Hash LoadFromBase64(string base64)
         {
             var bytes = Convert.FromBase64String(base64);
-            return LoadFromBytes(bytes);
+            return LoadFromByteArray(bytes);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace AElf.Types
         public static Hash LoadFromHex(string hex)
         {
             var bytes = ByteArrayHelper.HexStringToByteArray(hex);
-            return LoadFromBytes(bytes);
+            return LoadFromByteArray(bytes);
         }
         
         /// <summary>
@@ -69,18 +69,9 @@ namespace AElf.Types
         {
             return Value.ToByteArray();
         }
-
-        /// <summary>
-        /// Dumps the content value to base64 string.
-        /// </summary>
-        /// <returns></returns>
-        public string ToBase64()
-        {
-            return Convert.ToBase64String(Value.ToByteArray());
-        }
         
         /// <summary>
-        /// Dumps the content value to hex string.
+        /// Converts hash into hexadecimal representation.
         /// </summary>
         /// <returns></returns>
         public string ToHex()
@@ -91,11 +82,19 @@ namespace AElf.Types
             return Value.ToHex();
         }
 
+        /// <summary>
+        /// Converts hash into int32 value.
+        /// </summary>
+        /// <returns></returns>
         public Int64 ToInt32()
         {
             return ToByteArray().ToInt64(true);
         }
         
+        /// <summary>
+        /// Converts hash into int64 value.
+        /// </summary>
+        /// <returns></returns>
         public Int64 ToInt64()
         {
             return ToByteArray().ToInt64(true);

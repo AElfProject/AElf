@@ -176,7 +176,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
 
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                merkleTreeRootOfWorldState = Hash.LoadFromBytes(hashAlgorithm.Hash);
+                merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
             }
 
             return merkleTreeRootOfWorldState;

@@ -23,7 +23,7 @@ namespace AElf.OS
             Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
-            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
+            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).ToBase58();
             var nodeAccountPassword = "123";
 
             Configure<AccountOptions>(o =>

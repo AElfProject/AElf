@@ -319,7 +319,7 @@ namespace AElf.Contracts.Genesis
                 Version = info.Version
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 

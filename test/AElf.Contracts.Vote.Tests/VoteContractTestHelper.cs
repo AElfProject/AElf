@@ -160,7 +160,7 @@ namespace AElf.Contracts.Vote
         
         private List<string> GenerateOptions(int count = 1)
         {
-            return Enumerable.Range(0, count).Select(i => SampleAddress.AddressList[i].GetFormatted()).ToList();
+            return Enumerable.Range(0, count).Select(i => SampleAddress.AddressList[i].ToBase58()).ToList();
         }
     }
 }

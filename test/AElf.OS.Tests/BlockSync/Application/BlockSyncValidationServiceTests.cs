@@ -133,7 +133,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
-            return address.GetFormatted();
+            return address.ToBase58();
         }
 
         [Fact]

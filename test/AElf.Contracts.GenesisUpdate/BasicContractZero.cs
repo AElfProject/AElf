@@ -134,7 +134,7 @@ namespace AElf.Contracts.GenesisUpdate
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.ToBase58());
 
 
             if (name != null)
@@ -188,7 +188,7 @@ namespace AElf.Contracts.GenesisUpdate
                 NewCodeHash = newCodeHash
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 

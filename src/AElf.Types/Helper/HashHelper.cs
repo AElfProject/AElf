@@ -13,7 +13,7 @@ namespace AElf
         /// <returns></returns>
         public static Hash ComputeFrom(byte[] bytes)
         {
-            return Hash.LoadFromBytes(bytes.ComputeHash());
+            return Hash.LoadFromByteArray(bytes.ComputeHash());
         }
 
         /// <summary>

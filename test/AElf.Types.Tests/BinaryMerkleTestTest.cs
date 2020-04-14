@@ -14,7 +14,7 @@ namespace AElf.Types.Tests
 
         private Hash GetHashFromHexString(params string[] strings)
         {
-            var hash = Hash.LoadFromBytes(ByteArrayHelper.HexStringToByteArray(strings[0]));
+            var hash = Hash.LoadFromByteArray(ByteArrayHelper.HexStringToByteArray(strings[0]));
             foreach (var s in strings.Skip(1))
             {
                 hash = HashHelper.ComputeFrom(hash.ToByteArray().Concat(ByteArrayHelper.HexStringToByteArray(s)).ToArray());
@@ -271,14 +271,14 @@ namespace AElf.Types.Tests
         public void TestMerklePathFromEth()
         {
             var expectedRoot =
-                Hash.LoadFromBytes(
+                Hash.LoadFromByteArray(
                     ByteArrayHelper.HexStringToByteArray(
                         "0x90ae927b3312b71e5ea7c8644a9d6f4e6107bf6c0e06df094c94be16d8023c52"));
             {
                 var hex =
                     "0x324144584c63794b4d47477252653961474337584d584543763863787a33546f73317a36504a4853667958677553615662350000000000000000000000000000000000000000000000001111d67bb1bb0000";
                 var expectedHash =
-                    Hash.LoadFromBytes(
+                    Hash.LoadFromByteArray(
                         ByteArrayHelper.HexStringToByteArray(
                             "0xa80afe5c85c3e9b09e8c74070d5d8d4de60780968d78e7b031e939e7335b6916"));
                 var actualHash = HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(hex));
@@ -291,21 +291,21 @@ namespace AElf.Types.Tests
                         new MerklePathNode
                         {
                             IsLeftChildNode = true,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x739c9a33d81d44b3c6b511c326337c12d9f557fdc3c9476ab33f5d064785a47e"))
                         },
                         new MerklePathNode
                         {
                             IsLeftChildNode = true,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x8487ce95823a23aac06a040828761818b2d491fb6603c5d3284b3c9c73764c87"))
                         },
                         new MerklePathNode
                         {
                             IsLeftChildNode = true,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x7c8e76b0b80181c5154d138078d15aafd3e980858b8eb9076a3cae3fcdec76be"))
                         }
@@ -320,7 +320,7 @@ namespace AElf.Types.Tests
                 var hex =
                     "0x536b4d476a766941417339626e59767636634b636166626866367462524751474b393357674b765a6f436f5335616d4d4b00000000000000000000000000000000000000000000000302379bf2ca2e0000";
                 var expectedHash =
-                    Hash.LoadFromBytes(
+                    Hash.LoadFromByteArray(
                         ByteArrayHelper.HexStringToByteArray(
                             "0xdbd4b01cea12038a3b0c3ce4900c64635b96a1ee2331625fbe473d6c1e816548"));
                 var actualHash = HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(hex));
@@ -333,21 +333,21 @@ namespace AElf.Types.Tests
                         new MerklePathNode
                         {
                             IsLeftChildNode = false,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x12e2fc90c9b2c6887bf9633bf4872db4bb8cfe18619b0900dad49286abb81248"))
                         },
                         new MerklePathNode
                         {
                             IsLeftChildNode = false,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x56ac8fe5cfe48c5ddf5d40f9a8ed5e504929935b677376cae35b8c326a97d34b"))
                         },
                         new MerklePathNode
                         {
                             IsLeftChildNode = true,
-                            Hash = Hash.LoadFromBytes(
+                            Hash = Hash.LoadFromByteArray(
                                 ByteArrayHelper.HexStringToByteArray(
                                     "0x7c8e76b0b80181c5154d138078d15aafd3e980858b8eb9076a3cae3fcdec76be"))
                         }
@@ -390,9 +390,9 @@ namespace AElf.Types.Tests
                 return cur;
             });
             var hashFromAmount = HashHelper.ComputeFrom(amountBytes.ToArray());
-            var hashFromUid = Hash.LoadFromBytes(ByteArrayHelper.HexStringToByteArray(uid));
+            var hashFromUid = Hash.LoadFromByteArray(ByteArrayHelper.HexStringToByteArray(uid));
             var hash = HashHelper.ConcatAndCompute(hashFromAmount, hashFromString, hashFromUid);
-            Assert.True(hash == Hash.LoadFromBytes(ByteArrayHelper.HexStringToByteArray(result)));
+            Assert.True(hash == Hash.LoadFromByteArray(ByteArrayHelper.HexStringToByteArray(result)));
         }
 
         #region Some useful methods
@@ -415,7 +415,7 @@ namespace AElf.Types.Tests
 
         private Hash CreateLeafFromHex(string hex)
         {
-            return Hash.LoadFromBytes(ByteArrayHelper.HexStringToByteArray(hex));
+            return Hash.LoadFromByteArray(ByteArrayHelper.HexStringToByteArray(hex));
         }
 
         private Hash ComputeRootWithMerklePathAndLeaf(Hash leaf, MerklePath path)

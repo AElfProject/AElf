@@ -293,8 +293,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", chain.BestChainHeight.ToString()},
                 {"RefBlockHash", chain.BestChainHash.ToHex()},
                 {"MethodName", methodName},
@@ -344,8 +344,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", chain.BestChainHeight.ToString()},
                 {"RefBlockHash", chain.BestChainHash.ToHex()},
                 {"MethodName", methodName},
@@ -887,7 +887,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Branches.ShouldNotBeNull();
             var responseChainId = ChainHelper.ConvertBase58ToChainId(response.ChainId);
             responseChainId.ShouldBe(chain.Id);
-            response.GenesisContractAddress.ShouldBe(basicContractZero.GetFormatted());
+            response.GenesisContractAddress.ShouldBe(basicContractZero.ToBase58());
             response.BestChainHeight.ShouldBe(11);
             response.BestChainHash.ShouldBe(chain.BestChainHash?.ToHex());
             response.LongestChainHeight = chain.LongestChainHeight;
@@ -985,7 +985,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
 
             var response = await GetResponseAsStringAsync(
-                $"/api/blockChain/contractFileDescriptorSet?address={transaction.To.GetFormatted()}");
+                $"/api/blockChain/contractFileDescriptorSet?address={transaction.To.ToBase58()}");
             response.ShouldNotBeEmpty();
             var set = FileDescriptorSet.Parser.ParseFrom(
                 ByteString.FromBase64(response.Substring(1, response.Length - 2)));
@@ -996,7 +996,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_ContractFileDescriptorSet_Failed_Test()
         {
-            var addressInfo = SampleAddress.AddressList[0].GetFormatted();
+            var addressInfo = SampleAddress.AddressList[0].ToBase58();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}",
                 expectedStatusCode: HttpStatusCode.Forbidden);
@@ -1045,8 +1045,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             parameters = new Dictionary<string, string>
             {
-                {"From", contractAddress.GetFormatted()},
-                {"To", accountAddress.GetFormatted()},
+                {"From", contractAddress.ToBase58()},
+                {"To", accountAddress.ToBase58()},
                 {"RefBlockNumber", "2788"},
                 {"RefBlockHash", "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
                 {"MethodName", "Transfer"},
@@ -1064,8 +1064,8 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", "2788"},
                 {"RefBlockHash", "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
                 {"MethodName", "NoMethod"},
@@ -1083,8 +1083,8 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", "2788"},
                 {"RefBlockHash", "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
                 {"MethodName", "Transfer"},
@@ -1098,8 +1098,8 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", "2788"},
                 {"RefBlockHash", "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
                 {"MethodName", "Transfer"},
@@ -1120,7 +1120,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task CreateRawTransaction_Success_Test()
         {
             var transferToAddress =
-                AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ");
+                Address.FromBase58("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ");
             var toAddress = Base64.ToBase64String(transferToAddress.Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
@@ -1130,7 +1130,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var parameters = new Dictionary<string, string>
             {
                 {"From", fromAddressInBase58},
-                {"To", contractAddress.GetFormatted()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", "2788"},
                 {"RefBlockHash", refHashInHex},
                 {"MethodName", "Transfer"},
@@ -1143,7 +1143,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var tx = Transaction.Parser.ParseFrom(ByteArrayHelper.HexStringToByteArray(response.RawTransaction));
-            tx.From.ShouldBe(AddressHelper.Base58StringToAddress(fromAddressInBase58));
+            tx.From.ShouldBe(Address.FromBase58(fromAddressInBase58));
             tx.To.ShouldBe(contractAddress);
             tx.RefBlockNumber.ShouldBe(2788);
             tx.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(Hash.LoadFromHex(refHashInHex)));
@@ -1167,8 +1167,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(Address.FromPublicKey(newUserKeyPair.PublicKey).Value.ToByteArray());
             var parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
                 {"RefBlockNumber", chain.BestChainHeight.ToString()},
                 {"RefBlockHash", chain.BestChainHash.ToHex()},
                 {"MethodName", methodName},
@@ -1211,11 +1211,11 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldNotBeNull();
-            sendTransactionResponse.Transaction.To.ShouldBe(contractAddress.GetFormatted());
-            sendTransactionResponse.Transaction.From.ShouldBe(accountAddress.GetFormatted());
+            sendTransactionResponse.Transaction.To.ShouldBe(contractAddress.ToBase58());
+            sendTransactionResponse.Transaction.From.ShouldBe(accountAddress.ToBase58());
             sendTransactionResponse.Transaction.MethodName.ShouldBe(methodName);
             sendTransactionResponse.Transaction.Params.ShouldBe(
-                "{ \"to\": \"" + Address.FromPublicKey(newUserKeyPair.PublicKey).GetFormatted() +
+                "{ \"to\": \"" + Address.FromPublicKey(newUserKeyPair.PublicKey).ToBase58() +
                 "\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
             sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString

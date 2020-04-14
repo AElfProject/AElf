@@ -110,7 +110,7 @@ namespace AElf.Kernel.Types.Tests
             var hashBytes = blockHeader.GetHashBytes();
             hashBytes.Length.ShouldBe(32);
 
-            var hash1 = Hash.LoadFromBytes(hashBytes);
+            var hash1 = Hash.LoadFromByteArray(hashBytes);
             hash.ShouldBe(hash1);
         }
 
@@ -145,8 +145,8 @@ namespace AElf.Kernel.Types.Tests
             {
                 var transaction = new Transaction()
                 {
-                    From = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
-                    To = AddressHelper.Base58StringToAddress("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
+                    From = Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
+                    To = Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
                     MethodName = $"Test{i}",
                     Params = ByteString.Empty
                 };
