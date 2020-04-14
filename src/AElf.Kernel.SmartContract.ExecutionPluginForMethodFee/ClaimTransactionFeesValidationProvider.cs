@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -13,16 +14,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITokenReaderFactory _tokenReaderFactory;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
         public ILogger<ClaimTransactionFeesValidationProvider> Logger { get; set; }
 
         public ClaimTransactionFeesValidationProvider(ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider,
-            ISmartContractAddressService smartContractAddressService, ITokenReaderFactory tokenReaderFactory)
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
         {
             _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
             _smartContractAddressService = smartContractAddressService;
-            _tokenReaderFactory = tokenReaderFactory;
+            _contractReaderFactory = contractReaderFactory;
 
             Logger = NullLogger<ClaimTransactionFeesValidationProvider>.Instance;
         }
@@ -61,8 +64,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return true;
             }
 
-            var hashFromState = await _tokenReaderFactory.Create(block.GetHash(), block.Header.Height)
-                .GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+            var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                ContractAddress = tokenContractAddress
+            }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
