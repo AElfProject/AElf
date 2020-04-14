@@ -51,7 +51,7 @@ namespace AElf.OS.BlockSync
                         BlockWithTransactions result = null;
                         if (peerPubkey == "AbnormalPeerPubkey")
                         {
-                            result = osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("BadBlock"),
+                            result = osTestHelper.Value.GenerateBlockWithTransactions(Hash.ComputeFrom("BadBlock"),
                                 1000);
                         }
 
@@ -77,12 +77,12 @@ namespace AElf.OS.BlockSync
                             }
 
                             var notLinkedBlock =
-                                osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("NotLinkedBlock"),
+                                osTestHelper.Value.GenerateBlockWithTransactions(Hash.ComputeFrom("NotLinkedBlock"),
                                     100);
                             result.Add(notLinkedBlock);
                         }
 
-                        if (hash == Hash.FromString("GoodBlockHash"))
+                        if (hash == Hash.ComputeFrom("GoodBlockHash"))
                         {
                             for (var i = 0; i < count; i++)
                             {

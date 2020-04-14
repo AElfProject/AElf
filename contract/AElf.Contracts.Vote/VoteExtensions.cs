@@ -8,12 +8,12 @@ namespace AElf.Contracts.Vote
         {
             var input = votingItemInput.Clone();
             input.Options.Clear();
-            return Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sponsorAddress));
+            return HashHelper.ConcatAndCompute(Hash.ComputeFrom(input), Hash.ComputeFrom(sponsorAddress));
         }
 
         public static Hash GetHash(this VotingResult votingResult)
         {
-            return Hash.FromMessage(new VotingResult
+            return Hash.ComputeFrom(new VotingResult
             {
                 VotingItemId = votingResult.VotingItemId,
                 SnapshotNumber = votingResult.SnapshotNumber

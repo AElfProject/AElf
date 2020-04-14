@@ -50,7 +50,7 @@ namespace AElf.CrossChain
             var blockInfoCache = new List<ICrossChainBlockEntity>
             {
                 new SideChainBlockData
-                    {ChainId = chainId, Height = 1, TransactionStatusMerkleTreeRoot = Hash.FromString("1")}
+                    {ChainId = chainId, Height = 1, TransactionStatusMerkleTreeRoot = Hash.ComputeFrom("1")}
             };
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
 
@@ -64,7 +64,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = 1,
-                    TransactionStatusMerkleTreeRoot = Hash.FromString("1")
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom("1")
                 }
             }, new ParentChainBlockData[0]);
 
@@ -155,7 +155,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = 1,
-                    BlockHeaderHash = Hash.FromString("blockHash")
+                    BlockHeaderHash = Hash.ComputeFrom("blockHash")
                 }
             };
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
@@ -168,7 +168,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = 1,
-                    BlockHeaderHash = Hash.FromString("Block")
+                    BlockHeaderHash = Hash.ComputeFrom("Block")
                 }
             };
             var crossChainBlockData = FakeCrossChainBlockData(list, new ParentChainBlockData[0]);
@@ -191,7 +191,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                 });
             }
 
@@ -205,7 +205,7 @@ namespace AElf.CrossChain
                     {
                         ChainId = chainId,
                         Height = (i + 1),
-                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                        TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                     });
                 }
 
@@ -223,7 +223,7 @@ namespace AElf.CrossChain
                     {
                         ChainId = chainId,
                         Height = (i + 1),
-                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                        TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                     });
                 }
 
@@ -260,7 +260,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                 });
             }
 
@@ -274,7 +274,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                 });
             }
 
@@ -350,7 +350,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                 });
             }
 
@@ -361,7 +361,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = chainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                 });
             }
 
@@ -379,7 +379,7 @@ namespace AElf.CrossChain
                     {
                         ChainId = chainId,
                         Height = (i + 1),
-                        TransactionStatusMerkleTreeRoot = Hash.FromString((i + 1).ToString())
+                        TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((i + 1).ToString())
                     });
                 }
 

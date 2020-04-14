@@ -233,7 +233,7 @@ namespace AElf.Contracts.MultiToken
             if (allowance >= input.Amount)
                 State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             AssertValidToken(input.Symbol, input.Amount);
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = Hash.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
@@ -246,7 +246,7 @@ namespace AElf.Contracts.MultiToken
             AssertSystemContractOrLockWhiteListAddress(input.Symbol);
             Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = Hash.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
             {

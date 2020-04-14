@@ -289,7 +289,7 @@ namespace AElf.Contracts.Genesis
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = Hash.ComputeFrom(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");

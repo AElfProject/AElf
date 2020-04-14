@@ -1,6 +1,5 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;

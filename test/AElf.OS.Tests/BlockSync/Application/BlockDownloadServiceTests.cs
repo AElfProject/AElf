@@ -45,7 +45,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
-                PreviousBlockHash = Hash.FromString("MoreThanLimit"),
+                PreviousBlockHash = Hash.ComputeFrom("MoreThanLimit"),
                 PreviousBlockHeight = 62,
                 BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
                 MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
@@ -62,7 +62,7 @@ namespace AElf.OS.BlockSync.Application
         {
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
             {
-                PreviousBlockHash = Hash.FromString("NoBlockReturn"),
+                PreviousBlockHash = Hash.ComputeFrom("NoBlockReturn"),
                 PreviousBlockHeight = 15,
                 BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
                 MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount

@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 Category = 0,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
+                CodeHash = Hash.ComputeFrom(code)
             }));
             executive.SetHostSmartContractBridgeContext(Mock.Of<IHostSmartContractBridgeContext>());
             return executive;

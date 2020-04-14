@@ -176,7 +176,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
 
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
+                merkleTreeRootOfWorldState = Hash.LoadFrom(hashAlgorithm.Hash);
             }
 
             return merkleTreeRootOfWorldState;
@@ -225,7 +225,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return Hash.FromRawBytes(rawBytes);
+            return Hash.ComputeFrom(rawBytes);
         }
     }
 }

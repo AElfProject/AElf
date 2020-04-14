@@ -66,9 +66,9 @@ namespace AElf.Kernel.Types.Tests
                 {
                     new[]
                     {
-                        Hash.FromString("tx1"),
-                        Hash.FromString("tx2"),
-                        Hash.FromString("tx3"),
+                        Hash.ComputeFrom("tx1"),
+                        Hash.ComputeFrom("tx2"),
+                        Hash.ComputeFrom("tx3"),
                     }
                 }
             };
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void Block_Test()
         {
-            var block = CreateBlock(Hash.FromString("hash"), 1234, 10);
+            var block = CreateBlock(Hash.ComputeFrom("hash"), 1234, 10);
             block.Height.ShouldBe(10u);
 
             var hash = block.GetHash();
@@ -110,7 +110,7 @@ namespace AElf.Kernel.Types.Tests
             var hashBytes = blockHeader.GetHashBytes();
             hashBytes.Length.ShouldBe(32);
 
-            var hash1 = Hash.FromByteArray(hashBytes);
+            var hash1 = Hash.LoadFrom(hashBytes);
             hash.ShouldBe(hash1);
         }
 
@@ -118,7 +118,7 @@ namespace AElf.Kernel.Types.Tests
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
-            var block = new Block(Hash.FromString("hash1"));
+            var block = new Block(Hash.ComputeFrom("hash1"));
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -165,7 +165,7 @@ namespace AElf.Kernel.Types.Tests
             {
                 ChainId = 1234,
                 Height = 10,
-                PreviousBlockHash = Hash.FromString("hash3"),
+                PreviousBlockHash = Hash.ComputeFrom("hash3"),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
                 ExtraData = {ByteString.Empty},

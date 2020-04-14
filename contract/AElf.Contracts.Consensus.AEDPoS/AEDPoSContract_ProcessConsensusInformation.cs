@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var previousRandomHash = State.RandomHashes[Context.CurrentHeight.Sub(1)];
             var randomHash = previousRandomHash == null
                 ? latestSignature
-                : HashHelper.Xor(previousRandomHash, latestSignature);
+                : previousRandomHash ^ latestSignature;
 
             State.RandomHashes[Context.CurrentHeight] = randomHash;
 

@@ -28,7 +28,7 @@ namespace AElf.OS.Network
                 mockService.Setup(m => m.GetChainAsync()).Returns(
                     Task.FromResult(new Chain
                     {
-                        BestChainHash = Hash.FromString("best"),
+                        BestChainHash = Hash.ComputeFrom("best"),
                         BestChainHeight = 10
                     }));
                 mockService.Setup(m => m.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).Returns(

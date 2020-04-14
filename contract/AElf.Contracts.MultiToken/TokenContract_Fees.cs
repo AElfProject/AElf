@@ -359,7 +359,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
             Context.LogDebug(() => $"Claim transaction fee. {input}");
-            State.LatestTotalTransactionFeesMapHash.Value = Hash.FromMessage(input);
+            State.LatestTotalTransactionFeesMapHash.Value = Hash.ComputeFrom(input);
             foreach (var bill in input.Value)
             {
                 var symbol = bill.Key;
@@ -381,7 +381,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
             Context.LogDebug(() => $"Start donate resource token. {input}");
-            State.LatestTotalResourceTokensMapsHash.Value = Hash.FromMessage(input);
+            State.LatestTotalResourceTokensMapsHash.Value = Hash.ComputeFrom(input);
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {

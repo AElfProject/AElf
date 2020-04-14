@@ -46,7 +46,7 @@ namespace AElf.OS.BlockSync
                 blockValidationServiceMock.Setup(p => p.ValidateBlockBeforeAttachAsync(It.IsAny<Block>()))
                     .Returns<Block>(block =>
                     {
-                        if (block.Header.PreviousBlockHash.Equals(Hash.FromString("BadBlock")))
+                        if (block.Header.PreviousBlockHash.Equals(Hash.ComputeFrom("BadBlock")))
                         {
                             return Task.FromResult(false);
                         }

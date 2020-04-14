@@ -10,7 +10,9 @@ namespace AElf.Kernel.Blockchain.Domain
     public interface ITransactionResultManager
     {
         Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash);
+
         Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults, Hash disambiguationHash);
+
         //TODO: should remove this method
         Task RemoveTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash);
         Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash);
@@ -29,36 +31,39 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash)
         {
-            await _transactionResultStore.SetAsync(transactionResult.TransactionId.Xor(disambiguationHash).ToStorageKey(),
+            await _transactionResultStore.SetAsync(
+                (transactionResult.TransactionId ^ disambiguationHash).ToStorageKey(),
                 transactionResult);
         }
-        
-        public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults, Hash disambiguationHash)
+
+        public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
+            Hash disambiguationHash)
         {
             await _transactionResultStore.SetAllAsync(
-                transactionResults.ToDictionary(t => t.TransactionId.Xor(disambiguationHash).ToStorageKey(), t => t));
+                transactionResults.ToDictionary(t => (t.TransactionId ^ disambiguationHash).ToStorageKey(), t => t));
         }
 
         public async Task RemoveTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash)
         {
-            await _transactionResultStore.RemoveAllAsync(txIds.Select(t => t.Xor(disambiguationHash).ToStorageKey())
+            await _transactionResultStore.RemoveAllAsync(txIds.Select(t => (t ^ disambiguationHash).ToStorageKey())
                 .ToList());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)
         {
-            return await _transactionResultStore.GetAsync(txId.Xor(disambiguationHash).ToStorageKey());
+            return await _transactionResultStore.GetAsync((txId ^ disambiguationHash).ToStorageKey());
         }
-        
-        public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash)
+
+        public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> txIds,
+            Hash disambiguationHash)
         {
-            return await _transactionResultStore.GetAllAsync(txIds.Select(t => t.Xor(disambiguationHash).ToStorageKey())
+            return await _transactionResultStore.GetAllAsync(txIds.Select(t => (t ^ disambiguationHash).ToStorageKey())
                 .ToList());
         }
 
         public async Task<bool> HasTransactionResultAsync(Hash transactionId, Hash disambiguationHash)
         {
-            return await _transactionResultStore.IsExistsAsync(transactionId.Xor(disambiguationHash).ToStorageKey());
+            return await _transactionResultStore.IsExistsAsync((transactionId ^ disambiguationHash).ToStorageKey());
         }
     }
 }

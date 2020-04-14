@@ -89,7 +89,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Address GetVirtualAddressForLocking(GetVirtualAddressForLockingInput input)
         {
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = Hash.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             return virtualAddress;

@@ -38,7 +38,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     var chain = new Chain
                     {
                         LastIrreversibleBlockHeight = 10,
-                        LastIrreversibleBlockHash = Hash.FromString("LastIrreversibleBlockHash")
+                        LastIrreversibleBlockHash = Hash.ComputeFrom("LastIrreversibleBlockHash")
                     };
 
                     return Task.FromResult(chain);
@@ -56,9 +56,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         {
                             TransactionIds =
                             {
-                                Hash.FromString("not exist"),
-                                Hash.FromString("failed case"),
-                                Hash.FromString("mined case")
+                                Hash.ComputeFrom("not exist"),
+                                Hash.ComputeFrom("failed case"),
+                                Hash.ComputeFrom("mined case")
                             }
                         }
                     }
@@ -73,15 +73,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ITransactionResultQueryService>();
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("not exist"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.ComputeFrom("not exist"))))
                     .Returns(Task.FromResult<TransactionResult>(null));
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("failed case"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.ComputeFrom("failed case"))))
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Error = "failed due to some reason",
                         Status = TransactionResultStatus.Failed
                     }));
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("mined case"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.ComputeFrom("mined case"))))
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Status = TransactionResultStatus.Mined,

@@ -29,9 +29,9 @@ namespace AElf.CrossChain
 
             var dictionary = new Dictionary<long, Hash>
             {
-                {1, Hash.FromString("1")},
-                {2, Hash.FromString("2")},
-                {3, Hash.FromString("3")}
+                {1, Hash.ComputeFrom("1")},
+                {2, Hash.ComputeFrom("2")},
+                {3, Hash.ComputeFrom("3")}
             };
 
             Configure<CrossChainConfigOptions>(option =>
@@ -81,7 +81,7 @@ namespace AElf.CrossChain
                         {
                             var crossExtraData = new CrossChainExtraData()
                             {
-                                TransactionStatusMerkleTreeRoot = Hash.FromString("SideChainBlockHeadersRoot"),
+                                TransactionStatusMerkleTreeRoot = Hash.ComputeFrom("SideChainBlockHeadersRoot"),
                             };
                             return ByteString.CopyFrom(crossExtraData.ToByteArray());
                         });
@@ -109,7 +109,7 @@ namespace AElf.CrossChain
                                 new SideChainBlockData
                                 {
                                     ChainId = 123, Height = 1,
-                                    TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom("fakeTransactionMerkleTree")
                                 }
                             }
                         };
@@ -126,7 +126,7 @@ namespace AElf.CrossChain
                                     new SideChainBlockData
                                     {
                                         ChainId = 123, Height = 1,
-                                        TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                        TransactionStatusMerkleTreeRoot = Hash.ComputeFrom("fakeTransactionMerkleTree")
                                     }
                                 }
                             };

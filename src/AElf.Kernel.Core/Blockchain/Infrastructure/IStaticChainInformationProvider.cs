@@ -43,13 +43,13 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         /// <returns></returns>
         public static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(chainId.ToHash(), serialNumber);
+            return BuildContractAddress(Hash.ComputeFrom(chainId), serialNumber);
         }
     }
 }

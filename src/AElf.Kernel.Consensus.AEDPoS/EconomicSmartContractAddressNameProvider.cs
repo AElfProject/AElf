@@ -6,7 +6,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 {
     public class EconomicSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static Hash Name = Hash.FromString("AElf.ContractNames.Economic");
+        public static Hash Name = Hash.ComputeFrom("AElf.ContractNames.Economic");
 
         public Hash ContractName => Name;
     }

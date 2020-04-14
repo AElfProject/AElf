@@ -23,7 +23,7 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task FetchBlock_Success()
         {
-            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var response = await _networkService.GetBlockByHashAsync(Hash.ComputeFrom("PeerBlock"), null);
             var peerBlock = response.Payload;
 
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());

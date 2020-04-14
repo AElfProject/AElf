@@ -25,7 +25,7 @@ namespace AElf.Kernel.Proposal.Tests.Application
             var proposalCacheProvider = GetRequiredService<IProposalProvider>();
 
             {
-                var proposalId = Hash.FromString("proposal");
+                var proposalId = Hash.ComputeFrom("proposal");
                 const int height = 100;
                 _proposalService.AddNotApprovedProposal(proposalId, height);
                 var exist = proposalCacheProvider.TryGetProposalCreatedHeight(proposalId, out var h);
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Proposal.Tests.Application
             }
 
             {
-                var proposalId = Hash.FromString("proposal");
+                var proposalId = Hash.ComputeFrom("proposal");
                 const int height1 = 101;
                 const int height2 = 100;
                 _proposalService.AddNotApprovedProposal(proposalId, height1);
@@ -48,10 +48,10 @@ namespace AElf.Kernel.Proposal.Tests.Application
         [Fact]
         public async Task GetNotApprovedProposalIdListTest()
         {
-            var proposalId1 = Hash.FromString("proposalId1");
-            var proposalId2 = Hash.FromString("proposalId2");
-            var proposalId3 = Hash.FromString("proposalId3");
-            var proposalId4 = Hash.FromString("proposalId4");
+            var proposalId1 = Hash.ComputeFrom("proposalId1");
+            var proposalId2 = Hash.ComputeFrom("proposalId2");
+            var proposalId3 = Hash.ComputeFrom("proposalId3");
+            var proposalId4 = Hash.ComputeFrom("proposalId4");
             
             var notApprovedProposalIdList = new List<Hash>
             {
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Proposal.Tests.Application
             };
             _proposalTestHelper.AddNotVotedProposalIdList(notApprovedProposalIdList);
             
-            var blockHash = Hash.FromString("BlockHash");
+            var blockHash = Hash.ComputeFrom("BlockHash");
             var blockHeight = 10;
             
             var proposalCacheProvider = GetRequiredService<IProposalProvider>();
@@ -85,10 +85,10 @@ namespace AElf.Kernel.Proposal.Tests.Application
         [Fact]
         public async Task GetNotApprovedProposalIdListTest_ReturnEmpty()
         {
-            var proposalId1 = Hash.FromString("proposalId1");
-            var proposalId2 = Hash.FromString("proposalId2");
-            var proposalId3 = Hash.FromString("proposalId3");
-            var proposalId4 = Hash.FromString("proposalId4");
+            var proposalId1 = Hash.ComputeFrom("proposalId1");
+            var proposalId2 = Hash.ComputeFrom("proposalId2");
+            var proposalId3 = Hash.ComputeFrom("proposalId3");
+            var proposalId4 = Hash.ComputeFrom("proposalId4");
             
             var proposalCacheProvider = GetRequiredService<IProposalProvider>();
             proposalCacheProvider.AddProposal(proposalId1, 5);
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Proposal.Tests.Application
             };
             _proposalTestHelper.AddNotVotedProposalIdList(notApprovedProposalIdList);
             
-            var blockHash = Hash.FromString("BlockHash");
+            var blockHash = Hash.ComputeFrom("BlockHash");
             var blockHeight = 10;
             var queryResultNotApprovedProposalIdList =
                 await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
@@ -110,10 +110,10 @@ namespace AElf.Kernel.Proposal.Tests.Application
         [Fact]
         public async Task ClearProposalTest()
         {
-            var proposalId1 = Hash.FromString("proposalId1");
-            var proposalId2 = Hash.FromString("proposalId2");
-            var proposalId3 = Hash.FromString("proposalId3");
-            var proposalId4 = Hash.FromString("proposalId4");
+            var proposalId1 = Hash.ComputeFrom("proposalId1");
+            var proposalId2 = Hash.ComputeFrom("proposalId2");
+            var proposalId3 = Hash.ComputeFrom("proposalId3");
+            var proposalId4 = Hash.ComputeFrom("proposalId4");
             
             var proposalCacheProvider = GetRequiredService<IProposalProvider>();
             var blockHeight = 5;
@@ -134,14 +134,14 @@ namespace AElf.Kernel.Proposal.Tests.Application
             };
             _proposalTestHelper.AddNotVotedPendingProposalIdList(notApprovedPendingProposalIdList);
             
-            var libHash = Hash.FromString("BlockHash");
+            var libHash = Hash.ComputeFrom("BlockHash");
             var libHeight = blockHeight;
             await _proposalService.ClearProposalByLibAsync(libHash, libHeight);
             var cachedProposalIdList = proposalCacheProvider.GetAllProposals();
             cachedProposalIdList.Count.ShouldBe(1);
             cachedProposalIdList.ShouldContain(proposalId3);
             
-            var blockHash = Hash.FromString("BlockHash");
+            var blockHash = Hash.ComputeFrom("BlockHash");
             var queryResultNotApprovedProposalIdList =
                 await _proposalService.GetNotApprovedProposalIdListAsync(NormalAddress, blockHash, blockHeight);
             queryResultNotApprovedProposalIdList.Count.ShouldBe(1);

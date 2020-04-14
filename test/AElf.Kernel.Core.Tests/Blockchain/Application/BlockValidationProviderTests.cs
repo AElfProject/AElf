@@ -46,7 +46,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult.ShouldBeFalse();
 
             block.Body.TransactionIds.Add(Hash.Empty);
-            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
+            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.ComputeFrom("PreviousBlockHash")).Header;
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
 
@@ -91,7 +91,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
 
-            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
+            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.ComputeFrom("PreviousBlockHash")).Header;
             block.Header.ChainId = 0;
             block.Header.Signature =
                 ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey,
@@ -112,7 +112,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task ValidateBlockBeforeAttachAsync_Test()
         {
-            var block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash"));
+            var block = _kernelTestHelper.GenerateBlock(9, Hash.ComputeFrom("PreviousBlockHash"));
             var validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
 
@@ -132,7 +132,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task ValidateBeforeAttach_DuplicatesTransactions_ReturnFalse()
         {
             var transaction = _kernelTestHelper.GenerateTransaction();
-            var block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash"),
+            var block = _kernelTestHelper.GenerateBlock(9, Hash.ComputeFrom("PreviousBlockHash"),
                 new List<Transaction> {transaction, transaction});
 
             block.Header.Signature =

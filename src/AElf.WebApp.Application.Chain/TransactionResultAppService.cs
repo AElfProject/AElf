@@ -327,7 +327,7 @@ namespace AElf.WebApp.Application.Chain
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return Hash.FromRawBytes(rawBytes);
+            return Hash.ComputeFrom(rawBytes);
         }
         
         private bool IsValidMessage(IMessage message)

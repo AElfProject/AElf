@@ -59,7 +59,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VoteInput
                 {
-                    VotingItemId = Hash.FromString("hash")
+                    VotingItemId = Hash.ComputeFrom("hash")
                 };
 
                 var transactionResult = (await VoteContractStub.Vote.SendWithExceptionAsync(input)).TransactionResult;

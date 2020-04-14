@@ -6,7 +6,7 @@ namespace AElf.Blockchains.BasicBaseChain.ContractNames
 {
     public class VoteSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.ContractNames.Vote");
+        public static readonly Hash Name = Hash.ComputeFrom("AElf.ContractNames.Vote");
         public Hash ContractName => Name;
     }
 }

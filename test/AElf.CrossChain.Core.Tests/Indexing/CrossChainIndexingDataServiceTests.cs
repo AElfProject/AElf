@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Indexing
         public async Task GetIndexedCrossChainBlockData_WithIndex_Test()
         {
             var chainId = _chainOptions.ChainId;
-            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeMerkleTreeRoot1 = Hash.ComputeFrom("fakeMerkleTreeRoot1");
             var fakeSideChainBlockData = new SideChainBlockData
             {
                 Height = 1,
@@ -92,7 +92,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -123,7 +123,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -154,7 +154,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -162,7 +162,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
                         SideChainBlockDataList = {sideChainBlockInfoCache}
@@ -186,7 +186,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -198,7 +198,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
                     ToBeReleased = true,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
@@ -224,7 +224,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -241,7 +241,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
                     ToBeReleased = true,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-1)
@@ -270,7 +270,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -287,7 +287,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
                     ToBeReleased = true,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
@@ -313,7 +313,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 });
             }
 
@@ -330,7 +330,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = crossChainBlockData,
                     ToBeReleased = false,
                     ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
@@ -352,7 +352,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom(i.ToString())
                 });
             }
 
@@ -383,7 +383,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = parentChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom(i.ToString())
                 });
             }
 
@@ -415,7 +415,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString(i.ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom(i.ToString())
                 });
             }
 
@@ -480,7 +480,7 @@ namespace AElf.CrossChain.Indexing
         {
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<ICrossChainBlockEntity>();
-            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHash = Hash.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
 
             var cachingCount = 5;
@@ -490,7 +490,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 };
                 sideChainBlockInfoCache.Add(sideChainBlockData);
             }
@@ -504,7 +504,7 @@ namespace AElf.CrossChain.Indexing
             var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
             {
                 Proposer = SampleAddress.AddressList[0],
-                ProposalId = Hash.FromString("ProposalId"),
+                ProposalId = Hash.ComputeFrom("ProposalId"),
                 ProposedCrossChainBlockData = new CrossChainBlockData(),
                 ToBeReleased = true,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
@@ -532,7 +532,7 @@ namespace AElf.CrossChain.Indexing
         {
             var sideChainId = 123;
             var sideChainBlockInfoCache = new List<ICrossChainBlockEntity>();
-            var previousBlockHash = Hash.FromString("PreviousBlockHash");
+            var previousBlockHash = Hash.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
 
             var cachingCount = 5;
@@ -542,7 +542,7 @@ namespace AElf.CrossChain.Indexing
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = Hash.FromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = Hash.ComputeFrom((sideChainId + 1).ToString())
                 };
                 sideChainBlockInfoCache.Add(sideChainBlockData);
             }
@@ -556,7 +556,7 @@ namespace AElf.CrossChain.Indexing
             var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
             {
                 Proposer = SampleAddress.AddressList[0],
-                ProposalId = Hash.FromString("ProposalId"),
+                ProposalId = Hash.ComputeFrom("ProposalId"),
                 ProposedCrossChainBlockData = new CrossChainBlockData(),
                 ToBeReleased = false,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
@@ -590,14 +590,14 @@ namespace AElf.CrossChain.Indexing
 
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
                 Height = 2
             };
             _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
                         ParentChainBlockDataList = {parentChainBlockDataList}
@@ -613,9 +613,9 @@ namespace AElf.CrossChain.Indexing
         [Fact]
         public async Task FillExtraData_Test()
         {
-            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
-            var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
-            var fakeMerkleTreeRoot3 = Hash.FromString("fakeMerkleTreeRoot3");
+            var fakeMerkleTreeRoot1 = Hash.ComputeFrom("fakeMerkleTreeRoot1");
+            var fakeMerkleTreeRoot2 = Hash.ComputeFrom("fakeMerkleTreeRoot2");
+            var fakeMerkleTreeRoot3 = Hash.ComputeFrom("fakeMerkleTreeRoot3");
 
             int chainId1 = ChainHelper.ConvertBase58ToChainId("2112");
             int chainId2 = ChainHelper.ConvertBase58ToChainId("2113");
@@ -676,7 +676,7 @@ namespace AElf.CrossChain.Indexing
                 new GetPendingCrossChainIndexingProposalOutput
                 {
                     Proposer = SampleAddress.AddressList[0],
-                    ProposalId = Hash.FromString("ProposalId"),
+                    ProposalId = Hash.ComputeFrom("ProposalId"),
                     ProposedCrossChainBlockData = new CrossChainBlockData
                     {
                         SideChainBlockDataList = {list1, list2, list3}
@@ -688,7 +688,7 @@ namespace AElf.CrossChain.Indexing
             _crossChainTestHelper.SetFakeLibHeight(1);
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                PreviousBlockHash = Hash.ComputeFrom("PreviousHash"),
                 Height = 2
             };
 

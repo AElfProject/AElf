@@ -65,7 +65,7 @@ namespace AElf.Contracts.Referendum
             getOrganization.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(minimalVoteThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalAbstentionThreshold.ShouldBe(maximalAbstentionThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalRejectionThreshold.ShouldBe(maximalRejectionThreshold);
-            getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
+            getOrganization.OrganizationHash.ShouldBe(Hash.ComputeFrom(createOrganizationInput));
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Referendum
         {
             //not exist
             {
-                var proposal = await ReferendumContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+                var proposal = await ReferendumContractStub.GetProposal.CallAsync(Hash.ComputeFrom("Test"));
                 proposal.ShouldBe(new ProposalOutput());
             }
 
@@ -248,7 +248,7 @@ namespace AElf.Contracts.Referendum
         public async Task Approve_Proposal_NotFoundProposal_Test()
         {
             var transactionResult =
-                await ReferendumContractStub.Approve.SendWithExceptionAsync(Hash.FromString("Test"));
+                await ReferendumContractStub.Approve.SendWithExceptionAsync(Hash.ComputeFrom("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Invalid proposal id").ShouldBeTrue();
         }
@@ -572,7 +572,7 @@ namespace AElf.Contracts.Referendum
         [Fact]
         public async Task Release_NotFound_Test()
         {
-            var proposalId = Hash.FromString("test");
+            var proposalId = Hash.ComputeFrom("test");
             var result = await ReferendumContractStub.Release.SendWithExceptionAsync(proposalId);
             //Proposal not found
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

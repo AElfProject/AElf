@@ -104,7 +104,7 @@ namespace AElf.Contracts.GenesisUpdate
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
-            var codeHash = Hash.FromRawBytes(code);
+            var codeHash = Hash.ComputeFrom(code);
 
             var info = new ContractInfo
             {
@@ -164,7 +164,7 @@ namespace AElf.Contracts.GenesisUpdate
                 "Only author can propose contract update.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = Hash.ComputeFrom(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
 
             info.CodeHash = newCodeHash;
@@ -255,13 +255,13 @@ namespace AElf.Contracts.GenesisUpdate
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber.ToBytes()));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(chainId.ToHash(), serialNumber);
+            return BuildContractAddress(Hash.ComputeFrom(chainId), serialNumber);
         }
     }
 }

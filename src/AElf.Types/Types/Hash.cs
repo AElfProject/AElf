@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Google.Protobuf;
@@ -11,7 +10,7 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
-        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
+        public static readonly Hash Empty = LoadFrom(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace AElf.Types
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static Hash FromRawBytes(byte[] bytes)
+        public static Hash ComputeFrom(byte[] bytes)
         {
             return new Hash(bytes.ComputeHash());
         }
@@ -48,7 +47,7 @@ namespace AElf.Types
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Hash FromByteArray(byte[] bytes)
+        public static Hash LoadFrom(byte[] bytes)
         {
             if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
@@ -64,9 +63,19 @@ namespace AElf.Types
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static Hash FromString(string str)
+        public static Hash ComputeFrom(string str)
         {
-            return FromRawBytes(Encoding.UTF8.GetBytes(str));
+            return ComputeFrom(Encoding.UTF8.GetBytes(str));
+        }
+
+        /// <summary>
+        /// Gets the hash from int32 value.
+        /// </summary>
+        /// <param name="intValue"></param>
+        /// <returns></returns>
+        public static Hash ComputeFrom(int intValue)
+        {
+            return ComputeFrom(intValue.ToBytes(false));
         }
 
         /// <summary>
@@ -74,36 +83,9 @@ namespace AElf.Types
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static Hash FromMessage(IMessage message)
+        public static Hash ComputeFrom(IMessage message)
         {
-            return FromRawBytes(message.ToByteArray());
-        }
-
-        /// <summary>
-        /// Creates a hash from two hashes. The serialized byte arrays of the two hashes are concatenated and
-        /// used to calculate the hash. 
-        /// </summary>
-        /// <param name="hash1"></param>
-        /// <param name="hash2"></param>
-        /// <returns></returns>
-        public static Hash FromTwoHashes(Hash hash1, Hash hash2)
-        {
-            var hashes = new List<Hash>
-            {
-                hash1, hash2
-            };
-            using (var mm = new MemoryStream())
-            using (var stream = new CodedOutputStream(mm))
-            {
-                foreach (var hash in hashes.OrderBy(x => x))
-                {
-                    hash.WriteTo(stream);
-                }
-
-                stream.Flush();
-                mm.Flush();
-                return FromRawBytes(mm.ToArray());
-            }
+            return ComputeFrom(message.ToByteArray());
         }
 
         /// <summary>
@@ -150,6 +132,23 @@ namespace AElf.Types
         public static bool operator >(Hash h1, Hash h2)
         {
             return CompareHash(h1, h2) > 0;
+        }
+
+        /// <summary>
+        /// Gets a new hash from two input hashes from bitwise xor operation.
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
+        public static Hash operator ^(Hash h1, Hash h2)
+        {
+            var newBytes = new byte[AElfConstants.HashByteArrayLength];
+            for (var i = 0; i < newBytes.Length; i++)
+            {
+                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+            }
+
+            return ComputeFrom(newBytes);
         }
 
         public int CompareTo(Hash that)
