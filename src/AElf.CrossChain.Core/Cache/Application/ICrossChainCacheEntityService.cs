@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Acs7;
+using AElf.CrossChain.Cache.Infrastructure;
+using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache.Application
@@ -9,12 +14,16 @@ namespace AElf.CrossChain.Cache.Application
         void RegisterNewChain(int chainId, long height);
         List<int> GetCachedChainIds();
         long GetTargetHeightForChainCacheEntity(int chainId);
-        void ClearOutOfDateCrossChainCache(int chainId, long height);
+
+        Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
+            SideChainIdAndHeightDict chainIdAndHeightDict);
     }
 
     internal class CrossChainCacheEntityService : ICrossChainCacheEntityService, ITransientDependency
     {
         private readonly ICrossChainCacheEntityProvider _crossChainCacheEntityProvider;
+
+        public ILogger<CrossChainCacheEntityService> Logger { get; set; }
 
         public CrossChainCacheEntityService(ICrossChainCacheEntityProvider crossChainCacheEntityProvider)
         {
@@ -23,6 +32,8 @@ namespace AElf.CrossChain.Cache.Application
 
         public void RegisterNewChain(int chainId, long height)
         {
+            if (_crossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out _))
+                return;
             _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, height + 1);
         }
 
@@ -41,12 +52,29 @@ namespace AElf.CrossChain.Cache.Application
             return chainCacheEntity.TargetChainHeight();
         }
 
-        public void ClearOutOfDateCrossChainCache(int chainId, long height)
+        private void ClearOutOfDateCrossChainCache(int chainId, long height)
         {
             if (_crossChainCacheEntityProvider.TryGetChainCacheEntity(chainId, out var chainCacheEntity))
             {
                 chainCacheEntity.ClearOutOfDateCacheByHeight(height);
             }
+        }
+
+        public Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
+            SideChainIdAndHeightDict chainIdAndHeightDict)
+        {
+            foreach (var chainIdHeight in chainIdAndHeightDict.IdHeightDict)
+            {
+                // register new chain
+                RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
+
+                // clear cross chain cache
+                ClearOutOfDateCrossChainCache(chainIdHeight.Key, chainIdHeight.Value);
+                Logger.LogDebug(
+                    $"Clear chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} cache by height {chainIdHeight.Value}");
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

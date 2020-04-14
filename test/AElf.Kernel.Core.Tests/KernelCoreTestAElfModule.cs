@@ -64,7 +64,8 @@ namespace AElf.Kernel
                     ByteString bs = null;
                     dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o => o.Height == 100)))
                         .Returns(Task.FromResult(bs));
-                   
+
+                    dataProvider.Setup(m => m.ExtraDataName).Returns(nameof(IBlockExtraDataProvider));
                     return dataProvider.Object;
                 });
         }
