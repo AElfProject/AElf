@@ -117,7 +117,11 @@ namespace AElf.Kernel.SmartContract
 
         public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
         {
-            return Hash.FromRawBytes(OriginTransactionId.Value.Concat(contractAddress.Value).Concat(bytes).ToArray());
+            var contactedBytes = OriginTransactionId.Value.Concat(contractAddress.Value);
+            var enumerable = bytes as byte[] ?? bytes?.ToArray();
+            if (enumerable != null)
+                contactedBytes = contactedBytes.Concat(enumerable);
+            return Hash.FromRawBytes(contactedBytes.ToArray());
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();

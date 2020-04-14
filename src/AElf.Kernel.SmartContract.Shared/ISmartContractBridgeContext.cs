@@ -90,6 +90,16 @@ namespace AElf.Kernel.SmartContract
             return @this.GenerateId(@this.Self, token.Value);
         }
 
+        public static Hash GenerateId(this ISmartContractBridgeContext @this)
+        {
+            return @this.GenerateId(@this.Self, null);
+        }
+
+        public static Hash GenerateId(this ISmartContractBridgeContext @this, Address address)
+        {
+            return @this.GenerateId(address, null);
+        }
+
 
         public static Address ConvertVirtualAddressToContractAddress(this ISmartContractBridgeContext @this,
             Hash virtualAddress)
