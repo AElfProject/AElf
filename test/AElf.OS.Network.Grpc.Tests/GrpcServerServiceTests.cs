@@ -113,7 +113,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Announce_ShouldAddToBlockCache()
         {
-            Hash hash = Hash.LoadFrom(new byte[] {3,6,9});
+            Hash hash = Hash.ComputeFrom(new byte[] {3,6,9});
             var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
             var peer = _peerPool.GetPeers(true).First();
             var pubkey = peer.Info.Pubkey;
@@ -142,7 +142,7 @@ namespace AElf.OS.Network
                 GrpcConstants.PubkeyMetadataKey, pubkey
             }};
 
-            Hash hash = Hash.LoadFrom(new byte[]{3,6,9});
+            Hash hash = Hash.ComputeFrom(new byte[]{3,6,9});
             await _serverService.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
@@ -396,7 +396,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = Hash.LoadFrom(new byte[]{11,22}) }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = Hash.ComputeFrom(new byte[]{11,22}) }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -431,7 +431,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.LoadFrom(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.ComputeFrom(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);

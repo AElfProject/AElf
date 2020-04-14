@@ -20,7 +20,7 @@ namespace AElf.Types.Tests
 
             //Generate from byte
             var bytes = new byte[]{00, 12, 14, 16};
-            var hash4 = Hash.LoadFrom(bytes);
+            var hash4 = Hash.ComputeFrom(bytes);
             hash4.ShouldNotBe(null);
 
             //Generate from teo hash
@@ -45,9 +45,9 @@ namespace AElf.Types.Tests
         [Fact]
         public void Equal_Test()
         {
-            var hash1 = Hash.LoadFrom(new byte[] {10, 14, 1, 15});
-            var hash2 = Hash.LoadFrom(new byte[] {10, 14, 1, 15});
-            var hash3 = Hash.LoadFrom(new byte[] {15, 1, 14, 10});
+            var hash1 = Hash.ComputeFrom(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.ComputeFrom(new byte[] {10, 14, 1, 15});
+            var hash3 = Hash.ComputeFrom(new byte[] {15, 1, 14, 10});
             hash1.ShouldBe(hash2);
             hash1.ShouldNotBe(hash3);
         }
@@ -55,8 +55,8 @@ namespace AElf.Types.Tests
         [Fact]
         public void Compare_Test()
         {
-            var hash1 = Hash.LoadFrom(new byte[] {10, 14, 1, 15});
-            var hash2 = Hash.LoadFrom(new byte[] {15, 1, 14, 10});
+            var hash1 = Hash.ComputeFrom(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.ComputeFrom(new byte[] {15, 1, 14, 10});
             hash1.CompareTo(hash2).ShouldBe(-1); 
             Should.Throw<System.InvalidOperationException>(() => { hash1.CompareTo(null); });
             
@@ -74,10 +74,10 @@ namespace AElf.Types.Tests
         public void Dictionary_Test()
         {
             var dict = new Dictionary<Hash, string>();
-            var hash = Hash.LoadFrom(new byte[] {10, 14, 1, 15});
+            var hash = Hash.ComputeFrom(new byte[] {10, 14, 1, 15});
             dict[hash] = "test";
 
-            var anotherHash = Hash.LoadFrom(new byte[] {10, 14, 1, 15});
+            var anotherHash = Hash.ComputeFrom(new byte[] {10, 14, 1, 15});
 
             Assert.True(dict.TryGetValue(anotherHash, out var test));
             test.ShouldBe("test");

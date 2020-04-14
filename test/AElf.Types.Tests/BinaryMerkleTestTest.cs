@@ -17,7 +17,7 @@ namespace AElf.Types.Tests
             var hash = Hash.LoadFrom(ByteArrayHelper.HexStringToByteArray(strings[0]));
             foreach (var s in strings.Skip(1))
             {
-                hash = Hash.LoadFrom(hash.ToByteArray().Concat(ByteArrayHelper.HexStringToByteArray(s)).ToArray());
+                hash = Hash.ComputeFrom(hash.ToByteArray().Concat(ByteArrayHelper.HexStringToByteArray(s)).ToArray());
             }
 
             return hash;
@@ -281,7 +281,7 @@ namespace AElf.Types.Tests
                     Hash.LoadFrom(
                         ByteArrayHelper.HexStringToByteArray(
                             "0xa80afe5c85c3e9b09e8c74070d5d8d4de60780968d78e7b031e939e7335b6916"));
-                var actualHash = Hash.LoadFrom(ByteArrayHelper.HexStringToByteArray(hex));
+                var actualHash = Hash.ComputeFrom(ByteArrayHelper.HexStringToByteArray(hex));
                 Assert.Equal(expectedHash, actualHash);
 
                 var merklePath = new MerklePath
@@ -323,7 +323,7 @@ namespace AElf.Types.Tests
                     Hash.LoadFrom(
                         ByteArrayHelper.HexStringToByteArray(
                             "0xdbd4b01cea12038a3b0c3ce4900c64635b96a1ee2331625fbe473d6c1e816548"));
-                var actualHash = Hash.LoadFrom(ByteArrayHelper.HexStringToByteArray(hex));
+                var actualHash = Hash.ComputeFrom(ByteArrayHelper.HexStringToByteArray(hex));
                 Assert.Equal(expectedHash, actualHash);
 
                 var merklePath = new MerklePath
@@ -389,7 +389,7 @@ namespace AElf.Types.Tests
                 cur.AddRange(i.ToBytes());
                 return cur;
             });
-            var hashFromAmount = Hash.LoadFrom(amountBytes.ToArray());
+            var hashFromAmount = Hash.ComputeFrom(amountBytes.ToArray());
             var hashFromUid = Hash.LoadFrom(ByteArrayHelper.HexStringToByteArray(uid));
             var hash = HashHelper.ConcatAndCompute(hashFromAmount, hashFromString, hashFromUid);
             Assert.True(hash == Hash.LoadFrom(ByteArrayHelper.HexStringToByteArray(result)));

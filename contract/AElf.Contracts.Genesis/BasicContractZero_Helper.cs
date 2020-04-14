@@ -216,7 +216,7 @@ namespace AElf.Contracts.Genesis
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 

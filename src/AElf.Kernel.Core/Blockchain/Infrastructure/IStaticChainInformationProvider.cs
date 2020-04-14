@@ -8,9 +8,6 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     {
         int ChainId { get; }
         Address ZeroSmartContractAddress { get; }
-
-        Address GetSystemContractAddressInGenesisBlock(long i);
-        
         Address GetZeroSmartContractAddress(int chainId);
     }
 
@@ -19,37 +16,21 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public int ChainId { get; }
         public Address ZeroSmartContractAddress { get; }
 
-        public Address GetSystemContractAddressInGenesisBlock(long i)
-        {
-            return BuildContractAddress(ChainId, i);
-        }
-
         public Address GetZeroSmartContractAddress(int chainId)
         {
-            return BuildContractAddress(chainId, 0);
+            return BuildZeroContractAddress(chainId);
         }
 
         public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
         {
             ChainId = chainOptions.Value.ChainId;
-            ZeroSmartContractAddress = BuildContractAddress(ChainId, 0);
+            ZeroSmartContractAddress = BuildZeroContractAddress(ChainId);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="serialNumber"></param>
-        /// <returns></returns>
-        public static Address BuildContractAddress(Hash chainId, long serialNumber)
+        private static Address BuildZeroContractAddress(int chainId)
         {
-            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(Hash.ComputeFrom(chainId), Hash.ComputeFrom(0L));
             return Address.FromBytes(hash.ToByteArray());
-        }
-
-        public static Address BuildContractAddress(int chainId, long serialNumber)
-        {
-            return BuildContractAddress(Hash.ComputeFrom(chainId), serialNumber);
         }
     }
 }

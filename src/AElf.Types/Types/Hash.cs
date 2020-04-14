@@ -30,17 +30,7 @@ namespace AElf.Types
 
             Value = ByteString.CopyFrom(bytes);
         }
-
-        /// <summary>
-        /// Gets the hash from a byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        public static Hash ComputeFrom(byte[] bytes)
-        {
-            return new Hash(bytes.ComputeHash());
-        }
-
+        
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
         /// </summary>
@@ -59,7 +49,17 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Gets the hash from a string encoded in UTF8.
+        /// Compute hash from a byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static Hash ComputeFrom(byte[] bytes)
+        {
+            return new Hash(bytes.ComputeHash());
+        }
+
+        /// <summary>
+        /// Compute hash from a string encoded in UTF8.
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
@@ -69,11 +69,21 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Gets the hash from int32 value.
+        /// Compute hash from int32 value.
         /// </summary>
         /// <param name="intValue"></param>
         /// <returns></returns>
         public static Hash ComputeFrom(int intValue)
+        {
+            return ComputeFrom(intValue.ToBytes(false));
+        }
+        
+        /// <summary>
+        /// Compute hash from int64 value.
+        /// </summary>
+        /// <param name="intValue"></param>
+        /// <returns></returns>
+        public static Hash ComputeFrom(long intValue)
         {
             return ComputeFrom(intValue.ToBytes(false));
         }
