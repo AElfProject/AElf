@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -18,11 +20,15 @@ namespace AElf.OS.Network.Infrastructure
         private readonly NetworkOptions _networkOptions;
 
         private readonly ConcurrentDictionary<string, ConcurrentQueue<Timestamp>> _invalidTransactionCache;
+        
+        public ILogger<PeerInvalidTransactionProvider> Logger { get; set; }
 
         public PeerInvalidTransactionProvider(IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _networkOptions = networkOptions.Value;
             _invalidTransactionCache = new ConcurrentDictionary<string, ConcurrentQueue<Timestamp>>();
+            
+            Logger = NullLogger<PeerInvalidTransactionProvider>.Instance;
         }
 
         public bool TryMarkInvalidTransaction(string host)
@@ -34,6 +40,9 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             CleanCache(queue);
+
+            Logger.LogDebug($"Mark peer invalid transaction. host: {host}, count: {queue.Count}");
+            
             if (queue.Count >= _networkOptions.PeerInvalidTransactionLimit)
                 return false;
 
