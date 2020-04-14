@@ -237,8 +237,6 @@ namespace AElf.OS.Network.Grpc
 
             if (!peer.TryAddKnownTransaction(tx.GetHash()))
                 return;
-
-            Logger.LogDebug($"Receive transaction: {tx} from {peer} ");
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
