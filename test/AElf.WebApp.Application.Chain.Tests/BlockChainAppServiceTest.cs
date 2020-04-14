@@ -1119,18 +1119,20 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Success_Test()
         {
-            var toAddress = Base64.ToBase64String(AddressHelper
-                .Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
-                .Value.ToByteArray());
+            var transferToAddress =
+                AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ");
+            var toAddress = Base64.ToBase64String(transferToAddress.Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             OutputHelper.WriteLine(contractAddress.ToString()); //2J9wWhuyz7Drkmtu9DTegM9rLmamjekmRkCAWz5YYPjm7akfbH
+            var fromAddressInBase58 = "juYfvugva4PZSEz1w9J8VkAhgrbevEmqTLSATwc9i1XHZJvE1";
+            var refHashInHex = "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"; 
             var parameters = new Dictionary<string, string>
             {
-                {"From", "juYfvugva4PZSEz1w9J8VkAhgrbevEmqTLSATwc9i1XHZJvE1"},
+                {"From", fromAddressInBase58},
                 {"To", contractAddress.GetFormatted()},
                 {"RefBlockNumber", "2788"},
-                {"RefBlockHash", "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
+                {"RefBlockHash", refHashInHex},
                 {"MethodName", "Transfer"},
                 {
                     "Params",
@@ -1140,8 +1142,17 @@ namespace AElf.WebApp.Application.Chain.Tests
             var response =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            response.RawTransaction.ShouldBe(
-                "0a220a20616c59d43bab19018baeb0f422f65358011156ef76994d13ac8f77217c2e618312220a20aaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355d70e18e4152204190db8ba2a085472616e7366657232310a220a20858490f959fcdde05798e021819eae4cd462ea45bda2028d44eea3ea81b43d451203454c461864220474657374");
+            var tx = Transaction.Parser.ParseFrom(ByteArrayHelper.HexStringToByteArray(response.RawTransaction));
+            tx.From.ShouldBe(AddressHelper.Base58StringToAddress(fromAddressInBase58));
+            tx.To.ShouldBe(contractAddress);
+            tx.RefBlockNumber.ShouldBe(2788);
+            tx.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(HashHelper.HexStringToHash(refHashInHex)));
+            tx.MethodName.ShouldBe("Transfer");
+            var transferInput = TransferInput.Parser.ParseFrom(tx.Params);
+            transferInput.Amount.ShouldBe(100);
+            transferInput.Memo.ShouldBe("test");
+            transferInput.Symbol.ShouldBe("ELF");
+            transferInput.To.ShouldBe(transferToAddress);
         }
 
         [Fact]

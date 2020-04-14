@@ -253,9 +253,9 @@ namespace AElf.Contracts.GenesisUpdate
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(Hash chainId, long serialNumber)
+        private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, Hash.ComputeFrom(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 

@@ -1025,7 +1025,7 @@ namespace AElf.Contracts.MultiToken
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString())).ToArray();
-            var hash = Hash.LoadFrom(rawBytes);
+            var hash = Hash.ComputeFrom(rawBytes);
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes((new[] {hash, fakeHash1, fakeHash2}));
 
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
@@ -1179,7 +1179,7 @@ namespace AElf.Contracts.MultiToken
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString())).ToArray();
-            var hash = Hash.LoadFrom(rawBytes);
+            var hash = Hash.ComputeFrom(rawBytes);
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRootHash = binaryMerkleTree.Root;
 

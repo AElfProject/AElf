@@ -1038,7 +1038,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var rawBytes = txId.ToByteArray()
                 .Concat(EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString()))
                 .ToArray();
-            var hash = Hash.LoadFrom(rawBytes);
+            var hash = Hash.ComputeFrom(rawBytes);
 
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.Root;
