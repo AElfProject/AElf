@@ -42,10 +42,15 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             var code = File.ReadAllBytes(dllPath);
             DefaultContractZeroRegistration = new SmartContractRegistration()
             {
-                Category = KernelConstants.DefaultRunnerCategory,
+                Category = GetCategory(),
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
+        }
+
+        protected virtual int GetCategory()
+        {
+            return KernelConstants.DefaultRunnerCategory;
         }
 
         public Address GetZeroSmartContractAddress(int chainId)

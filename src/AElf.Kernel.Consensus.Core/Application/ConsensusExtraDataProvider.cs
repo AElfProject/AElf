@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class ConsensusExtraDataProvider : IBlockExtraDataProvider, IConsensusExtraDataNameProvider
+    public class ConsensusExtraDataProvider : IConsensusExtraDataNameProvider
     {
         public string ExtraDataName => "Consensus";
 

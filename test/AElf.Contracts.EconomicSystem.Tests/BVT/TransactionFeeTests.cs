@@ -9,7 +9,6 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

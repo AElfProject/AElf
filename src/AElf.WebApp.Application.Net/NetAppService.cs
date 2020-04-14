@@ -39,7 +39,7 @@ namespace AElf.WebApp.Application.Net
         /// <returns>true/false</returns>
         public async Task<bool> AddPeerAsync(AddPeerInput input)
         {
-            return await _networkService.AddPeerAsync(input.Address);
+            return await _networkService.AddTrustedPeerAsync(input.Address);
         }
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace AElf.WebApp.Application.Net
         public async Task<bool> RemovePeerAsync(string address)
         {
             _reconnectionService.CancelReconnection(address);
-            return await _networkService.RemovePeerAsync(address);
+            return await _networkService.RemovePeerByEndpointAsync(address, int.MaxValue);
         }
         
         /// <summary>

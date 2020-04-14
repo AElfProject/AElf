@@ -1,4 +1,5 @@
 using System;
+using AElf.CrossChain.Cache.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -6,7 +7,7 @@ namespace AElf.CrossChain.Cache.Application
 {
     public interface IBlockCacheEntityProducer
     {
-        bool TryAddBlockCacheEntity(IBlockCacheEntity blockCacheEntity);
+        bool TryAddBlockCacheEntity(ICrossChainBlockEntity crossChainBlockEntity);
     }
     
     public class BlockCacheEntityProducer : IBlockCacheEntityProducer, ISingletonDependency
@@ -20,19 +21,19 @@ namespace AElf.CrossChain.Cache.Application
             _crossChainCacheEntityProvider = crossChainCacheEntityProvider;
         }
 
-        public bool TryAddBlockCacheEntity(IBlockCacheEntity blockCacheEntity)
+        public bool TryAddBlockCacheEntity(ICrossChainBlockEntity crossChainBlockEntity)
         {
-            if (blockCacheEntity == null)
-                throw new ArgumentNullException(nameof(blockCacheEntity));
-            if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(blockCacheEntity.ChainId, out var chainCacheEntity))
+            if (crossChainBlockEntity == null)
+                throw new ArgumentNullException(nameof(crossChainBlockEntity));
+            if (!_crossChainCacheEntityProvider.TryGetChainCacheEntity(crossChainBlockEntity.ChainId, out var chainCacheEntity))
             {
                 return false;
             }
 
-            var res = chainCacheEntity.TryAdd(blockCacheEntity);
+            var res = chainCacheEntity.TryAdd(crossChainBlockEntity);
 
             Logger.LogTrace(
-                $"Cached height {blockCacheEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(blockCacheEntity.ChainId)}, {res}");
+                $"Cached height {crossChainBlockEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(crossChainBlockEntity.ChainId)}, {res}");
             return res;
         }
     }

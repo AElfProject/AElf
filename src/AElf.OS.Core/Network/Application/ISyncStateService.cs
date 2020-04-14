@@ -97,10 +97,10 @@ namespace AElf.OS.Network.Application
                 
             var chain = await _blockchainService.GetChainAsync();
             
-            // if the current LIB is higher than the recorded target, update
-            // the peers current LIB height. Note that this condition will 
+            // if the current best chain height is higher than the recorded target,
+            // check the peers current LIB height. Note that this condition will 
             // also be true when the node starts.
-            if (chain.LastIrreversibleBlockHeight >= _syncStateProvider.SyncTarget)
+            if (chain.BestChainHeight >= _syncStateProvider.SyncTarget)
             {
                 await UpdateSyncTargetAsync();
             }

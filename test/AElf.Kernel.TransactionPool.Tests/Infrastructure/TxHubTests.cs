@@ -50,7 +50,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
 
                 // Receive the transaction first time
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionHeight100}
                 });
@@ -72,7 +72,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var transactionValid =
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionValid}
                 });
@@ -137,7 +137,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
                 var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction>
                     {
@@ -152,7 +152,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 TransactionShouldInPool(transactionValid);
 
                 // Receive the same transaction again
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionValid, transactionInvalid}
                 });

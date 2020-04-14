@@ -1,7 +1,8 @@
+using AElf.Kernel.Blockchain.Application;
+
 namespace AElf.Kernel.Consensus.Application
 {
-    public interface IConsensusExtraDataNameProvider
+    public interface IConsensusExtraDataNameProvider : IBlockExtraDataProvider
     {
-        string ExtraDataName { get; }
     }
 }
