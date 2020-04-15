@@ -4,12 +4,14 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
+using AElf.Runtime.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
@@ -59,6 +61,14 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
             context.Services.AddSingleton<ITxHub, MockTxHub>();
+
+            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
+            {
+                var option = provider.GetService<IOptions<RunnerOptions>>();
+                return new UnitTestCSharpSmartContractRunner(
+                    option.Value.SdkDir);
+            });
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

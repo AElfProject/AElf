@@ -15,16 +15,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITokenReaderFactory _tokenReaderFactory;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
         public ILogger<DonateResourceTokenValidationProvider> Logger { get; set; }
 
         public DonateResourceTokenValidationProvider(ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider,
-            ISmartContractAddressService smartContractAddressService, ITokenReaderFactory tokenReaderFactory)
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
         {
             _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
             _smartContractAddressService = smartContractAddressService;
-            _tokenReaderFactory = tokenReaderFactory;
+            _contractReaderFactory = contractReaderFactory;
 
             Logger = NullLogger<DonateResourceTokenValidationProvider>.Instance;
         }
@@ -63,8 +65,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return true;
             }
 
-            var hashFromState = await _tokenReaderFactory.Create(block.GetHash(), block.Header.Height)
-                .GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
+            var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                ContractAddress = tokenContractAddress
+            }).GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
