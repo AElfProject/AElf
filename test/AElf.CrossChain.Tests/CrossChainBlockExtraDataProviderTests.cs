@@ -31,7 +31,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 1
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Empty(bytes);
         }
     
@@ -43,7 +43,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Empty(bytes);
         }
     
@@ -55,7 +55,7 @@ namespace AElf.CrossChain
                 PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Empty(bytes);
         }
 
@@ -71,7 +71,7 @@ namespace AElf.CrossChain
             };
             _crossChainTestHelper.AddFakeExtraData(header.PreviousBlockHash, expected);
             _transactionPackingOptions.IsTransactionPackable = false;
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Empty(bytes);
         }
 
@@ -86,7 +86,7 @@ namespace AElf.CrossChain
                 Height = 2
             };
             _crossChainTestHelper.AddFakeExtraData(header.PreviousBlockHash, expected);
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Equal(expected.ToByteString(), bytes);
         }
     }

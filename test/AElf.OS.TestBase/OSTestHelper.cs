@@ -327,7 +327,6 @@ namespace AElf.OS
                     MerkleTreeRootOfTransactions = Hash.Empty,
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                    ExtraData = {ByteString.Empty},
                     SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()
