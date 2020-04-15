@@ -127,10 +127,14 @@ namespace AElf.Contracts.Association
             Assert(!isAlreadyVoted, "Sender already voted.");
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? Hash.FromMessage(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.OriginTransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,

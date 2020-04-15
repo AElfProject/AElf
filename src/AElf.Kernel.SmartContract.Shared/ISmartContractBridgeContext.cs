@@ -95,9 +95,9 @@ namespace AElf.Kernel.SmartContract
             return @this.GenerateId(@this.Self, null);
         }
 
-        public static Hash GenerateId(this ISmartContractBridgeContext @this, Address address)
+        public static Hash GenerateId(this ISmartContractBridgeContext @this, Address address, Hash token)
         {
-            return @this.GenerateId(address, null);
+            return @this.GenerateId(address, token);
         }
 
 

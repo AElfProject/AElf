@@ -140,10 +140,14 @@ namespace AElf.Contracts.Referendum
             return allowance;
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? Hash.FromMessage(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.OriginTransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             var proposal = new ProposalInfo
             {
