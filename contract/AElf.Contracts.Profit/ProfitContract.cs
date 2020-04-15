@@ -55,7 +55,7 @@ namespace AElf.Contracts.Profit
             }
 
             var manager = input.Manager ?? Context.Sender;
-            var schemeId = Context.TransactionId;
+            var schemeId = Context.OriginTransactionId;
             // Why? Because one transaction may create many profit schemes via inline transactions.
             var createdSchemeIds = State.ManagingSchemeIds[manager]?.SchemeIds;
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))

@@ -385,7 +385,7 @@ namespace AElf.Contracts.Vote
                 // Voter = Transaction Sender
                 input.Voter = Context.Sender;
                 // VoteId = Transaction Id;
-                input.VoteId = Context.TransactionId;
+                input.VoteId = Context.OriginTransactionId;
             }
 
             return votingItem;

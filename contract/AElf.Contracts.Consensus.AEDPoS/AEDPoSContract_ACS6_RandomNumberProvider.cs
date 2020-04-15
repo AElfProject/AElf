@@ -119,7 +119,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override RandomNumberOrder RequestRandomNumber(Hash input)
         {
-            var tokenHash = Context.TransactionId;
+            var tokenHash = Context.OriginTransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 var requestInformation = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)

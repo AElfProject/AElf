@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
 
-            State.LockTimeMap[Context.TransactionId] = lockSeconds;
+            State.LockTimeMap[Context.OriginTransactionId] = lockSeconds;
 
             var recoveredPublicKey = Context.RecoverPublicKey();
 
@@ -120,14 +120,14 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     Pubkey = voterPublicKeyByteString,
-                    ActiveVotingRecordIds = {Context.TransactionId},
+                    ActiveVotingRecordIds = {Context.OriginTransactionId},
                     ActiveVotedVotesAmount = amount,
                     AllVotedVotesAmount = amount
                 };
             }
             else
             {
-                voterVotes.ActiveVotingRecordIds.Add(Context.TransactionId);
+                voterVotes.ActiveVotingRecordIds.Add(Context.OriginTransactionId);
                 voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Add(amount);
                 voterVotes.AllVotedVotesAmount = voterVotes.AllVotedVotesAmount.Add(amount);
             }
@@ -148,14 +148,14 @@ namespace AElf.Contracts.Election
                 candidateVotes = new CandidateVote
                 {
                     Pubkey = candidatePublicKey.ToByteString(),
-                    ObtainedActiveVotingRecordIds = {Context.TransactionId},
+                    ObtainedActiveVotingRecordIds = {Context.OriginTransactionId},
                     ObtainedActiveVotedVotesAmount = amount,
                     AllObtainedVotedVotesAmount = amount
                 };
             }
             else
             {
-                candidateVotes.ObtainedActiveVotingRecordIds.Add(Context.TransactionId);
+                candidateVotes.ObtainedActiveVotingRecordIds.Add(Context.OriginTransactionId);
                 candidateVotes.ObtainedActiveVotedVotesAmount =
                     candidateVotes.ObtainedActiveVotedVotesAmount.Add(amount);
                 candidateVotes.AllObtainedVotedVotesAmount =
@@ -447,7 +447,7 @@ namespace AElf.Contracts.Election
             {
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
-                LockId = Context.TransactionId,
+                LockId = Context.OriginTransactionId,
                 Amount = amount,
                 Usage = "Voting for Main Chain Miner Election."
             });
@@ -497,7 +497,7 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Amount = amount,
                 Option = candidatePubkey,
-                VoteId = Context.TransactionId
+                VoteId = Context.OriginTransactionId
             });
         }
 

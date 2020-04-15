@@ -165,13 +165,13 @@ namespace AElf.Contracts.TokenHolder
 
             State.TokenContract.Lock.Send(new LockInput
             {
-                LockId = Context.TransactionId,
+                LockId = Context.OriginTransactionId,
                 Symbol = scheme.Symbol,
                 Address = Context.Sender,
                 Amount = input.Amount,
             });
-            State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
-            State.LockTimestamp[Context.TransactionId] = Context.CurrentBlockTime;
+            State.LockIds[input.SchemeManager][Context.Sender] = Context.OriginTransactionId;
+            State.LockTimestamp[Context.OriginTransactionId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,

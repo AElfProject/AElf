@@ -42,7 +42,7 @@ namespace AElf.Contracts.Referendum
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
-            var lockId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(proposalId), Context.TransactionId),
+            var lockId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(proposalId), Context.OriginTransactionId),
                 Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
             RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(new LockInput
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Referendum
 
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
+            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.OriginTransactionId),
                 Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             var proposal = new ProposalInfo
