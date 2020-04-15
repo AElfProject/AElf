@@ -211,7 +211,7 @@ namespace AElf.OS.Network.Application
                 try
                 {
                     if (peer.KnowsBlock(blockHash))
-                        return Task.CompletedTask; // block already known to this peer
+                        continue; // block already known to this peer
 
                     peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
                     {
@@ -243,7 +243,7 @@ namespace AElf.OS.Network.Application
                 try
                 {
                     if (peer.KnowsTransaction(txHash)) 
-                        return Task.CompletedTask; // transaction already known to this peer
+                        continue; // transaction already known to this peer
                     
                     peer.EnqueueTransaction(transaction, async ex =>
                     {
