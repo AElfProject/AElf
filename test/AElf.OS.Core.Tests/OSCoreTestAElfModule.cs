@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
+using AElf.OS.Network;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,6 +59,12 @@ namespace AElf.OS
             });
 
             context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+            
+            Configure<NetworkOptions>(o=>
+            {
+                o.PeerInvalidTransactionLimit = 5;
+                o.PeerInvalidTransactionTimeout = 1000;
+            });
         }
     }
 }
