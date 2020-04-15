@@ -92,7 +92,7 @@ namespace AElf.Kernel.SmartContract
             _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
 
             var previousBlockTransactions = _bridgeContext.GetPreviousBlockTransactions();
-            
+
             previousBlockTransactions.ShouldNotBeNull();
             previousBlockTransactions.ShouldContain(transaction);
         }
@@ -159,7 +159,8 @@ namespace AElf.Kernel.SmartContract
                 CodeHash = Hash.FromString("hash")
             };
 
-            _bridgeContext.DeployContract(SampleAddress.AddressList[0], registration, Hash.FromMessage(registration.CodeHash));
+            _bridgeContext.DeployContract(SampleAddress.AddressList[0], registration,
+                Hash.FromMessage(registration.CodeHash));
         }
 
         [Fact]
@@ -200,27 +201,51 @@ namespace AElf.Kernel.SmartContract
                 _bridgeContext.UpdateContract(SampleAddress.AddressList[0], registration, null);
             });
         }
-        
+
+        [Fact]
+        public void Test_OriginTransactionId()
+        {
+            var hostSmartContractBridgeContext = CreateNewContext();
+            hostSmartContractBridgeContext.OriginTransactionId.ShouldBe(_bridgeContext.TransactionContext
+                .OriginTransactionId);
+            hostSmartContractBridgeContext.OriginTransactionId.ShouldBe(_bridgeContext.TransactionContext.Transaction
+                .GetHash());
+        }
+
+        [Fact]
+        public void Test_GenerateId()
+        {
+            var hostSmartContractBridgeContext = CreateNewContext();
+            Should.NotThrow(() => hostSmartContractBridgeContext.GenerateId(SampleAddress.AddressList[0], null));
+            var bytes = new List<byte> {0x01};
+            Should.Throw<NullReferenceException>(() => hostSmartContractBridgeContext.GenerateId(null, bytes));
+            var res1 = hostSmartContractBridgeContext.GenerateId(SampleAddress.AddressList[0], bytes);
+            var res2 = hostSmartContractBridgeContext.GenerateId(SampleAddress.AddressList[0], bytes.ToArray());
+            res1.ShouldBe(res2);
+        }
+
         private IHostSmartContractBridgeContext CreateNewContext()
         {
             _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
 
+            var transaction = new Transaction()
+            {
+                From = Address.FromPublicKey(_keyPair.PublicKey),
+                To = SampleAddress.AddressList[0],
+                MethodName = "Test",
+                Params = ByteString.CopyFrom(new byte[10]),
+                RefBlockNumber = 1,
+                RefBlockPrefix = ByteString.CopyFrom(new byte[4])
+            };
             var transactionContext = new TransactionContext()
             {
-                Transaction = new Transaction()
-                {
-                    From = Address.FromPublicKey(_keyPair.PublicKey),
-                    To = SampleAddress.AddressList[0],
-                    MethodName = "Test",
-                    Params = ByteString.CopyFrom(new byte[10]),
-                    RefBlockNumber = 1,
-                    RefBlockPrefix = ByteString.CopyFrom(new byte[4])
-                },
+                Transaction = transaction,
                 BlockHeight = 3,
                 CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 PreviousBlockHash = Hash.Empty,
                 Trace = new TransactionTrace(),
-                StateCache = new NullStateCache()
+                StateCache = new NullStateCache(),
+                OriginTransactionId = transaction.GetHash()
             };
             var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
                 .GetHash().ToByteArray());
