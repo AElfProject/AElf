@@ -102,8 +102,8 @@ The account/key-pair associated with the node we are going to run:
 You also have to configure the database connection strings (port/db number):
 ```json
 "ConnectionStrings": {
-    "BlockchainDb": "ssdb://your chain database server ip address:port",
-    "StateDb": "ssdb://your state database server ip address:port"
+    "BlockchainDb": "redis://your chain database server ip address:port",
+    "StateDb": "redis://your state database server ip address:port"
   },
 ```
 
