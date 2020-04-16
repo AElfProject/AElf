@@ -247,7 +247,6 @@ namespace AElf.OS.Network.Application
                     
                     peer.EnqueueTransaction(transaction, async ex =>
                     {
-                        peer.TryAddKnownTransaction(txHash);
                         if (ex != null)
                         {
                             Logger.LogInformation(ex, $"Could not broadcast transaction to {peer} " +
