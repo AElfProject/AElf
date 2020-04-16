@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Events;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
 using Moq;
@@ -11,7 +10,7 @@ using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Application
 {
     public class SyncStateServiceTests : SyncFlagTestBase
     {
