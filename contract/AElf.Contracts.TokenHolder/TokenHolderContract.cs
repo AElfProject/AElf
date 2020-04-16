@@ -171,6 +171,8 @@ namespace AElf.Contracts.TokenHolder
                 Amount = input.Amount,
             });
             State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
+            var currentCount = State.LockedTimes[Context.TransactionId];
+            State.LockedTimes[Context.TransactionId] = currentCount.Add(1);
             State.LockTimestamp[Context.TransactionId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
@@ -234,7 +236,15 @@ namespace AElf.Contracts.TokenHolder
                 Symbol = scheme.Symbol
             });
 
-            State.LockIds[input].Remove(Context.Sender);
+            var currentCount = State.LockedTimes[lockId];
+            if (currentCount == 1)
+            {
+                State.LockIds[input].Remove(Context.Sender);
+            }
+            else
+            {
+                State.LockedTimes[lockId] = currentCount.Sub(1);
+            }
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,

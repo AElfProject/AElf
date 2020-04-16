@@ -17,5 +17,7 @@ namespace AElf.Contracts.TokenHolder
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        public MappedState<Hash, int> LockedTimes { get; set; }
     }
 }
