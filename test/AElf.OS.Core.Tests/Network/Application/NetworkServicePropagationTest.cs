@@ -128,9 +128,6 @@ namespace AElf.OS.Network.Application
             
             await _networkService.BroadcastTransactionAsync(transaction);
 
-            foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.TryAddKnownTransaction(transaction.GetHash()), Times.Once());
-
             _testContext.MockedPeers[0].Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
                 It.IsAny<Action<NetworkException>>()), Times.Never);
             _testContext.MockedPeers[1].Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
