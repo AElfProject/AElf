@@ -42,7 +42,7 @@ namespace AElf.OS
             peer.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
                 .Returns<Hash>(hash =>
                 {
-                    if (hash == Hash.FromString("Tx"+pubkey))
+                    if (hash == HashHelper.ComputeFromString("Tx"+pubkey))
                         return true;
                     return false;
                 });
