@@ -112,14 +112,13 @@ namespace AElf.Contracts.Election
         /// <param name="amount"></param>
         private void UpdateElectorInformation(byte[] recoveredPublicKey, long amount)
         {
-            var voterPublicKey = recoveredPublicKey.ToHex();
-            var voterPublicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
-            var voterVotes = State.ElectorVotes[voterPublicKey];
+            var voterAddress = Context.Sender;
+            var voterVotes = State.ElectorVotes[voterAddress];
             if (voterVotes == null)
             {
                 voterVotes = new ElectorVote
                 {
-                    Pubkey = voterPublicKeyByteString,
+                    Address = voterAddress,
                     ActiveVotingRecordIds = {Context.TransactionId},
                     ActiveVotedVotesAmount = amount,
                     AllVotedVotesAmount = amount
@@ -132,7 +131,7 @@ namespace AElf.Contracts.Election
                 voterVotes.AllVotedVotesAmount = voterVotes.AllVotedVotesAmount.Add(amount);
             }
 
-            State.ElectorVotes[voterPublicKey] = voterVotes;
+            State.ElectorVotes[voterAddress] = voterVotes;
         }
 
         /// <summary>
@@ -292,12 +291,12 @@ namespace AElf.Contracts.Election
                 $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
 
             // Update Elector's Votes information.
-            var voterPublicKey = Context.RecoverPublicKey().ToHex();
-            var voterVotes = State.ElectorVotes[voterPublicKey];
+            var voterAddress = Context.Sender;
+            var voterVotes = State.ElectorVotes[voterAddress];
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
-            State.ElectorVotes[voterPublicKey] = voterVotes;
+            State.ElectorVotes[voterAddress] = voterVotes;
 
             // Update Candidate's Votes information.
             var candidateVotes = State.CandidateVotes[votingRecord.Option];

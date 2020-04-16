@@ -189,28 +189,20 @@ namespace AElf.Contracts.Election
 
             // Check voter's Votes information.
             {
-                var voterVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
-                {
-                    Value = voterKeyPair.PublicKey.ToHex()
-                });
-                voterVotes.Pubkey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
+                var voterAddress = Address.FromPublicKey(voterKeyPair.PublicKey);
+                var voterVotes = await ElectionContractStub.GetElectorVote.CallAsync(voterAddress);
+                voterVotes.Address.ShouldBe(voterAddress);
                 voterVotes.ActiveVotingRecordIds.Count.ShouldBe(19);
                 voterVotes.AllVotedVotesAmount.ShouldBe(actualVotedAmount);
                 voterVotes.ActiveVotedVotesAmount.ShouldBe(actualVotedAmount);
                 voterVotes.ActiveVotingRecords.Count.ShouldBe(0); // Not filled.
 
-                var voterVotesWithRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
-                    new StringValue
-                    {
-                        Value = voterKeyPair.PublicKey.ToHex()
-                    });
+                var voterVotesWithRecords =
+                    await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(voterAddress);
                 voterVotesWithRecords.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
 
-                var voterVotesWithAllRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(
-                    new StringValue
-                    {
-                        Value = voterKeyPair.PublicKey.ToHex()
-                    });
+                var voterVotesWithAllRecords =
+                    await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(voterAddress);
                 voterVotesWithAllRecords.WithdrawnVotesRecords.Count.ShouldBe(0);
             }
 
@@ -270,10 +262,8 @@ namespace AElf.Contracts.Election
 
             var electionStub = GetElectionContractTester(voterKeyPair);
 
-            var electorVote = await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
-            {
-                Value = voterKeyPair.PublicKey.ToHex()
-            });
+            var voterAddress = Address.FromPublicKey(voterKeyPair.PublicKey);
+            var electorVote = await electionStub.GetElectorVoteWithRecords.CallAsync(voterAddress);
 
             var voteInformation = electorVote.ActiveVotingRecords[0];
 
@@ -350,9 +340,9 @@ namespace AElf.Contracts.Election
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
+            var voterAddress = Address.FromPublicKey(voterKeyPair.PublicKey);
             var voteId =
-                (await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
-                    {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
+                (await ElectionContractStub.GetElectorVote.CallAsync(voterAddress)).ActiveVotingRecordIds.First();
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 

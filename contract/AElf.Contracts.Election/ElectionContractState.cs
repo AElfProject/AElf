@@ -15,7 +15,7 @@ namespace AElf.Contracts.Election
         public SingletonState<Hash> VotesRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
-        public MappedState<string, ElectorVote> ElectorVotes { get; set; }
+        public MappedState<Address, ElectorVote> ElectorVotes { get; set; }
 
         public MappedState<string, CandidateVote> CandidateVotes { get; set; }
 

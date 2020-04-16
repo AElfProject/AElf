@@ -268,8 +268,8 @@ namespace AElf.Contracts.Election
                         .ShouldBe(rewardAmount * 3 / 4);
 
                     // Amount of citizen welfare.
-                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
-                        {Value = VoterKeyPairs[0].PublicKey.ToHex()});
+                    var voterAddress = Address.FromPublicKey(VoterKeyPairs[0].PublicKey);
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(voterAddress);
                     var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
                     electorWeights.ShouldBe(releasedInformation.TotalShares);
                     var amount = await GetProfitAmount(ProfitType.CitizenWelfare);
@@ -376,8 +376,8 @@ namespace AElf.Contracts.Election
                         .ShouldBe(rewardAmount * 3 / 4);
 
                     // Amount of citizen welfare.
-                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
-                        {Value = VoterKeyPairs[0].PublicKey.ToHex()});
+                    var voterAddress = Address.FromPublicKey(VoterKeyPairs[0].PublicKey);
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(voterAddress);
                     var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
                     electorWeights.ShouldBe(releasedInformation.TotalShares);
                     var amount = await GetProfitAmount(ProfitType.CitizenWelfare);

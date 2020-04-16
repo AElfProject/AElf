@@ -66,13 +66,13 @@ service ElectionContract {
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVote (google.protobuf.StringValue) returns (ElectorVote) {
+    rpc GetElectorVote (aelf.Address) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVoteWithRecords (google.protobuf.StringValue) returns (ElectorVote) {
+    rpc GetElectorVoteWithRecords (aelf.Address) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVoteWithAllRecords (google.protobuf.StringValue) returns (ElectorVote) {
+    rpc GetElectorVoteWithAllRecords (aelf.Address) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
     rpc GetCandidateVote (google.protobuf.StringValue) returns (CandidateVote) {
@@ -174,7 +174,7 @@ message ElectorVote {
     int64 all_voted_votes_amount = 4;
     repeated ElectionVotingRecord active_voting_records = 5;
     repeated ElectionVotingRecord withdrawn_votes_records = 6;
-    bytes pubkey = 7;
+    aelf.Address address = 7;
 }
 
 message CandidateVote {

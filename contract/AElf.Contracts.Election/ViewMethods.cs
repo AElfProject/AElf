@@ -131,21 +131,21 @@ namespace AElf.Contracts.Election
             return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
         }
 
-        public override ElectorVote GetElectorVote(StringValue input)
+        public override ElectorVote GetElectorVote(Address input)
         {
-            return State.ElectorVotes[input.Value] ?? new ElectorVote
+            return State.ElectorVotes[input] ?? new ElectorVote
             {
-                Pubkey = input.Value.ToByteString()
+                Address = input
             };
         }
 
-        public override ElectorVote GetElectorVoteWithRecords(StringValue input)
+        public override ElectorVote GetElectorVoteWithRecords(Address input)
         {
-            var votes = State.ElectorVotes[input.Value];
+            var votes = State.ElectorVotes[input];
             if (votes == null)
                 return new ElectorVote
                 {
-                    Pubkey = input.Value.ToByteString()
+                    Address = input
                 };
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -161,7 +161,7 @@ namespace AElf.Contracts.Election
             return votes;
         }
 
-        public override ElectorVote GetElectorVoteWithAllRecords(StringValue input)
+        public override ElectorVote GetElectorVoteWithAllRecords(Address input)
         {
             var votes = GetElectorVoteWithRecords(input);
             
