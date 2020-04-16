@@ -80,7 +80,8 @@ namespace AElf.Kernel
                         throw;
                     }
 
-                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime - blockExecutionDuration)
+                    if (TimestampHelper.GetUtcNow() <=
+                        eventData.MiningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)))
                     {
                         await _blockchainService.AddBlockAsync(block);
 
