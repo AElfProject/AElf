@@ -1,14 +1,11 @@
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
-using AElf.Sdk.CSharp;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network.Service
+namespace AElf.OS.Network.Application
 {
     public class PeerReconnectionServiceTests : OSCoreNetworkServiceTestBase
     {
