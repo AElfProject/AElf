@@ -367,7 +367,8 @@ namespace AElf.Contract.TestContract
             
             //initialize parliament
             {
-                await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+                var result = await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+                CheckResult(result.TransactionResult);
             }
 
             //initialize token converter

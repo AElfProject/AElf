@@ -116,7 +116,11 @@ namespace AElf.Benchmark
         {
             var chain = await BlockchainService.GetChainAsync();
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, TokenSmartContractAddressNameProvider.Name);
             var getBalanceInput = new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey),

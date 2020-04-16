@@ -1,3 +1,4 @@
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
@@ -8,6 +9,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
@@ -58,7 +60,8 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule))]
+        typeof(CSharpRuntimeAElfModule),
+        typeof(ContractNamesAElfModule))]
     public class ContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -122,6 +125,9 @@ namespace AElf.Contracts.TestKit
                     option.Value.SdkDir);
             });
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+            context.Services
+                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
         }
 
         public int ChainId { get; } = 500;
