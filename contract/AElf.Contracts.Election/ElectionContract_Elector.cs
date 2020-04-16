@@ -36,17 +36,20 @@ namespace AElf.Contracts.Election
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
 
-            State.LockTimeMap[Context.OriginTransactionId] = lockSeconds;
+            var candidateVotesCount = State.CandidateVotes[input.CandidatePubkey]?.ObtainedActiveVotedVotesAmount ?? 0;
+            var voteId = Context.GenerateId(Context.Self,
+                ByteArrayHelper.ConcatArrays(input.CandidatePubkey.GetBytes(), candidateVotesCount.ToBytes(false)));
+            State.LockTimeMap[voteId] = lockSeconds;
 
             var recoveredPublicKey = Context.RecoverPublicKey();
 
-            UpdateElectorInformation(recoveredPublicKey, input.Amount);
+            UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
 
-            var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
+            var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
 
-            LockTokensOfVoter(input.Amount);
+            LockTokensOfVoter(input.Amount, voteId);
             IssueOrTransferTokensToVoter(input.Amount);
-            CallVoteContractVote(input.Amount, input.CandidatePubkey);
+            CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
             AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
@@ -110,7 +113,8 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="recoveredPublicKey"></param>
         /// <param name="amount"></param>
-        private void UpdateElectorInformation(byte[] recoveredPublicKey, long amount)
+        /// <param name="voteId"></param>
+        private void UpdateElectorInformation(byte[] recoveredPublicKey, long amount, Hash voteId)
         {
             var voterPublicKey = recoveredPublicKey.ToHex();
             var voterPublicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
@@ -120,14 +124,14 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     Pubkey = voterPublicKeyByteString,
-                    ActiveVotingRecordIds = {Context.OriginTransactionId},
+                    ActiveVotingRecordIds = {voteId},
                     ActiveVotedVotesAmount = amount,
                     AllVotedVotesAmount = amount
                 };
             }
             else
             {
-                voterVotes.ActiveVotingRecordIds.Add(Context.OriginTransactionId);
+                voterVotes.ActiveVotingRecordIds.Add(voteId);
                 voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Add(amount);
                 voterVotes.AllVotedVotesAmount = voterVotes.AllVotedVotesAmount.Add(amount);
             }
@@ -140,7 +144,8 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="candidatePublicKey"></param>
         /// <param name="amount"></param>
-        private long UpdateCandidateInformation(string candidatePublicKey, long amount)
+        /// <param name="voteId"></param>
+        private long UpdateCandidateInformation(string candidatePublicKey, long amount, Hash voteId)
         {
             var candidateVotes = State.CandidateVotes[candidatePublicKey];
             if (candidateVotes == null)
@@ -148,14 +153,14 @@ namespace AElf.Contracts.Election
                 candidateVotes = new CandidateVote
                 {
                     Pubkey = candidatePublicKey.ToByteString(),
-                    ObtainedActiveVotingRecordIds = {Context.OriginTransactionId},
+                    ObtainedActiveVotingRecordIds = {voteId},
                     ObtainedActiveVotedVotesAmount = amount,
                     AllObtainedVotedVotesAmount = amount
                 };
             }
             else
             {
-                candidateVotes.ObtainedActiveVotingRecordIds.Add(Context.OriginTransactionId);
+                candidateVotes.ObtainedActiveVotingRecordIds.Add(voteId);
                 candidateVotes.ObtainedActiveVotedVotesAmount =
                     candidateVotes.ObtainedActiveVotedVotesAmount.Add(amount);
                 candidateVotes.AllObtainedVotedVotesAmount =
@@ -441,13 +446,13 @@ namespace AElf.Contracts.Election
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
         }
 
-        private void LockTokensOfVoter(long amount)
+        private void LockTokensOfVoter(long amount, Hash voteId)
         {
             State.TokenContract.Lock.Send(new LockInput
             {
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
-                LockId = Context.OriginTransactionId,
+                LockId = voteId,
                 Amount = amount,
                 Usage = "Voting for Main Chain Miner Election."
             });
@@ -489,7 +494,7 @@ namespace AElf.Contracts.Election
             }
         }
 
-        private void CallVoteContractVote(long amount, string candidatePubkey)
+        private void CallVoteContractVote(long amount, string candidatePubkey, Hash voteId)
         {
             State.VoteContract.Vote.Send(new VoteInput
             {
@@ -497,7 +502,7 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Amount = amount,
                 Option = candidatePubkey,
-                VoteId = Context.OriginTransactionId
+                VoteId = voteId
             });
         }
 

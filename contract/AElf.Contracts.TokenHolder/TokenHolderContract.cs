@@ -156,6 +156,7 @@ namespace AElf.Contracts.TokenHolder
 
         public override Empty RegisterForProfits(RegisterForProfitsInput input)
         {
+            Assert(State.LockIds[input.SchemeManager][Context.Sender] == null, "Already registered.");
             var scheme = GetValidScheme(input.SchemeManager);
             if (State.TokenContract.Value == null)
             {
@@ -163,15 +164,17 @@ namespace AElf.Contracts.TokenHolder
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var lockId = Context.GenerateId(Context.Self,
+                ByteArrayHelper.ConcatArrays(input.SchemeManager.ToByteArray(), Context.Sender.ToByteArray()));
             State.TokenContract.Lock.Send(new LockInput
             {
-                LockId = Context.OriginTransactionId,
+                LockId = lockId,
                 Symbol = scheme.Symbol,
                 Address = Context.Sender,
                 Amount = input.Amount,
             });
-            State.LockIds[input.SchemeManager][Context.Sender] = Context.OriginTransactionId;
-            State.LockTimestamp[Context.OriginTransactionId] = Context.CurrentBlockTime;
+            State.LockIds[input.SchemeManager][Context.Sender] = lockId;
+            State.LockTimestamp[lockId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,

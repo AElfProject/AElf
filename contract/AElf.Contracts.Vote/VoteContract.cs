@@ -382,10 +382,12 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                var votingResultHash = GetVotingResultHash(votingItem.VotingItemId, votingItem.CurrentSnapshotNumber);
+                var votingResult = State.VotingResults[votingResultHash];
                 // Voter = Transaction Sender
                 input.Voter = Context.Sender;
                 // VoteId = Transaction Id;
-                input.VoteId = Context.OriginTransactionId;
+                input.VoteId = Context.GenerateId(Context.Self, votingResult.VotersCount.ToBytes(false));
             }
 
             return votingItem;
