@@ -371,7 +371,7 @@ namespace AElf.Parallel.Tests
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
                 }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
-            nonparallelContractCode.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+            nonparallelContractCode.CodeHash.ShouldBe(HashHelper.ComputeFromByteArray(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBeGreaterThan(0);
@@ -389,7 +389,7 @@ namespace AElf.Parallel.Tests
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
                 }, ParallelTestHelper.BasicFunctionWithParallelContractAddress);
-            nonparallelContractCode.CodeHash.ShouldBe(Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+            nonparallelContractCode.CodeHash.ShouldBe(HashHelper.ComputeFromByteArray(_parallelTestHelper.BasicFunctionWithParallelContractCode));
 
             versionedState = await _versionedStates.GetAsync(blockExecutedData.Key);
             versionedState.Key.ShouldBe(blockExecutedData.Key);

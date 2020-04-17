@@ -143,7 +143,7 @@ namespace AElf.Kernel.SmartContract.Application
                    trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
         }
 
-        private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto,
+        protected virtual async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
             CancellationToken cancellationToken)
         {
             if (singleTxExecutingDto.IsCancellable)
@@ -221,12 +221,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(singleTxExecutingDto.ChainContext,
                     singleTxExecutingDto.Transaction.To, executive);
-#if DEBUG
-                await LocalEventBus.PublishAsync(new TransactionExecutedEventData
-                {
-                    TransactionTrace = trace
-                });
-#endif
             }
 
             return trace;

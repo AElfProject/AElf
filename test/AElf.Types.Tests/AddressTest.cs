@@ -13,12 +13,12 @@ namespace AElf.Types.Tests
         public void Generate_Address()
         {
             //Generate default
-            var address1 = AddressHelper.Base58StringToAddress("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
-            var address2 = AddressHelper.Base58StringToAddress("xFqJD9R33mQBQPr1hCFUZMayXFQ577j34MPyUdXzbPpAYufG2");
+            var address1 = Address.FromBase58("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
+            var address2 = Address.FromBase58("xFqJD9R33mQBQPr1hCFUZMayXFQ577j34MPyUdXzbPpAYufG2");
             address1.ShouldNotBeSameAs(address2);
 
             //Generate from String
-            var address3 = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
+            var address3 = Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
             address3.ShouldNotBe(null);
 
             //Generate from byte
@@ -41,15 +41,15 @@ namespace AElf.Types.Tests
         {
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
-            var addressString = address.GetFormatted();
+            var addressString = address.ToBase58();
             addressString.ShouldNotBe(string.Empty);
         }
 
         [Fact]
         public void Compare_Address()
         {
-            var address1 = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
-            var address2 = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
+            var address1 = Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
+            var address2 = Address.FromBase58("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
             address1.CompareTo(address2).ShouldNotBe(0);
             Should.Throw<InvalidOperationException>(() => { address1.CompareTo(null); });
 
@@ -67,19 +67,19 @@ namespace AElf.Types.Tests
         public void Parse_Address_FromString()
         {
             string addStr = "ddnF1dEsp51QbASCqQKPZ7vs2zXxUxyu5BuGRKFQAsT9JKrra";
-            var address = AddressHelper.Base58StringToAddress(addStr);
+            var address = Address.FromBase58(addStr);
             address.ShouldNotBe(null);
-            var addStr1 = address.GetFormatted();
+            var addStr1 = address.ToBase58();
             addStr1.ShouldBe(addStr);
 
             addStr = "345678icdfvbghnjmkdfvgbhtn";
-            Should.Throw<FormatException>(() => { address = AddressHelper.Base58StringToAddress(addStr); });
+            Should.Throw<FormatException>(() => { address = Address.FromBase58(addStr); });
         }
 
         [Fact]
         public void Chain_Address()
         {
-            var address = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
+            var address = Address.FromBase58("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
             var chainId = 0;
             var chainAddress1 = new ChainAddress(address, chainId);
 
@@ -95,8 +95,8 @@ namespace AElf.Types.Tests
         [Fact]
         public void Verify_Address()
         {
-            var address = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
-            var formattedAddress = address.GetFormatted();
+            var address = Address.FromBase58("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
+            var formattedAddress = address.ToBase58();
             AddressHelper.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
 
             AddressHelper.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();

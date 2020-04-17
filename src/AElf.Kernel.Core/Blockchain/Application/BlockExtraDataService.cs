@@ -34,8 +34,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
-                //TODO!! add Name readonly property to IBlockExtraDataProvider
-                var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
+                var blockExtraDataProviderName = _blockExtraDataProviders[i].ExtraDataName;
                 if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) && i < blockHeader.ExtraData.Count)
                 {
                     return blockHeader.ExtraData[i];

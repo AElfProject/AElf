@@ -17,7 +17,7 @@ namespace AElf
         public static string ToStateKey(this ScopedStatePath scopedStatePath)
         {
             return string.Join("/",
-                new[] {scopedStatePath.Address.GetFormatted()}.Concat(scopedStatePath.Path.Parts));
+                new[] {scopedStatePath.Address.ToBase58()}.Concat(scopedStatePath.Path.Parts));
         }
     }
 }

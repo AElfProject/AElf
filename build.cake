@@ -1,6 +1,7 @@
 #tool nuget:?package=Codecov
 #addin nuget:?package=Cake.Codecov
 var target = Argument("target", "Default");
+var configuration = Argument("configuration", "Debug");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
@@ -41,6 +42,7 @@ Task("Build")
     .Does(() =>
 {
     var buildSetting = new DotNetCoreBuildSettings{
+        Configuration = configuration,
         NoRestore = true,
         ArgumentCustomization = args => {
             return args.Append("/clp:ErrorsOnly")
@@ -78,6 +80,7 @@ Task("Test-with-Codecov")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -124,6 +127,7 @@ Task("Test-with-Codecov-N")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -166,6 +170,7 @@ Task("Run-Unit-Tests")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {

@@ -5,6 +5,7 @@ namespace AElf
 {
     public static class StringExtensions
     {
+        //TODO: Remove redundant StringExtensions.
         public static string RemoveHexPrefix(this string hexStr)
         {
             return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;

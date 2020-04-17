@@ -200,7 +200,7 @@ namespace AElf.Contracts.Parliament
 
         private Hash GenerateProposalId(CreateProposalInput input)
         {
-            return Context.GenerateId(Context.Self, input.Token ?? Hash.FromMessage(input));
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
         }
         
         private Hash CreateNewProposal(CreateProposalInput input)
@@ -253,7 +253,7 @@ namespace AElf.Contracts.Parliament
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
