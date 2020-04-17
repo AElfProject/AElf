@@ -201,8 +201,8 @@ namespace AElf.Contracts.Parliament
 
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = HashHelper.ConcatAndCompute(HashHelper.ConcatAndCompute(HashHelper.ComputeFromIMessage(input), Context.TransactionId),
+                HashHelper.ComputeFromByteArray(Context.CurrentBlockTime.ToByteArray()));
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -250,7 +250,7 @@ namespace AElf.Contracts.Parliament
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFromIMessage(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair

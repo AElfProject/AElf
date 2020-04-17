@@ -16,6 +16,10 @@
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="1.1.2" />
+    </ItemGroup>
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>

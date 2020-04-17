@@ -88,7 +88,7 @@ namespace AElf.CrossChain.Cache
             {
                 ChainId = chainId,
                 Height = height,
-                TransactionStatusMerkleTreeRoot = Hash.FromString(height.ToString())
+                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString(height.ToString())
             };
         }
     }

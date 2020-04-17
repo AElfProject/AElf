@@ -522,7 +522,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             foreach (var branch in chain.Branches)
             {
-                var hash = HashHelper.Base64ToHash(branch.Key);
+                var hash = Hash.LoadFromBase64(branch.Key);
                 var chainBlockLink = await GetChainBlockLinkAsync(hash);
 
                 while (chainBlockLink != null && chainBlockLink.Height > libHeight)

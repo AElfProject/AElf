@@ -23,7 +23,7 @@ namespace AElf.OS.BlockSync.Application
         public async Task Attach_InvalidBlock()
         {
             var abnormalPeerPubkey = "AbnormalPeerPubkey";
-            var badBlock = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("BadBlock"), 10000);
+            var badBlock = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("BadBlock"), 10000);
             
             var abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
             abnormalPeer.ShouldNotBeNull();

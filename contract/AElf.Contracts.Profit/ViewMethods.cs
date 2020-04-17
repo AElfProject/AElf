@@ -52,7 +52,7 @@ namespace AElf.Contracts.Profit
 
         private Address GetDistributedPeriodProfitsVirtualAddress(Address profitId, long period)
         {
-            return Address.FromPublicKey(period.ToString().ComputeHash().Concat(profitId.Value).ToArray());
+            return Address.FromPublicKey(HashHelper.ComputeFromInt64(period).ToByteArray().Concat(profitId.Value).ToArray());
         }
 
         public override Int64Value GetProfitAmount(GetProfitAmountInput input)
