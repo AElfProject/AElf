@@ -103,13 +103,13 @@ namespace AElf.OS.Network.Application
         public async Task GetBlocks_FromNullPeerOrUnfindable_ThrowsException()
         {
             var exceptionNullPeer = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                    await _networkService.GetBlocksAsync(Hash.FromString("bHash1"), 1, null));
+                    await _networkService.GetBlocksAsync(HashHelper.ComputeFromString("bHash1"), 1, null));
             
             exceptionNullPeer.Message.ShouldBe("Could not find peer .");
 
             string peerName = "peer_name";
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                    await _networkService.GetBlocksAsync(Hash.FromString("bHash1"), 1, peerName));
+                    await _networkService.GetBlocksAsync(HashHelper.ComputeFromString("bHash1"), 1, peerName));
             
             exception.Message.ShouldBe($"Could not find peer {peerName}.");
         }
@@ -117,7 +117,7 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task GetBlocks_NetworkException_ReturnsNonSuccessfulResponse()
         {
-            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
+            var response = await _networkService.GetBlocksAsync(HashHelper.ComputeFromString("block_hash"), 1, "failed_peer");
             response.Success.ShouldBeFalse();
             response.Payload.ShouldBeNull();
         }
@@ -130,13 +130,13 @@ namespace AElf.OS.Network.Application
         public async Task GetBlockByHash_UnfindablePeer_ThrowsExceptionNull()
         {
             var exceptionNullPeer = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), null));
+                await _networkService.GetBlockByHashAsync(HashHelper.ComputeFromString("bHash1"), null));
             
             exceptionNullPeer.Message.ShouldBe("Could not find peer .");
             
             string peerName = "peer_name";
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), peerName));
+                await _networkService.GetBlockByHashAsync(HashHelper.ComputeFromString("bHash1"), peerName));
             
             exception.Message.ShouldBe($"Could not find peer {peerName}.");
         }
@@ -144,7 +144,7 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task GetBlockByHash_FromSpecifiedPeer_ReturnsBlocks()
         {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "p1");
+            var block = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFromString("bHash1"), "p1");
             Assert.NotNull(block);
         }
 
@@ -183,7 +183,7 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task BroadcastAnnounce_Test()
         {
-            var blockHeader = _kernelTestHelper.GenerateBlock(10, Hash.FromString("test")).Header;
+            var blockHeader = _kernelTestHelper.GenerateBlock(10, HashHelper.ComputeFromString("test")).Header;
 
             //old block
             blockHeader.Time = TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromMinutes(20);
@@ -194,7 +194,7 @@ namespace AElf.OS.Network.Application
             await _networkService.BroadcastAnnounceAsync(blockHeader);
 
             //broadcast again
-            blockHeader = _kernelTestHelper.GenerateBlock(11, Hash.FromString("new")).Header;
+            blockHeader = _kernelTestHelper.GenerateBlock(11, HashHelper.ComputeFromString("new")).Header;
             await _networkService.BroadcastAnnounceAsync(blockHeader);
         }
 
@@ -203,7 +203,7 @@ namespace AElf.OS.Network.Application
         {
             var blockWithTransaction = new BlockWithTransactions
             {
-                Header = _kernelTestHelper.GenerateBlock(10, Hash.FromString("test")).Header,
+                Header = _kernelTestHelper.GenerateBlock(10, HashHelper.ComputeFromString("test")).Header,
                Transactions =
                {
                    new Transaction(),

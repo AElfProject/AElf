@@ -130,18 +130,18 @@ namespace AElf.Sdk.CSharp.Tests
             state.MappedState[SampleAddress.AddressList[3]].Remove(SampleAddress.AddressList[4]);
             changes = state.GetChanges();
             var key = string.Join("/",
-                SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
                 SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[1].ToString()
             );
             changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
-            key = string.Join(",", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+            key = string.Join(",", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
                 SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[2].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
-            key = string.Join("/", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
                 SampleAddress.AddressList[3].ToString(), SampleAddress.AddressList[4].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
 
-            key = string.Join("/", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
                 SampleAddress.AddressList[4].ToString(), SampleAddress.AddressList[5].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
             // Clear values

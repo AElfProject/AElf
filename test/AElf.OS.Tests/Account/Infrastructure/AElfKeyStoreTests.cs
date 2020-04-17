@@ -31,7 +31,7 @@ namespace AElf.OS.Account.Infrastructure
             _keyStore.GetAccountsAsync().Result.Count.ShouldBeGreaterThanOrEqualTo(1);
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
-            var addString = address.GetFormatted();
+            var addString = address.ToBase58();
             address.ShouldNotBe(null);
 
             //Open account
@@ -62,7 +62,7 @@ namespace AElf.OS.Account.Infrastructure
                 keyPair.ShouldNotBe(null);
                 var address = Address.FromPublicKey(keyPair.PublicKey);
                 var publicKey = keyPair.PublicKey.ToHex();
-                var addString = address.GetFormatted();
+                var addString = address.ToBase58();
 
                 //Read
                 var keyPair1 = await _keyStore.ReadKeyPairAsync(addString, "123");
@@ -82,7 +82,7 @@ namespace AElf.OS.Account.Infrastructure
         public async Task Open_NotExist_Account()
         {
             var address = SampleAddress.AddressList[0];
-            var addString = address.GetFormatted();
+            var addString = address.ToBase58();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
             keyPair.ShouldBe(null);
 

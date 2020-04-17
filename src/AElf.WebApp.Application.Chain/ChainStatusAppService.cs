@@ -1,10 +1,10 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Types;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
@@ -38,14 +38,14 @@ namespace AElf.WebApp.Application.Chain
 
             var chain = await _blockchainService.GetChainAsync();
 
-            var branches = chain.Branches.ToDictionary(b => HashHelper.Base64ToHash(b.Key).ToHex(), b => b.Value);
-            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => HashHelper.Base64ToHash(b.Key).ToHex(),
-                b => HashHelper.Base64ToHash(b.Value).ToHex());
+            var branches = chain.Branches.ToDictionary(b => Hash.LoadFromBase64(b.Key).ToHex(), b => b.Value);
+            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadFromBase64(b.Key).ToHex(),
+                b => Hash.LoadFromBase64(b.Value).ToHex());
 
             return new ChainStatusDto
             {
                 ChainId = ChainHelper.ConvertChainIdToBase58(chain.Id),
-                GenesisContractAddress = basicContractZero?.GetFormatted(),
+                GenesisContractAddress = basicContractZero?.ToBase58(),
                 Branches = branches,
                 NotLinkedBlocks = notLinkedBlocks,
                 LongestChainHeight = chain.LongestChainHeight,

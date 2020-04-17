@@ -104,7 +104,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var inValues = participators.Select(i => i.PreviousInValue).ToList();
                     var randomHash = inValues.First();
-                    randomHash = inValues.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
+                    randomHash = inValues.Skip(1).Aggregate(randomHash, HashHelper.ConcatAndCompute);
                     return randomHash;
                 }
 
@@ -184,7 +184,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
-                        var finalRandomHash = Hash.FromTwoHashes(randomHash, input);
+                        var finalRandomHash = HashHelper.ConcatAndCompute(randomHash, input);
                         Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = finalRandomHash});
                         return finalRandomHash;
                     }
