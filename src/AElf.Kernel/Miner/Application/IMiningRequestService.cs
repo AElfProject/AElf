@@ -52,7 +52,8 @@ namespace AElf.Kernel.Miner.Application
             if (IsGenesisBlockMining(blockTime))
                 return true;
 
-            if (miningDueTime < blockTime + blockExecutionDuration)
+            if (miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) <
+                blockTime + blockExecutionDuration)
             {
                 Logger.LogWarning(
                     $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
