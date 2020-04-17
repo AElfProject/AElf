@@ -292,7 +292,7 @@ namespace AElf.Contracts.Genesis
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = HashHelper.ComputeFromByteArray(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
@@ -322,7 +322,7 @@ namespace AElf.Contracts.Genesis
                 Version = info.Version
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 

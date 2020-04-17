@@ -342,7 +342,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
@@ -415,7 +415,7 @@ namespace AElf.Contracts.MultiToken
             await Create_BasicFunctionContract_Issue();
 
             // Try to lock.
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
             var defaultSenderStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             // Lock.
@@ -443,7 +443,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput()
             {
@@ -467,7 +467,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -530,7 +530,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -567,7 +567,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -609,7 +609,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -628,7 +628,7 @@ namespace AElf.Contracts.MultiToken
                     Address = Address,
                     Amount = Amount,
                     Symbol = SymbolForTest,
-                    LockId = Hash.FromString("lockId1"),
+                    LockId = HashHelper.ComputeFromString("lockId1"),
                     Usage = "Testing."
                 })).TransactionResult;
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -640,7 +640,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = Hash.FromString("lockId");
+            var lockId = HashHelper.ComputeFromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()

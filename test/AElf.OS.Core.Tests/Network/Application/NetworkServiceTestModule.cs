@@ -64,7 +64,7 @@ namespace AElf.OS
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions>()));
                     
-                    p1.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash1"))))
+                    p1.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == HashHelper.ComputeFromString("bHash1"))))
                         .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
                         
                     return p1.Object;
@@ -93,9 +93,9 @@ namespace AElf.OS
                     p2.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                     p2.Setup(p => p.Info).Returns(new PeerConnectionInfo
                         {Pubkey = "p2", ConnectionTime = TimestampHelper.GetUtcNow()});
-                    p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
+                    p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == HashHelper.ComputeFromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
-                    p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
+                    p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == HashHelper.ComputeFromString("block"))))
                         .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
                     p2.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
                         .Returns(Task.FromResult(new NodeList
@@ -114,9 +114,9 @@ namespace AElf.OS
                     p3.Setup(p => p.RemoteEndpoint).Returns(mockPeerEndpoint);
                     p3.Setup(p => p.Info).Returns(new PeerConnectionInfo
                         {Pubkey = "p3", ConnectionTime = TimestampHelper.GetUtcNow()});
-                    p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
+                    p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == HashHelper.ComputeFromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions, blockWithTransactions }));
-                    p3.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
+                    p3.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == HashHelper.ComputeFromString("bHash2"))))
                         .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
                     peers.Add(p3.Object);
                     
