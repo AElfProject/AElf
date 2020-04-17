@@ -43,7 +43,7 @@ namespace AElf.Contracts.Referendum
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
             var lockId = Context.GenerateId(Context.Self,
-                HashHelper.ConcatAndCompute(proposalId, Hash.FromMessage(lockedAddress)));
+                HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFromMessage(lockedAddress)));
             RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(new LockInput
             {
