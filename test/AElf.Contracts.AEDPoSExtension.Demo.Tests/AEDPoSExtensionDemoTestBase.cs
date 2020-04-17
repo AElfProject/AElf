@@ -45,7 +45,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             new List<ParliamentContractContainer.ParliamentContractStub>();
 
         internal readonly Hash CommitmentSchemeSmartContractAddressName =
-            Hash.FromString("AElf.Contracts.TestContract.CommitmentScheme");
+            HashHelper.ComputeFromString("AElf.Contracts.TestContract.CommitmentScheme");
 
         public AEDPoSExtensionDemoTestBase()
         {

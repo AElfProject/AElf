@@ -104,7 +104,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)
         {
-            var address = contractAddress.GetFormatted();
+            var address = contractAddress.ToBase58();
             if(!key.StartsWith(address))
                 throw new InvalidOperationException("a contract cannot access other contracts data");
             

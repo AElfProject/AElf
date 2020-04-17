@@ -30,7 +30,7 @@ namespace AElf.Kernel.Infrastructure
         
         public static string ToStorageKey(this Address byteString)
         {
-            return byteString?.GetFormatted();
+            return byteString?.ToBase58();
         }
     }
 }

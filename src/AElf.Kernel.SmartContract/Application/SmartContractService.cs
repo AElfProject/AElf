@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
-using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -10,7 +9,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public SmartContractService(ISmartContractAddressService smartContractAddressService, 
+        public SmartContractService(ISmartContractAddressService smartContractAddressService,
             ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -33,6 +32,5 @@ namespace AElf.Kernel.SmartContract.Application
         {
             _smartContractRunnerContainer.GetRunner(category);
         }
-
     }
 }

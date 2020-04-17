@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             return AsyncHelper.RunSync(() =>
                 _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                    Hash.FromString("TestContract")));
+                    HashHelper.ComputeFromString("TestContract")));
         }
 
         public string MethodName => string.Empty;

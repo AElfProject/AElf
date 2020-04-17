@@ -33,11 +33,11 @@ namespace AElf.CrossChain.Grpc.Server
                     }));
                 mockService.Setup(m =>
                         m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(Hash.FromString("hash")));
+                    .Returns(Task.FromResult(HashHelper.ComputeFromString("hash")));
                 mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns(() =>
                     {
-                        var previousBlockHash = Hash.FromString("previousBlockHash");
+                        var previousBlockHash = HashHelper.ComputeFromString("previousBlockHash");
                         return Task.FromResult(kernelTestHelper.Value.GenerateBlock(9, previousBlockHash));
                     });
                 return mockService.Object;
@@ -57,7 +57,7 @@ namespace AElf.CrossChain.Grpc.Server
                             {
                                 ChainId = chainId,
                                 Height = height,
-                                TransactionStatusMerkleTreeRoot = Hash.FromString("TransactionStatusMerkleRoot")
+                                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("TransactionStatusMerkleRoot")
                             };
                             return Task.FromResult(parentChanBlockData);
                         });
