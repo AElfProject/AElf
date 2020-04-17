@@ -9,10 +9,10 @@ namespace AElf.Kernel.Miner.Application
 {
     public interface IMiningRequestService
     {
-        Task<Block> RequestMiningAsync(RequestMiningDto requestMiningDto);
+        Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto);
     }
 
-    public class RequestMiningDto
+    public class ConsensusRequestMiningDto
     {
         public Hash PreviousBlockHash { get; set; }
         public long PreviousBlockHeight { get; set; }
@@ -31,7 +31,7 @@ namespace AElf.Kernel.Miner.Application
             _minerService = minerService;
         }
 
-        public async Task<Block> RequestMiningAsync(RequestMiningDto requestMiningDto)
+        public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
         {
             if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,
                 requestMiningDto.BlockExecutionTime))

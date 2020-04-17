@@ -18,9 +18,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         }
 
         protected override async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
-            List<Transaction> transactions, ReturnSetCollection returnSetCollection)
+            List<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
         {
-            var block = await base.FillBlockAfterExecutionAsync(blockHeader, transactions, returnSetCollection);
+            var block = await base.FillBlockAfterExecutionAsync(blockHeader, transactions, returnSetCollection, blockStateSet);
             if (returnSetCollection.Conflict.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(

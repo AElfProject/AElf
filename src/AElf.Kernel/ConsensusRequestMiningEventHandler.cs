@@ -56,7 +56,7 @@ namespace AElf.Kernel
 
                 try
                 {
-                    var block = await _miningRequestService.RequestMiningAsync(new RequestMiningDto
+                    var block = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
                     {
                         BlockTime = eventData.BlockTime,
                         BlockExecutionTime = eventData.BlockExecutionTime,
