@@ -3,7 +3,6 @@ using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Association
 {
@@ -129,7 +128,7 @@ namespace AElf.Contracts.Association
 
         private Hash GenerateProposalId(CreateProposalInput input)
         {
-            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.FromMessage(input));
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
         }
         
         private Hash CreateNewProposal(CreateProposalInput input)

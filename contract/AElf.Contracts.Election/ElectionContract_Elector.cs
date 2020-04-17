@@ -27,7 +27,7 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty Vote(VoteMinerInput input)
+        public override Hash Vote(VoteMinerInput input)
         {
             // Check candidate information map instead of candidates. 
             var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
@@ -36,9 +36,8 @@ namespace AElf.Contracts.Election
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
 
-            var candidateVotesCount = State.CandidateVotes[input.CandidatePubkey]?.ObtainedActiveVotedVotesAmount ?? 0;
-            var voteId = Context.GenerateId(Context.Self,
-                ByteArrayHelper.ConcatArrays(input.CandidatePubkey.GetBytes(), candidateVotesCount.ToBytes(false)));
+            var voteId = GenerateVoteId(input);
+            Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
             State.LockTimeMap[voteId] = lockSeconds;
 
             var recoveredPublicKey = Context.RecoverPublicKey();
@@ -66,7 +65,7 @@ namespace AElf.Contracts.Election
                 TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
             }
 
-            return new Empty();
+            return voteId;
         }
 
         private void TryToBecomeAValidationDataCenter(VoteMinerInput input, long candidateVotesAmount,
@@ -182,6 +181,7 @@ namespace AElf.Contracts.Election
                 var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
                 return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
             }
+
             var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
             var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
             return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
@@ -355,7 +355,7 @@ namespace AElf.Contracts.Election
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null, "invalid input");
-            Assert(CheckOrganizationExist(input),"Invalid authority input.");
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
             State.VoteWeightInterestController.Value = input;
             return new Empty();
         }
@@ -526,6 +526,7 @@ namespace AElf.Contracts.Election
             {
                 State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
             }
+
             Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "No permission.");
         }
 
@@ -542,6 +543,18 @@ namespace AElf.Contracts.Election
                 ContractAddress = State.ParliamentContract.Value,
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
+        }
+
+        private Hash GenerateVoteId(VoteMinerInput voteMinerInput)
+        {
+            if (voteMinerInput.Token != null)
+                return Context.GenerateId(Context.Self, voteMinerInput.Token);
+            
+            var candidateVotesCount =
+                State.CandidateVotes[voteMinerInput.CandidatePubkey]?.ObtainedActiveVotedVotesAmount ?? 0;
+            return Context.GenerateId(Context.Self,
+                ByteArrayHelper.ConcatArrays(voteMinerInput.CandidatePubkey.GetBytes(),
+                    candidateVotesCount.ToBytes(false)));
         }
     }
 }

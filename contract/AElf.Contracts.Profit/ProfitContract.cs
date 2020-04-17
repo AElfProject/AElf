@@ -54,11 +54,10 @@ namespace AElf.Contracts.Profit
                     "Invalid profit receiving due period count.");
             }
 
+            var schemeId = GenerateSchemeId(input);
             var manager = input.Manager ?? Context.Sender;
-            var createdSchemeCount = State.ManagingSchemeIds[manager]?.SchemeIds.Count ?? 0;
-
-            var schemeId = Context.GenerateId(Context.Self, createdSchemeCount.ToBytes(false));
             var scheme = GetNewScheme(input, schemeId, manager);
+            Assert(State.SchemeInfos[schemeId] == null, "Already exists.");
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -792,6 +791,15 @@ namespace AElf.Contracts.Profit
             var decimalShares = (decimal) shares;
             var decimalTotalShares = (decimal) totalShares;
             return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
+        }
+
+        private Hash GenerateSchemeId(CreateSchemeInput createSchemeInput)
+        {
+            var manager = createSchemeInput.Manager ?? Context.Sender;
+            if (createSchemeInput.Token != null) 
+                return Context.GenerateId(Context.Self, createSchemeInput.Token);
+            var createdSchemeCount = State.ManagingSchemeIds[manager]?.SchemeIds.Count ?? 0;
+            return Context.GenerateId(Context.Self, createdSchemeCount.ToBytes(false));
         }
     }
 }

@@ -387,7 +387,7 @@ namespace AElf.Contracts.Vote
                 // Voter = Transaction Sender
                 input.Voter = Context.Sender;
                 // VoteId = Transaction Id;
-                input.VoteId = Context.GenerateId(Context.Self, votingResult.VotersCount.ToBytes(false));
+                input.VoteId = Context.GenerateId(Context.Self, votingResult.VotesAmount.ToBytes(false));
             }
 
             return votingItem;
