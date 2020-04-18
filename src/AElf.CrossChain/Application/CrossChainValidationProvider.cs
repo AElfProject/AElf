@@ -93,7 +93,7 @@ namespace AElf.CrossChain.Application
         private ByteString ExtractCrossChainExtraData(BlockHeader header)
         {
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader(
-                CrossChainConstants.CrossChainExtraDataNamePrefix, header);
+                CrossChainConstants.CrossChainExtraDataKey, header);
             return bytes;
         }
 

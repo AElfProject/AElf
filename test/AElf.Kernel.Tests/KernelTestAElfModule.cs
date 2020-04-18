@@ -83,8 +83,10 @@ namespace AElf.Kernel
 
                     ByteString bs = ByteString.CopyFrom(BitConverter.GetBytes(long.MaxValue - 1));
 
-                    dataProvider.Setup(m => m.GetExtraDataForFillingBlockHeaderAsync(It.IsAny<BlockHeader>()))
+                    dataProvider.Setup(m => m.GetBlockHeaderExtraDataAsync(It.IsAny<BlockHeader>()))
                         .Returns(Task.FromResult(bs));
+
+                    dataProvider.Setup(d => d.BlockHeaderExtraDataKey).Returns("TestExtraDataKey");
 
                     return dataProvider.Object;
                 });
