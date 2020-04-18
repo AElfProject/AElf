@@ -32,9 +32,9 @@ namespace AElf.Sdk.CSharp
         /// <typeparam name="T">The return type of the call</typeparam>
         /// <returns>The return value of the call.</returns>
         public static T Call<T>(this ISmartContractBridgeContext context, Address address,
-            string methodName, IMessage message) where T:IMessage<T>, new()
+            string methodName, IMessage message) where T : IMessage<T>, new()
         {
-            return context.Call<T>(address, methodName, ConvertToByteString(message));
+            return context.Call<T>(context.Self, address, methodName, ConvertToByteString(message));
         }
 
         /// <summary>
@@ -74,7 +74,19 @@ namespace AElf.Sdk.CSharp
         public static T Call<T>(this CSharpSmartContractContext context, Address address,
             string methodName, IMessage message) where T : IMessage<T>, new()
         {
-            return context.Call<T>(address, methodName, ConvertToByteString(message));
+            return context.Call<T>(context.Self, address, methodName, ConvertToByteString(message));
+        }
+
+        public static T Call<T>(this CSharpSmartContractContext context, Address fromAddress, Address toAddress,
+            string methodName, IMessage message) where T : IMessage<T>, new()
+        {
+            return context.Call<T>(fromAddress, toAddress, methodName, ConvertToByteString(message));
+        }
+
+        public static T Call<T>(this CSharpSmartContractContext context, Address address,
+            string methodName, ByteString message) where T : IMessage<T>, new()
+        {
+            return context.Call<T>(context.Self, address, methodName, message);
         }
 
         /// <summary>

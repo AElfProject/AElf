@@ -8,6 +8,7 @@ namespace AElf.Kernel.SmartContract
         Address Origin { get; set; }
         Address Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
+        Hash OriginTransactionId { get; set; }
         long BlockHeight { get; set; }
 
         Timestamp CurrentBlockTime { get; set; }
