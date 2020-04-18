@@ -10,7 +10,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
 {
-    public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
 

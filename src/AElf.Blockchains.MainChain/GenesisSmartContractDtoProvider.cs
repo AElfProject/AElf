@@ -11,7 +11,7 @@ namespace AElf.Blockchains.MainChain
     /// <summary>
     /// Provide dtos for genesis block contract deployment and initialization.
     /// </summary>
-    public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
 

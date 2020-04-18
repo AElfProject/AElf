@@ -1,14 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+    <Import Project="..\..\common.props" />
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Blockchains.ContractInitialization</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>AElf Module for contract initialization.</Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
