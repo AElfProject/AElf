@@ -39,7 +39,6 @@ namespace AElf.OS.Network
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
                 MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                ExtraData = {ByteString.Empty},
                 SignerPubkey = ByteString.CopyFrom(producer.PublicKey)
             };
         }

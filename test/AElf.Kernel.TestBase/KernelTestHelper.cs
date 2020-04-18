@@ -136,7 +136,7 @@ namespace AElf.Kernel
         }
 
         public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash,
-            List<Transaction> transactions = null, ByteString extraData = null)
+            List<Transaction> transactions = null, Dictionary<string,ByteString> extraData = null)
         {
 
             var newBlock = new Block
@@ -149,11 +149,13 @@ namespace AElf.Kernel
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
-                    ExtraData = {extraData == null ? ByteString.Empty : extraData},
                     SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };
+
+            if (extraData != null)
+                newBlock.Header.ExtraData.Add(extraData);
 
             if (transactions != null)
             {
