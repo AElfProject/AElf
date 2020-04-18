@@ -2,6 +2,7 @@
 #addin nuget:?package=Cake.Codecov
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Debug");
+var benchmarktest=  Argument("benchmarktest", "BlockchainStateMergingTests");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
@@ -119,6 +120,13 @@ Task("Test-with-Codecov")
     };
 
     Parallel.Invoke(options, actions.ToArray());
+});
+
+Task("benchmark")
+    .Description("benchmark")
+    .Does(() =>
+{ 
+  DotNetCoreExecute("./bench/AElf.Benchmark/bin/Release/netcoreapp3.1/AElf.Benchmark.dll", $"--filter {benchmarktest}");
 });
 
 Task("Test-with-Codecov-N")
