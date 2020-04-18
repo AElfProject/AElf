@@ -150,7 +150,8 @@ namespace AElf.Kernel.SmartContract
                 TransactionContext.Transaction.GetHash().ToByteArray());
         }
 
-        public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
+        public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
+            where T : IMessage<T>, new()
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
@@ -163,8 +164,8 @@ namespace AElf.Kernel.SmartContract
 
                 var tx = new Transaction()
                 {
-                    From = Self,
-                    To = address,
+                    From = fromAddress,
+                    To = toAddress,
                     MethodName = methodName,
                     Params = args
                 };
