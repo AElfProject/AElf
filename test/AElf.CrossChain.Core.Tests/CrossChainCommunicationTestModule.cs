@@ -171,19 +171,19 @@ namespace AElf.CrossChain
                 return mockCrossChainClientProvider.Object;
             });
 
-            context.Services.AddSingleton<IConsensusExtraDataNameProvider, MockConsensusExtraDataProvider>();
+            context.Services.AddSingleton<IConsensusExtraDataKeyProvider, MockConsensusExtraDataProvider>();
         }
 
         delegate void TryGetClientCallback(int chainId, out ICrossChainClient crossChainClient);
 
-        public class MockConsensusExtraDataProvider : IConsensusExtraDataNameProvider
+        public class MockConsensusExtraDataProvider : IConsensusExtraDataKeyProvider
         {
-            public Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
+            public Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
             {
                 throw new NotImplementedException();
             }
 
-            public string ExtraDataName => "Consensus";
+            public string BlockHeaderExtraDataKey => "Consensus";
         }
 
         private ICrossChainClient MockCrossChainClient(int remoteChainId, bool isConnected)

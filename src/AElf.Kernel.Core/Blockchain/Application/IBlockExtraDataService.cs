@@ -7,14 +7,14 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockExtraDataService
     {
-        Task FillBlockExtraData(BlockHeader blockHeader);
+        Task FillBlockExtraDataAsync(BlockHeader blockHeader);
 
         /// <summary>
         /// Get extra data from block header.
         /// </summary>
-        /// <param name="blockExtraDataProviderSymbol"></param>
+        /// <param name="blockHeaderExtraDataKey"></param>
         /// <param name="blockHeader"></param>
         /// <returns></returns>
-        ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader);
+        ByteString GetExtraDataFromBlockHeader(string blockHeaderExtraDataKey, BlockHeader blockHeader);
     }
 }
