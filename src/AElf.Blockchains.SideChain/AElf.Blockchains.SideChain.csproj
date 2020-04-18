@@ -9,6 +9,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
+        <ProjectReference Include="..\AElf.Blockchains.ContractInitialization\AElf.Blockchains.ContractInitialization.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
     </ItemGroup>
     <ItemGroup>

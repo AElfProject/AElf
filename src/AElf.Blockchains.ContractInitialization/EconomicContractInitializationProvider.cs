@@ -1,27 +1,33 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.Economic;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.OS;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Microsoft.Extensions.Options;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.ContractInitialization
 {
-    public partial class GenesisSmartContractDtoProvider
+    public class EconomicContractInitializationProvider : ContractInitializationProviderBase
     {
-        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForEconomic()
+        private readonly EconomicOptions _economicOptions;
+        private readonly ConsensusOptions _consensusOptions;
+        
+        protected override Hash ContractName { get; } = EconomicSmartContractAddressNameProvider.Name;
+
+        protected override string ContractCodeName { get; } = "AElf.Contracts.Economic";
+
+        public EconomicContractInitializationProvider(
+            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
         {
-            var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract(
-                GetContractCodeByName("AElf.Contracts.Economic"),
-                EconomicSmartContractAddressNameProvider.Name, GenerateEconomicInitializationCallList());
-            return l;
+            _consensusOptions = consensusOptions.Value;
+            _economicOptions = economicOptions.Value;
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateEconomicInitializationCallList()
+        protected override SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateInitializationCallList()
         {
             var economicContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

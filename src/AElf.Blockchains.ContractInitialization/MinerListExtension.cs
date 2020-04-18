@@ -1,10 +1,11 @@
 using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.AEDPoS
+namespace AElf.Blockchains.ContractInitialization
 {
     internal static class MinerListExtension
     {

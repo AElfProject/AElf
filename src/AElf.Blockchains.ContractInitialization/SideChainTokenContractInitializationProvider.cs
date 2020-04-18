@@ -1,17 +1,34 @@
 using System.Linq;
 using Acs0;
-using Acs7;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.Threading;
 
-namespace AElf.Blockchains.SideChain
+namespace AElf.Blockchains.ContractInitialization
 {
-    public partial class GenesisSmartContractDtoProvider
+    public class SideChainTokenContractInitializationProvider : ContractInitializationProviderBase
     {
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(
-            ChainInitializationData chainInitializationData)
+        protected override Hash ContractName { get; } = TokenSmartContractAddressNameProvider.Name;
+
+        protected override string ContractCodeName { get; } = "AElf.Contracts.MultiToken";
+
+        private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
+
+        public SideChainTokenContractInitializationProvider(
+            ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
+            _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
+        }
+        
+        protected override SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateInitializationCallList()
+        {
+            var chainInitializationData = AsyncHelper.RunSync(async () =>
+                await _sideChainInitializationDataProvider.GetChainInitializationDataAsync());
+            
             var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.NativeTokenInfoData);
             var resourceTokenList =
                 TokenInfoList.Parser.ParseFrom(chainInitializationData.ResourceTokenInfo.ResourceTokenListData);
@@ -90,7 +107,7 @@ namespace AElf.Blockchains.SideChain
 
             return tokenInitializationCallList;
         }
-
+        
         private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)
         {
             return new CreateInput

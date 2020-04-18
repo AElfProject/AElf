@@ -1,29 +1,31 @@
-using System.Collections.Generic;
-using System.Linq;
 using Acs0;
 using AElf.Contracts.Election;
-using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Token;
+using AElf.OS;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Microsoft.Extensions.Options;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.ContractInitialization
 {
-    public partial class GenesisSmartContractDtoProvider
+    public class ElectionContractInitializationProvider : ContractInitializationProviderBase
     {
-        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForElection()
+        private readonly EconomicOptions _economicOptions;
+        private readonly ConsensusOptions _consensusOptions;
+        
+        protected override Hash ContractName { get; } = ElectionSmartContractAddressNameProvider.Name;
+
+        protected override string ContractCodeName { get; } = "AElf.Contracts.Election";
+
+        public ElectionContractInitializationProvider(
+            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
         {
-            var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract(
-                GetContractCodeByName("AElf.Contracts.Election"),
-                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
-            return l;
+            _consensusOptions = consensusOptions.Value;
+            _economicOptions = economicOptions.Value;
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateElectionInitializationCallList()
+        protected override SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateInitializationCallList()
         {
             var electionContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

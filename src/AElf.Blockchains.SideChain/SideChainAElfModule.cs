@@ -1,4 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Blockchains.ContractInitialization;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.SideChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule)
+        typeof(BasicBaseChainAElfModule),
+        typeof(SideChainContractInitializationAElfModule)
     )]
     public class SideChainAElfModule : AElfModule
     {

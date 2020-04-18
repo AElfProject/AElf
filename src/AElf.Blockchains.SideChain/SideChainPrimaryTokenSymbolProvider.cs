@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;

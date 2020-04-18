@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Blockchains.ContractInitialization;
 using AElf.CrossChain;
-using AElf.CrossChain.Communication;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.Options;

@@ -1,27 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
 using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.ContractInitialization
 {
-    public partial class GenesisSmartContractDtoProvider
+    public class TreasuryContractInitializationProvider : ContractInitializationProviderBase
     {
-        private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForTreasury()
-        {
-            var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract(
-                GetContractCodeByName("AElf.Contracts.Treasury"),
-                TreasurySmartContractAddressNameProvider.Name,
-                GenerateTreasuryInitializationCallList());
-            return l;
-        }
+        protected override Hash ContractName { get; } = TreasurySmartContractAddressNameProvider.Name;
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateTreasuryInitializationCallList()
+        protected override string ContractCodeName { get; } = "AElf.Contracts.Treasury";
+
+        protected override SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateInitializationCallList()
         {
             var treasuryContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
