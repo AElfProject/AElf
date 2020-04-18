@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,11 +20,10 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_InitializeTwice_Test()
         {
-            var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
-                new InitialElectionContractInput())).TransactionResult;
+            var exception = await ElectionContractStub.InitialElectionContract.SendAsync(
+                new InitialElectionContractInput()).ShouldThrowAsync<Exception>();
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
+            exception.Message.ShouldContain("Already initialized.");
         }
 
         #region AnnounceElection
@@ -46,9 +46,8 @@ namespace AElf.Contracts.Election
                 Memo = "transfer token to other"
             });
             
-            var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
+            var exception = await AnnounceElectionAsync(candidateKeyPair).ShouldThrowAsync<Exception>();
+            exception.Message.ShouldContain("Insufficient balance");
         }
 
         [Fact]
@@ -57,9 +56,8 @@ namespace AElf.Contracts.Election
             var s = Stopwatch.StartNew();
             s.Start();
             var candidateKeyPair = (await ElectionContract_AnnounceElection_Test())[0];
-            var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("This public key already announced election.");
+            var exception = await AnnounceElectionAsync(candidateKeyPair).ShouldThrowAsync<Exception>();
+            exception.Message.ShouldContain("This public key already announced election.");
             s.Stop();
             _testOutputHelper.WriteLine(s.ElapsedMilliseconds.ToString());
         }
@@ -73,9 +71,8 @@ namespace AElf.Contracts.Election
         {
             var userKeyPair = SampleECKeyPairs.KeyPairs[2];
 
-            var transactionResult = await QuitElectionAsync(userKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
+            var exception = await QuitElectionAsync(userKeyPair).ShouldThrowAsync<Exception>();
+            exception.Message.ShouldContain("Sender is not a candidate");
         }
 
         #endregion
@@ -90,11 +87,11 @@ namespace AElf.Contracts.Election
 
             // candidateKeyPair not announced election yet.
             {
-                var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100);
+                var exception =
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100)
+                        .ShouldThrowAsync<Exception>();
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("Candidate not found");
+                exception.Message.ShouldContain("Candidate not found");
             }
 
             await AnnounceElectionAsync(candidateKeyPair);
@@ -106,20 +103,20 @@ namespace AElf.Contracts.Election
                     Owner = Address.FromPublicKey(voterKeyPair.PublicKey),
                     Symbol = "ELF"
                 })).Balance;
-                var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance + 10);
+                var exception =
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400,
+                        voterBalance + 10).ShouldThrowAsync<Exception>();
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("Insufficient balance");
+                exception.Message.ShouldContain("Insufficient balance");
             }
 
             // Lock time is less than 90 days
             {
-                var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80 * 86400, 1000);
+                var exception =
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80 * 86400, 1000)
+                        .ShouldThrowAsync<Exception>();
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("lock time");
+                exception.Message.ShouldContain("lock time");
             }
         }
 

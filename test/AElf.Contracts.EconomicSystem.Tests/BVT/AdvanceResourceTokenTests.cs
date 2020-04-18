@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -159,10 +160,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ContractAddress = contractAddress,
                 Amount = takeBackAmount,
                 ResourceTokenSymbol = ResourceTokenSymbol
-            });
+            }).ShouldThrowAsync<Exception>();
 
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.ShouldContain("Can't take back that more.");
+            result.Message.ShouldContain("Can't take back that more.");
         }
 
         [Fact]

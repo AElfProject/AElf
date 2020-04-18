@@ -132,8 +132,11 @@ namespace AElf.Contracts.Election
 
                 var moreVotesCandidates = ValidationDataCenterKeyPairs
                     .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-                moreVotesCandidates.ForEach(async kp =>
-                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+
+                foreach (var votesCandidate in moreVotesCandidates)
+                {
+                    await VoteToCandidate(VoterKeyPairs[0], votesCandidate.PublicKey.ToHex(), 100 * 86400, 2);
+                }
 
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
                 await NextTerm(BootMinerKeyPair);

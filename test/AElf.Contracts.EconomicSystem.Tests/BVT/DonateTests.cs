@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
@@ -6,6 +7,7 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -74,8 +76,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Amount = 100
-            });
-            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }).ShouldThrowAsync<Exception>();
+            donateResult.Message.ShouldContain("Insufficient balance");
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -162,8 +164,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
                 Amount = 100
-            });
-            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }).ShouldThrowAsync<Exception>();
+            donateResult.Message.ShouldContain("Insufficient balance.");
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

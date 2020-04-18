@@ -17,13 +17,8 @@ namespace AElf.Contracts.Economic.TestBase
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
 
-            context.Services.AddSingleton<ITestTransactionExecutor, EconomicTestTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<IBlockValidationService, MockBlockValidationService>();
-            // context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            // context.Services.AddSingleton<IPreExecutionPlugin, MethodCallingThresholdPreExecutionPlugin>();
-            // context.Services.AddSingleton<IPreExecutionPlugin, ResourceConsumptionPreExecutionPlugin>();
-            // context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
             context.Services.RemoveAll<IPreExecutionPlugin>();

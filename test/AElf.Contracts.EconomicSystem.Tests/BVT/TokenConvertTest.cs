@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
@@ -106,13 +107,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             //perform by non manager
             {
-                var transactionResult = (await TokenConverterContractStub.SetFeeRate.SendAsync(
+                var transactionResult = await TokenConverterContractStub.SetFeeRate.SendAsync(
                     new StringValue
                     {
                         Value = "test value"
-                    })).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
+                    }).ShouldThrowAsync<Exception>();
+                transactionResult.Message.ShouldContain("Only manager can perform this action");
             }
             
             //invalid feeRate
@@ -121,10 +121,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "test value"
                 };
-                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
+                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester,
+                        TokenConverterContractAddress,
+                        nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate)
+                    .ShouldThrowAsync<Exception>();
+                transactionResult.Message.ShouldContain("Invalid decimal");
             }
             
             //feeRate not correct
@@ -133,10 +134,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "1.05"
                 };
-                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
+                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester,
+                        TokenConverterContractAddress,
+                        nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate)
+                    .ShouldThrowAsync<Exception>();
+                transactionResult.Message.ShouldContain("Fee rate has to be a decimal between 0 and 1");
             }
             
             //correct 

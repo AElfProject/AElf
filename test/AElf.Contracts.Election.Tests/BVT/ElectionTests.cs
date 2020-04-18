@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -439,16 +440,16 @@ namespace AElf.Contracts.Election
             await ElectionContract_AnnounceElection_Test();
 
             var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
-            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
+            var exception = await ElectionContractStub.UpdateCandidateInformation.SendAsync(
                 new UpdateCandidateInformationInput
                 {
                     IsEvilNode = true,
                     Pubkey = pubkey,
                     RecentlyProducedBlocks = 10,
                     RecentlyMissedTimeSlots = 100
-                })).TransactionResult;
+                }).ShouldThrowAsync<Exception>();
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
+            exception.Message.ShouldContain("Only consensus contract can update candidate information"); // No permission.
         }
 
         [Fact]

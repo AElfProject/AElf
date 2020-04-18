@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
@@ -82,8 +83,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Interest = 16,
                 Day = 400
             });
-            var updateInterestRet = (await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)).TransactionResult;
-            updateInterestRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            var updateInterestRet = await TreasuryContractStub.SetVoteWeightInterest.SendAsync(newInterest)
+                .ShouldThrowAsync<Exception>();
+            updateInterestRet.Message.ShouldContain("no permission");
             var newParliament = new Parliament.CreateOrganizationInput
             {
                 ProposerAuthorityRequired = false,

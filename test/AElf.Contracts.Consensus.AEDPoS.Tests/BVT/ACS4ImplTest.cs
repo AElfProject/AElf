@@ -341,9 +341,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var usingKeyPair = ValidationDataCenterKeyPairs[0];
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner_Test();
-
-            KeyPairProvider.SetKeyPair(usingKeyPair);
-
+            
             var updateValue = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                 .ToByteString();
             consensusCommand.Hint = updateValue;
@@ -352,11 +350,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
+            var headerInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(extraDataBytes.Value.ToByteArray());
+            headerInformation.SenderPubkey = ByteString.CopyFrom(usingKeyPair.PublicKey);
+
             await NextTerm(BootMinerKeyPair);
 
             var otherUser = GetAEDPoSContractStub(usingKeyPair);
             var validateBeforeResult =
-                await otherUser.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
+                await otherUser.ValidateConsensusBeforeExecution.CallAsync(headerInformation.ToBytesValue());
             validateBeforeResult.Success.ShouldBeFalse();
             validateBeforeResult.Message.ShouldContain("is not a miner");
         }
