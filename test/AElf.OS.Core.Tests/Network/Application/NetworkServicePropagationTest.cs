@@ -6,7 +6,7 @@ using AElf.Types;
 using Moq;
 using Xunit;
 
-namespace AElf.OS.Network.Service
+namespace AElf.OS.Network.Application
 {
     public class NetworkServicePropagationTest : NetworkServicePropagationTestBase
     {
@@ -57,14 +57,12 @@ namespace AElf.OS.Network.Service
         public async Task BroadcastTransactionTest()
         {
             var transaction = OsCoreTestHelper.CreateFakeTransaction();
-
-            await _networkService.BroadcastTransactionAsync(transaction);
-
+            
             foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.TryAddKnownTransaction(transaction.GetHash()), Times.Once());
+                peer.Object.TryAddKnownTransaction(transaction.GetHash());
             
             await _networkService.BroadcastTransactionAsync(transaction);
-
+            
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
                     It.IsAny<Action<NetworkException>>()), Times.Once());

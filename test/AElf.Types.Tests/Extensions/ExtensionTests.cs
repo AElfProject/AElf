@@ -12,14 +12,14 @@ namespace AElf.Types.Tests.Extensions
         [Fact]
         public void String_Extension_Methods_Test()
         {
-            var hexValue = Hash.FromString("hx").ToHex();
+            var hexValue = HashHelper.ComputeFromString("hx").ToHex();
 
             var hexValueWithPrefix = hexValue.AppendHexPrefix();
             hexValueWithPrefix.Substring(0, 2).ShouldBe("0x");
             var hexValueWithPrefix1 = hexValueWithPrefix.AppendHexPrefix();
             hexValueWithPrefix1.ShouldBeSameAs(hexValueWithPrefix);
 
-            var byteArray = Hash.FromString("hx").ToByteArray();
+            var byteArray = HashHelper.ComputeFromString("hx").ToByteArray();
             var hexString = byteArray.ToHex(true);
             hexString.Substring(0, 2).ShouldBe("0x");
 
@@ -57,7 +57,7 @@ namespace AElf.Types.Tests.Extensions
             byteArray1.ToInt32(true).ShouldBe(iNumber);
 
             //hash
-            var hash = iNumber.ToHash();
+            var hash = HashHelper.ComputeFromInt32(iNumber);
             hash.ShouldNotBe(null);
         }
 

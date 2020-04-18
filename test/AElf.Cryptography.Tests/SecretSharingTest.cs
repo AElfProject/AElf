@@ -42,7 +42,7 @@ namespace AElf.Cryptography.Tests
         [InlineData(5, 20)]
         public void HashSharingTest(int threshold, int totalParts)
         {
-            var hash = Hash.FromString("hash");
+            var hash = HashHelper.ComputeFromString("hash");
             var hashBytes = hash.ToByteArray();
             var parts = SecretSharingHelper.EncodeSecret(hashBytes, threshold, totalParts);
             var result = SecretSharingHelper.DecodeSecret(parts.Take(threshold).ToList(),

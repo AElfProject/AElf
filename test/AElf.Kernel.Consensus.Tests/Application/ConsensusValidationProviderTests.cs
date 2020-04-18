@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -21,7 +22,7 @@ namespace AElf.Kernel.Consensus.Application
         [Fact]
         public async Task ValidateBeforeAttachAsync_Test()
         {
-            var block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
+            var block = _kernelTestHelper.GenerateBlock(9, HashHelper.ComputeFromString("test"));
             block.Header = new BlockHeader
             {
                 Height = 1,
@@ -30,14 +31,14 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, HashHelper.ComputeFromString("test"));
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeFalse();
 
             block.Header = new BlockHeader
             {
                 Height = 10,
-                ExtraData = {ByteString.CopyFromUtf8("test")}
+                ExtraData = {{ConsensusConstants.ConsensusExtraDataKey, ByteString.CopyFromUtf8("test")}}
             };
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
@@ -57,11 +58,13 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, HashHelper.ComputeFromString("test"));
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeFalse();
 
-            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"), null, ByteString.CopyFromUtf8("extra data"));
+            block = _kernelTestHelper.GenerateBlock(9, HashHelper.ComputeFromString("test"), null,
+                new Dictionary<string, ByteString>
+                    {{ConsensusConstants.ConsensusExtraDataKey, ByteString.CopyFromUtf8("extra data")}});
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
         }
@@ -80,11 +83,13 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, HashHelper.ComputeFromString("test"));
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             result.ShouldBeFalse();
 
-            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"), null, ByteString.CopyFromUtf8("extra data"));
+            block = _kernelTestHelper.GenerateBlock(9, HashHelper.ComputeFromString("test"), null,
+                new Dictionary<string, ByteString>
+                    {{ConsensusConstants.ConsensusExtraDataKey, ByteString.CopyFromUtf8("extra data")}});
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             result.ShouldBeTrue();
         }

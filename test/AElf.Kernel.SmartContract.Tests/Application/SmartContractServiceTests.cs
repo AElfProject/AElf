@@ -20,8 +20,8 @@ namespace AElf.Kernel.SmartContract.Application
             var registration = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.FromString("TestDeployContract").ToByteString(),
-                CodeHash = Hash.FromString("TestDeployContract")
+                Code = HashHelper.ComputeFromString("TestDeployContract").ToByteString(),
+                CodeHash = HashHelper.ComputeFromString("TestDeployContract")
             };
 
 
@@ -42,22 +42,22 @@ namespace AElf.Kernel.SmartContract.Application
             var registrationA = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.FromString("TestContractA").ToByteString(),
-                CodeHash = Hash.FromString("TestContractA")
+                Code = HashHelper.ComputeFromString("TestContractA").ToByteString(),
+                CodeHash = HashHelper.ComputeFromString("TestContractA")
             };
 
             var registrationANew = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.FromString("TestContractA_New").ToByteString(),
-                CodeHash = Hash.FromString("TestContractA")
+                Code = HashHelper.ComputeFromString("TestContractA_New").ToByteString(),
+                CodeHash = HashHelper.ComputeFromString("TestContractA")
             };
 
             var registrationB = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.FromString("TestContractB").ToByteString(),
-                CodeHash = Hash.FromString("TestContractB")
+                Code = HashHelper.ComputeFromString("TestContractB").ToByteString(),
+                CodeHash = HashHelper.ComputeFromString("TestContractB")
             };
 
             await _smartContractService.DeployContractAsync(new ContractDto

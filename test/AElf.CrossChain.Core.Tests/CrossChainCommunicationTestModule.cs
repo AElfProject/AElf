@@ -29,9 +29,9 @@ namespace AElf.CrossChain
 
             var dictionary = new Dictionary<long, Hash>
             {
-                {1, Hash.FromString("1")},
-                {2, Hash.FromString("2")},
-                {3, Hash.FromString("3")}
+                {1, HashHelper.ComputeFromString("1")},
+                {2, HashHelper.ComputeFromString("2")},
+                {3, HashHelper.ComputeFromString("3")}
             };
 
             Configure<CrossChainConfigOptions>(option =>
@@ -81,7 +81,7 @@ namespace AElf.CrossChain
                         {
                             var crossExtraData = new CrossChainExtraData()
                             {
-                                TransactionStatusMerkleTreeRoot = Hash.FromString("SideChainBlockHeadersRoot"),
+                                TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("SideChainBlockHeadersRoot"),
                             };
                             return ByteString.CopyFrom(crossExtraData.ToByteArray());
                         });
@@ -109,7 +109,7 @@ namespace AElf.CrossChain
                                 new SideChainBlockData
                                 {
                                     ChainId = 123, Height = 1,
-                                    TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("fakeTransactionMerkleTree")
                                 }
                             }
                         };
@@ -126,7 +126,7 @@ namespace AElf.CrossChain
                                     new SideChainBlockData
                                     {
                                         ChainId = 123, Height = 1,
-                                        TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                        TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString("fakeTransactionMerkleTree")
                                     }
                                 }
                             };
@@ -171,19 +171,19 @@ namespace AElf.CrossChain
                 return mockCrossChainClientProvider.Object;
             });
 
-            context.Services.AddSingleton<IConsensusExtraDataNameProvider, MockConsensusExtraDataProvider>();
+            context.Services.AddSingleton<IConsensusExtraDataKeyProvider, MockConsensusExtraDataProvider>();
         }
 
         delegate void TryGetClientCallback(int chainId, out ICrossChainClient crossChainClient);
 
-        public class MockConsensusExtraDataProvider : IConsensusExtraDataNameProvider
+        public class MockConsensusExtraDataProvider : IConsensusExtraDataKeyProvider
         {
-            public Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
+            public Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
             {
                 throw new NotImplementedException();
             }
 
-            public string ExtraDataName => "Consensus";
+            public string BlockHeaderExtraDataKey => "Consensus";
         }
 
         private ICrossChainClient MockCrossChainClient(int remoteChainId, bool isConnected)
