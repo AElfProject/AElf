@@ -511,24 +511,23 @@ namespace AElf.Contracts.CrossChain
                 });
         }
 
-        private Association.CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
-            Address sideChainCreator)
+        private CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
+            params Address[] organizationMembers)
         {
-            var proposers = new List<Address> {sideChainCreator, GetSideChainLifetimeController().OwnerAddress};
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposerWhiteList = new ProposerWhiteList
                 {
-                    Proposers = {proposers}
+                    Proposers = {organizationMembers}
                 },
                 OrganizationMemberList = new OrganizationMemberList
                 {
-                    OrganizationMembers = {proposers}
+                    OrganizationMembers = {organizationMembers}
                 },
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
-                    MinimalApprovalThreshold = proposers.Count,
-                    MinimalVoteThreshold = proposers.Count,
+                    MinimalApprovalThreshold = organizationMembers.ToList().Count,
+                    MinimalVoteThreshold = organizationMembers.ToList().Count,
                     MaximalRejectionThreshold = 0,
                     MaximalAbstentionThreshold = 0
                 }
@@ -536,27 +535,28 @@ namespace AElf.Contracts.CrossChain
             return createOrganizationInput;
         }
 
-        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(Address sideChainCreator)
-        {
-            var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
-            var address = CalculateSideChainIndexingFeeControllerOrganizationAddress(createOrganizationInput);
-            return address;
-        }
-
-        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(
-            Association.CreateOrganizationInput input)
+        private Address CalculateSideChainIndexingFeeControllerOrganizationAddress(CreateOrganizationInput input)
         {
             SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
             var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
             return address;
         }
 
-        private void CreateOrganizationForIndexingFeePriceAdjustment(Address sideChainCreator)
+        private AuthorityInfo CreateDefaultOrganizationForIndexingFeePriceManagement(Address sideChainCreator)
         {
             // be careful that this organization is useless after SideChainLifetimeController changed
-            var createOrganizationInput = GenerateOrganizationInputForIndexingFeePrice(sideChainCreator);
+            var createOrganizationInput =
+                GenerateOrganizationInputForIndexingFeePrice(sideChainCreator,
+                    GetCrossChainIndexingController().OwnerAddress);
             SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
             State.AssociationContract.CreateOrganization.Send(createOrganizationInput);
+
+            var controllerAddress = CalculateSideChainIndexingFeeControllerOrganizationAddress(createOrganizationInput);
+            return new AuthorityInfo
+            {
+                ContractAddress = State.AssociationContract.Value,
+                OwnerAddress = controllerAddress
+            };
         }
 
         private bool ValidateAuthorityInfoExists(AuthorityInfo authorityInfo)

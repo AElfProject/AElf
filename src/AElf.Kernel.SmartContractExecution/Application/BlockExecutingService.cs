@@ -84,7 +84,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
             var blockStateSet =
-                CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
+                CreateBlockStateSet(blockHeader, returnSetCollection);
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
                 blockStateSet);
 
@@ -201,13 +201,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return HashHelper.ComputeFromByteArray(rawBytes);
         }
 
-        private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long previousBlockHeight,
-            ReturnSetCollection returnSetCollection)
+        private BlockStateSet CreateBlockStateSet(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
         {
             var blockStateSet = new BlockStateSet
             {
-                BlockHeight = previousBlockHeight,
-                PreviousHash = previousBlockHash
+                BlockHeight = blockHeader.Height,
+                PreviousHash = blockHeader.PreviousBlockHash
             };
             foreach (var returnSet in returnSetCollection.Executed)
             {
