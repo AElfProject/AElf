@@ -30,11 +30,15 @@ namespace AElf.ContractTestBase
                 ChainCreatorPrivilegePreserved = false,
                 ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
                 {
-                    InitialMinerListData = new MinerList
+                    InitialMinerListData = new MinerListWithRoundNumber
                     {
-                        Pubkeys =
+                        MinerList = new MinerList()
                         {
-                            SampleECKeyPairs.KeyPairs.Take(3).Select(keyPair => ByteString.CopyFrom(keyPair.PublicKey))
+                            Pubkeys =
+                            {
+                                SampleECKeyPairs.KeyPairs.Take(3)
+                                    .Select(keyPair => ByteString.CopyFrom(keyPair.PublicKey))
+                            }
                         }
                     }.ToByteString()
                 },
@@ -49,7 +53,8 @@ namespace AElf.ContractTestBase
                     Issuer = SampleAddress.AddressList.First(),
                     IssueChainId = ParentChainId,
                 }.ToByteString(),
-                ParentChainTokenContractAddress = SampleAddress.AddressList.Last()
+                ParentChainTokenContractAddress = SampleAddress.AddressList.Last(),
+                ResourceTokenInfo = new ResourceTokenInfo()
             };
         }
 
