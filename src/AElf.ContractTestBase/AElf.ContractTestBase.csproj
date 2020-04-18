@@ -12,4 +12,12 @@
       <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractMessage>
+    </ItemGroup>
 </Project>
