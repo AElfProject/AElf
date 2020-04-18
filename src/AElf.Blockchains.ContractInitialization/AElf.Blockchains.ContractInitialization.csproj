@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Blockchains.ContractInitialization</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Description>AElf Module for contract initialization.</Description>
+        <Description>AElf module for contract initialization.</Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj" />
