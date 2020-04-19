@@ -112,7 +112,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
-                    PreviousInValue = HashHelper.ComputeFromIMessage(randomHash), // Not same as before.
+                    PreviousInValue = HashHelper.ComputeFromMessage(randomHash), // Not same as before.
                     InValue = HashHelper.ComputeFromString("InValue"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();

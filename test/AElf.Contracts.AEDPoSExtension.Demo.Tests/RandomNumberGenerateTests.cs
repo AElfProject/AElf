@@ -50,7 +50,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 GetTester<CommitmentSchemeContractContainer.CommitmentSchemeContractStub>(dict.First().Value,
                     SampleECKeyPairs.KeyPairs[0]);
 
-            var commitment = HashHelper.ComputeFromIMessage(Secret);
+            var commitment = HashHelper.ComputeFromMessage(Secret);
             var requestTx = CommitmentSchemeStub.RequestRandomNumber.GetTransaction(commitment);
             await BlockMiningService.MineBlockAsync(new List<Transaction> {requestTx});
             var requestTrace = TransactionTraceProvider.GetTransactionTrace(requestTx.GetHash());

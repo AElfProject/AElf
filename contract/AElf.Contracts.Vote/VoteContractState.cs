@@ -15,7 +15,6 @@ namespace AElf.Contracts.Vote
 
         /// <summary>
         /// VoteId -> VotingRecord
-        /// Usually VoteId is Context.TransactionId
         /// </summary>
         public MappedState<Hash, VotingRecord> VotingRecords { get; set; }
 
