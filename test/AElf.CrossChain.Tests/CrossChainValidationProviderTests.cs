@@ -158,8 +158,7 @@ namespace AElf.CrossChain
         {
             var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
             block.Header.ExtraData.Clear();
-        
-            block.Header.ExtraData.Add(
+            block.Header.ExtraData.Add(CrossChainConstants.CrossChainExtraDataKey,
                 new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
