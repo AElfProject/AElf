@@ -51,7 +51,7 @@ namespace AElf
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static Hash ComputeFromIMessage(IMessage message)
+        public static Hash ComputeFromMessage(IMessage message)
         {
             return ComputeFromByteArray(message.ToByteArray());
         }

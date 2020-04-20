@@ -119,9 +119,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override RandomNumberOrder RequestRandomNumber(Hash input)
         {
-            var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
+                var randomNumberCount = State.RandomNumberTokenMap[currentRound.RoundNumber]?.Values.Count ?? 0;
+                var tokenHash = Context.GenerateId(Context.Self, randomNumberCount.ToBytes(false));
+
                 var requestInformation = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
 
