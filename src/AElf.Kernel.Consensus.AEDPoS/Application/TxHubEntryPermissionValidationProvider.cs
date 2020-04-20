@@ -20,6 +20,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
+            // TODO: Move to other projects.
             var economicContractAddress = 
                 _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
             if (transaction.To == economicContractAddress)

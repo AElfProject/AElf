@@ -2,7 +2,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Consensus.AEDPoS
+namespace AElf.GovernmentSystem
 {
     public class ElectionSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

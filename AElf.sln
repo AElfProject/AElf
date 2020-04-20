@@ -335,6 +335,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Proposal.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.FeeCalculation.Tests", "test\AElf.Kernel.FeeCalculation.Tests\AElf.Kernel.FeeCalculation.Tests.csproj", "{9C88CD17-D2F3-4B07-95FC-D127497064AA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.EconomicSystem", "src\AElf.EconomicSystem\AElf.EconomicSystem.csproj", "{9E9F4889-C62A-470A-A44B-51DA6E6252A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.GovernmentSystem", "src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj", "{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -957,6 +961,14 @@ Global
 		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C88CD17-D2F3-4B07-95FC-D127497064AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E9F4889-C62A-470A-A44B-51DA6E6252A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E9F4889-C62A-470A-A44B-51DA6E6252A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E9F4889-C62A-470A-A44B-51DA6E6252A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E9F4889-C62A-470A-A44B-51DA6E6252A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1126,5 +1138,7 @@ Global
 		{47997F91-65B1-406B-9DB1-2D0BEBF7F759} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{71C2856C-6C23-4F2B-A25B-C3819D2D83C2} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{9C88CD17-D2F3-4B07-95FC-D127497064AA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{9E9F4889-C62A-470A-A44B-51DA6E6252A5} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

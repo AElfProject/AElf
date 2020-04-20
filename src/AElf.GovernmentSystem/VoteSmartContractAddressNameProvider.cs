@@ -2,7 +2,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Blockchains.BasicBaseChain.ContractNames
+namespace AElf.GovernmentSystem
 {
     public class VoteSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
