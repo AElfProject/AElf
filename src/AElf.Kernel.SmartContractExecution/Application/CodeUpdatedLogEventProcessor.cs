@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.CSharp.Core.Extension;

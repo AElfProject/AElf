@@ -36,7 +36,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (!_transactionOptions.EnableTransactionExecutionValidation)
                 return true;
 
-            var bestChainBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
             {
                 Transactions = new[] {transaction},

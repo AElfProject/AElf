@@ -3,12 +3,10 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.CSharp.Core.Extension;
-using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Configuration
 {
@@ -16,16 +14,14 @@ namespace AElf.Kernel.Configuration
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockchainService _blockchainService;
 
         public ILogger<BlockTransactionLimitChangedLogEventProcessor> Logger { get; set; }
 
         public BlockTransactionLimitChangedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            IBlockTransactionLimitProvider blockTransactionLimitProvider, IBlockchainService blockchainService)
+            IBlockTransactionLimitProvider blockTransactionLimitProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
-            _blockchainService = blockchainService;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
         

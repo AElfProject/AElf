@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {

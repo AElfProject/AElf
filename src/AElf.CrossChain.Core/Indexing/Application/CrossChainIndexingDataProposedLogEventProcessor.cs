@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.CrossChain;
-using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.CSharp.Core.Extension;
@@ -11,8 +10,6 @@ using AElf.Kernel.Proposal.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using QuickGraph;
-using Volo.Abp.Threading;
 
 namespace AElf.CrossChain.Indexing.Application
 {
@@ -24,7 +21,6 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICrossChainIndexingDataValidationService _crossChainIndexingDataValidationService;
         private readonly IProposalService _proposalService;
-        private InterestedEvent _interestedEvent;
 
         public CrossChainIndexingDataProposedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ICrossChainIndexingDataValidationService crossChainIndexingDataValidationService,
@@ -37,8 +33,8 @@ namespace AElf.CrossChain.Indexing.Application
         
         public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
         {
-            if (_interestedEvent != null)
-                return _interestedEvent;
+            if (InterestedEvent != null)
+                return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
                 chainContext, CrossChainSmartContractAddressNameProvider.Name);
@@ -47,9 +43,9 @@ namespace AElf.CrossChain.Indexing.Application
             var interestedEvent = GetInterestedEvent<CrossChainIndexingDataProposedEvent>(smartContractAddressDto
                 .SmartContractAddress.Address);
             if (!smartContractAddressDto.Irreversible) return interestedEvent;
-            _interestedEvent = interestedEvent;
+            InterestedEvent = interestedEvent;
             
-            return _interestedEvent;
+            return InterestedEvent;
         }
 
         public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)

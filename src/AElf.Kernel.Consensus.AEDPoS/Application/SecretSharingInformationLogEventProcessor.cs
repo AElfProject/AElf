@@ -3,7 +3,6 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.CSharp.Core.Extension;
 using AElf.Types;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
