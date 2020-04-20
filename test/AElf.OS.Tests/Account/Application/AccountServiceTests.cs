@@ -25,7 +25,7 @@ namespace AElf.OS.Account.Application
         {
             var publicKey = await _accountService.GetPublicKeyAsync();
 
-            Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
+            Assert.Equal(Address.FromPublicKey(publicKey).ToBase58(), _accountOptions.NodeAccount);
         }
 
         [Fact]
@@ -33,13 +33,13 @@ namespace AElf.OS.Account.Application
         {
             var account = await _accountService.GetAccountAsync();
 
-            Assert.Equal(account.GetFormatted(), _accountOptions.NodeAccount);
+            Assert.Equal(account.ToBase58(), _accountOptions.NodeAccount);
         }
 
         [Fact]
         public async Task SignAndVerifyPassTest()
         {
-            var data = Hash.FromString("test").ToByteArray();
+            var data = HashHelper.ComputeFromString("test").ToByteArray();
 
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
@@ -53,8 +53,8 @@ namespace AElf.OS.Account.Application
         [Fact]
         public async Task SignAndVerifyNotPassTest()
         {
-            var data1 = Hash.FromString("test1").ToByteArray();
-            var data2 = Hash.FromString("test2").ToByteArray();
+            var data1 = HashHelper.ComputeFromString("test1").ToByteArray();
+            var data2 = HashHelper.ComputeFromString("test2").ToByteArray();
 
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();
@@ -88,7 +88,7 @@ namespace AElf.OS.Account.Application
             _accountOptions.NodeAccount = string.Empty;
             var account = await _accountService.GetAccountAsync();
 
-            Assert.NotEqual(account.GetFormatted(), _accountOptions.NodeAccount);
+            Assert.NotEqual(account.ToBase58(), _accountOptions.NodeAccount);
         }
     }
 }

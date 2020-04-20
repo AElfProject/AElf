@@ -12,7 +12,7 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var crossChainConfiguration = context.Services.GetConfiguration()
-                .GetSection(CrossChainConstants.CrossChainExtraDataNamePrefix);
+                    .GetSection(CrossChainConstants.CrossChainExtraDataKey);
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
 
             context.Services

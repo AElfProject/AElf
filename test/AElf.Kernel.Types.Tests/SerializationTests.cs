@@ -15,8 +15,8 @@ namespace AElf.Kernel.Types.Tests
         public void FromTo_Test()
         {
             var t = new Transaction();
-            t.From = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
-            t.To = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
+            t.From = Address.FromBase58("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
+            t.To = Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
 
             byte[] b = t.ToByteArray();
             b.ShouldNotBe(null);
