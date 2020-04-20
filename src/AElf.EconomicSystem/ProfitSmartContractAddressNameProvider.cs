@@ -6,7 +6,7 @@ namespace AElf.EconomicSystem
 {
     public class ProfitSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.ContractNames.Profit");
+        public static readonly Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.Profit");
         public Hash ContractName => Name;
     }
 }

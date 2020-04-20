@@ -61,7 +61,7 @@ namespace AElf.Contracts.Profit
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
                 // So we choose this way to avoid profit id conflicts in aforementioned situation.
-                schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
+                schemeId = HashHelper.ConcatAndCompute(schemeId, createdSchemeIds.Last());
             }
 
             var scheme = GetNewScheme(input, schemeId, manager);

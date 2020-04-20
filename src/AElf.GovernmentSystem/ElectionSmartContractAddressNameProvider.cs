@@ -6,7 +6,7 @@ namespace AElf.GovernmentSystem
 {
     public class ElectionSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static Hash Name = Hash.FromString("AElf.ContractNames.Election");
+        public static Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.Election");
 
         public Hash ContractName => Name;
     }
