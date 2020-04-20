@@ -43,7 +43,7 @@ namespace AElf.Kernel.Proposal.Application
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, ParliamentSmartContractAddressNameProvider.Name);
+                }, ParliamentSmartContractAddressNameProvider.StringName);
 
             if (parliamentContractAddress == null)
             {

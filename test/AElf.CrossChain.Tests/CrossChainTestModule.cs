@@ -81,7 +81,7 @@ namespace AElf.CrossChain
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),
-                        It.IsAny<Hash>()))
+                        It.IsAny<string>()))
                     .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });

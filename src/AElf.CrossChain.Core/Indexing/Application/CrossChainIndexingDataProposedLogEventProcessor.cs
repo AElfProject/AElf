@@ -37,7 +37,7 @@ namespace AElf.CrossChain.Indexing.Application
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, CrossChainSmartContractAddressNameProvider.Name);
+                chainContext, CrossChainSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
             
             var interestedEvent = GetInterestedEvent<CrossChainIndexingDataProposedEvent>(smartContractAddressDto

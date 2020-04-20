@@ -19,7 +19,7 @@ namespace AElf.Kernel.FeeCalculation.Application
         protected override Task<Address> GetInvolvedSystemContractAddressAsync(IChainContext chainContext)
         {
             return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                TokenSmartContractAddressNameProvider.Name);
+                TokenSmartContractAddressNameProvider.StringName);
         }
     }
 }

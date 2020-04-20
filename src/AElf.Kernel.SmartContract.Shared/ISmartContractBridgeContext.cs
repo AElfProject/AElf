@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract
 
         Address GetZeroSmartContractAddress(int chainId);
 
-        Address GetContractAddressByName(Hash hash);
+        Address GetContractAddressByName(string hash);
 
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 

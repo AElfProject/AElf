@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
 
-        public Address GetContractAddressByName(Hash hash)
+        public Address GetContractAddressByName(string hash)
         {
             var chainContext = new ChainContext
             {

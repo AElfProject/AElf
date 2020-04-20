@@ -254,7 +254,7 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         /// <param name="hash">The hash of the name.</param>
         /// <returns>The address of the system contract.</returns>
-        public Address GetContractAddressByName(Hash hash)
+        public Address GetContractAddressByName(string hash)
         {
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
         }

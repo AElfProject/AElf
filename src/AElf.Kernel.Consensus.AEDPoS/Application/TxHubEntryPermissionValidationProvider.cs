@@ -21,14 +21,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
             var economicContractAddress = 
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.StringName);
             if (transaction.To == economicContractAddress)
             {
                 return false;
             }
 
             var consensusContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (transaction.To != consensusContractAddress)
             {
                 return true;

@@ -215,7 +215,7 @@ namespace AElf.Contract.TestContract
             TokenContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("MultiToken")).Value,
-                SmartContractConstants.TokenContractSystemName,
+                SmartContractConstants.TokenContractSystemHashName,
                 DefaultSenderKeyPair
             );
             TokenContractStub =
@@ -224,14 +224,14 @@ namespace AElf.Contract.TestContract
             TokenConverterContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("TokenConverter")).Value,
-                SmartContractConstants.TokenConverterContractSystemName,
+                TokenConverterSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair
             );
 
             TreasuryContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Treasury")).Value,
-                SmartContractConstants.TreasuryContractSystemName,
+                HashHelper.ComputeFromString("AElf.ContractNames.Treasury"),
                 DefaultSenderKeyPair);
             TreasuryContractStub =
                 GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
@@ -244,7 +244,7 @@ namespace AElf.Contract.TestContract
             var parliamentAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Parliament")).Value,
-                SmartContractConstants.ParliamentContractSystemName,
+                SmartContractConstants.ParliamentContractSystemHashName,
                 DefaultSenderKeyPair);
             ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentAddress,
                 DefaultSenderKeyPair);

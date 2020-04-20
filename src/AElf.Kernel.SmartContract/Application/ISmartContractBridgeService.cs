@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
 
-        Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, Hash contractName);
+        Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string contractName);
 
         Task<IReadOnlyDictionary<Hash, Address>> GetSystemContractNameToAddressMappingAsync(IChainContext chainContext);
 
@@ -82,7 +82,7 @@ namespace AElf.Kernel.SmartContract.Application
             return _blockchainService.GetChainId();
         }
 
-        public Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, Hash contractName)
+        public Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string contractName)
         {
             return _smartContractAddressService.GetAddressByContractNameAsync(chainContext, contractName);
         }

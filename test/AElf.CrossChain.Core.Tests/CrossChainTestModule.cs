@@ -50,7 +50,7 @@ namespace AElf.CrossChain
             context.Services.AddTransient(provider =>
             {
                 var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
-                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<Hash>()))
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<string>()))
                     .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 return mockSmartContractAddressService.Object;
             });
@@ -99,7 +99,7 @@ namespace AElf.CrossChain
             context.Services.AddTransient(provider =>
             {
                 var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
-                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<Hash>()))
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<string>()))
                     .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 return mockSmartContractAddressService.Object;
             });

@@ -58,7 +58,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
             {
                 BlockHash = transactionContext.PreviousBlockHash,
                 BlockHeight = transactionContext.BlockHeight - 1
-            },  TokenSmartContractAddressNameProvider.Name);
+            },  TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();

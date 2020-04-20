@@ -134,7 +134,7 @@ namespace AElf.Parallel.Tests
                 {
                     var to = CryptoHelper.GenerateKeyPair();
                     var transaction = GenerateTransaction(from,
-                        await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                        await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                         nameof(TokenContractContainer.TokenContractStub.TransferFrom),
                         new TransferFromInput
                             {From = from, To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});
@@ -165,7 +165,7 @@ namespace AElf.Parallel.Tests
         {
             var accountAddress = await _accountService.GetAccountAsync();
             var transaction = GenerateTransaction(accountAddress,
-                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                 nameof(TokenContractContainer.TokenContractStub.GetBalance),
                 new GetBalanceInput {Owner = address, Symbol = symbol});
             var returnValue = await ExecuteReadOnlyAsync(transaction, blockHash, blockHeight);
@@ -175,7 +175,7 @@ namespace AElf.Parallel.Tests
         public async Task CreateAndIssueTokenAsync(string symbol,Address issueAddress)
         {
             var ownAddress = await _accountService.GetAccountAsync();
-            var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var createTokenTransaction = GenerateTransaction(ownAddress, tokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Create),
                 new CreateInput
@@ -209,7 +209,7 @@ namespace AElf.Parallel.Tests
         public async Task<Transaction> GenerateTransferTransactionAsync(ECKeyPair fromKeyPair, Address to ,string symbol, long amount)
         {
             var transaction = GenerateTransaction(Address.FromPublicKey(fromKeyPair.PublicKey),
-                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                 nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = to, Amount = amount, Symbol = symbol});
 
@@ -224,7 +224,7 @@ namespace AElf.Parallel.Tests
         {
             var fromAddress = await _accountService.GetAccountAsync();
             var transaction = GenerateTransaction(fromAddress,
-                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                 nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = to, Amount = amount, Symbol = symbol});
 

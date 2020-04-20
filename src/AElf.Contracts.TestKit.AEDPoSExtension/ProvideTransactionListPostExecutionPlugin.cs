@@ -31,7 +31,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                        BlockHash = transactionContext.PreviousBlockHash,
                        BlockHeight = transactionContext.BlockHeight - 1,
                        StateCache = transactionContext.StateCache
-                   }, ConsensusSmartContractAddressNameProvider.Name) &&
+                   }, ConsensusSmartContractAddressNameProvider.StringName) &&
                    new List<string>
                    {
                        "FirstRound",

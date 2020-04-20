@@ -23,7 +23,7 @@ namespace AElf.Kernel.Proposal.Application
         private Task<Address> GetParliamentContractAddressAsync(IChainContext chainContext)
         {
             return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                ParliamentSmartContractAddressNameProvider.Name);
+                ParliamentSmartContractAddressNameProvider.StringName);
         }
 
         public ProposalService(IProposalProvider proposalProvider,

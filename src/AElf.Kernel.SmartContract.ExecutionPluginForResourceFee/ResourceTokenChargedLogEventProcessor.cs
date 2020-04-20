@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.Name);
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
 
             var interestedEvent =

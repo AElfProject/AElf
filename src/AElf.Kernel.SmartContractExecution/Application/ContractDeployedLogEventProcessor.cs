@@ -5,6 +5,7 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -64,7 +65,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 _smartContractExecutiveService.CleanExecutive(eventData.Address);
 
             if (eventData.Name != null)
-                await _smartContractAddressService.SetSmartContractAddressAsync(chainContext, eventData.Name,
+                await _smartContractAddressService.SetSmartContractAddressAsync(chainContext, eventData.Name.ToStorageKey(),
                     eventData.Address);
             
             Logger.LogDebug($"Deployed contract {eventData}");

@@ -31,7 +31,7 @@ namespace AElf.Kernel.Configuration
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, ConfigurationSmartContractAddressNameProvider.Name);
+                chainContext, ConfigurationSmartContractAddressNameProvider.StringName);
             
             if (smartContractAddressDto == null) return null;
             

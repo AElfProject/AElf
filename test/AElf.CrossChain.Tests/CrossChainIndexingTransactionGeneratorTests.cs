@@ -95,7 +95,7 @@ namespace AElf.CrossChain
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
-            }, CrossChainSmartContractAddressNameProvider.Name, smartContractAddress);
+            }, CrossChainSmartContractAddressNameProvider.StringName, smartContractAddress);
         
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],

@@ -39,7 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             };
 
             var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                TokenSmartContractAddressNameProvider.Name);
+                TokenSmartContractAddressNameProvider.StringName);
 
             if (tokenContractAddress == null)
                 return generatedTransactions;

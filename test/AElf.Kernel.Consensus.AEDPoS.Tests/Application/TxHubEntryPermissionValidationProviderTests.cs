@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             var tx = _kernelTestHelper.GenerateTransaction();
             var chainContext = await _kernelTestHelper.GetChainContextAsync();
             var economicAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.StringName);
             tx.To = economicAddress;
             var result = await _validationProvider.ValidateTransactionAsync(tx, chainContext);
             result.ShouldBeFalse();
@@ -45,7 +45,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             result.ShouldBeTrue();
             
             var consensusAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             tx.To = consensusAddress;
             tx.MethodName = "UpdateValue";
             result = await _validationProvider.ValidateTransactionAsync(tx,chainContext);

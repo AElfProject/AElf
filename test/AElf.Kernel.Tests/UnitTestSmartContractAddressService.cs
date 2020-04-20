@@ -38,9 +38,9 @@ namespace AElf.Kernel
             return new ReadOnlyDictionary<Hash, Address>(dictionary);
         }
     
-        public override Task SetSmartContractAddressAsync(IBlockIndex blockIndex, Hash contractName, Address address)
+        public override Task SetSmartContractAddressAsync(IBlockIndex blockIndex, string contractName, Address address)
         {
-            _hashToAddressMap[contractName] = address;
+            _hashToAddressMap[Hash.LoadFromBase64(contractName)] = address;
             return base.SetSmartContractAddressAsync(blockIndex, contractName, address);
         }
     }

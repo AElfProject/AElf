@@ -37,7 +37,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             if (InterestedEvent != null) return InterestedEvent;
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
             
             var interestedEvent =
