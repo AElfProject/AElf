@@ -1,6 +1,5 @@
 using System.Linq;
 using Acs3;
-using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -122,8 +121,6 @@ namespace AElf.Contracts.Referendum
                 "Not authorized to propose.");
             AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
             var proposalId = CreateNewProposal(input.ProposalInput);
-            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
-                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
             return proposalId;
         }
 

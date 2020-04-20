@@ -16,15 +16,15 @@ namespace AElf.CrossChain.Application
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
-        private readonly IConsensusExtraDataNameProvider _consensusExtraDataNameProvider;
+        private readonly IConsensusExtraDataKeyProvider _consensusExtraDataKeyProvider;
 
         public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
             ICrossChainIndexingDataService crossChainIndexingDataService,
-            IConsensusExtraDataNameProvider consensusExtraDataNameProvider)
+            IConsensusExtraDataKeyProvider consensusExtraDataKeyProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _crossChainIndexingDataService = crossChainIndexingDataService;
-            _consensusExtraDataNameProvider = consensusExtraDataNameProvider;
+            _consensusExtraDataKeyProvider = consensusExtraDataKeyProvider;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
@@ -80,7 +80,7 @@ namespace AElf.CrossChain.Application
             parentChainBlockData.TransactionStatusMerkleTreeRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
             var crossChainExtraByteString =
-                GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataNamePrefix);
+                GetExtraDataFromHeader(blockHeader, CrossChainConstants.CrossChainExtraDataKey);
 
             var crossChainExtra = crossChainExtraByteString.IsNullOrEmpty()
                 ? null
@@ -88,7 +88,7 @@ namespace AElf.CrossChain.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {_consensusExtraDataNameProvider.ExtraDataName}));
+                new[] {_consensusExtraDataKeyProvider.BlockHeaderExtraDataKey}));
             return parentChainBlockData;
         }
 
