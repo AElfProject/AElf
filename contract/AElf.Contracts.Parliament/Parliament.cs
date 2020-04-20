@@ -177,8 +177,6 @@ namespace AElf.Contracts.Parliament
             AssertIsAuthorizedProposer(input.ProposalInput.OrganizationAddress, input.OriginProposer);
 
             var proposalId = CreateNewProposal(input.ProposalInput);
-            if (!string.IsNullOrEmpty(input.ProposalIdFeedbackMethod))
-                Context.SendInline(Context.Sender, input.ProposalIdFeedbackMethod, proposalId); // proposal id feedback
             return proposalId;
         }
 
