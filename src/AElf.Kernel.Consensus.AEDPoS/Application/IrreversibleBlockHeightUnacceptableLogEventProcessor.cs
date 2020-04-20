@@ -10,7 +10,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorSpecialBase,
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
         IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;

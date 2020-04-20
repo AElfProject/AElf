@@ -8,7 +8,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class ContractDeployedLogEventProcessor : LogEventProcessorSpecialBase, IBlockAcceptedLogEventProcessor
+    public class ContractDeployedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;

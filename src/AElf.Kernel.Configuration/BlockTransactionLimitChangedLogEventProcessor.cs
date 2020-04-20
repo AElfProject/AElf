@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Configuration
 {
-    public class BlockTransactionLimitChangedLogEventProcessor : LogEventProcessorSpecialBase, IBlockAcceptedLogEventProcessor
+    public class BlockTransactionLimitChangedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;

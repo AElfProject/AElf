@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
-    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorSpecialBase,
+    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorBase,
         IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
