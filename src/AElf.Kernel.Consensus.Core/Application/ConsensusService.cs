@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
@@ -61,6 +62,7 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
 
+            
             // Upload the consensus command.
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);

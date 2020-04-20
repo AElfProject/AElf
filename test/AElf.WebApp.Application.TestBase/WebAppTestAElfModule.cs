@@ -83,9 +83,7 @@ namespace AElf.WebApp.Application
 
                 return mockService.Object;
             });
-
-            context.Services
-                .AddTransient<ITransactionValidationProvider, MethodFeeAffordableValidationProvider>();
+            
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddTransient<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddTransient<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();

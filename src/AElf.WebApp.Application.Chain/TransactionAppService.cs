@@ -120,7 +120,17 @@ namespace AElf.WebApp.Application.Chain
             try
             {
                 var response = await CallReadOnlyAsync(transaction);
-                return response?.ToHex();
+                try
+                {
+                    var contractMethodDescriptor =
+                        await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                    var output = contractMethodDescriptor.OutputType.Parser.ParseFrom(ByteString.CopyFrom(response));
+                    return JsonFormatter.ToDiagnosticString(output);
+                }
+                catch
+                {
+                    return response?.ToHex();
+                }
             }
             catch (Exception e)
             {

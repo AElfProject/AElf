@@ -8,31 +8,16 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class TransactionFeeChargedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class TransactionFeeChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-        private LogEvent _interestedEvent;
+        private InterestedEvent _interestedEvent;
         private ILogger<TransactionFeeChargedLogEventProcessor> Logger { get; set; }
-
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-
-                _interestedEvent = new TransactionFeeCharged().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
 
         public TransactionFeeChargedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider)
@@ -42,7 +27,26 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             Logger = NullLogger<TransactionFeeChargedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (_interestedEvent != null)
+                return _interestedEvent;
+
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, TokenSmartContractAddressNameProvider.Name);
+
+            if (smartContractAddressDto == null) return null;
+
+            var interestedEvent =
+                GetInterestedEvent<TransactionFeeCharged>(smartContractAddressDto.SmartContractAddress.Address);
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+
+            _interestedEvent = interestedEvent;
+
+            return _interestedEvent;
+        }
+
+        public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
             var blockHash = block.GetHash();
             var blockHeight = block.Height;

@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
@@ -20,7 +23,8 @@ using Volo.Abp.Threading;
 namespace AElf.OS
 {
     [DependsOn(
-        typeof(OSCoreTestAElfModule)
+        typeof(OSCoreTestAElfModule),
+        typeof(ContractNamesAElfModule)
     )]
     public class OSCoreWithChainTestAElfModule : AElfModule
     {
@@ -69,6 +73,9 @@ namespace AElf.OS
                     option.Value.SdkDir);
             });
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+            context.Services
+                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

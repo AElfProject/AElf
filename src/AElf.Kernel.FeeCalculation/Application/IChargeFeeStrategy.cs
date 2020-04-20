@@ -7,7 +7,7 @@ namespace AElf.Kernel.FeeCalculation.Application
     // TODO: Remove this interface after new fee charging solution adopted.
     public interface IChargeFeeStrategy
     {
-        Address ContractAddress { get; }
+        Address GetContractAddress(IChainContext chainContext);
         string MethodName { get; }
         bool IsFree(Transaction transaction);
     }
@@ -21,7 +21,7 @@ namespace AElf.Kernel.FeeCalculation.Application
             SmartContractAddressService = smartContractAddressService;
         }
 
-        public abstract Address ContractAddress { get; }
+        public abstract Address GetContractAddress(IChainContext chainContext);
 
         public abstract string MethodName { get; }
 
