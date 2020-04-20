@@ -14,7 +14,7 @@ namespace AElf.Contracts.Referendum
 
         public override Organization GetOrganization(Address address)
         {
-            return State.Organisations[address] ?? new Organization();
+            return State.Organizations[address] ?? new Organization();
         }
 
         public override ProposalOutput GetProposal(Hash proposalId)
@@ -25,7 +25,7 @@ namespace AElf.Contracts.Referendum
                 return new ProposalOutput();
             }
 
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             var readyToRelease = IsReleaseThresholdReached(proposal, organization);
             return new ProposalOutput
             {
@@ -52,12 +52,12 @@ namespace AElf.Contracts.Referendum
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
-            return new BoolValue {Value = State.Organisations[input] != null};
+            return new BoolValue {Value = State.Organizations[input] != null};
         }
 
         public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
         {
-            var organization = State.Organisations[input.OrganizationAddress];
+            var organization = State.Organizations[input.OrganizationAddress];
             return new BoolValue
             {
                 Value = organization.ProposerWhiteList.Contains(input.Proposer)
@@ -71,7 +71,7 @@ namespace AElf.Contracts.Referendum
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
             var organizationAddress = organizationHashAddressPair.OrganizationAddress;
             var organizationHash = organizationHashAddressPair.OrganizationHash;
-            if (State.Organisations[organizationAddress] != null)
+            if (State.Organizations[organizationAddress] != null)
                 return organizationAddress;
             var organization = new Organization
             {
@@ -83,10 +83,10 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(organization), "Invalid organization data.");
 
-            if (State.Organisations[organizationAddress] != null) 
+            if (State.Organizations[organizationAddress] != null) 
                 return organizationAddress;
             
-            State.Organisations[organizationAddress] = organization;
+            State.Organizations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Referendum
         public override Empty Approve(Hash input)
         {
             var proposal = GetValidProposal(input);
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Referendum
         public override Empty Reject(Hash input)
         {
             var proposal = GetValidProposal(input);
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
@@ -158,7 +158,7 @@ namespace AElf.Contracts.Referendum
         public override Empty Abstain(Hash input)
         {
             var proposal = GetValidProposal(input);
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
@@ -180,11 +180,11 @@ namespace AElf.Contracts.Referendum
 
         public override Empty ChangeOrganizationThreshold(ProposalReleaseThreshold input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationThresholdChanged
             {
                 OrganizationAddress = Context.Sender,
@@ -195,11 +195,11 @@ namespace AElf.Contracts.Referendum
 
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationWhiteListChanged
             {
                 OrganizationAddress = Context.Sender,
@@ -221,7 +221,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = GetValidProposal(input);
             Assert(Context.Sender.Equals(proposal.Proposer), "No permission.");
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposal, organization), "Not approved.");
             Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposal.ToAddress,
                 proposal.ContractMethodName, proposal.Params);
