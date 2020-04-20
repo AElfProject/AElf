@@ -30,8 +30,9 @@ namespace AElf.Blockchains.MainChain
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
-            return _contractInitializationProviders.OrderBy(provider => provider.Tier).Select(provider =>
-                provider.GetGenesisSmartContractDto(GetContractCodeByName(provider.ContractCodeName)));
+            return _contractInitializationProviders.OrderBy(provider => provider.ContractCodeName)
+                .ThenBy(provider => provider.Tier).Select(provider =>
+                    provider.GetGenesisSmartContractDto(GetContractCodeByName(provider.ContractCodeName)));
         }
 
         private byte[] GetContractCodeByName(string name)
