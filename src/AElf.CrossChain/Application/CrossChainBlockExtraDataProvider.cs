@@ -12,6 +12,7 @@ namespace AElf.CrossChain.Application
     {
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly TransactionPackingOptions _transactionPackingOptions;
+        public string BlockHeaderExtraDataKey => CrossChainConstants.CrossChainExtraDataKey;
 
         public CrossChainBlockExtraDataProvider(ICrossChainIndexingDataService crossChainIndexingDataService,
             IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
@@ -20,7 +21,7 @@ namespace AElf.CrossChain.Application
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
         }
 
-        public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
+        public async Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
         {
             if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                 return ByteString.Empty;
@@ -33,7 +34,5 @@ namespace AElf.CrossChain.Application
 
             return bytes;
         }
-
-        public string ExtraDataName => CrossChainConstants.CrossChainExtraDataNamePrefix;
     }
 }
