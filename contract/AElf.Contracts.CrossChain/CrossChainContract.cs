@@ -246,21 +246,6 @@ namespace AElf.Contracts.CrossChain
         }
 
         /// <summary>
-        /// Feed back from proposal creation as callback to register proposal Id.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
-        {
-            AssertAddressIsParliamentContract(Context.Sender);
-            AssertIsCrossChainBlockDataAlreadyProposed();
-            var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
-            crossChainIndexingProposal.ProposalId = input;
-            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
-            return new Empty();
-        }
-
-        /// <summary>
         /// Release cross chain block data proposed before and trigger the proposal to release.
         /// </summary>
         /// <param name="input"></param>

@@ -23,7 +23,7 @@ namespace AElf.OS.Network
                 Time = TimestampHelper.GetUtcNow()
             };
             
-            var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, HashHelper.ComputeFromIMessage(data).ToByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, HashHelper.ComputeFromMessage(data).ToByteArray());
             
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
