@@ -31,7 +31,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public bool ValidateWhileSyncing { get; } = false;
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
             if (!_transactionOptions.EnableTransactionExecutionValidation)
                 return true;
@@ -42,8 +42,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 Transactions = new[] {transaction},
                 BlockHeader = new BlockHeader
                 {
-                    PreviousBlockHash = bestChainBlock.GetHash(),
-                    Height = bestChainBlock.Height + 1,
+                    PreviousBlockHash = chainContext.BlockHash,
+                    Height = chainContext.BlockHeight + 1,
                     Time = TimestampHelper.GetUtcNow(),
                 }
             }, CancellationToken.None);

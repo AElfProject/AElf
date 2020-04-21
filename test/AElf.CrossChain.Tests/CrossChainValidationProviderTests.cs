@@ -12,7 +12,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainValidationProviderTest : CrossChainTestBase
+    public sealed class CrossChainValidationProviderTest : CrossChainTestBase
     {
         private readonly IBlockValidationProvider _crossChainBlockValidationProvider;
         private readonly CrossChainTestHelper _crossChainTestHelper;
@@ -158,8 +158,7 @@ namespace AElf.CrossChain
         {
             var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
             block.Header.ExtraData.Clear();
-        
-            block.Header.ExtraData.Add(
+            block.Header.ExtraData.Add(CrossChainConstants.CrossChainExtraDataKey,
                 new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
@@ -194,9 +193,7 @@ namespace AElf.CrossChain
 
         private Bloom GetSideChainBlockDataIndexedEventBloom()
         {
-            var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            var logEvent = new SideChainBlockDataIndexed().ToLogEvent(contractAddress);
+            var logEvent = new SideChainBlockDataIndexed().ToLogEvent();
             return logEvent.GetBloom();
         }
     }

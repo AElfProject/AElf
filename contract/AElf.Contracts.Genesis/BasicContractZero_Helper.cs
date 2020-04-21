@@ -57,7 +57,8 @@ namespace AElf.Contracts.Genesis
                 CodeHash = codeHash,
                 Address = contractAddress,
                 Author = author,
-                Version = info.Version
+                Version = info.Version,
+                Name = name
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -102,7 +103,7 @@ namespace AElf.Contracts.Genesis
 
         private Hash CalculateHashFromInput(IMessage input)
         {
-            return HashHelper.ComputeFromIMessage(input);
+            return HashHelper.ComputeFromMessage(input);
         }
 
         private bool CheckOrganizationExist(AuthorityInfo authorityInfo)

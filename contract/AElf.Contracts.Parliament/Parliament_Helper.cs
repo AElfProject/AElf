@@ -4,7 +4,6 @@ using System.Linq;
 using Acs3;
 using AElf.Types;
 using AElf.Sdk.CSharp;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Parliament
@@ -22,7 +21,7 @@ namespace AElf.Contracts.Parliament
 
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "No registered organization.");
             // It is a valid proposer if
             // authority check is disable,
@@ -146,7 +145,7 @@ namespace AElf.Contracts.Parliament
             return validDestinationAddress && validDestinationMethodName && validExpiredTime &&
                    hasOrganizationAddress && validDescriptionUrl;
         }
-        
+
         private bool ValidateDescriptionUrlScheme(string uriString)
         {
             if (string.IsNullOrEmpty(uriString))
@@ -155,7 +154,7 @@ namespace AElf.Contracts.Parliament
                           && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
             return result;
         }
-        
+
         private bool CheckProposalNotExpired(ProposalInfo proposal)
         {
             return proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
@@ -199,10 +198,14 @@ namespace AElf.Contracts.Parliament
             Assert(isCurrentMiner, "No permission.");
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = HashHelper.ConcatAndCompute(HashHelper.ConcatAndCompute(HashHelper.ComputeFromIMessage(input), Context.TransactionId),
-                HashHelper.ComputeFromByteArray(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -235,10 +238,10 @@ namespace AElf.Contracts.Parliament
                 ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
             };
             Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] != null) 
+            if (State.Organizations[organizationAddress] != null)
                 return organizationAddress;
-            
-            State.Organisations[organizationAddress] = organization;
+
+            State.Organizations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
@@ -250,7 +253,7 @@ namespace AElf.Contracts.Parliament
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = HashHelper.ComputeFromIMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair

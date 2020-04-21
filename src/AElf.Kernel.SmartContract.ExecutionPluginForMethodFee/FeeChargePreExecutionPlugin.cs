@@ -52,7 +52,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             {
                 var context = _contextService.Create();
 
-                if (_transactionFeeExemptionService.IsFree(transactionContext.Transaction))
+                var chainContext = new ChainContext
+                {
+                    BlockHash = transactionContext.PreviousBlockHash,
+                    BlockHeight = transactionContext.BlockHeight - 1
+                };
+                if (_transactionFeeExemptionService.IsFree(chainContext, transactionContext.Transaction))
                 {
                     return new List<Transaction>();
                 }
@@ -83,11 +88,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     return new List<Transaction>();
                 }
                 
-                var chainContext = new ChainContext
-                {
-                    BlockHash = transactionContext.PreviousBlockHash,
-                    BlockHeight = transactionContext.BlockHeight - 1
-                };
                 var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {

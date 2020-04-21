@@ -88,7 +88,7 @@ message BlockHeader {
     Hash merkle_tree_root_of_world_state = 5;
     bytes bloom = 6;
     int64 height = 7;
-    repeated bytes extra_data = 8;
+    map<string, bytes> extra_data = 8;
     google.protobuf.Timestamp time = 9;
     Hash merkle_tree_root_of_transaction_status = 10;
     bytes signer_pubkey = 9999;
@@ -177,4 +177,10 @@ message TransactionBlockIndex {
     Hash block_hash = 1;
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
+}
+
+message SmartContractAddress{
+    Address address = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
 }

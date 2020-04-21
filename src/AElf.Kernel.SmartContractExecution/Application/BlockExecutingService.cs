@@ -72,28 +72,25 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Logger.LogTrace("Executed cancellable txs");
             }
 
-            if (returnSetCollection.Unexecutable.Count > 0)
-            {
-                await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader,
-                        returnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
-            }
-
             var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
             var blockStateSet =
-                CreateBlockStateSet(blockHeader, returnSetCollection);
+                CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
                 blockStateSet);
 
-            var blockHash = block.GetHashWithoutCache();
+            // set txn results
             var transactionResults = await SetTransactionResultsAsync(returnSetCollection, blockHeader);
             
-            blockStateSet.BlockHash = blockHash;
+            // set blocks state
+            blockStateSet.BlockHash = blockHeader.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
+            
+            // handle execution cases 
+            await CleanUpReturnSetCollectionAsync(blockHeader, returnSetCollection);
             
             return new BlockExecutedSet
             {
@@ -103,8 +100,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
         }
 
-        protected virtual Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
-            List<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
+        private Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
+            IEnumerable<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
@@ -132,8 +129,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Header = blockHeader,
                 Body = blockBody
             };
+            block.GetHashWithoutCache();
             Logger.LogTrace("Finish block field filling after execution.");
             return Task.FromResult(block);
+        }
+
+        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
+        {
+            if (returnSetCollection.Unexecutable.Count > 0)
+            {
+                await EventBus.PublishAsync(
+                    new UnexecutableTransactionsFoundEvent(blockHeader,
+                        returnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
+            }
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
@@ -201,12 +209,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return HashHelper.ComputeFromByteArray(rawBytes);
         }
 
-        private BlockStateSet CreateBlockStateSet(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
+        private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,
+            ReturnSetCollection returnSetCollection)
         {
             var blockStateSet = new BlockStateSet
             {
-                BlockHeight = blockHeader.Height,
-                PreviousHash = blockHeader.PreviousBlockHash
+                BlockHeight = blockHeight,
+                PreviousHash = previousBlockHash
             };
             foreach (var returnSet in returnSetCollection.Executed)
             {

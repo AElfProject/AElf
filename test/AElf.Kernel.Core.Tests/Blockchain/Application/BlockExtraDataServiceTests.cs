@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Shouldly;
@@ -20,12 +21,12 @@ namespace AElf.Kernel.Blockchain.Application
             var blockHeader = new BlockHeader()
             {
                 Height = 2, // no extra data in genesis block
-                ExtraData = { ByteString.CopyFromUtf8("test1") }
+                ExtraData = { {"ExtraDataKey", ByteString.CopyFromUtf8("test1")} }
             };
-            var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("IBlockExtraDataProvider", blockHeader);
-            queryResult.ShouldBe(blockHeader.ExtraData[0]);
+            var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
+            queryResult.ShouldBe(blockHeader.ExtraData.First().Value);
             
-            var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("ConsensusExtraDataProvider", blockHeader);
+            var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("NotExistExtraDataKey", blockHeader);
             queryResult1.ShouldBeNull();
         }
 
@@ -36,11 +37,11 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 Height = 100,
             };
-            await _blockExtraDataService.FillBlockExtraData(blockHeader);
+            await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
             blockHeader.ExtraData.Count.ShouldBe(0);
 
             blockHeader.Height = 1;
-            await _blockExtraDataService.FillBlockExtraData(blockHeader);
+            await _blockExtraDataService.FillBlockExtraDataAsync(blockHeader);
             blockHeader.ExtraData.Count.ShouldBe(1);
         }
     }

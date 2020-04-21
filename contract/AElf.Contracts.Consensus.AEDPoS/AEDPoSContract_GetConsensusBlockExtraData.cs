@@ -73,7 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(triggerInformation.InValue != null, "In value should not be null.");
 
-            var outValue = HashHelper.ComputeFromIMessage(triggerInformation.InValue);
+            var outValue = HashHelper.ComputeFromMessage(triggerInformation.InValue);
             var signature =
                 HashHelper.ConcatAndCompute(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                     // Self check.
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) &&
-                        HashHelper.ComputeFromIMessage(triggerInformation.PreviousInValue) !=
+                        HashHelper.ComputeFromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");

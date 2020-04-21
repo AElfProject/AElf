@@ -83,11 +83,20 @@ namespace AElf.Kernel
 
                     ByteString bs = ByteString.CopyFrom(BitConverter.GetBytes(long.MaxValue - 1));
 
-                    dataProvider.Setup(m => m.GetExtraDataForFillingBlockHeaderAsync(It.IsAny<BlockHeader>()))
+                    dataProvider.Setup(m => m.GetBlockHeaderExtraDataAsync(It.IsAny<BlockHeader>()))
                         .Returns(Task.FromResult(bs));
+
+                    dataProvider.Setup(d => d.BlockHeaderExtraDataKey).Returns("TestExtraDataKey");
 
                     return dataProvider.Object;
                 });
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<ISmartContractAddressService>();
+                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                    .Returns(Task.FromResult(default(Address)));
+                return mockService.Object;
+            });
         }
     }
 
@@ -117,6 +126,14 @@ namespace AElf.Kernel
                     .Returns(ByteString.Empty);
                 mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
                     .Returns(ByteString.CopyFromUtf8("test"));
+                return mockService.Object;
+            });
+            
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<ISmartContractAddressService>();
+                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                    .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
         }

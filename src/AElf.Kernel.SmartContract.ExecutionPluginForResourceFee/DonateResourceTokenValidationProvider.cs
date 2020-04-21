@@ -59,7 +59,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.Name);
             if (tokenContractAddress == null)
             {
                 return true;
@@ -81,10 +85,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
                 return hashFromState.Value.IsEmpty || hashFromState ==
-                       HashHelper.ComputeFromIMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                       HashHelper.ComputeFromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
 
-            var hashFromProvider = HashHelper.ComputeFromIMessage(totalResourceTokensMapsFromProvider);
+            var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
             if (!result)
             {
