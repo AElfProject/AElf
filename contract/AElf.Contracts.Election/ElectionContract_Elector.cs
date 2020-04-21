@@ -174,7 +174,7 @@ namespace AElf.Contracts.Election
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(DaySec);
-            var timeAndAmountProportion = GetAmountAndTimeProportion();
+            var timeAndAmountProportion = GetVoteWeightProportion();
             if (State.VoteWeightInterestList.Value == null)
                 State.VoteWeightInterestList.Value = GetDefaultVoteWeightInterest();
             foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
@@ -401,7 +401,7 @@ namespace AElf.Contracts.Election
             };
         }
         
-        private VoteWeightProportion GetAmountAndTimeProportion()
+        private VoteWeightProportion GetVoteWeightProportion()
         {
             return State.VoteWeightProportion.Value ??
                    (State.VoteWeightProportion.Value = GetDefaultVoteWeightProportion());
