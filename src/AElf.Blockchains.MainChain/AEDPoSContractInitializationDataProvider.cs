@@ -22,8 +22,7 @@ namespace AElf.Blockchains.MainChain
                 PeriodSeconds = _consensusOptions.PeriodSeconds,
                 StartTimestamp = _consensusOptions.StartTimestamp,
                 InitialMinerList = _consensusOptions.InitialMinerList,
-                MinerIncreaseInterval = _consensusOptions.MiningInterval,
-                IsSideChain = false
+                MinerIncreaseInterval = _consensusOptions.MiningInterval
             };
         }
     }
