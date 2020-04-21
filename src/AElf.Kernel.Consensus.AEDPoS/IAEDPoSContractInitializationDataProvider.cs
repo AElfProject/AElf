@@ -3,6 +3,10 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
+    /// <summary>
+    /// Add this interface because the initialization logic of AEDPoS Contract
+    /// are different from Main Chain, Side Chain and test cases.
+    /// </summary>
     public interface IAEDPoSContractInitializationDataProvider
     {
         AEDPoSContractInitializationData GetContractInitializationData();

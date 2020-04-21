@@ -1,5 +1,9 @@
 namespace AElf.CrossChain
 {
+    /// <summary>
+    /// Add this interface because the initialization logic of Cross Chain Contract
+    /// are different from Main Chain, Side Chain and test cases.
+    /// </summary>
     public interface ICrossChainContractInitializationDataProvider
     {
         CrossChainContractInitializationData GetContractInitializationData();
