@@ -65,6 +65,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return true;
             }
 
+            if (block.Header.Height <= 2) return true;
+
             var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = block.GetHash(),
