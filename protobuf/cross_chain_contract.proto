@@ -24,8 +24,6 @@ service CrossChainContract {
     }
     rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc FeedbackCrossChainIndexingProposalId(aelf.Hash) returns (google.protobuf.Empty) {
-    }
     
     // Views
     rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {

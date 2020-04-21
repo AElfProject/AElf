@@ -66,6 +66,7 @@ namespace AElf.Kernel.SmartContract.Application
                         ChainContext = groupChainContext,
                         Transaction = transaction,
                         CurrentBlockTime = transactionExecutingDto.BlockHeader.Time,
+                        OriginTransactionId = transaction.GetHash()
                     };
                     try
                     {
@@ -114,10 +115,10 @@ namespace AElf.Kernel.SmartContract.Application
                         groupStateCache.Update(trace.GetStateSets());
                     }
 #if DEBUG
-                    if (trace.Error != string.Empty)	
-                    {	
-                        Logger.LogError(trace.Error);	
-                    }         
+                    if (trace.Error != string.Empty)
+                    {
+                        Logger.LogError(trace.Error);
+                    }
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
@@ -126,6 +127,7 @@ namespace AElf.Kernel.SmartContract.Application
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
                 }
+
                 return returnSets;
             }
             catch (Exception e)
@@ -150,7 +152,8 @@ namespace AElf.Kernel.SmartContract.Application
             var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
 
             var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
-            var internalChainContext = new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
+            var internalChainContext =
+                new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
 
             IExecutive executive;
             try
@@ -172,7 +175,8 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (singleTxExecutingDto.Depth == 0)
                 {
-                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
+                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext,
+                        singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
                         trace.ExecutionStatus = ExecutionStatus.Prefailed;
@@ -187,13 +191,16 @@ namespace AElf.Kernel.SmartContract.Application
                 if (txContext.Trace.IsSuccessful())
                     await ExecuteInlineTransactions(singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime,
                         txContext, internalStateCache,
-                        internalChainContext, cancellationToken);
+                        internalChainContext,
+                        singleTxExecutingDto.OriginTransactionId,
+                        cancellationToken);
 
                 #region PostTransaction
 
                 if (singleTxExecutingDto.Depth == 0)
                 {
-                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext, singleTxExecutingDto.CurrentBlockTime,
+                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext,
+                        singleTxExecutingDto.CurrentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
                         trace.ExecutionStatus = ExecutionStatus.Postfailed;
@@ -221,7 +228,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
             ITransactionContext txContext, TieredStateCache internalStateCache,
-            IChainContext internalChainContext, CancellationToken cancellationToken)
+            IChainContext internalChainContext,
+            Hash originTransactionId,
+            CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
             internalStateCache.Update(txContext.Trace.GetStateSets());
@@ -233,7 +242,8 @@ namespace AElf.Kernel.SmartContract.Application
                     ChainContext = internalChainContext,
                     Transaction = inlineTx,
                     CurrentBlockTime = currentBlockTime,
-                    Origin = txContext.Origin
+                    Origin = txContext.Origin,
+                    OriginTransactionId = originTransactionId
                 };
 
                 // Only system contract can send TransferFrom tx as inline tx.
@@ -273,7 +283,8 @@ namespace AElf.Kernel.SmartContract.Application
                         Depth = 0, //TODO: this 0 means it is possible that pre/post txs could have own pre/post txs
                         ChainContext = internalChainContext,
                         Transaction = preTx,
-                        CurrentBlockTime = currentBlockTime
+                        CurrentBlockTime = currentBlockTime,
+                        OriginTransactionId = txContext.OriginTransactionId
                     };
                     var preTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
                     if (preTrace == null)
@@ -323,7 +334,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 internalChainContext.StateCache = internalStateCache;
             }
-            
+
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
@@ -334,10 +345,11 @@ namespace AElf.Kernel.SmartContract.Application
                         Depth = 0,
                         ChainContext = internalChainContext,
                         Transaction = postTx,
-                        CurrentBlockTime = currentBlockTime
+                        CurrentBlockTime = currentBlockTime,
+                        OriginTransactionId = txContext.OriginTransactionId
                     };
                     var postTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
-                    
+
                     if (postTrace == null)
                         return false;
                     trace.PostTransactions.Add(postTx);
@@ -455,7 +467,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
                 }
-                    
+
                 foreach (var postTrace in trace.PostTraces)
                 {
                     if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
@@ -472,7 +484,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             return returnSet;
         }
-        
+
         private ExecutionReturnSet GetReturnSet(ExecutionReturnSet returnSet,
             IEnumerable<TransactionExecutingStateSet> transactionExecutingStateSets)
         {
@@ -483,7 +495,7 @@ namespace AElf.Kernel.SmartContract.Application
                     returnSet.StateChanges[write.Key] = write.Value;
                     returnSet.StateDeletes.Remove(write.Key);
                 }
-                
+
                 foreach (var delete in transactionExecutingStateSet.Deletes)
                 {
                     returnSet.StateDeletes[delete.Key] = delete.Value;
@@ -520,6 +532,7 @@ namespace AElf.Kernel.SmartContract.Application
             };
             var txContext = new TransactionContext
             {
+                OriginTransactionId = singleTxExecutingDto.OriginTransactionId,
                 PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
                 CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
                 Transaction = singleTxExecutingDto.Transaction,

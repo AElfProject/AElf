@@ -68,7 +68,7 @@ namespace AElf.Contracts.Association
                 getOrganization.ProposerWhiteList.ShouldBe(createOrganizationInput.ProposerWhiteList);
                 getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
                 getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
-                getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromIMessage(createOrganizationInput));
+                getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromMessage(createOrganizationInput));
             }
         }
 

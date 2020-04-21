@@ -102,7 +102,7 @@ namespace AElf.Contracts.Genesis
 
         private Hash CalculateHashFromInput(IMessage input)
         {
-            return HashHelper.ComputeFromIMessage(input);
+            return HashHelper.ComputeFromMessage(input);
         }
 
         private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
