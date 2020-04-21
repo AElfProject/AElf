@@ -80,11 +80,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHash = block.Header.PreviousBlockHash,
                     BlockHeight = block.Header.Height - 1
                 });
-            if (totalResourceTokensMapsFromProvider == null)
+            var hashCalculatedFromEmpty = Hash.FromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+            if (totalResourceTokensMapsFromProvider == null || hashCalculatedFromEmpty == null)
             {
                 Logger.LogInformation("totalResourceTokensMapsFromProvider is null or empty");
-                return hashFromState.Value.IsEmpty || hashFromState ==
-                       Hash.FromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                return hashFromState.Value.IsEmpty || hashFromState == hashCalculatedFromEmpty;
             }
 
             var hashFromProvider = Hash.FromMessage(totalResourceTokensMapsFromProvider);

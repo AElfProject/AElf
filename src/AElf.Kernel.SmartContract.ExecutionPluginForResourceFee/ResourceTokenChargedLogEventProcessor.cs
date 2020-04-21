@@ -6,6 +6,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -104,7 +105,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
-                }, new TotalResourceTokensMaps());
+                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
         }
     }
