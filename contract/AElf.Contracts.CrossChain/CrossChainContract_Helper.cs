@@ -497,7 +497,7 @@ namespace AElf.Contracts.CrossChain
                     },
                     OrganizationAddressFeedbackMethod = nameof(SetInitialSideChainLifetimeControllerAddress)
                 });
-            
+
             State.ParliamentContract.CreateOrganizationBySystemContract.Send(
                 new Parliament.CreateOrganizationBySystemContractInput
                 {
@@ -512,7 +512,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         private CreateOrganizationInput GenerateOrganizationInputForIndexingFeePrice(
-            params Address[] organizationMembers)
+            IList<Address> organizationMembers)
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
@@ -544,10 +544,12 @@ namespace AElf.Contracts.CrossChain
 
         private AuthorityInfo CreateDefaultOrganizationForIndexingFeePriceManagement(Address sideChainCreator)
         {
-            // be careful that this organization is useless after SideChainLifetimeController changed
             var createOrganizationInput =
-                GenerateOrganizationInputForIndexingFeePrice(sideChainCreator,
-                    GetCrossChainIndexingController().OwnerAddress);
+                GenerateOrganizationInputForIndexingFeePrice(new List<Address>
+                {
+                    sideChainCreator,
+                    GetCrossChainIndexingController().OwnerAddress
+                });
             SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
             State.AssociationContract.CreateOrganization.Send(createOrganizationInput);
 
@@ -586,7 +588,9 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : AElfConstants.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0
+                    ? currentSideChainHeight + 1
+                    : AElfConstants.GenesisBlockHeight;
                 // indexing fee
                 // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 // var lockedToken = State.IndexingBalance[chainId];
