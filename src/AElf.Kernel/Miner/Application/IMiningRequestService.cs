@@ -76,6 +76,7 @@ namespace AElf.Kernel.Miner.Application
 
         private bool IsGenesisBlockMining(Timestamp blockTime)
         {
+            //TODO: Verify genesis block timestamp as constant
             return blockTime < new Timestamp {Seconds = 3600};
         }
     }
