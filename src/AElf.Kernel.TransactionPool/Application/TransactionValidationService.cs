@@ -30,19 +30,15 @@ namespace AElf.Kernel.TransactionPool.Application
         /// <summary>
         /// Validate txs before they enter tx hub.
         /// </summary>
+        /// <param name="chainContext"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        public async Task<bool> ValidateTransactionWhileCollectingAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionWhileCollectingAsync(IChainContext chainContext,
+            Transaction transaction)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            var chainContext = new ChainContext
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
             foreach (var provider in _transactionValidationProviders)
             {
-                if (await provider.ValidateTransactionAsync(transaction,chainContext)) continue;
+                if (await provider.ValidateTransactionAsync(transaction, chainContext)) continue;
                 Logger.LogWarning(
                     $"[ValidateTransactionWhileCollectingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                 return false;
@@ -53,16 +49,10 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task<bool> ValidateTransactionWhileSyncingAsync(Transaction transaction)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            var chainContext = new ChainContext
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
             foreach (var provider in _transactionValidationProviders)
             {
                 if (!provider.ValidateWhileSyncing ||
-                    await provider.ValidateTransactionAsync(transaction, chainContext)) continue;
+                    await provider.ValidateTransactionAsync(transaction)) continue;
                 Logger.LogWarning(
                     $"[ValidateTransactionWhileSyncingAsync]Transaction {transaction.GetHash()} validation failed in {provider.GetType()}");
                 return false;

@@ -231,7 +231,7 @@ namespace AElf.Contract.TestContract
             TreasuryContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Treasury")).Value,
-                HashHelper.ComputeFromString("AElf.ContractNames.Treasury"),
+                SmartContractConstants.TreasuryContractSystemHashName,
                 DefaultSenderKeyPair);
             TreasuryContractStub =
                 GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,

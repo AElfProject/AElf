@@ -17,12 +17,23 @@ namespace AElf.Kernel.SmartContract.Application
             _cachedBlockchainExecutedDataService = cachedBlockchainExecutedDataService;
         }
 
-        protected T GetBlockExecutedData(IBlockIndex chainContext, object key = null)
+        protected T GetBlockExecutedData(IBlockIndex chainContext, IMessage key = null)
+        {
+            return _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, GetBlockExecutedDataKey(key));
+        }
+        
+        protected T GetBlockExecutedData(IBlockIndex chainContext, string key)
         {
             return _cachedBlockchainExecutedDataService.GetBlockExecutedData(chainContext, GetBlockExecutedDataKey(key));
         }
 
-        protected async Task AddBlockExecutedDataAsync(IBlockIndex blockIndex, object key, T blockExecutedData)
+        protected async Task AddBlockExecutedDataAsync(IBlockIndex blockIndex, IMessage key, T blockExecutedData)
+        {
+            await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex,
+                GetBlockExecutedDataKey(key), blockExecutedData);
+        }
+        
+        protected async Task AddBlockExecutedDataAsync(IBlockIndex blockIndex, string key, T blockExecutedData)
         {
             await _cachedBlockchainExecutedDataService.AddBlockExecutedDataAsync(blockIndex,
                 GetBlockExecutedDataKey(key), blockExecutedData);
