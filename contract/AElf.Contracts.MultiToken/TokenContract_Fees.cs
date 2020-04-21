@@ -382,6 +382,8 @@ namespace AElf.Contracts.MultiToken
         {
             Context.LogDebug(() => $"Start donate resource token. {input}");
             State.LatestTotalResourceTokensMapsHash.Value = Hash.FromMessage(input);
+            Context.LogDebug(() =>
+                $"LatestTotalResourceTokensMapsHash now is {State.LatestTotalResourceTokensMapsHash.Value}");
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {

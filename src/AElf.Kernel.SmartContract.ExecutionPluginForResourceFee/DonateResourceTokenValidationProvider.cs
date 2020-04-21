@@ -77,9 +77,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHash = block.Header.PreviousBlockHash,
                     BlockHeight = block.Header.Height - 1
                 });
-            if (totalResourceTokensMapsFromProvider == null)
+            if (totalResourceTokensMapsFromProvider == null ||
+                totalResourceTokensMapsFromProvider.Equals(new TotalResourceTokensMaps()))
             {
-                Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
+                Logger.LogInformation("totalResourceTokensMapsFromProvider is null or empty");
                 return hashFromState.Value.IsEmpty || hashFromState ==
                        Hash.FromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
@@ -88,7 +89,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
             if (!result)
             {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+                if (!hashFromState.Value.IsEmpty)
+                {
+                    Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+                }
+                else
+                {
+                    Logger.LogError("Hash from state is empty.");
+                }
             }
 
             return result;
