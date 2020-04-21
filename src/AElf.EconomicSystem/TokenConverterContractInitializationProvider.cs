@@ -6,14 +6,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.EconomicSystem
 {
-    public class ProfitContractInitializationProvider : IContractInitializationProvider, ITransientDependency
+    public class TokenConverterContractInitializationProvider : IContractInitializationProvider, ITransientDependency
     {
-        public Hash SystemSmartContractName => ProfitSmartContractAddressNameProvider.Name;
-        public string ContractCodeName => "AElf.Contracts.Profit";
+        public Hash SystemSmartContractName { get; } = TokenConverterSmartContractAddressNameProvider.Name;
+        public string ContractCodeName { get; } = "AElf.Contracts.TokenConverter";
 
         public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
         {
-            // Profit Contract doesn't need initial method call list.
             return new Dictionary<string, ByteString>();
         }
     }

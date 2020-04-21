@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Types;
 
-namespace AElf.Kernel.ContractsInitialization
+namespace AElf.Kernel.SmartContractInitialization
 {
     public interface IContractDeploymentListProvider
     {

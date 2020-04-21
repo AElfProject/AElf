@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.ContractsInitialization
+namespace AElf.Kernel.SmartContractInitialization
 {
     public interface IContractInitializationProvider
     {

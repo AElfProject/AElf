@@ -1,4 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.SmartContractInitialization;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ namespace AElf.Blockchains.SideChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IPrimaryTokenSymbolProvider, SideChainPrimaryTokenSymbolProvider>();
+            context.Services.AddSingleton<IContractDeploymentListProvider, SideChainContractDeploymentListProvider>();
         }
     }
 }

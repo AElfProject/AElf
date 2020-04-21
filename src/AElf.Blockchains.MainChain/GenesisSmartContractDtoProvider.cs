@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Kernel.ContractsInitialization;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContractInitialization;
 using AElf.OS.Node.Application;
-using Google.Protobuf;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Blockchains.MainChain
@@ -13,7 +12,7 @@ namespace AElf.Blockchains.MainChain
     /// <summary>
     /// Provide dtos for genesis block contract deployment and initialization.
     /// </summary>
-    public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IContractDeploymentListProvider _contractDeploymentListProvider;
         private readonly IServiceContainer<IContractInitializationProvider> _contractInitializationProviders;
@@ -31,9 +30,10 @@ namespace AElf.Blockchains.MainChain
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
+            var deploymentList = _contractDeploymentListProvider.GetDeployContractNameList();
             return _contractInitializationProviders
-                .OrderBy(p =>
-                    _contractDeploymentListProvider.GetDeployContractNameList().IndexOf(p.SystemSmartContractName))
+                .Where(p => deploymentList.Contains(p.SystemSmartContractName))
+                .OrderBy(p => deploymentList.IndexOf(p.SystemSmartContractName))
                 .Select(p =>
                 {
                     var code = _codes[p.ContractCodeName];
@@ -55,11 +55,6 @@ namespace AElf.Blockchains.MainChain
 
                     return genesisSmartContractDto;
                 });
-        }
-
-        private byte[] GetContractCodeByName(string name)
-        {
-            return _codes.Single(kv => kv.Key.Contains(name)).Value;
         }
     }
 }

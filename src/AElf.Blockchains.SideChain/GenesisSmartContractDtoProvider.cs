@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
+using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.Kernel;
@@ -8,6 +8,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContractInitialization;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Logging;
@@ -20,84 +21,60 @@ namespace AElf.Blockchains.SideChain
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes;
 
-        private readonly ConsensusOptions _consensusOptions;
-        private readonly ContractOptions _contractOptions;
-
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
+        private readonly IContractDeploymentListProvider _contractDeploymentListProvider;
+        private readonly IServiceContainer<IContractInitializationProvider> _contractInitializationProviders;
 
         public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
 
-        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions,
-            IOptionsSnapshot<ContractOptions> contractOptions,
-            ISideChainInitializationDataProvider sideChainInitializationDataProvider)
+        public GenesisSmartContractDtoProvider(
+            ISideChainInitializationDataProvider sideChainInitializationDataProvider,
+            IContractDeploymentListProvider contractDeploymentListProvider,
+            IServiceContainer<IContractInitializationProvider> contractInitializationProviders,
+            IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
-            _consensusOptions = consensusOptions.Value;
-            _contractOptions = contractOptions.Value;
+            _contractDeploymentListProvider = contractDeploymentListProvider;
+            _contractInitializationProviders = contractInitializationProviders;
             _codes = ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>(contractOptions.Value
                 .GenesisContractDir);
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
-            var genesisSmartContractDtoList = new List<GenesisSmartContractDto>();
-
             var chainInitializationData = AsyncHelper.RunSync(async () =>
                 await _sideChainInitializationDataProvider.GetChainInitializationDataAsync());
 
             if (chainInitializationData == null)
             {
-                return genesisSmartContractDtoList;
+                return new List<GenesisSmartContractDto>();
             }
 
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Profit")).Value,
-                ProfitSmartContractAddressNameProvider.Name
-            );
+            var deploymentList = _contractDeploymentListProvider.GetDeployContractNameList();
+            return _contractInitializationProviders
+                .Where(p => deploymentList.Contains(p.SystemSmartContractName))
+                .OrderBy(p => deploymentList.IndexOf(p.SystemSmartContractName))
+                .Select(p =>
+                {
+                    var code = _codes[p.ContractCodeName];
+                    var methodMap = p.GetInitializeMethodMap(code);
+                    var genesisSmartContractDto = new GenesisSmartContractDto
+                    {
+                        Code = code,
+                        SystemSmartContractName = p.SystemSmartContractName
+                    };
+                    foreach (var (methodName, parameter) in methodMap)
+                    {
+                        genesisSmartContractDto.TransactionMethodCallList.Value.Add(
+                            new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
+                            {
+                                MethodName = methodName,
+                                Params = parameter
+                            });
+                    }
 
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("TokenHolder")).Value,
-                TokenHolderSmartContractAddressNameProvider.Name
-            );
-
-            // chainInitializationData cannot be null if it is first time side chain startup. 
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value,
-                ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList(chainInitializationData));
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("MultiToken")).Value,
-                TokenSmartContractAddressNameProvider.Name,
-                GenerateTokenInitializationCallList(chainInitializationData));
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Parliament")).Value,
-                ParliamentSmartContractAddressNameProvider.Name,
-                GenerateParliamentInitializationCallList(chainInitializationData));
-            
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Referendum")).Value,
-                ReferendumSmartContractAddressNameProvider.Name,
-                GenerateReferendumInitializationCallList()
-            );
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Association")).Value,
-                AssociationSmartContractAddressNameProvider.Name
-            );
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("CrossChain")).Value,
-                CrossChainSmartContractAddressNameProvider.Name,
-                GenerateCrossChainInitializationCallList(chainInitializationData));
-
-            genesisSmartContractDtoList.AddGenesisSmartContract(
-                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationSmartContractAddressNameProvider.Name,
-                GenerateConfigurationInitializationCallList(chainInitializationData));
-
-            return genesisSmartContractDtoList;
+                    return genesisSmartContractDto;
+                });
         }
     }
 }

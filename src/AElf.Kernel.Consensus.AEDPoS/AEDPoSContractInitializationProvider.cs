@@ -1,35 +1,39 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.ContractsInitialization;
+using AElf.Kernel.SmartContractInitialization;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
     // ReSharper disable once InconsistentNaming
-    public class AEDPoSContractInitializationProvider : IContractInitializationProvider
+    public class AEDPoSContractInitializationProvider : IContractInitializationProvider, ITransientDependency
     {
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly IAEDPoSContractInitializationDataProvider _aedPoSContractInitializationDataProvider;
         public Hash SystemSmartContractName => ConsensusSmartContractAddressNameProvider.Name;
         public string ContractCodeName => "AElf.Contracts.Consensus.AEDPoS";
 
-        public AEDPoSContractInitializationProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
+        public AEDPoSContractInitializationProvider(
+            IAEDPoSContractInitializationDataProvider aedPoSContractInitializationDataProvider)
         {
-            _consensusOptions = consensusOptions.Value;
+            _aedPoSContractInitializationDataProvider = aedPoSContractInitializationDataProvider;
         }
 
         public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
         {
+            var initializationData = _aedPoSContractInitializationDataProvider.GetContractInitializationData();
             return new Dictionary<string, ByteString>
             {
                 {
                     nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                     new InitialAElfConsensusContractInput
                     {
-                        PeriodSeconds = _consensusOptions.PeriodSeconds,
-                        MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+                        PeriodSeconds = initializationData.PeriodSeconds,
+                        MinerIncreaseInterval = initializationData.MinerIncreaseInterval,
+                        IsSideChain = initializationData.IsSideChain
                     }.ToByteString()
                 },
                 {
@@ -38,10 +42,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     {
                         Pubkeys =
                         {
-                            _consensusOptions.InitialMinerList.Select(p => p.ToByteString())
+                            initializationData.InitialMinerList.Select(p => p.ToByteString())
                         }
-                    }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
-                        _consensusOptions.StartTimestamp.ToDateTime()).ToByteString()
+                    }.GenerateFirstRoundOfNewTerm(initializationData.MiningInterval,
+                        initializationData.StartTimestamp.ToDateTime()).ToByteString()
                 }
             };
         }
