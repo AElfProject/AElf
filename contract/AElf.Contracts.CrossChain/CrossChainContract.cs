@@ -30,14 +30,27 @@ namespace AElf.Contracts.CrossChain
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
-
+            State.Initialized.Value = true;
             return new Empty();
         }
 
-        public override Empty SetInitialControllerAddress(Address input)
+        public override Empty SetInitialSideChainLifetimeControllerAddress(Address input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
+            Assert(State.SideChainLifetimeController.Value == null, "Already initialized.");
+            var parliamentContractAddress = State.ParliamentContract.Value;
+            Assert(parliamentContractAddress == Context.Sender, "No permission.");
+            var initialAuthorityInfo = new AuthorityInfo
+            {
+                OwnerAddress = input,
+                ContractAddress = parliamentContractAddress
+            };
+            State.SideChainLifetimeController.Value = initialAuthorityInfo;
+            return new Empty();
+        }
+        
+        public override Empty SetInitialIndexingControllerAddress(Address input)
+        {
+            Assert(State.CrossChainIndexingController.Value == null, "Already initialized.");
             var parliamentContractAddress = State.ParliamentContract.Value;
             Assert(parliamentContractAddress == Context.Sender, "No permission.");
             var initialAuthorityInfo = new AuthorityInfo
@@ -46,7 +59,6 @@ namespace AElf.Contracts.CrossChain
                 ContractAddress = parliamentContractAddress
             };
             State.CrossChainIndexingController.Value = initialAuthorityInfo;
-            State.SideChainLifetimeController.Value = initialAuthorityInfo;
             return new Empty();
         }
 
@@ -227,25 +239,9 @@ namespace AElf.Contracts.CrossChain
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
-            AssertValidCrossChainIndexingProposer(Context.Sender);
             ClearCrossChainIndexingProposalIfExpired();
             AssertValidCrossChainDataBeforeIndexing(input);
             ProposeCrossChainBlockData(input, Context.Sender);
-            return new Empty();
-        }
-
-        /// <summary>
-        /// Feed back from proposal creation as callback to register proposal Id.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty FeedbackCrossChainIndexingProposalId(Hash input)
-        {
-            AssertAddressIsParliamentContract(Context.Sender);
-            AssertIsCrossChainBlockDataAlreadyProposed();
-            var crossChainIndexingProposal = State.CrossChainIndexingProposal.Value;
-            crossChainIndexingProposal.ProposalId = input;
-            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
             return new Empty();
         }
 
@@ -257,7 +253,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ReleaseCrossChainIndexing(Hash input)
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
-            AssertValidCrossChainIndexingProposer(Context.Sender);
+            AssertAddressIsCurrentMiner(Context.Sender);
             var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
                 out var pendingCrossChainIndexingProposal);
             Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,

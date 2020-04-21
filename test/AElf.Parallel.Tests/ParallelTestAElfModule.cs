@@ -19,7 +19,7 @@ namespace AElf.Parallel.Tests
     [DependsOn(
         typeof(OSCoreWithChainTestAElfModule),
         typeof(ParallelExecutionModule),
-        typeof(FeeCalculationModule)
+        typeof(ExecutionPluginForMethodFeeModule)
     )]
     public class ParallelTestAElfModule : AElfModule
     {
@@ -28,7 +28,6 @@ namespace AElf.Parallel.Tests
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
-            context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
             context.Services.AddSingleton<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
         }

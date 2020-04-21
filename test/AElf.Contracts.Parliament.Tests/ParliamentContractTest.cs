@@ -83,7 +83,7 @@ namespace AElf.Contracts.Parliament
             getOrganization.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(minimalVoteThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalAbstentionThreshold.ShouldBe(maximalAbstentionThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalRejectionThreshold.ShouldBe(maximalRejectionThreshold);
-            getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
+            getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromMessage(createOrganizationInput));
         }
 
         [Fact]
@@ -154,7 +154,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Get_ProposalFailed_Test()
         {
-            var proposalOutput = await ParliamentContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+            var proposalOutput = await ParliamentContractStub.GetProposal.CallAsync(HashHelper.ComputeFromString("Test"));
             proposalOutput.ShouldBe(new ProposalOutput());
         }
 
@@ -343,7 +343,7 @@ namespace AElf.Contracts.Parliament
         public async Task Approve_Proposal_NotFoundProposal_Test()
         {
             var transactionResult =
-                await ParliamentContractStub.Approve.SendWithExceptionAsync(Hash.FromString("Test"));
+                await ParliamentContractStub.Approve.SendWithExceptionAsync(HashHelper.ComputeFromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
@@ -506,7 +506,7 @@ namespace AElf.Contracts.Parliament
         [Fact]
         public async Task Release_NotFound_Test()
         {
-            var proposalId = Hash.FromString("test");
+            var proposalId = HashHelper.ComputeFromString("test");
             var result = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             //Proposal not found
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

@@ -129,7 +129,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFromString("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();
@@ -327,7 +327,6 @@ namespace AElf.OS
                     MerkleTreeRootOfTransactions = Hash.Empty,
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                    ExtraData = {ByteString.Empty},
                     SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()

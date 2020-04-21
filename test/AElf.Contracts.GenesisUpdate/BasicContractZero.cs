@@ -104,7 +104,7 @@ namespace AElf.Contracts.GenesisUpdate
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
-            var codeHash = Hash.FromRawBytes(code);
+            var codeHash = HashHelper.ComputeFromByteArray(code);
 
             var info = new ContractInfo
             {
@@ -134,7 +134,7 @@ namespace AElf.Contracts.GenesisUpdate
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.ToBase58());
 
 
             if (name != null)
@@ -164,7 +164,7 @@ namespace AElf.Contracts.GenesisUpdate
                 "Only author can propose contract update.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = HashHelper.ComputeFromByteArray(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
 
             info.CodeHash = newCodeHash;
@@ -188,7 +188,7 @@ namespace AElf.Contracts.GenesisUpdate
                 NewCodeHash = newCodeHash
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 
@@ -253,15 +253,15 @@ namespace AElf.Contracts.GenesisUpdate
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(Hash chainId, long serialNumber)
+        private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFromInt64(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(chainId.ToHash(), serialNumber);
+            return BuildContractAddress(HashHelper.ComputeFromInt32(chainId), serialNumber);
         }
     }
 }

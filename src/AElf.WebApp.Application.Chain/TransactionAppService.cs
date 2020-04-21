@@ -138,13 +138,13 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = new Transaction
             {
-                From = AddressHelper.Base58StringToAddress(input.From),
-                To = AddressHelper.Base58StringToAddress(input.To),
+                From = Address.FromBase58(input.From),
+                To = Address.FromBase58(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(HashHelper.HexStringToHash(input.RefBlockHash)),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(Hash.LoadFromHex(input.RefBlockHash)),
                 MethodName = input.MethodName
             };
-            var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Base58StringToAddress(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.FromBase58(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());

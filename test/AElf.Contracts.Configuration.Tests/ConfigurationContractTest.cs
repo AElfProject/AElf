@@ -75,7 +75,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         public async Task Change_Owner_Address_Authorized()
         {
             var sender = SampleAddress.AddressList[0];
-            _testOutputHelper.WriteLine(sender.GetFormatted());
+            _testOutputHelper.WriteLine(sender.ToBase58());
             var newOrganization = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
                 new CreateOrganizationInput

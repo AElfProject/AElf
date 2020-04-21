@@ -213,7 +213,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await InitializeCrossChainContractAsync();
             var oldOrganizationAddress =
-                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
             var proposalCreation = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
                 ContractMethodName = nameof(CrossChainContractStub.CreateSideChain),
@@ -773,7 +773,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await InitializeCrossChainContractAsync();
             var oldOrganizationAddress =
-                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
 
             var newOrganizationAddress = (await AssociationContractStub.CreateOrganization.SendAsync(
                 new Association.CreateOrganizationInput
@@ -823,7 +823,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await InitializeCrossChainContractAsync();
             var oldOrganizationAddress =
-                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
+                (await CrossChainContractStub.GetSideChainLifetimeController.CallAsync(new Empty())).OwnerAddress;
 
             {
                 // invalid new owner address

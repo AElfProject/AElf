@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class ConsensusExtraDataProvider : IBlockExtraDataProvider, IConsensusExtraDataNameProvider
+    public class ConsensusExtraDataProvider : IConsensusExtraDataKeyProvider 
     {
-        public string ExtraDataName => "Consensus";
+        public string BlockHeaderExtraDataKey => ConsensusConstants.ConsensusExtraDataKey;
 
         private readonly IConsensusService _consensusService;
         public ILogger<ConsensusExtraDataProvider> Logger { get; set; }
@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger = NullLogger<ConsensusExtraDataProvider>.Instance;
         }
 
-        public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
+        public async Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
         {
             if (blockHeader.Height == 1 || blockHeader.ExtraData.Any())
             {

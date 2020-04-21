@@ -36,7 +36,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
-            var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
+            var hash = HashHelper.ComputeFromByteArray(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
             return path.ComputeRootWithLeafNode(hash);
         }
 
@@ -360,6 +360,7 @@ namespace AElf.Contracts.CrossChain
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
             var crossChainIndexingController = GetCrossChainIndexingController();
+            var proposalToken = Context.PreviousBlockHash;
             var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
@@ -372,9 +373,9 @@ namespace AElf.Contracts.CrossChain
                     ContractMethodName = nameof(RecordCrossChainData),
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimePeriod),
                     OrganizationAddress = crossChainIndexingController.OwnerAddress,
-                    ToAddress = Context.Self
+                    ToAddress = Context.Self,
+                    Token = proposalToken
                 },
-                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
                 OriginProposer = Context.Sender
             };
 
@@ -386,8 +387,9 @@ namespace AElf.Contracts.CrossChain
                 Proposer = proposer,
                 ProposedCrossChainBlockData = crossChainBlockData
             };
-            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Proposed);
-
+            var proposalId = Context.GenerateId(crossChainIndexingController.ContractAddress, proposalToken);
+            crossChainIndexingProposal.ProposalId = proposalId;
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
             Context.Fire(new CrossChainIndexingDataProposedEvent
             {
                 ProposedCrossChainData = crossChainBlockData
@@ -404,30 +406,13 @@ namespace AElf.Contracts.CrossChain
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
             var proposal = GetCrossChainIndexingProposal(proposalId);
-            if (!proposal.ToBeReleased)
-            {
-                SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-                Assert(State.ConsensusContract.GetCurrentRoundInformation.Call(new Empty()).IsMinerListJustChanged,
-                    "Not approved cross chain indexing proposal.");
-            }
-
+            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
             var crossChainIndexingController = GetCrossChainIndexingController();
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
                 proposal.ProposalId); // release if ready
             SetCrossChainIndexingProposalStatus(crossChainIndexingProposal,
                 CrossChainIndexingProposalStatus.ToBeReleased);
-        }
-
-        private void AssertValidCrossChainIndexingProposer(Address proposer)
-        {
-            AssertAddressIsCurrentMiner(proposer);
-            var bannedHeight = State.BannedMinerHeight[proposer];
-            var permitted = bannedHeight == 0 ||
-                            bannedHeight + CrossChainIndexingBannedBlockHeightInterval > Context.CurrentHeight;
-            Assert(permitted, $"Cross chain indexing is banned for address {proposer}");
-            if (bannedHeight != 0)
-                State.BannedMinerHeight.Remove(proposer); // lift the ban
         }
 
         private void AssertValidCrossChainDataBeforeIndexing(CrossChainBlockData crossChainBlockData)
@@ -496,22 +481,35 @@ namespace AElf.Contracts.CrossChain
         private void CreateInitialOrganizationForInitialControllerAddress()
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            var proposalReleaseThreshold = new ProposalReleaseThreshold
+            {
+                MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
+                MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
+                MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
+                MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
+            };
             State.ParliamentContract.CreateOrganizationBySystemContract.Send(
                 new Parliament.CreateOrganizationBySystemContractInput
                 {
                     OrganizationCreationInput = new Parliament.CreateOrganizationInput
                     {
-                        ProposalReleaseThreshold = new ProposalReleaseThreshold
-                        {
-                            MinimalApprovalThreshold = DefaultMinimalApprovalThreshold,
-                            MinimalVoteThreshold = DefaultMinimalVoteThresholdThreshold,
-                            MaximalAbstentionThreshold = DefaultMaximalAbstentionThreshold,
-                            MaximalRejectionThreshold = DefaultMaximalRejectionThreshold
-                        },
+                        ProposalReleaseThreshold = proposalReleaseThreshold,
                         ProposerAuthorityRequired = false,
                         ParliamentMemberProposingAllowed = true
                     },
-                    OrganizationAddressFeedbackMethod = nameof(SetInitialControllerAddress)
+                    OrganizationAddressFeedbackMethod = nameof(SetInitialSideChainLifetimeControllerAddress)
+                });
+            
+            State.ParliamentContract.CreateOrganizationBySystemContract.Send(
+                new Parliament.CreateOrganizationBySystemContractInput
+                {
+                    OrganizationCreationInput = new Parliament.CreateOrganizationInput
+                    {
+                        ProposalReleaseThreshold = proposalReleaseThreshold,
+                        ProposerAuthorityRequired = true,
+                        ParliamentMemberProposingAllowed = true
+                    },
+                    OrganizationAddressFeedbackMethod = nameof(SetInitialIndexingControllerAddress)
                 });
         }
 

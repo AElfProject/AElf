@@ -28,7 +28,7 @@ namespace AElf.Contracts.MultiToken
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = TokenContractCode;
             TokenContractAddress =
-                await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultKeyPair);
+                await DeployContractAsync(category, code, HashHelper.ComputeFromString("MultiToken"), DefaultKeyPair);
             TokenContractStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);

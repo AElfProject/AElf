@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 Category = 0,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
+                CodeHash = HashHelper.ComputeFromByteArray(code)
             }));
             executive.SetHostSmartContractBridgeContext(Mock.Of<IHostSmartContractBridgeContext>());
             return executive;
@@ -94,7 +94,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 executiveService.Setup(
                     s => s.GetExecutiveAsync(It.IsAny<IChainContext>(),
-                        It.Is<Address>(address => address == AddressHelper.Base58StringToAddress(tuple.Item1)))
+                        It.Is<Address>(address => address == Address.FromBase58(tuple.Item1)))
                 ).Returns(Task.FromResult(tuple.Item2));
             }
 

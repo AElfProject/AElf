@@ -25,8 +25,10 @@ namespace AElf.Contracts.Treasury
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
-        public SingletonState<AuthorityInfo> SymbolListController { get; set; }
+        public SingletonState<AuthorityInfo> TreasuryController { get; set; }
         public SingletonState<SymbolList> SymbolList { get; set; }
 
+        public SingletonState<DividendPoolWeightSetting> DividendPoolWeightSetting { get; set; }
+        public SingletonState<MinerRewardWeightSetting> MinerRewardWeightSetting { get; set; }
     }
 }
