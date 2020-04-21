@@ -6,6 +6,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -89,22 +90,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 }
             }
 
-            if (totalResourceTokensMaps.Value.Any())
+            await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
             {
-                await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                }, totalResourceTokensMaps);
-            }
-            else
-            {
-                await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                }, new TotalResourceTokensMaps());
-            }
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            }, totalResourceTokensMaps);
         }
     }
 }

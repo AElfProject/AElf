@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
-            var input = ByteString.Empty;
+            ByteString input;
             if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
                 totalResourceTokensMaps.BlockHash == preBlockHash)
             {
@@ -63,11 +63,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             }
             else
             {
-                await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                input = new TotalResourceTokensMaps
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, new TotalResourceTokensMaps());
+                }.ToByteString();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
