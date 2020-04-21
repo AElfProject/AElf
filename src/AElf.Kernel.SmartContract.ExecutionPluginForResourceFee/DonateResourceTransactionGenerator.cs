@@ -58,6 +58,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
                 totalResourceTokensMaps.BlockHash == preBlockHash)
             {
+                // If totalResourceTokensMaps match current block.
                 input = totalResourceTokensMaps.ToByteString();
             }
             else
@@ -66,7 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                }, new TotalResourceTokensMaps());
             }
 
             generatedTransactions.AddRange(new List<Transaction>

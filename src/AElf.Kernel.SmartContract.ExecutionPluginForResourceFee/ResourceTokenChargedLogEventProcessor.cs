@@ -59,8 +59,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 if (eventData.Symbol == null || eventData.Amount == 0)
                     continue;
 
-                if (totalResourceTokensMaps.Value.Any() &&
-                    totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
+                if (totalResourceTokensMaps.Value.Any(b => b.ContractAddress == eventData.ContractAddress))
                 {
                     var oldBill =
                         totalResourceTokensMaps.Value.First(b => b.ContractAddress == eventData.ContractAddress);
@@ -97,6 +96,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
                 }, totalResourceTokensMaps);
+            }
+            else
+            {
+                await _totalTotalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }, new TotalResourceTokensMaps());
             }
         }
     }

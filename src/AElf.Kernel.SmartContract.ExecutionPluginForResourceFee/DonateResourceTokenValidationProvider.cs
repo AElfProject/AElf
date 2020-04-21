@@ -77,11 +77,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHash = block.Header.PreviousBlockHash,
                     BlockHeight = block.Header.Height - 1
                 });
-            if (totalResourceTokensMapsFromProvider == null)
+
+            if (totalResourceTokensMapsFromProvider == null || totalResourceTokensMapsFromProvider.BlockHeight == 0)
             {
-                Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
-                return hashFromState.Value.IsEmpty || hashFromState ==
-                       HashHelper.ComputeFromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                Logger.LogInformation("totalResourceTokensMapsFromProvider is null or empty.");
+                var hashCalculatedFromEmpty =
+                    HashHelper.ComputeFromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                return hashFromState.Value.IsEmpty || hashFromState == hashCalculatedFromEmpty;
             }
 
             var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
