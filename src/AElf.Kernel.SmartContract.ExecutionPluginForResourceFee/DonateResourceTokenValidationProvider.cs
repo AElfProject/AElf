@@ -3,7 +3,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -15,6 +14,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
+
         private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
             _contractReaderFactory;
 
@@ -91,11 +91,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 
             var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
-            if (!result)
-            {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
-            }
-
+            Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
             return result;
         }
     }

@@ -33,10 +33,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (preBlockHeight == 1) return generatedTransactions;
 
-            if (preBlockHeight < AElfConstants.GenesisBlockHeight)
-                return generatedTransactions;
+            if (preBlockHeight <= 1) return generatedTransactions;
 
             var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
                 TokenSmartContractAddressNameProvider.Name);
