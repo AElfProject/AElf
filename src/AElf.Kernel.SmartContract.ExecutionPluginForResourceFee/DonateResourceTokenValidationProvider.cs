@@ -74,8 +74,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
-                    BlockHash = block.Header.PreviousBlockHash,
-                    BlockHeight = block.Header.Height - 1
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
                 });
             if (totalResourceTokensMapsFromProvider == null ||
                 totalResourceTokensMapsFromProvider.Equals(new TotalResourceTokensMaps()))
