@@ -42,7 +42,9 @@ namespace AElf.Kernel.SmartContract
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
 
-        T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new();
+        T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
+            where T : IMessage<T>, new();
+
         void SendInline(Address toAddress, string methodName, ByteString args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
