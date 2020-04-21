@@ -83,7 +83,7 @@ namespace AElf.Contracts.Parliament
             getOrganization.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(minimalVoteThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalAbstentionThreshold.ShouldBe(maximalAbstentionThreshold);
             getOrganization.ProposalReleaseThreshold.MaximalRejectionThreshold.ShouldBe(maximalRejectionThreshold);
-            getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromIMessage(createOrganizationInput));
+            getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromMessage(createOrganizationInput));
         }
 
         [Fact]
