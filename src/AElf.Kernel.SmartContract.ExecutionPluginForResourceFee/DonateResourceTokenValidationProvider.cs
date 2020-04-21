@@ -71,6 +71,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 BlockHeight = block.Header.Height,
                 ContractAddress = tokenContractAddress
             }).GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
+
+            if (hashFromState.Value.IsEmpty && block.Header.Height <= 2) return true;
+
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
