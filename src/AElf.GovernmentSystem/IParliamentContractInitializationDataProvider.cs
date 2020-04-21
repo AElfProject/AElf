@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf.Kernel.Proposal
+namespace AElf.GovernmentSystem
 {
     public interface IParliamentContractInitializationDataProvider
     {

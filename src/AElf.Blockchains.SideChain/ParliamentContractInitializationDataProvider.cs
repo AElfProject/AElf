@@ -1,4 +1,5 @@
 using AElf.CrossChain.Application;
+using AElf.GovernmentSystem;
 using AElf.Kernel.Proposal;
 using Volo.Abp.Threading;
 

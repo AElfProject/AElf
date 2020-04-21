@@ -49,7 +49,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(GovernmentSystemAElfModule),
         typeof(EconomicSystemAElfModule),
 
-            //web api module
+        //web api module
         typeof(WebWebAppAElfModule),
         typeof(ParallelExecutionModule),
 

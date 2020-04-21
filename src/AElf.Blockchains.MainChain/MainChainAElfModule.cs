@@ -23,7 +23,7 @@ namespace AElf.Blockchains.MainChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<IContractDeploymentListProvider, MainChainContractDeploymentListProvider>();
+            services.AddTransient<IContractDeploymentListProvider, MainChainContractDeploymentListProvider>();
         }
     }
 }

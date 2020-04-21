@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContractInitialization;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Proposal
+namespace AElf.GovernmentSystem
 {
     public class ParliamentContractInitializationProvider : IContractInitializationProvider, ITransientDependency
     {
