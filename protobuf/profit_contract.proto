@@ -65,6 +65,7 @@ message CreateSchemeInput {
     int32 delay_distribute_period_count = 3;
     aelf.Address manager = 4;
     bool can_remove_beneficiary_directly = 5;
+    aelf.Hash token = 6;
 }
 
 message Scheme {
