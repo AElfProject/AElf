@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Acs7;
 
-namespace AElf.Blockchains.SideChain
+namespace AElf.CrossChain.Application
 {
     public interface ISideChainInitializationDataProvider
     {

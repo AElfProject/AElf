@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain;
+using AElf.CrossChain.Application;
 using AElf.CrossChain.Communication;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -16,6 +17,8 @@ namespace AElf.Blockchains.SideChain
         private readonly IChainInitializationDataPlugin _chainInitializationDataPlugin;
         private readonly IBlockchainService _blockchainService;
 
+        private ChainInitializationData _chainInitializationData;
+
         public SideChainInitializationDataProvider(IOptionsSnapshot<ChainOptions> chainOptions, 
             IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions, 
             IChainInitializationDataPlugin chainInitializationDataPlugin, IBlockchainService blockchainService)
@@ -28,16 +31,19 @@ namespace AElf.Blockchains.SideChain
 
         public async Task<ChainInitializationData> GetChainInitializationDataAsync()
         {
+            if (_chainInitializationData != null)
+                return _chainInitializationData;
+            
             var chain = await _blockchainService.GetChainAsync();
             if (chain != null)
                 return null;
             
-            var chainInitializationData =
+            _chainInitializationData =
                 await _chainInitializationDataPlugin.GetChainInitializationDataAsync(_chainOptions.ChainId);
-            if (chainInitializationData == null)
+            if (_chainInitializationData == null)
                 throw new Exception("Initialization data cannot be null for a new side chain.");
                 
-            return chainInitializationData;
+            return _chainInitializationData;
         }
 
         public int ParentChainId { get; }

@@ -1,4 +1,5 @@
 using AElf.CrossChain;
+using AElf.CrossChain.Application;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain

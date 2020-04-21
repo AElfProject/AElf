@@ -3,6 +3,7 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.CrossChain;
+using AElf.CrossChain.Application;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;

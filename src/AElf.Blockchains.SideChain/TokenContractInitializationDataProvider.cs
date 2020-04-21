@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CrossChain.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Volo.Abp.Threading;

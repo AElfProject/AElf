@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.CrossChain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;

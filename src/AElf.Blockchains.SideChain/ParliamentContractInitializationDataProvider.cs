@@ -1,3 +1,4 @@
+using AElf.CrossChain.Application;
 using AElf.Kernel.Proposal;
 using Volo.Abp.Threading;
 
