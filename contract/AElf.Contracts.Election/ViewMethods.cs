@@ -301,7 +301,7 @@ namespace AElf.Contracts.Election
         
         public override VoteWeightProportion GetVoteWeightProportion(Empty input)
         {
-            return State.AmountAndTimeProportion.Value ?? GetDefaultVoteWeightProportion();
+            return State.VoteWeightProportion.Value ?? GetDefaultVoteWeightProportion();
         }
         
         public override Int64Value GetCalculateVoteWeight(VoteInformation input)

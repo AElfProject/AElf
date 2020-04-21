@@ -360,7 +360,7 @@ namespace AElf.Contracts.Election
         {
             AssertPerformedByVoteWeightInterestController();
             Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
-            State.AmountAndTimeProportion.Value = input;
+            State.VoteWeightProportion.Value = input;
             return new Empty();
         }
 
@@ -403,8 +403,8 @@ namespace AElf.Contracts.Election
         
         private VoteWeightProportion GetAmountAndTimeProportion()
         {
-            return State.AmountAndTimeProportion.Value ??
-                   (State.AmountAndTimeProportion.Value = GetDefaultVoteWeightProportion());
+            return State.VoteWeightProportion.Value ??
+                   (State.VoteWeightProportion.Value = GetDefaultVoteWeightProportion());
         }
         private VoteWeightProportion GetDefaultVoteWeightProportion()
         {
