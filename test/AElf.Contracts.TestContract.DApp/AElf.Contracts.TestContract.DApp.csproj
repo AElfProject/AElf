@@ -43,6 +43,9 @@
         <ContractBase Include="..\..\protobuf\acs9.proto">
             <Link>Protobuf\Proto\acs9.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractBase>
 
         <ContractCode Include="..\..\protobuf\dapp_contract.proto">
             <Link>Protobuf\Proto\dapp_contract.proto</Link>
