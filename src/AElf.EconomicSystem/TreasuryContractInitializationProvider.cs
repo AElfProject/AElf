@@ -19,11 +19,11 @@ namespace AElf.EconomicSystem
             {
                 new InitializeMethod{
                     MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
-                    Params = new Empty().ToByteString()
+                    Params = ByteString.Empty
                 },
                 new InitializeMethod{
                     MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
-                    Params = new Empty().ToByteString()
+                    Params = ByteString.Empty
                 }
             };
         }
