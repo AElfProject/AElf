@@ -26,13 +26,13 @@ namespace AElf.GovernmentSystem
             _economicOptions = economicOptions.Value;
         }
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
-                    new InitialElectionContractInput
+                new InitializeMethod{
+                    MethodName = nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
+                    Params = new InitialElectionContractInput
                     {
                         MaximumLockTime = _economicOptions.MaximumLockTime,
                         MinimumLockTime = _economicOptions.MinimumLockTime,

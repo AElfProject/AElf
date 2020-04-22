@@ -22,23 +22,23 @@ namespace AElf.Kernel.Consensus.AEDPoS
             _aedPoSContractInitializationDataProvider = aedPoSContractInitializationDataProvider;
         }
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
             var initializationData = _aedPoSContractInitializationDataProvider.GetContractInitializationData();
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
-                    new InitialAElfConsensusContractInput
+                new InitializeMethod{
+                    MethodName = nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
+                    Params = new InitialAElfConsensusContractInput
                     {
                         PeriodSeconds = initializationData.PeriodSeconds,
                         MinerIncreaseInterval = initializationData.MinerIncreaseInterval,
                         IsSideChain = initializationData.IsSideChain
                     }.ToByteString()
                 },
-                {
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
-                    new MinerList
+                new InitializeMethod{
+                    MethodName = nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
+                    Params = new MinerList
                     {
                         Pubkeys =
                         {

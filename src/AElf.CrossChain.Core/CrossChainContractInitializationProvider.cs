@@ -20,14 +20,14 @@ namespace AElf.CrossChain
             _crossChainContractInitializationDataProvider = crossChainContractInitializationDataProvider;
         }
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
             var initializationData = _crossChainContractInitializationDataProvider.GetContractInitializationData();
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
-                    new InitializeInput
+                new InitializeMethod{
+                    MethodName = nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                    Params = new InitializeInput
                     {
                         ParentChainId = initializationData.ParentChainId,
                         CreationHeightOnParentChain = initializationData.CreationHeightOnParentChain,

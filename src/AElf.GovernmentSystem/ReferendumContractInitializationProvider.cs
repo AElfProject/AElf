@@ -11,9 +11,9 @@ namespace AElf.GovernmentSystem
         public Hash SystemSmartContractName { get; } = ReferendumSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Referendum";
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>();
+            return new List<InitializeMethod>();
         }
     }
 }

@@ -13,17 +13,17 @@ namespace AElf.EconomicSystem
         public Hash SystemSmartContractName { get; } = TreasurySmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Treasury";
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
-                    new Empty().ToByteString()
+                new InitializeMethod{
+                    MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
+                    Params = new Empty().ToByteString()
                 },
-                {
-                    nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
-                    new Empty().ToByteString()
+                new InitializeMethod{
+                    MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
+                    Params = new Empty().ToByteString()
                 }
             };
         }

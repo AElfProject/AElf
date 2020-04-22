@@ -8,6 +8,13 @@ namespace AElf.Kernel.SmartContractInitialization
     {
         Hash SystemSmartContractName { get; }
         string ContractCodeName { get; }
-        Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode);
+        List<InitializeMethod> GetInitializeMethodList(byte[] contractCode);
+    }
+    
+    public class InitializeMethod
+    {
+        public string MethodName { get; set; }
+
+        public ByteString Params { get; set; }
     }
 }

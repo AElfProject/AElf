@@ -37,19 +37,19 @@ namespace AElf.Blockchains.MainChain
                 .Select(p =>
                 {
                     var code = _codes[p.ContractCodeName];
-                    var methodMap = p.GetInitializeMethodMap(code);
+                    var methodList = p.GetInitializeMethodList(code);
                     var genesisSmartContractDto = new GenesisSmartContractDto
                     {
                         Code = code,
                         SystemSmartContractName = p.SystemSmartContractName
                     };
-                    foreach (var (methodName, parameter) in methodMap)
+                    foreach (var method in methodList)
                     {
                         genesisSmartContractDto.TransactionMethodCallList.Value.Add(
                             new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
                             {
-                                MethodName = methodName,
-                                Params = parameter
+                                MethodName = method.MethodName,
+                                Params = method.Params
                             });
                     }
 

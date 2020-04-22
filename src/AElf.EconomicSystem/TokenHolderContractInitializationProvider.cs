@@ -10,10 +10,9 @@ namespace AElf.EconomicSystem
     {
         public Hash SystemSmartContractName { get; } = TokenHolderSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.TokenHolder";
-
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>();
+            return new List<InitializeMethod>();
         }
     }
 }

@@ -21,9 +21,9 @@ namespace AElf.Kernel.Token
             _tokenContractInitializationDataProvider = tokenContractInitializationDataProvider;
         }
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            var methodMap = new Dictionary<string, ByteString>();
+            var methodList = new List<InitializeMethod>();
             var initializationData = _tokenContractInitializationDataProvider.GetContractInitializationData();
             if (initializationData != null)
             {
@@ -32,20 +32,26 @@ namespace AElf.Kernel.Token
                     TokenInfoList.Parser.ParseFrom(initializationData.ResourceTokenListData);
 
                 // native token
-                methodMap.Add(
-                    nameof(TokenContractContainer.TokenContractStub.Create),
-                    GenerateTokenCreateInput(nativeTokenInfo).ToByteString());
+                methodList.Add(new InitializeMethod
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
+                    Params = GenerateTokenCreateInput(nativeTokenInfo).ToByteString()
+                });
 
                 // resource token
                 foreach (var resourceTokenInfo in resourceTokenList.Value)
                 {
-                    methodMap.Add(
-                        nameof(TokenContractContainer.TokenContractStub.Create),
-                        GenerateTokenCreateInput(resourceTokenInfo).ToByteString());
+                    methodList.Add(new InitializeMethod
+                    {
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
+                        Params = GenerateTokenCreateInput(resourceTokenInfo).ToByteString()
+                    });
                 }
 
-                methodMap.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                    new InitializeFromParentChainInput
+                methodList.Add(new InitializeMethod
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                    Params = new InitializeFromParentChainInput
                     {
                         ResourceAmount = {initializationData.ResourceAmount},
                         RegisteredOtherTokenContractAddresses =
@@ -53,10 +59,14 @@ namespace AElf.Kernel.Token
                             initializationData.RegisteredOtherTokenContractAddresses
                         },
                         Creator = initializationData.Creator
-                    }.ToByteString());
+                    }.ToByteString()
+                });
 
-                methodMap.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
-                    new Empty().ToByteString());
+                methodList.Add(new InitializeMethod
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+                    Params = new Empty().ToByteString()
+                });
 
                 if (initializationData.PrimaryTokenInfoData != null)
                 {
@@ -64,40 +74,51 @@ namespace AElf.Kernel.Token
                     var chainPrimaryTokenInfo =
                         TokenInfo.Parser.ParseFrom(initializationData.PrimaryTokenInfoData);
 
-                    methodMap.Add(
-                        nameof(TokenContractContainer.TokenContractStub.Create),
-                        GenerateTokenCreateInput(chainPrimaryTokenInfo).ToByteString());
+                    methodList.Add(new InitializeMethod
+                    {
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
+                        Params = GenerateTokenCreateInput(chainPrimaryTokenInfo).ToByteString()
+                    });
 
                     foreach (var issueStuff in initializationData.TokenInitialIssueList)
                     {
-                        methodMap.Add(nameof(TokenContractContainer.TokenContractStub.Issue),
-                            new IssueInput
+                        methodList.Add(new InitializeMethod
+                        {
+                            MethodName = nameof(TokenContractContainer.TokenContractStub.Issue),
+                            Params = new IssueInput
                             {
                                 Symbol = chainPrimaryTokenInfo.Symbol,
                                 Amount = issueStuff.Amount,
                                 Memo = "Initial issue",
                                 To = issueStuff.Address
-                            }.ToByteString());
+                            }.ToByteString()
+                        });
                     }
 
-                    methodMap.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                        new SetPrimaryTokenSymbolInput
+                    methodList.Add(new InitializeMethod
+                    {
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                        Params = new SetPrimaryTokenSymbolInput
                         {
                             Symbol = chainPrimaryTokenInfo.Symbol
-                        }.ToByteString());
+                        }.ToByteString()
+                    });
                 }
                 else
                 {
                     // set primary token with native token 
-                    methodMap.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                        new SetPrimaryTokenSymbolInput
+                    methodList.Add(new InitializeMethod
+                    {
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                        Params = new SetPrimaryTokenSymbolInput
                         {
                             Symbol = nativeTokenInfo.Symbol
-                        }.ToByteString());
+                        }.ToByteString()
+                    });
                 }
             }
 
-            return methodMap;
+            return methodList;
         }
 
         private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)

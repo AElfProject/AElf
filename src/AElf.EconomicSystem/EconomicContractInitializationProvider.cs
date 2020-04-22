@@ -28,13 +28,13 @@ namespace AElf.EconomicSystem
             _economicOptions = economicOptions.Value;
         }
         
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
-                    new InitialEconomicSystemInput
+                new InitializeMethod{
+                    MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
+                    Params = new InitialEconomicSystemInput
                     {
                         NativeTokenDecimals = _economicOptions.Decimals,
                         IsNativeTokenBurnable = _economicOptions.IsBurnable,
@@ -46,9 +46,9 @@ namespace AElf.EconomicSystem
                         TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                     }.ToByteString()
                 },
-                {
-                    nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
-                    new IssueNativeTokenInput
+                new InitializeMethod{
+                    MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
+                    Params = new IssueNativeTokenInput
                     {
                         Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
                         To = Address.FromPublicKey(

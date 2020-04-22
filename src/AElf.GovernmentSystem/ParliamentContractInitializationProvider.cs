@@ -21,14 +21,14 @@ namespace AElf.GovernmentSystem
             _parliamentContractInitializationDataProvider = parliamentContractInitializationDataProvider;
         }
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
             var initializationData = _parliamentContractInitializationDataProvider.GetContractInitializationData();
-            return new Dictionary<string, ByteString>
+            return new List<InitializeMethod>
             {
-                {
-                    nameof(ParliamentContractContainer.ParliamentContractStub.Initialize),
-                    new InitializeInput
+                new InitializeMethod{
+                    MethodName = nameof(ParliamentContractContainer.ParliamentContractStub.Initialize),
+                    Params = new InitializeInput
                     {
                         PrivilegedProposer = initializationData.PrivilegedProposer,
                         ProposerAuthorityRequired = initializationData.ProposerAuthorityRequired

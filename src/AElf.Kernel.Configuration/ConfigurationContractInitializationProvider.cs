@@ -11,9 +11,9 @@ namespace AElf.Kernel.Configuration
         public Hash SystemSmartContractName { get; } = ConfigurationSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Configuration";
 
-        public Dictionary<string, ByteString> GetInitializeMethodMap(byte[] contractCode)
+        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
         {
-            return new Dictionary<string, ByteString>();
+            return new List<InitializeMethod>();
         }
     }
 }
