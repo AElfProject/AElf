@@ -97,8 +97,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return true;
             }
 
-            Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
-
             if (hashFromState == HashHelper.ComputeFromMessage(new TotalResourceTokensMaps
             {
                 BlockHash = block.Header.PreviousBlockHash,
@@ -107,6 +105,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 // Didn't pass log event processor.
                 result = totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
+            }
+
+            if (!result)
+            {
+                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
             }
 
             return result;
