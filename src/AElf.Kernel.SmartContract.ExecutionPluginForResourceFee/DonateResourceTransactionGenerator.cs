@@ -34,8 +34,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             var generatedTransactions = new List<Transaction>();
 
-            if (preBlockHeight <= 1) return generatedTransactions;
-
             var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
                 TokenSmartContractAddressNameProvider.Name);
 

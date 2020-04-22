@@ -327,6 +327,34 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             consumedTokens1["WRITE"].ShouldBeGreaterThan(consumedTokens2["WRITE"]);
             consumedTokens1["TRAFFIC"].ShouldBe(consumedTokens2["TRAFFIC"]);
             consumedTokens1["STORAGE"].ShouldBe(consumedTokens2["STORAGE"]);
+
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+            
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+            
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = SampleAddress.AddressList.Last(),
+                Symbol = "ELF"
+            })).Balance;
+            balance.ShouldBe(30);
         }
 
         private async Task<(long read, long write, long traffic, long storage, TransactionResult txResult)>

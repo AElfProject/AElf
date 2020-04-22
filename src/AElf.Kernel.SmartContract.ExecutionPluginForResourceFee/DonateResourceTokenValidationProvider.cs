@@ -1,9 +1,9 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -81,17 +81,34 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHeight = block.Header.Height - 1
                 });
 
-            if (totalResourceTokensMapsFromProvider == null || totalResourceTokensMapsFromProvider.BlockHeight == 0)
+            bool result;
+            if (!hashFromState.Value.Any())
             {
-                Logger.LogInformation("totalResourceTokensMapsFromProvider is null or empty.");
-                var hashCalculatedFromEmpty =
-                    HashHelper.ComputeFromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
-                return hashFromState.Value.IsEmpty || hashFromState == hashCalculatedFromEmpty;
+                // Didn't donate resource tokens of previews block.
+                result = !totalResourceTokensMapsFromProvider.Value.Any();
+                return result;
             }
 
+            // Normal case if donated resource tokens in preview block.
             var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
-            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            result = hashFromProvider == hashFromState;
+            if (result)
+            {
+                return true;
+            }
+
             Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+
+            if (hashFromState == HashHelper.ComputeFromMessage(new TotalResourceTokensMaps
+            {
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
+            }))
+            {
+                // Didn't pass log event processor.
+                result = totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
+            }
+
             return result;
         }
     }
