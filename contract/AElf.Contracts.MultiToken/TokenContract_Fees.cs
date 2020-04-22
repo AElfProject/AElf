@@ -414,8 +414,8 @@ namespace AElf.Contracts.MultiToken
                     if (amount > existingBalance)
                     {
                         var owned = amount.Sub(existingBalance);
-                        var currentOwning = State.OwningResourceToken[bill.ContractAddress][symbol];
-                        State.OwningResourceToken[bill.ContractAddress][symbol] = currentOwning.Add(owned);
+                        var currentOwning = State.OwningResourceToken[bill.ContractAddress][symbol].Add(owned);
+                        State.OwningResourceToken[bill.ContractAddress][symbol] = currentOwning;
                         Context.Fire(new ResourceTokenOwned
                         {
                             Symbol = symbol,
