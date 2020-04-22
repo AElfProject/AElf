@@ -32,8 +32,8 @@ namespace AElf.Blockchains.SideChain
                 PrimaryTokenInfoData = sideChainInitializationData.ChainPrimaryTokenInfo?.ChainPrimaryTokenData,
                 ResourceTokenListData = sideChainInitializationData.ResourceTokenInfo.ResourceTokenListData,
                 TokenInitialIssueList =
-                    sideChainInitializationData.ChainPrimaryTokenInfo?.SideChainTokenInitialIssueList.ToDictionary(
-                        t => t.Address, t => t.Amount),
+                    sideChainInitializationData.ChainPrimaryTokenInfo?.SideChainTokenInitialIssueList
+                        .Select(t => new TokenInitialIssue {Address = t.Address, Amount = t.Amount}).ToList(),
                 RegisteredOtherTokenContractAddresses = new Dictionary<int, Address>
                 {
                     {

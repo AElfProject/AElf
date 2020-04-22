@@ -74,9 +74,9 @@ namespace AElf.Kernel.Token
                             new IssueInput
                             {
                                 Symbol = chainPrimaryTokenInfo.Symbol,
-                                Amount = issueStuff.Value,
+                                Amount = issueStuff.Amount,
                                 Memo = "Initial issue",
-                                To = issueStuff.Key
+                                To = issueStuff.Address
                             }.ToByteString());
                     }
 
