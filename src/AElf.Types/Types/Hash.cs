@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -11,7 +9,7 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
-        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, TypeConsts.HashByteArrayLength)
+        public static readonly Hash Empty = LoadFromByteArray(Enumerable.Range(0, AElfConstants.HashByteArrayLength)
             .Select(x => byte.MinValue).ToArray());
 
         /// <summary>
@@ -23,34 +21,15 @@ namespace AElf.Types
             return $@"""{ToHex()}""";
         }
 
-        // Make private to avoid confusion
-        private Hash(byte[] bytes)
-        {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-                throw new ArgumentException("Invalid bytes.", nameof(bytes));
-
-            Value = ByteString.CopyFrom(bytes);
-        }
-
-        /// <summary>
-        /// Gets the hash from a byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        public static Hash FromRawBytes(byte[] bytes)
-        {
-            return new Hash(bytes.ComputeHash());
-        }
-
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static Hash FromByteArray(byte[] bytes)
+        public static Hash LoadFromByteArray(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
+            if (bytes.Length != AElfConstants.HashByteArrayLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Hash
@@ -60,52 +39,28 @@ namespace AElf.Types
         }
 
         /// <summary>
-        /// Gets the hash from a string encoded in UTF8.
+        /// Loads the content value represented in base64.
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="base64"></param>
         /// <returns></returns>
-        public static Hash FromString(string str)
+        public static Hash LoadFromBase64(string base64)
         {
-            return FromRawBytes(Encoding.UTF8.GetBytes(str));
+            var bytes = Convert.FromBase64String(base64);
+            return LoadFromByteArray(bytes);
         }
 
         /// <summary>
-        /// Gets the hash from a Protobuf Message. Its serialized byte array is used for hash calculation.
+        /// Loads the content value represented in hex string.
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="hex"></param>
         /// <returns></returns>
-        public static Hash FromMessage(IMessage message)
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Hash LoadFromHex(string hex)
         {
-            return FromRawBytes(message.ToByteArray());
+            var bytes = ByteArrayHelper.HexStringToByteArray(hex);
+            return LoadFromByteArray(bytes);
         }
-
-        /// <summary>
-        /// Creates a hash from two hashes. The serialized byte arrays of the two hashes are concatenated and
-        /// used to calculate the hash. 
-        /// </summary>
-        /// <param name="hash1"></param>
-        /// <param name="hash2"></param>
-        /// <returns></returns>
-        public static Hash FromTwoHashes(Hash hash1, Hash hash2)
-        {
-            var hashes = new List<Hash>
-            {
-                hash1, hash2
-            };
-            using (var mm = new MemoryStream())
-            using (var stream = new CodedOutputStream(mm))
-            {
-                foreach (var hash in hashes.OrderBy(x => x))
-                {
-                    hash.WriteTo(stream);
-                }
-
-                stream.Flush();
-                mm.Flush();
-                return FromRawBytes(mm.ToArray());
-            }
-        }
-
+        
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -114,19 +69,29 @@ namespace AElf.Types
         {
             return Value.ToByteArray();
         }
-
+        
         /// <summary>
-        /// Dumps the content value to hex string.
+        /// Converts hash into hexadecimal representation.
         /// </summary>
         /// <returns></returns>
         public string ToHex()
         {
-            if (Value.Length != TypeConsts.HashByteArrayLength)
-                throw new ArgumentException("Invalid bytes.", nameof(Value));
-
             return Value.ToHex();
         }
 
+        /// <summary>
+        /// Converts hash into int32 value.
+        /// </summary>
+        /// <returns></returns>
+        public Int64 ToInt32()
+        {
+            return ToByteArray().ToInt64(true);
+        }
+        
+        /// <summary>
+        /// Converts hash into int64 value.
+        /// </summary>
+        /// <returns></returns>
         public Int64 ToInt64()
         {
             return ToByteArray().ToInt64(true);

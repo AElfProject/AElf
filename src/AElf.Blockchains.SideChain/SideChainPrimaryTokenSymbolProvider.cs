@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using Google.Protobuf.WellKnownTypes;
 
@@ -8,15 +10,19 @@ namespace AElf.Blockchains.SideChain
 {
     internal class SideChainPrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
     {
-        private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub>
+            _contractReaderFactory;
         private readonly IBlockchainService _blockchainService;
         private string _primaryTokenSymbol;
 
-        public SideChainPrimaryTokenSymbolProvider(ITokenContractReaderFactory tokenContractReaderFactory,
-            IBlockchainService blockchainService)
+        public SideChainPrimaryTokenSymbolProvider(IBlockchainService blockchainService,
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractContainer.TokenContractStub> contractReaderFactory)
         {
-            _tokenContractReaderFactory = tokenContractReaderFactory;
             _blockchainService = blockchainService;
+            _smartContractAddressService = smartContractAddressService;
+            _contractReaderFactory = contractReaderFactory;
         }
 
         public void SetPrimaryTokenSymbol(string symbol)
@@ -35,10 +41,13 @@ namespace AElf.Blockchains.SideChain
             }
 
             var chain = await _blockchainService.GetChainAsync();
-            _primaryTokenSymbol = (await _tokenContractReaderFactory.Create(new ChainContext
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            _primaryTokenSymbol = (await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
+                BlockHeight = chain.BestChainHeight,
+                ContractAddress = tokenContractAddress
             }).GetPrimaryTokenSymbol.CallAsync(new Empty())).Value;
 
             return _primaryTokenSymbol;

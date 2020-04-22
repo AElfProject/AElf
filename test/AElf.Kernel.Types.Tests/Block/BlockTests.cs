@@ -66,9 +66,9 @@ namespace AElf.Kernel.Types.Tests
                 {
                     new[]
                     {
-                        Hash.FromString("tx1"),
-                        Hash.FromString("tx2"),
-                        Hash.FromString("tx3"),
+                        HashHelper.ComputeFromString("tx1"),
+                        HashHelper.ComputeFromString("tx2"),
+                        HashHelper.ComputeFromString("tx3"),
                     }
                 }
             };
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void Block_Test()
         {
-            var block = CreateBlock(Hash.FromString("hash"), 1234, 10);
+            var block = CreateBlock(HashHelper.ComputeFromString("hash"), 1234, 10);
             block.Height.ShouldBe(10u);
 
             var hash = block.GetHash();
@@ -110,7 +110,7 @@ namespace AElf.Kernel.Types.Tests
             var hashBytes = blockHeader.GetHashBytes();
             hashBytes.Length.ShouldBe(32);
 
-            var hash1 = Hash.FromByteArray(hashBytes);
+            var hash1 = Hash.LoadFromByteArray(hashBytes);
             hash.ShouldBe(hash1);
         }
 
@@ -118,7 +118,7 @@ namespace AElf.Kernel.Types.Tests
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
-            var block = new Block(Hash.FromString("hash1"));
+            var block = new Block(HashHelper.ComputeFromString("hash1"));
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -132,7 +132,6 @@ namespace AElf.Kernel.Types.Tests
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
-            block.Header.ExtraData.Add(ByteString.Empty);
 
             return block;
         }
@@ -145,8 +144,8 @@ namespace AElf.Kernel.Types.Tests
             {
                 var transaction = new Transaction()
                 {
-                    From = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
-                    To = AddressHelper.Base58StringToAddress("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
+                    From = Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
+                    To = Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
                     MethodName = $"Test{i}",
                     Params = ByteString.Empty
                 };
@@ -165,10 +164,9 @@ namespace AElf.Kernel.Types.Tests
             {
                 ChainId = 1234,
                 Height = 10,
-                PreviousBlockHash = Hash.FromString("hash3"),
+                PreviousBlockHash = HashHelper.ComputeFromString("hash3"),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
-                ExtraData = {ByteString.Empty},
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactionStatus = Hash.Empty,
                 SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")

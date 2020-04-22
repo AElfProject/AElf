@@ -14,8 +14,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             InvolvedSmartContractMethods = new[]
             {
-                nameof(TokenContractContainer.TokenContractStub.ChargeResourceToken),
-                nameof(TokenContractContainer.TokenContractStub.CheckResourceToken)
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChargeResourceToken),
+                nameof(TokenContractImplContainer.TokenContractImplStub.CheckResourceToken)
             };
         }
     }

@@ -1,6 +1,7 @@
 using AElf.Kernel.SmartContract.Application;
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
@@ -17,7 +18,8 @@ namespace AElf.Parallel.Tests
 {
     [DependsOn(
         typeof(OSCoreWithChainTestAElfModule),
-        typeof(ParallelExecutionModule)
+        typeof(ParallelExecutionModule),
+        typeof(ExecutionPluginForMethodFeeModule)
     )]
     public class ParallelTestAElfModule : AElfModule
     {
@@ -26,11 +28,8 @@ namespace AElf.Parallel.Tests
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-            context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.AddSingleton<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
-            context.Services.AddTransient<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
+            context.Services.AddSingleton<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

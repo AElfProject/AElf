@@ -32,10 +32,10 @@ namespace AElf.Contract.TestContract
     public class TestContractTestBase : ContractTestBase<TestContractAElfModule>
     {
         protected readonly Hash TestBasicFunctionContractSystemName =
-            Hash.FromString("AElf.ContractNames.TestContract.BasicFunction");
+            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicFunction");
 
         protected readonly Hash TestBasicSecurityContractSystemName =
-            Hash.FromString("AElf.ContractNames.TestContract.BasicSecurity");
+            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicSecurity");
 
         public TestContractTestBase()
         {
@@ -147,7 +147,7 @@ namespace AElf.Contract.TestContract
         
         protected void CheckCode(byte[] code)
         {
-            var auditor = new CSharpContractAuditor(null, null);
+            var auditor = new CSharpContractAuditor();
             auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
@@ -49,7 +50,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
 
                 // Receive the transaction first time
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionHeight100}
                 });
@@ -71,7 +72,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var transactionValid =
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionValid}
                 });
@@ -96,7 +97,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    Block = newBlock
+                    BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
                 });
 
                 TransactionPoolSizeShouldBe(0);
@@ -136,7 +137,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
                 var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction>
                     {
@@ -151,7 +152,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 TransactionShouldInPool(transactionValid);
 
                 // Receive the same transaction again
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {transactionValid, transactionInvalid}
                 });
@@ -177,7 +178,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                     await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                     {
-                        Block = newBlock
+                        BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
                     });
 
                     chain = await _blockchainService.GetChainAsync();

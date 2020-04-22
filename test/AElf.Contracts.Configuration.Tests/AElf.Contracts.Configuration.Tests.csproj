@@ -21,7 +21,7 @@
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
+            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
@@ -37,7 +37,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-        <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
 

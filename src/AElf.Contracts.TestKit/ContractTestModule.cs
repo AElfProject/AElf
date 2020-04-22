@@ -68,8 +68,8 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] = "WRITE,READ,STORAGE,TRAFFIC";
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] = "CPU,RAM,DISK,NET";
+                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC";
+                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
             });
 
             Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
@@ -115,6 +115,13 @@ namespace AElf.Contracts.TestKit
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
+            context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
+            {
+                var option = provider.GetService<IOptions<RunnerOptions>>();
+                return new UnitTestCSharpSmartContractRunner(
+                    option.Value.SdkDir);
+            });
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
         }
 
         public int ChainId { get; } = 500;

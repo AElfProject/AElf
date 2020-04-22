@@ -30,6 +30,9 @@
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf/Proto/transaction_fee.proto</Link>
         </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </ContractStub>
@@ -39,5 +42,6 @@
         <PackageReference Include="Moq" Version="4.13.1" />
         <PackageReference Include="Volo.Abp.Autofac" Version="1.1.2" />
         <PackageReference Include="Volo.Abp.TestBase" Version="1.1.2" />
+        <PackageReference Include="xunit.assert" Version="2.4.1" />
     </ItemGroup>
 </Project>

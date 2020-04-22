@@ -7,7 +7,6 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -178,7 +177,7 @@ namespace AElf.Contracts.Election
             // Check ELF token balance.
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(balanceBeforeVoting - actualVotedAmount * 10000_0000);
+                balance.ShouldBe(balanceBeforeVoting - actualVotedAmount);
             }
 
             // Check VOTE token balance.
@@ -344,16 +343,15 @@ namespace AElf.Contracts.Election
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
 
             // Vote
-            {
-                var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
+            var transactionResult =
+                await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
 
+            voteId.ShouldBe(Hash.Parser.ParseFrom(transactionResult.ReturnValue));
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
@@ -379,7 +377,6 @@ namespace AElf.Contracts.Election
             var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
-                Symbol = "ELF"
             });
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

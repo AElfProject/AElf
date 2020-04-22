@@ -3,6 +3,7 @@ using System.Net.Sockets;
 
 namespace AElf.OS.Network.Types
 {
+    // TODO: Which one is correct, Endpoint or EndPoint?
     public class AElfPeerEndpoint : DnsEndPoint
     {
         public AElfPeerEndpoint(string host, int port)

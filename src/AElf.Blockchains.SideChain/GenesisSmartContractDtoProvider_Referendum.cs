@@ -1,7 +1,4 @@
 using Acs0;
-using AElf.Contracts.Referendum;
-using AElf.OS.Node.Application;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -12,9 +9,6 @@ namespace AElf.Blockchains.SideChain
         {
             var referendumInitializationCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumInitializationCallList.Add(
-                nameof(ReferendumContractContainer.ReferendumContractStub.Initialize),
-                new Empty());
             return referendumInitializationCallList;
         }
     }

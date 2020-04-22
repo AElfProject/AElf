@@ -59,7 +59,7 @@ namespace AElf.OS.Account.Application
                 if (accountList.Count == 0)
                 {
                     var keyPair = await _keyStore.CreateAccountKeyPairAsync(nodePassword);
-                    nodeAccount = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
+                    nodeAccount = Address.FromPublicKey(keyPair.PublicKey).ToBase58();
                 }
                 else
                 {

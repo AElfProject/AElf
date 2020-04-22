@@ -13,9 +13,9 @@ namespace AElf.Contracts.Genesis
     {
         #region Views
 
-        public override UInt64Value CurrentContractSerialNumber(Empty input)
+        public override Int64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new Int64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)
@@ -289,7 +289,7 @@ namespace AElf.Contracts.Genesis
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = HashHelper.ComputeFromByteArray(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
@@ -319,7 +319,7 @@ namespace AElf.Contracts.Genesis
                 Version = info.Version
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 

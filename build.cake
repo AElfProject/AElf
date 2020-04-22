@@ -1,6 +1,7 @@
 #tool nuget:?package=Codecov
 #addin nuget:?package=Cake.Codecov
 var target = Argument("target", "Default");
+var configuration = Argument("configuration", "Debug");
 var rootPath     = "./";
 var srcPath      = rootPath + "src/";
 var contractPath = rootPath + "contract/";
@@ -9,6 +10,7 @@ var distPath     = rootPath + "aelf-node/";
 var solution     = rootPath + "AElf.sln";
 var srcProjects  = GetFiles(srcPath + "**/*.csproj");
 var contractProjects  = GetFiles(contractPath + "**/*.csproj");
+
 
 Task("Clean")
     .Description("clean up project cache")
@@ -33,7 +35,6 @@ Task("Restore")
 };
     DotNetCoreRestore(solution,restoreSettings);
 });
-
 Task("Build")
     .Description("Compilation project")
     .IsDependentOn("Clean")
@@ -41,6 +42,7 @@ Task("Build")
     .Does(() =>
 {
     var buildSetting = new DotNetCoreBuildSettings{
+        Configuration = configuration,
         NoRestore = true,
         ArgumentCustomization = args => {
             return args.Append("/clp:ErrorsOnly")
@@ -50,7 +52,27 @@ Task("Build")
      
     DotNetCoreBuild(solution, buildSetting);
 });
-
+Task("Build-Release")
+    .Description("Compilation project")
+    .IsDependentOn("Clean")
+    .IsDependentOn("Restore")
+    .Does(() =>
+{   var versionPrefix = EnvironmentVariable("MYGET_VERSION_PREFIX");
+    var buildVersion = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000 / 86400;
+    var buildSetting = new DotNetCoreBuildSettings{
+        NoRestore = true,
+        Configuration = "Release",
+        ArgumentCustomization = args => {                   
+            return args.Append("/clp:ErrorsOnly")                 
+                       .Append("-v quiet")
+                       .Append($"-P:Version={versionPrefix}-{buildVersion}")
+                       .Append("-P:Authors=AElf")
+                       .Append("-o ./nuget")
+;}      
+    };      
+     
+    DotNetCoreBuild(solution, buildSetting);
+});
 
 Task("Test-with-Codecov")
     .Description("operation test_with_codecov")
@@ -58,6 +80,7 @@ Task("Test-with-Codecov")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -104,6 +127,7 @@ Task("Test-with-Codecov-N")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -146,6 +170,7 @@ Task("Run-Unit-Tests")
     .Does(() =>
 {
     var testSetting = new DotNetCoreTestSettings{
+        Configuration = configuration,
         NoRestore = true,
         NoBuild = true,
         ArgumentCustomization = args => {
@@ -175,7 +200,24 @@ Task("Upload-Coverage-Azure")
 {
     Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
 });
+Task("Publish-MyGet")
+    .IsDependentOn("Build-Release")
+    .Does(() => {
+        var apiKey = EnvironmentVariable("MYGET_API_KEY");
+        var pushSettings = new DotNetCoreNuGetPushSettings 
+        {
+            Source = "https://www.myget.org/F/aelf-project-dev/api/v3/index.json",
+            ApiKey = apiKey
 
+        };
+
+        var pkgs = GetFiles("./nuget/*.nupkg");
+        foreach(var pkg in pkgs) 
+        {
+                Information($"Publishing \"{pkg}\".");
+                DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
+        }
+    });
 Task("Default")
     .IsDependentOn("Run-Unit-Tests");
 

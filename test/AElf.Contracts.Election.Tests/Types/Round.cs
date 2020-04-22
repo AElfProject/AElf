@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
-            return Hash.FromRawBytes(GetCheckableRound(isContainPreviousInValue));
+            return HashHelper.ComputeFromByteArray(GetCheckableRound(isContainPreviousInValue));
         }
         
         /// <summary>
@@ -213,37 +213,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public long GetMinedBlocks()
         {
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
-        }
-
-        public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
-            long termNumber, long timeEachTerm)
-        {
-            var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
-            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
-                .Select(m => m.ActualMiningTimes.Last())
-                .Count(actualMiningTimestamp =>
-                    IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
-            return approvalsCount >= minimumCount;
-        }
-
-        /// <summary>
-        /// If daysEachTerm == 7:
-        /// 1, 1, 1 => 0 != 1 - 1 => false
-        /// 1, 2, 1 => 0 != 1 - 1 => false
-        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
-        /// 1, 9, 2 => 1 != 2 - 1 => false
-        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
-        /// </summary>
-        /// <param name="blockchainStartTimestamp"></param>
-        /// <param name="termNumber"></param>
-        /// <param name="blockProducedTimestamp"></param>
-        /// <param name="timeEachTerm"></param>
-        /// <returns></returns>
-        private bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long timeEachTerm)
-        {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
         }
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)

@@ -29,7 +29,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).Balance);
             await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
             await CheckBalancesAsync(firstSevenCoreDataCenters,
-                distributedAmount / 5 / 7 , balancesBefore);
+                distributedAmount / 20 / 7 , balancesBefore);
         }
 
         [IgnoreOnCIFact]
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 20 / 7;
                 var subsidyInformation = distributionInformationOfSecondTerm[SchemeType.BackupSubsidy];
                 var subsidyInSecondTerm = subsidyInformation.Amount / subsidyInformation.TotalShares;
                 await CheckBalancesAsync(firstSevenCoreDataCenters,
@@ -65,7 +65,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
-                var previousRound = ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2})
+                var previousRound = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 2})
                     .Result;
                 var totalBlocks = previousRound.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                 foreach (var keyPair in firstSevenCoreDataCenters)
@@ -131,7 +131,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 5 / 7;
+                var subsidyInFirstTerm = distributedAmountOfFirstTerm / 20 / 7;
                 var subsidyInSecondTerm =
                     subsidyInformationOfSecondTerm.Amount / subsidyInformationOfSecondTerm.TotalShares;
                 var subsidyInThirdTerm =
@@ -172,9 +172,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
-                var secondTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 2})
+                var secondTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 2})
                     .Result;
-                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3})
+                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3})
                     .Result;
                 var totalBlocksOfSecondTerm = secondTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                 var totalBlocksOfThirdTerm = thirdTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
@@ -202,7 +202,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(lastTwelveCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
-                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new SInt64Value {Value = 3})
+                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3})
                     .Result;
                 var totalBlocks = thirdTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
                 foreach (var keyPair in lastTwelveCoreDataCenters)

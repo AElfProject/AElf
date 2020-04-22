@@ -11,18 +11,19 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $@"""{GetFormatted()}""";
+            return $@"""{ToBase58()}""";
         }
 
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
         }
 
+        // TODO: It should be an address generation method of KeyPair, instead of Address.FromPublicKey
         public static Address FromPublicKey(byte[] bytes)
         {
             var hash = bytes.ComputeHash().ComputeHash();
@@ -37,7 +38,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
+            if (bytes.Length != AElfConstants.AddressHashLength)
                 throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Address
@@ -55,6 +56,33 @@ namespace AElf.Types
             return Value.ToByteArray();
         }
 
+        /// <summary>
+        /// Construct address from base58 encoded string.
+        /// </summary>
+        /// <param name="inputStr"></param>
+        /// <returns></returns>
+        public static Address FromBase58(string inputStr)
+        {
+            return FromBytes(Base58CheckEncoding.Decode(inputStr));
+        }
+        
+        /// <summary>
+        /// Converts address into base58 representation.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public string ToBase58()
+        {
+            if (_formattedAddress != null)
+                return _formattedAddress;
+
+            if (Value.Length != AElfConstants.AddressHashLength)
+                throw new ArgumentException("Invalid address", nameof(Value));
+
+            var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
+            return _formattedAddress = pubKeyHash;
+        }
+        
         public int CompareTo(Address that)
         {
             if (that == null)
@@ -101,18 +129,6 @@ namespace AElf.Types
         }
 
         private string _formattedAddress;
-
-        public string GetFormatted()
-        {
-            if (_formattedAddress != null)
-                return _formattedAddress;
-
-            if (Value.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentException("Invalid address", nameof(Value));
-
-            var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
-            return _formattedAddress = pubKeyHash;
-        }
     }
 
     public class ChainAddress
@@ -134,7 +150,7 @@ namespace AElf.Types
                 throw new ArgumentException("invalid chain address", nameof(chainAddressString));
             }
 
-            var address = AddressHelper.Base58StringToAddress(arr[1]);
+            var address = Address.FromBase58(arr[1]);
             var chainId = Base58CheckEncoding.Decode(arr[2]).ToInt32(false);
 
             return new ChainAddress(address, chainId);
@@ -146,7 +162,7 @@ namespace AElf.Types
         {
             if (_formatted != null) return _formatted;
             var addressSuffix = Base58CheckEncoding.Encode(chainId.ToBytes(false));
-            _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
+            _formatted = $"{addressPrefix}_{Address.ToBase58()}_{addressSuffix}";
             return _formatted;
         }
     }

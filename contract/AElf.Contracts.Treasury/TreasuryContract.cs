@@ -70,6 +70,11 @@ namespace AElf.Contracts.Treasury
             InitializeVoteWeightInterest();
             State.Initialized.Value = true;
 
+            State.SymbolList.Value = new SymbolList
+            {
+                Value = {Context.Variables.NativeSymbol}
+            };
+
             return new Empty();
         }
 
@@ -126,10 +131,10 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.TreasuryHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
             RequireElectionContractStateSet();
-            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = input.TermNumber
             });
@@ -158,32 +163,48 @@ namespace AElf.Contracts.Treasury
             var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
             var canExchangeWithNativeSymbol = connector.DepositConnector != null;
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (Context.Sender != Context.Self)
             {
-                From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = "Donate to treasury.",
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = "Donate to treasury.",
+                });
+            }
+
+            var needToConvert = !isNativeSymbol && canExchangeWithNativeSymbol;
+            if (needToConvert)
+            {
+                ConvertToNativeToken(input.Symbol, input.Amount);
+            }
+            else
+            {
+                State.TokenContract.Approve.Send(new ApproveInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Spender = State.ProfitContract.Value
+                });
+
+                State.ProfitContract.ContributeProfits.Send(new ContributeProfitsInput
+                {
+                    SchemeId = State.TreasuryHash.Value,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount
+                });
+            }
 
             Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
-                To = isNativeSymbol || !canExchangeWithNativeSymbol
-                    ? State.TreasuryVirtualAddress.Value
-                    : Context.Self,
+                To = State.TreasuryVirtualAddress.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
             });
-
-            if (input.Symbol != Context.Variables.NativeSymbol && canExchangeWithNativeSymbol)
-            {
-                ConvertToNativeToken(input.Symbol, input.Amount);
-            }
 
             return new Empty();
         }
@@ -211,9 +232,9 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
         
-        public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
+        public override Empty ChangeTreasuryController(AuthorityInfo input)
         {
-            AssertPerformedByVoteWeightInterestController();
+            AssertPerformedByTreasuryController();
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
             State.VoteWeightInterestController.Value = input;
             return new Empty();
@@ -221,8 +242,9 @@ namespace AElf.Contracts.Treasury
         
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
-            AssertPerformedByVoteWeightInterestController();
+            AssertPerformedByTreasuryController();
             Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
                 Assert(info.Capital > 0, "invalid input");
@@ -239,6 +261,41 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
+        public override Empty SetDistributingSymbolList(SymbolList input)
+        {
+            AssertPerformedByTreasuryController();
+            Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            State.SymbolList.Value = input;
+            return new Empty();
+        }
+        
+        public override Empty SetDividendPoolWeightSetting(DividendPoolWeightSetting input)
+        {
+            AssertPerformedByTreasuryController();
+            Assert(
+                input.CitizenWelfareWeight > 0 && input.BackupSubsidyWeight > 0 &&
+                input.MinerRewardWeight > 0,
+                "invalid input");
+            if (State.DividendPoolWeightSetting.Value == null)
+                State.DividendPoolWeightSetting.Value = GetDefaultDividendPoolWeightSetting();
+            ResetSubSchemeToTreasury(input);
+            State.DividendPoolWeightSetting.Value = input;
+            return new Empty();
+        }
+
+        public override Empty SetMinerRewardWeightSetting(MinerRewardWeightSetting input)
+        {
+            AssertPerformedByTreasuryController();
+            Assert(input.BasicMinerRewardWeight > 0 && input.ReElectionRewardWeight > 0 && input.VotesWeightRewardWeight > 0, 
+                "invalid input");
+            if (State.MinerRewardWeightSetting.Value == null)
+                State.MinerRewardWeightSetting.Value = GetDefaultMinerRewardWeightSetting();
+            ResetSubSchemeToMinerReward(input);
+            State.MinerRewardWeightSetting.Value = input;
+            return new Empty();
+        }
+
+        #region Private methods
         private void ConvertToNativeToken(string symbol, long amount)
         {
             State.TokenConverterContract.Sell.Send(new SellInput
@@ -253,87 +310,52 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        #region Private methods
-
         private void BuildTreasury()
         {
-            // Register `MinerReward` to `Treasury`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
+            if (State.DividendPoolWeightSetting.Value == null)
             {
-                SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.RewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
-            });
+                var dividendPoolWeightSetting = GetDefaultDividendPoolWeightSetting();
+                ResetSubSchemeToTreasury(dividendPoolWeightSetting);
+                State.DividendPoolWeightSetting.Value = dividendPoolWeightSetting;
+            }
 
-            // Register `BackupSubsidy` to `Treasury`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
+            if (State.MinerRewardWeightSetting.Value == null)
             {
-                SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.SubsidyHash.Value,
-                SubSchemeShares = TreasuryContractConstants.BackupSubsidyWeight
-            });
-
-            // Register `CitizenWelfare` to `Treasury`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
-            {
-                SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.WelfareHash.Value,
-                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
-            });
-
-            // Register `MinerBasicReward` to `MinerReward`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
-            {
-                SchemeId = State.RewardHash.Value,
-                SubSchemeId = State.BasicRewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.BasicMinerRewardWeight
-            });
-
-            // Register `MinerVotesWeightReward` to `MinerReward`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
-            {
-                SchemeId = State.RewardHash.Value,
-                SubSchemeId = State.VotesWeightRewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.VotesWeightRewardWeight
-            });
-
-            // Register `ReElectionMinerReward` to `MinerReward`
-            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
-            {
-                SchemeId = State.RewardHash.Value,
-                SubSchemeId = State.ReElectionRewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.ReElectionRewardWeight
-            });
+                var minerRewardWeightSetting = GetDefaultMinerRewardWeightSetting();
+                ResetSubSchemeToMinerReward(minerRewardWeightSetting);
+                State.MinerRewardWeightSetting.Value = minerRewardWeightSetting;
+            }
         }
 
         private void ReleaseTreasurySubProfitItems(long termNumber)
         {
+            var amountsMap = State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.RewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
         }
 
@@ -357,7 +379,7 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsSharesBeforeDistribution(Round previousTermInformation)
         {
-            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new SInt64Value
+            var previousPreviousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
@@ -539,16 +561,16 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void AssertPerformedByVoteWeightInterestController()
+        private void AssertPerformedByTreasuryController()
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                State.VoteWeightInterestController.Value = GetDefaultVoteWeightInterestController();
+                State.VoteWeightInterestController.Value = GetDefaultTreasuryController();
             }
             Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
         }
 
-        private AuthorityInfo GetDefaultVoteWeightInterestController()
+        private AuthorityInfo GetDefaultTreasuryController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -583,7 +605,7 @@ namespace AElf.Contracts.Treasury
                 return new GetWelfareRewardAmountSampleOutput();
             }
 
-            var totalAmount = releasedInformation.ProfitsAmount;
+            var totalAmount = releasedInformation.AmountsMap;
             foreach (var lockTime in input.Value)
             {
                 var shares = GetVotesWeight(sampleAmount, lockTime);
@@ -598,9 +620,9 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override SInt64Value GetCurrentTreasuryBalance(Empty input)
+        public override Int64Value GetCurrentTreasuryBalance(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
@@ -620,15 +642,80 @@ namespace AElf.Contracts.Treasury
             return State.VoteWeightInterestList.Value;
         }
         
-        public override AuthorityInfo GetVoteWeightInterestController(Empty input)
+        public override AuthorityInfo GetTreasuryController(Empty input)
         {
             if (State.VoteWeightInterestController.Value == null)
             {
-                return GetDefaultVoteWeightInterestController();
+                return GetDefaultTreasuryController();
             }
             return State.VoteWeightInterestController.Value;
         }
+
+        public override SymbolList GetDistributingSymbolList(Empty input)
+        {
+            return State.SymbolList.Value;
+        }
+
+        public override MinerRewardWeightProportion GetMinerRewardWeightProportion(Empty input)
+        {
+            var weightSetting = State.MinerRewardWeightSetting.Value ?? GetDefaultMinerRewardWeightSetting();
+            var weightSum = weightSetting.BasicMinerRewardWeight.Add(weightSetting.ReElectionRewardWeight)
+                .Add(weightSetting.VotesWeightRewardWeight);
+            var weightProportion = new MinerRewardWeightProportion
+            {
+                BasicMinerRewardProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.BasicRewardHash.Value,
+                    Proportion = weightSetting.BasicMinerRewardWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                },
+                ReElectionRewardProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    Proportion = weightSetting.ReElectionRewardWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                }
+            };
+            weightProportion.VotesWeightRewardProportionInfo = new SchemeProportionInfo
+            {
+                SchemeId = State.VotesWeightRewardHash.Value,
+                Proportion = TreasuryContractConstants.OneHundredPercent
+                    .Sub(weightProportion.BasicMinerRewardProportionInfo.Proportion)
+                    .Sub(weightProportion.ReElectionRewardProportionInfo.Proportion)
+            };
+            return weightProportion;
+        }
         
+        public override DividendPoolWeightProportion GetDividendPoolWeightProportion(Empty input)
+        {
+            var weightSetting = State.DividendPoolWeightSetting.Value ?? GetDefaultDividendPoolWeightSetting();
+            var weightSum = weightSetting.BackupSubsidyWeight.Add(weightSetting.CitizenWelfareWeight)
+                .Add(weightSetting.MinerRewardWeight);
+            var weightProportion = new DividendPoolWeightProportion
+            {
+                BackupSubsidyProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Proportion = weightSetting.BackupSubsidyWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                },
+                CitizenWelfareProportionInfo = new SchemeProportionInfo
+                {
+                    SchemeId = State.WelfareHash.Value,
+                    Proportion =  weightSetting.CitizenWelfareWeight
+                        .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
+                }
+            };
+            weightProportion.MinerRewardProportionInfo = new SchemeProportionInfo
+            {
+                SchemeId = State.RewardHash.Value,
+                Proportion = TreasuryContractConstants.OneHundredPercent
+                    .Sub(weightProportion.BackupSubsidyProportionInfo.Proportion)
+                    .Sub(weightProportion.CitizenWelfareProportionInfo.Proportion)
+            };
+            return weightProportion;
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
@@ -690,6 +777,77 @@ namespace AElf.Contracts.Treasury
                 Capital = 1000
             });
             State.VoteWeightInterestList.Value = voteWeightSetting;
+        }
+        
+        private DividendPoolWeightSetting GetDefaultDividendPoolWeightSetting()
+        {
+            return new DividendPoolWeightSetting
+            {
+                CitizenWelfareWeight = 15,
+                BackupSubsidyWeight = 1,
+                MinerRewardWeight = 4
+            };
+        }
+        
+        private MinerRewardWeightSetting GetDefaultMinerRewardWeightSetting()
+        {
+            return new MinerRewardWeightSetting
+            {
+                BasicMinerRewardWeight = 2,
+                VotesWeightRewardWeight = 1,
+                ReElectionRewardWeight = 1
+            };
+        }
+        private void ResetSubSchemeToTreasury(DividendPoolWeightSetting newWeightSetting)
+        {
+            var oldWeightSetting = State.DividendPoolWeightSetting.Value ?? new DividendPoolWeightSetting();
+            var parentSchemeId = State.TreasuryHash.Value;
+            // Register or reset `MinerReward` to `Treasury`
+            SendToProfitContractToResetWeight(parentSchemeId, State.RewardHash.Value,
+                oldWeightSetting.MinerRewardWeight, newWeightSetting.MinerRewardWeight);
+            // Register or reset `BackupSubsidy` to `Treasury`
+            SendToProfitContractToResetWeight(parentSchemeId, State.SubsidyHash.Value,
+                oldWeightSetting.BackupSubsidyWeight, newWeightSetting.BackupSubsidyWeight);
+            // Register or reset `CitizenWelfare` to `Treasury`
+            SendToProfitContractToResetWeight(parentSchemeId, State.WelfareHash.Value,
+                oldWeightSetting.CitizenWelfareWeight, newWeightSetting.CitizenWelfareWeight);
+        }
+        
+        private void ResetSubSchemeToMinerReward(MinerRewardWeightSetting newWeightSetting)
+        {
+            var oldWeightSetting = State.MinerRewardWeightSetting.Value ?? new MinerRewardWeightSetting();
+            var parentSchemeId = State.RewardHash.Value;
+            // Register or reset `MinerBasicReward` to `MinerReward`
+            SendToProfitContractToResetWeight(parentSchemeId, State.BasicRewardHash.Value,
+                oldWeightSetting.BasicMinerRewardWeight, newWeightSetting.BasicMinerRewardWeight);
+            // Register or reset `MinerVotesWeightReward` to `MinerReward`
+            SendToProfitContractToResetWeight(parentSchemeId, State.VotesWeightRewardHash.Value,
+                oldWeightSetting.VotesWeightRewardWeight, newWeightSetting.VotesWeightRewardWeight);
+            // Register or reset `ReElectionMinerReward` to `MinerReward`
+            SendToProfitContractToResetWeight(parentSchemeId, State.ReElectionRewardHash.Value,
+                oldWeightSetting.ReElectionRewardWeight, newWeightSetting.ReElectionRewardWeight);
+        }
+
+        private void SendToProfitContractToResetWeight(Hash parentSchemeId, Hash subSchemeId, int oldWeight,
+            int newWeight)
+        {
+            if (oldWeight == newWeight)
+                return;
+
+            // old weight equals 0 indicates the subScheme has not been registered
+            if (oldWeight > 0)
+                State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
+                {
+                    SchemeId = parentSchemeId,
+                    SubSchemeId = subSchemeId
+                });
+
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
+            {
+                SchemeId = parentSchemeId,
+                SubSchemeId = subSchemeId,
+                SubSchemeShares = newWeight
+            });
         }
     }
 }

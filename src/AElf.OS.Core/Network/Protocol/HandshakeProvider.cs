@@ -47,7 +47,7 @@ namespace AElf.OS.Network.Protocol
                 Time = TimestampHelper.GetUtcNow()
             };
 
-            var signature = await _accountService.SignAsync(Hash.FromMessage(handshakeData).ToByteArray());
+            var signature = await _accountService.SignAsync(HashHelper.ComputeFromMessage(handshakeData).ToByteArray());
 
             var handshake = new Handshake
             {
@@ -104,7 +104,7 @@ namespace AElf.OS.Network.Protocol
             byte[] handshakePubkey = handshake.HandshakeData.Pubkey.ToByteArray();
             
             var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshakePubkey);
+                HashHelper.ComputeFromMessage(handshake.HandshakeData).ToByteArray(), handshakePubkey);
 
             if (!validData)
             {

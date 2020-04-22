@@ -19,12 +19,14 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -127,7 +129,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFromString("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();
@@ -291,7 +293,7 @@ namespace AElf.OS
                 Transactions = transactions
             };
 
-            await _txHub.HandleTransactionsReceivedAsync(transactionsReceivedEvent);
+            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)
@@ -303,8 +305,8 @@ namespace AElf.OS
                 previousBlockHeight = chain.BestChainHeight;
             }
 
-            var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
+            var block = (await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000))).Block;
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -325,7 +327,6 @@ namespace AElf.OS
                     MerkleTreeRootOfTransactions = Hash.Empty,
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                    ExtraData = {ByteString.Empty},
                     SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()
@@ -423,6 +424,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,

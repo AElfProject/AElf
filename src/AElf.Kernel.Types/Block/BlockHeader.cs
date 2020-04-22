@@ -16,7 +16,7 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             if (_blockHash == null)
-                _blockHash = Hash.FromRawBytes(GetSignatureData());
+                _blockHash = HashHelper.ComputeFromByteArray(GetSignatureData());
 
             return _blockHash;
         }
@@ -50,10 +50,10 @@ namespace AElf.Kernel
             if (ChainId < 0)
                 return false;
 
-            if (Height < Constants.GenesisBlockHeight)
+            if (Height < AElfConstants.GenesisBlockHeight)
                 return false;
 
-            if (Height > Constants.GenesisBlockHeight && SignerPubkey.IsEmpty)
+            if (Height > AElfConstants.GenesisBlockHeight && SignerPubkey.IsEmpty)
                 return false;
 
             if (PreviousBlockHash == null)

@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
@@ -112,7 +113,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Announce_ShouldAddToBlockCache()
         {
-            Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
+            Hash hash = HashHelper.ComputeFromByteArray(new byte[] {3,6,9});
             var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
             var peer = _peerPool.GetPeers(true).First();
             var pubkey = peer.Info.Pubkey;
@@ -141,7 +142,7 @@ namespace AElf.OS.Network
                 GrpcConstants.PubkeyMetadataKey, pubkey
             }};
 
-            Hash hash = Hash.FromRawBytes(new byte[]{3,6,9});
+            Hash hash = HashHelper.ComputeFromByteArray(new byte[]{3,6,9});
             await _serverService.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
@@ -167,7 +168,7 @@ namespace AElf.OS.Network
             {
                 announcements.Add(new BlockAnnouncement
                 {
-                    BlockHash = Hash.FromString($"block-{i}"),
+                    BlockHash = HashHelper.ComputeFromString($"block-{i}"),
                     BlockHeight = 10 + i
                 });
             }
@@ -194,7 +195,7 @@ namespace AElf.OS.Network
             var pubkey = peer.Info.Pubkey;
             var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
 
-            var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block1"), 1, 
+            var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("block1"), 1, 
                 (await _osTestHelper.GenerateTransferTransactions(1)).ToList());
             
             var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(new List<BlockWithTransactions> { block });
@@ -214,9 +215,9 @@ namespace AElf.OS.Network
             });
 
             var blocks = new List<BlockWithTransactions>();
-            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block1"), 1, (await _osTestHelper.GenerateTransferTransactions(1)).ToList()));
-            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block2"), 2, (await _osTestHelper.GenerateTransferTransactions(2)).ToList()));
-            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block3"), 3, (await _osTestHelper.GenerateTransferTransactions(3)).ToList()));
+            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("block1"), 1, (await _osTestHelper.GenerateTransferTransactions(1)).ToList()));
+            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("block2"), 2, (await _osTestHelper.GenerateTransferTransactions(2)).ToList()));
+            blocks.Add(_osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFromString("block3"), 3, (await _osTestHelper.GenerateTransferTransactions(3)).ToList()));
 
             var context = BuildServerCallContext();
             var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(blocks.ToArray());
@@ -395,7 +396,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = Hash.FromRawBytes(new byte[]{11,22}) }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = HashHelper.ComputeFromByteArray(new byte[]{11,22}) }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -423,14 +424,14 @@ namespace AElf.OS.Network
             
             Assert.True(reply.Blocks.Count == 5);
 
-            reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("invalid"), Count = 5 }, reqBlockCtxt);
+            reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = HashHelper.ComputeFromString("invalid"), Count = 5 }, reqBlockCtxt);
             reply.ShouldBe(new BlockList());
         }
         
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty_Test()
         {
-            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromRawBytes(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
+            var reply = await _serverService.RequestBlocks(new BlocksRequest { PreviousBlockHash = HashHelper.ComputeFromByteArray(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);

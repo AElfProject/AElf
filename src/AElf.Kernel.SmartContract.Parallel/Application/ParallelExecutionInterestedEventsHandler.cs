@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 

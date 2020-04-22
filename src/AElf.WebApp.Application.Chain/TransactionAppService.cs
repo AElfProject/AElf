@@ -1,7 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
@@ -13,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.TransactionPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -138,13 +138,13 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = new Transaction
             {
-                From = AddressHelper.Base58StringToAddress(input.From),
-                To = AddressHelper.Base58StringToAddress(input.To),
+                From = Address.FromBase58(input.From),
+                To = Address.FromBase58(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(HashHelper.HexStringToHash(input.RefBlockHash).Value.Take(4).ToArray()),
+                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadFromHex(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
-            var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Base58StringToAddress(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.FromBase58(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());

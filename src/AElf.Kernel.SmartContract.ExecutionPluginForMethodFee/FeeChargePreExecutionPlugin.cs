@@ -16,30 +16,35 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
+    internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        // private readonly IPrimaryTokenFeeService _txFeeService;
+        private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             ITransactionFeeExemptionService transactionFeeExemptionService,
-            // IPrimaryTokenFeeService txFeeService, 
-            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider): base("acs1")
+            IPrimaryTokenFeeService txFeeService,
+            ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
+            base("acs1")
         {
             _contextService = contextService;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
-            // _txFeeService = txFeeService;
+            _txFeeService = txFeeService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
+            _contractReaderFactory = contractReaderFactory;
             _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
-        
+
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
@@ -55,7 +60,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 context.TransactionContext = transactionContext;
                 var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
 
-                if (context.CurrentHeight < Constants.GenesisBlockHeight + 1 || tokenContractAddress == null)
+                if (context.CurrentHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
                 {
                     return new List<Transaction>();
                 }
@@ -65,7 +70,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     return new List<Transaction>();
                 }
 
-                var tokenStub = GetTokenContractStub(transactionContext.Transaction.From, tokenContractAddress);
+                var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
+                {
+                    Sender = transactionContext.Transaction.From,
+                    ContractAddress = tokenContractAddress
+                });
+                    
                 if (transactionContext.Transaction.To == tokenContractAddress &&
                     transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
                 {
@@ -78,12 +88,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                // var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
+                var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
                     MethodName = transactionContext.Transaction.MethodName,
                     ContractAddress = transactionContext.Transaction.To,
-                    TransactionSizeFee = 0,
+                    TransactionSizeFee = txCost,
                     PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
                 };
                 
@@ -102,8 +112,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     }
                 }
 
-                var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput))
-                    .Transaction;
+                var chargeFeeTransaction = tokenStub.ChargeTransactionFees.GetTransaction(chargeTransactionFeesInput);
                 return new List<Transaction>
                 {
                     chargeFeeTransaction
@@ -119,19 +128,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public bool IsStopExecuting(ByteString txReturnValue)
         {
             return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
-        }
-
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
-            Address contractAddress)
-        {
-            return new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = sender,
-                    ContractAddress = contractAddress
-                }
-            };
         }
     }
 }

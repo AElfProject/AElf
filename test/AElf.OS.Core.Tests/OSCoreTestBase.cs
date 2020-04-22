@@ -21,4 +21,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class PeerInvalidTransactionTestBase : AElfIntegratedTest<PeerInvalidTransactionTestModule>
+    {
+        
+    }
 }

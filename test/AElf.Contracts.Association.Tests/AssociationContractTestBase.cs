@@ -92,7 +92,7 @@ namespace AElf.Contracts.Association
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ConsensusContractCode,
-                    Hash.FromString("AElf.ContractNames.Consensus"),
+                    HashHelper.ComputeFromString("AElf.ContractNames.Consensus"),
                     DefaultSenderKeyPair
                 ));
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
@@ -164,7 +164,7 @@ namespace AElf.Contracts.Association
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = 31536000
                     });
             }

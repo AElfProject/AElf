@@ -8,9 +8,6 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     {
         int ChainId { get; }
         Address ZeroSmartContractAddress { get; }
-
-        Address GetSystemContractAddressInGenesisBlock(ulong i);
-        
         Address GetZeroSmartContractAddress(int chainId);
     }
 
@@ -19,37 +16,21 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public int ChainId { get; }
         public Address ZeroSmartContractAddress { get; }
 
-        public Address GetSystemContractAddressInGenesisBlock(ulong i)
-        {
-            return BuildContractAddress(ChainId, i);
-        }
-
         public Address GetZeroSmartContractAddress(int chainId)
         {
-            return BuildContractAddress(chainId, 0);
+            return BuildZeroContractAddress(chainId);
         }
 
         public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
         {
             ChainId = chainOptions.Value.ChainId;
-            ZeroSmartContractAddress = BuildContractAddress(ChainId, 0);
+            ZeroSmartContractAddress = BuildZeroContractAddress(ChainId);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="serialNumber"></param>
-        /// <returns></returns>
-        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        private static Address BuildZeroContractAddress(int chainId)
         {
-            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(HashHelper.ComputeFromInt32(chainId), HashHelper.ComputeFromInt64(0L));
             return Address.FromBytes(hash.ToByteArray());
-        }
-
-        public static Address BuildContractAddress(int chainId, ulong serialNumber)
-        {
-            return BuildContractAddress(chainId.ToHash(), serialNumber);
         }
     }
 }

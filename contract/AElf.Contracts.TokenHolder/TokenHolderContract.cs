@@ -117,12 +117,14 @@ namespace AElf.Contracts.TokenHolder
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
+
             State.TokenContract.Approve.Send(new ApproveInput
             {
                 Spender = State.ProfitContract.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
+
             State.ProfitContract.ContributeProfits.Send(new Profit.ContributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
@@ -137,12 +139,16 @@ namespace AElf.Contracts.TokenHolder
             var scheme = GetValidScheme(input.SchemeManager, true);
             Assert(Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName) ||
                    Context.Sender == input.SchemeManager, "No permission to distribute profits.");
-            State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+            var distributeProfitsInput = new Profit.DistributeProfitsInput
             {
                 SchemeId = scheme.SchemeId,
-                Symbol = input.Symbol ?? scheme.Symbol,
                 Period = scheme.Period
-            });
+            };
+            if (input.AmountsMap != null && input.AmountsMap.Any())
+            {
+                distributeProfitsInput.AmountsMap.Add(input.AmountsMap);
+            }
+            State.ProfitContract.DistributeProfits.Send(distributeProfitsInput);
             scheme.Period = scheme.Period.Add(1);
             State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
             return new Empty();
@@ -150,6 +156,7 @@ namespace AElf.Contracts.TokenHolder
 
         public override Empty RegisterForProfits(RegisterForProfitsInput input)
         {
+            Assert(State.LockIds[input.SchemeManager][Context.Sender] == null, "Already registered.");
             var scheme = GetValidScheme(input.SchemeManager);
             if (State.TokenContract.Value == null)
             {
@@ -157,15 +164,17 @@ namespace AElf.Contracts.TokenHolder
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var lockId = Context.GenerateId(Context.Self,
+                ByteArrayHelper.ConcatArrays(input.SchemeManager.ToByteArray(), Context.Sender.ToByteArray()));
             State.TokenContract.Lock.Send(new LockInput
             {
-                LockId = Context.TransactionId,
+                LockId = lockId,
                 Symbol = scheme.Symbol,
                 Address = Context.Sender,
                 Amount = input.Amount,
             });
-            State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
-            State.LockTimestamp[Context.TransactionId] = Context.CurrentBlockTime;
+            State.LockIds[input.SchemeManager][Context.Sender] = lockId;
+            State.LockTimestamp[lockId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
@@ -175,26 +184,29 @@ namespace AElf.Contracts.TokenHolder
                     Shares = input.Amount
                 }
             });
-            
+
             // Check auto-distribute threshold.
-            foreach (var threshold in scheme.AutoDistributeThreshold)
+            if (scheme.AutoDistributeThreshold != null && scheme.AutoDistributeThreshold.Any())
             {
-                var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
-                var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                foreach (var threshold in scheme.AutoDistributeThreshold)
                 {
-                    Owner = originScheme.VirtualAddress,
-                    Symbol = threshold.Key
-                }).Balance;
-                if (balance < threshold.Value) continue;
-                State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
-                {
-                    SchemeId = scheme.SchemeId,
-                    Symbol = threshold.Key,
-                    Period = scheme.Period.Add(1)
-                });
-                scheme.Period = scheme.Period.Add(1);
-                State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+                    var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
+                    var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = originScheme.VirtualAddress,
+                        Symbol = threshold.Key
+                    }).Balance;
+                    if (balance < threshold.Value) continue;
+                    State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
+                    {
+                        SchemeId = scheme.SchemeId,
+                        Period = scheme.Period.Add(1)
+                    });
+                    scheme.Period = scheme.Period.Add(1);
+                    State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+                }
             }
+
             return new Empty();
         }
 
@@ -241,15 +253,28 @@ namespace AElf.Contracts.TokenHolder
             State.ProfitContract.ClaimProfits.Send(new Profit.ClaimProfitsInput
             {
                 SchemeId = scheme.SchemeId,
-                Beneficiary = beneficiary,
-                Symbol = input.Symbol
+                Beneficiary = beneficiary
             });
             return new Empty();
         }
 
         public override TokenHolderProfitScheme GetScheme(Address input)
         {
-            return State.TokenHolderProfitSchemes[input] ?? new TokenHolderProfitScheme();
+            return State.TokenHolderProfitSchemes[input];
+        }
+
+        public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)
+        {
+            var scheme = State.TokenHolderProfitSchemes[input.SchemeManager];
+            var profitsMap = State.ProfitContract.GetProfitsMap.Call(new Profit.ClaimProfitsInput
+            {
+                SchemeId = scheme.SchemeId,
+                Beneficiary = input.Beneficiary ?? Context.Sender
+            });
+            return new ReceivedProfitsMap
+            {
+                Value = {profitsMap.Value}
+            };
         }
 
         private TokenHolderProfitScheme GetValidScheme(Address manager, bool updateSchemePeriod = false)

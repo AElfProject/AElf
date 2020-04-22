@@ -9,7 +9,6 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -64,7 +63,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            var address = SampleAddress.AddressList[1].GetFormatted();
+            var address = SampleAddress.AddressList[1].ToBase58();
             var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
             {
                 Option = address,
@@ -256,7 +255,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             int totalSnapshotNumber = int.MaxValue)
         {
             var startTime = TimestampHelper.GetUtcNow();
-            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].GetFormatted())
+            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].ToBase58())
                 .ToList();
             var input = new VotingRegisterInput
             {
@@ -270,7 +269,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             input.Options.Clear();
-            var votingItemId = Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sender));
+            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFromMessage(input), HashHelper.ComputeFromMessage(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = votingItemId

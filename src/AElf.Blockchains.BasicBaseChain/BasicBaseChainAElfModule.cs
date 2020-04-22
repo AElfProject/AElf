@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
-using AElf.CrossChain.Communication.Grpc;
+using AElf.CrossChain;
+using AElf.CrossChain.Grpc;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
@@ -33,8 +33,8 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
+        typeof(KernelAElfModule),
         typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
@@ -42,6 +42,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
+        typeof(CrossChainAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
@@ -86,9 +87,9 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] =
                     newConfig.GetValue("Economic:Symbol", "ELF");
-                options.ContextVariables[ContextVariableDictionary.PayTxFeeSymbolList] =
+                options.ContextVariables["SymbolListToPayTxFee"] =
                     newConfig.GetValue("Economic:SymbolListToPayTxFee", "WRITE,READ,STORAGE,TRAFFIC");
-                options.ContextVariables[ContextVariableDictionary.PayRentalSymbolList] =
+                options.ContextVariables["SymbolListToPayRental"] =
                     newConfig.GetValue("Economic:SymbolListToPayRental", "CPU,RAM,DISK,NET");
             });
 
@@ -96,7 +97,6 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ContractOptions>(options =>
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
-                options.ContractFeeStrategyAcsList = new List<string> {"acs1", "acs8"};
             });
         }
 

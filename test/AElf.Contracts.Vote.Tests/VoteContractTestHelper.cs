@@ -45,7 +45,7 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             input.Options.Clear();
-            var votingItemId = Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sender));
+            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFromMessage(input), HashHelper.ComputeFromMessage(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = votingItemId
@@ -160,7 +160,7 @@ namespace AElf.Contracts.Vote
         
         private List<string> GenerateOptions(int count = 1)
         {
-            return Enumerable.Range(0, count).Select(i => SampleAddress.AddressList[i].GetFormatted()).ToList();
+            return Enumerable.Range(0, count).Select(i => SampleAddress.AddressList[i].ToBase58()).ToList();
         }
     }
 }
