@@ -8,6 +8,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
