@@ -66,6 +66,10 @@ namespace AElf.OS.Network
         /// The minimum distance between this node and peers needed to trigger initial sync. 
         /// </summary>
         public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
+
+        public int PeerInvalidTransactionTimeout { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionTimeout;
+
+        public int PeerInvalidTransactionLimit { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionLimit;
     }
     
     [Flags]

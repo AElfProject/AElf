@@ -28,8 +28,8 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task Insert_MultipleTx_Test()
         {
-            var t1 = _kernelTestHelper.GenerateTransaction(1, Hash.FromString("tx1"));
-            var t2 = _kernelTestHelper.GenerateTransaction(2, Hash.FromString("tx2"));
+            var t1 = _kernelTestHelper.GenerateTransaction(1, HashHelper.ComputeFromString("tx1"));
+            var t2 = _kernelTestHelper.GenerateTransaction(2, HashHelper.ComputeFromString("tx2"));
             var key1 = await _transactionManager.AddTransactionAsync(t1);
             var key2 = await _transactionManager.AddTransactionAsync(t2);
             Assert.NotEqual(key1, key2);
@@ -38,8 +38,8 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task Remove_Transaction_Test()
         {
-            var t1 = _kernelTestHelper.GenerateTransaction(1, Hash.FromString("tx1"));
-            var t2 = _kernelTestHelper.GenerateTransaction(2, Hash.FromString("tx2"));
+            var t1 = _kernelTestHelper.GenerateTransaction(1, HashHelper.ComputeFromString("tx1"));
+            var t2 = _kernelTestHelper.GenerateTransaction(2, HashHelper.ComputeFromString("tx2"));
 
             var key1 = await _transactionManager.AddTransactionAsync(t1);
             var key2 = await _transactionManager.AddTransactionAsync(t2);

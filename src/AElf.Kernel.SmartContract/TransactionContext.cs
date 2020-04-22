@@ -21,6 +21,7 @@ namespace AElf.Kernel.SmartContract
         public Address Origin { get; set; }
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
+        public Hash OriginTransactionId { get; set; }
         public long BlockHeight { get; set; }
         public Timestamp CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }

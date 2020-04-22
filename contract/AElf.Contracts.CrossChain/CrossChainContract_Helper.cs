@@ -36,7 +36,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
-            var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
+            var hash = HashHelper.ComputeFromByteArray(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
             return path.ComputeRootWithLeafNode(hash);
         }
 
@@ -360,6 +360,7 @@ namespace AElf.Contracts.CrossChain
         private void ProposeCrossChainBlockData(CrossChainBlockData crossChainBlockData, Address proposer)
         {
             var crossChainIndexingController = GetCrossChainIndexingController();
+            var proposalToken = Context.PreviousBlockHash;
             var proposalCreationInput = new CreateProposalBySystemContractInput
             {
                 ProposalInput = new CreateProposalInput
@@ -372,9 +373,9 @@ namespace AElf.Contracts.CrossChain
                     ContractMethodName = nameof(RecordCrossChainData),
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(CrossChainIndexingProposalExpirationTimePeriod),
                     OrganizationAddress = crossChainIndexingController.OwnerAddress,
-                    ToAddress = Context.Self
+                    ToAddress = Context.Self,
+                    Token = proposalToken
                 },
-                ProposalIdFeedbackMethod = nameof(FeedbackCrossChainIndexingProposalId),
                 OriginProposer = Context.Sender
             };
 
@@ -386,8 +387,9 @@ namespace AElf.Contracts.CrossChain
                 Proposer = proposer,
                 ProposedCrossChainBlockData = crossChainBlockData
             };
-            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Proposed);
-
+            var proposalId = Context.GenerateId(crossChainIndexingController.ContractAddress, proposalToken);
+            crossChainIndexingProposal.ProposalId = proposalId;
+            SetCrossChainIndexingProposalStatus(crossChainIndexingProposal, CrossChainIndexingProposalStatus.Pending);
             Context.Fire(new CrossChainIndexingDataProposedEvent
             {
                 ProposedCrossChainData = crossChainBlockData

@@ -1,12 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network.Service
+namespace AElf.OS.Network.Application
 {
     public class PeerDiscoveryServiceTests : OSCoreNetworkServiceTestBase
     {
