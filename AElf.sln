@@ -337,6 +337,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.EconomicSystem", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.GovernmentSystem", "src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj", "{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase", "src\AElf.ContractTestBase\AElf.ContractTestBase.csproj", "{8D614C01-C059-47F1-9D6F-9068E891101D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests", "test\AElf.ContractTestBase.Tests\AElf.ContractTestBase.Tests.csproj", "{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -963,6 +967,14 @@ Global
 		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D614C01-C059-47F1-9D6F-9068E891101D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D614C01-C059-47F1-9D6F-9068E891101D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D614C01-C059-47F1-9D6F-9068E891101D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D614C01-C059-47F1-9D6F-9068E891101D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1133,5 +1145,7 @@ Global
 		{9C88CD17-D2F3-4B07-95FC-D127497064AA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{9E9F4889-C62A-470A-A44B-51DA6E6252A5} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{8D614C01-C059-47F1-9D6F-9068E891101D} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
