@@ -37,14 +37,14 @@ Restore the chain database from snapshot:
 >> stop your chain database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-chaindb-*/* /path/to/install/chaindb/ssdb/var/
 >> start your chain database instance
->> enter ssdb console (ssdb-cli) to verify the imported data
+>> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 
 ## state database : decompress and load the state database
 >> tar xvzf aelf-testnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/ssdb/var/
 >> start your state database instance
->> enter ssdb console(ssdb-cli) to verify the imported data
+>> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 ```
 
 ## Node configuration
@@ -102,10 +102,13 @@ The account/key-pair associated with the node we are going to run:
 You also have to configure the database connection strings (port/db number):
 ```json
 "ConnectionStrings": {
-    "BlockchainDb": "ssdb://your chain database server ip address:port",
-    "StateDb": "ssdb://your state database server ip address:port"
+    "BlockchainDb": "redis://your chain database server ip address:port",
+    "StateDb": "redis://your state database server ip address:port"
   },
 ```
+
+{% hint style="info" %} If you use docker to run the node and it is on the same server as the database, please do not use 127.0.0.1 as the database monitoring ip. {% endhint %}
+
 
 Next add the testnet mainchain nodes as peer (bootnode peers):
 ```json
@@ -174,7 +177,7 @@ The most convenient way is to directly use docker or the binary packages, but if
 You now should have a node that's running, to check this run the following command that will query the node for its current block height:
 
 ```bash
-aelf-command get-blk-height -e http://127.0.0.1:8000
+aelf-command get-blk-height -e http://your node ip address:8000
 ```
 
 ## Run side-chains
