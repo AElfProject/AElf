@@ -28,6 +28,7 @@ namespace AElf.Blockchains.MainChain
                 .GenesisContractDir);
         }
 
+        // TODO: Currently contract deployment code are totally same for Main Chain and Side Chain, logic are same for ContractTestBase, need to fix sooner or later.
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos()
         {
             var deploymentList = _contractDeploymentListProvider.GetDeployContractNameList();

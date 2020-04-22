@@ -4,6 +4,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.ContractTestBase
 {
+    // TODO: Same code in src/AElf.Blockchains.MainChain/AEDPoSContractInitializationDataProvider, need to resolve.
     public class MainChainAEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider
     {
         private readonly ConsensusOptions _consensusOptions;
