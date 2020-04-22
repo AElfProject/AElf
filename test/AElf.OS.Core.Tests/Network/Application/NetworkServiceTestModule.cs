@@ -182,31 +182,34 @@ namespace AElf.OS
             List<IPeer> peers = null;
 
             var peerPoolMock = new Mock<IPeerPool>();
-            var knownBlockHashes = new KnownHashContainer();
-            var knownTransactionHashes = new KnownHashContainer();
-            
+
             peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns<bool>(adr =>
             {
                 if (peers != null)
                     return peers;
 
-                var propPeerOne = new Mock<IPeer>();
+                peers = new List<IPeer>();
+                for (var i = 0; i < 3; i++)
+                {
+                    var peer = new Mock<IPeer>();
+                    var knownBlockHashes = new KnownHashContainer();
+                    var knownTransactionHashes = new KnownHashContainer();
 
-                propPeerOne.Setup(p => p.TryAddKnownBlock(It.IsAny<Hash>()))
-                    .Returns<Hash>(blockHash => knownBlockHashes.TryAdd(blockHash));
-                propPeerOne.Setup(p => p.KnowsBlock(It.IsAny<Hash>()))
-                    .Returns<Hash>(blockHash => knownBlockHashes.HasHash(blockHash));
-                
-                propPeerOne.Setup(p => p.TryAddKnownTransaction(It.IsAny<Hash>()))
-                    .Returns<Hash>(txHash => knownTransactionHashes.TryAdd(txHash));
-                propPeerOne.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
-                    .Returns<Hash>(txHash => knownTransactionHashes.HasHash(txHash));
-                SetupBroadcastCallbacks(propPeerOne);
-                
-                peers = new List<IPeer> { propPeerOne.Object };
-                
-                testContext.MockedPeers.Add(propPeerOne);
+                    peer.Setup(p => p.TryAddKnownBlock(It.IsAny<Hash>()))
+                        .Returns<Hash>(blockHash => knownBlockHashes.TryAdd(blockHash));
+                    peer.Setup(p => p.KnowsBlock(It.IsAny<Hash>()))
+                        .Returns<Hash>(blockHash => knownBlockHashes.HasHash(blockHash));
 
+                    peer.Setup(p => p.TryAddKnownTransaction(It.IsAny<Hash>()))
+                        .Returns<Hash>(txHash => knownTransactionHashes.TryAdd(txHash));
+                    peer.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
+                        .Returns<Hash>(txHash => knownTransactionHashes.HasHash(txHash));
+                    SetupBroadcastCallbacks(peer);
+
+                    peers.Add(peer.Object);
+                    testContext.MockedPeers.Add(peer);
+                }
+                
                 return peers;
             });
 
