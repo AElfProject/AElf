@@ -41,6 +41,7 @@ service TokenContract {
     }
     rpc InitialCoefficients(google.protobuf.Empty) returns (google.protobuf.Empty){
     }
+
     // acs1
     rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
@@ -66,8 +67,6 @@ service TokenContract {
     }
 
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetMinimumProfitsDonationPartsPerHundred (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
 
     // Views

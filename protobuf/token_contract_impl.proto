@@ -15,10 +15,6 @@ service TokenContractImpl {
     option (aelf.base) = "acs2.proto";
     option (aelf.base) = "token_contract.proto";
     
-    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
-    }
-    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
-    }
     rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
@@ -43,9 +39,8 @@ service TokenContractImpl {
     }
     rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
-        option (aelf.is_view) = true;
-    }
+    
+    // Views
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
