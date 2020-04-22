@@ -10,7 +10,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj" />
         <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
