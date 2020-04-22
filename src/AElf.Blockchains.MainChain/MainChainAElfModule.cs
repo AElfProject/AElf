@@ -1,6 +1,7 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Kernel.SmartContractInitialization;
 using AElf.Modularity;
+using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -24,6 +25,7 @@ namespace AElf.Blockchains.MainChain
         {
             var services = context.Services;
             services.AddTransient<IContractDeploymentListProvider, MainChainContractDeploymentListProvider>();
+            services.AddTransient<IGenesisSmartContractDtoProvider, MainChainGenesisSmartContractDtoProvider>();
         }
     }
 }

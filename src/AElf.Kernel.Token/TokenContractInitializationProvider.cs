@@ -25,6 +25,10 @@ namespace AElf.Kernel.Token
         {
             var methodList = new List<InitializeMethod>();
             var initializationData = _tokenContractInitializationDataProvider.GetContractInitializationData();
+            
+            // For the main chain, we use the economic contract to initialize the token contract.
+            // So no initialization methods are required in here.
+            // But for the side chain, which has no economic contract, we need initialize token contract.
             if (initializationData != null)
             {
                 var nativeTokenInfo = TokenInfo.Parser.ParseFrom(initializationData.NativeTokenInfoData);
