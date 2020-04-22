@@ -9,7 +9,7 @@ namespace AElf.Types.Tests.Helper
         [Fact]
         public void Block_Test()
         {
-            var hash1 = Hash.FromString("hash1");
+            var hash1 = HashHelper.ComputeFromString("hash1");
             var bsPrefix = BlockHelper.GetRefBlockPrefix(hash1);
             bsPrefix.ShouldBe(hash1.Value.Take(4));
         }

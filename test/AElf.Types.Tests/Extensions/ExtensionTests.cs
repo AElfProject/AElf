@@ -100,7 +100,7 @@ namespace AElf.Types.Tests.Extensions
         [Fact]
         public void HexStringExtensions_Test()
         {
-            var hexStr = Hash.FromString("hex").ToHex();
+            var hexStr = HashHelper.ComputeFromString("hex").ToHex();
             var bs = hexStr.ToByteString();
             bs.ToHex().ShouldBe(hexStr);
         }
@@ -108,7 +108,7 @@ namespace AElf.Types.Tests.Extensions
         [Fact]
         public void IMessageExtensions_Test()
         {
-            var address1 = AddressHelper.Base58StringToAddress("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
+            var address1 = Address.FromBase58("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
             var bytesValue = address1.ToBytesValue();
             Address.Parser.ParseFrom(bytesValue.Value).ShouldBe(address1);
         }
@@ -122,7 +122,7 @@ namespace AElf.Types.Tests.Extensions
             {
                 Parts = {key, path}
             };
-            var address1 = AddressHelper.Base58StringToAddress("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
+            var address1 = Address.FromBase58("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
             var stateKey = path1.ToStateKey(address1);
             var scopedStatePath = new ScopedStatePath()
             {
@@ -130,7 +130,7 @@ namespace AElf.Types.Tests.Extensions
                 Path = path1
             };
 
-            var expected = $"{address1.GetFormatted()}/{key}/{path}";
+            var expected = $"{address1.ToBase58()}/{key}/{path}";
 
             stateKey.ShouldBe(expected);
             scopedStatePath.ToStateKey().ShouldBe(expected);
