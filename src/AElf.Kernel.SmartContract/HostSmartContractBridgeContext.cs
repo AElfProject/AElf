@@ -198,7 +198,7 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = this.ConvertVirtualAddressToContractAddress(fromVirtualAddress),
+                From = ConvertVirtualAddressToContractAddress(fromVirtualAddress, Self),
                 To = toAddress,
                 MethodName = methodName,
                 Params = args
@@ -210,7 +210,7 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction
             {
-                From = this.ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress),
+                From = ConvertVirtualAddressToContractAddressWithContractHashName(fromVirtualAddress, Self),
                 To = toAddress,
                 MethodName = methodName,
                 Params = args
