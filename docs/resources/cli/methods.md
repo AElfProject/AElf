@@ -1,5 +1,3 @@
-## aelf-command
-
 ### Common options
 
 * `datadir`: The directory that contains `aelf-command` files, such as `encrypted account info keyStore` files. Default to be `{home}/.local/share/aelf`
@@ -222,16 +220,18 @@ $ aelf-command proposal
 ? Pick up a contract name to create a proposal: AElf.ContractNames.Parliament
 ? Enter an organization address: BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc
 ? Select the expired time for this proposal: 2022/09/23 22:06
-? Enter a contract address or name: 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8
+? Optional, input an URL for proposal description:
+? Enter a contract address or name: AElf.ContractNames.Token
 ✔ Fetching contract successfully!
-? Pick up a contract method: DeploySmartContract
+? Pick up a contract method: Transfer
 
 If you need to pass file contents to the contractMethod, you can enter the relative or absolute path of the file instead
 
 Enter required params one by one:
-? Enter the required param <category>: 0
-? Enter the required param <code>: /Users/home/Downloads/AElf.Contracts.TokenConverter.dll
-? It seems that you have entered a file path, do you want to read the file content and take it as the value of <code> Yes
+? Enter the required param <to>: 2hxkDg6Pd2d4yU1A16PTZVMMrEDYEPR8oQojMDwWdax5LsBaxX
+? Enter the required param <symbol>: ELF
+? Enter the required param <amount>: 100000000
+? Enter the required param <memo>: test
 AElf [Info]:
  { TransactionId:
    '09c8c824d2e3aea1d6cd15b7bb6cefe4e236c5b818d6a01d4f7ca0b60fe99535' }
@@ -281,13 +281,14 @@ AElf [Info]: {
   "Status": "MINED",
   "Logs": [
     {
-      "Address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
-      "Name": "ContractDeployed",
-      "Indexed": [
-        "CiIKIPklcv1FnKLzUEtsxyZC59it/lXsLhgWS5VpxEhR4FxE",
-        "EiIKIDKVFb+Kx1GM+Vus5MGJnCmbKmRg6d7MOuNP6FiQ9laq"
-      ],
-      "NonIndexed": "GiIKIKOmGZC08DAoVVq4bnxr6WsfKAUpflGo1WLHAKS9g+SD"
+    "Address": "25CecrU94dmMdbhC3LWMKxtoaL4Wv8PChGvVJM6PxkHAyvXEhB",
+    "Name": "Transferred",
+    "Indexed": [
+      "CiIKIJTPGZ24g4eHwSVNLit8jgjFJeeYCEEYLDpFiCeCT0Bf",
+      "EiIKIO0jJRxjHdRQmUTby8klRVSqYpwhOyUsnXYV3IrQg8N1",
+      "GgNFTEY="
+    ],
+    "NonIndexed": "IICgt4fpBSomVC00MzFkMjc0Yi0zNWJjLTRjYzgtOGExZC1iODhhZTgxYzU2Zjc="
     }
   ],
   "Bloom": "AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAACAAAAAAAAAAACAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAQAAA==",
@@ -303,42 +304,45 @@ AElf [Info]: {
     "Signature": "DQcv55EBWunEFPXAbqZG20OLO5T0Sq/s0A+/iuwv1TdQqIV4318HrqFLsGpx9m3+sp5mzhAnMlrG7CSxM6EuIgA="
   },
   "ReturnValue": "",
-  "ReadableReturnValue": "{ }",
   "Error": null
 }
 ```
 
 If you want to call a contract method by creating a proposal and released it, the released transaction result could be confusing, you can use another `aelf-command` sub-command to get the readable result;
 
-Take the example above which has deployed a smart contract by proposal, the contract address is necessary for sending transactions.
-The contract address has been given but need to be decoded. We supply `aelf-command event` to decode the results.
+Take the example above which has transferred token by proposal, transferred result can be viewed by decoding the `Logs` field in the transaction result.
+Use `aelf-command event` to decode the results.
 
 Pass the transaction id as a parameter:
 
 ```bash
-$ aelf-command event fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb
+$ aelf-command event 09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535
 [Info]:
 The results returned by
-Transaction: fe1974fde291e44e16c55db666f2c747323cdc584d616de05c88c8bae18ecceb is:
+Transaction: 09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535 is:
 [
   {
-    "Address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
-    "Name": "ContractDeployed",
+    "Address": "25CecrU94dmMdbhC3LWMKxtoaL4Wv8PChGvVJM6PxkHAyvXEhB",
+    "Name": "Transferred",
     "Indexed": [
-      "CiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
-      "EiIKIDXZGwZLKqm78WpYDXuBlyd6Dv+RMjrgOUEnwamfIA/z"
+      "CiIKIJTPGZ24g4eHwSVNLit8jgjFJeeYCEEYLDpFiCeCT0Bf",
+      "EiIKIO0jJRxjHdRQmUTby8klRVSqYpwhOyUsnXYV3IrQg8N1",
+      "GgNFTEY="
     ],
-    "NonIndexed": "GiIKIN2O6lDDGWbgbkomYr6+9+2B0JpHsuses3KfLwzHgSmu",
+    "NonIndexed": "IICgt4fpBSomVC00MzFkMjc0Yi0zNWJjLTRjYzgtOGExZC1iODhhZTgxYzU2Zjc=",
     "Result": {
-      "author": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
-      "codeHash": "35d91b064b2aa9bbf16a580d7b8197277a0eff91323ae0394127c1a99f200ff3",
-      "address": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8"
+      "from": "28Y8JA1i2cN6oHvdv7EraXJr9a1gY6D1PpJXw9QtRMRwKcBQMK",
+      "to": "2oSMWm1tjRqVdfmrdL8dgrRvhWu1FP8wcZidjS6wPbuoVtxhEz",
+      "symbol": "ELF",
+      "amount": "200000000000",
+      "memo": "T-431d274b-35bc-4cc8-8a1d-b88ae81c56f7"
     }
   }
+
 ]
 ```
 
-The `Result` field is the decoded result, in this example, the `Result.address` is the new deployed contract address.
+The `Result` field is the decoded result.
 
 For more details, check the descriptions of [`aelf-command event`](#event-deserialize-the-result-return-by-executing-a-transaction).
 
@@ -397,7 +401,7 @@ Examples:
 
    * You must input contract method parameters in the prompting way, note that you can input a relative or absolute path of contract file to pass a file to `aelf-command`, `aelf-command` will read the file content and encode it as a base64 string.
    * After call `ProposeNewContract`, you need to wait for the organization members to approve your proposal and you can release your proposal by calling `releaseApprove` and `releaseCodeCheck` in this order.
-
+   
 ### event - Deserialize the result return by executing a transaction
 
 Only transaction id is required as the parameter.
