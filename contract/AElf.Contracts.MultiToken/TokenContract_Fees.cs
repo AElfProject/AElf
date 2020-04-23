@@ -178,7 +178,7 @@ namespace AElf.Contracts.MultiToken
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
                 Assert(existingBalance >= pair.Value,
-                    $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                    $"Insufficient resource of {pair.Key}. Need balance: {pair.Value}; Current balance: {existingBalance}.");
                 bill.FeesMap.Add(pair.Key, pair.Value);
             }
 
