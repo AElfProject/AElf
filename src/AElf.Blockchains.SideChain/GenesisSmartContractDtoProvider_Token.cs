@@ -88,6 +88,8 @@ namespace AElf.Blockchains.SideChain
                     });
             }
 
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedController),
+                new Empty());
             return tokenInitializationCallList;
         }
 

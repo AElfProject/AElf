@@ -69,6 +69,8 @@ service TokenContract {
     }
     rpc SetMinimumProfitsDonationPartsPerHundred (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
