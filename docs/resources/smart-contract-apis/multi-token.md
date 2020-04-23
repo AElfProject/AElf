@@ -437,6 +437,39 @@ rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protob
 
 This method initializes the controller for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Note that, if the current chain is side chain, it will create a controller for managing chain rental. 
 
+### **ChangeUserFeeController**
+
+``` Proto
+rpc ChangeUserFeeController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+ **AuthorityInfo**:
+- **contract address**: controller type.
+- **owner address**: controller's address.
+
+This method change the controller who sets the coefficient for calculating transaction size fee.
+
+### **ChangeDeveloperController**
+
+``` Proto
+rpc ChangeDeveloperController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+**AuthorityInfo**:
+- **contract address**: controller type.
+- **owner address**: controller's address.
+
+This method change the controller who sets the coefficient for calculating resource token.
 ## View methods
 
 ### **GetTokenInfo**
@@ -756,17 +789,18 @@ This method returns the controller for UpdateCoefficientsForSender. The root add
 ### **GetSideChainRentalControllerCreateInfo**
 
 ``` Proto
-rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
 }
 
-message ControllerCreateInfo {
-    aelf.Address controller = 1;
-    bytes organization_creation_input_bytes = 2;
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
 }
 ```
 
-- **controller** the controller address.
-- **organization_creation_input_bytes** if the controller's organization is not initialized, you can use this as parameter to create it using CreateOrganization in Association contract.
+**AuthorityInfo**:
+- **contract address**: controller type.
+- **owner address**: controller's address.
 
 ### **GetResourceUsage**
 
@@ -812,3 +846,46 @@ message OwningRentalUnitValue {
 This method is used in side chain. It returns resouces token' unit value. (pay = unit value * amount)
 
 - **resource_unit_value** resource token symbol => unit value.
+
+
+### **OwningRentalUnitValue**
+
+``` Proto
+rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){}
+
+message UserFeeController{
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo referendum_controller = 3;
+}
+```
+
+Get the controllers(By defalult, the contoller consist of parliament and referendum). If you change the controller, just the root controller has value.
+
+**returns**:
+- **root controller**: the root controller, it is a association by default.
+- **parliament controller**: parliament controller, member of the root controller.
+- **referendum controller**: referendum controller, member of the root controller.
+
+
+### **GetDeveloperFeeController**
+
+``` Proto
+rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {}
+
+message DeveloperFeeController {
+    acs1.AuthorityInfo root_controller = 1;
+    acs1.AuthorityInfo parliament_controller = 2;
+    acs1.AuthorityInfo developer_controller = 3;
+}
+```
+
+Get the controllers(By defalult, the contoller consist of parliament and developer). If you change the controller, just the root controller has value.
+
+**returns**:
+- **root controller**: the root controller, it is a association by default.
+- **parliament controller**: parliament controller, member of the root controller.
+- **developer controller**: developer controller consisiting of developers, member of the root controller.
+
+
+
