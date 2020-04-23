@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
@@ -65,8 +64,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return true;
             }
 
-            if (block.Header.Height <= 2) return true;
-
             var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = block.GetHash(),
@@ -81,38 +78,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     BlockHeight = block.Header.Height - 1
                 });
 
-            bool result;
-            if (!hashFromState.Value.Any())
-            {
-                // Didn't donate resource tokens of previews block.
-                result = !totalResourceTokensMapsFromProvider.Value.Any();
-                return result;
-            }
-
-            // Normal case if donated resource tokens in preview block.
-            var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
-            result = hashFromProvider == hashFromState;
-            if (result)
-            {
-                return true;
-            }
-
             if (hashFromState == HashHelper.ComputeFromMessage(new TotalResourceTokensMaps
             {
                 BlockHash = block.Header.PreviousBlockHash,
                 BlockHeight = block.Header.Height - 1
             }))
             {
-                // Didn't pass log event processor.
-                result = totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
+                if (totalResourceTokensMapsFromProvider == null) return true;
+                return totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
             }
 
-            if (!result)
-            {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
-            }
-
-            return result;
+            if (totalResourceTokensMapsFromProvider == null) return false;
+            var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
+            return hashFromState == hashFromProvider;
         }
     }
 }
