@@ -124,7 +124,7 @@ namespace AElf.Kernel.Token
                 methodList.Add(new InitializeMethod
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedController),
-                    Params = new Empty().ToByteString()
+                    Params = ByteString.Empty
                 });
             }
 
