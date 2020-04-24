@@ -12,8 +12,6 @@ service EconomicContract {
     option (aelf.base) = "acs1.proto";
     rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc IssueResourceToken (IssueResourceTokenInput) returns (google.protobuf.Empty) {
-    }
     rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty) {
     }
 }

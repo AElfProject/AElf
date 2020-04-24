@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.TokenHolder;
-using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -78,7 +76,6 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetPrimaryTokenSymbol(SetPrimaryTokenSymbolInput input)
         {
             Assert(State.ChainPrimaryTokenSymbol.Value == null, "Failed to set primary token symbol.");
-            var tokenInfo = State.TokenInfos[input.Symbol];
             Assert(State.TokenInfos[input.Symbol] != null, "Invalid input.");
 
             State.ChainPrimaryTokenSymbol.Value = input.Symbol;
@@ -309,19 +306,13 @@ namespace AElf.Contracts.MultiToken
 
             var tokenHolderContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-            if (Context.Sender == tokenHolderContractAddress && IsDAppContractAddress(input.From) &&
-                input.To == tokenHolderContractAddress)
+            if (Context.Sender == tokenHolderContractAddress && input.To == tokenHolderContractAddress)
             {
                 // Sender is Token Holder Contract, wants to transfer tokens from DApp Contract to himself.
                 return true;
             }
 
             return false;
-        }
-
-        private bool IsDAppContractAddress(Address address)
-        {
-            return State.ProfitReceivingInfos[address] != null;
         }
 
         public override Empty Approve(ApproveInput input)
@@ -406,92 +397,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             Assert(meetThreshold, "Cannot meet the calling threshold.");
-            return new Empty();
-        }
-
-        public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
-        {
-            if (State.ZeroContract.Value == null)
-            {
-                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-            }
-
-            var contractOwner = State.ZeroContract.GetContractAuthor.Call(input.ContractAddress);
-            Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
-                "Either contract owner or contract itself can set profit receiving information.");
-
-            Assert(
-                State.MinimumProfitsDonationPartsPerHundred.Value <= input.DonationPartsPerHundred &&
-                input.DonationPartsPerHundred <= 100,
-                "Invalid donation ratio.");
-
-            State.ProfitReceivingInfos[input.ContractAddress] = input;
-            return new Empty();
-        }
-
-        public override Empty SetMinimumProfitsDonationPartsPerHundred(Int32Value input)
-        {
-            AssertControllerForSideChainRental();
-            Assert(input.Value >= 0 && input.Value <= 100, "Invalid value.");
-            State.MinimumProfitsDonationPartsPerHundred.Value = input.Value;
-            return new Empty();
-        }
-
-        public override Empty ReceiveProfits(ReceiveProfitsInput input)
-        {
-            var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
-            Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
-                "Only profit receiver can perform this action.");
-            Assert(
-                !Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
-                    .Union(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
-                    .Contains(input.Symbol), "Invalid token symbol.");
-            var contractBalance = GetBalance(input.ContractAddress, input.Symbol);
-            Assert(input.Amount <= contractBalance, "Invalid profit amount.");
-            var profits = input.Amount == 0 ? contractBalance : input.Amount;
-            ModifyBalance(input.ContractAddress, input.Symbol, -profits);
-            var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
-
-            if (State.TreasuryContract.Value != null)
-            {
-                // Main Chain.
-                // Increase balance of Token Contract then distribute donates.
-                ModifyBalance(Context.Self, input.Symbol, donates);
-                State.TreasuryContract.Donate.Send(new DonateInput
-                {
-                    Symbol = input.Symbol,
-                    Amount = donates
-                });
-            }
-            else
-            {
-                // Side Chain.
-                var consensusContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                ModifyBalance(consensusContractAddress, input.Symbol, donates);
-            }
-
-            var actualProfits = profits.Sub(donates);
-            ModifyBalance(profitReceivingInformation.ProfitReceiverAddress, input.Symbol, actualProfits);
-
-            if (State.TokenHolderContract.Value == null)
-            {
-                var tokenHolderContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-                if (tokenHolderContractAddress == null)
-                {
-                    return new Empty();
-                }
-
-                State.TokenHolderContract.Value = tokenHolderContractAddress;
-            }
-
-            // Distribute token holders profits.
-            State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
-            {
-                SchemeManager = input.ContractAddress,
-            });
-
             return new Empty();
         }
 

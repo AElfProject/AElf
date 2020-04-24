@@ -21,20 +21,14 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
-            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
-            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs8.proto">
-            <Link>Protobuf\Proto\reference\acs8.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\acs7.proto">
             <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
@@ -44,12 +38,6 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\referendum_contract.proto">
             <Link>Protobuf\Proto\reference\referendum_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\token_holder_contract.proto">
-            <Link>Protobuf\Proto\reference\token_holder_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 
