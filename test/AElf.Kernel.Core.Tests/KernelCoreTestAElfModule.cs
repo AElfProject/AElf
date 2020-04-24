@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
@@ -24,8 +26,15 @@ namespace AElf.Kernel
         {
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
-            services.AddSingleton(p => Mock.Of<IAccountService>());
+            // services.AddSingleton(p => Mock.Of<IAccountService>());
         }
+
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var keyPairProvider = context.ServiceProvider.GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
+            keyPairProvider.SetKeyPair(CryptoHelper.GenerateKeyPair());
+        }
+        
     }
     
     [DependsOn(
