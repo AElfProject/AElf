@@ -694,7 +694,7 @@ namespace AElf.Contracts.MultiToken
                 Amount = 3000L
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.ShouldContain("Insufficient balance.");
+            result.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
