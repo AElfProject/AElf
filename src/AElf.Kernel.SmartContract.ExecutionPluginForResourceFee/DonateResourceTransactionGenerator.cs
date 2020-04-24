@@ -34,19 +34,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         {
             var generatedTransactions = new List<Transaction>();
 
-            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
-                TokenSmartContractAddressNameProvider.Name);
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
+
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
 
             if (tokenContractAddress == null)
             {
                 return generatedTransactions;
             }
 
-            var chainContext = new ChainContext
-            {
-                BlockHash = preBlockHash,
-                BlockHeight = preBlockHeight
-            };
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 

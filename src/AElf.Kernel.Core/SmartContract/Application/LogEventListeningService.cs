@@ -74,7 +74,14 @@ namespace AElf.Kernel.SmartContract.Application
                         }
                     }
 
-                    await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value));
+                    if (logEventsMap.Any())
+                    {
+                        await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value));
+                    }
+                    else
+                    {
+                        Logger.LogTrace("LogEvent maps happened to be empty and passed the filter.");
+                    }
                 }
 
                 Logger.LogTrace("Finish apply log event processor.");
