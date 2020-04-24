@@ -1,4 +1,4 @@
-﻿using AElf.Types;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract

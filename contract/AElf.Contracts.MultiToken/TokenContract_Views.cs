@@ -66,11 +66,6 @@ namespace AElf.Contracts.MultiToken
             return new BoolValue {Value = State.LockWhiteLists[input.Symbol][input.Address]};
         }
 
-        public override ProfitReceivingInformation GetProfitReceivingInformation(Address input)
-        {
-            return State.ProfitReceivingInfos[input] ?? new ProfitReceivingInformation();
-        }
-
         public override GetLockedAmountOutput GetLockedAmount(GetLockedAmountInput input)
         {
             var virtualAddress = GetVirtualAddressForLocking(new GetVirtualAddressForLockingInput
