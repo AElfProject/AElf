@@ -359,7 +359,7 @@ namespace AElf.Contract.TestContract
                 MethodName = methodName,
                 Params = parameters,
                 RefBlockNumber = blockHeight,
-                RefBlockPrefix = ByteString.CopyFrom(blockHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(blockHash),
             };
             var signature = CryptoHelper.SignWithPrivateKey(DefaultSenderKeyPair.PrivateKey,
                 transaction.GetHash().Value.ToByteArray());

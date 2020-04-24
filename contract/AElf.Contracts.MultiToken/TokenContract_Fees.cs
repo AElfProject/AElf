@@ -644,27 +644,5 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
         }
-
-        private void AssertControllerForSideChainRental()
-        {
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var createOrganizationInput = GetControllerCreateInputForSideChainRental();
-            var controllerForRental =
-                CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
-            Assert(controllerForRental == Context.Sender, "no permission");
-        }
-
-        private Address CalculateSideChainRentalController(
-            CreateOrganizationInput input)
-        {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
-            return address;
-        }
     }
 }

@@ -187,60 +187,44 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await InitialTokenContract();
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var newParliament = new Parliament.CreateOrganizationInput
+            var member = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            var proposers = new List<Address> {member};
+            var newOrganizationCreationInput = new Association.CreateOrganizationInput
             {
-                ProposerAuthorityRequired = false,
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                OrganizationMemberList = new Association.OrganizationMemberList
                 {
-                    MaximalAbstentionThreshold = 1,
-                    MaximalRejectionThreshold = 1,
-                    MinimalApprovalThreshold = 1,
-                    MinimalVoteThreshold = 1
-                },
-                ParliamentMemberProposingAllowed = false
-            };
-            var parliamentStub = ParliamentStubs.First();
-            var createNewParliamentRet = await parliamentStub.CreateOrganization.SendAsync(newParliament);
-            var newParliamentAddress = new Address();
-            newParliamentAddress.MergeFrom(createNewParliamentRet.TransactionResult.ReturnValue);
-            var authority = new Acs1.AuthorityInfo
-            {
-                ContractAddress = ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
-                OwnerAddress = newParliamentAddress
-            };
-            var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
-            var parliamentOrgAddress = defaultOrganizationAddress;
-            var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
-            var createOrganizationInput2 = new CreateOrganizationInput
-            {
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {twoProposers}
-                },
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {twoProposers}
+                    OrganizationMembers = {proposers}
                 },
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
-                    MinimalApprovalThreshold = twoProposers.Count,
-                    MinimalVoteThreshold = twoProposers.Count,
+                    MinimalApprovalThreshold = proposers.Count,
+                    MinimalVoteThreshold = proposers.Count,
                     MaximalRejectionThreshold = 0,
                     MaximalAbstentionThreshold = 0
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {proposers}
                 }
             };
-            
-            var associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
-            var associationAddress = new Address();
-            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
+            var createNewAssociationOrganization = await AssociationStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
+            var newControllerAddress = new Address();
+            newControllerAddress.MergeFrom(createNewAssociationOrganization.TransactionResult.ReturnValue);
+            var authority = new Acs1.AuthorityInfo
+            {
+                ContractAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                OwnerAddress = newControllerAddress
+            };
+            var parliamentOrgAddress = defaultOrganizationAddress;
+            var currentController = await TokenStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 // ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainParliamentController),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController),
                 Params = authority.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = associationAddress
+                OrganizationAddress = currentController.OwnerAddress
             };
             var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
             var associationProposalId = new Hash();
@@ -256,54 +240,22 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             await AssociationStub.Approve.SendAsync(associationProposalId);
             await AssociationStub.Release.SendAsync(associationProposalId);
-            
-            twoProposers = new List<Address> {newParliamentAddress,sideCreator}; 
-            createOrganizationInput2 = new CreateOrganizationInput
-            {
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {twoProposers}
-                },
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {twoProposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = twoProposers.Count,
-                    MinimalVoteThreshold = twoProposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                }
-            };
-            associationAddressRet = (await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2)).TransactionResult;
-            associationAddress = new Address();
-            associationAddress.MergeFrom(associationAddressRet.ReturnValue);
             var updateParam = new UpdateRentedResourcesInput();
             var symbolDic = new Dictionary<string, int> {["CPU"] = 101};
             updateParam.ResourceAmount.Add(symbolDic);
-                toAssociationProposal = new CreateProposalInput
+            var updateProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRentedResources),
                 Params = updateParam.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = associationAddress
+                OrganizationAddress = newControllerAddress
             };
-            associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
-            associationProposalId = new Hash();
-            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
-
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
-                Params = associationProposalId.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = newParliamentAddress
-            });
-            await AssociationStub.Approve.SendAsync(associationProposalId);
-            await AssociationStub.Release.SendAsync(associationProposalId);
+            var updateProposalRet = (await AssociationStub.CreateProposal.SendAsync(updateProposal)).TransactionResult;
+            var updateProposalId = new Hash();
+            updateProposalId.MergeFrom(updateProposalRet.ReturnValue);
+            await AssociationStub.Approve.SendAsync(updateProposalId);
+            await AssociationStub.Release.SendAsync(updateProposalId);
             var resourceUsage = await TokenStub.GetResourceUsage.CallAsync(new Empty());
             resourceUsage.Value["CPU"].ShouldBe(101);
         }
@@ -319,10 +271,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-            
-            await CreateToken(
-                GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
-                    .ContextVariables[ContextVariableDictionary.NativeSymbolName], ResourceSupply, true);
+            var tokenSymbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
+                .ContextVariables[ContextVariableDictionary.NativeSymbolName];
+            await CreateToken(tokenSymbol, ResourceSupply, true);
 
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
@@ -353,30 +304,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"NET", Rental},
                 }
             };
-            var sideCreator = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            await TokenStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput{Symbol = tokenSymbol});
+            await TokenStub.InitializeAuthorizedController.SendAsync(new Empty());
             var parliamentOrgAddress = defaultOrganizationAddress;
-            var twoProposers = new List<Address> {parliamentOrgAddress,sideCreator}; 
-            var createOrganizationInput2 = new CreateOrganizationInput
-            {
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {twoProposers}
-                },
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {twoProposers}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = twoProposers.Count,
-                    MinimalVoteThreshold = twoProposers.Count,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                }
-            };
-            var associationAddressRet = await AssociationStub.CreateOrganization.SendAsync(createOrganizationInput2);
-            var associationAddress = new Address();
-            associationAddress.MergeFrom(associationAddressRet.TransactionResult.ReturnValue);
+            var rentalController = await TokenStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());       
+            var associationAddress = rentalController.OwnerAddress;       
             var toAssociationProposal = new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],

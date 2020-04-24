@@ -226,7 +226,7 @@ namespace AElf.Kernel.Consensus.Application
             {
                 generatedTransaction.RefBlockNumber = chainContext.BlockHeight;
                 generatedTransaction.RefBlockPrefix =
-                    ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
+                    BlockHelper.GetRefBlockPrefix(chainContext.BlockHash);
                 Logger.LogInformation($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
             }
 
