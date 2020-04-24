@@ -9,7 +9,7 @@ namespace AElf.Contracts.Parliament
 {
     public class ParliamentState : ContractState
     {
-        public MappedState<Address, Organization> Organisations { get; set; }
+        public MappedState<Address, Organization> Organizations { get; set; }
 
         public BoolState Initialized { get; set; }
 
