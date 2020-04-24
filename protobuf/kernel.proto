@@ -178,3 +178,9 @@ message TransactionBlockIndex {
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
 }
+
+message SmartContractAddress{
+    Address address = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
+}

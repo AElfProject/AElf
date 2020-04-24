@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
@@ -14,10 +13,10 @@ namespace AElf.Kernel.FeeCalculation.Application
             _chargeFeeStrategies = chargeFeeStrategies;
         }
 
-        public bool IsFree(Transaction transaction)
+        public bool IsFree(IChainContext chainContext,Transaction transaction)
         {
             var usefulStrategies = _chargeFeeStrategies.Where(chargeFeeStrategy =>
-                transaction.To == chargeFeeStrategy.ContractAddress &&
+                transaction.To == (chargeFeeStrategy.GetContractAddress(chainContext)) &&
                 (transaction.MethodName == chargeFeeStrategy.MethodName ||
                  chargeFeeStrategy.MethodName == string.Empty)).ToList();
             return usefulStrategies.Any() &&

@@ -760,7 +760,7 @@ namespace AElf.Contracts.Profit
             return profitsMap;
         }
 
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        private void ValidateContractState(ContractReferenceState state, string contractSystemName)
         {
             if (state.Value != null)
                 return;

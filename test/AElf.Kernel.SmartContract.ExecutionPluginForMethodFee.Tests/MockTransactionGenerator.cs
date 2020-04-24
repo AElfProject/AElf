@@ -19,13 +19,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             _smartContractAddressService = smartContractAddressService;
         }
         
-        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
+        public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
         {
             var transactions = new List<Transaction>();
             var transaction = new Transaction
             {
                 From = from,
-                To = _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                To = await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = preBlockHash,
+                    BlockHeight = preBlockHeight
+                }, TokenSmartContractAddressNameProvider.StringName),
                 MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                 Params = new TransferInput
                 {
@@ -39,7 +43,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             };
 
             transactions.Add(transaction);
-            return Task.FromResult(transactions);
+            return transactions;
         }
     }
 }

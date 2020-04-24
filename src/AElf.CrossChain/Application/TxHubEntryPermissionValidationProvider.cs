@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
 using AElf.Types;
@@ -17,14 +18,14 @@ namespace AElf.CrossChain.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionAsync(Transaction transaction,IChainContext chainContext)
         {
-            var crossChainContractAddress =
-                _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+            var crossChainContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
+                chainContext, CrossChainSmartContractAddressNameProvider.StringName);
 
-            return Task.FromResult(transaction.To != crossChainContractAddress ||
-                                   CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.All(methodName =>
-                                       methodName != transaction.MethodName));
+            return transaction.To != crossChainContractAddress ||
+                   CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.All(methodName =>
+                       methodName != transaction.MethodName);
         }
     }
 }

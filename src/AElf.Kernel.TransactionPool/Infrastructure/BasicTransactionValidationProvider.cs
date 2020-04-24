@@ -8,7 +8,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     {
         public bool ValidateWhileSyncing => true;
 
-        public Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
             if (!transaction.VerifySignature())
                 return Task.FromResult(false);
