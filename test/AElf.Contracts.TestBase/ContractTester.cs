@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -12,6 +11,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
@@ -19,12 +19,12 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
@@ -37,6 +37,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using Shouldly;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -265,7 +266,18 @@ namespace AElf.Contracts.TestBase
                 GenerateConsensusInitializationCallList(consensusOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
-            return await osBlockchainNodeContextService.StartAsync(dto);
+            var result = await osBlockchainNodeContextService.StartAsync(dto);
+            var blockChainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var transactionManager = Application.ServiceProvider.GetRequiredService<ITransactionResultManager>();
+            var chain = await blockChainService.GetChainAsync();
+            var block = await blockChainService.GetBlockByHashAsync(chain.GenesisBlockHash);
+            foreach (var transactionId in block.TransactionIds)
+            {
+                var transactionResult =
+                    await transactionManager.GetTransactionResultAsync(transactionId, block.GetHash());
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined,transactionResult.Error);
+            }
+            return result;
         }
 
         public async Task<OsBlockchainNodeContext> InitialCustomizedChainAsync(int chainId,
@@ -420,11 +432,23 @@ namespace AElf.Contracts.TestBase
 
         public Address GetContractAddress(Hash name)
         {
+            return AsyncHelper.RunSync(() => GetContractAddressAsync(name));
+        }
+        
+        private async Task<Address> GetContractAddressAsync(Hash name)
+        {
             var smartContractAddressService =
                 Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+            var blockChainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var chain = await blockChainService.GetChainAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
             return name == Hash.Empty
                 ? smartContractAddressService.GetZeroSmartContractAddress()
-                : smartContractAddressService.GetAddressByContractName(name);
+                : await smartContractAddressService.GetAddressByContractNameAsync(chainContext, name.ToStorageKey());
         }
 
 
@@ -433,14 +457,6 @@ namespace AElf.Contracts.TestBase
             var smartContractAddressService =
                 Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
             return smartContractAddressService.GetZeroSmartContractAddress();
-        }
-
-        public Address GetConsensusContractAddress()
-        {
-            var smartContractAddressService =
-                Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-            return smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                .Name);
         }
 
         public Address GetCallOwnerAddress()
@@ -460,7 +476,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -491,7 +507,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = paramInfo,
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -668,7 +684,7 @@ namespace AElf.Contracts.TestBase
             foreach (var transaction in transactions)
             {
                 transaction.RefBlockNumber = refBlock.Height;
-                transaction.RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray());
+                transaction.RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash());
             }
         }
 

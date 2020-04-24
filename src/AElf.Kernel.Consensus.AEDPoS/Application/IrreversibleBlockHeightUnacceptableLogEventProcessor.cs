@@ -15,22 +15,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private LogEvent _interestedEvent;
-
-        public override LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                        .Name);
-                _interestedEvent = new IrreversibleBlockHeightUnacceptable().ToLogEvent(address);
-                return _interestedEvent;
-            }
-        }
-
+        
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
@@ -41,6 +26,23 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
+        }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<IrreversibleBlockHeightUnacceptable>(smartContractAddressDto.SmartContractAddress
+                    .Address);
+            if (!smartContractAddressDto.Irreversible)return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+            return InterestedEvent;
         }
 
         protected override Task ProcessLogEventAsync(Block block, LogEvent logEvent)

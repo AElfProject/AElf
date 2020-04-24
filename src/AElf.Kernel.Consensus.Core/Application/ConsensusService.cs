@@ -60,7 +60,7 @@ namespace AElf.Kernel.Consensus.Application
                 _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
 
             Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
-
+            
             // Upload the consensus command.
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -226,7 +226,7 @@ namespace AElf.Kernel.Consensus.Application
             {
                 generatedTransaction.RefBlockNumber = chainContext.BlockHeight;
                 generatedTransaction.RefBlockPrefix =
-                    ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
+                    BlockHelper.GetRefBlockPrefix(chainContext.BlockHash);
                 Logger.LogInformation($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
             }
 

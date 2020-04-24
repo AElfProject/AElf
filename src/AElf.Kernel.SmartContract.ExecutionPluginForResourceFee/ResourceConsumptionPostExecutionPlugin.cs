@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             context.TransactionContext = transactionContext;
 
             // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();

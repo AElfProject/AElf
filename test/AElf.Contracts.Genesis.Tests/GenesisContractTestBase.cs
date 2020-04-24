@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs1;
 using Acs3;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
@@ -83,6 +83,7 @@ namespace AElf.Contracts.Genesis
                     out TotalSupply,
                     out _,
                     out BalanceOfStarter)));
+            
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);

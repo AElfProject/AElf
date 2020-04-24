@@ -14,7 +14,7 @@ namespace AElf.Contracts.Referendum
 
         public BoolState Initialized { get; set; }
         public MappedState<Address, Hash, Receipt> LockedTokenAmount { get; set; }
-        public MappedState<Address, Organization> Organisations { get; set; }
+        public MappedState<Address, Organization> Organizations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

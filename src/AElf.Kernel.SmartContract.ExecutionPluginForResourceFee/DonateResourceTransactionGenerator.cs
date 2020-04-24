@@ -37,20 +37,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 
             if (preBlockHeight < AElfConstants.GenesisBlockHeight)
                 return generatedTransactions;
-
-            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
-                TokenSmartContractAddressNameProvider.Name);
-
-            if (tokenContractAddress == null)
-            {
-                return generatedTransactions;
-            }
-
+            
             var chainContext = new ChainContext
             {
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
             };
+
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
+
+            if (tokenContractAddress == null)
+            {
+                return generatedTransactions;
+            }
+            
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
@@ -77,7 +79,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
                     Params = input
                 }
             });

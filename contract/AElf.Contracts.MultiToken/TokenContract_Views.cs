@@ -179,17 +179,12 @@ namespace AElf.Contracts.MultiToken
             return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
+        public override AuthorityInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
-            var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerCreateInfo
-            {
-                Controller = controllerAddress,
-                OrganizationCreationInputBytes = organization.ToByteString()
-            };
-            return controllerInfo;
+            Assert(State.SideChainRentalController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.SideChainRentalController.Value;
         }
 
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
@@ -197,6 +192,15 @@ namespace AElf.Contracts.MultiToken
             if(State.SymbolToPayTxFeeController.Value == null)
                 return GetDefaultSymbolToPayTxFeeController();
             return State.SymbolToPayTxFeeController.Value;
+        }
+        
+        public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
+        {
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+            {
+                return GetCrossChainTokenContractRegistrationController();
+            }
+            return State.CrossChainTokenContractRegistrationController.Value;
         }
     }
 }
