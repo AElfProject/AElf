@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
@@ -23,8 +22,7 @@ using Volo.Abp.Threading;
 namespace AElf.OS
 {
     [DependsOn(
-        typeof(OSCoreTestAElfModule),
-        typeof(ContractNamesAElfModule)
+        typeof(OSCoreTestAElfModule)
     )]
     public class OSCoreWithChainTestAElfModule : AElfModule
     {
