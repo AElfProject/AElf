@@ -6,6 +6,7 @@ using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
@@ -18,12 +19,14 @@ namespace AElf.CrossChain
         private readonly ISystemTransactionGenerator _crossChainIndexingTransactionGenerator;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly CrossChainTestHelper _crossChainTestHelper;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         public CrossChainIndexingTransactionGeneratorTest()
         {
             _crossChainIndexingTransactionGenerator = GetRequiredService<ISystemTransactionGenerator>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
 
         [Fact]
@@ -58,11 +61,12 @@ namespace AElf.CrossChain
             };
             _crossChainTestHelper.AddFakeCrossChainTransactionInput(previousBlockHash, crossChainTransactionInput);
             // AddFakeCacheData(new Dictionary<int, List<ICrossChainBlockEntity>> {{sideChainId, sideChainBlockInfoCache}});
-            
 
-            var smartContractAddress = SampleAddress.AddressList[0];
-            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
-                smartContractAddress);
+            await _blockStateSetManger.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = previousBlockHash,
+                BlockHeight = previousBlockHeight
+            });
 
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
@@ -70,7 +74,7 @@ namespace AElf.CrossChain
 
             transactions.Count.ShouldBe(1);
             transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
-            transactions[0].To.ShouldBe(smartContractAddress);
+            transactions[0].To.ShouldBeNull();
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
             transactions[0].MethodName
@@ -87,8 +91,11 @@ namespace AElf.CrossChain
             var previousBlockHeight = 1;
 
             var smartContractAddress = SampleAddress.AddressList[0];
-            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
-                smartContractAddress);
+            await _smartContractAddressService.SetSmartContractAddressAsync(new BlockIndex
+            {
+                BlockHash = previousBlockHash,
+                BlockHeight = previousBlockHeight
+            }, CrossChainSmartContractAddressNameProvider.StringName, smartContractAddress);
         
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],

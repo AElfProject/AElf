@@ -37,9 +37,13 @@ namespace AElf.Kernel.Proposal.Application
             var generatedTransactions = new List<Transaction>();
             if (!_transactionPackingOptions.IsTransactionPackable)
                 return generatedTransactions;
-            
-            var parliamentContractAddress = _smartContractAddressService.GetAddressByContractName(
-                ParliamentSmartContractAddressNameProvider.Name);
+
+            var parliamentContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
+                new ChainContext
+                {
+                    BlockHash = preBlockHash,
+                    BlockHeight = preBlockHeight
+                }, ParliamentSmartContractAddressNameProvider.StringName);
 
             if (parliamentContractAddress == null)
             {

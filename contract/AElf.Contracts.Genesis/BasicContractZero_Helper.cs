@@ -57,7 +57,8 @@ namespace AElf.Contracts.Genesis
                 CodeHash = codeHash,
                 Address = contractAddress,
                 Author = author,
-                Version = info.Version
+                Version = info.Version,
+                Name = name
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());

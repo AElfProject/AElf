@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
@@ -33,6 +34,8 @@ namespace AElf.Contract.TestContract
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
             context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            //TODO Fix never claim transaction fee
+            context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
         } 
     }
 }
