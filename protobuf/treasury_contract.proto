@@ -22,8 +22,6 @@ service TreasuryContract {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
-    rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
-    }
     rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
@@ -40,9 +38,6 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
         option (aelf.is_view) = true;
     }
     rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
@@ -98,16 +93,6 @@ message MinerReElectionInformation {
 
 message SymbolList {
     repeated string value = 1;
-}
-
-message VoteWeightInterest{
-    int32 day = 1;
-    int32 interest = 2;
-    int32 capital = 3;
-}
-
-message VoteWeightInterestList {
-    repeated VoteWeightInterest vote_weight_interest_infos = 1;
 }
 
 message DividendPoolWeightSetting {

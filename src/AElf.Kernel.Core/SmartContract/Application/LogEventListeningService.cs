@@ -10,11 +10,6 @@ namespace AElf.Kernel.SmartContract.Application
     public class LogEventListeningService<T> : ILogEventListeningService<T>
         where T : ILogEventProcessor
     {
-        private Dictionary<LogEvent, Bloom> _blooms;
-
-        private Dictionary<LogEvent, Bloom> Blooms => _blooms ??= _logEventProcessors.Select(h => h.InterestedEvent)
-            .ToDictionary(e => e, e => e.GetBloom());
-
         private readonly List<T> _logEventProcessors;
 
         public ILogger<LogEventListeningService<T>> Logger { get; set; }
@@ -37,23 +32,24 @@ namespace AElf.Kernel.SmartContract.Application
                 if (!txResults.Any()) continue;
 
                 var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
-                if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
+                var chainContext = new ChainContext
                 {
-                    // No interested event in the block
-                    continue;
-                }
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                };
 
                 foreach (var processor in _logEventProcessors)
                 {
+                    var interestedEvent = await processor.GetInterestedEventAsync(chainContext);
+                    if(interestedEvent == null || !interestedEvent.Bloom.IsIn(blockBloom)) continue;
+                    
                     var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
-
                     foreach (var result in txResults)
                     {
                         if (result.Bloom.Length == 0) continue;
                         var resultBloom = new Bloom(result.Bloom.ToByteArray());
-                        var interestedEvent = processor.InterestedEvent;
-                        var interestedBloom = Blooms[interestedEvent];
-                        if (!interestedBloom.IsIn(resultBloom))
+                        
+                        if (!interestedEvent.Bloom.IsIn(resultBloom))
                         {
                             // Interested bloom is not found in the transaction result
                             continue;
@@ -63,7 +59,7 @@ namespace AElf.Kernel.SmartContract.Application
                         // find the log that yields the bloom and apply the processor
                         foreach (var log in result.Logs)
                         {
-                            if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name) continue;
+                            if (log.Address != interestedEvent.LogEvent.Address || log.Name != interestedEvent.LogEvent.Name) continue;
                             if (logEventsMap.ContainsKey(result))
                             {
                                 logEventsMap[result].Add(log);

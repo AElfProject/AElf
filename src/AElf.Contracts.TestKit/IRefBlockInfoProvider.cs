@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestKit
         {
             var block = AsyncHelper.RunSync(() => _blockchainService.GetBestChainLastBlockHeaderAsync());
             var height = block.Height;
-            var prefix = ByteString.CopyFrom(block.GetHash().Value.Take(4).ToArray());
+            var prefix = BlockHelper.GetRefBlockPrefix(block.GetHash());
             return new RefBlockInfo(height, prefix);
         }
     }

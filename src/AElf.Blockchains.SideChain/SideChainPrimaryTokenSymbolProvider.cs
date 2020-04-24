@@ -42,7 +42,11 @@ namespace AElf.Blockchains.SideChain
 
             var chain = await _blockchainService.GetChainAsync();
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, TokenSmartContractAddressNameProvider.StringName);
             _primaryTokenSymbol = (await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = chain.BestChainHash,

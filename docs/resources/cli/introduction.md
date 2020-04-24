@@ -35,7 +35,7 @@ npm i aelf-command -g
 You need to create a new account or load a account by a `private key` or `mnemonic` you already have.
 
 * Create a new wallet
-  
+
   ```bash
   $ aelf-command create
   Your wallet info is :
@@ -51,7 +51,7 @@ You need to create a new account or load a account by a `private key` or `mnemon
   ```
 
 * Load wallet from private key
-  
+
   ```bash
   $ aelf-command load e038eea7e151eb451ba2901f7...b08ba5b76d8f288
   Your wallet info is :
@@ -140,21 +140,21 @@ Options:
   -h, --help                                               output usage information
 
 Commands:
-  call [contract-address|contract-name] [method] [params]  Call a read-only method on a contract.
-  send [contract-address|contract-name] [method] [params]  Execute a method on a contract.
-  get-blk-height                                           Get the current block height of specified chain
-  get-chain-status                                         Get the current chain status
-  get-blk-info [height|block-hash] [include-txs]           Get a block info
-  get-tx-result [tx-hash]                                  Get a transaction result
-  console                                                  Open a node REPL
-  create [options] [save-to-file]                          Create a new account
-  wallet                                                   Show wallet details which include private key, address, public key and mnemonic
-  load [private-key|mnemonic] [save-to-file]               Load wallet from a private key or mnemonic
-  proposal [organization] [expired-time]                   Send a proposal to an origination with a specific contract method
-  deploy [category] [code-path]                            Deploy a smart contract
-  config <flag> [key] [value]                              Get, set, delete or list aelf-command config
-  event [tx-id]                                            Deserialize the result returned by executing a transaction
-  dapp-server [options]                                    Start a dAPP SOCKET.IO server
+  call [contract-address|contract-name] [method] [params]     Call a read-only method on a contract.
+  send [contract-address|contract-name] [method] [params]     Execute a method on a contract.
+  get-blk-height                                              Get the current block height of specified chain
+  get-chain-status                                            Get the current chain status
+  get-blk-info [height|block-hash] [include-txs]              Get a block info
+  get-tx-result [tx-id]                                       Get a transaction result
+  console                                                     Open a node REPL
+  create [options] [save-to-file]                             Create a new account
+  wallet                                                      Show wallet details which include private key, address, public key and mnemonic
+  load [private-key|mnemonic] [save-to-file]                  Load wallet from a private key or mnemonic
+  proposal [proposal-contract] [organization] [expired-time]  Send a proposal to an origination with a specific contract method
+  deploy [category] [code-path]                               Deprecated! Please use  `aelf-command send` , check details in aelf-command `README.md`
+  config <flag> [key] [value]                                 Get, set, delete or list aelf-command config
+  event [tx-id]                                               Deserialize the result returned by executing a transaction
+  dapp-server [options]                                       Start a dAPP SOCKET.IO server
 ```
 
 in your terminal and get useful information.
