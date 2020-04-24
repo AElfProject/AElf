@@ -18,7 +18,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly TransactionPackingOptions _transactionPackingOptions;
-        private LogEvent _interestedEvent;
 
         public ILogger<IrreversibleBlockFoundLogEventProcessor> Logger { get; set; }
 
@@ -34,17 +33,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockFoundLogEventProcessor>.Instance;
         }
 
-        public override LogEvent InterestedEvent
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
         {
-            get
-            {
-                if (_interestedEvent != null) return _interestedEvent;
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                        .Name);
-                _interestedEvent = new IrreversibleBlockFound().ToLogEvent(address);
-                return _interestedEvent;
-            }
+            if (InterestedEvent != null) return InterestedEvent;
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<IrreversibleBlockFound>(smartContractAddressDto.SmartContractAddress.Address);
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+            return InterestedEvent;
         }
 
         protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)

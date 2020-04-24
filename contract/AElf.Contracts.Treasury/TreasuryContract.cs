@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
@@ -66,8 +66,7 @@ namespace AElf.Contracts.Treasury
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
                 });
             }
-
-            InitializeVoteWeightInterest();
+            
             State.Initialized.Value = true;
 
             State.SymbolList.Value = new SymbolList
@@ -236,28 +235,7 @@ namespace AElf.Contracts.Treasury
         {
             AssertPerformedByTreasuryController();
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
-            State.VoteWeightInterestController.Value = input;
-            return new Empty();
-        }
-        
-        public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
-        {
-            AssertPerformedByTreasuryController();
-            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
-            // ReSharper disable once PossibleNullReferenceException
-            foreach (var info in input.VoteWeightInterestInfos)
-            {
-                Assert(info.Capital > 0, "invalid input");
-                Assert(info.Day > 0, "invalid input");
-                Assert(info.Interest > 0, "invalid input");
-            }
-
-            Assert(input.VoteWeightInterestInfos.GroupBy(x => x.Day).Count() == input.VoteWeightInterestInfos.Count,
-                "repeat day input");
-            var orderList = input.VoteWeightInterestInfos.OrderBy(x => x.Day).ToArray();
-            input.VoteWeightInterestInfos.Clear();
-            input.VoteWeightInterestInfos.AddRange(orderList);
-            State.VoteWeightInterestList.Value = input;
+            State.TreasuryController.Value = input;
             return new Empty();
         }
 
@@ -563,13 +541,13 @@ namespace AElf.Contracts.Treasury
         
         private void AssertPerformedByTreasuryController()
         {
-            if (State.VoteWeightInterestController.Value == null)
+            if (State.TreasuryController.Value == null)
             {
-                State.VoteWeightInterestController.Value = GetDefaultTreasuryController();
+                State.TreasuryController.Value = GetDefaultTreasuryController();
             }
-            Assert(Context.Sender == State.VoteWeightInterestController.Value.OwnerAddress, "no permission");
+            Assert(Context.Sender == State.TreasuryController.Value.OwnerAddress, "no permission");
         }
-
+        
         private AuthorityInfo GetDefaultTreasuryController()
         {
             if (State.ParliamentContract.Value == null)
@@ -636,19 +614,14 @@ namespace AElf.Contracts.Treasury
         {
             return State.TreasuryHash.Value ?? Hash.Empty;
         }
-        
-        public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
-        {
-            return State.VoteWeightInterestList.Value;
-        }
-        
+
         public override AuthorityInfo GetTreasuryController(Empty input)
         {
-            if (State.VoteWeightInterestController.Value == null)
+            if (State.TreasuryController.Value == null)
             {
                 return GetDefaultTreasuryController();
             }
-            return State.VoteWeightInterestController.Value;
+            return State.TreasuryController.Value;
         }
 
         public override SymbolList GetDistributingSymbolList(Empty input)
@@ -718,65 +691,13 @@ namespace AElf.Contracts.Treasury
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            var lockDays = lockTime.Div(TreasuryContractConstants.DaySec);
-
-            foreach (var instMap in State.VoteWeightInterestList.Value.VoteWeightInterestInfos)
+            RequireElectionContractStateSet();
+            var weight = State.ElectionContract.GetCalculateVoteWeight.Call(new VoteInformation
             {
-                if (lockDays > instMap.Day)
-                    continue;
-                var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
-            }
-            var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
-            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount.Div(2));
-        }
-
-        private static decimal Pow(decimal x, uint y)
-        {
-            if (y == 1)
-                return (long) x;
-            decimal a = 1m;
-            if (y == 0)
-                return a;
-            var e = new BitArray(y.ToBytes(false));
-            var t = e.Count;
-            for (var i = t - 1; i >= 0; --i)
-            {
-                a *= a;
-                if (e[i])
-                {
-                    a *= x;
-                }
-            }
-
-            return a;
-        }
-        
-        private void InitializeVoteWeightInterest()
-        {
-            if (State.VoteWeightInterestList.Value != null)
-                return;
-            var voteWeightSetting = new VoteWeightInterestList();
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 365,
-                Interest = 1,
-                Capital = 1000
+                Amount = votesAmount,
+                LockTime = lockTime
             });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 730,
-                Interest = 15,
-                Capital = 10000
-            });
-            voteWeightSetting.VoteWeightInterestInfos.Add(new VoteWeightInterest
-            {
-                Day = 1095,
-                Interest = 2,
-                Capital = 1000
-            });
-            State.VoteWeightInterestList.Value = voteWeightSetting;
+            return weight.Value;
         }
         
         private DividendPoolWeightSetting GetDefaultDividendPoolWeightSetting()

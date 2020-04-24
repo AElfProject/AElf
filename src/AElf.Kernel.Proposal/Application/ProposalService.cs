@@ -20,8 +20,11 @@ namespace AElf.Kernel.Proposal.Application
 
         public ILogger<ProposalService> Logger { get; set; }
 
-        private Address ParliamentContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
+        private Task<Address> GetParliamentContractAddressAsync(IChainContext chainContext)
+        {
+            return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                ParliamentSmartContractAddressNameProvider.StringName);
+        }
 
         public ProposalService(IProposalProvider proposalProvider,
             ISmartContractAddressService smartContractAddressService,
@@ -44,7 +47,11 @@ namespace AElf.Kernel.Proposal.Application
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight,
-                ContractAddress = ParliamentContractAddress,
+                ContractAddress = await GetParliamentContractAddressAsync(new ChainContext
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                }),
                 Sender = from
             }).GetNotVotedProposals.CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
 
@@ -58,7 +65,11 @@ namespace AElf.Kernel.Proposal.Application
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight,
-                    ContractAddress = ParliamentContractAddress
+                    ContractAddress = await GetParliamentContractAddressAsync(new ChainContext
+                    {
+                        BlockHash = blockHash,
+                        BlockHeight = blockHeight
+                    })
                 }).GetNotVotedPendingProposals
                 .CallAsync(new ProposalIdList {ProposalIds = {proposalIdList}});
             

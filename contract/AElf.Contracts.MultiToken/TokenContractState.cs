@@ -1,7 +1,6 @@
 using Acs0;
 using Acs1;
 using AElf.Contracts.Association;
-using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
 using AElf.Contracts.Profit;
@@ -40,7 +39,7 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<UserFeeController> UserFeeController { get; set; }
         public SingletonState<DeveloperFeeController> DeveloperFeeController { get; set; }
         public SingletonState<AuthorityInfo> SymbolToPayTxFeeController { get; set; }
-        public SingletonState<AuthorityInfo> SideRentalParliamentController { get; set; }
+        public SingletonState<AuthorityInfo> SideChainRentalController { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -50,8 +49,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, bool> VerifiedCrossChainTransferTransaction { get; set; }
-        internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
-
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }

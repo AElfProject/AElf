@@ -10,7 +10,7 @@ namespace AElf.Kernel.TransactionPool.Application
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<bool> ValidateTransactionWhileCollectingAsync(Transaction transaction);
+        Task<bool> ValidateTransactionWhileCollectingAsync(IChainContext chainContext, Transaction transaction);
 
         /// <summary>
         /// Validate tx while this tx is already contained in one block

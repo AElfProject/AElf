@@ -62,7 +62,7 @@ namespace AElf.Kernel.SmartContract
 
         Address GetZeroSmartContractAddress(int chainId);
 
-        Address GetContractAddressByName(Hash hash);
+        Address GetContractAddressByName(string hash);
 
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 
@@ -73,47 +73,6 @@ namespace AElf.Kernel.SmartContract
         byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
 
         Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
-    }
-
-    public static class SmartContractBridgeContextExtensions
-    {
-        public static Hash GenerateId(this ISmartContractBridgeContext @this, IEnumerable<byte> bytes)
-        {
-            return @this.GenerateId(@this.Self, bytes);
-        }
-
-        public static Hash GenerateId(this ISmartContractBridgeContext @this, string token)
-        {
-            return @this.GenerateId(@this.Self, token.GetBytes());
-        }
-
-        public static Hash GenerateId(this ISmartContractBridgeContext @this, Hash token)
-        {
-            return @this.GenerateId(@this.Self, token.Value);
-        }
-
-        public static Hash GenerateId(this ISmartContractBridgeContext @this)
-        {
-            return @this.GenerateId(@this.Self, null);
-        }
-
-        public static Hash GenerateId(this ISmartContractBridgeContext @this, Address address, Hash token)
-        {
-            return @this.GenerateId(address, token);
-        }
-
-
-        public static Address ConvertVirtualAddressToContractAddress(this ISmartContractBridgeContext @this,
-            Hash virtualAddress)
-        {
-            return @this.ConvertVirtualAddressToContractAddress(virtualAddress, @this.Self);
-        }
-
-        public static Address ConvertVirtualAddressToContractAddressWithContractHashName(
-            this ISmartContractBridgeContext @this, Hash virtualAddress)
-        {
-            return @this.ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress, @this.Self);
-        }
     }
 
     [Serializable]

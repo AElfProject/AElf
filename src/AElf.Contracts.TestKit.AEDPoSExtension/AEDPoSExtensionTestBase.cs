@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.TestKit;
+using AElf.EconomicSystem;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
             {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
-            {SmartContractConstants.CrossChainContractSystemName, "CrossChain"},
+            {SmartContractConstants.CrossChainContractSystemHashName, "CrossChain"},
             {ReferendumSmartContractAddressNameProvider.Name, "Referendum"},
             {AssociationSmartContractAddressNameProvider.Name, "Association"},
             {TokenHolderSmartContractAddressNameProvider.Name, "TokenHolder"}

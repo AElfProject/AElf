@@ -28,8 +28,8 @@ namespace AElf.CrossChain.Grpc.Server
             SideChainGrpcServerBase = GetRequiredService<GrpcSideChainServerBase>();
             BasicCrossChainRpcBase = GetRequiredService<GrpcBasicServerBase>();
             _smartContractAddressService = GetRequiredService<SmartContractAddressService>();
-            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
-                SampleAddress.AddressList[0]);
+            // _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
+            //     SampleAddress.AddressList[0]);
         }
 
         [Fact]
