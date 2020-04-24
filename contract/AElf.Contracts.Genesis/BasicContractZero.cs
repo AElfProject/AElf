@@ -337,7 +337,7 @@ namespace AElf.Contracts.Genesis
             Assert(State.ContractDeploymentController.Value == null && State.CodeCheckController.Value == null,
                 "Genesis owner already initialized");
             var parliamentContractAddress =
-                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
             Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
             var defaultAuthority = new AuthorityInfo
@@ -372,7 +372,7 @@ namespace AElf.Contracts.Genesis
         public override Empty SetContractProposerRequiredState(BoolValue input)
         {
             Assert(!State.Initialized.Value, "Genesis contract already initialized.");
-            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemHashName);
             Assert(Context.Sender == address, "Unauthorized to set genesis contract state.");
 
             CreateParliamentOrganizationForInitialControllerAddress(input.Value);

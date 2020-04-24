@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Acs1;
 using AElf.Kernel.FeeCalculation.Application;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
@@ -15,8 +17,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Address ContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(HashHelper.ComputeFromString("TestContract"));
+        public Address GetContractAddress(IChainContext chainContext)
+        {
+            return AsyncHelper.RunSync(() =>
+                _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    HashHelper.ComputeFromString("TestContract").ToStorageKey()));
+        }
 
         public string MethodName => string.Empty;
 

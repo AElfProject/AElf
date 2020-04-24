@@ -89,7 +89,7 @@ namespace AElf.Contracts.MultiToken
             var validatedAddress = validateSystemContractAddressInput.Address;
             var validatedContractHashName = validateSystemContractAddressInput.SystemContractHashName;
 
-            Assert(validatedContractHashName == SmartContractConstants.TokenContractSystemName,
+            Assert(validatedContractHashName == SmartContractConstants.TokenContractSystemHashName,
                 "Address validation failed.");
             return validatedAddress;
         }

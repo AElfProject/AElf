@@ -68,14 +68,28 @@ namespace AElf.Kernel.SmartContract
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
 
-        public Address GetContractAddressByName(Hash hash)
+        public Address GetContractAddressByName(string hash)
         {
-            return _smartContractBridgeService.GetAddressByContractName(hash);
+            var chainContext = new ChainContext
+            {
+                BlockHash = TransactionContext.PreviousBlockHash,
+                BlockHeight = TransactionContext.BlockHeight - 1,
+                StateCache = CachedStateProvider.Cache
+            };
+            return AsyncHelper.RunSync(() =>
+                _smartContractBridgeService.GetAddressByContractNameAsync(chainContext, hash));
         }
 
         public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
         {
-            return _smartContractBridgeService.GetSystemContractNameToAddressMapping();
+            var chainContext = new ChainContext
+            {
+                BlockHash = TransactionContext.PreviousBlockHash,
+                BlockHeight = TransactionContext.BlockHeight - 1,
+                StateCache = CachedStateProvider.Cache
+            };
+            return AsyncHelper.RunSync(() =>
+                _smartContractBridgeService.GetSystemContractNameToAddressMappingAsync(chainContext));
         }
 
         public void Initialize(ITransactionContext transactionContext)
