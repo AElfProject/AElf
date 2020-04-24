@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -24,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public void OffChain_DecryptMessage_Test()
         {
-            var message = Hash.FromString("message").ToByteArray();
+            var message = HashHelper.ComputeFromString("message").ToByteArray();
             var secrets =
                 SecretSharingHelper.EncodeSecret(message, MinimumCount, EconomicContractsTestConstants.InitialCoreDataCenterCount);
             var encryptedValues = new Dictionary<string, byte[]>();
@@ -73,7 +74,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.FromString("randomHashes")).ToList();
+                .Select(_ => HashHelper.ComputeFromString("randomHashes")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {

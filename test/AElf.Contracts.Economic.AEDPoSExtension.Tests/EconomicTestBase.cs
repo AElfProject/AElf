@@ -13,6 +13,7 @@ using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -94,7 +95,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 {
                     MinerList = {MissionedECKeyPairs.InitialKeyPairs.Select(p => p.PublicKey.ToHex())},
                     MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                    TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm,
+                    TimeEachTerm = AEDPoSExtensionConstants.PeriodSeconds,
                     MinimumLockTime = EconomicTestConstants.MinimumLockTime,
                     MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),

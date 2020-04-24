@@ -7,6 +7,7 @@ using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.CodeOps;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
@@ -227,7 +228,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = CodeUpdated.Parser
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).Indexed[0]).Address;
             contractAddress.ShouldBe(newAddress);
-            var codeHash = Hash.FromRawBytes(code);
+            var codeHash = HashHelper.ComputeFromByteArray(code);
             var newHash = CodeUpdated.Parser
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
@@ -389,7 +390,7 @@ namespace AElf.Contracts.Genesis
             var address = CodeUpdated.Parser.ParseFrom(result.Logs[1].Indexed[0]).Address;
             address.ShouldBe(BasicContractZeroAddress);
             var codeHash = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).NewCodeHash;
-            codeHash.ShouldBe(Hash.FromRawBytes(code));
+            codeHash.ShouldBe(HashHelper.ComputeFromByteArray(code));
             var contractVersion = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).Version;
             contractVersion.ShouldBe(2);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,

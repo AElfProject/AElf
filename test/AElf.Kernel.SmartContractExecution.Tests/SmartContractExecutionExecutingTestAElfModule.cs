@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -11,7 +11,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -33,9 +32,9 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
-                        It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-                    .Returns<TransactionExecutingDto, CancellationToken, bool>(
-                        (transactionExecutingDto, cancellationToken, throwException) =>
+                        It.IsAny<CancellationToken>()))
+                    .Returns<TransactionExecutingDto, CancellationToken>(
+                        (transactionExecutingDto, cancellationToken) =>
                         {
                             var returnSets = new List<ExecutionReturnSet>();
 
@@ -64,7 +63,8 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient(p =>
             {
                 var mockService = new Mock<IBlockExecutingService>();
-                mockService.Setup(m => m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                mockService.Setup(m =>
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         var block = new Block
@@ -73,7 +73,7 @@ namespace AElf.Kernel.SmartContractExecution
                             Body = new BlockBody()
                         };
                         block.Body.AddTransactions(transactions.Select(x => x.GetHash()));
-                        return Task.FromResult(block);
+                        return Task.FromResult(new BlockExecutedSet(){Block = block});
                     });
                 return mockService.Object;
             });
@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContractExecution
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;
-                        if (blockHeader.Height == Constants.GenesisBlockHeight)
+                        if (blockHeader.Height == AElfConstants.GenesisBlockHeight)
                         {
                             result = new Block {Header = blockHeader};
                         }
@@ -126,8 +126,7 @@ namespace AElf.Kernel.SmartContractExecution
                                 {Header = new BlockHeader {Time = TimestampHelper.GetUtcNow()}};
                         }
 
-                        return Task.FromResult(result);
-
+                        return Task.FromResult(new BlockExecutedSet() {Block = result});
                     });
 
                 return mockService.Object;
@@ -148,7 +147,8 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockProvider = new Mock<IBlockValidationService>();
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
+                    .Returns<IBlock>(
+                        (block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

@@ -16,6 +16,7 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -260,19 +261,19 @@ namespace AElf.Contracts.Economic.TestBase
             switch (contract)
             {
                 case Contracts.Parliament:
-                    hash = Hash.FromString("AElf.ContractNames.Parliament");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Parliament");
                     break;
                 case Contracts.AEDPoS:
-                    hash = Hash.FromString("AElf.ContractNames.Consensus");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Consensus");
                     break;
                 case Contracts.MultiToken:
-                    hash = Hash.FromString("AElf.ContractNames.Token");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.Token");
                     break;
                 case Contracts.TransactionFee:
-                    hash = Hash.FromString("AElf.ContractNames.TransactionFeeCharging");
+                    hash = HashHelper.ComputeFromString("AElf.ContractNames.TransactionFeeCharging");
                     break;
                 default:
-                    hash = Hash.FromString($"AElf.ContractNames.{contract.ToString()}");
+                    hash = HashHelper.ComputeFromString($"AElf.ContractNames.{contract.ToString()}");
                     break;
             }
 
@@ -284,7 +285,7 @@ namespace AElf.Contracts.Economic.TestBase
         private async Task<Address> DeployContract(TestContracts contract)
         {
             var code = Codes.Single(kv => kv.Key.Contains(contract.ToString())).Value;
-            var hash = Hash.FromString($"AElf.ContractNames.{contract.ToString()}");
+            var hash = HashHelper.ComputeFromString($"AElf.ContractNames.{contract.ToString()}");
             var address = await DeploySystemSmartContract(Category, code, hash, BootMinerKeyPair);
 
             return address;
@@ -359,7 +360,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 MaximumLockTime = 1080 * 86400,
                 MinimumLockTime = 90 * 86400,
-                TimeEachTerm = EconomicContractsTestConstants.TimeEachTerm,
+                TimeEachTerm = EconomicContractsTestConstants.PeriodSeconds,
                 MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
             });
@@ -467,7 +468,7 @@ namespace AElf.Contracts.Economic.TestBase
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = 604800L,
+                        PeriodSeconds = 604800L,
                         MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
                     });
                 CheckResult(result.TransactionResult);
@@ -556,7 +557,7 @@ namespace AElf.Contracts.Economic.TestBase
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
-            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
@@ -581,7 +582,7 @@ namespace AElf.Contracts.Economic.TestBase
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
-            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
@@ -607,7 +608,7 @@ namespace AElf.Contracts.Economic.TestBase
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
-            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);

@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 using Acs0;
 using Acs1;
 using Acs3;
+using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Genesis
 {
@@ -12,9 +13,9 @@ namespace AElf.Contracts.Genesis
     {
         #region Views
 
-        public override UInt64Value CurrentContractSerialNumber(Empty input)
+        public override Int64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new Int64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)
@@ -125,7 +126,8 @@ namespace AElf.Contracts.Genesis
                     {
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(DeploySmartContract),
-                        ProposedContractInputHash = proposedContractInputHash
+                        ProposedContractInputHash = proposedContractInputHash,
+                        Category = input.Category
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -166,10 +168,11 @@ namespace AElf.Contracts.Genesis
                     {
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(UpdateSmartContract),
-                        ProposedContractInputHash = proposedContractInputHash
+                        ProposedContractInputHash = proposedContractInputHash,
+                        Category = info.Category
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
-                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
+                    ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod),
                 },
                 OriginProposer = Context.Sender
             };
@@ -220,7 +223,8 @@ namespace AElf.Contracts.Genesis
             Context.Fire(new CodeCheckRequired
             {
                 Code = ExtractCodeFromContractCodeCheckInput(input),
-                ProposedContractInputHash = proposedContractInputHash
+                ProposedContractInputHash = proposedContractInputHash,
+                Category = input.Category
             });
 
             return proposedContractInputHash;
@@ -285,7 +289,7 @@ namespace AElf.Contracts.Genesis
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = Hash.FromRawBytes(code);
+            var newCodeHash = HashHelper.ComputeFromByteArray(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
@@ -315,7 +319,7 @@ namespace AElf.Contracts.Genesis
                 Version = info.Version
             });
 
-            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.ToBase58());
             return contractAddress;
         }
 
@@ -333,7 +337,7 @@ namespace AElf.Contracts.Genesis
             Assert(State.ContractDeploymentController.Value == null && State.CodeCheckController.Value == null,
                 "Genesis owner already initialized");
             var parliamentContractAddress =
-                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
             Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
             var defaultAuthority = new AuthorityInfo
@@ -358,8 +362,7 @@ namespace AElf.Contracts.Genesis
         public override Empty ChangeCodeCheckController(AuthorityInfo input)
         {
             AssertSenderAddressWith(State.CodeCheckController.Value.OwnerAddress);
-            RequireParliamentContractAddressSet();
-            Assert(State.ParliamentContract.Value == input.ContractAddress && CheckOrganizationExist(input),
+            Assert(CheckOrganizationExist(input),
                 "Invalid authority input.");
             State.CodeCheckController.Value = input;
             return new Empty();
@@ -368,7 +371,7 @@ namespace AElf.Contracts.Genesis
         public override Empty SetContractProposerRequiredState(BoolValue input)
         {
             Assert(!State.Initialized.Value, "Genesis contract already initialized.");
-            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemHashName);
             Assert(Context.Sender == address, "Unauthorized to set genesis contract state.");
 
             CreateParliamentOrganizationForInitialControllerAddress(input.Value);

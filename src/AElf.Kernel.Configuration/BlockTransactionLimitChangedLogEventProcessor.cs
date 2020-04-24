@@ -10,28 +10,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Configuration
 {
-    public class BlockTransactionLimitChangedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class BlockTransactionLimitChangedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private LogEvent _interestedEvent;
-
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
-                        .Name);
-
-                _interestedEvent = new ConfigurationSet().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
 
         public ILogger<BlockTransactionLimitChangedLogEventProcessor> Logger { get; set; }
 
@@ -42,8 +24,28 @@ namespace AElf.Kernel.Configuration
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
         }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConfigurationSmartContractAddressNameProvider.StringName);
+            
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<ConfigurationSet>(smartContractAddressDto.SmartContractAddress.Address);
+            
+            if (!smartContractAddressDto.Irreversible)return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+
+            return InterestedEvent;
+        }
+
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var configurationSet = new ConfigurationSet();
             configurationSet.MergeFrom(logEvent);
@@ -53,7 +55,11 @@ namespace AElf.Kernel.Configuration
             var limit = new Int32Value();
             limit.MergeFrom(configurationSet.Value.ToByteArray());
             if (limit.Value < 0) return;
-            await _blockTransactionLimitProvider.SetLimitAsync(block.GetHash(), limit.Value);
+            await _blockTransactionLimitProvider.SetLimitAsync(new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, limit.Value);
 
             Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
         }

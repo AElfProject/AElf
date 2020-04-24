@@ -58,13 +58,14 @@ namespace AElf.Kernel
                 builder =>
                 {
                     var  dataProvider = new Mock<IBlockExtraDataProvider>();
-                    dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o=>o.Height != 100)))
+                    dataProvider.Setup( m=>m.GetBlockHeaderExtraDataAsync(It.Is<BlockHeader>(o=>o.Height != 100)))
                         .Returns(Task.FromResult(ByteString.CopyFromUtf8("not null")));
 
                     ByteString bs = null;
-                    dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o => o.Height == 100)))
+                    dataProvider.Setup( m=>m.GetBlockHeaderExtraDataAsync(It.Is<BlockHeader>(o => o.Height == 100)))
                         .Returns(Task.FromResult(bs));
-                   
+                    
+                    dataProvider.Setup(m => m.BlockHeaderExtraDataKey).Returns(nameof(IBlockExtraDataProvider));
                     return dataProvider.Object;
                 });
         }

@@ -1,7 +1,6 @@
 using Acs0;
 using Acs1;
 using AElf.Contracts.Association;
-using AElf.Contracts.CrossChain;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
 using AElf.Contracts.Profit;
@@ -20,11 +19,8 @@ namespace AElf.Contracts.MultiToken
         public MappedState<string, TokenInfo> TokenInfos { get; set; }
         public MappedState<Address, string, long> Balances { get; set; }
         public MappedState<Address, Address, string, long> Allowances { get; set; }
-        public MappedState<Address, TransactionFeeBill> ChargedFees { get; set; }
 
         public SingletonState<Address> FeeReceiver { get; set; }
-
-        public MappedState<Address, Address, string, long> ChargedResourceTokens { get; set; }
 
         /// <summary>
         /// Contract Address -> Advance Address -> Resource Token Symbol -> Amount.
@@ -36,14 +32,14 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<Address, string, long> OwningResourceToken { get; set; }
 
-        public BoolState Initialized { get; set; }
+        public BoolState InitializedFromParentChain { get; set; }
 
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<AuthorityInfo> CrossChainTokenContractRegistrationController { get; set; }
         public SingletonState<UserFeeController> UserFeeController { get; set; }
         public SingletonState<DeveloperFeeController> DeveloperFeeController { get; set; }
         public SingletonState<AuthorityInfo> SymbolToPayTxFeeController { get; set; }
-        public SingletonState<AuthorityInfo> SideRentalParliamentController { get; set; }
+        public SingletonState<AuthorityInfo> SideChainRentalController { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -53,8 +49,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, bool> VerifiedCrossChainTransferTransaction { get; set; }
-        internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
-
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
 
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
@@ -68,5 +62,8 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
 
         public Int32State MinimumProfitsDonationPartsPerHundred { get; set; }
+
+        public SingletonState<Hash> LatestTotalResourceTokensMapsHash { get; set; }
+        public SingletonState<Hash> LatestTotalTransactionFeesMapHash { get; set; }
     }
 }

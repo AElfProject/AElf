@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -10,5 +10,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
             ITransactionContext transactionContext);
+
+        bool IsStopExecuting(ByteString txReturnValue);
     }
 }

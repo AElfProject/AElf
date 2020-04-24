@@ -38,7 +38,7 @@ enum ExecutionStatus {
     //   Contract reasons
     CONTRACT_ERROR = -10;
     EXCEEDED_MAX_CALL_DEPTH = -11;
-    INSUFFICIENT_TRANSACTION_FEES = -12;
+    EXECUTION_STOPPED_BY_PRE_PLUGIN = -12;
 
     // Pre-failed
     PREFAILED = -99;
@@ -61,11 +61,8 @@ message TransactionTrace {
     int64 elapsed = 11;
     ExecutionStatus execution_status = 12;
     TransactionExecutingStateSet state_set = 13;
-    string readable_return_value = 14; //TODO!!! remove
-    TransactionFee transaction_fee = 15;
-    ConsumedResourceTokens consumed_resource_tokens = 16; //TODO!!! remove
-    int32 execution_call_count = 17;
-    int32 execution_branch_count = 18;
+    int32 execution_call_count = 14;
+    int32 execution_branch_count = 15;
 }
 
 message ExecutionReturnSet {
@@ -76,6 +73,7 @@ message ExecutionReturnSet {
     bytes bloom = 5;
     bytes return_value = 6;
     map<string, bool> state_deletes = 7;
+    TransactionResult transaction_result = 8;
 }
 
 message BlockHeaderList {
@@ -90,7 +88,7 @@ message BlockHeader {
     Hash merkle_tree_root_of_world_state = 5;
     bytes bloom = 6;
     int64 height = 7;
-    repeated bytes extra_data = 8;
+    map<string, bytes> extra_data = 8;
     google.protobuf.Timestamp time = 9;
     Hash merkle_tree_root_of_transaction_status = 10;
     bytes signer_pubkey = 9999;
@@ -179,4 +177,10 @@ message TransactionBlockIndex {
     Hash block_hash = 1;
     int64 block_height = 2;
     repeated BlockIndex previous_execution_block_index_list = 3;
+}
+
+message SmartContractAddress{
+    Address address = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
 }

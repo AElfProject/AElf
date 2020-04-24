@@ -1,4 +1,6 @@
-﻿using AElf.Modularity;
+﻿using AElf.Kernel.FeeCalculation.Application;
+using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold

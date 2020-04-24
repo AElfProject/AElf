@@ -13,53 +13,45 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty InitializeAuthorizedController(Empty input)
         {
+            var defaultParliamentController = GetDefaultParliamentController();
             if (State.UserFeeController.Value == null)
             {
-                var defaultUserFeeController = GetDefaultUserFeeController();
-                CreateReferendumControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress);
-                CreateAssociationControllerForUserFee(defaultUserFeeController.ParliamentController.OwnerAddress,
+                var defaultUserFeeController = GetDefaultUserFeeController(defaultParliamentController);
+                CreateReferendumControllerForUserFee(defaultParliamentController.OwnerAddress);
+                CreateAssociationControllerForUserFee(defaultParliamentController.OwnerAddress,
                     defaultUserFeeController.ReferendumController.OwnerAddress);
                 State.UserFeeController.Value = defaultUserFeeController;
             }
 
             if (State.DeveloperFeeController.Value == null)
             {
-                var developerController = GetDefaultDeveloperFeeController();
-                CreateDeveloperController(developerController.ParliamentController.OwnerAddress);
-                CreateAssociationControllerForDeveloperFee(developerController.ParliamentController.OwnerAddress,
+                var developerController = GetDefaultDeveloperFeeController(defaultParliamentController);
+                CreateDeveloperController(defaultParliamentController.OwnerAddress);
+                CreateAssociationControllerForDeveloperFee(defaultParliamentController.OwnerAddress,
                     developerController.DeveloperController.OwnerAddress);
                 State.DeveloperFeeController.Value = developerController;
             }
-            if (State.SideChainCreator.Value == null) return new Empty();
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            State.AssociationContract.CreateOrganizationBySystemContract.Send(
-                GetControllerCreateInputForSideChainRental());
-                
+            
+            if (State.SideChainCreator.Value == null || State.SideChainRentalController.Value != null) return new Empty();
+            var sideChainRentalController = GetDefaultSideChainRentalController(defaultParliamentController);
+            CreateAssociationControllerForSideChainRental(State.SideChainCreator.Value, defaultParliamentController.OwnerAddress);
+            State.SideChainRentalController.Value = sideChainRentalController;
             return new Empty();
         }
 
         public override Empty ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
-            Assert(input != null, "invalid input");
-            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
             Assert(CheckOrganizationExist(input), "new controller does not exist");
             State.SymbolToPayTxFeeController.Value = input;
             return new Empty();
         }
 
-        public override Empty ChangeSideChainParliamentController(AuthorityInfo input)
+        public override Empty ChangeSideChainRentalController(AuthorityInfo input)
         {
             AssertControllerForSideChainRental();
-            Assert(input != null, "invalid input");
-            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
             Assert(CheckOrganizationExist(input), "new controller does not exist");
-            State.SideRentalParliamentController.Value = input;
+            State.SideChainRentalController.Value = input;
             return new Empty();
         }
 
@@ -71,14 +63,25 @@ namespace AElf.Contracts.MultiToken
             State.CrossChainTokenContractRegistrationController.Value = input;
             return new Empty();
         }
-
-        public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
+        
+        public override Empty ChangeUserFeeController(AuthorityInfo input)
         {
-            if (State.CrossChainTokenContractRegistrationController.Value == null)
-            {
-                return GetCrossChainTokenContractRegistrationController();
-            }
-            return State.CrossChainTokenContractRegistrationController.Value;
+            AssertUserFeeController();
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
+            State.UserFeeController.Value.RootController = input;
+            State.UserFeeController.Value.ParliamentController = null;
+            State.UserFeeController.Value.ReferendumController = null;
+            return new Empty();
+        }
+        
+        public override Empty ChangeDeveloperController(AuthorityInfo input)
+        {
+            AssertDeveloperFeeController();
+            Assert(CheckOrganizationExist(input), "Invalid authority input.");
+            State.DeveloperFeeController.Value.RootController = input;
+            State.DeveloperFeeController.Value.ParliamentController = null;
+            State.DeveloperFeeController.Value.DeveloperController = null;
+            return new Empty();
         }
 
         private void CreateReferendumControllerForUserFee(Address parliamentAddress)
@@ -103,6 +106,11 @@ namespace AElf.Contracts.MultiToken
         {
             State.AssociationContract.CreateOrganizationBySystemContract.Send(
                 GetAssociationControllerCreateInputForDeveloperFee(parliamentAddress, developerAddress));
+        }
+        private void CreateAssociationControllerForSideChainRental(Address sideChainCreator, Address parliamentAddress)
+        {
+            State.AssociationContract.CreateOrganizationBySystemContract.Send(
+                GetControllerCreateInputForSideChainRental(sideChainCreator, parliamentAddress));
         }
 
         #endregion
@@ -220,10 +228,9 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        private Association.CreateOrganizationBySystemContractInput GetControllerCreateInputForSideChainRental()
+        private Association.CreateOrganizationBySystemContractInput GetControllerCreateInputForSideChainRental(
+            Address sideChainCreator, Address parliamentAddress)
         {
-            var sideChainCreator = State.SideChainCreator.Value;
-            var parliamentAddress = GetControllerForSideRentalParliament();
             var proposers = new List<Address> {parliamentAddress, sideChainCreator};
             return new Association.CreateOrganizationBySystemContractInput
             {
@@ -251,52 +258,7 @@ namespace AElf.Contracts.MultiToken
         #endregion
 
         #region controller management
-
-        private void AssertControllerForSymbolToPayTxSizeFee()
-        {
-            if (State.SymbolToPayTxFeeController.Value == null)
-            {
-                State.SymbolToPayTxFeeController.Value = GetDefaultSymbolToPayTxFeeController();
-            }
-
-            Assert(State.SymbolToPayTxFeeController.Value.OwnerAddress == Context.Sender, "no permission");
-        }
-
-        private Address GetControllerForSideRentalParliament()
-        {
-            if (State.SideRentalParliamentController.Value == null)
-            {
-                if (State.ParliamentContract.Value == null)
-                {
-                    State.ParliamentContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-                }
-
-                if (State.AssociationContract.Value == null)
-                {
-                    State.AssociationContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-                }
-
-                State.SideRentalParliamentController.Value = new AuthorityInfo
-                {
-                    ContractAddress = State.ParliamentContract.Value,
-                    OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
-                };
-            }
-
-            return State.SideRentalParliamentController.Value.OwnerAddress;
-        }
-
-        private void AssertDeveloperFeeController()
-        {
-            Assert(State.DeveloperFeeController.Value != null,
-                "controller does not initialize, call InitializeAuthorizedController first");
-
-            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController.OwnerAddress, "no permission");
-        }
-
-        private DeveloperFeeController GetDefaultDeveloperFeeController()
+        private AuthorityInfo GetDefaultParliamentController()
         {
             if (State.ParliamentContract.Value == null)
             {
@@ -304,6 +266,15 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
+            return new AuthorityInfo
+            {
+                ContractAddress = State.ParliamentContract.Value,
+                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+            };
+        }
+        
+        private DeveloperFeeController GetDefaultDeveloperFeeController(AuthorityInfo defaultParliamentController)
+        {
             if (State.AssociationContract.Value == null)
             {
                 State.AssociationContract.Value =
@@ -316,40 +287,24 @@ namespace AElf.Contracts.MultiToken
                 DeveloperController = new AuthorityInfo(),
                 RootController = new AuthorityInfo()
             };
-            developerFeeController.ParliamentController.OwnerAddress =
-                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            developerFeeController.ParliamentController.ContractAddress = State.ParliamentContract.Value;
+            developerFeeController.ParliamentController = defaultParliamentController;
             developerFeeController.DeveloperController.ContractAddress = State.AssociationContract.Value;
             developerFeeController.DeveloperController.OwnerAddress =
                 State.AssociationContract.CalculateOrganizationAddress.Call(
-                    GetDeveloperControllerCreateInput(developerFeeController.ParliamentController.OwnerAddress)
+                    GetDeveloperControllerCreateInput(defaultParliamentController.OwnerAddress)
                         .OrganizationCreationInput);
             developerFeeController.RootController.ContractAddress = State.AssociationContract.Value;
             developerFeeController.RootController.OwnerAddress =
                 State.AssociationContract.CalculateOrganizationAddress.Call(
                     GetAssociationControllerCreateInputForDeveloperFee(
-                            developerFeeController.ParliamentController.OwnerAddress,
+                            defaultParliamentController.OwnerAddress,
                             developerFeeController.DeveloperController.OwnerAddress)
                         .OrganizationCreationInput);
             return developerFeeController;
         }
-
-        private void AssertUserFeeController()
+        
+        private UserFeeController GetDefaultUserFeeController(AuthorityInfo defaultParliamentController)
         {
-            Assert(State.UserFeeController.Value != null,
-                "controller does not initialize, call InitializeAuthorizedController first");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
-        }
-
-        private UserFeeController GetDefaultUserFeeController()
-        {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
             if (State.AssociationContract.Value == null)
             {
                 State.AssociationContract.Value =
@@ -368,18 +323,15 @@ namespace AElf.Contracts.MultiToken
                 ParliamentController = new AuthorityInfo(),
                 ReferendumController = new AuthorityInfo()
             };
-            userFeeController.ParliamentController.ContractAddress = State.ParliamentContract.Value;
-            userFeeController.ParliamentController.OwnerAddress =
-                State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-
+            userFeeController.ParliamentController = defaultParliamentController;
             userFeeController.ReferendumController.ContractAddress = State.ReferendumContract.Value;
             userFeeController.ReferendumController.OwnerAddress =
                 State.ReferendumContract.CalculateOrganizationAddress.Call(
-                    GetReferendumControllerCreateInputForUserFee(userFeeController.ParliamentController.OwnerAddress)
+                    GetReferendumControllerCreateInputForUserFee(defaultParliamentController.OwnerAddress)
                         .OrganizationCreationInput);
             userFeeController.RootController.ContractAddress = State.AssociationContract.Value;
             userFeeController.RootController.OwnerAddress = State.AssociationContract.CalculateOrganizationAddress.Call(
-                GetAssociationControllerCreateInputForUserFee(userFeeController.ParliamentController.OwnerAddress,
+                GetAssociationControllerCreateInputForUserFee(defaultParliamentController.OwnerAddress,
                         userFeeController.ReferendumController.OwnerAddress)
                     .OrganizationCreationInput);
             return userFeeController;
@@ -387,17 +339,59 @@ namespace AElf.Contracts.MultiToken
 
         private AuthorityInfo GetDefaultSymbolToPayTxFeeController()
         {
-            if (State.ParliamentContract.Value == null)
+            return GetDefaultParliamentController();
+        }
+        
+        private AuthorityInfo GetDefaultSideChainRentalController(AuthorityInfo defaultParliamentController)
+        {
+            if (State.AssociationContract.Value == null)
             {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                State.AssociationContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
             }
-
+            var calculatedAddress = State.AssociationContract.CalculateOrganizationAddress.Call(
+                GetControllerCreateInputForSideChainRental(
+                            State.SideChainCreator.Value,
+                            defaultParliamentController.OwnerAddress)
+                        .OrganizationCreationInput);
             return new AuthorityInfo
             {
-                ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+                ContractAddress = State.AssociationContract.Value,
+                OwnerAddress = calculatedAddress
             };
+        }
+        
+        private void AssertDeveloperFeeController()
+        {
+            Assert(State.DeveloperFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+
+            Assert(Context.Sender == State.DeveloperFeeController.Value.RootController.OwnerAddress, "no permission");
+        }
+        
+        private void AssertUserFeeController()
+        {
+            Assert(State.UserFeeController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(Context.Sender == State.UserFeeController.Value.RootController.OwnerAddress, "no permission");
+        }
+        
+        private void AssertControllerForSymbolToPayTxSizeFee()
+        {
+            if (State.SymbolToPayTxFeeController.Value == null)
+            {
+                State.SymbolToPayTxFeeController.Value = GetDefaultSymbolToPayTxFeeController();
+            }
+
+            Assert(State.SymbolToPayTxFeeController.Value.OwnerAddress == Context.Sender, "no permission");
+        }
+        
+        private void AssertControllerForSideChainRental()
+        {
+            Assert(State.SideChainRentalController.Value != null, "controller does not initialize, call InitializeAuthorizedController first");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(State.SideChainRentalController.Value.OwnerAddress == Context.Sender, "no permission");
         }
 
         #endregion

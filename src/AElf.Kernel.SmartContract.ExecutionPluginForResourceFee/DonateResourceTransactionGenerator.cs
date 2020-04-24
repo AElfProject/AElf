@@ -17,34 +17,58 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
+        private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
 
         public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
 
 
         public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            ITotalResourceTokensMapsProvider totalResourceTokensMapsProvider)
         {
             _smartContractAddressService = smartContractAddressService;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
+            _totalResourceTokensMapsProvider = totalResourceTokensMapsProvider;
         }
 
-        public Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
+        public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight,
+            Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (!_transactionPackingOptions.IsTransactionPackable)
-                return Task.FromResult(generatedTransactions);
+            if (preBlockHeight == 1) return generatedTransactions;
 
-            if (preBlockHeight < Constants.GenesisBlockHeight)
-                return Task.FromResult(generatedTransactions);
+            if (preBlockHeight < AElfConstants.GenesisBlockHeight)
+                return generatedTransactions;
+            
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
 
-
-            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
-                TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
 
             if (tokenContractAddress == null)
             {
-                return Task.FromResult(generatedTransactions);
+                return generatedTransactions;
+            }
+            
+            var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
+                chainContext);
+
+            var input = ByteString.Empty;
+            if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
+                totalResourceTokensMaps.BlockHash == preBlockHash)
+            {
+                input = totalResourceTokensMaps.ToByteString();
+            }
+            else
+            {
+                await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                {
+                    BlockHash = preBlockHash,
+                    BlockHeight = preBlockHeight
+                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
             }
 
             generatedTransactions.AddRange(new List<Transaction>
@@ -52,16 +76,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 new Transaction
                 {
                     From = from,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
-                    Params = new Empty().ToByteString()
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+                    Params = input
                 }
             });
-            
-            Logger.LogInformation("Donate resource transaction generated.");
-            return Task.FromResult(generatedTransactions);
+
+            Logger.LogInformation("Tx DonateResourceToken generated.");
+            return generatedTransactions;
         }
     }
 }

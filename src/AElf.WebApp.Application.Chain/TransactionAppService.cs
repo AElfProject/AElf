@@ -1,7 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
@@ -13,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.TransactionPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -119,8 +119,18 @@ namespace AElf.WebApp.Application.Chain
 
             try
             {
-                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
-                return response;
+                var response = await CallReadOnlyAsync(transaction);
+                try
+                {
+                    var contractMethodDescriptor =
+                        await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                    var output = contractMethodDescriptor.OutputType.Parser.ParseFrom(ByteString.CopyFrom(response));
+                    return JsonFormatter.ToDiagnosticString(output);
+                }
+                catch
+                {
+                    return response?.ToHex();
+                }
             }
             catch (Exception e)
             {
@@ -138,13 +148,13 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = new Transaction
             {
-                From = AddressHelper.Base58StringToAddress(input.From),
-                To = AddressHelper.Base58StringToAddress(input.To),
+                From = Address.FromBase58(input.From),
+                To = Address.FromBase58(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(HashHelper.HexStringToHash(input.RefBlockHash).Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(Hash.LoadFromHex(input.RefBlockHash)),
                 MethodName = input.MethodName
             };
-            var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Base58StringToAddress(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.FromBase58(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());
@@ -299,19 +309,6 @@ namespace AElf.WebApp.Application.Chain
                 throw new Exception(trace.Error);
 
             return trace.ReturnValue.ToByteArray();
-        }
-
-        private async Task<string> CallReadOnlyReturnReadableValueAsync(Transaction tx)
-        {
-            var chainContext = await GetChainContextAsync();
-
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx,
-                DateTime.UtcNow.ToTimestamp());
-
-            if (!string.IsNullOrEmpty(trace.Error))
-                throw new Exception(trace.Error);
-
-            return trace.ReadableReturnValue;
         }
 
         private async Task<ChainContext> GetChainContextAsync()

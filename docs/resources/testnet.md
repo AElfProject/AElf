@@ -37,14 +37,14 @@ Restore the chain database from snapshot:
 >> stop your chain database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-chaindb-*/* /path/to/install/chaindb/ssdb/var/
 >> start your chain database instance
->> enter ssdb console (ssdb-cli) to verify the imported data
+>> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 
 ## state database : decompress and load the state database
 >> tar xvzf aelf-testnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
 >> cp -r aelf-testnet-mainchain-statedb-*/* /path/to/install/ssdb/var/
 >> start your state database instance
->> enter ssdb console(ssdb-cli) to verify the imported data
+>> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 ```
 
 ## Node configuration
@@ -84,7 +84,7 @@ Note that a more detailed section about the CLI can be found [here](cli/introduc
 
 ```bash
 ## download the settings template and docker script
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-mainchain.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-mainchain.zip
 >> unzip aelf-testnet-mainchain.zip
 >> mv aelf-testnet-mainchain /opt/aelf-node
 ```
@@ -102,17 +102,20 @@ The account/key-pair associated with the node we are going to run:
 You also have to configure the database connection strings (port/db number):
 ```json
 "ConnectionStrings": {
-    "BlockchainDb": "ssdb://your chain database server ip address:port",
-    "StateDb": "ssdb://your state database server ip address:port"
+    "BlockchainDb": "redis://your chain database server ip address:port",
+    "StateDb": "redis://your state database server ip address:port"
   },
 ```
+
+{% hint style="info" %} If you use docker to run the node and it is on the same server as the database, please do not use 127.0.0.1 as the database monitoring ip. {% endhint %}
+
 
 Next add the testnet mainchain nodes as peer (bootnode peers):
 ```json
 "Network": {
     "BootNodes": [
-        "3.25.10.185:6800",
-        "18.228.140.143:6800"
+        "testnet-mainchain-1.aelf.io:6800",
+        "testnet-mainchain-2.aelf.io:6800"
     ],
     "ListeningPort": 6800,
     "NetAllowed": "",
@@ -138,9 +141,9 @@ You also need to configure your listening ip and port for the side chain connect
 To run the node with Docker, enter the following commands:
 ```bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v0.9.2
+>> docker pull aelf/node:testnet-v1.0.0-preview1
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v0.9.2
+>> sh aelf-node.sh start aelf/node:testnet-v1.0.0-preview1
 ```
 
 to stop the node you can run:
@@ -154,40 +157,40 @@ Most of AElf is developed with dotnet core, so to run the binaries you will need
 
 Get the latest release with the following commands:
 ```bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-v0.9.2.zip
->> unzip aelf-v0.9.2.zip
->> mv aelf-v0.9.2 /opt/aelf-node/
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-v1.0.0-preview1.zip
+>> unzip aelf-v1.0.0-preview1.zip
+>> mv aelf-v1.0.0-preview1 /opt/aelf-node/
 ```
 
 Enter the configuration folder and run the node:
 ```bash
 >> cd /opt/aelf-node
->> dotnet aelf-v0.9.2/AElf.Launcher.dll
+>> dotnet aelf-v1.0.0-preview1/AElf.Launcher.dll
 ```
 
 ## Running a full node with the source
 
-The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF V0.9.2), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.1 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
+The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF v1.0.0-preview1), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.1 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
 
 ## Check the node
 
 You now should have a node that's running, to check this run the following command that will query the node for its current block height:
 
 ```bash
-aelf-command get-blk-height -e http://127.0.0.1:8000
+aelf-command get-blk-height -e http://your node ip address:8000
 ```
 
 ## Run side-chains
 
-This section explains how to set up a sidechain node, you will have to repeat these steps for all side chains, essentially following these steps for each side-chain (currently five):
+This section explains how to set up a side-chain node, you will have to repeat these steps for all side chains (currently only one is running):
 
 1. Fetch the appsettings and the docker run script. 
 2. Download and restore the snapshot data with the URLs provided below (steps are the same as in A - Setup the database). 
-3. Run the sidechain node. 
+3. Run the side-chain node. 
 
 Running a side chain is very much like running a mainchain node, only configuration will change. Here you can find the instructions for sidechain1:
 ```bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain1.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain1.zip
 >> unzip aelf-testnet-sidechain1.zip
 >> mv aelf-testnet-sidechain1 /opt/aelf-node
 ```
@@ -207,33 +210,20 @@ In order for a sidechain to connect to a mainchain node you need to modify the c
 },
 ```
 
-Here you can find the snapshot data for each sidechain, optionally you can specify the date, but we recommend you get the latest:
+Here you can find the snapshot data for the only current side-chain running, optionally you can specify the date, but we recommend you get the latest:
 
 ```
 >> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain1-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain2-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain3-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain4-db.sh 
->> curl -O -s https://aelf-node.s3-ap-southeast-1.amazonaws.com/snapshot/testnet/download-sidechain5-db.sh
 ```
 
-Here you can find the list of templates folders (appsettings and docker run script) for each side-chain:
+Here you can find the list of templates folders (appsettings and docker run script) for the side-chain:
 ```
-wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain1.zip
-wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain2.zip
-wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain3.zip
-wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain4.zip
-wget https://github.com/AElfProject/AElf/releases/download/v0.9.2/aelf-testnet-sidechain5.zip
-
+wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain1.zip
 ```
 
 Each side chain has its own P2P network, you can find here some bootnodes that are available:
 ```
-sidechain1 bootnode → ["13.211.28.67:6800", "18.229.184.199:6800"]
-sidechain2 bootnode → ["13.236.40.223:6800", "18.229.191.226:6800"]
-sidechain3 bootnode → ["13.239.50.175:6800", "18.229.195.182:6800"]
-sidechain4 bootnode → ["13.55.199.121:6800", "18.229.233.20:6800"]
-sidechain5 bootnode → ["3.104.42.91:6800", "52.67.206.106:6800"]
+sidechain1 bootnode → ["testnet-sidechain1-1.aelf.io:6800", "testnet-sidechain1-2.aelf.io:6800"]
 ```
 
 ```json

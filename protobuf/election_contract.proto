@@ -25,7 +25,7 @@ service ElectionContract {
     }
     rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
+    rpc Vote (VoteMinerInput) returns (aelf.Hash) {
     }
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
@@ -42,6 +42,8 @@ service ElectionContract {
     rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
     }
     rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {
     }
     
     // View
@@ -60,7 +62,7 @@ service ElectionContract {
     rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinersCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
+    rpc GetMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
@@ -84,13 +86,13 @@ service ElectionContract {
     rpc GetCandidateVoteWithAllRecords (google.protobuf.StringValue) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotersCount (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetVotersCount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesAmount (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetVotesAmount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -111,24 +113,30 @@ service ElectionContract {
     rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetVoteWeightProportion (google.protobuf.Empty) returns (VoteWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
-    sint64 minimum_lock_time = 1;
-    sint64 maximum_lock_time = 2;
+    int64 minimum_lock_time = 1;
+    int64 maximum_lock_time = 2;
     repeated string miner_list = 3;
-    sint64 time_each_term = 4;
-    sint64 miner_increase_interval = 5;
+    int64 time_each_term = 4;
+    int64 miner_increase_interval = 5;
 }
 
 message GetTermSnapshotInput {
-    sint64 term_number = 1;
+    int64 term_number = 1;
 }
 
 message UpdateCandidateInformationInput {
     string pubkey = 1;
-    sint64 recently_produced_blocks = 2;
-    sint64 recently_missed_time_slots = 3;
+    int64 recently_produced_blocks = 2;
+    int64 recently_missed_time_slots = 3;
     bool is_evil_node = 4;
 }
 
@@ -137,15 +145,16 @@ message UpdateMultipleCandidateInformationInput {
 }
 
 message TakeElectionSnapshotInput {
-    sint64 term_number = 1;
-    sint64 mined_blocks = 2;
-    sint64 round_number = 3;
+    int64 term_number = 1;
+    int64 mined_blocks = 2;
+    int64 round_number = 3;
 }
 
 message VoteMinerInput {
     string candidate_pubkey = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
     google.protobuf.Timestamp end_timestamp = 3;
+    aelf.Hash token = 4;
 }
 
 message ChangeVotingOptionInput {
@@ -154,24 +163,24 @@ message ChangeVotingOptionInput {
 }
 
 message UpdateTermNumberInput {
-    sint64 term_number = 1;
+    int64 term_number = 1;
 }
 
 message GetElectionResultInput {
-    sint64 term_number = 1;
+    int64 term_number = 1;
 }
 
 message ElectionResult {
-    sint64 term_number = 1;
-    map<string, sint64> results = 2;
+    int64 term_number = 1;
+    map<string, int64> results = 2;
     bool is_active = 3;
 }
 
 message ElectorVote {
     repeated aelf.Hash active_voting_record_ids = 1;// Not withdrawn.
     repeated aelf.Hash withdrawn_voting_record_ids = 2;
-    sint64 active_voted_votes_amount = 3;
-    sint64 all_voted_votes_amount = 4;
+    int64 active_voted_votes_amount = 3;
+    int64 all_voted_votes_amount = 4;
     repeated ElectionVotingRecord active_voting_records = 5;
     repeated ElectionVotingRecord withdrawn_votes_records = 6;
     bytes pubkey = 7;
@@ -180,8 +189,8 @@ message ElectorVote {
 message CandidateVote {
     repeated aelf.Hash obtained_active_voting_record_ids = 1;
     repeated aelf.Hash obtained_withdrawn_voting_record_ids = 2;
-    sint64 obtained_active_voted_votes_amount = 3;
-    sint64 all_obtained_voted_votes_amount = 4;
+    int64 obtained_active_voted_votes_amount = 3;
+    int64 all_obtained_voted_votes_amount = 4;
     repeated ElectionVotingRecord obtained_active_voting_records = 5;
     repeated ElectionVotingRecord obtained_withdrawn_votes_records = 6;
     bytes pubkey = 7;
@@ -189,37 +198,37 @@ message CandidateVote {
 
 message CandidateInformation {
     string pubkey = 1;
-    repeated sint64 terms = 2;
-    sint64 produced_blocks = 3;
-    sint64 missed_time_slots = 4;
-    sint64 continual_appointment_count = 5;
+    repeated int64 terms = 2;
+    int64 produced_blocks = 3;
+    int64 missed_time_slots = 4;
+    int64 continual_appointment_count = 5;
     aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
 }
 
 message CandidateDetail {
     CandidateInformation candidate_information = 1;
-    sint64 obtained_votes_amount = 2;
+    int64 obtained_votes_amount = 2;
 }
 
 message ElectionVotingRecord {
     aelf.Address voter = 1;
     string candidate = 2;
-    sint64 amount = 3;
-    sint64 term_number = 4;
+    int64 amount = 3;
+    int64 term_number = 4;
     aelf.Hash vote_id = 5;
-    sint64 lock_time = 6;
+    int64 lock_time = 6;
     google.protobuf.Timestamp unlock_timestamp = 7;
     google.protobuf.Timestamp withdraw_timestamp = 8;
     google.protobuf.Timestamp vote_timestamp = 9;
     bool is_withdrawn = 10;
-    sint64 weight = 11;
+    int64 weight = 11;
     bool is_change_target = 12;
 }
 
 message PageInformation {
-    sint32 start = 1;
-    sint32 length = 2;
+    int32 start = 1;
+    int32 length = 2;
 }
 
 message PubkeyList {
@@ -227,21 +236,21 @@ message PubkeyList {
 }
 
 message TermSnapshot {
-    sint64 end_round_number = 1;
-    sint64 mined_blocks = 2;
-    map<string, sint64> election_result = 3;
+    int64 end_round_number = 1;
+    int64 mined_blocks = 2;
+    map<string, int64> election_result = 3;
 }
 
 message UpdateMinersCountInput {
-     sint32 miners_count = 1;
+     int32 miners_count = 1;
 }
 
 message GetWelfareRewardAmountSampleInput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 
 message GetWelfareRewardAmountSampleOutput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 
 message GetPageableCandidateInformationOutput {
@@ -257,16 +266,26 @@ message SetTreasurySchemeIdsInput {
 }
 
 message DataCenterRankingList {
-    map<string, sint64> data_centers = 1;
-    sint64 minimum_votes = 2;
+    map<string, int64> data_centers = 1;
+    int64 minimum_votes = 2;
 }
 
 message VoteWeightInterest{
-    sint32 day = 1;
-    sint32 interest = 2;
-    sint32 capital = 3;
+    int32 day = 1;
+    int32 interest = 2;
+    int32 capital = 3;
 }
 
 message VoteWeightInterestList {
     repeated VoteWeightInterest vote_weight_interest_infos = 1;
+}
+
+message VoteWeightProportion {
+    int32 time_proportion = 1;
+    int32 amount_proportion = 2;
+}
+
+message VoteInformation{
+    int64 amount = 1;
+    int64 lock_time = 2;
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

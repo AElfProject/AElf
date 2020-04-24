@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -225,6 +226,39 @@ namespace AElf.Contracts.Election
 
                 miningReward1.ShouldBe(miningReward2);
             }
+        }
+
+        [Fact]
+        public async Task Vote_Weight_Calculate()
+        {
+            var day = 375;  // in 2 year
+            var weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(2254);
+            day = 180;  // in 1 year
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(1697);
+            day = 1000;  // in 3 year
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(7874);
+            day = 1096;   // > 3 year
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(9433);
         }
 
         private async Task<List<ECKeyPair>> UserVotesCandidate(int voterCount, long voteAmount, int lockDays)

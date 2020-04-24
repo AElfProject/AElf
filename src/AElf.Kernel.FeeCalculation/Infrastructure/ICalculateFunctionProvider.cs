@@ -1,4 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.FeeCalculation.Extensions;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -10,69 +15,33 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
     /// </summary>
     public interface ICalculateFunctionProvider
     {
-        Func<int, long> GetFunction(int[] parameters);
+        Task AddCalculateFunctions(IBlockIndex blockIndex, Dictionary<string, CalculateFunction> calculateFunctionDictionary);
+        Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext);
     }
 
-    public class CalculateFunctionProvider : ICalculateFunctionProvider, ISingletonDependency
+    public class CalculateFunctionProvider : BlockExecutedDataBaseProvider<Dictionary<string, CalculateFunction>>, ICalculateFunctionProvider, ISingletonDependency
     {
-        public ILogger<CalculateFunctionProvider> Logger { get; set; }
-
-        private const decimal Precision = 100000000;
-
-        public CalculateFunctionProvider()
+        public CalculateFunctionProvider(ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>
+            calculateFunctionExecutedDataService) : base(calculateFunctionExecutedDataService)
         {
-            Logger = NullLogger<CalculateFunctionProvider>.Instance;
         }
 
-        public Func<int, long> GetFunction(int[] parameters)
+        public async Task AddCalculateFunctions(IBlockIndex blockIndex,
+            Dictionary<string, CalculateFunction> calculateFunctionDictionary)
         {
-            return count => GetExponentialFunc(count, parameters);
+            await AddBlockExecutedDataAsync(blockIndex, calculateFunctionDictionary);
         }
 
-        // eg. 2x^2 + 3x + 1 -> (2,2,1, 1,3,1, 0,1,1)
-        private long GetExponentialFunc(int count, params int[] parameters)
+        public Dictionary<string, CalculateFunction> GetCalculateFunctions(IChainContext chainContext)
         {
-            long cost = 0;
-
-            // Skip parameters[0] which is meant to be piece upper bound.
-            var currentIndex = 1;
-            while (currentIndex < parameters.Length)
-            {
-                cost += GetUnitExponentialCalculation(count, parameters[currentIndex],
-                    parameters[currentIndex + 1],
-                    parameters[currentIndex + 2]);
-                currentIndex += 3;
-            }
-
-            return cost;
+            return GetBlockExecutedData(chainContext);
         }
 
-        // (A, B, C)  ->  x^A * (B / C)
-        private long GetUnitExponentialCalculation(int count, params int[] parameters)
+        private const string BlockExecutedDataName = nameof(AllCalculateFeeCoefficients);
+
+        protected override string GetBlockExecutedDataName()
         {
-            if (parameters[2] == 0)
-            {
-                Logger.LogError("Third parameter can't be 0. Will tune to 1.");
-                parameters[2] = 1;
-            }
-
-            decimal decimalResult;
-            var power = parameters[0];
-            decimal divisor = parameters[1];
-            decimal dividend = parameters[2];
-            if (power == 0)
-            {
-                // This piece is (B / C)
-                decimalResult = divisor / dividend;
-            }
-            else
-            {
-                // Calculate x^A at first.
-                var powerResult = (decimal) Math.Pow(count, power);
-                decimalResult = powerResult * divisor / dividend;
-            }
-
-            return (long) (decimalResult * Precision);
+            return BlockExecutedDataName;
         }
     }
 }

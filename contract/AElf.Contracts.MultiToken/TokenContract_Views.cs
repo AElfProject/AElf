@@ -23,13 +23,13 @@ namespace AElf.Contracts.MultiToken
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
             var tokenInfoList = new TokenInfoList();
-            foreach (var symbol in Context.Variables.SymbolListToPayTxFee.Where(symbol =>
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Where(symbol =>
                 State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
             }
 
-            foreach (var symbol in Context.Variables.SymbolListToPayRental.Where(symbol =>
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Where(symbol =>
                 State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
@@ -89,7 +89,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Address GetVirtualAddressForLocking(GetVirtualAddressForLockingInput input)
         {
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = HashHelper.ComputeFromByteArray(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             return virtualAddress;
@@ -114,7 +114,7 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(SInt32Value input)
+        public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(Int32Value input)
         {
             if (input.Value == (int) FeeTypeEnum.Tx)
                 return null;
@@ -135,7 +135,7 @@ namespace AElf.Contracts.MultiToken
         public override OwningRental GetOwningRental(Empty input)
         {
             var owingRental = new OwningRental();
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 owingRental.ResourceAmount[symbol] = State.OwningRental[symbol];
             }
@@ -146,7 +146,7 @@ namespace AElf.Contracts.MultiToken
         public override OwningRentalUnitValue GetOwningRentalUnitValue(Empty input)
         {
             var rentalResourceUnitValue = new OwningRentalUnitValue();
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 rentalResourceUnitValue.ResourceUnitValue[symbol] = State.Rental[symbol];
             }
@@ -157,7 +157,7 @@ namespace AElf.Contracts.MultiToken
         public override ResourceUsage GetResourceUsage(Empty input)
         {
             var usage = new ResourceUsage();
-            foreach (var symbol in Context.Variables.SymbolListToPayRental)
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName))
             {
                 usage.Value.Add(symbol, State.ResourceAmount[symbol]);
             }
@@ -184,17 +184,12 @@ namespace AElf.Contracts.MultiToken
             return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
+        public override AuthorityInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
-            var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerCreateInfo
-            {
-                Controller = controllerAddress,
-                OrganizationCreationInputBytes = organization.ToByteString()
-            };
-            return controllerInfo;
+            Assert(State.SideChainRentalController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.SideChainRentalController.Value;
         }
 
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
@@ -202,6 +197,15 @@ namespace AElf.Contracts.MultiToken
             if(State.SymbolToPayTxFeeController.Value == null)
                 return GetDefaultSymbolToPayTxFeeController();
             return State.SymbolToPayTxFeeController.Value;
+        }
+        
+        public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
+        {
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+            {
+                return GetCrossChainTokenContractRegistrationController();
+            }
+            return State.CrossChainTokenContractRegistrationController.Value;
         }
     }
 }

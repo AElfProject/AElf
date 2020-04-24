@@ -3,6 +3,7 @@ syntax = "proto3";
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Resource";
 
@@ -34,16 +35,16 @@ service ResourceContract {
     rpc GetConverter (ResourceId) returns (Converter) {
         option (aelf.is_view) = true;
     }
-    rpc GetUserBalance (UserResourceId) returns (aelf.SInt64Value) {
+    rpc GetUserBalance (UserResourceId) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetUserLockedBalance (UserResourceId) returns (aelf.SInt64Value) {
+    rpc GetUserLockedBalance (UserResourceId) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetExchangeBalance (ResourceId) returns (aelf.SInt64Value) {
+    rpc GetExchangeBalance (ResourceId) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetElfBalance (ResourceId) returns (aelf.SInt64Value) {
+    rpc GetElfBalance (ResourceId) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
 }
@@ -57,10 +58,10 @@ enum ResourceType {
 }
 
 message Converter {
-    sint64 res_balance = 1;
-    sint64 elf_balance = 2;
-    sint64 res_weight = 3; // Weight based on MAX of 1,000,000
-    sint64 elf_weight = 4; // Weight based on MAX of 1,000,000
+    int64 res_balance = 1;
+    int64 elf_balance = 2;
+    int64 res_weight = 3; // Weight based on MAX of 1,000,000
+    int64 elf_weight = 4; // Weight based on MAX of 1,000,000
     ResourceType type = 5;
 }
 
@@ -86,11 +87,11 @@ message InitializeInput {
 
 message ResourceAmount {
     ResourceType type = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message UserResourceAmount {
     aelf.Address user = 1;
     ResourceType type = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }

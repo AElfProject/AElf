@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -96,9 +98,9 @@ namespace AElf.Contracts.Election
                 .ToList();
         }
 
-        public override SInt32Value GetMinersCount(Empty input)
+        public override Int32Value GetMinersCount(Empty input)
         {
-            return new SInt32Value {Value = State.MinersCount.Value };
+            return new Int32Value {Value = State.MinersCount.Value };
         }
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)
@@ -182,28 +184,28 @@ namespace AElf.Contracts.Election
             return votes;
         }
 
-        public override SInt64Value GetVotersCount(Empty input)
+        public override Int64Value GetVotersCount(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.VoteContract.GetLatestVotingResult.Call(State.MinerElectionVotingItemId.Value).VotersCount
             };
         }
 
-        public override SInt64Value GetVotesAmount(Empty input)
+        public override Int64Value GetVotesAmount(Empty input)
         {
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.VoteContract.GetLatestVotingResult.Call(State.MinerElectionVotingItemId.Value).VotesAmount
             };
         }
 
-        public override SInt64Value GetCurrentMiningReward(Empty input)
+        public override Int64Value GetCurrentMiningReward(Empty input)
         {
             if (State.AEDPoSContract.Value == null)
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            return new SInt64Value
+            return new Int64Value
             {
                 Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation
                     .Values.Sum(minerInRound => minerInRound.ProducedBlocks)
@@ -287,7 +289,7 @@ namespace AElf.Contracts.Election
         
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
-            return State.VoteWeightInterestList.Value;
+            return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
         }
         
         public override AuthorityInfo GetVoteWeightInterestController(Empty input)
@@ -295,6 +297,19 @@ namespace AElf.Contracts.Election
             if (State.VoteWeightInterestController.Value == null)
                 return GetDefaultVoteWeightInterestController();
             return State.VoteWeightInterestController.Value;
+        }
+        
+        public override VoteWeightProportion GetVoteWeightProportion(Empty input)
+        {
+            return State.VoteWeightProportion.Value ?? GetDefaultVoteWeightProportion();
+        }
+        
+        public override Int64Value GetCalculateVoteWeight(VoteInformation input)
+        {
+            return new Int64Value
+            {
+                Value = GetVotesWeight(input.Amount, input.LockTime)
+            };
         }
         
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)

@@ -55,7 +55,7 @@ namespace AElf.WebApp.Application.Chain
             Hash transactionIdHash;
             try
             {
-                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+                transactionIdHash = Hash.LoadFromHex(transactionId);
             }
             catch
             {
@@ -108,10 +108,6 @@ namespace AElf.WebApp.Application.Chain
                 output.Error = transactionResult.Error;
             }
 
-            output.TransactionFee = transactionResult.TransactionFee == null
-                ? new TransactionFeeDto()
-                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
-
             return output;
         }
 
@@ -139,7 +135,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = HashHelper.HexStringToHash(blockHash);
+                realBlockHash = Hash.LoadFromHex(blockHash);
             }
             catch
             {
@@ -178,7 +174,7 @@ namespace AElf.WebApp.Application.Chain
             Hash transactionIdHash;
             try
             {
-                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+                transactionIdHash = Hash.LoadFromHex(transactionId);
             }
             catch
             {
@@ -284,10 +280,6 @@ namespace AElf.WebApp.Application.Chain
 
             transactionResultDto.Status = transactionResult.Status.ToString();
 
-            transactionResultDto.TransactionFee = transactionResult.TransactionFee == null
-                ? new TransactionFeeDto()
-                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
-
             return transactionResultDto;
         }
 
@@ -335,7 +327,7 @@ namespace AElf.WebApp.Application.Chain
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return Hash.FromRawBytes(rawBytes);
+            return HashHelper.ComputeFromByteArray(rawBytes);
         }
         
         private bool IsValidMessage(IMessage message)

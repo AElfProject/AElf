@@ -1,5 +1,6 @@
 using System.Linq;
 using Acs6;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -29,15 +30,15 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
                 requestSlot != null && requestSlot.BlockHeight.Add(CommitmentSchemeContractConstants.WaitBlockHeight) <=
                 Context.CurrentHeight, "Incorrect request slot.");
             var userCommitment = State.Commitments[Context.Sender];
-            Assert(Hash.FromMessage(input) == userCommitment, "Incorrect commitment.");
+            Assert(HashHelper.ComputeFromMessage(input) == userCommitment, "Incorrect commitment.");
             var properInValue = GetNextInValueOfSlot(State.RequestSlots[Context.Sender]);
-            return Hash.FromTwoHashes(input, properInValue);
+            return HashHelper.ConcatAndCompute(input, properInValue);
         }
 
         private Hash GetNextInValueOfSlot(RequestSlot requestSlot)
         {
             RequireAEDPoSContractStateSet();
-            var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var round = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber
             });
@@ -48,7 +49,7 @@ namespace AElf.Contracts.TestContract.CommitmentScheme
                     ?.PreviousInValue;
             }
 
-            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value
+            var nextRound = State.AEDPoSContract.GetRoundInformation.Call(new Int64Value
             {
                 Value = requestSlot.RoundNumber.Add(1)
             });

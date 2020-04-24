@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Acs1;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -294,14 +295,6 @@ namespace AElf.Contracts.TokenConverter
         public override Empty ChangeConnectorController(AuthorityInfo input)
         {
             AssertPerformedByConnectorController();
-            Assert(input != null, "invalid input");
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-            
-            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
             Assert(CheckOrganizationExist(input), "new controller does not exist");
             State.ConnectorController.Value = input;
             return new Empty();

@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.FeeCalculation.Application;
+﻿using System.Collections.Generic;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -23,6 +24,10 @@ namespace AElf.Kernel.FeeCalculation
             services
                 .AddSingleton<IBlockAcceptedLogEventProcessor,
                     TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor>();
+            services
+                .AddSingleton<ICachedBlockchainExecutedDataService<Dictionary<string, CalculateFunction>>,
+                    CalculateFunctionExecutedDataService>();
+            services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
         }
     }
 }

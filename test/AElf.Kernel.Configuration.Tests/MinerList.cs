@@ -1,5 +1,5 @@
 using System.Linq;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Hash GetMinersHash()
         {
             var orderedMiners = Pubkeys.OrderBy(p => p);
-            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
+            return HashHelper.ComputeFromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
     }
 }

@@ -6,6 +6,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -67,7 +68,7 @@ namespace AElf.Contracts.Association
                 getOrganization.ProposerWhiteList.ShouldBe(createOrganizationInput.ProposerWhiteList);
                 getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
                 getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
-                getOrganization.OrganizationHash.ShouldBe(Hash.FromMessage(createOrganizationInput));
+                getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFromMessage(createOrganizationInput));
             }
         }
 
@@ -121,7 +122,7 @@ namespace AElf.Contracts.Association
         {
             //failed case
             {
-                var proposal = await AssociationContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+                var proposal = await AssociationContractStub.GetProposal.CallAsync(HashHelper.ComputeFromString("Test"));
                 proposal.ShouldBe(new ProposalOutput());
             }
 
@@ -411,7 +412,7 @@ namespace AElf.Contracts.Association
         public async Task Approve_Proposal_NotFoundProposal_Test()
         {
             var transactionResult =
-                await AssociationContractStub.Approve.SendWithExceptionAsync(Hash.FromString("Test"));
+                await AssociationContractStub.Approve.SendWithExceptionAsync(HashHelper.ComputeFromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
@@ -481,7 +482,7 @@ namespace AElf.Contracts.Association
             //not found
             {
                 var transactionResult =
-                    await AssociationContractStub.Approve.SendWithExceptionAsync(Hash.FromString("Test"));
+                    await AssociationContractStub.Approve.SendWithExceptionAsync(HashHelper.ComputeFromString("Test"));
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
 
@@ -574,7 +575,7 @@ namespace AElf.Contracts.Association
         {
             //not found
             {
-                var fakeId = Hash.FromString("test");
+                var fakeId = HashHelper.ComputeFromString("test");
                 AssociationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
                 var result = await AssociationContractStub.Release.SendWithExceptionAsync(fakeId);
                 //Proposal not found

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -20,7 +21,11 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
+using AElf.Kernel.CodeCheck;
+using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using Microsoft.Extensions.Options;
 using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
@@ -28,15 +33,15 @@ using MethodDefinition = Mono.Cecil.MethodDefinition;
 
 namespace AElf.CSharp.CodeOps
 {
-    public class ContractAuditorFixture : IDisposable
+    public class ContractAuditor : IDisposable
     {
-        private ContractAuditor _auditor;
-        private readonly RequiredAcsDto _requiredAcs;
+        private CSharpContractAuditor _auditor;
+        private readonly RequiredAcs _requiredAcs;
 
-        public ContractAuditorFixture()
+        public ContractAuditor(CSharpContractAuditor contractAuditor)
         {
-            _auditor = new ContractAuditor(null, null);
-            _requiredAcs = new RequiredAcsDto
+            _auditor = contractAuditor;
+            _requiredAcs = new RequiredAcs
             {
                 AcsList = new[] {"acs1", "acs8"}.ToList(),
                 RequireAll = false
@@ -45,7 +50,7 @@ namespace AElf.CSharp.CodeOps
 
         public void Audit(byte[] code)
         {
-            _auditor.Audit(code, _requiredAcs, false);
+            _auditor.Audit(code, _requiredAcs);
         }
 
         public void Dispose()
@@ -54,15 +59,15 @@ namespace AElf.CSharp.CodeOps
         }
     }
 
-    public class ContractAuditorTests : CSharpCodeOpsTestBase, IClassFixture<ContractAuditorFixture>
+    public class ContractAuditorTests : CSharpCodeOpsTestBase
     {
-        private readonly ContractAuditorFixture _auditorFixture;
+        private readonly ContractAuditor _auditor;
 
 
-        public ContractAuditorTests(ContractAuditorFixture auditorFixture)
+        public ContractAuditorTests()
         {
             // Use fixture to instantiate auditor only once
-            _auditorFixture = auditorFixture;
+            _auditor = GetRequiredService<ContractAuditor>();
         }
 
         #region Positive Cases
@@ -83,7 +88,17 @@ namespace AElf.CSharp.CodeOps
         [InlineData(typeof(TreasuryContract))]
         public void CheckSystemContracts_AllShouldPass(Type contractType)
         {
-            Should.NotThrow(() => _auditorFixture.Audit(ReadPatchedContractCode(contractType)));
+            _auditor.Audit(ReadPatchedContractCode(contractType));
+        }
+
+        [Fact]
+        public void AuditTimeout()
+        {
+            Should.NotThrow(() => _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract))));
+            var codeOpsOptions = GetRequiredService<IOptionsMonitor<CSharpCodeOpsOptions>>();
+            codeOpsOptions.CurrentValue.AuditTimeoutDuration = 0;
+            Should.Throw<ContractAuditTimeoutException>(() =>
+                _auditor.Audit(ReadPatchedContractCode(typeof(TokenContract))));
         }
 
         [Fact]
@@ -92,25 +107,19 @@ namespace AElf.CSharp.CodeOps
             var code = ReadContractCode(typeof(TokenContract));
             var updateCode = ContractPatcher.Patch(code);
             code.ShouldNotBe(updateCode);
-            var exception = Record.Exception(() => _auditorFixture.Audit(updateCode));
+            var exception = Record.Exception(() => _auditor.Audit(updateCode));
             exception.ShouldBeNull();
         }
 
         #endregion
-
-        [Fact]
-        public void PatchTest()
-        {
-            ContractPatcher.Patch(ReadContractCode(typeof(AEDPoSContract)));
-        }
 
         #region Negative Cases
 
         [Fact]
         public void CheckBadContract_ForFindings()
         {
-            var findings = Should.Throw<InvalidCodeException>(
-                    () => _auditorFixture.Audit(ReadContractCode(typeof(BadContract))))
+            var findings = Should.Throw<CSharpCodeCheckException>(
+                    () => _auditor.Audit(ReadContractCode(typeof(BadContract))))
                 .Findings;
 
             // Should have identified that ACS1 or ACS8 is not there
@@ -242,8 +251,8 @@ namespace AElf.CSharp.CodeOps
             var tamperedContract = new MemoryStream();
             module.Write(tamperedContract);
 
-            var findings = Should.Throw<InvalidCodeException>(
-                    () => _auditorFixture.Audit(tamperedContract.ToArray()))
+            var findings = Should.Throw<CSharpCodeCheckException>(
+                    () => _auditor.Audit(tamperedContract.ToArray()))
                 .Findings;
 
             findings.FirstOrDefault(f => f is ResetFieldsValidationResult &&
@@ -261,15 +270,15 @@ namespace AElf.CSharp.CodeOps
             // that iterates an array with foreach loop.
             var contractCode = ReadContractCode(typeof(TransactionFeesContract));
 
-            var findings = Should.Throw<InvalidCodeException>(
-                    () => _auditorFixture.Audit(contractCode))
+            var findings = Should.Throw<CSharpCodeCheckException>(
+                    () => _auditor.Audit(contractCode))
                 .Findings;
 
             findings.FirstOrDefault(f => f is UncheckedMathValidationResult)
                 .ShouldNotBeNull();
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
-            Should.NotThrow(() => _auditorFixture.Audit(ContractPatcher.Patch(contractCode)));
+            Should.NotThrow(() => _auditor.Audit(ContractPatcher.Patch(contractCode)));
         }
 
         #endregion

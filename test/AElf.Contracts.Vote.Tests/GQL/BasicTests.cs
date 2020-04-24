@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -58,7 +59,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VoteInput
                 {
-                    VotingItemId = Hash.FromString("hash")
+                    VotingItemId = HashHelper.ComputeFromString("hash")
                 };
 
                 var transactionResult = (await VoteContractStub.Vote.SendWithExceptionAsync(input)).TransactionResult;

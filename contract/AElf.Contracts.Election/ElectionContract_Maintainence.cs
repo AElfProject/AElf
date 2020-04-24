@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -45,8 +46,6 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = new DataCenterRankingList();
 
-            InitializeVoteWeightInterest();
-
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -67,8 +66,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = Hash.FromTwoHashes(Hash.FromMessage(votingRegisterInput),
-                Hash.FromMessage(Context.Self));
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFromMessage(votingRegisterInput),
+                HashHelper.ComputeFromMessage(Context.Self));
 
             State.VotingEventRegistered.Value = true;
             return new Empty();
@@ -83,7 +82,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.AEDPoSContract.Value == Context.Sender, "No permission.");
 
             SavePreviousTermInformation(input);
@@ -114,20 +113,26 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
 
-
+            var symbolList = State.TreasuryContract.GetDistributingSymbolList.Call(new Empty());
+            var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
                 Period = input.TermNumber,
-                Symbol = Context.Variables.NativeSymbol
+                AmountsMap = {amountsMap}
             });
 
             return new Empty();

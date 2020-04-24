@@ -17,23 +17,20 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly ITransactionGrouper _grouper;
         private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
-        private readonly ITransactionResultService _transactionResultService;
         public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
-            ITransactionResultService transactionResultService,
             IPlainTransactionExecutingService planTransactionExecutingService)
         {
             _grouper = grouper;
             _planTransactionExecutingService = planTransactionExecutingService;
-            _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException = false)
+            CancellationToken cancellationToken)
         {
             Logger.LogTrace("Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
@@ -54,7 +51,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Transactions = groupedTransactions.NonParallelizables,
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 },
-                cancellationToken, throwException);
+                cancellationToken);
 
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
@@ -68,7 +65,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     BlockHeader = blockHeader,
                     Transactions = txns,
                     PartialBlockStateSet = updatedPartialBlockStateSet,
-                }, cancellationToken, throwException));
+                }, cancellationToken));
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
@@ -111,13 +108,12 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     TransactionId = result.TransactionId,
                     Status = result.Status,
-                    Bloom = result.Bloom
+                    Bloom = result.Bloom,
+                    TransactionResult = result
                 };
                 returnSets.Add(returnSet);
             }
-
-            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
-
+            
             return returnSets;
         }
 
@@ -134,19 +130,17 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Error = "Parallel conflict",
                 };
                 conflictingSet.Status = result.Status;
+                conflictingSet.TransactionResult = result;
                 transactionResults.Add(result);
             }
 
-            await _transactionResultService.AddTransactionResultsAsync(transactionResults, blockHeader);
         }
 
         private async Task<GroupedExecutionReturnSets> ExecuteAndPreprocessResult(
-            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
-            bool throwException = false)
+            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken)
         {
             var executionReturnSets =
-                await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
-                    throwException);
+                await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s =>
                     s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));

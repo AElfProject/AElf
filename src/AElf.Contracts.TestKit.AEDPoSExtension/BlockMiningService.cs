@@ -11,10 +11,12 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
@@ -146,7 +148,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     new InitialAElfConsensusContractInput
                     {
                         MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                        TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm
+                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds
                     });
                 if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
                 {
@@ -420,8 +422,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                InValue = Hash.FromString($"InValueOf{pubkey}"),
-                PreviousInValue = Hash.FromString($"InValueOf{pubkey}"),
+                InValue = HashHelper.ComputeFromString($"InValueOf{pubkey}"),
+                PreviousInValue = HashHelper.ComputeFromString($"InValueOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs6;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var inValues = participators.Select(i => i.PreviousInValue).ToList();
                     var randomHash = inValues.First();
-                    randomHash = inValues.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
+                    randomHash = inValues.Skip(1).Aggregate(randomHash, HashHelper.ConcatAndCompute);
                     return randomHash;
                 }
 
@@ -118,9 +119,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override RandomNumberOrder RequestRandomNumber(Hash input)
         {
-            var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
+                var randomNumberCount = State.RandomNumberTokenMap[currentRound.RoundNumber]?.Values.Count ?? 0;
+                var tokenHash = Context.GenerateId(Context.Self, randomNumberCount.ToBytes(false));
+
                 var requestInformation = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
 
@@ -183,7 +186,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
-                        var finalRandomHash = Hash.FromTwoHashes(randomHash, input);
+                        var finalRandomHash = HashHelper.ConcatAndCompute(randomHash, input);
                         Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = finalRandomHash});
                         return finalRandomHash;
                     }

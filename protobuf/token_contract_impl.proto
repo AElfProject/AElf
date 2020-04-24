@@ -37,11 +37,15 @@ service TokenContractImpl {
     }
     rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
     }
-    rpc ChangeSideChainParliamentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainRentalController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){
     }
     rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeUserFeeController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeDeveloperController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
         option (aelf.is_view) = true;
@@ -61,7 +65,7 @@ service TokenContractImpl {
     rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
@@ -78,25 +82,25 @@ service TokenContractImpl {
 message ProfitReceivingInformation {
     aelf.Address contract_address = 1;
     aelf.Address profit_receiver_address = 2;
-    sint32 donation_parts_per_hundred = 3;
+    int32 donation_parts_per_hundred = 3;
 }
 
 message ReceiveProfitsInput {
     aelf.Address contract_address = 1;
     string symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 
 message AdvanceResourceTokenInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 
 message TakeResourceTokenBackInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 
 message RegisterCrossChainTokenContractAddressInput{
@@ -110,24 +114,24 @@ message RegisterCrossChainTokenContractAddressInput{
 message ValidateTokenInfoExistsInput{
     string symbol = 1;
     string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
+    int64 total_supply = 3;
+    int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    sint32 issue_chain_id = 7;
+    int32 issue_chain_id = 7;
     bool is_profitable = 8;
 }
 
 message UpdateRentalInput {
-    map<string, sint64> rental = 1;
+    map<string, int64> rental = 1;
 }
 
 message UpdateRentedResourcesInput {
-    map<string, sint32> resource_amount = 1;
+    map<string, int32> resource_amount = 1;
 }
 
 message ResourceUsage {
-    map<string, sint32> value = 1;
+    map<string, int32> value = 1;
 }
 
 message GetVirtualAddressForLockingInput {
@@ -136,24 +140,19 @@ message GetVirtualAddressForLockingInput {
 }
 
 message OwningRental {
-    map<string, sint64> resource_amount = 1;
+    map<string, int64> resource_amount = 1;
 }
 
 message OwningRentalUnitValue {
-    map<string, sint64> resource_unit_value = 1;
+    map<string, int64> resource_unit_value = 1;
 }
 
 message TransferToContractInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
     string memo = 3;
 }
 // about authority
-message ControllerCreateInfo {
-    aelf.Address controller = 1;
-    bytes organization_creation_input_bytes = 2;
-}
-
 message UserFeeController{
     acs1.AuthorityInfo root_controller = 1;
     acs1.AuthorityInfo parliament_controller = 2;

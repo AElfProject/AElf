@@ -1,54 +1,43 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    internal class ResourceConsumptionPostExecutionPlugin : SmartContractExecutionPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly IResourceTokenFeeService _resourceTokenFeeService;
-        private const string AcsSymbol = "acs8";
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
+        
+        public ILogger<ResourceConsumptionPostExecutionPlugin> Logger { get; set; }
 
         public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            IResourceTokenFeeService resourceTokenFeeService)
+            IResourceTokenFeeService resourceTokenFeeService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
+            base("acs8")
         {
             _contextService = contextService;
             _resourceTokenFeeService = resourceTokenFeeService;
-        }
+            _contractReaderFactory = contractReaderFactory;
 
-        private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
-        {
-            return descriptors.Any(service => service.File.GetIdentity() == AcsSymbol);
-        }
-
-        private static TokenContractContainer.TokenContractStub GetTokenContractStub(Address sender,
-            Address contractAddress)
-        {
-            return new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = sender,
-                    ContractAddress = contractAddress
-                }
-            };
+            Logger = NullLogger<ResourceConsumptionPostExecutionPlugin>.Instance;
         }
 
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs8(descriptors))
+            if (!IsTargetAcsSymbol(descriptors))
             {
                 return new List<Transaction>();
             }
@@ -57,13 +46,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             context.TransactionContext = transactionContext;
 
             // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();
             }
 
-            var tokenStub = GetTokenContractStub(transactionContext.Transaction.To, tokenContractAddress);
+            var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
+            {
+                ContractAddress = tokenContractAddress,
+                Sender = transactionContext.Transaction.To
+            });
+            
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
@@ -88,12 +82,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
 
             var feeCalculationResult =
-                await _resourceTokenFeeService.CalculateTokenFeeAsync(transactionContext, chainContext);
+                await _resourceTokenFeeService.CalculateFeeAsync(transactionContext, chainContext);
             chargeResourceTokenInput.CostDic.Add(feeCalculationResult);
 
-            var chargeResourceTokenTransaction =
-                (await tokenStub.ChargeResourceToken.SendAsync(chargeResourceTokenInput)).Transaction;
-
+            var chargeResourceTokenTransaction = tokenStub.ChargeResourceToken.GetTransaction(chargeResourceTokenInput);
             return new List<Transaction>
             {
                 chargeResourceTokenTransaction

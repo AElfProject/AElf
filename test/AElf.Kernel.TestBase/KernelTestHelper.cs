@@ -89,7 +89,7 @@ namespace AElf.Kernel
             ForkBranchBlockList =
                 await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList = await AddForkBranch(9, Hash.FromString("UnlinkBlock"));
+            UnlinkedBranchBlockList = await AddForkBranch(9, HashHelper.ComputeFromString("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
@@ -136,7 +136,7 @@ namespace AElf.Kernel
         }
 
         public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash,
-            List<Transaction> transactions = null, ByteString extraData = null)
+            List<Transaction> transactions = null, Dictionary<string,ByteString> extraData = null)
         {
 
             var newBlock = new Block
@@ -149,11 +149,13 @@ namespace AElf.Kernel
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
-                    ExtraData = {extraData == null ? ByteString.Empty : extraData},
                     SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };
+
+            if (extraData != null)
+                newBlock.Header.ExtraData.Add(extraData);
 
             if (transactions != null)
             {
@@ -232,6 +234,16 @@ namespace AElf.Kernel
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             return block;
+        }
+
+        public async Task<ChainContext> GetChainContextAsync()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            return new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
         }
 
         #region private methods

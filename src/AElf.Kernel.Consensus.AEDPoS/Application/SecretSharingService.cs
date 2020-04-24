@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingService : ISecretSharingService, ISingletonDependency
+    internal class SecretSharingService : ISecretSharingService, ISingletonDependency
     {
         private readonly Dictionary<long, Dictionary<string, byte[]>> _encryptedPieces =
             new Dictionary<long, Dictionary<string, byte[]>>();
@@ -39,14 +39,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<SecretSharingService>.Instance;
         }
 
-        public async Task AddSharingInformationAsync(LogEvent logEvent)
+        public async Task AddSharingInformationAsync(SecretSharingInformation secretSharingInformation)
         {
             try
             {
                 var selfPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
-
-                var secretSharingInformation = new SecretSharingInformation();
-                secretSharingInformation.MergeFrom(logEvent);
 
                 if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey))
                 {
@@ -157,7 +154,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     .Select(s => s.ToByteArray()).ToList();
 
                 var revealedInValue =
-                    Hash.FromRawBytes(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+                    HashHelper.ComputeFromByteArray(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
                 Logger.LogDebug($"Revealed in value of {pubkey} of round {round.RoundNumber}: {revealedInValue}");
 
@@ -208,9 +205,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private async Task<Hash> GenerateInValueAsync(IMessage message)
         {
-            var data = Hash.FromRawBytes(message.ToByteArray());
+            var data = HashHelper.ComputeFromByteArray(message.ToByteArray());
             var bytes = await _accountService.SignAsync(data.ToByteArray());
-            return Hash.FromRawBytes(bytes);
+            return HashHelper.ComputeFromByteArray(bytes);
         }
     }
 }

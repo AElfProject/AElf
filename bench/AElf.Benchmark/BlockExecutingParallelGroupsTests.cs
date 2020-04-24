@@ -61,11 +61,11 @@ namespace AElf.Benchmark
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _prepareTransactions);
             await _blockExecutingService.ExecuteBlockAsync(_block.Header, _prepareTransactions);
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
-            _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
+            _block = (await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
 
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
-            _cancellableTransactions = _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
+            _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflictAsync(_keyPairs, tokenAmount);
             chain = await _blockchainService.GetChainAsync();
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 _systemTransactions.Concat(_cancellableTransactions));
@@ -74,8 +74,8 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header,
-                _systemTransactions, _cancellableTransactions, CancellationToken.None);
+            _block = (await _blockExecutingService.ExecuteBlockAsync(_block.Header,
+                _systemTransactions, _cancellableTransactions, CancellationToken.None)).Block;
         }
 
         [IterationCleanup]
@@ -85,7 +85,7 @@ namespace AElf.Benchmark
             var transactionIds = _systemTransactions.Concat(_cancellableTransactions).Select(t => t.GetHash()).ToList();
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetPreMiningHash());
+                _block.Header.GetDisambiguatingHash());
         }
     }
 }

@@ -12,6 +12,14 @@ namespace AElf.Contracts.Parliament
 
         public override MethodFees GetMethodFee(StringValue input)
         {
+            if (input.Value == nameof(ApproveMultiProposals))
+            {
+                return new MethodFees
+                {
+                    MethodName = input.Value
+                };
+            }
+
             return State.TransactionFees[input.Value];
         }
 

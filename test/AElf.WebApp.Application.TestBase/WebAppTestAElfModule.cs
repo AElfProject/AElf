@@ -1,7 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.TransactionPool.Application;
@@ -26,7 +29,8 @@ namespace AElf.WebApp.Application
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(WebWebAppAElfModule),
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(FeeCalculationModule)
     )]
     public class WebAppTestAElfModule : AElfModule
     {
@@ -79,11 +83,10 @@ namespace AElf.WebApp.Application
 
                 return mockService.Object;
             });
-
-            context.Services
-                .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
-            context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
+            context.Services.AddTransient<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
+            context.Services.AddTransient<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
             context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }
     }

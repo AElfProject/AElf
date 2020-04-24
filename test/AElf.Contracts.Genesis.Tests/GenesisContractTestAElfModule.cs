@@ -1,10 +1,9 @@
 using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
+using AElf.Kernel.CodeCheck;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using NSubstitute;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -17,8 +16,8 @@ namespace AElf.Contracts.Genesis
     {
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            var codeCheck = context.ServiceProvider.GetRequiredService<ICodeCheckService>();
-            codeCheck.Enable();
+            var codeCheck = context.ServiceProvider.GetRequiredService<IOptionsMonitor<CodeCheckOptions>>();
+            codeCheck.CurrentValue.CodeCheckEnabled = true;
         }
     }
 

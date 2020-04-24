@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -381,10 +382,12 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                var votingResultHash = GetVotingResultHash(votingItem.VotingItemId, votingItem.CurrentSnapshotNumber);
+                var votingResult = State.VotingResults[votingResultHash];
                 // Voter = Transaction Sender
                 input.Voter = Context.Sender;
                 // VoteId = Transaction Id;
-                input.VoteId = Context.TransactionId;
+                input.VoteId = Context.GenerateId(Context.Self, votingResult.VotesAmount.ToBytes(false));
             }
 
             return votingItem;

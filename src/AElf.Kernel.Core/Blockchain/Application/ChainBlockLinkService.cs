@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -7,9 +8,10 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IChainBlockLinkService
     {
-        ChainBlockLink GetCachedChainBlockLink(Hash blockHash);
         List<ChainBlockLink> GetCachedChainBlockLinks();
-        void RemoveCachedChainBlockLink(Hash blockHash);
+        void CleanCachedChainBlockLinks(long height);
+        Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash);
+        Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status);
     }
 
     public class ChainBlockLinkService : IChainBlockLinkService, ITransientDependency
@@ -21,19 +23,25 @@ namespace AElf.Kernel.Blockchain.Application
             _chainManager = chainManager;
         }
 
-        public ChainBlockLink GetCachedChainBlockLink(Hash blockHash)
-        {
-            return _chainManager.GetCachedChainBlockLink(blockHash);
-        }
-
         public List<ChainBlockLink> GetCachedChainBlockLinks()
         {
             return _chainManager.GetCachedChainBlockLinks();
         }
 
-        public void RemoveCachedChainBlockLink(Hash blockHash)
+        public void CleanCachedChainBlockLinks(long height)
         {
-            _chainManager.RemoveCachedChainBlockLink(blockHash);
+            _chainManager.CleanCachedChainBlockLinks(height);
+        }
+
+        public async Task<List<ChainBlockLink>> GetNotExecutedChainBlockLinksAsync(Hash chainBranchBlockHash)
+        {
+            return await _chainManager.GetNotExecutedBlocks(chainBranchBlockHash);
+        }
+
+        public async Task SetChainBlockLinkExecutionStatusAsync(Hash blockHash, ChainBlockLinkExecutionStatus status)
+        {
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(blockHash);
+            await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink, status);
         }
     }
 }

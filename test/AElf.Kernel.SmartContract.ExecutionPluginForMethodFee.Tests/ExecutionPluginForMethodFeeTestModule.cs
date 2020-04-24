@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation;
+using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.FreeFeeTransactions;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -15,12 +18,31 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
-            context.Services.AddSingleton<ICoefficientsProvider, MockFeeCalculateCoefficientProvider>();
+            context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
+            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
+            context.Services.AddTransient<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
+        }
+    }
+
+    [DependsOn(typeof(ContractTestAElfModule),
+        typeof(ExecutionPluginForMethodFeeModule),
+        typeof(FeeCalculationModule))]
+    public class ExecutionPluginForMethodFeeWithForkTestModule : ContractTestAElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
+            context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
+            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
+            context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
+            context.Services.AddSingleton<ISystemTransactionGenerator,MockTransactionGenerator>();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Domain;
@@ -36,7 +37,7 @@ namespace AElf.OS.BlockSync.Worker
         [Fact]
         public async Task ProcessDownloadJob_Success()
         {
-            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFromString("PeerBlock"), null);
             var peerBlock = response.Payload;
 
             var jobId = await _blockDownloadJobManager.EnqueueAsync(peerBlock.GetHash(), peerBlock.Height,
@@ -66,7 +67,7 @@ namespace AElf.OS.BlockSync.Worker
         public async Task ProcessDownloadJob_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFromString("PeerBlock"), null);
             var peerBlock = response.Payload;
             var bestChainHash = chain.BestChainHash;
             var bestChainHeight = chain.BestChainHeight;

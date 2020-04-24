@@ -5,6 +5,8 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
@@ -26,7 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.FromString("hash3")).ToList();
+                .Select(_ => HashHelper.ComputeFromString("hash3")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
@@ -67,7 +69,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var changeTermTime = BlockchainStartTimestamp.ToDateTime()
-                .AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 1);
+                .AddMinutes(AEDPoSContractTestConstants.PeriodSeconds + 1);
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
@@ -82,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // First candidate cheat others with in value.
             var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
             var anotherCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[1]);
-            var randomHash = Hash.FromString("hash5");
+            var randomHash = HashHelper.ComputeFromString("hash5");
             var informationOfSecondRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
@@ -95,7 +97,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(ValidationDataCenterKeyPairs[0]
                     .PublicKey.ToHex()));
 
-            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
+            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.PeriodSeconds + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
             var thirdRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -110,8 +112,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
-                    PreviousInValue = Hash.FromMessage(randomHash), // Not same as before.
-                    InValue = Hash.FromString("InValue"), // Don't care this value in current test case.
+                    PreviousInValue = HashHelper.ComputeFromMessage(randomHash), // Not same as before.
+                    InValue = HashHelper.ComputeFromString("InValue"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(

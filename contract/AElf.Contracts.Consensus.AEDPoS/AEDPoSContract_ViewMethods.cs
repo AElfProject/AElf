@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Election;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,13 +12,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public override SInt64Value GetCurrentRoundNumber(Empty input) =>
-            new SInt64Value {Value = State.CurrentRoundNumber.Value};
+        public override Int64Value GetCurrentRoundNumber(Empty input) =>
+            new Int64Value {Value = State.CurrentRoundNumber.Value};
 
         public override Round GetCurrentRoundInformation(Empty input) =>
             TryToGetCurrentRoundInformation(out var currentRound) ? currentRound : new Round();
 
-        public override Round GetRoundInformation(SInt64Value input) =>
+        public override Round GetRoundInformation(Int64Value input) =>
             TryToGetRoundInformation(input.Value, out var round) ? round : new Round();
 
         public override MinerList GetCurrentMinerList(Empty input) =>
@@ -49,18 +50,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override MinerList GetMinerList(GetMinerListInput input) =>
             State.MinerListMap[input.TermNumber] ?? new MinerList();
 
-        public override SInt64Value GetMinedBlocksOfPreviousTerm(Empty input)
+        public override Int64Value GetMinedBlocksOfPreviousTerm(Empty input)
         {
             if (TryToGetTermNumber(out var termNumber))
             {
                 var targetRound = State.FirstRoundNumberOfEachTerm[termNumber].Sub(1);
                 if (TryToGetRoundInformation(targetRound, out var round))
                 {
-                    return new SInt64Value {Value = round.GetMinedBlocks()};
+                    return new Int64Value {Value = round.GetMinedBlocks()};
                 }
             }
 
-            return new SInt64Value();
+            return new Int64Value();
         }
 
         public override MinerList GetPreviousMinerList(Empty input)
@@ -372,13 +373,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private static Hash GetMinerListHash(IEnumerable<string> minerList)
         {
-            return Hash.FromString(
+            return HashHelper.ComputeFromString(
                 minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
         }
 
-        public override SInt64Value GetCurrentTermNumber(Empty input)
+        public override Int64Value GetCurrentTermNumber(Empty input)
         {
-            return new SInt64Value {Value = State.CurrentTermNumber.Value};
+            return new Int64Value {Value = State.CurrentTermNumber.Value};
         }
 
         private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
@@ -482,15 +483,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
-        public override SInt64Value GetCurrentWelfareReward(Empty input)
+        public override Int64Value GetCurrentWelfareReward(Empty input)
         {
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return new SInt64Value
+                return new Int64Value
                     {Value = currentRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock())};
             }
 
-            return new SInt64Value {Value = 0};
+            return new Int64Value {Value = 0};
         }
 
         /// <summary>
@@ -499,11 +500,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt64Value GetNextElectCountDown(Empty input)
+        public override Int64Value GetNextElectCountDown(Empty input)
         {
             if (!State.IsMainChain.Value)
             {
-                return new SInt64Value();
+                return new Int64Value();
             }
 
             var currentTermNumber = State.CurrentTermNumber.Value;
@@ -513,23 +514,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentTermStartTime = State.BlockchainStartTimestamp.Value;
                 if (TryToGetRoundInformation(1, out var firstRound) &&
                     firstRound.RealTimeMinersInformation.Count == 1)
-                    return new SInt64Value(); // Return 0 for single node.
+                    return new Int64Value(); // Return 0 for single node.
             }
             else
             {
                 var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
                 if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
-                    return new SInt64Value(); // Unlikely.
+                    return new Int64Value(); // Unlikely.
                 if (firstRoundOfCurrentTerm.RealTimeMinersInformation.Count == 1)
-                    return new SInt64Value(); // Return 0 for single node.
+                    return new Int64Value(); // Return 0 for single node.
                 currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
             }
 
-            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
-            return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.PeriodSeconds.Value);
+            return new Int64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
 
-        public override Round GetPreviousTermInformation(SInt64Value input)
+        public override Round GetPreviousTermInformation(Int64Value input)
         {
             var lastRoundNumber = State.FirstRoundNumberOfEachTerm[input.Value.Add(1)].Sub(1);
             var round = State.Rounds[lastRoundNumber];

@@ -1,6 +1,7 @@
 using System;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -41,8 +42,8 @@ namespace AElf.Contracts.Referendum
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
-            var lockId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(proposalId), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            var lockId = Context.GenerateId(Context.Self,
+                HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFromMessage(lockedAddress)));
             RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -139,10 +140,14 @@ namespace AElf.Contracts.Referendum
             return allowance;
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             var proposal = new ProposalInfo
             {
@@ -163,7 +168,7 @@ namespace AElf.Contracts.Referendum
 
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "Organization not found.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
@@ -171,28 +176,13 @@ namespace AElf.Contracts.Referendum
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
-        }
-
-        private void AddTokenWhitList()
-        {
-            RequireTokenContractStateSet();
-            State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-            {
-                TokenSymbol = Context.Variables.NativeSymbol, Address = Context.Self
-            });
-            var primaryTokenSymbol = State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty()).Value;
-            if (!string.IsNullOrEmpty(primaryTokenSymbol) && Context.Variables.NativeSymbol != primaryTokenSymbol)
-                State.TokenContract.AddTokenWhiteList.Send(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = primaryTokenSymbol, Address = Context.Self
-                });
         }
     }
 }

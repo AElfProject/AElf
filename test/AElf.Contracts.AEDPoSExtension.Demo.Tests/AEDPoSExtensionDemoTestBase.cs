@@ -14,6 +14,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -44,7 +45,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             new List<ParliamentContractContainer.ParliamentContractStub>();
 
         internal readonly Hash CommitmentSchemeSmartContractAddressName =
-            Hash.FromString("AElf.Contracts.TestContract.CommitmentScheme");
+            HashHelper.ComputeFromString("AElf.Contracts.TestContract.CommitmentScheme");
 
         public AEDPoSExtensionDemoTestBase()
         {

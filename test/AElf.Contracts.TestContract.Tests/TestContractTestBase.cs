@@ -18,6 +18,7 @@ using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -31,10 +32,10 @@ namespace AElf.Contract.TestContract
     public class TestContractTestBase : ContractTestBase<TestContractAElfModule>
     {
         protected readonly Hash TestBasicFunctionContractSystemName =
-            Hash.FromString("AElf.ContractNames.TestContract.BasicFunction");
+            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicFunction");
 
         protected readonly Hash TestBasicSecurityContractSystemName =
-            Hash.FromString("AElf.ContractNames.TestContract.BasicSecurity");
+            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicSecurity");
 
         public TestContractTestBase()
         {
@@ -146,11 +147,11 @@ namespace AElf.Contract.TestContract
         
         protected void CheckCode(byte[] code)
         {
-            var auditor = new ContractAuditor(null, null);
-            auditor.Audit(code, new RequiredAcsDto
+            var auditor = new CSharpContractAuditor();
+            auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()
-            }, false);
+            });
         }
         
         private async Task InitialBasicFunctionContract()
@@ -214,7 +215,7 @@ namespace AElf.Contract.TestContract
             TokenContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("MultiToken")).Value,
-                SmartContractConstants.TokenContractSystemName,
+                SmartContractConstants.TokenContractSystemHashName,
                 DefaultSenderKeyPair
             );
             TokenContractStub =
@@ -223,14 +224,14 @@ namespace AElf.Contract.TestContract
             TokenConverterContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("TokenConverter")).Value,
-                SmartContractConstants.TokenConverterContractSystemName,
+                TokenConverterSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair
             );
 
             TreasuryContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Treasury")).Value,
-                SmartContractConstants.TreasuryContractSystemName,
+                SmartContractConstants.TreasuryContractSystemHashName,
                 DefaultSenderKeyPair);
             TreasuryContractStub =
                 GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
@@ -243,7 +244,7 @@ namespace AElf.Contract.TestContract
             var parliamentAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Parliament")).Value,
-                SmartContractConstants.ParliamentContractSystemName,
+                SmartContractConstants.ParliamentContractSystemHashName,
                 DefaultSenderKeyPair);
             ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentAddress,
                 DefaultSenderKeyPair);
@@ -366,7 +367,8 @@ namespace AElf.Contract.TestContract
             
             //initialize parliament
             {
-                await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+                var result = await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+                CheckResult(result.TransactionResult);
             }
 
             //initialize token converter

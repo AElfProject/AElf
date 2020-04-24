@@ -3,7 +3,6 @@ using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Association
 {
@@ -11,7 +10,7 @@ namespace AElf.Contracts.Association
     {
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "No registered organization.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
@@ -109,7 +108,7 @@ namespace AElf.Contracts.Association
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
@@ -127,10 +126,14 @@ namespace AElf.Contracts.Association
             Assert(!isAlreadyVoted, "Sender already voted.");
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,

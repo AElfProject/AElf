@@ -8,6 +8,8 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -173,7 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             // Test contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFromString("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

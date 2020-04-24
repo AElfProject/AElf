@@ -1,8 +1,7 @@
 using System.Linq;
 using AElf.Cryptography.SecretSharing;
-using AElf.Sdk.CSharp;
+using AElf.CSharp.Core;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -42,7 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Select(s => s.ToByteArray()).ToList();
 
                 var revealedInValue =
-                    Hash.FromRawBytes(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+                    HashHelper.ComputeFromByteArray(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
                 Context.LogDebug(() =>
                     $"Revealed in value of {publicKeyOfAnotherMiner} of round {previousRound.RoundNumber}: {revealedInValue}");

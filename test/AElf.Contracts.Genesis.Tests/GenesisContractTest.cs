@@ -30,7 +30,7 @@ namespace AElf.Contracts.Genesis
             var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultSerialNumber = await DefaultTester.CurrentContractSerialNumber.CallAsync(new Empty());
-            resultSerialNumber.Value.ShouldNotBe(0UL);
+            resultSerialNumber.Value.ShouldNotBe(0);
 
             {
                 var resultInfo = await DefaultTester.GetContractInfo.CallAsync(contractAddress);
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Genesis
             {
                 var resultHash = await DefaultTester.GetContractHash.CallAsync(contractAddress);
                 var contractCode = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
-                var contractHash = Hash.FromRawBytes(contractCode);
+                var contractHash = HashHelper.ComputeFromByteArray(contractCode);
                 resultHash.ShouldBe(contractHash);
             }
 
@@ -96,7 +96,7 @@ namespace AElf.Contracts.Genesis
 
             var resultHash = await DefaultTester.GetContractHash.CallAsync(updateAddress);
             var contractCode = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
-            var contractHash = Hash.FromRawBytes(contractCode);
+            var contractHash = HashHelper.ComputeFromByteArray(contractCode);
             resultHash.ShouldBe(contractHash);
         }
 

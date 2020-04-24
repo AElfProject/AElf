@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -72,9 +73,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(triggerInformation.InValue != null, "In value should not be null.");
 
-            var outValue = Hash.FromMessage(triggerInformation.InValue);
+            var outValue = HashHelper.ComputeFromMessage(triggerInformation.InValue);
             var signature =
-                Hash.FromTwoHashes(outValue, triggerInformation.InValue); // Just initial signature value.
+                HashHelper.ConcatAndCompute(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
@@ -86,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                     // Self check.
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) &&
-                        Hash.FromMessage(triggerInformation.PreviousInValue) !=
+                        HashHelper.ComputeFromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
@@ -100,7 +101,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 else
                 {
-                    var fakePreviousInValue = Hash.FromString(pubkey.Append(Context.CurrentHeight.ToString()));
+                    var fakePreviousInValue = HashHelper.ComputeFromString(pubkey.Append(Context.CurrentHeight.ToString()));
                     if (previousRound.RealTimeMinersInformation.ContainsKey(pubkey) && previousRound.RoundNumber != 1)
                     {
                         var appointedPreviousInValue = previousRound.RealTimeMinersInformation[pubkey].InValue;

@@ -10,59 +10,69 @@ namespace AElf.Kernel.SmartContract
     public interface ISmartContractBridgeContext
     {
         int ChainId { get; }
-    
+
         ContextVariableDictionary Variables { get; }
-    
+
         void LogDebug(Func<string> func);
-    
+
         void FireLogEvent(LogEvent logEvent);
-    
+
         Hash TransactionId { get; }
-    
+
         Address Sender { get; }
-    
+
         Address Self { get; }
-    
+
         Address Origin { get; }
-    
+
+        Hash OriginTransactionId { get; }
+
         long CurrentHeight { get; }
-    
+
         Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
-    
+
         byte[] RecoverPublicKey();
-    
+
         List<Transaction> GetPreviousBlockTransactions();
-    
+
         bool VerifySignature(Transaction tx);
-    
+
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
-    
+
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
-    
-        T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new();
+
+        T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
+            where T : IMessage<T>, new();
+
         void SendInline(Address toAddress, string methodName, ByteString args);
-    
+
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
-    
+
         void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
             ByteString args);
-            
-        Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
-        Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress);
+
+
+        Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress);
+
+        Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
+            Address contractAddress);
+
         Address GetZeroSmartContractAddress();
-    
+
         Address GetZeroSmartContractAddress(int chainId);
-    
-        Address GetContractAddressByName(Hash hash);
-    
+
+        Address GetContractAddressByName(string hash);
+
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
-    
+
         IStateProvider StateProvider { get; }
-    
+
         byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
-    
+
         byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
+
+        Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
     }
 
     [Serializable]

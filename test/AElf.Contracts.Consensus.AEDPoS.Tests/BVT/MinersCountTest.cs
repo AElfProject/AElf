@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
@@ -32,7 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.FromString("randomHashes")).ToList();
+                .Select(_ => HashHelper.ComputeFromString("randomHashes")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
@@ -125,7 +127,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public async Task AEDPoSContract_SetMaximumMinersCount_NoPermission()
         {
             var transactionResult =
-                (await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new SInt32Value {Value = 100}))
+                (await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new Int32Value {Value = 100}))
                 .TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission");
