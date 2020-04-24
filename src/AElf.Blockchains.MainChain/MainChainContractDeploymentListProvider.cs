@@ -21,16 +21,16 @@ namespace AElf.Blockchains.MainChain
                 ProfitSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name,
+                ReferendumSmartContractAddressNameProvider.Name,
+                TokenSmartContractAddressNameProvider.Name,
                 CrossChainSmartContractAddressNameProvider.Name,
                 ConfigurationSmartContractAddressNameProvider.Name,
                 ConsensusSmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 TokenHolderSmartContractAddressNameProvider.Name,
                 EconomicSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name
             };
         }
     }
