@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContract.Domain
             return blockStateSet;
         }
 
-        public List<ExecutionReturnSet> ToList()
+        public List<ExecutionReturnSet> GetExecutionReturnSetList()
         {
             return _executed.Concat(_unexecutable).Concat(_conflict).ToList();
         }
