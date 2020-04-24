@@ -15,17 +15,11 @@
       <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
     <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\reference\acs0.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf\Proto\reference\basic_contract_zero.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
@@ -34,9 +28,6 @@
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\acs5.proto">
-            <Link>Protobuf\Proto\reference\acs5.proto</Link>
         </ContractBase>
     </ItemGroup>
     <ItemGroup>

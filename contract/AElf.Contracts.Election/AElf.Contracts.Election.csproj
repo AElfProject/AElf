@@ -18,14 +18,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractBase>
+
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf\Proto\reference\vote_contract.proto</Link>
@@ -45,6 +40,11 @@
         <ContractReference Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
         </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\election_contract.proto">
