@@ -6,11 +6,10 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorSpecialBase, IBlockAcceptedLogEventProcessor
+    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
@@ -30,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.Name);
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
             
             var interestedEvent =

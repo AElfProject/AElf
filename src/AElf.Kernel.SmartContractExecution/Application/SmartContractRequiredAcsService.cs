@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
             var configurationContractAddress =
                 await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                    ConfigurationSmartContractAddressNameProvider.Name);
+                    ConfigurationSmartContractAddressNameProvider.StringName);
             var tx = new Transaction
             {
                 From = FromAddress,

@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 }
 
                 context.TransactionContext = transactionContext;
-                var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+                var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.StringName);
 
                 if (context.CurrentHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
                 {

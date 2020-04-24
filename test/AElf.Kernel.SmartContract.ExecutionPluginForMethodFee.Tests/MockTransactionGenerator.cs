@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, TokenSmartContractAddressNameProvider.Name),
+                }, TokenSmartContractAddressNameProvider.StringName),
                 MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                 Params = new TransferInput
                 {

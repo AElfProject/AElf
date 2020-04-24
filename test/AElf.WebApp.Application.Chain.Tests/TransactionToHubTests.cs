@@ -46,7 +46,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var keyPair = CryptoHelper.GenerateKeyPair();
                 var tokenAddress =
                     await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(),
-                        TokenSmartContractAddressNameProvider.Name);
+                        TokenSmartContractAddressNameProvider.StringName);
 
                 //approve transaction
                 var transaction = await GenerateTransaction(keyPair, tokenAddress, "Approve", new ApproveInput
@@ -100,7 +100,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             //send consensus transaction
             var consensusContract =
                 await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(),
-                    ConsensusSmartContractAddressNameProvider.Name);
+                    ConsensusSmartContractAddressNameProvider.StringName);
             var transaction = await GenerateTransaction(keyPairs[0], consensusContract, "FirstRound", new Round());
 
             var transactionId = await SendTransactionAsync(transaction);

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.CSharp.Core.Extension;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeUpdatedLogEventProcessor : LogEventProcessorSpecialBase, IBlockAcceptedLogEventProcessor
+    public class CodeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;

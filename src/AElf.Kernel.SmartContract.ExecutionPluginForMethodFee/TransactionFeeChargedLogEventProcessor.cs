@@ -8,7 +8,6 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
@@ -16,7 +15,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-        private InterestedEvent _interestedEvent;
         private ILogger<TransactionFeeChargedLogEventProcessor> Logger { get; set; }
 
         public TransactionFeeChargedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
@@ -29,11 +27,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
         public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
         {
-            if (_interestedEvent != null)
-                return _interestedEvent;
+            if (InterestedEvent != null)
+                return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.Name);
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
 
             if (smartContractAddressDto == null) return null;
 
@@ -41,9 +39,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 GetInterestedEvent<TransactionFeeCharged>(smartContractAddressDto.SmartContractAddress.Address);
             if (!smartContractAddressDto.Irreversible) return interestedEvent;
 
-            _interestedEvent = interestedEvent;
+            InterestedEvent = interestedEvent;
 
-            return _interestedEvent;
+            return InterestedEvent;
         }
 
         public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)

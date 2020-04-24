@@ -10,6 +10,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -95,7 +96,7 @@ namespace AElf.Contracts.TestKit
             {
                 BlockHash = res.TransactionResult.BlockHash,
                 BlockHeight = res.TransactionResult.BlockNumber
-            }, name, address);
+            }, name.ToStorageKey(), address);
 
             return res.Output;
         }

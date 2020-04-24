@@ -46,7 +46,7 @@ namespace AElf.Blockchains.SideChain
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
-                }, TokenSmartContractAddressNameProvider.Name);
+                }, TokenSmartContractAddressNameProvider.StringName);
             _primaryTokenSymbol = (await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = chain.BestChainHash,

@@ -12,9 +12,9 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractAddressService
     {
-        Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, Hash name);
-        Task<SmartContractAddressDto> GetSmartContractAddressAsync(IChainContext chainContext, Hash name);
-        Task SetSmartContractAddressAsync(IBlockIndex blockIndex, Hash contractName, Address address);
+        Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string name);
+        Task<SmartContractAddressDto> GetSmartContractAddressAsync(IChainContext chainContext, string name);
+        Task SetSmartContractAddressAsync(IBlockIndex blockIndex, string name, Address address);
 
         Address GetZeroSmartContractAddress();
 
@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Application
             _blockchainService = blockchainService;
         }
 
-        public async Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, Hash name)
+        public async Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string name)
         {
             var smartContractAddress = await _smartContractAddressProvider.GetSmartContractAddressAsync(chainContext, name);
             var address = smartContractAddress?.Address;
@@ -52,9 +52,10 @@ namespace AElf.Kernel.SmartContract.Application
             return address;
         }
 
-        public async Task<SmartContractAddressDto> GetSmartContractAddressAsync(IChainContext chainContext, Hash name)
+        public async Task<SmartContractAddressDto> GetSmartContractAddressAsync(IChainContext chainContext, string name)
         {
-            var smartContractAddress = await _smartContractAddressProvider.GetSmartContractAddressAsync(chainContext, name);
+            var smartContractAddress =
+                await _smartContractAddressProvider.GetSmartContractAddressAsync(chainContext, name);
             if (smartContractAddress != null)
             {
                 var smartContractAddressDto = new SmartContractAddressDto
@@ -62,9 +63,10 @@ namespace AElf.Kernel.SmartContract.Application
                     SmartContractAddress = smartContractAddress,
                     Irreversible = await CheckSmartContractAddressIrreversibleAsync(smartContractAddress)
                 };
-                
+
                 return smartContractAddressDto;
             }
+
             var address = await GetSmartContractAddressFromStateAsync(chainContext, name);
             if (address == null) return null;
             return new SmartContractAddressDto
@@ -75,7 +77,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             };
         }
-        
+
         private async Task<bool> CheckSmartContractAddressIrreversibleAsync(SmartContractAddress smartContractAddress)
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -86,9 +88,9 @@ namespace AElf.Kernel.SmartContract.Application
             return blockHash == smartContractAddress.BlockHash;
         }
 
-        public virtual async Task SetSmartContractAddressAsync(IBlockIndex blockIndex, Hash contractName, Address address)
+        public virtual async Task SetSmartContractAddressAsync(IBlockIndex blockIndex, string name, Address address)
         {
-            await _smartContractAddressProvider.SetSmartContractAddressAsync(blockIndex, contractName, address);
+            await _smartContractAddressProvider.SetSmartContractAddressAsync(blockIndex, name, address);
         }
 
         public Address GetZeroSmartContractAddress()
@@ -108,14 +110,14 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var smartContractAddressNameProvider in _smartContractAddressNameProviders)
             {
                 var address =
-                    await GetAddressByContractNameAsync(chainContext, smartContractAddressNameProvider.ContractName);
+                    await GetAddressByContractNameAsync(chainContext, smartContractAddressNameProvider.ContractStringName);
                 if(address != null)
                     map[smartContractAddressNameProvider.ContractName] = address;
             }
             return new ReadOnlyDictionary<Hash, Address>(map);
         }
-        
-        private async Task<Address> GetSmartContractAddressFromStateAsync(IChainContext chainContext,Hash name)
+
+        private async Task<Address> GetSmartContractAddressFromStateAsync(IChainContext chainContext, string name)
         {
             var zeroAddress = _defaultContractZeroCodeProvider.ContractZeroAddress;
             var tx = new Transaction
@@ -123,13 +125,13 @@ namespace AElf.Kernel.SmartContract.Application
                 From = zeroAddress,
                 To = zeroAddress,
                 MethodName = nameof(ACS0Container.ACS0Stub.GetContractAddressByName),
-                Params = name.ToByteString()
+                Params = Hash.LoadFromBase64(name).ToByteString()
             };
             var address = await _transactionReadOnlyExecutionService.ExecuteAsync<Address>(
                 chainContext, tx, TimestampHelper.GetUtcNow(), false);
 
             return address == null || address.Value.IsEmpty ? null : address;
-        } 
+        }
     }
     
     public class SmartContractAddressDto

@@ -9,11 +9,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using AElf.CSharp.Core.Extension;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorSpecialBase, IBlocksExecutionSucceededLogEventProcessor
+    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -38,7 +37,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             if (InterestedEvent != null) return InterestedEvent;
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
             
             var interestedEvent =

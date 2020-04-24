@@ -66,7 +66,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHeight = chain.BestChainHeight
             };
             var transaction = OsTestHelper.GenerateTransaction(SampleAddress.AddressList[0],
-                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.Name),
+                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.StringName),
                 "GetBalance", new GetBalanceInput
                 {
                     Owner = SampleAddress.AddressList[0],
@@ -99,7 +99,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHeight = chain.BestChainHeight
             };
             var tokenAddress =
-                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.Name);
+                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.StringName);
             var fileDescriptor =
                 (await TransactionReadOnlyExecutionService.GetFileDescriptorsAsync(context, tokenAddress)).ToList();
             fileDescriptor.Count.ShouldBeGreaterThan(0);

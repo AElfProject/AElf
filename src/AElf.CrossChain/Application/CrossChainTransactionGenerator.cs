@@ -75,7 +75,7 @@ namespace AElf.CrossChain.Application
                 {
                     BlockHash = blockIndex.BlockHash,
                     BlockHeight = blockIndex.BlockHeight
-                }, CrossChainSmartContractAddressNameProvider.Name);
+                }, CrossChainSmartContractAddressNameProvider.StringName);
             return new Transaction
             {
                 From = from,

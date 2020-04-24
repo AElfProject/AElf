@@ -8,7 +8,6 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
@@ -32,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.Name);
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
 
             var interestedEvent =

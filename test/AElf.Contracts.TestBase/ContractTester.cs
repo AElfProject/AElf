@@ -19,6 +19,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -447,7 +448,7 @@ namespace AElf.Contracts.TestBase
             };
             return name == Hash.Empty
                 ? smartContractAddressService.GetZeroSmartContractAddress()
-                : await smartContractAddressService.GetAddressByContractNameAsync(chainContext, name);
+                : await smartContractAddressService.GetAddressByContractNameAsync(chainContext, name.ToStorageKey());
         }
 
 

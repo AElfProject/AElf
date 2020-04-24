@@ -62,7 +62,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Header.Height
-                }, TokenSmartContractAddressNameProvider.Name);
+                }, TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return true;

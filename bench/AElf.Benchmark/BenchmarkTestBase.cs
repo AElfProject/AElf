@@ -120,7 +120,7 @@ namespace AElf.Benchmark
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
-                }, TokenSmartContractAddressNameProvider.Name);
+                }, TokenSmartContractAddressNameProvider.StringName);
             var getBalanceInput = new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey),

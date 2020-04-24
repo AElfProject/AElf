@@ -8,11 +8,10 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.FeeCalculation.Application
 {
-    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorSpecialBase,
+    public class TransactionFeeCalculatorCoefficientUpdatedLogEventProcessor : LogEventProcessorBase,
         IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -35,7 +34,7 @@ namespace AElf.Kernel.FeeCalculation.Application
                 return InterestedEvent;
 
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, TokenSmartContractAddressNameProvider.Name);
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
                 
             if (smartContractAddressDto == null) return null;
             var interestedEvent =

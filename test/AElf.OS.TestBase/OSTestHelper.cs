@@ -155,7 +155,7 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             
             var transaction = GenerateTransaction(accountAddress,
-                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                 nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
@@ -175,7 +175,7 @@ namespace AElf.OS
             {
                 var newUserKeyPair = CryptoHelper.GenerateKeyPair();
                 var transaction = GenerateTransaction(accountAddress,
-                    await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                    await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                     nameof(TokenContractContainer.TokenContractStub.Transfer),
                     new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = tokenAmount, Symbol = "ELF"});
 
@@ -199,7 +199,7 @@ namespace AElf.OS
                 {
                     var to = CryptoHelper.GenerateKeyPair();
                     var transaction = GenerateTransaction(from,
-                        await _smartContractAddressService.GetAddressByContractNameAsync( await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                        await _smartContractAddressService.GetAddressByContractNameAsync( await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                         nameof(TokenContractContainer.TokenContractStub.Transfer),
                         new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                   
                     var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
@@ -220,7 +220,7 @@ namespace AElf.OS
             {
                 var from = Address.FromPublicKey(keyPair.PublicKey);
                 var transaction = GenerateTransaction(from,
-                    await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                    await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                     nameof(TokenContractContainer.TokenContractStub.Approve),
                     new ApproveInput {Spender = spender, Amount = count, Symbol = "ELF"});                
                 var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
@@ -243,7 +243,7 @@ namespace AElf.OS
                 {
                     var to = CryptoHelper.GenerateKeyPair();
                     var transaction = GenerateTransaction(address,
-                        await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.Name),
+                        await _smartContractAddressService.GetAddressByContractNameAsync(await GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                         nameof(TokenContractContainer.TokenContractStub.TransferFrom),
                         new TransferFromInput
                             {From = from, To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                  

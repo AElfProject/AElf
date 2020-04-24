@@ -6,9 +6,9 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractAddressProvider
     {
-        Task<SmartContractAddress> GetSmartContractAddressAsync(IChainContext chainContext, Hash contractName);
+        Task<SmartContractAddress> GetSmartContractAddressAsync(IChainContext chainContext, string contractName);
 
-        Task SetSmartContractAddressAsync(IBlockIndex blockIndex, Hash contractName, Address address);
+        Task SetSmartContractAddressAsync(IBlockIndex blockIndex, string contractName, Address address);
     }
 
     public class SmartContractAddressProvider : BlockExecutedDataBaseProvider<SmartContractAddress>,ISmartContractAddressProvider, ISingletonDependency
@@ -19,13 +19,13 @@ namespace AElf.Kernel.SmartContract.Application
         {
         }
 
-        public Task<SmartContractAddress> GetSmartContractAddressAsync(IChainContext chainContext, Hash contractName)
+        public Task<SmartContractAddress> GetSmartContractAddressAsync(IChainContext chainContext, string contractName)
         {
             var smartContractAddress = GetBlockExecutedData(chainContext, contractName);
             return Task.FromResult(smartContractAddress);
         }
 
-        public async Task SetSmartContractAddressAsync(IBlockIndex blockIndex, Hash contractName,Address address)
+        public async Task SetSmartContractAddressAsync(IBlockIndex blockIndex, string contractName, Address address)
         {
             await AddBlockExecutedDataAsync(blockIndex, contractName, new SmartContractAddress
             {

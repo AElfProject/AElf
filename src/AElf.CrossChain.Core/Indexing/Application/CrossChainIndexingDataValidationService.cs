@@ -27,7 +27,7 @@ namespace AElf.CrossChain.Indexing.Application
         private Task<Address> GetCrossChainContractAddressAsync(IChainContext chainContext)
         {
             return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
-                CrossChainSmartContractAddressNameProvider.Name);
+                CrossChainSmartContractAddressNameProvider.StringName);
         }
 
         public CrossChainIndexingDataValidationService(IBlockCacheEntityConsumer blockCacheEntityConsumer,

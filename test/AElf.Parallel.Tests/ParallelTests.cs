@@ -103,7 +103,7 @@ namespace AElf.Parallel.Tests
                 BlockHeight = block.Height
             };
             var tokenContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.StringName);
             var nonparallelContractCode =
                 await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext,
                     tokenContractAddress);
@@ -165,7 +165,7 @@ namespace AElf.Parallel.Tests
                 BlockHeight = block.Height
             };
             var tokenContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.StringName);
             var nonparallelContractCode =
                 await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, tokenContractAddress);
             nonparallelContractCode.ShouldBeNull();
@@ -336,7 +336,7 @@ namespace AElf.Parallel.Tests
                 BlockHeight = block.Height
             };
             var tokenContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.StringName);
             var nonparallelContractCode =
                 await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext,
                     tokenContractAddress);
@@ -506,7 +506,7 @@ namespace AElf.Parallel.Tests
                 BlockHeight = block.Height
             };                                       
             var tokenContractAddress =
-                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, TokenSmartContractAddressNameProvider.StringName);
             var nonparallelContractCode = await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(
                 chainContext, tokenContractAddress);
             nonparallelContractCode.ShouldBeNull();

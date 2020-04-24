@@ -20,7 +20,7 @@ namespace AElf.Kernel.Proposal.Application
         public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
             var parliamentContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
-                chainContext, ParliamentSmartContractAddressNameProvider.Name);
+                chainContext, ParliamentSmartContractAddressNameProvider.StringName);
 
             return transaction.To != parliamentContractAddress || transaction.MethodName !=
                    nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals);

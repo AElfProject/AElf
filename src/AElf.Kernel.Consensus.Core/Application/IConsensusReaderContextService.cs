@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus.Application
             var timestamp = _blockTimeProvider.GetBlockTime();
             var sender = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var consensusContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
-                chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
 
             return new ContractReaderContext
             {

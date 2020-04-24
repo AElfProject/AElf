@@ -102,11 +102,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                var consensusHash = ConsensusSmartContractAddressNameProvider.Name;
-                mockService.Setup(o => o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<Hash>(hash => hash != consensusHash)))
+                var consensusHash = ConsensusSmartContractAddressNameProvider.StringName;
+                mockService.Setup(o => o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<string>(hash => hash != consensusHash)))
                     .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 mockService.Setup(o =>
-                        o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<Hash>(hash => hash == consensusHash)))
+                        o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<string>(hash => hash == consensusHash)))
                     .Returns(Task.FromResult(SampleAddress.AddressList[1]));
 
                 return mockService.Object;

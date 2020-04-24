@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Application
         public async Task<bool> ValidateTransactionAsync(Transaction transaction,IChainContext chainContext)
         {
             var crossChainContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
-                chainContext, CrossChainSmartContractAddressNameProvider.Name);
+                chainContext, CrossChainSmartContractAddressNameProvider.StringName);
 
             return transaction.To != crossChainContractAddress ||
                    CrossChainContractPrivilegeMethodNameProvider.PrivilegeMethodNames.All(methodName =>

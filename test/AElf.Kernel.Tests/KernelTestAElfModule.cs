@@ -93,7 +93,7 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
                     .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
@@ -132,7 +132,7 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<Hash>()))
+                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
                     .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });

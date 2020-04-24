@@ -27,9 +27,13 @@ namespace AElf.Kernel.SmartContract.Application
     {
     }
 
-    public abstract class LogEventProcessorSpecialBase : LogEventProcessorBase
+    public abstract class LogEventProcessorBase : ILogEventProcessor
     {
-        public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        protected InterestedEvent InterestedEvent;
+
+        public abstract Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext);
+
+        public virtual async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
             foreach (var logEvent in logEventsMap.Values.SelectMany(logEvents => logEvents))
             {
@@ -37,16 +41,10 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        protected abstract Task ProcessLogEventAsync(Block block, LogEvent logEvent);
-    }
-
-    public abstract class LogEventProcessorBase : ILogEventProcessor
-    {
-        protected InterestedEvent InterestedEvent;
-
-        public abstract Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext);
-
-        public abstract Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap);
+        protected virtual Task ProcessLogEventAsync(Block block, LogEvent logEvent)
+        {
+            return Task.CompletedTask;
+        }
         
         protected InterestedEvent GetInterestedEvent<T>(Address address) where T : IEvent<T>, new()
         {

@@ -23,8 +23,8 @@ namespace AElf.Kernel.Proposal.Tests
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(o =>
-                        o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<Hash>(hash =>
-                            hash == ParliamentSmartContractAddressNameProvider.Name)))
+                        o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<string>(hash =>
+                            hash == ParliamentSmartContractAddressNameProvider.StringName)))
                     .Returns(Task.FromResult(ProposalTestBase.ParliamentContractFakeAddress));
 
                 return mockService.Object;

@@ -3,11 +3,10 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.CSharp.Core.Extension;
 using AElf.Types;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorSpecialBase, IBlocksExecutionSucceededLogEventProcessor
+    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;
@@ -24,7 +23,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             if (InterestedEvent != null) return InterestedEvent;
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
-                chainContext, ConsensusSmartContractAddressNameProvider.Name);
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
             
             var interestedEvent =

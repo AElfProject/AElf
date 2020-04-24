@@ -104,7 +104,7 @@ namespace AElf.CrossChain.Application
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Header.Height
-                }, CrossChainSmartContractAddressNameProvider.Name);
+                }, CrossChainSmartContractAddressNameProvider.StringName);
             return new SideChainBlockDataIndexed().ToLogEvent(crossChainContractAddress).GetBloom()
                 .IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
         }
