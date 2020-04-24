@@ -41,14 +41,14 @@ namespace AElf.Kernel.SmartContract.Application
                 foreach (var processor in _logEventProcessors)
                 {
                     var interestedEvent = await processor.GetInterestedEventAsync(chainContext);
-                    if(interestedEvent == null || !interestedEvent.Bloom.IsIn(blockBloom)) continue;
-                    
+                    if (interestedEvent == null || !interestedEvent.Bloom.IsIn(blockBloom)) continue;
+
                     var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
                     foreach (var result in txResults)
                     {
                         if (result.Bloom.Length == 0) continue;
                         var resultBloom = new Bloom(result.Bloom.ToByteArray());
-                        
+
                         if (!interestedEvent.Bloom.IsIn(resultBloom))
                         {
                             // Interested bloom is not found in the transaction result
@@ -59,7 +59,8 @@ namespace AElf.Kernel.SmartContract.Application
                         // find the log that yields the bloom and apply the processor
                         foreach (var log in result.Logs)
                         {
-                            if (log.Address != interestedEvent.LogEvent.Address || log.Name != interestedEvent.LogEvent.Name) continue;
+                            if (log.Address != interestedEvent.LogEvent.Address ||
+                                log.Name != interestedEvent.LogEvent.Name) continue;
                             if (logEventsMap.ContainsKey(result))
                             {
                                 logEventsMap[result].Add(log);
@@ -80,7 +81,10 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     else
                     {
-                        Logger.LogTrace("LogEvent maps happened to be empty and passed the filter.");
+                        Logger.LogWarning(
+                            $"LogEvent maps happened to be empty and passed the filter.\n" +
+                            $"Block bloom: {blockBloom.Data.ToHex()}\n" +
+                            $"LogEvent bloom: {interestedEvent.Bloom.Data.ToHex()}");
                     }
                 }
 
