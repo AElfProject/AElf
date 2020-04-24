@@ -10,7 +10,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
         }
     }
 }

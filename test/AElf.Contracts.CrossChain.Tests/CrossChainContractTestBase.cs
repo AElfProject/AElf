@@ -18,7 +18,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -43,7 +42,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
-            ContractAddresses[SmartContractConstants.CrossChainContractSystemName];
+            ContractAddresses[SmartContractConstants.CrossChainContractSystemHashName];
 
         public Address ConsensusContractAddress =>
             ContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
@@ -127,7 +126,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
-                SmartContractConstants.CrossChainContractSystemName,
+                SmartContractConstants.CrossChainContractSystemHashName,
                 ConsensusSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name
             }));

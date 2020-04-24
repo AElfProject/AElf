@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.Genesis;
+using AElf.Kernel;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -15,7 +16,11 @@ namespace AElf.Contracts.TestKit
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Address ContractAddress => _smartContractAddressService.GetZeroSmartContractAddress();
+        public Address GetContractAddress(IChainContext chainContext)
+        {
+            return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
         public string MethodName => string.Empty;
 
         public bool IsFree(Transaction transaction)

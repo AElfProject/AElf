@@ -248,8 +248,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return null;
 
             var validationResult =
-                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(queuedTransaction
-                    .Transaction);
+                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
+                {
+                    BlockHash = _bestChainHash,
+                    BlockHeight = _bestChainHeight
+                }, queuedTransaction.Transaction);
             if (!validationResult)
             {
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");

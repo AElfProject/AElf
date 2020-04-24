@@ -239,7 +239,7 @@ namespace AElf.Contracts.GenesisUpdate
         private void InitializeGenesisOwner(Address genesisOwner)
         {
             Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;

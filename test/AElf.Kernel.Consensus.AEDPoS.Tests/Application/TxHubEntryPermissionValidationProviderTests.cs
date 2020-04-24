@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Txn.Application;
@@ -13,21 +14,24 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionValidationProvider _validationProvider;
         private readonly KernelTestHelper _kernelTestHelper;
+        private readonly IBlockchainService _blockchainService;
         public TxHubEntryPermissionValidationProviderTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _validationProvider = GetRequiredService<ITransactionValidationProvider>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _blockchainService = GetRequiredService<IBlockchainService>();
         }
 
         [Fact]
         public async Task Validate_EconomicAddress_Test()
         {
             var tx = _kernelTestHelper.GenerateTransaction();
+            var chainContext = await _kernelTestHelper.GetChainContextAsync();
             var economicAddress =
-                _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.StringName);
             tx.To = economicAddress;
-            var result = await _validationProvider.ValidateTransactionAsync(tx);
+            var result = await _validationProvider.ValidateTransactionAsync(tx, chainContext);
             result.ShouldBeFalse();
         }
 
@@ -36,14 +40,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var tx = _kernelTestHelper.GenerateTransaction();
             tx.To = SampleAddress.AddressList.Last();
-            var result = await _validationProvider.ValidateTransactionAsync(tx);
+            var chainContext = await _kernelTestHelper.GetChainContextAsync();
+            var result = await _validationProvider.ValidateTransactionAsync(tx,chainContext);
             result.ShouldBeTrue();
             
             var consensusAddress =
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             tx.To = consensusAddress;
             tx.MethodName = "UpdateValue";
-            result = await _validationProvider.ValidateTransactionAsync(tx);
+            result = await _validationProvider.ValidateTransactionAsync(tx,chainContext);
             result.ShouldBeFalse();
         }
     }

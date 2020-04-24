@@ -13,16 +13,14 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Indexing.Application
 {
-    public class CrossChainIndexingDataProposedLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
+    public class CrossChainIndexingDataProposedLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
-        public LogEvent InterestedEvent => GetInterestedEvent();
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
         public ILogger<CrossChainIndexingDataProposedLogEventProcessor> Logger { get; set; }
 
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICrossChainIndexingDataValidationService _crossChainIndexingDataValidationService;
         private readonly IProposalService _proposalService;
-        private LogEvent _interestedEvent;
 
         public CrossChainIndexingDataProposedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ICrossChainIndexingDataValidationService crossChainIndexingDataValidationService,
@@ -32,8 +30,25 @@ namespace AElf.CrossChain.Indexing.Application
             _crossChainIndexingDataValidationService = crossChainIndexingDataValidationService;
             _proposalService = proposalService;
         }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, CrossChainSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent = GetInterestedEvent<CrossChainIndexingDataProposedEvent>(smartContractAddressDto
+                .SmartContractAddress.Address);
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+            InterestedEvent = interestedEvent;
+            
+            return InterestedEvent;
+        }
+
+        public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
             foreach (var events in logEventsMap)
             {
@@ -66,20 +81,6 @@ namespace AElf.CrossChain.Indexing.Application
                     }
                 }
             }
-        }
-
-        private LogEvent GetInterestedEvent()
-        {
-            if (_interestedEvent != null)
-                return _interestedEvent;
-
-            var address =
-                _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider
-                    .Name);
-
-            _interestedEvent = new CrossChainIndexingDataProposedEvent().ToLogEvent(address);
-
-            return _interestedEvent;
         }
     }
 }

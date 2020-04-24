@@ -29,7 +29,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
             {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
-            {SmartContractConstants.CrossChainContractSystemName, "CrossChain"},
+            {SmartContractConstants.CrossChainContractSystemHashName, "CrossChain"},
             {ReferendumSmartContractAddressNameProvider.Name, "Referendum"},
             {AssociationSmartContractAddressNameProvider.Name, "Association"},
             {TokenHolderSmartContractAddressNameProvider.Name, "TokenHolder"}
