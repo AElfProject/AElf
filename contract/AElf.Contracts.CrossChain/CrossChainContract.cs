@@ -119,7 +119,8 @@ namespace AElf.Contracts.CrossChain
                 IndexingPrice = sideChainCreationRequest.IndexingPrice,
                 IsPrivilegePreserved = sideChainCreationRequest.IsPrivilegePreserved,
                 CreationTimestamp = Context.CurrentBlockTime,
-                CreationHeightOnParentChain = Context.CurrentHeight
+                CreationHeightOnParentChain = Context.CurrentHeight,
+                IndexingFeeController = CreateDefaultOrganizationForIndexingFeePriceManagement(input.Proposer)
             };
             State.SideChainInfo[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
@@ -130,7 +131,6 @@ namespace AElf.Contracts.CrossChain
                                    string.Join(",",
                                        initialConsensusInfo.MinerList.Pubkeys));
 
-            CreateOrganizationForIndexingFeePriceAdjustment(input.Proposer);
             Context.Fire(new SideChainCreatedEvent
             {
                 ChainId = chainId,
@@ -216,14 +216,29 @@ namespace AElf.Contracts.CrossChain
                 "Side chain not found or incorrect side chain status.");
             Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
             var sideChainCreator = info.Proposer;
-            var expectedOrganizationAddress =
-                CalculateSideChainIndexingFeeControllerOrganizationAddress(sideChainCreator);
+            var expectedOrganizationAddress = info.IndexingFeeController.OwnerAddress;
             Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
             info.IndexingPrice = input.IndexingFee;
             var balance = State.IndexingBalance[input.SideChainId];
             if (balance < info.IndexingPrice)
                 info.SideChainStatus = SideChainStatus.InsufficientBalance;
             State.SideChainInfo[input.SideChainId] = info;
+            return new Empty();
+        }
+
+        public override Empty ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput input)
+        {
+            var sideChainInfo = State.SideChainInfo[input.ChainId];
+            var authorityInfo = sideChainInfo.IndexingFeeController;
+            Assert(authorityInfo.OwnerAddress == Context.Sender, "No permission.");
+            Assert(ValidateAuthorityInfoExists(input.AuthorityInfo), "Invalid authority input.");
+            sideChainInfo.IndexingFeeController = input.AuthorityInfo;
+            State.SideChainInfo[input.ChainId] = sideChainInfo;
+            Context.Fire(new SideChainIndexingFeeControllerChanged
+            {
+                ChainId = input.ChainId,
+                AuthorityInfo = input.AuthorityInfo
+            });
             return new Empty();
         }
 
@@ -307,6 +322,10 @@ namespace AElf.Contracts.CrossChain
                 input.ContractAddress == State.ParliamentContract.Value &&
                 ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
+            Context.Fire(new CrossChainIndexingControllerChanged
+            {
+                AuthorityInfo = input
+            });
             return new Empty();
         }
 
@@ -315,6 +334,10 @@ namespace AElf.Contracts.CrossChain
             AssertSideChainLifetimeControllerAuthority(Context.Sender);
             Assert(ValidateAuthorityInfoExists(input), "Invalid authority input.");
             State.SideChainLifetimeController.Value = input;
+            Context.Fire(new SideChainLifetimeControllerChanged()
+            {
+                AuthorityInfo = input
+            });
             return new Empty();
         }
     }
