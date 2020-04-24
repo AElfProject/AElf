@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Indexing.Application;
+using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.Threading;
 
 namespace AElf.CrossChain.Application
 {
@@ -40,9 +42,11 @@ namespace AElf.CrossChain.Application
                 return generatedTransactions;
             }
 
-            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
-            generatedTransactions.Add(GenerateNotSignedTransaction(from, crossChainTransactionInput.MethodName,
-                refBlockNumber, previousBlockPrefix, crossChainTransactionInput.Value));
+            generatedTransactions.Add(await GenerateNotSignedTransactionAsync(from, crossChainTransactionInput.MethodName, new BlockIndex
+            {
+                BlockHash = previousBlockHash,
+                BlockHeight = refBlockNumber
+            }, crossChainTransactionInput.Value));
 
             Logger.LogTrace($"Cross chain transaction generated.");
             return generatedTransactions;
@@ -61,20 +65,23 @@ namespace AElf.CrossChain.Application
         /// </summary>
         /// <param name="from"></param>
         /// <param name="methodName"></param>
-        /// <param name="refBlockNumber"></param>
-        /// <param name="refBlockPrefix"></param> 
+        /// <param name="blockIndex"></param>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
-            byte[] refBlockPrefix, ByteString bytes)
+        private async Task<Transaction> GenerateNotSignedTransactionAsync(Address from, string methodName, IBlockIndex blockIndex, ByteString bytes)
         {
+            var address = await _smartContractAddressService.GetAddressByContractNameAsync(
+                new ChainContext
+                {
+                    BlockHash = blockIndex.BlockHash,
+                    BlockHeight = blockIndex.BlockHeight
+                }, CrossChainSmartContractAddressNameProvider.StringName);
             return new Transaction
             {
                 From = from,
-                To = _smartContractAddressService.GetAddressByContractName(
-                    CrossChainSmartContractAddressNameProvider.Name),
-                RefBlockNumber = refBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
+                To = address,
+                RefBlockNumber = blockIndex.BlockHeight,
+                RefBlockPrefix = ByteString.CopyFrom(blockIndex.BlockHash.Value.Take(4).ToArray()),
                 MethodName = methodName,
                 Params = bytes,
             };

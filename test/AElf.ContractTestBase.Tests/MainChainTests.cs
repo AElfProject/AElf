@@ -3,6 +3,8 @@ using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.GovernmentSystem;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -13,11 +15,26 @@ namespace AElf.ContractTestBase.Tests
 {
     public class MainChainTests : MainChainTestBase
     {
+        private readonly IBlockchainService _blockchainService;
+
+        public MainChainTests()
+        {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+        }
+
         [Fact]
         public async Task Test()
         {
-            var address = ContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(address, SampleECKeyPairs.KeyPairs[0]);
+            var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHeader.GetHash(),
+                BlockHeight = preBlockHeader.Height
+            };
+            var contractMapping = await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
+            
+            var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
+                contractMapping[TokenSmartContractAddressNameProvider.Name], SampleECKeyPairs.KeyPairs[0]);
             var balance = await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
@@ -25,9 +42,8 @@ namespace AElf.ContractTestBase.Tests
             });
             balance.Balance.ShouldBe(88000000000000000L);
 
-            var electionAddress =
-                ContractAddressService.GetAddressByContractName(ElectionSmartContractAddressNameProvider.Name);
-            var electionStub = GetTester<ElectionContractContainer.ElectionContractStub>(electionAddress,SampleECKeyPairs.KeyPairs[0]);
+            var electionStub = GetTester<ElectionContractContainer.ElectionContractStub>(
+                contractMapping[ElectionSmartContractAddressNameProvider.Name], SampleECKeyPairs.KeyPairs[0]);
             var minerCount = await electionStub.GetMinersCount.CallAsync(new Empty());
             minerCount.Value.ShouldBe(1);
         }

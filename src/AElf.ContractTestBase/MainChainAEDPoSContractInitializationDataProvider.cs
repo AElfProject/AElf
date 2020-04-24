@@ -22,7 +22,7 @@ namespace AElf.ContractTestBase
                 PeriodSeconds = _consensusOptions.PeriodSeconds,
                 StartTimestamp = _consensusOptions.StartTimestamp,
                 InitialMinerList = _consensusOptions.InitialMinerList,
-                MinerIncreaseInterval = _consensusOptions.MiningInterval
+                MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
             };
         }
     }

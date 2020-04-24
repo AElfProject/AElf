@@ -14,24 +14,6 @@ namespace AElf.Kernel.Configuration
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private LogEvent _interestedEvent;
-
-        public override LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
-                        .Name);
-
-                _interestedEvent = new ConfigurationSet().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
 
         public ILogger<BlockTransactionLimitChangedLogEventProcessor> Logger { get; set; }
 
@@ -41,6 +23,26 @@ namespace AElf.Kernel.Configuration
             _smartContractAddressService = smartContractAddressService;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventProcessor>.Instance;
+        }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
+
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConfigurationSmartContractAddressNameProvider.StringName);
+            
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<ConfigurationSet>(smartContractAddressDto.SmartContractAddress.Address);
+            
+            if (!smartContractAddressDto.Irreversible)return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+
+            return InterestedEvent;
         }
 
         protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)

@@ -168,7 +168,7 @@ namespace AElf.Contracts.Referendum
 
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "Organization not found.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
