@@ -122,7 +122,7 @@ namespace AElf.Sdk.CSharp
         /// Returns whether or not the given transaction is well formed and the signature is correct.
         /// </summary>
         /// <param name="tx">The transaction to verify.</param>
-        /// <returns>True if correct, false otherwise.</returns>
+        /// <returns>The verification results.</returns>
         public bool VerifySignature(Transaction tx)
         {
             return _smartContractBridgeContextImplementation.VerifySignature(tx);

@@ -509,7 +509,7 @@ Returns whether or not the given transaction is well formed and the signature is
 
 ##### Returns
 
-True if correct, false otherwise.
+The verification results.
 
 ##### Parameters
 
@@ -794,7 +794,7 @@ project.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') |  |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
 | eventData | [\`\`0](#T-``0 '``0') | The event to log. |
 
 ##### Generic Types

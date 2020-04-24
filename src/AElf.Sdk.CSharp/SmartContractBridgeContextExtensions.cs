@@ -17,7 +17,7 @@ namespace AElf.Sdk.CSharp
         /// Logs an event during the execution of a transaction. The event type is defined in the AElf.CSharp.core
         /// project.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="eventData">The event to log.</param>
         /// <typeparam name="T">The type of the event.</typeparam>
         public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
