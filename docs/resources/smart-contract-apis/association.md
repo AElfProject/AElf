@@ -22,7 +22,7 @@ message OrganizationMemberList {
     - **maximal abstention threshold**: the value for the maximal abstention threshold.
     - **minimal vote threshold**: the value for the minimal vote threshold.
   - **ProposerWhiteList**:
-    - **proposers**: proposer white list.
+    - **proposers**: proposer whitelist.
 
 
 Creates an organization and returns its address.
@@ -98,7 +98,13 @@ message CreateProposalInput {
     bytes params = 3;
     google.protobuf.Timestamp expired_time = 4;
     aelf.Address organization_address = 5;
-    string proposal_description_url = 6
+    string proposal_description_url = 6,
+    aelf.Hash token = 7;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
 }
 ```
 
@@ -109,9 +115,13 @@ This method creates a proposal for which organization members can vote. When the
 **CreateProposalInput**:
 - **contract method name**: the name of the method to call after release.
 - **to address**: the address of the contract to call after release.
-- **expiration**: the date at which this proposal will expire.
+- **expiration**: the timestamp at which this proposal will expire.
 - **organization address**: the address of the organization.
-- **proposal_description_url**: the url is used for describing the proposal.
+- **proposal_description_url**: the url is used for proposal describing.
+- **token**: the token is for proposal id generation and with this token, proposal id can be calculated before proposing. 
+
+**ProposalCreated**:
+- **proposal_id**: the id of the created proposal.
 
 ## **Reject**
 
@@ -121,7 +131,7 @@ This method creates a proposal for which organization members can vote. When the
 
 This method is called to rejecting the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
 
 ## **Abstain**
 
@@ -131,7 +141,7 @@ This method is called to rejecting the specified proposal.
 
 This method is called to abstain from the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
 
 ## **Release**
 
@@ -141,7 +151,7 @@ This method is called to abstain from the specified proposal.
 
 This method is called to release the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
 
 ## **ChangeOrganizationThreshold**
 
@@ -167,14 +177,14 @@ This method changes the thresholds associated with proposals. All fields will be
 **ProposalReleaseThreshold**:
 - **minimal approval threshold**: the new value for the minimum approval threshold.
 - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-- **maximal abstention threshold**: he new value for the maximal abstention threshold.
+- **maximal abstention threshold**: the new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
 After a successful execution, an **OrganizationThresholdChanged** event log can be found in the transaction result.
 
 **OrganizationThresholdChanged**:
 - **organization_address**: the organization address.
-- **proposer_release_threshold**: the new threshold.
+- **proposer_release_threshold**: the new release threshold.
 
 ## **ChangeOrganizationProposerWhiteList**
 
@@ -201,7 +211,7 @@ After a successful execution, a **OrganizationWhiteListChanged** event log can b
 
 **OrganizationWhiteListChanged**:
 - **organization_address**: the organization address.
-- **proposer_white_list**: the new value for the list.
+- **proposer_white_list**: the new proposer whitelist.
 
 ## **CreateProposalBySystemContract**
 
@@ -211,7 +221,6 @@ rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns 
 message CreateProposalBySystemContractInput {
     acs3.CreateProposalInput proposal_input = 1;
     aelf.Address origin_proposer = 2;
-    string proposal_id_feedback_method = 3;
 }
 ```
 
@@ -223,9 +232,9 @@ Used by system contracts to create proposals.
   - **to address**: the address of the contract to call after release.
   - **expiration**: the date at which this proposal will expire.
   - **organization address**: the address of the organization.
-  - **proposal_description_url**: the url is used for describing the proposal.
+  - **proposal_description_url**: the url is used for proposal describing.
+  - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
 - **origin proposer**: the actor that trigger the call.
-- **proposal id feedback method**: the feedback method, called by inline transaction after creating the proposal.
 
 ## **ClearProposal**
 
