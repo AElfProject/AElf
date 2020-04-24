@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -23,8 +24,11 @@ namespace AElf.CrossChain.Indexing.Application
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        private Address CrossChainContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+        private Task<Address> GetCrossChainContractAddressAsync(IChainContext chainContext)
+        {
+            return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                CrossChainSmartContractAddressNameProvider.StringName);
+        }
 
         public CrossChainIndexingDataValidationService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
             IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
@@ -67,7 +71,11 @@ namespace AElf.CrossChain.Indexing.Application
                         {
                             BlockHash = blockHash,
                             BlockHeight = blockHeight,
-                            ContractAddress = CrossChainContractAddress
+                            ContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
+                            {
+                                BlockHash = blockHash,
+                                BlockHeight = blockHeight
+                            })
                         }).GetSideChainHeight
                         .CallAsync(
                             new Int32Value()
@@ -112,12 +120,17 @@ namespace AElf.CrossChain.Indexing.Application
             var parentChainBlockDataList = multiParentChainBlockData.ToList();
             if (parentChainBlockDataList.Count == 0)
                 return true;
+            var crossChainContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            });
             var parentChainId = (await _contractReaderFactory
                 .Create(new ContractReaderContext
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight,
-                    ContractAddress = CrossChainContractAddress
+                    ContractAddress = crossChainContractAddress
                 }).GetParentChainId
                 .CallAsync(new Empty())).Value;
             if (parentChainId == 0)
@@ -130,7 +143,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     BlockHash = blockHash,
                     BlockHeight = blockHeight,
-                    ContractAddress = CrossChainContractAddress
+                    ContractAddress = crossChainContractAddress
                 }).GetParentChainHeight
                 .CallAsync(new Empty())).Value + 1;
             while (i < length)

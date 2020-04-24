@@ -17,14 +17,13 @@ namespace AElf.Kernel.Proposal.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
-            var parliamentContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ParliamentSmartContractAddressNameProvider.Name);
+            var parliamentContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
+                chainContext, ParliamentSmartContractAddressNameProvider.StringName);
 
-            return Task.FromResult(transaction.To != parliamentContractAddress || transaction.MethodName !=
-                nameof(ParliamentContractContainer.ParliamentContractStub
-                    .ApproveMultiProposals));
+            return transaction.To != parliamentContractAddress || transaction.MethodName !=
+                   nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals);
         }
     }
 }

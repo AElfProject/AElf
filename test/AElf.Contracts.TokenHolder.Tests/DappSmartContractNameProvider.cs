@@ -3,12 +3,11 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Consensus
+namespace AElf.Contracts.TokenHolder
 {
-    public class ConsensusSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
+    public class DappSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.Consensus");
-
+        public static readonly Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.DApp");
         public static readonly string StringName = Name.ToStorageKey();
         public Hash ContractName => Name;
         public string ContractStringName => StringName;

@@ -1,8 +1,11 @@
 using System.Threading.Tasks;
+using AElf.Blockchains.BasicBaseChain.ContractNames;
+using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -23,7 +26,8 @@ namespace AElf.Contracts.TestBase
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(KernelTestAElfModule)
+        typeof(KernelTestAElfModule),
+        typeof(ContractNamesAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule
     {
@@ -65,6 +69,11 @@ namespace AElf.Contracts.TestBase
                     option.Value.SdkDir);
             });
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+            context.Services
+                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
+            context.Services
+                .AddSingleton<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
         }
     }
 }
