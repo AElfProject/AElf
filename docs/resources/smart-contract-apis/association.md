@@ -17,12 +17,12 @@ message OrganizationMemberList {
 - **CreateOrganizationInput**:
   - **organizer member list**: initial members.
   - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the new value for the minimum approval threshold.
-    - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: he new value for the maximal abstention threshold.
-    - **minimal vote threshold**: the new value for the minimal vote threshold.
+    - **minimal approval threshold**: the value for the minimum approval threshold.
+    - **maximal rejection threshold**: the value for the maximal rejection threshold.
+    - **maximal abstention threshold**: the value for the maximal abstention threshold.
+    - **minimal vote threshold**: the value for the minimal vote threshold.
   - **ProposerWhiteList**:
-    - **proposers**: the new value for the list.
+    - **proposers**: proposer white list.
 
 
 Creates an organization and returns its address.
@@ -75,12 +75,12 @@ Returns the organization with the specified address.
 - **Organization**:
   - **member list**: original members of this organization.
   - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the new value for the minimum approval threshold.
-    - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the new value for the maximal abstention threshold.
-    - **minimal vote threshold**: the new value for the minimal vote threshold.
+    - **minimal approval threshold**: the value for the minimum approval threshold.
+    - **maximal rejection threshold**: the value for the maximal rejection threshold.
+    - **maximal abstention threshold**: the value for the maximal abstention threshold.
+    - **minimal vote threshold**: the value for the minimal vote threshold.
   - **ProposerWhiteList**:
-    - **proposers**: the new value for the list.
+    - **proposers**: proposer list.
   - **address**: the organizations address.
   - **hash**: the organizations ID.
 
