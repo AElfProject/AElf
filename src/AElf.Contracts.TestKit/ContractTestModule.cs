@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
@@ -104,6 +106,15 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
+            
+            context.Services.AddTransient(o =>
+            {
+                var mockService = new Mock<IGenesisSmartContractDtoProvider>();
+                mockService.Setup(s =>
+                        s.GetGenesisSmartContractDtos())
+                    .Returns(new List<GenesisSmartContractDto>());
+                return mockService.Object;
+            });
 
             #endregion
 
@@ -138,6 +149,8 @@ namespace AElf.Contracts.TestKit
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
             };
+            var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
+            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

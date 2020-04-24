@@ -20,12 +20,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            var economicContractAddress = 
-                _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
-            if (transaction.To == economicContractAddress)
-            {
-                return Task.FromResult(false);
-            }
+            // TODO: Move to other projects. Cannot access EconomicSmartContractAddressNameProvider.
+//            var economicContractAddress = 
+//                _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
+//            if (transaction.To == economicContractAddress)
+//            {
+//                return Task.FromResult(false);
+//            }
 
             var consensusContractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);

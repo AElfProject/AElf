@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Referendum;
@@ -19,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 
