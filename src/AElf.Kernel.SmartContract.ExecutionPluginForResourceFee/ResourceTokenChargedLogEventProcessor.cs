@@ -11,28 +11,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceTokenChargedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class ResourceTokenChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalResourceTokensMapsProvider _totalTotalResourceTokensMapsProvider;
-        private LogEvent _interestedEvent;
         private ILogger<ResourceTokenChargedLogEventProcessor> Logger { get; set; }
-
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-
-                _interestedEvent = new ResourceTokenCharged().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
 
         public ResourceTokenChargedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ITotalResourceTokensMapsProvider totalTotalResourceTokensMapsProvider)
@@ -42,7 +25,26 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Logger = NullLogger<ResourceTokenChargedLogEventProcessor>.Instance;
         }
 
-        public async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
+
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+
+            var interestedEvent =
+                GetInterestedEvent<ResourceTokenCharged>(smartContractAddressDto.SmartContractAddress.Address);
+
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+
+            return InterestedEvent;
+        }
+
+        public override async Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
             var blockHash = block.GetHash();
             var blockHeight = block.Height;

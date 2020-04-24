@@ -60,7 +60,7 @@ namespace AElf.Kernel.Consensus.Application
                 _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
 
             Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
-
+            
             // Upload the consensus command.
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);

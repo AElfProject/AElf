@@ -63,7 +63,7 @@ namespace AElf.Benchmark
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
 
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
-            _cancellableTransactions = _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs);
+            _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflictAsync(_keyPairs);
             chain = await _blockchainService.GetChainAsync();
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 _systemTransactions.Concat(_cancellableTransactions));
