@@ -8,15 +8,16 @@ The transfer will always use the same contract methods and the following two ste
 
 ## Prepare
 Few preparing steps are required before cross chain transfer, which is to be done only once for one chain. Just ignore this preparing part if already completed.
-Let's say that you want to transfer token `FOO` from chain `A` to chain `B`.
+Let's say that you want to transfer token `FOO` from chain `A` to chain `B`. Note that make sure you are clear about how cross chain transaction verification works before you start.
 
 - Validate **Token Contract** address on chain `A`. 
 
-    Send transaction `tx` to **Genesis Contract** with method ValidateSystemContractAddress. You should provide **system_contract_hash_name** 
-and address of **Token Contract** and `tx` would be packed in block successfully.
+    Send transaction `tx_1` to **Genesis Contract** with method ValidateSystemContractAddress. You should provide **system_contract_hash_name** 
+    and address of **Token Contract** . `tx_1` would be packed in block successfully.
     
   ```protobuf
     rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){}
+  
     message ValidateSystemContractAddressInput {
         aelf.Hash system_contract_hash_name = 1;
         aelf.Address address = 2;
@@ -25,11 +26,12 @@ and address of **Token Contract** and `tx` would be packed in block successfully
 
 - Register token contract address of chain `A` on chain `B`. 
     
-    You need prepare a proposal on chain `B` which is proposed to **RegisterCrossChainTokenContractAddress**(Note: make sure you are clear about how cross chain verification works). 
-    Apart from cross chain verification context needed, you should also provide the origin data of `tx` and **Token Contract** address on chain `A`.
+    You need create a proposal on chain `B` which is proposed to **RegisterCrossChainTokenContractAddress**. Apart from cross chain verification context needed, 
+    you should also provide the origin data of `tx_1` and **Token Contract** address on chain `A`.
     
   ```protobuf
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {}
+  
     message RegisterCrossChainTokenContractAddressInput{
         int32 from_chain_id = 1;
         int64 parent_chain_height = 2;
@@ -38,6 +40,41 @@ and address of **Token Contract** and `tx` would be packed in block successfully
         aelf.Address token_contract_address = 5;
     }
     ```
+
+- Validate **TokenInfo** of `FOO` on chain `A`. 
+
+    Send transaction `tx_2` to **Token Contract** with method ValidateTokenInfoExists. You should provide **TokenInfo** of `FOO`. `tx_2` would be packed in block successfully.
+    
+  ```protobuf
+    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){}
+  
+    message ValidateTokenInfoExistsInput{
+        string symbol = 1;
+        string token_name = 2;
+        int64 total_supply = 3;
+        int32 decimals = 4;
+        aelf.Address issuer = 5;
+        bool is_burnable = 6;
+        int32 issue_chain_id = 7;
+        bool is_profitable = 8;
+    }
+    ```
+- Create token `FOO` on chain `B`. 
+    
+    Send transaction `tx_2` to **Token Contract** with method CrossChainCreateToken on chain `B`. You should provide the origin data of `tx_2` and cross chain verification context of `tx_2`.
+    
+  ```protobuf
+    rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {}
+  
+    message CrossChainCreateTokenInput {
+        int32 from_chain_id = 1;
+        int64 parent_chain_height = 2;
+        bytes transaction_bytes = 3;
+        aelf.MerklePath merkle_path = 4;
+    }
+    ```
+
+You can launch cross chain transfer now.
 
 ## Initiate the transfer
 
