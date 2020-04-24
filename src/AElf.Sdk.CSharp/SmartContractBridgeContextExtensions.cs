@@ -17,6 +17,7 @@ namespace AElf.Sdk.CSharp
         /// Logs an event during the execution of a transaction. The event type is defined in the AElf.CSharp.core
         /// project.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="eventData">The event to log.</param>
         /// <typeparam name="T">The type of the event.</typeparam>
         public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
@@ -27,6 +28,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="address">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to call.</param>
         /// <param name="message">The protobuf message that will be the input to the call.</param>
@@ -41,6 +43,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends an inline transaction to another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to invoke.</param>
         /// <param name="message">The protobuf message that will be the input to the call.</param>
@@ -53,6 +56,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends a virtual inline transaction to another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="fromVirtualAddress">The virtual address to use as sender.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to invoke.</param>
@@ -67,6 +71,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="address">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to call.</param>
         /// <param name="message">The protobuf message that will be the input to the call.</param>
@@ -81,7 +86,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="fromAddress">The address to use as sender.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to call.</param>
@@ -97,7 +102,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="address">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to call.</param>
         /// <param name="message">The protobuf message that will be the input to the call.</param>
@@ -112,6 +117,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends a virtual inline transaction to another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to invoke.</param>
         /// <param name="message">The protobuf message that will be the input to the call.</param>
@@ -124,6 +130,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends a virtual inline transaction to another contract.
         /// </summary>
+        /// <param name="context">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="fromVirtualAddress">The virtual address to use as sender.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
         /// <param name="methodName">The name of method you want to invoke.</param>
@@ -149,7 +156,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Generate a hash type id based on the currently running contract address and the bytes.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="bytes">The bytes on which the id generation is based.</param>
         /// <returns>The generated hash type id.</returns>
         public static Hash GenerateId(this ISmartContractBridgeContext @this, IEnumerable<byte> bytes)
@@ -160,7 +167,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Generate a hash type id based on the currently running contract address and the token.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="token">The token on which the id generation is based.</param>
         /// <returns>The generated hash type id.</returns>
         public static Hash GenerateId(this ISmartContractBridgeContext @this, string token)
@@ -171,7 +178,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Generate a hash type id based on the currently running contract address and the hash type token.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="token">The hash type token on which the id generation is based.</param>
         /// <returns>The generated hash type id.</returns>
         public static Hash GenerateId(this ISmartContractBridgeContext @this, Hash token)
@@ -182,7 +189,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Generate a hash type id based on the currently running contract address.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <returns>The generated hash type id.</returns>
         public static Hash GenerateId(this ISmartContractBridgeContext @this)
         {
@@ -192,7 +199,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Generate a hash type id based on the address and the bytes.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="address">The address on which the id generation is based.</param>
         /// <param name="token">The hash type token on which the id generation is based.</param>
         /// <returns>The generated hash type id.</returns>
@@ -204,7 +211,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Converts a virtual address to a contract address.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="virtualAddress">The virtual address that want to convert.</param>
         /// <returns></returns>
         public static Address ConvertVirtualAddressToContractAddress(this ISmartContractBridgeContext @this,
@@ -216,7 +223,7 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Converts a virtual address to a contract address with the currently running contract address.
         /// </summary>
-        /// <param name="this"></param>
+        /// <param name="this">An instance of <see cref="ISmartContractBridgeContext"/>.</param>
         /// <param name="virtualAddress">The virtual address that want to convert.</param>
         /// <returns></returns>
         public static Address ConvertVirtualAddressToContractAddressWithContractHashName(

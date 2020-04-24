@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContract;
 namespace AElf.Sdk.CSharp
 {
     /// <summary>
-    /// represents the transaction execution context in a smart contract. An instance of this class is present in the
+    /// Represents the transaction execution context in a smart contract. An instance of this class is present in the
     /// base class for smart contracts (Context property). It provides access to properties and methods useful for
     /// implementing the logic in smart contracts.
     /// </summary>
