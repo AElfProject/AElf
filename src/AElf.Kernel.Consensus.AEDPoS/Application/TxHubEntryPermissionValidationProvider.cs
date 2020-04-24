@@ -18,20 +18,21 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
-            var economicContractAddress = 
-                _smartContractAddressService.GetAddressByContractName(EconomicSmartContractAddressNameProvider.Name);
-            if (transaction.To == economicContractAddress)
-            {
-                return Task.FromResult(false);
-            }
+            // TODO: Move to other projects. Cannot access EconomicSmartContractAddressNameProvider.
+//            var economicContractAddress = 
+//                _smartContractAddressService.GetAddressByContractNameAsync(chainContext, EconomicSmartContractAddressNameProvider.Name);
+//            if (transaction.To == economicContractAddress)
+//            {
+//                return false;
+//            }
 
             var consensusContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (transaction.To != consensusContractAddress)
             {
-                return Task.FromResult(true);
+                return true;
             }
 
             var systemTxs = new List<string>
@@ -44,7 +45,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateConsensusInformation),
             };
-            return Task.FromResult(!systemTxs.Contains(transaction.MethodName));
+            return !systemTxs.Contains(transaction.MethodName);
         }
     }
 }

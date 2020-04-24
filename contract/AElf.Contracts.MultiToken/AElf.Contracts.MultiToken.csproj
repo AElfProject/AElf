@@ -21,9 +21,6 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
-            <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
         </ContractReference>
@@ -35,6 +32,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
@@ -59,9 +59,6 @@
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>

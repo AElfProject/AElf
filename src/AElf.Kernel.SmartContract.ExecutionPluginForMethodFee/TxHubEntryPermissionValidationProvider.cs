@@ -6,6 +6,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     internal class TxHubEntryPermissionValidationProvider : TokenContractTransactionValidationProviderBase
     {
+        //TODO Check only one ClaimTransactionFees can be in block.
         public TxHubEntryPermissionValidationProvider(ISmartContractAddressService smartContractAddressService) : base(
             smartContractAddressService)
         {

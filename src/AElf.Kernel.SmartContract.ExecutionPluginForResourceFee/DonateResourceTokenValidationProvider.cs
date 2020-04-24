@@ -59,7 +59,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return true;

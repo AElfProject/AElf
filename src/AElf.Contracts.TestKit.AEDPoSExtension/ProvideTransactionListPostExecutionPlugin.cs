@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;
@@ -25,8 +26,12 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             ITransactionContext transactionContext)
         {
             return transactionContext.Transaction.To ==
-                   _smartContractAddressService.GetAddressByContractName(
-                       ConsensusSmartContractAddressNameProvider.Name) &&
+                   await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                   {
+                       BlockHash = transactionContext.PreviousBlockHash,
+                       BlockHeight = transactionContext.BlockHeight - 1,
+                       StateCache = transactionContext.StateCache
+                   }, ConsensusSmartContractAddressNameProvider.StringName) &&
                    new List<string>
                    {
                        "FirstRound",

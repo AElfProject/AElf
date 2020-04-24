@@ -11,28 +11,12 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.CodeCheck
 {
-    public class CodeCheckRequiredLogEventProcessor : IBlocksExecutionSucceededLogEventProcessor
+    public class CodeCheckRequiredLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICodeCheckService _codeCheckService;
-        private LogEvent _interestedEvent;
         private readonly IProposalService _proposalService;
-
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address = _smartContractAddressService.GetZeroSmartContractAddress();
-
-                _interestedEvent = new CodeCheckRequired().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
-
+        
         public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ICodeCheckService codeCheckService, IProposalService proposalService)
         {
@@ -41,7 +25,20 @@ namespace AElf.Kernel.CodeCheck
             _proposalService = proposalService;
         }
 
-        public Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
+        public override Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return Task.FromResult(InterestedEvent);
+
+            var address = _smartContractAddressService.GetZeroSmartContractAddress();
+            if (address == null) return null;
+            
+            InterestedEvent = GetInterestedEvent<CodeCheckRequired>(address);
+            
+            return Task.FromResult(InterestedEvent);
+        }
+
+        public override Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
             foreach (var events in logEventsMap)
             {

@@ -15,9 +15,9 @@
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Shared\AElf.Kernel.SmartContract.Shared.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ContractMessage Include="..\..\protobuf\acs0.proto">
+        <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
-        </ContractMessage>
+        </ContractStub>
         <ContractMessage Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractMessage>

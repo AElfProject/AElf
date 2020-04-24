@@ -22,6 +22,7 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.TokenHolder\AElf.Contracts.TokenHolder.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
         <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.DApp\AElf.Contracts.TestContract.DApp.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />

@@ -7,7 +7,6 @@ using AElf.Kernel.Node.Events;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Volo.Abp.EventBus.Local;
@@ -39,7 +38,6 @@ namespace AElf.Kernel.Node.Application
         private readonly ITxHub _txHub;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly IConsensusService _consensusService;
 
@@ -47,13 +45,11 @@ namespace AElf.Kernel.Node.Application
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
-            ISmartContractAddressUpdateService smartContractAddressUpdateService,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
             _txHub = txHub;
-            _smartContractAddressUpdateService = smartContractAddressUpdateService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
 
@@ -73,9 +69,6 @@ namespace AElf.Kernel.Node.Application
             chain = chain == null
                 ? await _chainCreationService.CreateNewChainAsync(dto.Transactions)
                 : await _blockchainService.ResetChainToLibAsync(chain);
-
-            await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
-                await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));
 
             await _consensusService.TriggerConsensusAsync(new ChainContext
             {

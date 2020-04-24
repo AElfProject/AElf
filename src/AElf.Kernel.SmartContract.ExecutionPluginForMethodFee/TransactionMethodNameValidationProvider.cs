@@ -6,7 +6,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
     internal class TransactionMethodNameValidationProvider : TokenContractTransactionValidationProviderBase
     {
-        public override bool ValidateWhileSyncing => true;
+        //TODO Check whether block can contain ChargeTransactionFees transaction
+        public override bool ValidateWhileSyncing => false;
         protected override string[] InvolvedSmartContractMethods { get; }
         
         public TransactionMethodNameValidationProvider(ISmartContractAddressService smartContractAddressService) : base(smartContractAddressService)

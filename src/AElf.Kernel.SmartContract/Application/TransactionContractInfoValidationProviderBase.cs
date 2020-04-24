@@ -7,16 +7,16 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public abstract class TransactionContractInfoValidationProviderBase : ITransactionValidationProvider
     {
-        public virtual Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public virtual async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext)
         {
-            return !CheckContractAddress(transaction, InvolvedSystemContractAddress)
-                ? Task.FromResult(true)
-                : Task.FromResult(!CheckContractMethod(transaction, InvolvedSmartContractMethods));
+            var involvedSystemContractAddress = await GetInvolvedSystemContractAddressAsync(chainContext);
+            return !CheckContractAddress(transaction, involvedSystemContractAddress) ||
+                   !CheckContractMethod(transaction, InvolvedSmartContractMethods);
         }
 
         public abstract bool ValidateWhileSyncing { get; }
 
-        protected abstract Address InvolvedSystemContractAddress { get; }
+        protected abstract Task<Address> GetInvolvedSystemContractAddressAsync(IChainContext chainContext);
 
         protected abstract string[] InvolvedSmartContractMethods { get; }
 
