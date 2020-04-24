@@ -76,7 +76,8 @@ namespace AElf.CrossChain
             transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
             transactions[0].To.ShouldBeNull();
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
-            transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
+            
+            transactions[0].RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(previousBlockHash));
             transactions[0].MethodName
                 .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing));
 
@@ -89,14 +90,12 @@ namespace AElf.CrossChain
         {
             var previousBlockHash = HashHelper.ComputeFromString("PreviousBlockHash");
             var previousBlockHeight = 1;
-
             var smartContractAddress = SampleAddress.AddressList[0];
             await _smartContractAddressService.SetSmartContractAddressAsync(new BlockIndex
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
             }, CrossChainSmartContractAddressNameProvider.StringName, smartContractAddress);
-        
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
                     previousBlockHeight, previousBlockHash);

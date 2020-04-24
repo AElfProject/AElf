@@ -140,7 +140,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var chain = await _blockchainService.GetChainAsync();
             transaction.RefBlockNumber = chain.BestChainHeight;
-            transaction.RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray());
+            transaction.RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash);
 
             transaction.Signature =
                 ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,

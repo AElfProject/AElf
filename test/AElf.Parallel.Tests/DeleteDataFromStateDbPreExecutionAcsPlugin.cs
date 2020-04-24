@@ -59,7 +59,7 @@ namespace AElf.Parallel.Tests
                         MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
-                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                            BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
                     });
                     break;
                 }
@@ -75,7 +75,7 @@ namespace AElf.Parallel.Tests
                         MethodName = nameof(BasicFunctionWithParallelContract.RemoveValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
-                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                            BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
                     });
                     break;
                 }
@@ -108,7 +108,7 @@ namespace AElf.Parallel.Tests
                         MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
-                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                            BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
                     });
                     break;
                 }
@@ -131,7 +131,7 @@ namespace AElf.Parallel.Tests
                         MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValueFailed),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
-                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                            BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
                     });
                     break;
                 }

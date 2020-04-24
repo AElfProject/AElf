@@ -280,7 +280,7 @@ namespace AElf.OS
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
 
             return transaction;
