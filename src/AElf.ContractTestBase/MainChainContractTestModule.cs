@@ -44,6 +44,9 @@ namespace AElf.ContractTestBase
                 MainChainCrossChainContractInitializationDataProvider>();
         }
 
+        // TODO: Our test module needs to inherit TestKit's ContractTestModule.
+        // If it is not overwritten with an empty method,
+        // it will inherit TestKit's ContractTestModule logic and execute it many times.
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
         }
