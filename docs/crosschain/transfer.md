@@ -6,6 +6,39 @@ The transfer will always use the same contract methods and the following two ste
 - initiate the transfer
 - receive the tokens
 
+## Prepare
+Few preparing steps are required before cross chain transfer, which is to be done only once for one chain. Just ignore this preparing part if already completed.
+Let's say that you want to transfer token `FOO` from chain `A` to chain `B`.
+
+- Validate **Token Contract** address on chain `A`. 
+
+    Send transaction `tx` to **Genesis Contract** with method ValidateSystemContractAddress. You should provide **system_contract_hash_name** 
+and address of **Token Contract** and `tx` would be packed in block successfully.
+    
+  ```protobuf
+    rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){}
+    message ValidateSystemContractAddressInput {
+        aelf.Hash system_contract_hash_name = 1;
+        aelf.Address address = 2;
+    }
+    ```
+
+- Register token contract address of chain `A` on chain `B`. 
+    
+    You need prepare a proposal on chain `B` which is proposed to **RegisterCrossChainTokenContractAddress**(Note: make sure you are clear about how cross chain verification works). 
+    Apart from cross chain verification context needed, you should also provide the origin data of `tx` and **Token Contract** address on chain `A`.
+    
+  ```protobuf
+    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {}
+    message RegisterCrossChainTokenContractAddressInput{
+        int32 from_chain_id = 1;
+        int64 parent_chain_height = 2;
+        bytes transaction_bytes = 3;
+        aelf.MerklePath merkle_path = 4;
+        aelf.Address token_contract_address = 5;
+    }
+    ```
+
 ## Initiate the transfer
 
 On the token contract, it's the **CrossChainTransfer** method that is used to trigger the transfer:
