@@ -396,18 +396,17 @@ namespace AElf.Contracts.CrossChain
             });
         }
 
-        private ProposalOutput GetCrossChainIndexingProposal(Hash proposalId)
+        private ProposalOutput GetCrossChainProposal(AuthorityInfo authorityInfo, Hash proposalId)
         {
-            var crossChainIndexingController = GetCrossChainIndexingController();
-            return Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+            return Context.Call<ProposalOutput>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal), proposalId);
         }
 
         private void HandleIndexingProposal(Hash proposalId, CrossChainIndexingProposal crossChainIndexingProposal)
         {
-            var proposal = GetCrossChainIndexingProposal(proposalId);
-            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
             var crossChainIndexingController = GetCrossChainIndexingController();
+            var proposal = GetCrossChainProposal(crossChainIndexingController, proposalId);
+            Assert(proposal.ToBeReleased, "Not approved cross chain indexing proposal.");
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
                 proposal.ProposalId); // release if ready
@@ -458,7 +457,7 @@ namespace AElf.Contracts.CrossChain
             if (crossChainIndexingProposal.Status == CrossChainIndexingProposalStatus.NonProposed)
                 return;
 
-            var isExpired = CheckProposalExpired(crossChainIndexingProposal.ProposalId);
+            var isExpired = CheckProposalExpired(GetCrossChainIndexingController(), crossChainIndexingProposal.ProposalId);
             Assert(isExpired, "Unable to clear cross chain indexing proposal not expired.");
             //            BanCrossChainIndexingFromAddress(crossChainIndexingProposal.Proposer); // ban the proposer if expired
             ResetCrossChainIndexingProposal();
@@ -466,15 +465,15 @@ namespace AElf.Contracts.CrossChain
 
         private bool TryClearExpiredSideChainCreationRequestProposal(Hash proposalId, Address proposer)
         {
-            var isExpired = CheckProposalExpired(proposalId);
+            var isExpired = CheckProposalExpired(GetSideChainLifetimeController(), proposalId);
             if (isExpired)
                 State.ProposedSideChainCreationRequestState.Remove(proposer);
             return isExpired;
         }
 
-        private bool CheckProposalExpired(Hash proposalId)
+        private bool CheckProposalExpired(AuthorityInfo authorityInfo, Hash proposalId)
         {
-            var proposalInfo = GetCrossChainIndexingProposal(proposalId);
+            var proposalInfo = GetCrossChainProposal(authorityInfo, proposalId);
             return proposalInfo.ExpiredTime <= Context.CurrentBlockTime;
         }
 

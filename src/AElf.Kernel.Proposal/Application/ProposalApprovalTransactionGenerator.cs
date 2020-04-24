@@ -56,7 +56,7 @@ namespace AElf.Kernel.Proposal.Application
                 MethodName = nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals),
                 To = parliamentContractAddress,
                 RefBlockNumber = preBlockHeight,
-                RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
                 Params = new ProposalIdList
                 {
                     ProposalIds = {proposalIdList}

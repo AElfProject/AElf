@@ -739,49 +739,6 @@ namespace AElf.Contracts.CrossChain.Tests
             releaseResult.Error.ShouldContain("Invalid authority input.");
         }
 
-        [Fact]
-        public async Task ChangeIndexingController_NotParliamentOrganization()
-        {
-            await InitializeCrossChainContractAsync();
-            var oldOrganizationAddress =
-                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
-            var newOrganizationAddress = (await AssociationContractStub.CreateOrganization.SendAsync(
-                new Association.CreateOrganizationInput
-                {
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
-                    {
-                        MaximalAbstentionThreshold = 0,
-                        MaximalRejectionThreshold = 0,
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1
-                    },
-                    ProposerWhiteList = new ProposerWhiteList
-                    {
-                        Proposers = {DefaultSender}
-                    },
-                    OrganizationMemberList = new OrganizationMemberList
-                    {
-                        OrganizationMembers = {DefaultSender}
-                    }
-                })).Output;
-            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
-            {
-                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityInfo
-                {
-                    ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
-                }.ToByteString(),
-                ToAddress = CrossChainContractAddress,
-                OrganizationAddress = oldOrganizationAddress
-            });
-
-            var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
-            await ApproveWithMinersAsync(proposalId);
-            var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId))
-                .TransactionResult;
-            releaseResult.Error.ShouldContain("Invalid authority input.");
-        }
 
         [Fact]
         public async Task ChangeIndexingController_NotAuthorized()
@@ -809,6 +766,51 @@ namespace AElf.Contracts.CrossChain.Tests
             var status = res.Status;
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("Unauthorized behavior.", res.Error);
+        }
+        
+        [Fact]
+        public async Task ChangeIndexingController_InvalidOrganization()
+        {
+            await InitializeCrossChainContractAsync();
+            var newOrganizationCreationInput = new Association.CreateOrganizationInput
+            {
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {DefaultSender}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1,
+                    MaximalRejectionThreshold = 0,
+                    MaximalAbstentionThreshold = 0
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {DefaultSender}
+                }
+            };
+            var newOrganizationAddress =
+                (await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput)).Output;
+            var oldOrganizationAddress =
+                (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
+            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = new AuthorityInfo
+                {
+                    ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
+                }.ToByteString(),
+                ToAddress = CrossChainContractAddress,
+                OrganizationAddress = oldOrganizationAddress
+            });
+
+            var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId))
+                .TransactionResult;
+            releaseResult.Error.ShouldContain("Invalid authority input.");
         }
 
         [Fact]

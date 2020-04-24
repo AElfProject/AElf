@@ -460,7 +460,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -491,7 +491,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = paramInfo,
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -668,7 +668,7 @@ namespace AElf.Contracts.TestBase
             foreach (var transaction in transactions)
             {
                 transaction.RefBlockNumber = refBlock.Height;
-                transaction.RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray());
+                transaction.RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash());
             }
         }
 

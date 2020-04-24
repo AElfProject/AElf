@@ -362,8 +362,7 @@ namespace AElf.Contracts.Genesis
         public override Empty ChangeCodeCheckController(AuthorityInfo input)
         {
             AssertSenderAddressWith(State.CodeCheckController.Value.OwnerAddress);
-            RequireParliamentContractAddressSet();
-            Assert(State.ParliamentContract.Value == input.ContractAddress && CheckOrganizationExist(input),
+            Assert(CheckOrganizationExist(input),
                 "Invalid authority input.");
             State.CodeCheckController.Value = input;
             return new Empty();

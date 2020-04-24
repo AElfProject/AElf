@@ -35,11 +35,15 @@ service TokenContractImpl {
     }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSideChainParliamentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainRentalController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){
     }
     rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeUserFeeController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeDeveloperController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
         option (aelf.is_view) = true;
@@ -59,7 +63,7 @@ service TokenContractImpl {
     rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
@@ -147,11 +151,6 @@ message TransferToContractInput {
     string memo = 3;
 }
 // about authority
-message ControllerCreateInfo {
-    aelf.Address controller = 1;
-    bytes organization_creation_input_bytes = 2;
-}
-
 message UserFeeController{
     acs1.AuthorityInfo root_controller = 1;
     acs1.AuthorityInfo parliament_controller = 2;

@@ -78,7 +78,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             transaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
@@ -114,7 +114,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             deployTransaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(deployTransaction.GetHash().ToByteArray()));
@@ -144,7 +144,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     VotingItemId = Hash.Empty
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             transaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
@@ -176,7 +176,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(ConfigurationContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             updateTransaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(updateTransaction.GetHash().ToByteArray()));
@@ -1218,8 +1218,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "{ \"to\": \"" + Address.FromPublicKey(newUserKeyPair.PublicKey).ToBase58() +
                 "\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
             sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
-            sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString
-                .CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()).ToBase64());
+            sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(chain.BestChainHash).ToBase64());
             sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
 
             existTransaction = await _txHub.GetExecutableTransactionSetAsync();
