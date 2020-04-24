@@ -20,10 +20,10 @@ namespace AElf.ContractTestBase
                 ProfitSmartContractAddressNameProvider.Name,                
                 TokenHolderSmartContractAddressNameProvider.Name,
                 ConsensusSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name,
+                ReferendumSmartContractAddressNameProvider.Name,
+                ParliamentSmartContractAddressNameProvider.Name,
+                TokenSmartContractAddressNameProvider.Name,
                 CrossChainSmartContractAddressNameProvider.Name,
                 ConfigurationSmartContractAddressNameProvider.Name
             };
