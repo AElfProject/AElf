@@ -32,17 +32,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (preBlockHeight < AElfConstants.GenesisBlockHeight)
                 return generatedTransactions;
 
-            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
-                TokenSmartContractAddressNameProvider.Name);
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
+
+            var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                TokenSmartContractAddressNameProvider.StringName);
 
             if (tokenContractAddress == null)
                 return generatedTransactions;
 
-            var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
-            {
-                BlockHash = preBlockHash,
-                BlockHeight = preBlockHeight
-            });
+            var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
             if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any() || totalTxFeesMap.BlockHeight != preBlockHeight ||
                 totalTxFeesMap.BlockHash != preBlockHash)
             {

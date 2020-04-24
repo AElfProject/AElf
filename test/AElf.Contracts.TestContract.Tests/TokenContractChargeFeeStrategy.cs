@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
+using AElf.Kernel;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Volo.Abp.Threading;
 
 namespace AElf.Contract.TestContract
 {
@@ -16,8 +18,12 @@ namespace AElf.Contract.TestContract
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Address ContractAddress =>
-            _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+        public Address GetContractAddress(IChainContext chainContext)
+        {
+            return AsyncHelper.RunSync(() =>
+                _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName));
+        }
 
         public string MethodName => string.Empty;
 

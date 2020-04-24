@@ -56,8 +56,8 @@ namespace AElf.Kernel.Consensus
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(SampleAddress.AddressList[0]);
+                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(SampleAddress.AddressList[0]));
 
                 return mockService.Object;
             });

@@ -236,6 +236,16 @@ namespace AElf.Kernel
             return block;
         }
 
+        public async Task<ChainContext> GetChainContextAsync()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            return new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+        }
+
         #region private methods
 
         private async Task<Chain> CreateChain()

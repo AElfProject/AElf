@@ -15,20 +15,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
 {
     internal class MethodCallingThresholdPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
-        private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IContractReaderFactory<ThresholdSettingContractContainer.ThresholdSettingContractStub>
             _thresholdSettingContractReaderFactory;
         private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub>
             _tokenContractReaderFactory;
 
-        public MethodCallingThresholdPreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            IContractReaderFactory<ThresholdSettingContractContainer.ThresholdSettingContractStub>
+        public MethodCallingThresholdPreExecutionPlugin(IContractReaderFactory<ThresholdSettingContractContainer.ThresholdSettingContractStub>
                 thresholdSettingContractReaderFactory,
-            IContractReaderFactory<TokenContractContainer.TokenContractStub> tokenContractReaderFactory) : base("acs5")
+            IContractReaderFactory<TokenContractContainer.TokenContractStub> tokenContractReaderFactory, 
+            ISmartContractAddressService smartContractAddressService) : base("acs5")
         {
-            _contextService = contextService;
             _thresholdSettingContractReaderFactory = thresholdSettingContractReaderFactory;
             _tokenContractReaderFactory = tokenContractReaderFactory;
+            _smartContractAddressService = smartContractAddressService;
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -39,7 +39,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
                 return new List<Transaction>();
             }
 
-            var context = _contextService.Create();
             var thresholdSettingStub = _thresholdSettingContractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = transactionContext.PreviousBlockHash,
@@ -53,9 +52,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
             {
                 Value = transactionContext.Transaction.MethodName
             });
-
+            
             // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+            {
+                BlockHash = transactionContext.PreviousBlockHash,
+                BlockHeight = transactionContext.BlockHeight - 1
+            },  TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();

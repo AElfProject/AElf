@@ -134,7 +134,7 @@ namespace AElf.Contracts.CrossChain
             Assert(totalSupply > 0, "Invalid side chain token supply.");
         }
 
-        private void SetContractStateRequired(ContractReferenceState state, Hash contractSystemName)
+        private void SetContractStateRequired(ContractReferenceState state, string contractSystemName)
         {
             if (state.Value != null)
                 return;
