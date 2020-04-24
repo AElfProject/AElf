@@ -147,10 +147,10 @@ namespace AElf.Sdk.CSharp
         /// definition of the input type</param>
         /// <typeparam name="T">The type of the return message.</typeparam>
         /// <returns>The result of the call.</returns>
-        public T Call<T>(Address address, string methodName, ByteString args)
+        public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
             where T : IMessage<T>, new()
         {
-            return _smartContractBridgeContextImplementation.Call<T>(address, methodName, args);
+            return _smartContractBridgeContextImplementation.Call<T>(fromAddress, toAddress, methodName, args);
         }
 
         /// <summary>
