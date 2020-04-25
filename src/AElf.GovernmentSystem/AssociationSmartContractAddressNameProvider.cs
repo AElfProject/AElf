@@ -7,7 +7,7 @@ namespace AElf.GovernmentSystem
 {
     public class AssociationSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.Association");
+        public static readonly Hash Name = HashHelper.ComputeFrom("AElf.ContractNames.Association");
         public static readonly string StringName = Name.ToStorageKey();
         public Hash ContractName => Name;
         public string ContractStringName => StringName;

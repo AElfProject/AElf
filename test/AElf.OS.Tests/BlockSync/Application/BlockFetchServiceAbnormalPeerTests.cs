@@ -26,7 +26,7 @@ namespace AElf.OS.BlockSync.Application
             abnormalPeer.ShouldNotBeNull();
             
             var result =
-                await _blockFetchService.FetchBlockAsync(HashHelper.ComputeFromString("AnnounceBlockHash"), 100, abnormalPeerPubkey);
+                await _blockFetchService.FetchBlockAsync(HashHelper.ComputeFrom("AnnounceBlockHash"), 100, abnormalPeerPubkey);
             result.ShouldBeFalse();
 
             abnormalPeer = _networkService.GetPeerByPubkey(abnormalPeerPubkey);
