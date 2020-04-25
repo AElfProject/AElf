@@ -70,7 +70,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
-            return HashHelper.ComputeFromByteArray(GetCheckableRound(isContainPreviousInValue));
+            return HashHelper.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
         }
 
         public string GetCurrentMinerPubkey(Timestamp currentBlockTime)

@@ -209,7 +209,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return HashHelper.ComputeFromByteArray(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
 
         private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,

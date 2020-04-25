@@ -185,7 +185,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // Handle abnormal situation.
 
                     // The fake in value shall only use once during one term.
-                    previousInValue = HashHelper.ComputeFromMessage(miner);
+                    previousInValue = HashHelper.ComputeFrom(miner);
                     signature = previousInValue;
                 }
 

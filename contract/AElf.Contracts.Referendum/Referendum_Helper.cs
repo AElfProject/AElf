@@ -43,7 +43,7 @@ namespace AElf.Contracts.Referendum
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
             var lockId = Context.GenerateId(Context.Self,
-                HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFromMessage(lockedAddress)));
+                HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFrom(lockedAddress)));
             RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Referendum
 
         private Hash GenerateProposalId(CreateProposalInput input)
         {
-            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFrom(input));
         }
         
         private Hash CreateNewProposal(CreateProposalInput input)
@@ -176,7 +176,7 @@ namespace AElf.Contracts.Referendum
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {

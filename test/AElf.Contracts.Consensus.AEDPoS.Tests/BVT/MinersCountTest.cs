@@ -34,7 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => HashHelper.ComputeFromString("randomHashes")).ToList();
+                .Select(_ => HashHelper.ComputeFrom("randomHashes")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {

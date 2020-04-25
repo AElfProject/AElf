@@ -9,7 +9,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void StateValue_Test()
         {
-            var hashArray = HashHelper.ComputeFromString("hash").ToByteArray();
+            var hashArray = HashHelper.ComputeFrom("hash").ToByteArray();
             var stateValue = StateValue.Create(hashArray);
             var isDirty = stateValue.IsDirty;
             isDirty.ShouldBeFalse();
@@ -17,7 +17,7 @@ namespace AElf.Kernel.Types.Tests
             var hashArray1 = stateValue.Get();
             hashArray.ShouldBe(hashArray1);
 
-            var hashArray2 = HashHelper.ComputeFromString("hash1").ToByteArray();
+            var hashArray2 = HashHelper.ComputeFrom("hash1").ToByteArray();
             stateValue.Set(hashArray2);
 
             isDirty = stateValue.IsDirty;
