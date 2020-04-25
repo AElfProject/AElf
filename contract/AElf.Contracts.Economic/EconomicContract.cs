@@ -34,6 +34,7 @@ namespace AElf.Contracts.Economic
 
             InitializeTokenConverterContract();
             State.TokenContract.InitialCoefficients.Send(new Empty());
+            State.TokenContract.InitializeAuthorizedController.Send(new Empty());
             State.Initialized.Value = true;
             return new Empty();
         }

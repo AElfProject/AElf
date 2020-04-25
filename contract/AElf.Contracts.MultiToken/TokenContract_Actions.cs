@@ -37,6 +37,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
             AssertValidCreateInput(input);
             RegisterTokenInfo(new TokenInfo
             {

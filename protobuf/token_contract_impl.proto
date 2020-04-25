@@ -38,8 +38,6 @@ service TokenContractImpl {
 
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
-    }
     rpc ChangeSideChainRentalController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){

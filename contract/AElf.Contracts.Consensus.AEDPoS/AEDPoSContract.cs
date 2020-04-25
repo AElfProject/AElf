@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodSeconds
+                MinimumLockMinutes = periodSeconds.Div(60)
             });
 
             Context.LogDebug(() => "Side chain dividends pool created.");
