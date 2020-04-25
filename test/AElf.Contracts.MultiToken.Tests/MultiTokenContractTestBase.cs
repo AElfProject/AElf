@@ -105,8 +105,8 @@ namespace AElf.Contracts.MultiToken
         protected byte[] OtherBasicFunctionContractCode =>
             Codes.Single(kv => kv.Key.Contains("BasicFunctionWithParallel")).Value;
 
-        protected Hash BasicFunctionContractName => HashHelper.ComputeFromString("AElf.TestContractNames.BasicFunction");
-        protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFromString("AElf.TestContractNames.OtherBasicFunction");
+        protected Hash BasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.BasicFunction");
+        protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
 
         protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
 

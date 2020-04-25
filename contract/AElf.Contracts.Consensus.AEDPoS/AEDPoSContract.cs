@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodSeconds
+                MinimumLockMinutes = periodSeconds.Div(60)
             });
 
             Context.LogDebug(() => "Side chain dividends pool created.");
@@ -185,7 +185,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // Handle abnormal situation.
 
                     // The fake in value shall only use once during one term.
-                    previousInValue = HashHelper.ComputeFromMessage(miner);
+                    previousInValue = HashHelper.ComputeFrom(miner);
                     signature = previousInValue;
                 }
 
