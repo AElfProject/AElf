@@ -120,6 +120,12 @@ namespace AElf.Kernel.Token
                         }.ToByteString()
                     });
                 }
+
+                methodList.Add(new InitializeMethod
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedController),
+                    Params = ByteString.Empty
+                });
             }
 
             return methodList;

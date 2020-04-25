@@ -71,6 +71,8 @@ service TokenContract {
     }
     rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
