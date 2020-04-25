@@ -274,7 +274,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var tokenSymbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
                 .ContextVariables[ContextVariableDictionary.NativeSymbolName];
             await CreateToken(tokenSymbol, ResourceSupply, true);
-
+            await CreateToken("CPU", ResourceSupply, issueToken);
+            await CreateToken("RAM", ResourceSupply, issueToken);
+            await CreateToken("DISK", ResourceSupply, issueToken);
+            await CreateToken("NET", ResourceSupply, issueToken);
+            
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
@@ -331,11 +335,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
             await AssociationStub.Approve.SendAsync(associationProposalId);
             await AssociationStub.Release.SendAsync(associationProposalId);
-            
-            await CreateToken("CPU", ResourceSupply, issueToken);
-            await CreateToken("RAM", ResourceSupply, issueToken);
-            await CreateToken("DISK", ResourceSupply, issueToken);
-            await CreateToken("NET", ResourceSupply, issueToken);
 
         }
 
