@@ -61,7 +61,8 @@ namespace AElf.Contracts.MultiToken
             var before = GetBalance(address, symbol);
             if (addAmount < 0 && before < -addAmount)
             {
-                Assert(false, $"Insufficient balance. {symbol}: {before} / {-addAmount}");
+                Assert(false,
+                    $"Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
             }
             var target = before.Add(addAmount);
             State.Balances[address][symbol] = target;
