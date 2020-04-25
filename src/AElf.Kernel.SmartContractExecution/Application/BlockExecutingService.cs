@@ -82,7 +82,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 blockStateSet);
 
             // set txn results
-            var transactionResults = await SetTransactionResultsAsync(returnSetCollection, blockHeader);
+            var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
             
             // set blocks state
             blockStateSet.BlockHash = block.GetHash();
@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
             
             // handle execution cases 
-            await CleanUpReturnSetCollectionAsync(blockHeader, returnSetCollection);
+            await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
             
             return new BlockExecutedSet
             {
@@ -109,30 +109,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
-
-            var blockHeader = new BlockHeader(header)
-            {
-                Bloom = ByteString.CopyFrom(bloom.Data),
-                MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet)
-            };
-
+            
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             var orderedReturnSets = returnSetCollection.GetExecutionReturnSetList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
-            blockHeader.MerkleTreeRootOfTransactionStatus =
-                CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
-
-            blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
-
-            var blockBody = new BlockBody();
-            blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
 
             var block = new Block
             {
-                Header = blockHeader,
-                Body = blockBody
+                Header = new BlockHeader(header)
+                {
+                    Bloom = ByteString.CopyFrom(bloom.Data),
+                    MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet),
+                    MerkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets),
+                    MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds)
+                },
+                Body = new BlockBody
+                {
+                    TransactionIds = {allExecutedTransactionIds}
+                }
             };
-            block.GetHashWithoutCache();
+            
             Logger.LogTrace("Finish block field filling after execution.");
             return Task.FromResult(block);
         }
