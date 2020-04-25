@@ -287,6 +287,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
+            var currentLegalMinersCount = AEDPoSContractConstants.SupposedMinersCount.Add(
+                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                .Div(State.MinerIncreaseInterval.Value).Mul(2));
+            // TODO: Add this judgement because this can cause consensus header information getting problem after changing term. Consider remove this limitation.
+            Assert(currentLegalMinersCount >= input.Value,
+                $"Maximum miners count cannot less than {currentLegalMinersCount}");
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();
         }
