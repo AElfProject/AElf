@@ -85,7 +85,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactionResults = await SetTransactionResultsAsync(returnSetCollection, blockHeader);
             
             // set blocks state
-            blockStateSet.BlockHash = blockHeader.GetHash();
+            blockStateSet.BlockHash = block.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
             
@@ -100,7 +100,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
         }
 
-        private Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
+        private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
             IEnumerable<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
@@ -110,8 +110,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
 
-            blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
-            blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+            var blockHeader = new BlockHeader(header)
+            {
+                Bloom = ByteString.CopyFrom(bloom.Data),
+                MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet)
+            };
 
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             var orderedReturnSets = returnSetCollection.GetExecutionReturnSetList()
