@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             {
                 Category = GetCategory(),
                 Code = ByteString.CopyFrom(code),
-                CodeHash = HashHelper.ComputeFromByteArray(code)
+                CodeHash = HashHelper.ComputeFrom(code)
             };
         }
 

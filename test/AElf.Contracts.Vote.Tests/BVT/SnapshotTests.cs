@@ -31,7 +31,7 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendWithExceptionAsync(
                 new TakeSnapshotInput
                 {
-                    VotingItemId = HashHelper.ComputeFromString("hash"),
+                    VotingItemId = HashHelper.ComputeFrom("hash"),
                     SnapshotNumber = 1
                 })).TransactionResult;
 

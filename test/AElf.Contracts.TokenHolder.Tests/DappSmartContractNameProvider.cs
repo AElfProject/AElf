@@ -7,7 +7,7 @@ namespace AElf.Contracts.TokenHolder
 {
     public class DappSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.DApp");
+        public static readonly Hash Name = HashHelper.ComputeFrom("AElf.ContractNames.DApp");
         public static readonly string StringName = Name.ToStorageKey();
         public Hash ContractName => Name;
         public string ContractStringName => StringName;

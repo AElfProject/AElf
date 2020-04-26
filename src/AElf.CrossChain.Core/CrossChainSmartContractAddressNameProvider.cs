@@ -7,7 +7,7 @@ namespace AElf.CrossChain
 {
     public class CrossChainSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = HashHelper.ComputeFromString("AElf.ContractNames.CrossChain");
+        public static readonly Hash Name = HashHelper.ComputeFrom("AElf.ContractNames.CrossChain");
 
         public static readonly string StringName = Name.ToStorageKey();
         public Hash ContractName => Name;

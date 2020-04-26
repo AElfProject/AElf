@@ -27,7 +27,7 @@ namespace AElf.OS.Network.Application
             var peer1 = _peerPool.FindPeerByPublicKey("Peer1");
             var peer3 = _peerPool.FindPeerByPublicKey("Peer3");
 
-            var txId = HashHelper.ComputeFromString("TxPeer3");
+            var txId = HashHelper.ComputeFrom("TxPeer3");
             bool isInBlackList;
 
             for (var i = 0; i < 5; i++)
@@ -54,7 +54,7 @@ namespace AElf.OS.Network.Application
 
             bool isInBlackList;
 
-            var txId = HashHelper.ComputeFromString("TxPeer1");
+            var txId = HashHelper.ComputeFrom("TxPeer1");
             for (var i = 0; i < 4; i++)
             {
                 await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId);
@@ -62,7 +62,7 @@ namespace AElf.OS.Network.Application
                 isInBlackList.ShouldBeFalse();
             }
 
-            var txId2 = HashHelper.ComputeFromString("TxPeer2");
+            var txId2 = HashHelper.ComputeFrom("TxPeer2");
             await _peerInvalidTransactionProcessingService.ProcessPeerInvalidTransactionAsync(txId2);
             isInBlackList = _blackListedPeerProvider.IsIpBlackListed(peer2.RemoteEndpoint.Host);
             isInBlackList.ShouldBeFalse();

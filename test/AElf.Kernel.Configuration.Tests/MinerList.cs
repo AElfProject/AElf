@@ -48,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Hash GetMinersHash()
         {
             var orderedMiners = Pubkeys.OrderBy(p => p);
-            return HashHelper.ComputeFromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
+            return HashHelper.ComputeFrom(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
     }
 }

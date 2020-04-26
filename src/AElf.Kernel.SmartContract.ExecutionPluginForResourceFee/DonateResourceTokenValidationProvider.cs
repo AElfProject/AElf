@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return totalResourceTokensMapsFromProvider == null;
             }
 
-            if (hashFromState == HashHelper.ComputeFromMessage(new TotalResourceTokensMaps
+            if (hashFromState == HashHelper.ComputeFrom(new TotalResourceTokensMaps
             {
                 BlockHash = block.Header.PreviousBlockHash,
                 BlockHeight = block.Header.Height - 1
@@ -101,7 +101,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             }
 
             if (totalResourceTokensMapsFromProvider == null) return false;
-            var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
+            var hashFromProvider = HashHelper.ComputeFrom(totalResourceTokensMapsFromProvider);
             return hashFromState == hashFromProvider;
         }
     }
