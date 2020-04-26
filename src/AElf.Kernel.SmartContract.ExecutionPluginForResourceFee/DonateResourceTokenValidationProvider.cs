@@ -3,8 +3,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -15,6 +13,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
     {
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
+
         private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
             _contractReaderFactory;
 
@@ -58,6 +57,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         /// <returns></returns>
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
+
             var tokenContractAddress =
                 await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
                 {
@@ -75,27 +76,33 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 BlockHeight = block.Header.Height,
                 ContractAddress = tokenContractAddress
             }).GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
+
             var totalResourceTokensMapsFromProvider =
                 await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
                 {
                     BlockHash = block.Header.PreviousBlockHash,
                     BlockHeight = block.Header.Height - 1
                 });
-            if (totalResourceTokensMapsFromProvider == null)
+
+            if (hashFromState.Value.IsEmpty)
             {
-                Logger.LogInformation("totalResourceTokensMapsFromProvider == null");
-                return hashFromState.Value.IsEmpty || hashFromState ==
-                       HashHelper.ComputeFromMessage(TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                // If hash from state is empty, data from provider must be null.
+                return totalResourceTokensMapsFromProvider == null;
             }
 
-            var hashFromProvider = HashHelper.ComputeFromMessage(totalResourceTokensMapsFromProvider);
-            var result = hashFromProvider.Value.Equals(hashFromState.Value);
-            if (!result)
+            if (hashFromState == HashHelper.ComputeFrom(new TotalResourceTokensMaps
             {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
+            }))
+            {
+                if (totalResourceTokensMapsFromProvider == null) return true;
+                return totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
             }
 
-            return result;
+            if (totalResourceTokensMapsFromProvider == null) return false;
+            var hashFromProvider = HashHelper.ComputeFrom(totalResourceTokensMapsFromProvider);
+            return hashFromState == hashFromProvider;
         }
     }
 }

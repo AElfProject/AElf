@@ -1,11 +1,11 @@
 using System.Linq;
-using Acs0;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
+using Acs0;
 using Acs1;
 using Acs7;
 using AElf.CSharp.Core;
@@ -61,7 +61,8 @@ namespace AElf.Contracts.MultiToken
             var before = GetBalance(address, symbol);
             if (addAmount < 0 && before < -addAmount)
             {
-                Assert(false, $"Insufficient balance. {symbol}: {before} / {-addAmount}");
+                Assert(false,
+                    $"Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
             }
             var target = before.Add(addAmount);
             State.Balances[address][symbol] = target;
@@ -111,14 +112,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
         }
 
-        // private CrossChainContractContainer.CrossChainContractReferenceState GetValidCrossChainContractReferenceState()
-        // {
-        //     if (State.CrossChainContract.Value == null)
-        //         State.CrossChainContract.Value =
-        //             Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-        //     return State.CrossChainContract;
-        // }
-        
         private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, MerklePath merklePath)
         {
             var verificationInput = new VerifyTransactionInput

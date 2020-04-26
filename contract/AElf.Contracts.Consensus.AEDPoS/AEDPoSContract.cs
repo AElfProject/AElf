@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
             {
                 Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodSeconds
+                MinimumLockMinutes = periodSeconds.Div(60)
             });
 
             Context.LogDebug(() => "Side chain dividends pool created.");
@@ -185,7 +185,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // Handle abnormal situation.
 
                     // The fake in value shall only use once during one term.
-                    previousInValue = HashHelper.ComputeFromMessage(miner);
+                    previousInValue = HashHelper.ComputeFrom(miner);
                     signature = previousInValue;
                 }
 
@@ -287,6 +287,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
+            var currentLegalMinersCount = AEDPoSContractConstants.SupposedMinersCount.Add(
+                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                .Div(State.MinerIncreaseInterval.Value).Mul(2));
+            // TODO: Add this judgement because this can cause consensus header information getting problem after changing term. Consider remove this limitation.
+            Assert(input.Value >= currentLegalMinersCount,
+                $"Maximum miners count cannot less than {currentLegalMinersCount}");
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();
         }
