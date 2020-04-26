@@ -84,7 +84,7 @@ Note that a more detailed section about the CLI can be found [here](cli/introduc
 
 ```bash
 ## download the settings template and docker script
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-mainchain.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-mainchain.zip
 >> unzip aelf-testnet-mainchain.zip
 >> mv aelf-testnet-mainchain /opt/aelf-node
 ```
@@ -141,9 +141,9 @@ You also need to configure your listening ip and port for the side chain connect
 To run the node with Docker, enter the following commands:
 ```bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v1.0.0-preview1
+>> docker pull aelf/node:testnet-v1.0.0-preview2
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v1.0.0-preview1
+>> sh aelf-node.sh start aelf/node:testnet-v1.0.0-preview2
 ```
 
 to stop the node you can run:
@@ -157,20 +157,20 @@ Most of AElf is developed with dotnet core, so to run the binaries you will need
 
 Get the latest release with the following commands:
 ```bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-v1.0.0-preview1.zip
->> unzip aelf-v1.0.0-preview1.zip
->> mv aelf-v1.0.0-preview1 /opt/aelf-node/
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-v1.0.0-preview2.zip
+>> unzip aelf-v1.0.0-preview2.zip
+>> mv aelf-v1.0.0-preview2 /opt/aelf-node/
 ```
 
 Enter the configuration folder and run the node:
 ```bash
 >> cd /opt/aelf-node
->> dotnet aelf-v1.0.0-preview1/AElf.Launcher.dll
+>> dotnet aelf-v1.0.0-preview2/AElf.Launcher.dll
 ```
 
 ## Running a full node with the source
 
-The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF v1.0.0-preview1), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.1 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
+The most convenient way is to directly use docker or the binary packages, but if you want you can compile from source code. First make sure the code version is consistent (current is release AELF v1.0.0-preview2), and secondly make sure to compile on a Ubuntu Linux machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK version 3.1 installed. This is because different platforms or compilers will cause the dll hashes to be inconsistent with the current chain.
 
 ## Check the node
 
@@ -190,7 +190,7 @@ This section explains how to set up a side-chain node, you will have to repeat t
 
 Running a side chain is very much like running a mainchain node, only configuration will change. Here you can find the instructions for sidechain1:
 ```bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain1.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-sidechain1.zip
 >> unzip aelf-testnet-sidechain1.zip
 >> mv aelf-testnet-sidechain1 /opt/aelf-node
 ```
@@ -218,7 +218,7 @@ Here you can find the snapshot data for the only current side-chain running, opt
 
 Here you can find the list of templates folders (appsettings and docker run script) for the side-chain:
 ```
-wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview1/aelf-testnet-sidechain1.zip
+wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-sidechain1.zip
 ```
 
 Each side chain has its own P2P network, you can find here some bootnodes that are available:
