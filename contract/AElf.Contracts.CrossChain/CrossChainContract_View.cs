@@ -239,23 +239,10 @@ namespace AElf.Contracts.CrossChain
             return GetSideChainLifetimeController();
         }
 
-        public override GetSideChainIndexingFeeControllerOutput GetSideChainIndexingFeeController(Int32Value input)
+        public override AuthorityInfo GetSideChainIndexingFeeController(Int32Value input)
         {
             var sideChainInfo = State.SideChainInfo[input.Value];
-            var proposer = sideChainInfo.Proposer;
-            SetContractStateRequired(State.AssociationContract, SmartContractConstants.AssociationContractSystemName);
-            var organizationCreationInput = GenerateOrganizationInputForIndexingFeePrice(proposer);
-            var sideChainIndexingFeeControllerAddress =
-                CalculateSideChainIndexingFeeControllerOrganizationAddress(organizationCreationInput);
-            return new GetSideChainIndexingFeeControllerOutput
-            {
-                AuthorityInfo = new AuthorityInfo
-                {
-                    OwnerAddress = sideChainIndexingFeeControllerAddress,
-                    ContractAddress = State.AssociationContract.Value
-                },
-                OrganizationCreationInputBytes = organizationCreationInput.ToByteString()
-            };
+            return sideChainInfo.IndexingFeeController;
         }
     }
 }

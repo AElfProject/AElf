@@ -8,6 +8,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -129,7 +130,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();
@@ -279,7 +280,7 @@ namespace AElf.OS
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
 
             return transaction;

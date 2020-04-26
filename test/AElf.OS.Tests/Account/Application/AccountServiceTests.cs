@@ -39,7 +39,7 @@ namespace AElf.OS.Account.Application
         [Fact]
         public async Task SignAndVerifyPassTest()
         {
-            var data = HashHelper.ComputeFromString("test").ToByteArray();
+            var data = HashHelper.ComputeFrom("test").ToByteArray();
 
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
@@ -53,8 +53,8 @@ namespace AElf.OS.Account.Application
         [Fact]
         public async Task SignAndVerifyNotPassTest()
         {
-            var data1 = HashHelper.ComputeFromString("test1").ToByteArray();
-            var data2 = HashHelper.ComputeFromString("test2").ToByteArray();
+            var data1 = HashHelper.ComputeFrom("test1").ToByteArray();
+            var data2 = HashHelper.ComputeFrom("test2").ToByteArray();
 
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();

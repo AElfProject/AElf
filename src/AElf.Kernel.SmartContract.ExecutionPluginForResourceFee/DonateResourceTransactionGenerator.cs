@@ -33,11 +33,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (preBlockHeight == 1) return generatedTransactions;
 
-            if (preBlockHeight < AElfConstants.GenesisBlockHeight)
-                return generatedTransactions;
-            
             var chainContext = new ChainContext
             {
                 BlockHash = preBlockHash,
@@ -52,23 +48,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return generatedTransactions;
             }
-            
+
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
-            var input = ByteString.Empty;
+            ByteString input;
             if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
                 totalResourceTokensMaps.BlockHash == preBlockHash)
             {
+                // If totalResourceTokensMaps match current block.
                 input = totalResourceTokensMaps.ToByteString();
             }
             else
             {
-                await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                input = new TotalResourceTokensMaps
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                }.ToByteString();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
@@ -79,7 +76,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
                     Params = input
                 }
             });

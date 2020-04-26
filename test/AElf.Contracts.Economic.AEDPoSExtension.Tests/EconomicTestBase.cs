@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -10,6 +9,8 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Treasury;
+using AElf.EconomicSystem;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;

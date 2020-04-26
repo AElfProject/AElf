@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <PackageId>AElf.ContractTestBase</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Contract test base.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+      <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
+      <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+      <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractMessage>
+    </ItemGroup>
+</Project>

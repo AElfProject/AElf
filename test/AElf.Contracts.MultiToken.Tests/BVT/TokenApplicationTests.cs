@@ -342,7 +342,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
@@ -415,7 +415,7 @@ namespace AElf.Contracts.MultiToken
             await Create_BasicFunctionContract_Issue();
 
             // Try to lock.
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
             var defaultSenderStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             // Lock.
@@ -443,7 +443,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput()
             {
@@ -467,7 +467,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -530,7 +530,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -567,7 +567,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = SymbolForTest
             })).Balance;
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -609,7 +609,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -628,7 +628,7 @@ namespace AElf.Contracts.MultiToken
                     Address = Address,
                     Amount = Amount,
                     Symbol = SymbolForTest,
-                    LockId = HashHelper.ComputeFromString("lockId1"),
+                    LockId = HashHelper.ComputeFrom("lockId1"),
                     Usage = "Testing."
                 })).TransactionResult;
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -640,7 +640,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Create_BasicFunctionContract_Issue();
 
-            var lockId = HashHelper.ComputeFromString("lockId");
+            var lockId = HashHelper.ComputeFrom("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -694,7 +694,7 @@ namespace AElf.Contracts.MultiToken
                 Amount = 3000L
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.ShouldContain("Insufficient balance.");
+            result.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
@@ -735,49 +735,6 @@ namespace AElf.Contracts.MultiToken
                     Memo = "TransferToContract test"
                 })).TransactionResult;
             result1.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-
-        [Fact]
-        public async Task MultiTokenContract_SetProfitReceivingInformation_Test()
-        {
-            await MultiTokenContract_TransferToContract_Test();
-            var setResult = (await TokenContractStub.SetProfitReceivingInformation.SendAsync(
-                new ProfitReceivingInformation
-                {
-                    ContractAddress = BasicFunctionContractAddress,
-                    DonationPartsPerHundred = 60,
-                    ProfitReceiverAddress = DefaultAddress
-                })).TransactionResult;
-            setResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var receiveInfo =
-                await TokenContractStub.GetProfitReceivingInformation.CallAsync(BasicFunctionContractAddress);
-            receiveInfo.ProfitReceiverAddress.ShouldBe(DefaultAddress);
-        }
-
-        [Fact]
-        public async Task MultiTokenContract_ReceiveProfits_Test()
-        {
-            await MultiTokenContract_SetProfitReceivingInformation_Test();
-            await TokenConverter_Converter();
-            var tokenOriginBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            })).Balance;
-
-            var result = (await TokenContractStub.ReceiveProfits.SendAsync(new ReceiveProfitsInput
-            {
-                ContractAddress = BasicFunctionContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var tokenBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(1200L));
         }
     }
 }

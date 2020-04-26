@@ -289,7 +289,7 @@ namespace AElf.Contracts.Genesis
                 Assert(Context.Sender == info.Author, "No permission.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = HashHelper.ComputeFromByteArray(code);
+            var newCodeHash = HashHelper.ComputeFrom(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
@@ -362,8 +362,7 @@ namespace AElf.Contracts.Genesis
         public override Empty ChangeCodeCheckController(AuthorityInfo input)
         {
             AssertSenderAddressWith(State.CodeCheckController.Value.OwnerAddress);
-            RequireParliamentContractAddressSet();
-            Assert(State.ParliamentContract.Value == input.ContractAddress && CheckOrganizationExist(input),
+            Assert(CheckOrganizationExist(input),
                 "Invalid authority input.");
             State.CodeCheckController.Value = input;
             return new Empty();

@@ -11,6 +11,8 @@ option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
     // Actions
+
+    //   Multiple Token
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
     rpc Issue (IssueInput) returns (google.protobuf.Empty) {
@@ -29,6 +31,10 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
+    rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
+    }
+
+    //   Cross Chain Exchange
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
@@ -39,9 +45,8 @@ service TokenContract {
     }
     rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
     }
-    rpc InitialCoefficients(google.protobuf.Empty) returns (google.protobuf.Empty){
-    }
-    // acs1
+
+    // ACS1 - Charge Transaction Fees
     rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
@@ -51,11 +56,13 @@ service TokenContract {
     rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
 
-    // acs5
+    // ACS5 - Contract Method Call Threshold
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
 
-    // acs8
+    // ACS8 - Charge Resource Tokens
+    rpc InitialCoefficients (google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
     rpc DonateResourceToken (TotalResourceTokensMaps) returns (google.protobuf.Empty) {
     }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
@@ -64,10 +71,7 @@ service TokenContract {
     }
     rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
-
-    rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetMinimumProfitsDonationPartsPerHundred (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
     }
 
     // Views

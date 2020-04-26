@@ -33,7 +33,7 @@ namespace AElf.CrossChain
         public async Task GenerateTransactions_Test()
         {
             var sideChainId = 123;
-            var previousBlockHash = HashHelper.ComputeFromString("PreviousBlockHash");
+            var previousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
             var crossChainBlockData = new CrossChainBlockData
             {
@@ -47,7 +47,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom((sideChainId + 1).ToString())
                 };
                 if (i <= CrossChainConstants.DefaultBlockCacheEntityCount)
                     crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
@@ -76,7 +76,8 @@ namespace AElf.CrossChain
             transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
             transactions[0].To.ShouldBeNull();
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
-            transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
+            
+            transactions[0].RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(previousBlockHash));
             transactions[0].MethodName
                 .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing));
 
@@ -87,16 +88,14 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GenerateTransaction_NoTransaction_Test()
         {
-            var previousBlockHash = HashHelper.ComputeFromString("PreviousBlockHash");
+            var previousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
-
             var smartContractAddress = SampleAddress.AddressList[0];
             await _smartContractAddressService.SetSmartContractAddressAsync(new BlockIndex
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
             }, CrossChainSmartContractAddressNameProvider.StringName, smartContractAddress);
-        
             var transactions =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionsAsync(SampleAddress.AddressList[0],
                     previousBlockHeight, previousBlockHash);

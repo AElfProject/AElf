@@ -2,7 +2,20 @@
 
 After the contract has been compiled, the user must register this contract with the blockchain. To deploy a contract there must be a deployment transaction sent to Smart contract zero, which is one of AElf's genesis contracts. The node will then broadcast this transaction and it will eventually get included in a block, when the block gets executed the smart contract will be deployed.
 
-#### the deploy command
+### Use aelf-command send or aelf-command proposal to deploy
+
+If you set `ContractDeploymentAuthorityRequired: true` in appsetting.json, please use aelf-command proposal.
+
+```bash
+ $ aelf-command send <GenesisContractAddress> DeploySmartContract # aelf-command send
+ $ aelf-command send <GenesisContractAddress> ProposeNewContract # aelf-command proposal
+ # Follow the instructions
+```
+
+- You must input contract method parameters in the prompting way, note that you can input a relative or absolute path of contract file to pass a file to aelf-command, aelf-command will read the file content and encode it as a base64 string.
+- After call ProposeNewContract, you need to wait for the organization members to approve your proposal and you can release your proposal by calling releaseApprove and releaseCodeCheck in this order.
+
+### The deploy command(This command has been deprecated)
 
 The **deploy** command on the cli will help you deploy the contract:
 

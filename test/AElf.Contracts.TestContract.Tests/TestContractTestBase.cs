@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -17,6 +16,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
+using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -32,10 +32,10 @@ namespace AElf.Contract.TestContract
     public class TestContractTestBase : ContractTestBase<TestContractAElfModule>
     {
         protected readonly Hash TestBasicFunctionContractSystemName =
-            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicFunction");
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicFunction");
 
         protected readonly Hash TestBasicSecurityContractSystemName =
-            HashHelper.ComputeFromString("AElf.ContractNames.TestContract.BasicSecurity");
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicSecurity");
 
         public TestContractTestBase()
         {

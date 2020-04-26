@@ -21,7 +21,7 @@ namespace AElf.Contracts.Parliament
 
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "No registered organization.");
             // It is a valid proposer if
             // authority check is disable,
@@ -200,7 +200,7 @@ namespace AElf.Contracts.Parliament
 
         private Hash GenerateProposalId(CreateProposalInput input)
         {
-            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFrom(input));
         }
         
         private Hash CreateNewProposal(CreateProposalInput input)
@@ -238,10 +238,10 @@ namespace AElf.Contracts.Parliament
                 ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
             };
             Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] != null)
+            if (State.Organizations[organizationAddress] != null)
                 return organizationAddress;
 
-            State.Organisations[organizationAddress] = organization;
+            State.Organizations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
                 OrganizationAddress = organizationAddress
@@ -253,7 +253,7 @@ namespace AElf.Contracts.Parliament
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
