@@ -130,7 +130,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();

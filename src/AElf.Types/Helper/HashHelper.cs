@@ -11,7 +11,7 @@ namespace AElf
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static Hash ComputeFromByteArray(byte[] bytes)
+        public static Hash ComputeFrom(byte[] bytes)
         {
             return Hash.LoadFromByteArray(bytes.ComputeHash());
         }
@@ -21,9 +21,9 @@ namespace AElf
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static Hash ComputeFromString(string str)
+        public static Hash ComputeFrom(string str)
         {
-            return ComputeFromByteArray(Encoding.UTF8.GetBytes(str));
+            return ComputeFrom(Encoding.UTF8.GetBytes(str));
         }
 
         /// <summary>
@@ -31,9 +31,9 @@ namespace AElf
         /// </summary>
         /// <param name="intValue"></param>
         /// <returns></returns>
-        public static Hash ComputeFromInt32(int intValue)
+        public static Hash ComputeFrom(int intValue)
         {
-            return ComputeFromByteArray(intValue.ToBytes(false));
+            return ComputeFrom(intValue.ToBytes(false));
         }
         
         /// <summary>
@@ -41,9 +41,9 @@ namespace AElf
         /// </summary>
         /// <param name="intValue"></param>
         /// <returns></returns>
-        public static Hash ComputeFromInt64(long intValue)
+        public static Hash ComputeFrom(long intValue)
         {
-            return ComputeFromByteArray(intValue.ToBytes(false));
+            return ComputeFrom(intValue.ToBytes(false));
         }
 
         /// <summary>
@@ -51,9 +51,9 @@ namespace AElf
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public static Hash ComputeFromMessage(IMessage message)
+        public static Hash ComputeFrom(IMessage message)
         {
-            return ComputeFromByteArray(message.ToByteArray());
+            return ComputeFrom(message.ToByteArray());
         }
         
         /// <summary>
@@ -70,20 +70,20 @@ namespace AElf
                 newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
 
-            return ComputeFromByteArray(newBytes);
+            return ComputeFrom(newBytes);
         }
 
         public static Hash ConcatAndCompute(Hash hash1, Hash hash2)
         {
             var bytes = ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray());
-            return ComputeFromByteArray(bytes);
+            return ComputeFrom(bytes);
         }
         
         public static Hash ConcatAndCompute(Hash hash1, Hash hash2, Hash hash3)
         {
             var bytes = ByteArrayHelper.ConcatArrays(
                 ByteArrayHelper.ConcatArrays(hash1.ToByteArray(), hash2.ToByteArray()), hash3.ToByteArray());
-            return ComputeFromByteArray(bytes);
+            return ComputeFrom(bytes);
         }
     }
 }

@@ -54,20 +54,6 @@ namespace AElf.Kernel.Token
 
                 methodList.Add(new InitializeMethod
                 {
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                    Params = new InitializeFromParentChainInput
-                    {
-                        ResourceAmount = {initializationData.ResourceAmount},
-                        RegisteredOtherTokenContractAddresses =
-                        {
-                            initializationData.RegisteredOtherTokenContractAddresses
-                        },
-                        Creator = initializationData.Creator
-                    }.ToByteString()
-                });
-
-                methodList.Add(new InitializeMethod
-                {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
                     Params = new Empty().ToByteString()
                 });
@@ -120,6 +106,20 @@ namespace AElf.Kernel.Token
                         }.ToByteString()
                     });
                 }
+                
+                methodList.Add(new InitializeMethod
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                    Params = new InitializeFromParentChainInput
+                    {
+                        ResourceAmount = {initializationData.ResourceAmount},
+                        RegisteredOtherTokenContractAddresses =
+                        {
+                            initializationData.RegisteredOtherTokenContractAddresses
+                        },
+                        Creator = initializationData.Creator
+                    }.ToByteString()
+                });
 
                 methodList.Add(new InitializeMethod
                 {

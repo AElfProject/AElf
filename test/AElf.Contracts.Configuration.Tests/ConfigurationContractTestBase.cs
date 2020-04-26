@@ -143,7 +143,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task<Hash> CreateProposalAsync(ContractTester<ConfigurationContractTestAElfModule> tester,
             Address contractAddress, Address organizationAddress, string methodName, IMessage input)
         {
-            var configContract = tester.GetContractAddress(HashHelper.ComputeFromString("AElf.ContractNames.Configuration"));
+            var configContract = tester.GetContractAddress(HashHelper.ComputeFrom("AElf.ContractNames.Configuration"));
             var proposal = await tester.ExecuteContractWithMiningAsync(contractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 new CreateProposalInput
