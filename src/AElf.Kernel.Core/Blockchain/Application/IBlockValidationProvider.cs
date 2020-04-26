@@ -154,16 +154,16 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
 
             // Verify that the transaction has been packaged in the current branch
-            foreach (var transactionId in block.TransactionIds)
-            {
-                var blockIndexExists =
-                    await _transactionBlockIndexService.ValidateTransactionBlockIndexExistsInBranchAsync(transactionId,
-                        block.Header.PreviousBlockHash);
-                if (!blockIndexExists) 
-                    continue;
-                Logger.LogWarning($"Transaction: {transactionId} repackaged.");
-                return false;
-            }
+            // foreach (var transactionId in block.TransactionIds)
+            // {
+            //     var blockIndexExists =
+            //         await _transactionBlockIndexService.ValidateTransactionBlockIndexExistsInBranchAsync(transactionId,
+            //             block.Header.PreviousBlockHash);
+            //     if (!blockIndexExists) 
+            //         continue;
+            //     Logger.LogWarning($"Transaction: {transactionId} repackaged.");
+            //     return false;
+            // }
 
             return true;
         }

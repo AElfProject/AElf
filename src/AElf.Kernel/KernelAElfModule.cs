@@ -28,6 +28,7 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            Configure<EvilTriggerOptions>(context.Services.GetConfiguration().GetSection("EvilTrigger"));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
