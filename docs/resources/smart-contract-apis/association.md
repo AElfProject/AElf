@@ -123,25 +123,82 @@ This method creates a proposal for which organization members can vote. When the
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.
 
+## **Approve**
+
+```Protobuf
+    rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {}
+    
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
+```
+This method is called to approve the specified proposal.
+
+**Hash**: the id of the proposal.
+
+Method **Approve** will fire the event **ReceiptCreated**.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to reject.
+- **address**: send address who votes for approval.
+- **receipt type**: Approve.
+- **time**: timestamp of this method call.
+
 ## **Reject**
 
 ```Protobuf
     rpc Reject(aelf.Hash) returns (google.protobuf.Empty) { }
+    
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
 ```
 
-This method is called to rejecting the specified proposal.
+This method is called to reject the specified proposal.
 
 **Hash**: the id of the proposal.
+
+Method **Reject** will fire the event **ReceiptCreated**.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to reject.
+- **address**: send address who votes for rejection.
+- **receipt type**: Reject.
+- **time**: timestamp of this method call.
 
 ## **Abstain**
 
 ```Protobuf
     rpc Abstain(aelf.Hash) returns (google.protobuf.Empty) { }
+
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
 ```
 
 This method is called to abstain from the specified proposal.
 
 **Hash**: the id of the proposal.
+
+Method **Abstain** will fire the event **ReceiptCreated**.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to abstain.
+- **address**: send address who votes for abstention.
+- **receipt type**: Abstain.
+- **time**: timestamp of this method call.
 
 ## **Release**
 
@@ -222,6 +279,11 @@ message CreateProposalBySystemContractInput {
     acs3.CreateProposalInput proposal_input = 1;
     aelf.Address origin_proposer = 2;
 }
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
 ```
 
 Used by system contracts to create proposals.
@@ -276,14 +338,18 @@ message ProposalOutput {
 
 Get the proposal with the given ID.
 
-**CreateProposalBySystemContractInput**:
+**ProposalOutput**:
 - **proposal id**: ID of the proposal.
 - **method name**: the method that this proposal will call when being released.
 - **to address**: the address of the target contract.
 - **params**: the parameters of the release transaction.
+- **expiration**: the date at which this proposal will expire.
 - **organization address**: address of this proposals organization.
 - **proposer**: address of the proposer of this proposal.
 - **to be release**: indicates if this proposal is releasable.
+- **approval count**: approval count for this proposal
+- **rejection count**: rejection count for this proposal
+- **abstention count**: abstention count for this proposal
 
 
 ## **ValidateProposerInWhiteList**
