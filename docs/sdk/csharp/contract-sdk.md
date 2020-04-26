@@ -16,12 +16,15 @@
   - [StateProvider](#P-AElf-Sdk-CSharp-CSharpSmartContractContext-StateProvider 'AElf.Sdk.CSharp.CSharpSmartContractContext.StateProvider')
   - [TransactionId](#P-AElf-Sdk-CSharp-CSharpSmartContractContext-TransactionId 'AElf.Sdk.CSharp.CSharpSmartContractContext.TransactionId')
   - [Variables](#P-AElf-Sdk-CSharp-CSharpSmartContractContext-Variables 'AElf.Sdk.CSharp.CSharpSmartContractContext.Variables')
-  - [Call\`\`1(address,methodName,args)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-Call``1-AElf-Types-Address,System-String,Google-Protobuf-ByteString- 'AElf.Sdk.CSharp.CSharpSmartContractContext.Call``1(AElf.Types.Address,System.String,Google.Protobuf.ByteString)')
+  - [Call\`\`1(fromAddress,toAddress,methodName,args)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-Call``1-AElf-Types-Address,AElf-Types-Address,System-String,Google-Protobuf-ByteString- 'AElf.Sdk.CSharp.CSharpSmartContractContext.Call``1(AElf.Types.Address,AElf.Types.Address,System.String,Google.Protobuf.ByteString)')
   - [ConvertVirtualAddressToContractAddress(virtualAddress)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash- 'AElf.Sdk.CSharp.CSharpSmartContractContext.ConvertVirtualAddressToContractAddress(AElf.Types.Hash)')
+  - [ConvertVirtualAddressToContractAddress(virtualAddress,contractAddress)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash,AElf-Types-Address- 'AElf.Sdk.CSharp.CSharpSmartContractContext.ConvertVirtualAddressToContractAddress(AElf.Types.Hash,AElf.Types.Address)')
   - [ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash- 'AElf.Sdk.CSharp.CSharpSmartContractContext.ConvertVirtualAddressToContractAddressWithContractHashName(AElf.Types.Hash)')
+  - [ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress,contractAddress)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash,AElf-Types-Address- 'AElf.Sdk.CSharp.CSharpSmartContractContext.ConvertVirtualAddressToContractAddressWithContractHashName(AElf.Types.Hash,AElf.Types.Address)')
   - [DecryptMessage(senderPublicKey,cipherMessage)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-DecryptMessage-System-Byte[],System-Byte[]- 'AElf.Sdk.CSharp.CSharpSmartContractContext.DecryptMessage(System.Byte[],System.Byte[])')
   - [EncryptMessage(receiverPublicKey,plainMessage)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-EncryptMessage-System-Byte[],System-Byte[]- 'AElf.Sdk.CSharp.CSharpSmartContractContext.EncryptMessage(System.Byte[],System.Byte[])')
   - [FireLogEvent(logEvent)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-FireLogEvent-AElf-Types-LogEvent- 'AElf.Sdk.CSharp.CSharpSmartContractContext.FireLogEvent(AElf.Types.LogEvent)')
+  - [GenerateId(contractAddress,bytes)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-GenerateId-AElf-Types-Address,System-Collections-Generic-IEnumerable{System-Byte}- 'AElf.Sdk.CSharp.CSharpSmartContractContext.GenerateId(AElf.Types.Address,System.Collections.Generic.IEnumerable{System.Byte})')
   - [GetContractAddressByName(hash)](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-GetContractAddressByName-AElf-Types-Hash- 'AElf.Sdk.CSharp.CSharpSmartContractContext.GetContractAddressByName(AElf.Types.Hash)')
   - [GetPreviousBlockTransactions()](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-GetPreviousBlockTransactions 'AElf.Sdk.CSharp.CSharpSmartContractContext.GetPreviousBlockTransactions')
   - [GetSystemContractNameToAddressMapping()](#M-AElf-Sdk-CSharp-CSharpSmartContractContext-GetSystemContractNameToAddressMapping 'AElf.Sdk.CSharp.CSharpSmartContractContext.GetSystemContractNameToAddressMapping')
@@ -42,14 +45,23 @@
 - [MappedState\`2](#T-AElf-Sdk-CSharp-State-MappedState`2 'AElf.Sdk.CSharp.State.MappedState`2')
 - [SingletonState\`1](#T-AElf-Sdk-CSharp-State-SingletonState`1 'AElf.Sdk.CSharp.State.SingletonState`1')
 - [SmartContractBridgeContextExtensions](#T-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions')
-  - [Call\`\`1(address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
-  - [Call\`\`1(address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [Call\`\`1(context,address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [Call\`\`1(context,address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [Call\`\`1(context,fromAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [Call\`\`1(context,address,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-ByteString- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Call``1(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.ByteString)')
   - [ConvertToByteString(message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertToByteString-Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.ConvertToByteString(Google.Protobuf.IMessage)')
-  - [Fire\`\`1(eventData)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Fire``1-AElf-Sdk-CSharp-CSharpSmartContractContext,``0- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Fire``1(AElf.Sdk.CSharp.CSharpSmartContractContext,``0)')
-  - [SendInline(toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
-  - [SendInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
-  - [SendVirtualInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
-  - [SendVirtualInline(fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [ConvertVirtualAddressToContractAddress(this,virtualAddress)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertVirtualAddressToContractAddress-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.ConvertVirtualAddressToContractAddress(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash)')
+  - [ConvertVirtualAddressToContractAddressWithContractHashName(this,virtualAddress)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.ConvertVirtualAddressToContractAddressWithContractHashName(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash)')
+  - [Fire\`\`1(context,eventData)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Fire``1-AElf-Sdk-CSharp-CSharpSmartContractContext,``0- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.Fire``1(AElf.Sdk.CSharp.CSharpSmartContractContext,``0)')
+  - [GenerateId(this,bytes)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,System-Collections-Generic-IEnumerable{System-Byte}- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.GenerateId(AElf.Kernel.SmartContract.ISmartContractBridgeContext,System.Collections.Generic.IEnumerable{System.Byte})')
+  - [GenerateId(this,token)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,System-String- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.GenerateId(AElf.Kernel.SmartContract.ISmartContractBridgeContext,System.String)')
+  - [GenerateId(this,token)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.GenerateId(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash)')
+  - [GenerateId(this)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.GenerateId(AElf.Kernel.SmartContract.ISmartContractBridgeContext)')
+  - [GenerateId(this,address,token)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,AElf-Types-Hash- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.GenerateId(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,AElf.Types.Hash)')
+  - [SendInline(context,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendInline(context,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Kernel.SmartContract.ISmartContractBridgeContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
+  - [SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message)](#M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage- 'AElf.Sdk.CSharp.SmartContractBridgeContextExtensions.SendVirtualInline(AElf.Sdk.CSharp.CSharpSmartContractContext,AElf.Types.Hash,AElf.Types.Address,System.String,Google.Protobuf.IMessage)')
 - [SmartContractConstants](#T-AElf-Sdk-CSharp-SmartContractConstants 'AElf.Sdk.CSharp.SmartContractConstants')
 - [StringState](#T-AElf-Sdk-CSharp-State-StringState 'AElf.Sdk.CSharp.State.StringState')
 - [UInt32State](#T-AElf-Sdk-CSharp-State-UInt32State 'AElf.Sdk.CSharp.State.UInt32State')
@@ -86,7 +98,7 @@ AElf.Sdk.CSharp
 
 ##### Summary
 
-represents the transaction execution context in a smart contract. An instance of this class is present in the
+Represents the transaction execution context in a smart contract. An instance of this class is present in the
 base class for smart contracts (Context property). It provides access to properties and methods useful for
 implementing the logic in smart contracts.
 
@@ -163,8 +175,8 @@ The ID of the transaction that's currently executing.
 
 Provides access to variable of the bridge.
 
-<a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-Call``1-AElf-Types-Address,System-String,Google-Protobuf-ByteString-'></a>
-### Call\`\`1(address,methodName,args) `method`
+<a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-Call``1-AElf-Types-Address,AElf-Types-Address,System-String,Google-Protobuf-ByteString-'></a>
+### Call\`\`1(fromAddress,toAddress,methodName,args) `method`
 
 ##### Summary
 
@@ -178,9 +190,10 @@ The result of the call.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| address | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with |
-| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to call |
-| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | the input arguments for calling that method. This is usually generated from the protobuf
+| fromAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to call. |
+| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | The input arguments for calling that method. This is usually generated from the protobuf
 definition of the input type |
 
 ##### Generic Types
@@ -194,7 +207,7 @@ definition of the input type |
 
 ##### Summary
 
-Converts a virtual address to the contracts address.
+Converts a virtual address to a contract address.
 
 ##### Returns
 
@@ -204,14 +217,49 @@ The converted address.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The address. |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
+
+<a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash,AElf-Types-Address-'></a>
+### ConvertVirtualAddressToContractAddress(virtualAddress,contractAddress) `method`
+
+##### Summary
+
+Converts a virtual address to a contract address with the contract address.
+
+##### Returns
+
+The converted address.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
+| contractAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The contract address. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash-'></a>
 ### ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress) `method`
 
 ##### Summary
 
-Converts a virtual address to the contracts address.
+Converts a virtual address to a contract address with the current contract hash name.
+
+##### Returns
+
+The converted address.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
+
+<a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash,AElf-Types-Address-'></a>
+### ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress,contractAddress) `method`
+
+##### Summary
+
+Converts a virtual address to a contract address with the contract hash name.
 
 ##### Returns
 
@@ -221,7 +269,8 @@ Converts a virtual address to the contracts address.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') |  |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
+| contractAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The contract address. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-DecryptMessage-System-Byte[],System-Byte[]-'></a>
 ### DecryptMessage(senderPublicKey,cipherMessage) `method`
@@ -271,6 +320,24 @@ This method is used to produce logs that can be found in the transaction result 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | logEvent | [AElf.Types.LogEvent](#T-AElf-Types-LogEvent 'AElf.Types.LogEvent') | The event to fire. |
+
+<a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-GenerateId-AElf-Types-Address,System-Collections-Generic-IEnumerable{System-Byte}-'></a>
+### GenerateId(contractAddress,bytes) `method`
+
+##### Summary
+
+Generate a hash type id based on the contract address and the bytes.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| contractAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The contract address on which the id generation is based. |
+| bytes | [System.Collections.Generic.IEnumerable{System.Byte}](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Collections.Generic.IEnumerable 'System.Collections.Generic.IEnumerable{System.Byte}') | The bytes on which the id generation is based. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-GetContractAddressByName-AElf-Types-Hash-'></a>
 ### GetContractAddressByName(hash) `method`
@@ -366,7 +433,7 @@ executing the transaction is build in debug mode.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| func | [System.Func{System.String}](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Func 'System.Func{System.String}') | the logic that will be executed for logging purposes. |
+| func | [System.Func{System.String}](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Func 'System.Func{System.String}') | The logic that will be executed for logging purposes. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey'></a>
 ### RecoverPublicKey() `method`
@@ -394,9 +461,9 @@ Sends an inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with. |
-| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to invoke. |
-| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | the input arguments for calling that method. This is usually generated from the protobuf
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | The input arguments for calling that method. This is usually generated from the protobuf
 definition of the input type. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-ByteString-'></a>
@@ -410,10 +477,10 @@ Sends a virtual inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the virtual address to use as sender. |
-| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with. |
-| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to invoke. |
-| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | the input arguments for calling that method. This is usually generated from the protobuf
+| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | The input arguments for calling that method. This is usually generated from the protobuf
 definition of the input type. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-ByteString-'></a>
@@ -427,10 +494,10 @@ Like SendVirtualInline but the virtual address us a system smart contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the virtual address of the system contract to use as sender. |
-| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with. |
-| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to invoke. |
-| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | the input arguments for calling that method. This is usually generated from the protobuf
+| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address of the system contract to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| args | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | The input arguments for calling that method. This is usually generated from the protobuf
 definition of the input type. |
 
 <a name='M-AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction-'></a>
@@ -442,13 +509,13 @@ Returns whether or not the given transaction is well formed and the signature is
 
 ##### Returns
 
-true if correct, false otherwise
+The verification results.
 
 ##### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| tx | [AElf.Types.Transaction](#T-AElf-Types-Transaction 'AElf.Types.Transaction') | the transaction to verify |
+| tx | [AElf.Types.Transaction](#T-AElf-Types-Transaction 'AElf.Types.Transaction') | The transaction to verify. |
 
 <a name='T-AElf-Sdk-CSharp-CSharpSmartContract`1'></a>
 ## CSharpSmartContract\`1 `type`
@@ -558,7 +625,7 @@ AElf.Sdk.CSharp
 Extension methods that help with the interactions with the smart contract execution context.
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### Call\`\`1(address,methodName,message) `method`
+### Call\`\`1(context,address,methodName,message) `method`
 
 ##### Summary
 
@@ -572,18 +639,19 @@ The return value of the call.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| address | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the address of the contract you're seeking to interact with |
-| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to call |
-| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+| context | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| address | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to call. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 ##### Generic Types
 
 | Name | Description |
 | ---- | ----------- |
-| T | The return type of the call |
+| T | The return type of the call. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### Call\`\`1(address,methodName,message) `method`
+### Call\`\`1(context,address,methodName,message) `method`
 
 ##### Summary
 
@@ -591,21 +659,75 @@ Calls a method on another contract.
 
 ##### Returns
 
-the result of the call.
+The result of the call.
 
 ##### Parameters
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| address | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the address of the contract you're seeking to interact with |
-| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to call |
-| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the protobuf message that will be the input to the call. |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| address | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to call. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 ##### Generic Types
 
 | Name | Description |
 | ---- | ----------- |
-| T | the type of the return message. |
+| T | The type of the return message. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
+### Call\`\`1(context,fromAddress,toAddress,methodName,message) `method`
+
+##### Summary
+
+Calls a method on another contract.
+
+##### Returns
+
+The result of the call.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| fromAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to call. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
+
+##### Generic Types
+
+| Name | Description |
+| ---- | ----------- |
+| T | The type of the return message. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Call``1-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-ByteString-'></a>
+### Call\`\`1(context,address,methodName,message) `method`
+
+##### Summary
+
+Calls a method on another contract.
+
+##### Returns
+
+The result of the call.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| address | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to call. |
+| message | [Google.Protobuf.ByteString](#T-Google-Protobuf-ByteString 'Google.Protobuf.ByteString') | The protobuf message that will be the input to the call. |
+
+##### Generic Types
+
+| Name | Description |
+| ---- | ----------- |
+| T | The type of the return message. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertToByteString-Google-Protobuf-IMessage-'></a>
 ### ConvertToByteString(message) `method`
@@ -622,10 +744,46 @@ ByteString.Empty if the message is null
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | the message to serialize. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The message to serialize. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertVirtualAddressToContractAddress-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash-'></a>
+### ConvertVirtualAddressToContractAddress(this,virtualAddress) `method`
+
+##### Summary
+
+Converts a virtual address to a contract address.
+
+##### Returns
+
+
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash-'></a>
+### ConvertVirtualAddressToContractAddressWithContractHashName(this,virtualAddress) `method`
+
+##### Summary
+
+Converts a virtual address to a contract address with the currently running contract address.
+
+##### Returns
+
+
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| virtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address that want to convert. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-Fire``1-AElf-Sdk-CSharp-CSharpSmartContractContext,``0-'></a>
-### Fire\`\`1(eventData) `method`
+### Fire\`\`1(context,eventData) `method`
 
 ##### Summary
 
@@ -636,16 +794,107 @@ project.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| eventData | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the event to log |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| eventData | [\`\`0](#T-``0 '``0') | The event to log. |
 
 ##### Generic Types
 
 | Name | Description |
 | ---- | ----------- |
-| T | the type of the event |
+| T | The type of the event. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,System-Collections-Generic-IEnumerable{System-Byte}-'></a>
+### GenerateId(this,bytes) `method`
+
+##### Summary
+
+Generate a hash type id based on the currently running contract address and the bytes.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| bytes | [System.Collections.Generic.IEnumerable{System.Byte}](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Collections.Generic.IEnumerable 'System.Collections.Generic.IEnumerable{System.Byte}') | The bytes on which the id generation is based. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,System-String-'></a>
+### GenerateId(this,token) `method`
+
+##### Summary
+
+Generate a hash type id based on the currently running contract address and the token.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| token | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The token on which the id generation is based. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash-'></a>
+### GenerateId(this,token) `method`
+
+##### Summary
+
+Generate a hash type id based on the currently running contract address and the hash type token.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| token | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The hash type token on which the id generation is based. |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext-'></a>
+### GenerateId(this) `method`
+
+##### Summary
+
+Generate a hash type id based on the currently running contract address.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+
+<a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-GenerateId-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,AElf-Types-Hash-'></a>
+### GenerateId(this,address,token) `method`
+
+##### Summary
+
+Generate a hash type id based on the address and the bytes.
+
+##### Returns
+
+The generated hash type id.
+
+##### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| this | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| address | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address on which the id generation is based. |
+| token | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The hash type token on which the id generation is based. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### SendInline(toAddress,methodName,message) `method`
+### SendInline(context,toAddress,methodName,message) `method`
 
 ##### Summary
 
@@ -655,12 +904,13 @@ Sends an inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| toAddress | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the address of the contract you're seeking to interact with. |
-| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
-| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+| context | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### SendInline(fromVirtualAddress,toAddress,methodName,message) `method`
+### SendInline(context,toAddress,methodName,message) `method`
 
 ##### Summary
 
@@ -670,13 +920,13 @@ Sends a virtual inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| fromVirtualAddress | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the virtual address to use as sender. |
-| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the address of the contract you're seeking to interact with. |
-| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | the name of method you want to invoke. |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
 | message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### SendVirtualInline(fromVirtualAddress,toAddress,methodName,message) `method`
+### SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message) `method`
 
 ##### Summary
 
@@ -686,13 +936,14 @@ Sends a virtual inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| fromVirtualAddress | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | the virtual address to use as sender. |
-| toAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the address of the contract you're seeking to interact with. |
-| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
-| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+| context | [AElf.Kernel.SmartContract.ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 <a name='M-AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Sdk-CSharp-CSharpSmartContractContext,AElf-Types-Hash,AElf-Types-Address,System-String,Google-Protobuf-IMessage-'></a>
-### SendVirtualInline(fromVirtualAddress,toAddress,methodName,message) `method`
+### SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message) `method`
 
 ##### Summary
 
@@ -702,10 +953,11 @@ Sends a virtual inline transaction to another contract.
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| fromVirtualAddress | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | the virtual address to use as sender. |
-| toAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | the address of the contract you're seeking to interact with. |
-| methodName | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | the name of method you want to invoke. |
-| message | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The protobuf message that will be the input to the call. |
+| context | [AElf.Sdk.CSharp.CSharpSmartContractContext](#T-AElf-Sdk-CSharp-CSharpSmartContractContext 'AElf.Sdk.CSharp.CSharpSmartContractContext') | An instance of [ISmartContractBridgeContext](#T-AElf-Kernel-SmartContract-ISmartContractBridgeContext 'AElf.Kernel.SmartContract.ISmartContractBridgeContext'). |
+| fromVirtualAddress | [AElf.Types.Hash](#T-AElf-Types-Hash 'AElf.Types.Hash') | The virtual address to use as sender. |
+| toAddress | [AElf.Types.Address](#T-AElf-Types-Address 'AElf.Types.Address') | The address of the contract you're seeking to interact with. |
+| methodName | [System.String](http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.String 'System.String') | The name of method you want to invoke. |
+| message | [Google.Protobuf.IMessage](#T-Google-Protobuf-IMessage 'Google.Protobuf.IMessage') | The protobuf message that will be the input to the call. |
 
 <a name='T-AElf-Sdk-CSharp-SmartContractConstants'></a>
 ## SmartContractConstants `type`

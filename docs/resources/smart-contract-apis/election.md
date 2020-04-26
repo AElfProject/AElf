@@ -23,12 +23,17 @@ rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 Used for voting for a candidate to be elected. The tokens you vote with will be locked until the end time. According to the number of token you voted and its lock time, you can get corresponding weight for sharing the bonus in the future.
 
 ```Protobuf
-rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {}
+rpc Vote (VoteMinerInput) returns (aelf.Hash) {}
 
 message VoteMinerInput {
     string candidate_pubkey = 1;
     sint64 amount = 2;
     google.protobuf.Timestamp end_timestamp = 3;
+}
+
+message Hash
+{
+    bytes value = 1;
 }
 ```
 
@@ -36,6 +41,9 @@ message VoteMinerInput {
 - **candidate pubkey**: candidate public key.
 - **amount**: amount token to vote.
 - **end timestamp**: before which, your vote works.
+
+**returns**:
+- **value**: vote id.
 
 ## **ChangeVotingOption**
 
@@ -69,6 +77,23 @@ message Hash
 
 **Hash**:
 - **value**: transaction id.
+
+## **SetVoteWeightProportion**
+
+Vote weight calcualtion takes in consideration the amount you vote and the lock time your vote.
+
+```Protobuf
+rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {}
+
+message VoteWeightProportion {
+    int32 time_proportion = 1;
+    int32 amount_proportion = 2;
+}
+```
+
+**VoteWeightProportion**:
+- **time proportion**: time's weight.
+- **amount proportion**: amount's weight.
 
 ## view methods
 
@@ -671,4 +696,39 @@ message DataCenterRankingList {
 **returns**:
 - **data centers**: the top n * 5 candidates with vote amount.
 - **minimum votes**: not be used.
+
+### GetVoteWeightProportion
+
+Gets VoteWeight Proportion.
+
+```Protobuf
+rpc GetVoteWeightProportion (google.protobuf.Empty) returns (VoteWeightProportion) {}
+
+message VoteWeightProportion {
+    int32 time_proportion = 1;
+    int32 amount_proportion = 2;
+}
+```
+
+note: *for VoteWeightProportion see SetVoteWeightProportion*
+
+### GetCalculateVoteWeight
+
+Calculate the concrete vote weight according to your input.
+
+```Protobuf
+rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){}
+
+message VoteInformation{
+    int64 amount = 1;
+    int64 lock_time = 2;
+}
+```
+
+**VoteInformation**:
+- **amount**: the vote amount.
+- **lock time**: the lock time your vote.
+
+**returns**:
+- **value**: vote weight calculated with your input and our function.
 

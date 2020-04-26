@@ -1,6 +1,6 @@
 # Internal contract interactions
 
-There's essentialy two reasons for interacting with other contracts:
+There are essentially two reasons for interacting with other contracts:
 1. to query their state. 
 2. to create an inline transaction, that is, a new transaction which will be executed after the original transaction.
 
@@ -31,7 +31,7 @@ var candidates = Context.Call<PubkeyList>(electionContractAddress, "GetCandidate
 
 There are several things to know before writing such code:
 
-- Because this code references a type (**PubkeyList**) originally defined in the Election Contract (types are defined in a proto file, in this case  **election_contract.proto**), you at least need to reference messages defined in the .proto file in your contracts project.
+- Because this code references a type (**PubkeyList**) originally defined in the Election Contract (types are defined in a proto file, in this case, **election_contract.proto**), you at least need to reference messages defined in the .proto file in your contracts project.
 
 Add these lines to your csproj file:
 ```xml
@@ -44,9 +44,9 @@ Add these lines to your csproj file:
 
 The **ContractMessage** tag means you just want to reference the messages defined in the specified .proto file.
 
-- The `Call` method take the three following parameters: 
+- The `Call` method takes the three following parameters: 
     - *address*: the address of the contract you're seeking to interact with.
-    - *methodName*: the name of method you want to call.
+    - *methodName*: the name of the method you want to call.
     - *message*: the argument for calling that method.
 
 - Since the `Election Contract` is a system contract which deployed at the very beginning of AElf blockchain, we can get its address directly from the `Context` property. If you want to call contracts deployed by users, you may need to obtain the address in another way (like hard code).
@@ -66,7 +66,7 @@ Context.SendInline(tokenContractAddress, "Transfer", new TransferInput
 });
 ```
 
-Again, because you have to reference a message defined by multi-token contract proto file, you need to add these lines to the csproj file of your contract project.
+Again, because you have to reference a message defined by the m=Multi-Token contract proto file, you need to add these lines to the csproj file of your contract project.
 
 ```C#
     <ItemGroup>
@@ -84,11 +84,11 @@ Check other documentation for more details about the inline transactions.
 Using `Contract Reference State` is more convenient than using `Context` to do the interaction with another contract.
 Follow these three steps of preparation:
 
-1. Add related proto file(s) of the contract you want to call or send inline transactions to and rebuild the contract project. (just like before but we need to change the MSBUILD tag name, we'll see this later.)
+1. Add a related proto file(s) of the contract you want to call or send inline transactions to and rebuild the contract project. (like before, but we need to change the MSBUILD tag name, we'll see this later.)
 2. Add an internal property of `XXXContractReferenceState` type to the State class of your contract.
 3. Set the contract address to the `Value` of property you just added in step 2.
 
-Let's see a demo that implement these steps: check the balance of ELF token of current contract, if the balance is greater than 100 000, request a random number from `AEDPoS Contract`.
+Let's see a demo that implements these steps: check the balance of ELF token of the current contract, if the balance is more significant than 100 000, request a random number from `AEDPoS Contract`.
 
 First, reference proto files related to `MultiToken Contract` and `acs6.proto` (random number generation).
 ```C#
@@ -152,4 +152,4 @@ if (balance.Balance > 100_000)
 }
 ```
 
-As you can see it is convenient to call a method by using the state property like this: State.**Contract**.**method**.Call(**input**).
+As you can see, it is convenient to call a method by using state property like this: State.**Contract**.**method**.Call(**input**).
