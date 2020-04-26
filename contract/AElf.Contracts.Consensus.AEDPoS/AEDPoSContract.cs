@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Contracts.TokenHolder;
@@ -285,9 +286,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
             }
 
+            if (State.ElectionContract.Value == null)
+            {
+                State.ElectionContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+            }
+
             var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
             State.MaximumMinersCount.Value = input.Value;
+            State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+            {
+                MinersCount = input.Value
+            });
             return new Empty();
         }
 

@@ -244,7 +244,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _isSkipped = false;
         }
 
-        public async Task MineBlockToNextRoundAsync()
+        public async Task<long> MineBlockToNextRoundAsync()
         {
             var consensusStub = _contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 _consensusContractAddress, MissionedECKeyPairs.InitialKeyPairs.First());
@@ -255,6 +255,23 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 await MineBlockAsync();
                 currentRoundNumber = (await consensusStub.GetCurrentRoundNumber.CallAsync(new Empty())).Value;
             }
+
+            return currentRoundNumber;
+        }
+
+        public async Task<long> MineBlockToNextTermAsync()
+        {
+            var consensusStub = _contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                _consensusContractAddress, MissionedECKeyPairs.InitialKeyPairs.First());
+            var startTermNumber = (await consensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
+            var currentTermNumber = startTermNumber;
+            while (currentTermNumber == startTermNumber)
+            {
+                await MineBlockAsync();
+                currentTermNumber = (await consensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
+            }
+
+            return currentTermNumber;
         }
 
         public async Task MineBlockAsync(long targetHeight)

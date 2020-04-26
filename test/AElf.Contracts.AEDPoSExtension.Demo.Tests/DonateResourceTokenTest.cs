@@ -266,9 +266,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 InitialAcs3Stubs();
             }
 
-            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput
-            {
-            });
+            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput());
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
             var tokenSymbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
