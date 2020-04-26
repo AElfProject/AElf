@@ -67,7 +67,7 @@ Creates an organization by system contract and returns its address.
 
 **CreateOrganizationBySystemContractInput**:
 - **CreateOrganizationInput**:
-  - **organizer member list**: 
+  - **OrganizationMemberList**: 
     - **organization_members**: initial organization members.
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the value for the minimum approval threshold.
