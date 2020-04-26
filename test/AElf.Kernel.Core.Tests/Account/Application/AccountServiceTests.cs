@@ -2,13 +2,14 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Blockchain.Application;
+using AElf.TestBase;
 using Shouldly;
 using Xunit;
 
 
 namespace AElf.Kernel.Account.Application
 {
-    public class AccountServiceTests: AElfKernelTestBase
+    public class AccountServiceTests: AElfIntegratedTest<KernelCoreAccountServiceTestAElfModule>
 
     {
         private readonly IAccountService _accountService;
@@ -16,8 +17,6 @@ namespace AElf.Kernel.Account.Application
         public AccountServiceTests()
         {
             _accountService = GetRequiredService<IAccountService>();
-            // var keyPairProvider = GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
-            // keyPairProvider.SetKeyPair(CryptoHelper.GenerateKeyPaåir());
         }
 
         [Fact]

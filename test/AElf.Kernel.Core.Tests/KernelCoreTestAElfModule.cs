@@ -26,7 +26,19 @@ namespace AElf.Kernel
         {
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
-            // services.AddSingleton(p => Mock.Of<IAccountService>());
+            services.AddSingleton(p => Mock.Of<IAccountService>());
+        }
+    }
+    
+    [DependsOn(
+        typeof(AbpEventBusModule),
+        typeof(TestBaseKernelAElfModule))]
+    public class KernelCoreAccountServiceTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddTransient<BlockValidationProvider>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
