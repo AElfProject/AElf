@@ -13,7 +13,14 @@ message CreateOrganizationInput {
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
 ```
+
+Creates an organization and returns its address.
 
 **CreateOrganizationInput**:
 - **organizer member list**: 
@@ -26,8 +33,10 @@ message OrganizationMemberList {
 - **ProposerWhiteList**:
   - **proposers**: proposer whitelist.
 
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
 
-Creates an organization and returns its address.
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
 
 ## **CreateOrganizationBySystemContract**
 
@@ -48,7 +57,13 @@ message CreateOrganizationInput{
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
 ```
+Creates an organization by system contract and returns its address.
 
 **CreateOrganizationBySystemContractInput**:
 - **CreateOrganizationInput**:
@@ -61,10 +76,12 @@ message OrganizationMemberList {
     - **minimal vote threshold**: the value for the minimal vote threshold.
   - **ProposerWhiteList**:
     - **proposers**: proposer whitelist.
-- **organization address feedback method**: organization address call back method which replies the caller contract with organization address.
+- **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
 
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
 
-Creates an organization by system contract and returns its address.
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
 
 ## **ChangeOrganizationMember**
 
@@ -183,6 +200,8 @@ This method creates a proposal for which organization members can vote. When the
 - **proposal_description_url**: the url is used for proposal describing.
 - **token**: the token is for proposal id generation and with this token, proposal id can be calculated before proposing. 
 
+After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
+
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.
 
@@ -203,7 +222,7 @@ This method is called to approve the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Approve** will fire the event **ReceiptCreated**.
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
 
 **ReceiptCreated**:
 - **proposal id**: id of proposal to reject.
@@ -229,7 +248,7 @@ This method is called to reject the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Reject** will fire the event **ReceiptCreated**.
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
 
 **ReceiptCreated**:
 - **proposal id**: id of proposal to reject.
@@ -255,7 +274,7 @@ This method is called to abstain from the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Abstain** will fire the event **ReceiptCreated**.
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
 
 **ReceiptCreated**:
 - **proposal id**: id of proposal to abstain.
@@ -361,7 +380,7 @@ Used by system contracts to create proposals.
   - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
 - **origin proposer**: the actor that trigger the call.
 
-**ProposalCreated** even will be fired when the method **CreateProposalBySystemContract** called.
+After a successful execution, a **OrganizationWhiteListChanged** event log can be found in the transaction result.
 
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.

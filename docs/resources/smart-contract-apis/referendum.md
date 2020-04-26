@@ -10,19 +10,28 @@ message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
     acs3.ProposerWhiteList proposer_white_list = 3;
 }
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
 ```
+Creates an organization and returns its address.
 
 **CreateOrganizationInput**:
 - **token symbol**: the token used during proposal operations.
 - **ProposalReleaseThreshold**:
-  - **minimal approval threshold**: the value for the minimum approval threshold.
-  - **maximal rejection threshold**: the value for the maximal rejection threshold.
-  - **maximal abstention threshold**: the value for the maximal abstention threshold.
-  - **minimal vote threshold**: the value for the minimal vote threshold.
+  - **minimal approval threshold**: the minimum locked token amount threshold for approval.
+  - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
+  - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
+  - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
 - **ProposerWhiteList**:
   - **proposers**: proposer white list.
 
-Creates an organization and returns its address.
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
+
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
 
 ## **CreateOrganizationBySystemContract**
 
@@ -40,20 +49,29 @@ message CreateOrganizationInput {
     acs3.ProposerWhiteList proposer_white_list = 3;
 }
 
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
 ```
+Creates an organization by system contract and returns its address. Event **OrganizationCreated** will be fired.
+
 **CreateOrganizationBySystemContractInput**:
 - **CreateOrganizationInput**:
   - **token symbol**: the token used during proposal operations.
   - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the value for the minimum approval threshold.
-    - **maximal rejection threshold**: the value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the value for the maximal abstention threshold.
-    - **minimal vote threshold**: the value for the minimal vote threshold.
+    - **minimal approval threshold**: the minimum locked token amount threshold for approval.
+    - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
+    - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
+    - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
   - **ProposerWhiteList**:
     - **proposers**: proposer white list.
-- **organization address feedback method**: organization address call back method which replies the caller contract with organization address.
+- **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
 
-Creates an organization by system contract and returns its address.
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
+
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
 
 ## **ReclaimVoteToken**
 
@@ -101,19 +119,18 @@ message CreateOrganizationInput {
     acs3.ProposerWhiteList proposer_white_list = 3;
 }
 ```
+Calculate with input and return the organization address.
 
 **CreateOrganizationInput**:
 - **token symbol**: the token used during proposal operations.
 - **ProposalReleaseThreshold**:
-  - **minimal approval threshold**: the value for the minimum approval threshold.
-  - **maximal rejection threshold**: the value for the maximal rejection threshold.
-  - **maximal abstention threshold**: the value for the maximal abstention threshold.
-  - **minimal vote threshold**: the value for the minimal vote threshold.
+  - **minimal approval threshold**: the minimum locked token amount threshold for approval.
+  - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
+  - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
+  - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
 - **ProposerWhiteList**:
   - **proposers**: proposer white list.
 
-Calculate with input and return the organization address.
- 
 # **ACS3 specific methods**
 
 ## **CreateProposal**
@@ -149,6 +166,8 @@ This method creates a proposal for which organization members can vote. When the
 - **proposal_description_url**: the url is used for proposal describing.
 - **token**: the token is for proposal id generation and with this token, proposal id can be calculated before proposing. 
 
+After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
+
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.
 
@@ -171,7 +190,7 @@ This method is called to approve the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Approve** will fire the event **ReferendumReceiptCreated**.
+After a successful execution, a **ReferendumReceiptCreated** event log can be found in the transaction result.
 
 **ReferendumReceiptCreated**:
 - **proposal id**: id of proposal to reject.
@@ -201,7 +220,7 @@ This method is called to reject the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Reject** will fire the event **ReferendumReceiptCreated**.
+After a successful execution, a **ReferendumReceiptCreated** event log can be found in the transaction result.
                                       
 **ReferendumReceiptCreated**:
 - **proposal id**: id of proposal to reject.
@@ -231,8 +250,8 @@ This method is called to abstain from the specified proposal.
 
 **Hash**: the id of the proposal.
 
-Method **Abstain** will fire the event **ReferendumReceiptCreated**.
-                                      
+After a successful execution, a **ReferendumReceiptCreated** event log can be found in the transaction result.
+
 **ReferendumReceiptCreated**:
 - **proposal id**: id of proposal to reject.
 - **address**: send address who votes for approval.
@@ -273,10 +292,10 @@ message OrganizationThresholdChanged{
 This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will affect all current proposals of the organization. Note: only the organization can execute this through a proposal.
 
 **ProposalReleaseThreshold**:
-- **minimal approval threshold**: the new value for the minimum approval threshold.
-- **maximal rejection threshold**: the new value for the maximal rejection threshold.
-- **maximal abstention threshold**: the new value for the maximal abstention threshold.
-- **minimal vote threshold**: the new value for the minimal vote threshold.
+- **minimal approval threshold**: the minimum locked token amount threshold for approval.
+- **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
+- **maximal abstention threshold**: the maximal locked token amount threshold for approval.
+- **minimal vote threshold**: the minimum locked token amount threshold for all votes.
 
 After a successful execution, an **OrganizationThresholdChanged** event log can be found in the transaction result.
 
@@ -393,9 +412,9 @@ Get the proposal with the given ID.
 - **organization address**: address of this proposals organization.
 - **proposer**: address of the proposer of this proposal.
 - **to be release**: indicates if this proposal is releasable.
-- **approval count**: approval count for this proposal
-- **rejection count**: rejection count for this proposal
-- **abstention count**: abstention count for this proposal
+- **approval count**: locked token amount for approval.
+- **rejection count**: locked token amount for rejection.
+- **abstention count**: locked token amount for abstention.
 
 
 ## **ValidateProposerInWhiteList**
