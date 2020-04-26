@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
@@ -13,12 +12,12 @@ using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -43,7 +42,7 @@ namespace AElf.Contracts.CrossChain.Tests
             ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
 
         public Address CrossChainContractAddress =>
-            ContractAddresses[SmartContractConstants.CrossChainContractSystemName];
+            ContractAddresses[SmartContractConstants.CrossChainContractSystemHashName];
 
         public Address ConsensusContractAddress =>
             ContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
@@ -127,7 +126,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
-                SmartContractConstants.CrossChainContractSystemName,
+                SmartContractConstants.CrossChainContractSystemHashName,
                 ConsensusSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name
             }));

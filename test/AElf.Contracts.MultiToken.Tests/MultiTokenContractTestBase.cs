@@ -5,7 +5,6 @@ using Acs2;
 using System.Threading.Tasks;
 using Acs3;
 using Acs7;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Economic.TestBase;
@@ -24,6 +23,7 @@ using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
+using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -105,8 +105,8 @@ namespace AElf.Contracts.MultiToken
         protected byte[] OtherBasicFunctionContractCode =>
             Codes.Single(kv => kv.Key.Contains("BasicFunctionWithParallel")).Value;
 
-        protected Hash BasicFunctionContractName => HashHelper.ComputeFromString("AElf.TestContractNames.BasicFunction");
-        protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFromString("AElf.TestContractNames.OtherBasicFunction");
+        protected Hash BasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.BasicFunction");
+        protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
 
         protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
 

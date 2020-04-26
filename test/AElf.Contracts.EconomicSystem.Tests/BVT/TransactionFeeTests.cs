@@ -269,7 +269,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             input.Options.Clear();
-            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFromMessage(input), HashHelper.ComputeFromMessage(sender));
+            var votingItemId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = votingItemId

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
@@ -8,6 +10,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
+using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
@@ -104,6 +107,15 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
+            
+            context.Services.AddTransient(o =>
+            {
+                var mockService = new Mock<IGenesisSmartContractDtoProvider>();
+                mockService.Setup(s =>
+                        s.GetGenesisSmartContractDtos())
+                    .Returns(new List<GenesisSmartContractDto>());
+                return mockService.Object;
+            });
 
             #endregion
 
@@ -122,6 +134,9 @@ namespace AElf.Contracts.TestKit
                     option.Value.SdkDir);
             });
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
+            context.Services
+                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
         }
 
         public int ChainId { get; } = 500;
@@ -138,6 +153,8 @@ namespace AElf.Contracts.TestKit
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
             };
+            var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
+            dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos().ToList();
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

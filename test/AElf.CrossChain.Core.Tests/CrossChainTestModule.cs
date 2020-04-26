@@ -24,9 +24,9 @@ namespace AElf.CrossChain
         {
             var dictionary = new Dictionary<long, Hash>
             {
-                {1, HashHelper.ComputeFromString("1")},
-                {2, HashHelper.ComputeFromString("2")},
-                {3, HashHelper.ComputeFromString("3")}
+                {1, HashHelper.ComputeFrom("1")},
+                {2, HashHelper.ComputeFrom("2")},
+                {3, HashHelper.ComputeFrom("3")}
             };
             
             Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
@@ -50,8 +50,8 @@ namespace AElf.CrossChain
             context.Services.AddTransient(provider =>
             {
                 var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
-                mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(SampleAddress.AddressList[0]);
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<string>()))
+                    .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 return mockSmartContractAddressService.Object;
             });
             context.Services.AddTransient(provider =>
@@ -99,8 +99,8 @@ namespace AElf.CrossChain
             context.Services.AddTransient(provider =>
             {
                 var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
-                mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(SampleAddress.AddressList[0]);
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(),It.IsAny<string>()))
+                    .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 return mockSmartContractAddressService.Object;
             });
             context.Services.AddTransient(provider =>

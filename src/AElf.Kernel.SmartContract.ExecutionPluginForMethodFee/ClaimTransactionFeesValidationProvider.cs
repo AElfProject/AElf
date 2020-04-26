@@ -58,7 +58,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return true;
@@ -82,7 +86,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return hashFromState.Value.IsEmpty;
             }
 
-            var hashFromProvider = HashHelper.ComputeFromMessage(totalTransactionFeesMapFromProvider);
+            var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
             if (!result)
             {

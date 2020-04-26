@@ -1,12 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
+using AElf.EconomicSystem;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Proposal;
@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             // Test contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFromString("TestContract"),
+                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFrom("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

@@ -59,15 +59,15 @@ namespace AElf.Kernel
             var newHeader = BlockHeader.Parser.ParseFrom(ByteString.CopyFrom(bytes));
 
             //Test mining method
-            newHeader.GetHash().ShouldBe(HashHelper.ComputeFromByteArray(newHeader.ToByteArray()));
-            newHeader.GetHash().ShouldBe(HashHelper.ComputeFromByteArray(bytes));
+            newHeader.GetHash().ShouldBe(HashHelper.ComputeFrom(newHeader.ToByteArray()));
+            newHeader.GetHash().ShouldBe(HashHelper.ComputeFrom(bytes));
 
 
             //Start mining 
 
             Random r = new Random();
 
-            while (HashHelper.ComputeFromByteArray(bytes).Value[0] != 0)
+            while (HashHelper.ComputeFrom(bytes).Value[0] != 0)
             {
                 //find first hash byte is 0
 

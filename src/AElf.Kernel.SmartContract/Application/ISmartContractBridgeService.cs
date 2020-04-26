@@ -7,6 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -21,9 +22,9 @@ namespace AElf.Kernel.SmartContract.Application
         Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
 
-        Address GetAddressByContractName(Hash contractName);
+        Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string contractName);
 
-        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
+        Task<IReadOnlyDictionary<Hash, Address>> GetSystemContractNameToAddressMappingAsync(IChainContext chainContext);
 
         Address GetZeroSmartContractAddress();
         
@@ -81,14 +82,14 @@ namespace AElf.Kernel.SmartContract.Application
             return _blockchainService.GetChainId();
         }
 
-        public Address GetAddressByContractName(Hash contractName)
+        public Task<Address> GetAddressByContractNameAsync(IChainContext chainContext, string contractName)
         {
-            return _smartContractAddressService.GetAddressByContractName(contractName);
+            return _smartContractAddressService.GetAddressByContractNameAsync(chainContext, contractName);
         }
-        
-        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+
+        public Task<IReadOnlyDictionary<Hash, Address>> GetSystemContractNameToAddressMappingAsync(IChainContext chainContext)
         {
-            return _smartContractAddressService.GetSystemContractNameToAddressMapping();
+            return _smartContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
         }
 
         public Address GetZeroSmartContractAddress()

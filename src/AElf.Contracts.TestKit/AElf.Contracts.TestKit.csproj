@@ -17,7 +17,6 @@
         <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain.ContractNames\AElf.Blockchains.BasicBaseChain.ContractNames.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />

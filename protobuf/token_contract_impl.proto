@@ -6,6 +6,8 @@ import "aelf/core.proto";
 import "acs1.proto";
 import "acs2.proto";
 import "token_contract.proto";
+// Because implementation uses this proto file.
+import "transaction_fee.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
@@ -15,37 +17,39 @@ service TokenContractImpl {
     option (aelf.base) = "acs2.proto";
     option (aelf.base) = "token_contract.proto";
     
-    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
-    }
-    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
-    }
+    // ACS8 Related - Resource Token Charge & Deposit
     rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
     }
+
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
     }
     rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
     }
+    
+    // Exclusive Side Chain Rental Stuff.
     rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
     }
     rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
     }
+
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
-    }
-    rpc ChangeSideChainParliamentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainRentalController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc ChangeSymbolsToPayTXSizeFeeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){
     }
     rpc ChangeCrossChainTokenContractRegistrationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
-        option (aelf.is_view) = true;
+    rpc ChangeUserFeeController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc ChangeDeveloperController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
+    // Views
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
@@ -61,7 +65,7 @@ service TokenContractImpl {
     rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (ControllerCreateInfo) {
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
@@ -148,12 +152,8 @@ message TransferToContractInput {
     int64 amount = 2;
     string memo = 3;
 }
-// about authority
-message ControllerCreateInfo {
-    aelf.Address controller = 1;
-    bytes organization_creation_input_bytes = 2;
-}
 
+// about authority
 message UserFeeController{
     acs1.AuthorityInfo root_controller = 1;
     acs1.AuthorityInfo parliament_controller = 2;

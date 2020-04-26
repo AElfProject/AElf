@@ -40,7 +40,8 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton(provider =>
             {
                 var mockService = new Mock<ITransactionValidationService>();
-                mockService.Setup(m => m.ValidateTransactionWhileCollectingAsync(It.IsAny<Transaction>()))
+                mockService.Setup(m =>
+                        m.ValidateTransactionWhileCollectingAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>()))
                     .Returns(Task.FromResult(true));
 
                 return mockService.Object;

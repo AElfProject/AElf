@@ -104,7 +104,7 @@ namespace AElf.Contracts.GenesisUpdate
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
-            var codeHash = HashHelper.ComputeFromByteArray(code);
+            var codeHash = HashHelper.ComputeFrom(code);
 
             var info = new ContractInfo
             {
@@ -164,7 +164,7 @@ namespace AElf.Contracts.GenesisUpdate
                 "Only author can propose contract update.");
 
             var oldCodeHash = info.CodeHash;
-            var newCodeHash = HashHelper.ComputeFromByteArray(code);
+            var newCodeHash = HashHelper.ComputeFrom(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
 
             info.CodeHash = newCodeHash;
@@ -239,7 +239,7 @@ namespace AElf.Contracts.GenesisUpdate
         private void InitializeGenesisOwner(Address genesisOwner)
         {
             Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;
@@ -255,13 +255,13 @@ namespace AElf.Contracts.GenesisUpdate
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFromInt64(serialNumber));
+            var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFrom(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(HashHelper.ComputeFromInt32(chainId), serialNumber);
+            return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
         }
     }
 }

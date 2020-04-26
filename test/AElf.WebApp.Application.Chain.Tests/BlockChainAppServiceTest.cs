@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -22,7 +21,6 @@ using AElf.Runtime.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
-using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
@@ -78,7 +76,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             transaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
@@ -114,7 +112,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(VoteContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             deployTransaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(deployTransaction.GetHash().ToByteArray()));
@@ -144,7 +142,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     VotingItemId = Hash.Empty
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             transaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(transaction.GetHash().ToByteArray()));
@@ -176,7 +174,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Code = ByteString.CopyFrom(ConfigurationContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash),
             };
             updateTransaction.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(updateTransaction.GetHash().ToByteArray()));
@@ -287,7 +285,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             const string methodName = "GetBalance";
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -304,7 +302,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                HashHelper.ComputeFromByteArray(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -315,12 +313,13 @@ namespace AElf.WebApp.Application.Chain.Tests
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<string>("/api/blockChain/executeRawTransaction",
                     parameters);
-            var getBalanceOutput =
-                GetBalanceOutput.Parser.ParseFrom(
-                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(sendTransactionResponse)));
-            getBalanceOutput.Owner.ShouldBe(accountAddress);
-            getBalanceOutput.Symbol.ShouldBe("ELF");
-            getBalanceOutput.Balance.ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
+            var output = new GetBalanceOutput
+            {
+                Owner = accountAddress,
+                Symbol = "ELF",
+                Balance = _osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount
+            };
+            sendTransactionResponse.ShouldBe(output.ToString());
         }
 
         [Fact]
@@ -338,7 +337,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             const string methodName = "GetBalance";
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -405,7 +404,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
 
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
 
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
@@ -434,7 +433,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
@@ -461,7 +460,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
                 "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
@@ -541,7 +540,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
             var transaction2 = await _osTestHelper.GenerateTransferTransaction();
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
 
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
@@ -575,7 +574,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
@@ -607,7 +606,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
                 "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
@@ -1041,7 +1040,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Error.ValidationErrors.Any(v => v.Members.Contains("from")).ShouldBeTrue();
 
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var accountAddress = await _accountService.GetAccountAsync();
             parameters = new Dictionary<string, string>
             {
@@ -1123,7 +1122,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Address.FromBase58("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ");
             var toAddress = Base64.ToBase64String(transferToAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             OutputHelper.WriteLine(contractAddress.ToString()); //2J9wWhuyz7Drkmtu9DTegM9rLmamjekmRkCAWz5YYPjm7akfbH
             var fromAddressInBase58 = "juYfvugva4PZSEz1w9J8VkAhgrbevEmqTLSATwc9i1XHZJvE1";
             var refHashInHex = "190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"; 
@@ -1160,7 +1159,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             const string methodName = "Transfer";
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var chain = await _blockchainService.GetChainAsync();
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var accountAddress = await _accountService.GetAccountAsync();
@@ -1181,7 +1180,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                HashHelper.ComputeFromByteArray(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -1218,8 +1217,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "{ \"to\": \"" + Address.FromPublicKey(newUserKeyPair.PublicKey).ToBase58() +
                 "\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
             sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
-            sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString
-                .CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()).ToBase64());
+            sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(chain.BestChainHash).ToBase64());
             sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
 
             existTransaction = await _txHub.GetExecutableTransactionSetAsync();
@@ -1230,7 +1228,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task SendRawTransaction_ReturnInvalidTransaction_Test()
         {
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
 
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
@@ -1258,7 +1256,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
@@ -1284,7 +1282,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var contractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
                 "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
@@ -1390,7 +1388,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
 
-        private Task<List<Transaction>> GenerateTwoInitializeTransaction()
+        private async Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
@@ -1398,7 +1396,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             for (int i = 0; i < 2; i++)
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
-                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                    await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                     nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
                     {
                         Symbol = "ELF",
@@ -1416,22 +1414,22 @@ namespace AElf.WebApp.Application.Chain.Tests
                 transactionList.Add(transaction);
             }
 
-            return Task.FromResult(transactionList);
+            return transactionList;
         }
 
-        private Task<Transaction> GenerateViewTransaction(string method, IMessage input)
+        private async Task<Transaction> GenerateViewTransaction(string method, IMessage input)
         {
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
             var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
                 method, input);
 
             var signature = CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey,
                 transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
-            return Task.FromResult(transaction);
+            return transaction;
         }
         
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
@@ -1440,7 +1438,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return HashHelper.ComputeFromByteArray(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
     }
 }
