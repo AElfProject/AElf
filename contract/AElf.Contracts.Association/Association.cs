@@ -13,7 +13,7 @@ namespace AElf.Contracts.Association
 
         public override Organization GetOrganization(Address address)
         {
-            return State.Organisations[address] ?? new Organization();
+            return State.Organizations[address] ?? new Organization();
         }
 
         public override ProposalOutput GetProposal(Hash proposalId)
@@ -24,7 +24,7 @@ namespace AElf.Contracts.Association
                 return new ProposalOutput();
             }
 
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
             var readyToRelease = IsReleaseThresholdReached(proposal, organization);
 
             return new ProposalOutput
@@ -52,12 +52,12 @@ namespace AElf.Contracts.Association
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
-            return new BoolValue {Value = State.Organisations[input] != null};
+            return new BoolValue {Value = State.Organizations[input] != null};
         }
 
         public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
         {
-            var organization = State.Organisations[input.OrganizationAddress];
+            var organization = State.Organizations[input.OrganizationAddress];
             return new BoolValue
             {
                 Value = organization.ProposerWhiteList.Contains(input.Proposer)
@@ -82,9 +82,9 @@ namespace AElf.Contracts.Association
                 OrganizationHash = organizationHash
             };
             Assert(Validate(organization), "Invalid organization.");
-            if (State.Organisations[organizationAddress] == null)
+            if (State.Organizations[organizationAddress] == null)
             {
-                State.Organisations[organizationAddress] = organization;
+                State.Organizations[organizationAddress] = organization;
                 Context.Fire(new OrganizationCreated
                 {
                     OrganizationAddress = organizationAddress
@@ -184,7 +184,7 @@ namespace AElf.Contracts.Association
         {
             var proposalInfo = GetValidProposal(input);
             Assert(Context.Sender == proposalInfo.Proposer, "No permission.");
-            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            var organization = State.Organizations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
@@ -197,11 +197,11 @@ namespace AElf.Contracts.Association
 
         public override Empty ChangeOrganizationThreshold(ProposalReleaseThreshold input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationThresholdChanged
             {
                 OrganizationAddress = Context.Sender,
@@ -212,11 +212,11 @@ namespace AElf.Contracts.Association
 
         public override Empty ChangeOrganizationMember(OrganizationMemberList input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.OrganizationMemberList = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationMemberChanged
             {
                 OrganizationAddress = Context.Sender,
@@ -227,11 +227,11 @@ namespace AElf.Contracts.Association
 
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposerWhiteList = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationWhiteListChanged()
             {
                 OrganizationAddress = Context.Sender,

@@ -46,8 +46,6 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = new DataCenterRankingList();
 
-            InitializeVoteWeightInterest();
-
             State.Initialized.Value = true;
             return new Empty();
         }

@@ -10,7 +10,7 @@ namespace AElf.Contracts.Association
     {
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "No registered organization.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }

@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
@@ -8,6 +7,8 @@ using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
+using AElf.EconomicSystem;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Proposal;

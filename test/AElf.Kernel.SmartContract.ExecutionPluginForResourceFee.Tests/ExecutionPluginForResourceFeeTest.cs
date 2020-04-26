@@ -243,68 +243,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 Symbol = "STORAGE"
             });
 
-            long owingSto;
-
-            {
-                var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
-                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var consumedTokens = txResult.TransactionResult.GetConsumedResourceTokens();
-                consumedTokens["STORAGE"].ShouldBe(stoAmount);
-                owingSto = txResult.TransactionResult.GetOwningResourceTokens()["STORAGE"];
-                owingSto.ShouldBeGreaterThan(0);
-                consumedTokens["READ"].ShouldBeGreaterThan(0);
-                consumedTokens["TRAFFIC"].ShouldBeGreaterThan(0);
-                consumedTokens["WRITE"].ShouldBeGreaterThan(0);
-            }
-
-            // Mine a block to use plugin to really consume resource tokens.
-            await TestContractStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
-
-            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TestContractAddress,
-                Symbol = "STORAGE"
-            })).Balance;
-            balance.ShouldBe(0);
-
-            {
-                var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
-                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-                txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
-            }
-
-            // Advance some STORAGE tokens.
-            await TokenContractStub.Transfer.SendAsync(new TransferInput
-            {
-                To = TestContractAddress,
-                Amount = owingSto - 1, // Still not enough
-                Symbol = "STORAGE"
-            });
-
-            {
-                var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
-                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-                txResult.TransactionResult.Error.ShouldContain($"Owning {owingSto}");
-            }
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput
-            {
-                To = TestContractAddress,
-                Amount = 2, // Not it's enough
-                Symbol = "STORAGE"
-            });
-
-            {
-                var txResult = await TestContractStub.CpuConsumingMethod.SendAsync(new Empty());
-                txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var consumedTokens = txResult.TransactionResult.GetConsumedResourceTokens();
-                consumedTokens["STORAGE"].ShouldBe(owingSto + 1);
-                consumedTokens["READ"].ShouldBeGreaterThan(0);
-                consumedTokens["TRAFFIC"].ShouldBeGreaterThan(0);
-                consumedTokens["WRITE"].ShouldBeGreaterThan(0);
-
-                txResult.TransactionResult.GetOwningResourceTokens()["STORAGE"].ShouldBeGreaterThan(0);
-            }
+            var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
         [Fact]
@@ -327,6 +267,34 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             consumedTokens1["WRITE"].ShouldBeGreaterThan(consumedTokens2["WRITE"]);
             consumedTokens1["TRAFFIC"].ShouldBe(consumedTokens2["TRAFFIC"]);
             consumedTokens1["STORAGE"].ShouldBe(consumedTokens2["STORAGE"]);
+
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+            
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+            
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = SampleAddress.AddressList.Last(),
+                Symbol = "ELF",
+                Amount = 10
+            });
+
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = SampleAddress.AddressList.Last(),
+                Symbol = "ELF"
+            })).Balance;
+            balance.ShouldBe(30);
         }
 
         private async Task<(long read, long write, long traffic, long storage, TransactionResult txResult)>

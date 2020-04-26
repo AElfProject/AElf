@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -12,6 +11,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
@@ -476,7 +476,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -507,7 +507,7 @@ namespace AElf.Contracts.TestBase
                 MethodName = methodName,
                 Params = paramInfo,
                 RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash())
             };
 
             var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().ToByteArray());
@@ -684,7 +684,7 @@ namespace AElf.Contracts.TestBase
             foreach (var transaction in transactions)
             {
                 transaction.RefBlockNumber = refBlock.Height;
-                transaction.RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray());
+                transaction.RefBlockPrefix = BlockHelper.GetRefBlockPrefix(refBlock.GetHash());
             }
         }
 

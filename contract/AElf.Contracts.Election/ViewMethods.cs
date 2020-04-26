@@ -289,7 +289,7 @@ namespace AElf.Contracts.Election
         
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
-            return State.VoteWeightInterestList.Value;
+            return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
         }
         
         public override AuthorityInfo GetVoteWeightInterestController(Empty input)
@@ -297,6 +297,19 @@ namespace AElf.Contracts.Election
             if (State.VoteWeightInterestController.Value == null)
                 return GetDefaultVoteWeightInterestController();
             return State.VoteWeightInterestController.Value;
+        }
+        
+        public override VoteWeightProportion GetVoteWeightProportion(Empty input)
+        {
+            return State.VoteWeightProportion.Value ?? GetDefaultVoteWeightProportion();
+        }
+        
+        public override Int64Value GetCalculateVoteWeight(VoteInformation input)
+        {
+            return new Int64Value
+            {
+                Value = GetVotesWeight(input.Amount, input.LockTime)
+            };
         }
         
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)

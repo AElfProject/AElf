@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -26,8 +25,7 @@ namespace AElf.Contracts.TestBase
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(KernelTestAElfModule),
-        typeof(ContractNamesAElfModule)
+        typeof(KernelTestAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule
     {

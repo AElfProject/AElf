@@ -13,7 +13,7 @@ namespace AElf.Contracts.Parliament
 
         public override Organization GetOrganization(Address address)
         {
-            var organization = State.Organisations[address];
+            var organization = State.Organizations[address];
             return organization ?? new Organization();
         }
 
@@ -25,7 +25,7 @@ namespace AElf.Contracts.Parliament
                 return new ProposalOutput();
             }
 
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organizations[proposal.OrganizationAddress];
 
             return new ProposalOutput
             {
@@ -76,7 +76,7 @@ namespace AElf.Contracts.Parliament
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
-            return new BoolValue {Value = State.Organisations[input] != null};
+            return new BoolValue {Value = State.Organizations[input] != null};
         }
 
         public override ProposalIdList GetNotVotedProposals(ProposalIdList input)
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Parliament
                 var proposal = State.Proposals[proposalId];
                 if (proposal == null || !Validate(proposal) || CheckProposalAlreadyVotedBy(proposal, Context.Sender))
                     continue;
-                var organization = State.Organisations[proposal.OrganizationAddress];
+                var organization = State.Organizations[proposal.OrganizationAddress];
                 if (organization == null || !IsProposalStillPending(proposal, organization, currentParliament))
                     continue;
                 result.ProposalIds.Add(proposalId);
@@ -236,7 +236,7 @@ namespace AElf.Contracts.Parliament
         {
             var proposalInfo = GetValidProposal(proposalId);
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "No permission.");
-            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            var organization = State.Organizations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
@@ -248,11 +248,11 @@ namespace AElf.Contracts.Parliament
 
         public override Empty ChangeOrganizationThreshold(ProposalReleaseThreshold input)
         {
-            var organization = State.Organisations[Context.Sender];
+            var organization = State.Organizations[Context.Sender];
             Assert(organization != null, "Organization not found.");
             organization.ProposalReleaseThreshold = input;
             Assert(Validate(organization), "Invalid organization.");
-            State.Organisations[Context.Sender] = organization;
+            State.Organizations[Context.Sender] = organization;
             Context.Fire(new OrganizationThresholdChanged
             {
                 OrganizationAddress = Context.Sender,
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Parliament
         {
             var defaultOrganizationAddress = State.DefaultOrganizationAddress.Value;
             Assert(defaultOrganizationAddress == Context.Sender, "No permission.");
-            var organization = State.Organisations[defaultOrganizationAddress];
+            var organization = State.Organizations[defaultOrganizationAddress];
             Assert(
                 input.Proposers.Count > 0 || !organization.ProposerAuthorityRequired ||
                 organization.ParliamentMemberProposingAllowed, "White list can't be empty.");
