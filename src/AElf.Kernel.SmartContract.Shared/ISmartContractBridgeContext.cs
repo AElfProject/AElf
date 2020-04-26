@@ -7,6 +7,9 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract
 {
+    /// <summary>
+    /// The transaction execution context in the smart contract.
+    /// </summary>
     public interface ISmartContractBridgeContext
     {
         int ChainId { get; }
