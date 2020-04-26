@@ -653,7 +653,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Insufficient balance.");
+            executionResult.TransactionResult.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact]
