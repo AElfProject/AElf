@@ -14,8 +14,46 @@ message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
 ```
+
+**CreateOrganizationInput**:
+- **organizer member list**: 
+  - **organization_members**: initial organization members.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer whitelist.
+
+
+Creates an organization and returns its address.
+
+## **CreateOrganizationBySystemContract**
+
+```Protobuf
+rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){}
+
+message CreateOrganizationBySystemContractInput {
+    CreateOrganizationInput organization_creation_input = 1;
+    string organization_address_feedback_method = 2;
+}
+
+message CreateOrganizationInput{
+    OrganizationMemberList organization_member_list = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+
+message OrganizationMemberList {
+    repeated aelf.Address organization_members = 1;
+}
+```
+
+**CreateOrganizationBySystemContractInput**:
 - **CreateOrganizationInput**:
-  - **organizer member list**: initial members.
+  - **organizer member list**: 
+    - **organization_members**: initial organization members.
   - **ProposalReleaseThreshold**:
     - **minimal approval threshold**: the value for the minimum approval threshold.
     - **maximal rejection threshold**: the value for the maximal rejection threshold.
@@ -23,9 +61,10 @@ message OrganizationMemberList {
     - **minimal vote threshold**: the value for the minimal vote threshold.
   - **ProposerWhiteList**:
     - **proposers**: proposer whitelist.
+- **organization address feedback method**: organization address call back method which replies the caller contract with organization address.
 
 
-Creates an organization and returns its address.
+Creates an organization by system contract and returns its address.
 
 ## **ChangeOrganizationMember**
 
@@ -72,18 +111,42 @@ message Organization {
 
 Returns the organization with the specified address.
 
-- **Organization**:
-  - **member list**: original members of this organization.
-  - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the value for the minimum approval threshold.
-    - **maximal rejection threshold**: the value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the value for the maximal abstention threshold.
-    - **minimal vote threshold**: the value for the minimal vote threshold.
-  - **ProposerWhiteList**:
-    - **proposers**: proposer list.
-  - **address**: the organizations address.
-  - **hash**: the organizations ID.
+**Organization**:
+- **member list**: original members of this organization.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer list.
+- **address**: the organizations address.
+- **hash**: the organizations ID.
 
+## **CalculateOrganizationAddress**
+
+```Protobuf
+rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
+
+message CreateOrganizationInput {
+    string token_symbol = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+```
+
+**CreateOrganizationInput**:
+- **organizer member list**: 
+  - **organization_members**: initial organization members.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer whitelist.
+
+Calculate with input and return the organization address.
 
 # **ACS3 specific methods**
 
@@ -297,6 +360,11 @@ Used by system contracts to create proposals.
   - **proposal_description_url**: the url is used for proposal describing.
   - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
 - **origin proposer**: the actor that trigger the call.
+
+**ProposalCreated** even will be fired when the method **CreateProposalBySystemContract** called.
+
+**ProposalCreated**:
+- **proposal_id**: the id of the created proposal.
 
 ## **ClearProposal**
 
