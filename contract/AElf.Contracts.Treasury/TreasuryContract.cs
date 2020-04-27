@@ -196,11 +196,21 @@ namespace AElf.Contracts.Treasury
                 });
 
                 var donatesOfCurrentBlock = State.DonatedDividends[Context.CurrentHeight];
-                donatesOfCurrentBlock.Value.Add(new Dividend
+                var nativeTokenItem =
+                    donatesOfCurrentBlock.Value.SingleOrDefault(d => d.Symbol == Context.Variables.NativeSymbol);
+                if (nativeTokenItem != null)
                 {
-                    Symbol = input.Symbol,
-                    Amount = input.Amount
-                });
+                    nativeTokenItem.Amount = nativeTokenItem.Amount.Add(input.Amount);
+                }
+                else
+                {
+                    donatesOfCurrentBlock.Value.Add(new Dividend
+                    {
+                        Symbol = input.Symbol,
+                        Amount = input.Amount
+                    });
+                }
+
                 State.DonatedDividends[Context.CurrentHeight] = donatesOfCurrentBlock;
             }
 
@@ -804,11 +814,20 @@ namespace AElf.Contracts.Treasury
         {
             Assert(Context.CurrentHeight > input.Value, "Cannot query dividends of a future block.");
             var dividends = State.DonatedDividends[input.Value];
-            dividends.Value.Add(new Dividend
+            var nativeTokenItem = dividends.Value.SingleOrDefault(d => d.Symbol == Context.Variables.NativeSymbol);
+            if (nativeTokenItem == null)
             {
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = State.MiningReward.Value
-            });
+                dividends.Value.Add(new Dividend
+                {
+                    Symbol = Context.Variables.NativeSymbol,
+                    Amount = State.MiningReward.Value
+                });
+            }
+            else
+            {
+                nativeTokenItem.Amount = nativeTokenItem.Amount.Add(State.MiningReward.Value);
+            }
+
             return dividends;
         }
     }
