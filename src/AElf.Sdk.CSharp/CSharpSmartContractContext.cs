@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContract;
 namespace AElf.Sdk.CSharp
 {
     /// <summary>
-    /// represents the transaction execution context in a smart contract. An instance of this class is present in the
+    /// Represents the transaction execution context in a smart contract. An instance of this class is present in the
     /// base class for smart contracts (Context property). It provides access to properties and methods useful for
     /// implementing the logic in smart contracts.
     /// </summary>
@@ -40,7 +40,7 @@ namespace AElf.Sdk.CSharp
         /// applications log file to simplify development. Note that these logs are only visible when the node
         /// executing the transaction is build in debug mode.
         /// </summary>
-        /// <param name="func">the logic that will be executed for logging purposes.</param>
+        /// <param name="func">The logic that will be executed for logging purposes.</param>
         public void LogDebug(Func<string> func)
         {
             _smartContractBridgeContextImplementation.LogDebug(func);
@@ -121,8 +121,8 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Returns whether or not the given transaction is well formed and the signature is correct.
         /// </summary>
-        /// <param name="tx">the transaction to verify</param>
-        /// <returns>true if correct, false otherwise</returns>
+        /// <param name="tx">The transaction to verify.</param>
+        /// <returns>The verification results.</returns>
         public bool VerifySignature(Transaction tx)
         {
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
@@ -141,9 +141,10 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
-        /// <param name="address">the address of the contract you're seeking to interact with</param>
-        /// <param name="methodName">the name of method you want to call</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromAddress">The address to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to call.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type</param>
         /// <typeparam name="T">The type of the return message.</typeparam>
         /// <returns>The result of the call.</returns>
@@ -156,9 +157,9 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends an inline transaction to another contract.
         /// </summary>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
         public void SendInline(Address toAddress, string methodName, ByteString args)
         {
@@ -168,10 +169,10 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends a virtual inline transaction to another contract.
         /// </summary>
-        /// <param name="fromVirtualAddress">the virtual address to use as sender.</param>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromVirtualAddress">The virtual address to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
         {
@@ -182,10 +183,10 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Like SendVirtualInline but the virtual address us a system smart contract. 
         /// </summary>
-        /// <param name="fromVirtualAddress">the virtual address of the system contract to use as sender.</param>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromVirtualAddress">The virtual address of the system contract to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
         public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
             ByteString args)
@@ -195,9 +196,9 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// Converts a virtual address to the contracts address.
+        /// Converts a virtual address to a contract address.
         /// </summary>
-        /// <param name="virtualAddress">The address.</param>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
         /// <returns>The converted address.</returns>
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
@@ -205,22 +206,34 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// Converts a virtual address to the contracts address.
+        /// Converts a virtual address to a contract address with the current contract hash name.
         /// </summary>
-        /// <param name="virtualAddress"></param>
-        /// <returns></returns>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <returns>The converted address.</returns>
         public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
                 virtualAddress);
         }
 
+        /// <summary>
+        /// Converts a virtual address to a contract address with the contract address.
+        /// </summary>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <param name="contractAddress">The contract address.</param>
+        /// <returns>The converted address.</returns>
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress,
                 contractAddress);
         }
 
+        /// <summary>
+        /// Converts a virtual address to a contract address with the contract hash name.
+        /// </summary>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <param name="contractAddress">The contract address.</param>
+        /// <returns></returns>
         public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
             Address contractAddress)
         {
@@ -290,6 +303,12 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.DecryptMessage(senderPublicKey, cipherMessage);
         }
 
+        /// <summary>
+        /// Generate a hash type id based on the contract address and the bytes.
+        /// </summary>
+        /// <param name="contractAddress">The contract address on which the id generation is based.</param>
+        /// <param name="bytes">The bytes on which the id generation is based.</param>
+        /// <returns>The generated hash type id.</returns>
         public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
         {
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);

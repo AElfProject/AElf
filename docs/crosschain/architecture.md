@@ -39,7 +39,7 @@ For effective indexing, a cache layer is used to store cross chain data received
 
 ### Cross chain contract
 
-Apart from the data in block, most cross chain data will be stored by the cross chain contract. Cross chain data cached by the node is packed in transaction during the mining process and the calculated result is stored by the contract. Actually, the cross chain data in the block is the result of calculations in this contract. Only with data in this contract can cross chain verification work correctly.
+Apart from the data in block, most cross chain data will be stored by the cross chain contract. Cross chain data cached by the node is packed in transaction during the mining process and the calculated result is stored by the contract. Actually, the cross chain data in the block is the side chain indexing result of calculations in this contract. Only with data in this contract can cross chain verification work correctly.
 
 ### Data flow
 Conceptually the node is like described in the following diagram:

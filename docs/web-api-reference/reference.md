@@ -205,33 +205,6 @@ GET /api/blockChain/contractFileDescriptorSet
 * BlockChain
 
 
-<a name="getcurrentroundinformationasync"></a>
-### Get AEDPoS latest round information from last block header's consensus extra data of best chain.
-```
-GET /api/blockChain/currentRoundInformation
-```
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[RoundDto](#rounddto)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* BlockChain
-
-
 <a name="executerawtransactionasync"></a>
 ### POST /api/blockChain/executeRawTransaction
 
@@ -389,36 +362,6 @@ POST /api/blockChain/rawTransaction
 #### Tags
 
 * BlockChain
-
-
-<a name="getroundfrombase64"></a>
-### GET /api/blockChain/roundFromBase64
-
-#### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**str**  <br>*optional*|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[RoundDto](#rounddto)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* Deserialization
 
 
 <a name="sendrawtransactionasync"></a>
@@ -867,6 +810,7 @@ GET /api/net/peers
 |**BlockHash**  <br>*optional*|string|
 |**BlockHeight**  <br>*optional*|integer (int64)|
 |**Changes**  <br>*optional*|< string, string > map|
+|**Deletes**  <br>*optional*|< string > array|
 |**PreviousHash**  <br>*optional*|string|
 
 

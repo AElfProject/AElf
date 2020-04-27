@@ -41,7 +41,7 @@ namespace AElf.Contracts.Genesis
             {
                 var resultHash = await DefaultTester.GetContractHash.CallAsync(contractAddress);
                 var contractCode = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
-                var contractHash = HashHelper.ComputeFromByteArray(contractCode);
+                var contractHash = HashHelper.ComputeFrom(contractCode);
                 resultHash.ShouldBe(contractHash);
             }
 
@@ -96,7 +96,7 @@ namespace AElf.Contracts.Genesis
 
             var resultHash = await DefaultTester.GetContractHash.CallAsync(updateAddress);
             var contractCode = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
-            var contractHash = HashHelper.ComputeFromByteArray(contractCode);
+            var contractHash = HashHelper.ComputeFrom(contractCode);
             resultHash.ShouldBe(contractHash);
         }
 

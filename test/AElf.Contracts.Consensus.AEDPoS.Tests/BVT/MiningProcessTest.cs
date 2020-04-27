@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => HashHelper.ComputeFromString("hash3")).ToList();
+                .Select(_ => HashHelper.ComputeFrom("hash3")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
@@ -84,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // First candidate cheat others with in value.
             var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
             var anotherCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[1]);
-            var randomHash = HashHelper.ComputeFromString("hash5");
+            var randomHash = HashHelper.ComputeFrom("hash5");
             var informationOfSecondRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
@@ -112,8 +112,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
-                    PreviousInValue = HashHelper.ComputeFromMessage(randomHash), // Not same as before.
-                    InValue = HashHelper.ComputeFromString("InValue"), // Don't care this value in current test case.
+                    PreviousInValue = HashHelper.ComputeFrom(randomHash), // Not same as before.
+                    InValue = HashHelper.ComputeFrom("InValue"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(

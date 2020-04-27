@@ -108,7 +108,7 @@ namespace AElf.Contracts.Association
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = HashHelper.ComputeFromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
             var organizationAddress =
                 Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Association
 
         private Hash GenerateProposalId(CreateProposalInput input)
         {
-            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFromMessage(input));
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFrom(input));
         }
         
         private Hash CreateNewProposal(CreateProposalInput input)

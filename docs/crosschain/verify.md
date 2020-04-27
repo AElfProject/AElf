@@ -27,7 +27,7 @@ message VerifyTransactionInput {
 
 **VerifyTransaction** is the view method of the cross-chain contract and that will be used to perform the verification. It returns wether the transaction mined and indexed by the destination chain. This method will be used in both scenarios, what differs is the input:
 
-### Verify on the side-chain
+### Verify transaction from main-chain on the side-chain
 
 Verifying a transaction sent on the main-chain on a side chain, you can call **VerifyTransaction** on the side-chain with the following input values:
   - parent_chain_height - the height of the block, on the main-chain, in which the transaction was packed.
@@ -35,7 +35,7 @@ Verifying a transaction sent on the main-chain on a side chain, you can call **V
   - path - the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** with the ID of the transaction.
   - verified_chain_id - the source chainId, here the main chain's.
 
-### Verify on the main-chain or another side-chain
+### Verify transaction from side-chain on the main-chain or another side-chain
 
 ```Protobuf
 rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {

@@ -10,7 +10,7 @@ The process you should follow will look something like this:
 1. Identify your needs.
 2. Identify what problems we already solve - this is what you will reuse.
 3. Plan the components you will write yourself.
-4. Create the project, use the nuggets of existing modules.
+4. Create the project, use the nugets of existing modules.
 5. Write your own modules.
 
 

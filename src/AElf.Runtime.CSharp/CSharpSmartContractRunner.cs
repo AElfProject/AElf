@@ -44,7 +44,7 @@ namespace AElf.Runtime.CSharp
 
             ContractVersion = assembly.GetName().Version?.ToString();
 
-            var executive = new Executive(assembly)
+            var executive = new Executive(assembly, loadContext)
             {
                 ContractHash = reg.CodeHash,
                 IsSystemContract = reg.IsSystemContract,

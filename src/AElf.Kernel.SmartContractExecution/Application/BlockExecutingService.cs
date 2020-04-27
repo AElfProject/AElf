@@ -82,15 +82,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 blockStateSet);
 
             // set txn results
-            var transactionResults = await SetTransactionResultsAsync(returnSetCollection, blockHeader);
+            var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
             
             // set blocks state
-            blockStateSet.BlockHash = blockHeader.GetHash();
+            blockStateSet.BlockHash = block.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
             
             // handle execution cases 
-            await CleanUpReturnSetCollectionAsync(blockHeader, returnSetCollection);
+            await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
             
             return new BlockExecutedSet
             {
@@ -100,7 +100,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
         }
 
-        private Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader,
+        private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
             IEnumerable<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
@@ -109,27 +109,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
-
-            blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
-            blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
-
+            
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             var orderedReturnSets = returnSetCollection.GetExecutionReturnSetList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
-            blockHeader.MerkleTreeRootOfTransactionStatus =
-                CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
-
-            blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
-
-            var blockBody = new BlockBody();
-            blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
 
             var block = new Block
             {
-                Header = blockHeader,
-                Body = blockBody
+                Header = new BlockHeader(header)
+                {
+                    Bloom = ByteString.CopyFrom(bloom.Data),
+                    MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet),
+                    MerkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets),
+                    MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds)
+                },
+                Body = new BlockBody
+                {
+                    TransactionIds = {allExecutedTransactionIds}
+                }
             };
-            block.GetHashWithoutCache();
+            
             Logger.LogTrace("Finish block field filling after execution.");
             return Task.FromResult(block);
         }
@@ -206,7 +205,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return HashHelper.ComputeFromByteArray(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
 
         private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,

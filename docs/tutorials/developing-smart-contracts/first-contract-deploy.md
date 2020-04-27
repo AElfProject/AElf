@@ -1,7 +1,7 @@
 # Deploying the contract
 
 
-## Add reference
+## Add a reference
 
 In the **AElf.Boilerplate.Mainchain** you need to reference the contract implementation project and the corresponding Proto file:
 
@@ -32,7 +32,7 @@ In the **AElf.Boilerplate.Mainchain** you need to reference the contract impleme
 ## Add the DTO provider
 
 
-Create the partial class for adding the genesis smart contract.
+Create a partial class for adding the genesis smart contract.
 
 GenesisSmartContractDtoProvider_Greeter.cs
 ```csharp
@@ -99,7 +99,7 @@ This enables further testing of the contract, including testing it from a dApp.
 
 ## Next
 
-We've just seen through this and the previous articles how to use Boilerplate in order to develop and test a smart contract. That said these articles only show a subset of the possibilities. 
+We've just seen through this and the previous articles how to use Boilerplate in order to develop and test a smart contract. That said, these articles only show a subset of the possibilities. 
 
 The next article will demonstrate how to build a small front-end for the greeter contract.
 
