@@ -298,8 +298,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                 .Div(State.MinerIncreaseInterval.Value).Mul(2));
             // TODO: Add this judgement because this can cause consensus header information getting problem after changing term. Consider remove this limitation.
-            Assert(input.Value >= currentLegalMinersCount,
-                $"Maximum miners count cannot less than {currentLegalMinersCount}");
+            //Assert(input.Value >= currentLegalMinersCount,
+                //$"Maximum miners count cannot less than {currentLegalMinersCount}");
             State.MaximumMinersCount.Value = input.Value;
             State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
             {
