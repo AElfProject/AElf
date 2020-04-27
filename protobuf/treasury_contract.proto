@@ -129,13 +129,8 @@ message MinerRewardWeightProportion {
     SchemeProportionInfo re_election_reward_proportion_info = 3;
 }
 
-message Dividend {
-    string symbol = 1;
-    sint64 amount = 2;
-}
-
 message Dividends {
-    repeated Dividend value = 2;
+    map<string, int64> value = 1;
 }
 
 // Events

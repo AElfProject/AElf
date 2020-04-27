@@ -196,19 +196,15 @@ namespace AElf.Contracts.Treasury
                 });
 
                 var donatesOfCurrentBlock = State.DonatedDividends[Context.CurrentHeight];
-                var nativeTokenItem =
-                    donatesOfCurrentBlock.Value.SingleOrDefault(d => d.Symbol == Context.Variables.NativeSymbol);
-                if (nativeTokenItem != null)
+                if (Context.Variables.NativeSymbol == input.Symbol &&
+                    donatesOfCurrentBlock.Value.ContainsKey(Context.Variables.NativeSymbol))
                 {
-                    nativeTokenItem.Amount = nativeTokenItem.Amount.Add(input.Amount);
+                    donatesOfCurrentBlock.Value[Context.Variables.NativeSymbol] = donatesOfCurrentBlock
+                        .Value[Context.Variables.NativeSymbol].Add(input.Amount);
                 }
                 else
                 {
-                    donatesOfCurrentBlock.Value.Add(new Dividend
-                    {
-                        Symbol = input.Symbol,
-                        Amount = input.Amount
-                    });
+                    donatesOfCurrentBlock.Value.Add(input.Symbol, input.Amount);
                 }
 
                 State.DonatedDividends[Context.CurrentHeight] = donatesOfCurrentBlock;
@@ -814,18 +810,15 @@ namespace AElf.Contracts.Treasury
         {
             Assert(Context.CurrentHeight > input.Value, "Cannot query dividends of a future block.");
             var dividends = State.DonatedDividends[input.Value];
-            var nativeTokenItem = dividends.Value.SingleOrDefault(d => d.Symbol == Context.Variables.NativeSymbol);
-            if (nativeTokenItem == null)
+
+            if (dividends.Value.ContainsKey(Context.Variables.NativeSymbol))
             {
-                dividends.Value.Add(new Dividend
-                {
-                    Symbol = Context.Variables.NativeSymbol,
-                    Amount = State.MiningReward.Value
-                });
+                dividends.Value[Context.Variables.NativeSymbol] =
+                    dividends.Value[Context.Variables.NativeSymbol].Add(State.MiningReward.Value);
             }
             else
             {
-                nativeTokenItem.Amount = nativeTokenItem.Amount.Add(State.MiningReward.Value);
+                dividends.Value.Add(Context.Variables.NativeSymbol, State.MiningReward.Value);
             }
 
             return dividends;
