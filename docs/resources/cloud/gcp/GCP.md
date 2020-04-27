@@ -2,7 +2,7 @@
 
 This guide will run you through the steps required to run an AElf node on Google cloud (click the images for a more detailed view).
 
-First go to the [Google Cloud Market Place](https://console.cloud.google.com/marketplace)  and search for "aelf enterprise", find the image and select it, this will direct you to the image's page.
+First go to the [Google Cloud Market Place](https://console.cloud.google.com/marketplace)  and search for "aelf blockchain for enterprise", find the image and select it, this will direct you to the image's page.
 
 <p align="center">
     <img src="gcp-step1.png">

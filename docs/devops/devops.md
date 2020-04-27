@@ -19,6 +19,7 @@ For versioning we use the semver versioning system: https://semver.org
 Daily build
 
 Integrated with github we have cron job that will publish the latest version of devs myget packets.
+
     - MyGet: https://www.myget.org/gallery/aelf-project-dev
 
 Release branch
