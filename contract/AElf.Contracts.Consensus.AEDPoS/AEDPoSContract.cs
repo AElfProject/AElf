@@ -54,6 +54,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MaximumMinersCount.Value = int.MaxValue;
 
+            if (State.TreasuryContract.Value != null)
+            {
+                State.TreasuryContract.UpdateMiningReward.Send(new Int64Value
+                {
+                    Value = AEDPoSContractConstants.InitialMiningRewardPerBlock
+                });
+            }
+
             return new Empty();
         }
 

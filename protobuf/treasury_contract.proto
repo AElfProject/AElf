@@ -30,6 +30,8 @@ service TreasuryContract {
     }
     rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){
     }
+    rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
+    }
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
@@ -46,10 +48,13 @@ service TreasuryContract {
     rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {
         option (aelf.is_view) = true;
     }
-    rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion){
+    rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion){
+    rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDividends (google.protobuf.Int64Value) returns (Dividends) {
         option (aelf.is_view) = true;
     }
 }
@@ -123,6 +128,16 @@ message MinerRewardWeightProportion {
     SchemeProportionInfo votes_weight_reward_proportion_info = 2;
     SchemeProportionInfo re_election_reward_proportion_info = 3;
 }
+
+message Dividend {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message Dividends {
+    repeated Dividend value = 2;
+}
+
 // Events
 
 message DonationReceived {
