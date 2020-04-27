@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
@@ -16,7 +17,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [Theory]
         [InlineData(7)]
         [InlineData(3)]
-        [InlineData(1)]
         public async Task SetMaximumMinersCountTest(int targetMinersCount)
         {
             await BlockMiningService.MineBlockToNextTermAsync();
@@ -46,7 +46,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             {
                 var currentMinersCount = (await ConsensusStub.GetCurrentMinerList.CallAsync(new Empty())).Pubkeys.Count;
-                currentMinersCount.ShouldBe(targetMinersCount);
+                currentMinersCount.ShouldBe(Math.Min(targetMinersCount, 5));
                 var currentTermNumber = await BlockMiningService.MineBlockToNextTermAsync();
                 currentTermNumber.ShouldBe(4);
             }
