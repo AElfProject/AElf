@@ -33,7 +33,7 @@ service TreasuryContract {
     rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
     }
     // View
-    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (Dividends) {
         option (aelf.is_view) = true;
     }
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {

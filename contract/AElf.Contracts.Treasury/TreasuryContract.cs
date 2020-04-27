@@ -622,15 +622,18 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override Int64Value GetCurrentTreasuryBalance(Empty input)
+        public override Dividends GetCurrentTreasuryBalance(Empty input)
         {
-            return new Int64Value
+            return new Dividends
             {
-                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                Value =
                 {
-                    Owner = State.TreasuryVirtualAddress.Value,
-                    Symbol = Context.Variables.NativeSymbol
-                }).Balance
+                    State.SymbolList.Value.Value.Select(s => State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = State.TreasuryVirtualAddress.Value,
+                        Symbol = s
+                    })).ToDictionary(b => b.Symbol, b => b.Balance)
+                }
             };
         }
 
