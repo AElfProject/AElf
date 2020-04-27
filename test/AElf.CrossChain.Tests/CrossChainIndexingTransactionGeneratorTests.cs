@@ -33,7 +33,7 @@ namespace AElf.CrossChain
         public async Task GenerateTransactions_Test()
         {
             var sideChainId = 123;
-            var previousBlockHash = HashHelper.ComputeFromString("PreviousBlockHash");
+            var previousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
             var crossChainBlockData = new CrossChainBlockData
             {
@@ -47,7 +47,7 @@ namespace AElf.CrossChain
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
-                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFromString((sideChainId + 1).ToString())
+                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom((sideChainId + 1).ToString())
                 };
                 if (i <= CrossChainConstants.DefaultBlockCacheEntityCount)
                     crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
@@ -88,7 +88,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GenerateTransaction_NoTransaction_Test()
         {
-            var previousBlockHash = HashHelper.ComputeFromString("PreviousBlockHash");
+            var previousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash");
             var previousBlockHeight = 1;
             var smartContractAddress = SampleAddress.AddressList[0];
             await _smartContractAddressService.SetSmartContractAddressAsync(new BlockIndex

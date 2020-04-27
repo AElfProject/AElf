@@ -3,9 +3,9 @@
 The previous article exposed how to add the proto definition and implement the logic of your contract. This article expands on the previous and will show you the following based on the Greeter contract:
 - how to create the test project.
 - using AElf Contract TestKit to test.
-- adding the test module, test base and test cases.
+- adding the test module, test base, and test cases.
 
-AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework, you can simulate the execution of a transaction by constructing a stub of a contract and using the methods provided by the Stub instance (corresponding to the contract's Action methods) and query (corresponding to the View methods of the contract), and then get the transaction execution results in the test case.
+AElf Contract TestKit is a testing framework specifically used to test AElf smart contracts. With this framework, you can simulate the execution of a transaction by constructing a stub of a smart contract and using the methods provided by the Stub instance (corresponding to the contract's Action methods) and query (corresponding to the View methods of the contract), and then get the transaction execution results in the test case.
 
 ## Creating the project
 
@@ -40,7 +40,7 @@ Before creating the project let's take a look at Boilerplate's structure concern
         └── ...
 ```
 
-As you can see tests are placed in the **test** folder. Each test folder usually contains a project file (.csproj) and at least three .cs files. The project file is a basic C# xUnit test project file to which we've added some references.
+As you can see, tests are placed in the **test** folder. Each test folder usually contains a project file (.csproj) and at least three .cs files. The project file is a basic C# xUnit test project file, to which we've added some references.
 
 **AElf.Contracts.GreeterContract.Tests.csproj:**
 ```xml
@@ -87,9 +87,9 @@ As you can see tests are placed in the **test** folder. Each test folder usually
 
 From the previous code snippet you can note several things:
 - the root namespace corresponds to the root namespace in the contract implementation (in the .csproj).
-- it's a normal c# project that references xUnit packages.
+- it's a standard c# project that references xUnit packages.
 - it contains a reference to TestKit (be sure to reference the latest version).
-- a reference to acs0 contract stub is added because when the test environment is initialized, the Greeter contract needs to be deployed and this needs a reference to an ACS 0 (genesis contract).
+- a reference to acs0 contract stub is added because when the test environment is initialized, the Greeter contract needs to be deployed, and this needs a reference to an ACS 0 (genesis contract).
 - a reference to the Greeter contracts stub.
 
 ## Adding the files
@@ -113,7 +113,7 @@ public class GreeterContractTestModule : ContractTestModule
 ```
 
 From the previous code snippet you can note several things:
-- this module is very basic and only depends on TestKits contract test module.
+- this module is very basic and only depends on the TestKits contract test module.
 - the only thing that the module does is disable some checks for contract deployment that are only needed when actually running a chain.
 
 ### Test Base

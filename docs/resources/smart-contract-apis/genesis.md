@@ -6,29 +6,6 @@ This page describes available methods on the Genesis Contract.
 
 ### Views
 
-#### function GetDeployedContractAddressList
-
-```protobuf
-rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) 
-{
-    option (aelf.is_view) = true;
-}
-
-message AddressList {
-    repeated aelf.Address value = 1;
-}
-```
-
-Gets the list of deployed contracts.
-
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-Address list of deployed contracts.
-
 #### function CurrentContractSerialNumber
 
 ```protobuf
@@ -145,6 +122,8 @@ message SmartContractRegistration {
     int32 category = 1;
     bytes code = 2;
     Hash code_hash = 3;
+    bool is_system_contract = 4;
+    int32 version = 5;
 }
 ```
 
@@ -153,6 +132,32 @@ Gets the registration of a smart contract by its address.
 **Parameters:**
 
 - **Address** - address of a smart contract
+
+**Returns:**
+
+Registration object of the smart contract.
+
+#### function GetSmartContractRegistrationByAddress
+
+```protobuf
+rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
+        option (aelf.is_view) = true;
+}
+
+message SmartContractRegistration {
+    int32 category = 1;
+    bytes code = 2;
+    Hash code_hash = 3;
+    bool is_system_contract = 4;
+    int32 version = 5;
+}
+```
+
+Gets the registration of a smart contract by code hash.
+
+**Parameters:**
+
+- **Hash** - contract code hash
 
 **Returns:**
 
@@ -172,7 +177,7 @@ message ValidateSystemContractAddressInput {
 }
 ```
 
-Validates whether the input system contract is legal.
+Validates whether the input system contract exists.
 
 **Parameters:**
 
@@ -236,13 +241,13 @@ message ContractDeploymentInput {
 }
 ```
 
-Creates a proposal for the deployment of a new contract.
+Propose new contract deployment.
 
 **Parameters:**
 
 ***ContractDeploymentInput*** 
 
-- **category** - contract type (usually 0)
+- **category** - contract type (usually 0 for now)
 - **code** - byte array that represents the contract code
 
 **Returns:**
@@ -281,10 +286,13 @@ rpc ProposeContractCodeCheck (ContractCodeCheckInput) returns (aelf.Hash) {}
 message ContractCodeCheckInput{
     bytes contract_input = 1;
     bool is_contract_deployment = 2;
+    string code_check_release_method = 3;
+    aelf.Hash proposed_contract_input_hash = 4;
+    sint32 category = 5;
 }
 ```
 
-Creates a proposal to check the code of a contract.
+Propose to check the code of a contract.
 
 **Parameters:**
 
@@ -292,6 +300,9 @@ Creates a proposal to check the code of a contract.
 
 - **contract_input** - byte array of the contract code to be checked
 - **is_contract_deployment** - whether the input contract is to be deployed or updated
+- **code_check_release_method** - method to call after code check complete (DeploySmartContract or UpdateSmartContract)
+- **proposed_contract_input_hash** - id of the proposed contract
+- **category** - contract category (always 0 for now)
 
 **Returns:**
 
@@ -315,7 +326,7 @@ Releases a contract proposal which has been approved.
 ***ReleaseContractInput***
 
 - **proposal_id** - hash of the proposal
-- **proposed_contract_input_hash** - input hash of the proposed contract
+- **proposed_contract_input_hash** - id of the proposed contract
 
 ### function ReleaseCodeCheckedContract
 
@@ -335,7 +346,7 @@ Release the proposal which has passed the code check.
 ***ReleaseContractInput*** 
 
 - **proposal_id** - hash of the proposal
-- **proposed_contract_input_hash** - input hash of the proposed contract
+- **proposed_contract_input_hash** - id of the proposed contract
 
 ### function DeploySmartContract
 
@@ -401,7 +412,7 @@ Initializes the genesis contract.
 
 ***InitializeInput*** 
 
-- **contract_deployment_authority_required** - whether contract deployment requires authority
+- **contract_deployment_authority_required** - whether contract deployment/update requires authority
 
 ### function ChangeGenesisOwner
 
@@ -425,4 +436,87 @@ Set authority of contract deployment.
 
 **Parameters:**
 
-- **google.protobuf.BoolValue** - whether sending proposals by contract proposer requires authority
+- **google.protobuf.BoolValue** - whether contract deployment/update requires contract proposer authority
+
+### function ChangeContractDeploymentController
+
+```protobuf
+rpc ChangeContractDeploymentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Modify the contract deployment controller authority. Note: Only old controller has permission to do this.
+
+**Parameters:**
+
+- **AuthorityInfo** - new controller authority info containing organization address and contract address that the organization belongings to
+
+### function ChangeCodeCheckController
+
+```protobuf
+rpc ChangeCodeCheckController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Modifies the contract code check controller authority. Note: Only old controller has permission to do this.
+
+**Parameters:**
+
+- **AuthorityInfo** - new controller authority info containing organization address and contract address that the organization belongings to
+
+### function SetInitialControllerAddress
+
+```protobuf
+rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {}
+```
+
+Sets initial controller address for **CodeCheckController** and **ContractDeploymentController**
+
+**Parameters:**
+
+- **Address** - initial controller (which should be parliament organization as default)
+
+### function GetContractDeploymentController
+
+```protobuf
+rpc GetContractDeploymentController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+}
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Returns **ContractDeploymentController** authority info.
+
+**Returns:**
+
+- **AuthorityInfo** - **ContractDeploymentController** authority info. 
+
+
+### function GetContractDeploymentController
+
+```protobuf
+rpc GetCodeCheckController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+}
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
+```
+
+Returns **CodeCheckController** authority info.
+
+**Returns:**
+
+- **AuthorityInfo** - **CodeCheckController** authority info. 

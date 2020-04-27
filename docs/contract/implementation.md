@@ -1,4 +1,4 @@
-After defining a smart contract the next step is to generate the code from the proto definitions and implement the desired behavior.
+After defining a smart contract, the next step is to generate the code from the proto definitions and implement the desired behavior.
 
 ### Implementation
 
@@ -19,7 +19,7 @@ service TokenContract {
 }
 ```
 
-When inputting this to our protobuf plugin it will generate the corresponding C# classes. Note that this guide will use C# as an example, but the message and service definitions can be used to generate code in many different languages. The plugin will produce a base class that is destined to be overridden by the contract writer to implement the necessary logic. 
+When inputting this to our protobuf plugin, it will generate the corresponding C# classes. Note that this guide will use C# as an example, but the message and service definitions can be used to generate code in many different languages. The plugin will produce a base class that is destined to be overridden by the contract writer to implement the necessary logic. 
 
 So in our example, it will generate a base class the we can override with our own logic:
 
@@ -39,7 +39,7 @@ public partial class TokenContract : TokenContractImplContainer.TokenContractImp
 }
 ```
 
-The **TokenContractImplContainer.TokenContractImplBase** class is the generated class that contains non implemented methods that correspond to those defined in the proto file. You'll also find that the messages that where defined are also accessible like **CreateInput**.
+The **TokenContractImplContainer.TokenContractImplBase** class is the generated class that contains non-implemented methods that correspond to those defined in the proto file. You'll also find that the messages that were defined are also accessible like **CreateInput**.
 
 #### Using contract state
 
@@ -59,7 +59,7 @@ public class TokenContractState : ContractState
 }
 ```
 
-An instance of this class is accessible through the smart contracts base class with the **State** variable. In our case this will give access to the TokenInfos and Balances **MappedState**.
+An instance of this class is accessible through the smart contracts base class with the **State** variable. In our case, this will give access to the TokenInfos and Balances **MappedState**.
 
 #### State types
 

@@ -1,6 +1,6 @@
 # AElf Contract Standard (ACS)
 
-Think about **Interface Segregation Principle**. In AElf, smart contract can choose to inherit from one or more **ACSs**. To implement an ACS a contract must specify the ACS as a base, you can see in the code snippet below how to do this:
+Think about **Interface Segregation Principle**. In AElf, a smart contract can choose to inherit from one or more **ACSs**. To implement an ACS, developers need to specify ACSs as bases of the contract.The code snippet below shows how to do this:
 
 ```Proto
 
@@ -30,7 +30,7 @@ When doing this you can `override` (implement) the ACS's methods in your contrac
     ...
 ```
 
-As you can see it is mainly used for managing smart contracts.
+As you can see, it is mainly used for managing smart contracts.
 
 ## ACS1 - Fee information
 
@@ -43,14 +43,14 @@ As you can see it is mainly used for managing smart contracts.
     rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) { }
 ```
 
-This ACS is essential for the economic system as it defines chargeable method. The `GetMethodFee` method will take effects before executing related transactions.
+This ACS is essential for the economic system as it defines the chargeable method. The `GetMethodFee` method will take effects before executing related transactions.
 
 ## ACS2 - Parallel resource information
 
 [standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs2.proto)
 
 **Description:**
-For smart contracts to set and provide resource information to support parallel executing.
+Smart contracts can use this interface to inform the parallel executing mechanism resources usage of specific methods in this contract.
 
 ```Protobuf
     rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) { }
@@ -60,7 +60,7 @@ For smart contracts to set and provide resource information to support parallel 
 
 [standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs3.proto)
 
-**Description:** This ACS defines proposal and approval functionalities. With ACS3, contract can design specific multi-sign mechanisms.
+**Description:** This ACS defines proposal and approval functionalities. With ACS3, a contract can design specific multi-sign mechanisms.
 
 
 ``` Protobuf
@@ -70,7 +70,7 @@ For smart contracts to set and provide resource information to support parallel 
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) { }
 ```
 
-As you can see in the code snippet above, the standard defines creation, approval and release functionality. In AElf three contracts implement this functionality, the referendum, association and parliament contract. 
+As you can see in the code snippet above, the standard defines creation, approval, and release functionality. In AElf three contracts implement this functionality, the referendum, association, and parliament contract. 
 
 
 ## ACS4 - Consensus
@@ -87,7 +87,7 @@ As you can see in the code snippet above, the standard defines creation, approva
     rpc ValidateConsensusAfterExecution (google.protobuf.BytesValue) returns (ValidationResult) { }
 ```
 
-For now only AElf's AEDPoSContract implements this interface. If one system contract deployed with it's contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of current blockchain will use the logic provided by this system contract.
+For now, only AElf's AEDPoSContract implements this interface. If one system contract deployed with its contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of the current blockchain will use the logic provided by this system contract.
 
 ## ACS5 - Method calling threshold
 
@@ -104,7 +104,7 @@ For now only AElf's AEDPoSContract implements this interface. If one system cont
 
 [standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs6.proto)
 
-**Description:** ACS6 is aiming at providing two standard interfaces for requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces. For now only AEDPoSContract implements this in AElf.
+**Description:** ACS6 is aiming at providing two standard interfaces for requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces. For now, only AEDPoSContract implements this in AElf.
 
 ```Protobuf
     rpc RequestRandomNumber (google.protobuf.Empty) returns (RandomNumberOrder) { }
@@ -112,8 +112,8 @@ For now only AElf's AEDPoSContract implements this interface. If one system cont
 ```
 
 In the **commit-reveal schema**, the user needs to call `RequestRandomNumberInput` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 needs to returns:
-1) a hash value as the token for querying random number.
-2) a negotiated block height to enable related query. When the chain reaches the block height, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
+1) a hash value as the token for querying random numbers.
+2) a negotiated block height to enable related queries. When the chain reaches the block height, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
 
 The implementation of ACS6 in the `AEDPoS Contract` shows how **commit-reveal schema** works.
 
@@ -138,7 +138,7 @@ The cross-chain ACS is mainly used for managing side-chains.
 [standard](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs8.proto)
 
 **Description:**
-If one contract choose to inherit from ACS8, the execution of every transaction of this contract will consume resource tokens of current contract.
+If one contract chooses to inherit from ACS8, the execution of every transaction of this contract will consume resource tokens of the current contract.
 
 ``` Protobuf
     rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) { }

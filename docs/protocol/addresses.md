@@ -1,6 +1,12 @@
 ## keypairs and addresses
 
-You can easily create a key pair with our **command line tool** with the **create** command. When creating the key-pair (that we sometimes refer to as the "account") it will generate a file with the ".ak" extension. This file will contain the public and private key and will be encrypted with a password.
+You can easily create a key pair with our **command line tool** with the **create** command.
+
+``` shell
+aelf-command create
+```
+
+Creation will be successful after you provide a valid passwrod. When creating the key-pair (that we sometimes refer to as the "account") it will generate a file with the ".json" extension. This file will contain the public and private key and will be encrypted with the password you provided before.
 
 If you are writing a dApp you can also use the following method in the js-sdk, it is based on bip39 for generating a deterministic key pair with a "mnemonic sentence" ([here for more on this](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)):
 

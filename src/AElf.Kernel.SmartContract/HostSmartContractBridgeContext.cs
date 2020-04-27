@@ -135,7 +135,7 @@ namespace AElf.Kernel.SmartContract
             var enumerable = bytes as byte[] ?? bytes?.ToArray();
             if (enumerable != null)
                 contactedBytes = contactedBytes.Concat(enumerable);
-            return HashHelper.ComputeFromByteArray(contactedBytes.ToArray());
+            return HashHelper.ComputeFrom(contactedBytes.ToArray());
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();

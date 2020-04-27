@@ -2,7 +2,7 @@
 
 This tutorial will show you how to develop a front-end app (JavaScript in our case) that will demonstrate how to interact with a contract that was developed with Boilerplate. 
 
-At the top level Boilerplate contains 2 folders:
+At the top-level Boilerplate contains two folders:
 - chain : used for developing the contracts.
 - web : used for developing the front-end.
 
@@ -10,19 +10,19 @@ The **web** folder already contains some projects that can serve as examples. Th
 
 ## Run the node
 
-The first thing to do is run Boilerplate (and it's internal node). This will automatically deploy the Greeter contract. Open a terminal in the root Boilerplate directory and navigate to the launcher project:
+The first thing to do is run Boilerplate (and it's an internal node). This will automatically deploy the Greeter contract. Open a terminal in the root Boilerplate directory and navigate to the launcher project:
 
 ```bash
 cd chain/src/AElf.Boilerplate.Launcher
 ```
 
-Next run the node:
+Next, run the node:
 
 ```bash
 dotnet run bin/Debug/netcoreapp3.1/AElf.Launcher.dll
 ```
 
-From here you should see the build and eventually the nodes logs.
+From here, you should see the build and eventually the nodes logs.
 
 ## Run the front-end
 
@@ -39,15 +39,15 @@ npm i
 npm start
 ```
 
-and a page will be opened by webpack in your default browser.
+And a page will be opened by webpack in your default browser.
 
 ## Front-end code
 
 The code is straightforward, it uses aelf-sdk + webpack. You can check out more [**here**](https://github.com/AElfProject/aelf-sdk.js).
 
-**Warning**: be careful, this code is in no way production ready and is for demonstration purposes only.
+**Warning**: be careful, this code is in no way production-ready and is for demonstration purposes only.
 
-It demonstrate the following capabilities of the js sdk:
+It demonstrates the following capabilities of the js sdk:
 - getting the chain status.
 - getting a contract object.
 - calling a contract method.
@@ -131,7 +131,7 @@ The following snippet shows how to send a transaction to the contract:
     };
 ```
 
-Here the **getContract** retrieves the greeter contract instance. On the instance it calls **GreetTo** that will send a transaction to the node. The **pollMining** method is a helper method that will wait for the transaction to be mined. After mined the transaction results **ReadableReturnValue** will be used to see the result.
+Here the **getContract** retrieves the greeter contract instance. On the instance it calls **GreetTo** that will send a transaction to the node. The **pollMining** method is a helper method that will wait for the transaction to be mined. After mined the transaction results, **ReadableReturnValue** will be used to see the result.
 
 #### calling a view method
 
@@ -151,8 +151,8 @@ The following snippet shows how to call a view method on the contract:
     };
 ```
 
-Here the **getContract** retrieves the greeter contract instance. On the instance it calls **GetGreetedList** with ".call" appended to it which will indicate a read-only execution (no broadcasted transaction).
+Here the **getContract** retrieves the greeter contract instance. On the instance, it calls **GetGreetedList** with ".call" appended to it, which will indicate a read-only execution (no broadcasted transaction).
 
 ## Next
 
-This first series of tutorials showed you an end-to-end example of a dApp implemented with Boilerplate. Further tutorials will give more in depth explanations about some aspect of the contracts.
+This first series of tutorials showed you an end-to-end example of a dApp implemented with Boilerplate. Further tutorials will give more in-depth explanations about some aspect of the contracts.

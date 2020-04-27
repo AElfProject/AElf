@@ -14,19 +14,19 @@ namespace AElf.OS.Network
         public void Test_Add_Existence()
         {
             BoundedExpirationCache cache = new BoundedExpirationCache(10, 10_000);
-            cache.HasHash(HashHelper.ComputeFromString("hello_world")).ShouldBeFalse();
-            cache.TryAdd(HashHelper.ComputeFromString("hello_world")).ShouldBeTrue();
-            cache.HasHash(HashHelper.ComputeFromString("hello_world")).ShouldBeTrue();
-            cache.TryAdd(HashHelper.ComputeFromString("hello_world")).ShouldBeFalse();
+            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
+            cache.TryAdd(HashHelper.ComputeFrom("hello_world")).ShouldBeTrue();
+            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeTrue();
+            cache.TryAdd(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
         }
 
         [Fact]
         public async Task Test_Expiration()
         {
             BoundedExpirationCache cache = new BoundedExpirationCache(10, 4); // 4ms timeout
-            cache.TryAdd(HashHelper.ComputeFromString("hello_world"));
+            cache.TryAdd(HashHelper.ComputeFrom("hello_world"));
             await Task.Delay(TimeSpan.FromSeconds(1));
-            cache.HasHash(HashHelper.ComputeFromString("hello_world")).ShouldBeFalse();
+            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
         }
         
         [Fact]
@@ -40,16 +40,16 @@ namespace AElf.OS.Network
             {
                 var current = $"hello_world_{i}";
                 hashStrings.Add(current);
-                cache.TryAdd(HashHelper.ComputeFromString(current)).ShouldBeTrue();
+                cache.TryAdd(HashHelper.ComputeFrom(current)).ShouldBeTrue();
             }
             
             await Task.Delay(TimeSpan.FromMilliseconds(timeout+500));
             
-            cache.TryAdd(HashHelper.ComputeFromString($"hello_world_{cacheCapacity}")).ShouldBeTrue();
+            cache.TryAdd(HashHelper.ComputeFrom($"hello_world_{cacheCapacity}")).ShouldBeTrue();
 
             foreach (string hashString in hashStrings)
             {
-                cache.HasHash(HashHelper.ComputeFromString(hashString)).ShouldBeFalse();
+                cache.HasHash(HashHelper.ComputeFrom(hashString)).ShouldBeFalse();
             }
         }
 
@@ -60,9 +60,9 @@ namespace AElf.OS.Network
             BoundedExpirationCache cache = new BoundedExpirationCache(cacheCapacity, 10_000);
 
             for (int i = 0; i < cacheCapacity; i++)
-                cache.TryAdd(HashHelper.ComputeFromString($"hello_world_{i}")).ShouldBeTrue();
+                cache.TryAdd(HashHelper.ComputeFrom($"hello_world_{i}")).ShouldBeTrue();
 
-            cache.TryAdd(HashHelper.ComputeFromString($"hello_world_{cacheCapacity}")).ShouldBeFalse();
+            cache.TryAdd(HashHelper.ComputeFrom($"hello_world_{cacheCapacity}")).ShouldBeFalse();
         }
     }
 }

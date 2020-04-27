@@ -45,7 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
             
             var smartContractRegistration = new SmartContractRegistration
             {
-                CodeHash = HashHelper.ComputeFromString(blockExecutedDataKey),
+                CodeHash = HashHelper.ComputeFrom(blockExecutedDataKey),
                 Category = KernelConstants.CodeCoverageRunnerCategory,
                 Version = 1
             };
