@@ -67,7 +67,7 @@ namespace TokenSwapContract.Tests
             var addSwapRoundInput = new AddSwapRoundInput
             {
                 MerkleTreeRoot =
-                    HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850"),
+                    Hash.LoadFromHex("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850"),
                 SwapId = pairId
             };
             var blockTimeProvider = GetService<IBlockTimeProvider>();
@@ -86,16 +86,16 @@ namespace TokenSwapContract.Tests
             await CreatAndIssueDefaultTokenAsync();
             var swapId = await CreateSwapAsync();
             var merkleTreeRoot =
-                HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
+                Hash.LoadFromHex("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
             await AddSwapRound(swapId, merkleTreeRoot);
             var receiverAddress =
-                AddressHelper.Base58StringToAddress("SkMGjviAAs9bnYvv6cKcafbhf6tbRGQGK93WgKvZoCoS5amMK");
+                Address.FromBase58("SkMGjviAAs9bnYvv6cKcafbhf6tbRGQGK93WgKvZoCoS5amMK");
             var amountInStr = "75900000000000000000";
             var swapTokenInput = new SwapTokenInput
             {
                 OriginAmount = amountInStr,
                 ReceiverAddress = receiverAddress,
-                UniqueId = HashHelper.HexStringToHash(
+                UniqueId = Hash.LoadFromHex(
                     "96de8fc8c256fa1e1556d41af431cace7dca68707c78dd88c3acab8b17164c47"),
                 MerklePath = new MerklePath
                 {
@@ -103,19 +103,19 @@ namespace TokenSwapContract.Tests
                     {
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x3450a26ef013f3e943ee35977601835abc463a0a905ce1c1d27342fb1cb9f79a"),
                             IsLeftChildNode = true
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x7ede1519e67561f7017de9bed8a1ff30c45de1dc79f9bfbd369c75f9066540e8"),
                             IsLeftChildNode = false
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0xe7d02b7e62103a4c41585d4bd74d134c1f2bb63a7679a0dcda14adc892c32523"),
                             IsLeftChildNode = true
                         }
@@ -186,16 +186,16 @@ namespace TokenSwapContract.Tests
                 }
             });
             var merkleTreeRoot =
-                HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
+                Hash.LoadFromHex("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
             await AddSwapRound(swapId, merkleTreeRoot);
             var receiverAddress =
-                AddressHelper.Base58StringToAddress("2ADXLcyKMGGrRe9aGC7XMXECv8cxz3Tos1z6PJHSfyXguSaVb5");
+                Address.FromBase58("2ADXLcyKMGGrRe9aGC7XMXECv8cxz3Tos1z6PJHSfyXguSaVb5");
             var amountInStr = "5500000000000000000";
             var swapTokenInput = new SwapTokenInput
             {
                 OriginAmount = amountInStr,
                 ReceiverAddress = receiverAddress,
-                UniqueId = HashHelper.HexStringToHash(
+                UniqueId = Hash.LoadFromHex(
                     "d9147961436944f43cd99d28b2bbddbf452ef872b30c8279e255e7daafc7f946"),
                 MerklePath = new MerklePath
                 {
@@ -203,19 +203,19 @@ namespace TokenSwapContract.Tests
                     {
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0xd3c078e54709a9329ad7136b9ebf482a9077fe7067ed46f2055a22343a115b5f"),
                             IsLeftChildNode = true
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x3d247ec73f65bd010951ca7657139b480ec5a299bf5fc8b6e439518480bfd2c4"),
                             IsLeftChildNode = true
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x8394a5d294470004842cc17699e1f9ee17878401a4a47b34af82b881e39a6b42"),
                             IsLeftChildNode = false
                         }
@@ -271,16 +271,16 @@ namespace TokenSwapContract.Tests
             var depositAmount = 550000000 - 1;
             var swapId = await CreateSwapAsync(DefaultSymbol1, 32, null, depositAmount);
             var merkleTreeRoot =
-                HashHelper.HexStringToHash("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
+                Hash.LoadFromHex("0x3d4fb6567b200fa417a7fd3e38a2c0b43648cbdf42470c045d29fd82e3d50850");
             await AddSwapRound(swapId, merkleTreeRoot);
             var receiverAddress =
-                AddressHelper.Base58StringToAddress("2ADXLcyKMGGrRe9aGC7XMXECv8cxz3Tos1z6PJHSfyXguSaVb5");
+                Address.FromBase58("2ADXLcyKMGGrRe9aGC7XMXECv8cxz3Tos1z6PJHSfyXguSaVb5");
             var amountInStr = "5500000000000000000";
             var swapTokenInput = new SwapTokenInput
             {
                 OriginAmount = amountInStr,
                 ReceiverAddress = receiverAddress,
-                UniqueId = HashHelper.HexStringToHash(
+                UniqueId = Hash.LoadFromHex(
                     "d9147961436944f43cd99d28b2bbddbf452ef872b30c8279e255e7daafc7f946"),
                 MerklePath = new MerklePath
                 {
@@ -288,19 +288,19 @@ namespace TokenSwapContract.Tests
                     {
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0xd3c078e54709a9329ad7136b9ebf482a9077fe7067ed46f2055a22343a115b5f"),
                             IsLeftChildNode = true
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x3d247ec73f65bd010951ca7657139b480ec5a299bf5fc8b6e439518480bfd2c4"),
                             IsLeftChildNode = true
                         },
                         new MerklePathNode
                         {
-                            Hash = HashHelper.HexStringToHash(
+                            Hash = Hash.LoadFromHex(
                                 "0x8394a5d294470004842cc17699e1f9ee17878401a4a47b34af82b881e39a6b42"),
                             IsLeftChildNode = false
                         }
@@ -414,7 +414,7 @@ namespace TokenSwapContract.Tests
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
                         SwapId = swapId,
-                        UniqueId = i.ToHash()
+                        UniqueId = HashHelper.ComputeFrom(i)
                     };
 
                     var transactionResult = (await TokenSwapContractStub.SwapToken.SendAsync(swapTokenInput))
@@ -465,7 +465,7 @@ namespace TokenSwapContract.Tests
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
                         SwapId = swapId,
-                        UniqueId = i.ToHash()
+                        UniqueId = HashHelper.ComputeFrom(i)
                     };
 
                     var transactionResult = (await TokenSwapContractStub.SwapToken.SendAsync(swapTokenInput))
@@ -518,7 +518,7 @@ namespace TokenSwapContract.Tests
                         OriginAmount = amountInStr,
                         ReceiverAddress = address,
                         SwapId = swapId,
-                        UniqueId = i.ToHash()
+                        UniqueId = HashHelper.ComputeFrom(i)
                     };
 
                     var transactionResult = (await TokenSwapContractStub.SwapToken.SendAsync(swapTokenInput))

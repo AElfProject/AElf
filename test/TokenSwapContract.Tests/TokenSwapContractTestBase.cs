@@ -60,7 +60,7 @@ namespace TokenSwapContract.Tests
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     tokenSwapContractCode,
-                    Hash.FromString("TokenSwapContract"),
+                    HashHelper.ComputeFrom("TokenSwapContract"),
                     DefaultSenderKeyPair));
             TokenSwapContractStub = GetTester<TokenSwapContractContainer.TokenSwapContractStub>(
                 TokenSwapContractAddress,
@@ -71,7 +71,7 @@ namespace TokenSwapContract.Tests
 
         protected void CheckCode(byte[] code)
         {
-            var auditor = new CSharpContractAuditor(null, null);
+            var auditor = new CSharpContractAuditor();
             auditor.Audit(code, new RequiredAcs
             {
                 AcsList = new List<string>()
@@ -187,7 +187,7 @@ namespace TokenSwapContract.Tests
                 cur.AddRange(i.ToBytes());
                 return cur;
             });
-            return Hash.FromRawBytes(amountBytes.ToArray());
+            return HashHelper.ComputeFrom(amountBytes.ToArray());
         }
 
         protected bool TryGetOriginTokenAmount(string amountInString, out decimal amount)

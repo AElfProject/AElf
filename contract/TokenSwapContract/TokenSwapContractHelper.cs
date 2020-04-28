@@ -129,12 +129,12 @@ namespace TokenSwapContract
                     : amountBytes.Concat(placeHolder).ToList();
             }
 
-            return Hash.FromRawBytes(amountBytes.ToArray());
+            return HashHelper.ComputeFrom(amountBytes.ToArray());
         }
 
         private Hash GetHashFromAddressData(Address receiverAddress)
         {
-            return Hash.FromString(receiverAddress.GetFormatted());
+            return HashHelper.ComputeFrom(receiverAddress.ToBase58());
         }
 
         private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapPair swapPair, Address receiverAddress)

@@ -23,7 +23,7 @@ namespace TokenSwapContract.Tests
             _amountRangeSizeInByte.ShouldBe(4);
             var index = _leafHashList.Count;
             GenerateNewLeaf(amount.ToBytes(isBidEndian), address);
-            return index.ToHash();
+            return HashHelper.ComputeFrom(index);
         }
         
         public Hash Lock(Address address, long amount, bool isBidEndian)
@@ -31,7 +31,7 @@ namespace TokenSwapContract.Tests
             _amountRangeSizeInByte.ShouldBe(8);
             var index = _leafHashList.Count;
             GenerateNewLeaf(amount.ToBytes(isBidEndian), address);
-            return index.ToHash();
+            return HashHelper.ComputeFrom(index);
         }
         
         public Hash Lock(Address address, decimal amount, bool isBidEndian)
@@ -47,7 +47,7 @@ namespace TokenSwapContract.Tests
                 return cur;
             });
             GenerateNewLeaf(amountBytes.ToArray(), address);
-            return index.ToHash();
+            return HashHelper.ComputeFrom(index);
         }
 
         public void GenerateMerkleTree()
@@ -64,13 +64,13 @@ namespace TokenSwapContract.Tests
 
         private void GenerateNewLeaf(byte[] amountData, Address address)
         {
-            _leafHashList.Add(ConcatLeafData(amountData, address.GetFormatted(), _leafHashList.Count()));   
+            _leafHashList.Add(ConcatLeafData(amountData, address.ToBase58(), _leafHashList.Count()));   
         }
         
         private Hash ConcatLeafData(byte[] amountData, string addressInString, int id)
         {
-            return HashHelper.ConcatAndCompute(Hash.FromRawBytes(amountData), Hash.FromString(addressInString),
-                id.ToHash());
+            return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(amountData), HashHelper.ComputeFrom(addressInString),
+                HashHelper.ComputeFrom(id));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace TokenSwapContract
     {
         public override Hash CreateSwap(CreateSwapInput input)
         {
-            var swapId = Hash.FromTwoHashes(Context.TransactionId, Hash.FromMessage(input));
+            var swapId = HashHelper.ConcatAndCompute(Context.TransactionId, HashHelper.ComputeFrom(input));
             Assert(State.SwapInfo[swapId] == null, "Already added.");
             
             var swapInfo = new SwapInfo
@@ -35,7 +35,7 @@ namespace TokenSwapContract
                     DepositAmount = swapTargetToken.DepositAmount
                 };
                 AssertValidSwapPair(swapPair);
-                var pairId = Hash.FromTwoHashes(swapId, Hash.FromString(swapTargetToken.TargetTokenSymbol));
+                var pairId = HashHelper.ConcatAndCompute(swapId, HashHelper.ComputeFrom(swapTargetToken.TargetTokenSymbol));
                 swapInfo.SwapTargetTokenMap.Add(swapTargetToken.TargetTokenSymbol, pairId);
                 State.SwapPairs[pairId] = swapPair;
                 TransferDepositFrom(swapTargetToken.TargetTokenSymbol, swapTargetToken.DepositAmount, Context.Sender);
