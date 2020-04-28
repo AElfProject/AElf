@@ -12,7 +12,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
@@ -658,7 +657,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
             response.TransactionSize.ShouldBe(transaction.CalculateSize());
-            await CheckTransactionFeeAsync(response);
         }
 
         [Fact]
@@ -724,6 +722,11 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
 
             response.Count.ShouldBe(15);
+            foreach (var transactionResultDto in response)
+            {
+                transactionResultDto.TransactionSize.ShouldBe(transactions
+                    .Single(t => t.GetHash() == Hash.LoadFromHex(transactionResultDto.TransactionId)).CalculateSize());
+            }
 
             response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
                 $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
@@ -731,18 +734,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Count.ShouldBe(5);
             foreach (var transactionResultDto in response)
             {
-                await CheckTransactionFeeAsync(transactionResultDto);
-            }
-        }
-
-        private async Task CheckTransactionFeeAsync(TransactionResultDto transactionResultDto)
-        {
-            transactionResultDto.TransactionFee.Value.Count.ShouldBeGreaterThan(0);
-            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(Hash.LoadFromHex(transactionResultDto.TransactionId));
-            var transactionFees = transactionResult.GetChargedTransactionFees();
-            foreach (var transactionFee in transactionFees)
-            {
-                transactionResultDto.TransactionFee.Value[transactionFee.Key].ShouldBe(transactionFee.Value);
+                transactionResultDto.TransactionSize.ShouldBe(transactions
+                    .Single(t => t.GetHash() == Hash.LoadFromHex(transactionResultDto.TransactionId)).CalculateSize());
             }
         }
 
