@@ -137,9 +137,7 @@ message Dividends {
 
 message DonationReceived {
     option (aelf.is_event) = true;
-    aelf.Address from = 1 [(aelf.is_indexed) = true];
-    aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    int64 amount = 4 [(aelf.is_indexed) = true];
-    string memo = 5;
+    aelf.Address from = 1;
+    string symbol = 2;
+    int64 amount = 3;
 }

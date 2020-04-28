@@ -284,3 +284,10 @@ message MiningRewardGenerated {
     int64 term_number = 1 [(aelf.is_indexed) = true];
     int64 amount = 2;
 }
+
+message SideChainDonationReceived {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1;
+    string symbol = 2;
+    int64 amount = 3;
+}

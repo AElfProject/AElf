@@ -208,16 +208,16 @@ namespace AElf.Contracts.Treasury
                 }
 
                 State.DonatedDividends[Context.CurrentHeight] = donatesOfCurrentBlock;
-            }
 
-            Context.Fire(new DonationReceived
-            {
-                From = Context.Sender,
-                To = State.TreasuryVirtualAddress.Value,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = "Donate to treasury."
-            });
+                Context.Fire(new DonationReceived
+                {
+                    From = Context.Sender,
+                    To = State.TreasuryVirtualAddress.Value,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = "Donate to treasury."
+                });
+            }
 
             return new Empty();
         }

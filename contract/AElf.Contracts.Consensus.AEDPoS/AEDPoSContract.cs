@@ -313,40 +313,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
             return State.RandomHashes[input.Value] ?? Hash.Empty;
         }
-
-        public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                To = Context.Self
-            });
-
-            State.TokenContract.Approve.Send(new ApproveInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Spender = State.TokenHolderContract.Value
-            });
-
-            State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
-            {
-                SchemeManager = Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount
-            });
-
-            Context.LogDebug(() => $"Contributed {input.Amount} {input.Symbol}s to side chain dividends pool.");
-
-            return new Empty();
-        }
     }
 }
