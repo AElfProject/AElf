@@ -1,4 +1,5 @@
 using Acs1;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -59,5 +60,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MappedState<long, Hash> RandomHashes { get; set; }
 
         public SingletonState<long> LatestExecutedHeight { get; set; }
+
+        public MappedState<long, SideChainDividends> SideChainReceivedDividends { get; set; }
     }
 }
