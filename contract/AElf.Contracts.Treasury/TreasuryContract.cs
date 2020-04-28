@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using Acs10;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -129,16 +130,16 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                Period = input.TermNumber,
+                Period = input.PeriodNumber,
                 AmountsMap = {State.SymbolList.Value.Value.ToDictionary(s => s, s => 0L)}
             });
             RequireElectionContractStateSet();
             var previousTermInformation = State.AEDPoSContract.GetPreviousTermInformation.Call(new Int64Value
             {
-                Value = input.TermNumber
+                Value = input.PeriodNumber
             });
             UpdateTreasurySubItemsSharesBeforeDistribution(previousTermInformation);
-            ReleaseTreasurySubProfitItems(input.TermNumber);
+            ReleaseTreasurySubProfitItems(input.PeriodNumber);
             UpdateTreasurySubItemsSharesAfterDistribution(previousTermInformation);
             return new Empty();
         }
@@ -212,10 +213,9 @@ namespace AElf.Contracts.Treasury
                 Context.Fire(new DonationReceived
                 {
                     From = Context.Sender,
-                    To = State.TreasuryVirtualAddress.Value,
                     Symbol = input.Symbol,
                     Amount = input.Amount,
-                    Memo = "Donate to treasury."
+                    PoolContract = Context.Self
                 });
             }
 
@@ -253,7 +253,7 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
-        public override Empty SetDistributingSymbolList(SymbolList input)
+        public override Empty SetSymbolList(SymbolList input)
         {
             AssertPerformedByTreasuryController();
             Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
@@ -622,7 +622,7 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        public override Dividends GetCurrentTreasuryBalance(Empty input)
+        public override Dividends GetUndistributedDividends(Empty input)
         {
             return new Dividends
             {
@@ -652,7 +652,7 @@ namespace AElf.Contracts.Treasury
             return State.TreasuryController.Value;
         }
 
-        public override SymbolList GetDistributingSymbolList(Empty input)
+        public override SymbolList GetSymbolList(Empty input)
         {
             return State.SymbolList.Value;
         }
