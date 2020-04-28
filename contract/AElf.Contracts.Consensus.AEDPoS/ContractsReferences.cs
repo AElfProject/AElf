@@ -1,6 +1,7 @@
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 

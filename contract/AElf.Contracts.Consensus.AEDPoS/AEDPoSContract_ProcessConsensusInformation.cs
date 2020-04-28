@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Acs10;
 using AElf.Contracts.Election;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
@@ -82,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
             {
-                ReleaseSideChainDividendsPool();
+                Context.SendInline(Context.Self, nameof(Release), new ReleaseInput());
             }
 
             // Clear cache.
@@ -140,7 +141,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             if (State.IsMainChain.Value && // Only detect evil miners in Main Chain.
-            currentRound.TryToDetectEvilMiners(out var evilMiners))
+                currentRound.TryToDetectEvilMiners(out var evilMiners))
             {
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
@@ -212,7 +213,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.TreasuryContract.Release.Send(new ReleaseInput
                 {
-                    TermNumber = termNumber
+                    PeriodNumber = termNumber
                 });
 
                 Context.LogDebug(() => $"Released treasury profit for term {termNumber}");

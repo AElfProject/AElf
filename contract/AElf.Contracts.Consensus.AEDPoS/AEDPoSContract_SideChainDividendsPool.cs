@@ -1,14 +1,40 @@
+using System.Linq;
+using Acs10;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TokenHolder;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using ContributeProfitsInput = AElf.Contracts.TokenHolder.ContributeProfitsInput;
+using DistributeProfitsInput = AElf.Contracts.TokenHolder.DistributeProfitsInput;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
-        public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
+        private void InitialProfitSchemeForSideChain(long periodSeconds)
+        {
+            var tokenHolderContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+            // No need to continue if Token Holder Contract didn't deployed.
+            if (tokenHolderContractAddress == null)
+            {
+                Context.LogDebug(() => "Token Holder Contract not found, so won't initial side chain dividends pool.");
+                return;
+            }
+
+            State.TokenHolderContract.Value = tokenHolderContractAddress;
+            State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
+            {
+                Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
+                MinimumLockMinutes = periodSeconds.Div(60)
+            });
+
+            Context.LogDebug(() => "Side chain dividends pool created.");
+        }
+
+        public override Empty Donate(DonateInput input)
         {
             if (State.TokenContract.Value == null)
             {
@@ -38,11 +64,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Amount = input.Amount
             });
 
-            Context.Fire(new SideChainDonationReceived
+            Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
                 Symbol = input.Symbol,
-                Amount = input.Amount
+                Amount = input.Amount,
+                PoolContract = Context.Self
             });
 
             var currentReceivedDividends = State.SideChainReceivedDividends[Context.CurrentHeight];
@@ -63,15 +90,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        public override SideChainDividends GetSideChainDividends(Int64Value input)
+        public override Empty Release(ReleaseInput input)
         {
-            Assert(Context.CurrentHeight > input.Value, "Cannot query dividends of a future block.");
-            return State.SideChainReceivedDividends[input.Value];
-        }
-
-        private void ReleaseSideChainDividendsPool()
-        {
-            if (State.TokenHolderContract.Value == null) return;
+            Assert(Context.Sender == Context.Self, "Only AEDPoS Contract itself can call this method.");
+            if (State.TokenHolderContract.Value == null) return new Empty();
             var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
             var isTimeToRelease =
                 (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
@@ -89,6 +111,61 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     SchemeManager = Context.Self
                 });
             }
+
+            return new Empty();
+        }
+
+        public override Empty SetSymbolList(SymbolList input)
+        {
+            Assert(false, "Side chain dividend pool not support setting symbol list.");
+            return new Empty();
+        }
+
+        public override Dividends GetDividends(Int64Value input)
+        {
+            Assert(Context.CurrentHeight > input.Value, "Cannot query dividends of a future block.");
+            return State.SideChainReceivedDividends[input.Value];
+        }
+
+        public override SymbolList GetSymbolList(Empty input)
+        {
+            return new SymbolList
+            {
+                Value =
+                {
+                    GetSideChainDividendPoolScheme().ReceivedTokenSymbols
+                }
+            };
+        }
+
+        public override Dividends GetUndistributedDividends(Empty input)
+        {
+            var scheme = GetSideChainDividendPoolScheme();
+            return new Dividends
+            {
+                Value =
+                {
+                    scheme.ReceivedTokenSymbols.Select(s => State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = scheme.VirtualAddress,
+                        Symbol = s
+                    })).ToDictionary(b => b.Symbol, b => b.Balance)
+                }
+            };
+        }
+
+        private Scheme GetSideChainDividendPoolScheme()
+        {
+            if (State.SideChainDividendPoolSchemeId.Value == null)
+            {
+                var tokenHolderScheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
+                State.SideChainDividendPoolSchemeId.Value = tokenHolderScheme.SchemeId;
+            }
+
+            return Context.Call<Scheme>(
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
+                nameof(ProfitContractContainer.ProfitContractReferenceState.GetScheme),
+                State.SideChainDividendPoolSchemeId.Value);
         }
     }
 }

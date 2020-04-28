@@ -65,27 +65,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private void InitialProfitSchemeForSideChain(long periodSeconds)
-        {
-            var tokenHolderContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-            // No need to continue if Token Holder Contract didn't deployed.
-            if (tokenHolderContractAddress == null)
-            {
-                Context.LogDebug(() => "Token Holder Contract not found, so won't initial side chain dividends pool.");
-                return;
-            }
-
-            State.TokenHolderContract.Value = tokenHolderContractAddress;
-            State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
-            {
-                Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodSeconds.Div(60)
-            });
-
-            Context.LogDebug(() => "Side chain dividends pool created.");
-        }
-
         #endregion
 
         #region FirstRound

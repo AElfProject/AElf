@@ -35,9 +35,6 @@ service AEDPoSContract {
 
     rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
     }
-    
-    rpc ContributeToSideChainDividendsPool (ContributeToSideChainDividendsPoolInput) returns (google.protobuf.Empty) {
-    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -92,11 +89,6 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     rpc GetRandomHash (google.protobuf.Int64Value) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    
-    // Side Chain Dividends Pool.
-    rpc GetSideChainDividends (google.protobuf.Int64Value) returns (SideChainDividends) {
         option (aelf.is_view) = true;
     }
 }
@@ -252,15 +244,6 @@ message LatestPubkeyToTinyBlocksCount {
     int64 blocks_count = 2;
 }
 
-message ContributeToSideChainDividendsPoolInput {
-    string symbol = 1;
-    int64 amount = 2;
-}
-
-message SideChainDividends {
-    map<string, int64> value = 1;
-}
-
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
@@ -292,11 +275,4 @@ message MiningRewardGenerated {
     option (aelf.is_event) = true;
     int64 term_number = 1 [(aelf.is_indexed) = true];
     int64 amount = 2;
-}
-
-message SideChainDonationReceived {
-    option (aelf.is_event) = true;
-    aelf.Address from = 1;
-    string symbol = 2;
-    int64 amount = 3;
 }
