@@ -18,17 +18,5 @@
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractStub>
-        <ContractMessage Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf/Proto/acs3.proto</Link>
-        </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf/Proto/parliament_contract.proto</Link>
-        </ContractMessage>
     </ItemGroup>
 </Project>
