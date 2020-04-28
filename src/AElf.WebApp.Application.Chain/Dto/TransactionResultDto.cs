@@ -20,8 +20,6 @@ namespace AElf.WebApp.Application.Chain.Dto
 
         public string Error { get; set; }
         
-        public TransactionFeeDto TransactionFee { get; set; }
-        
         public int TransactionSize { get; set; }
     }
 }

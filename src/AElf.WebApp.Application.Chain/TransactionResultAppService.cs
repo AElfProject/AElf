@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Kernel.FeeCalculation.Extensions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -110,11 +109,6 @@ namespace AElf.WebApp.Application.Chain
             {
                 output.Error = transactionResult.Error;
             }
-
-            output.TransactionFee = new TransactionFeeDto
-            {
-                Value = GetTransactionFees(transactionResult)
-            };
 
             return output;
         }
@@ -289,26 +283,7 @@ namespace AElf.WebApp.Application.Chain
 
             transactionResultDto.Status = transactionResult.Status.ToString();
 
-            transactionResultDto.TransactionFee = new TransactionFeeDto
-            {
-                Value = GetTransactionFees(transactionResult)
-            };
-
             return transactionResultDto;
-        }
-        
-        public Dictionary<string, long> GetTransactionFees(TransactionResult transactionResult)
-        {
-            if (!transactionResult.Logs.Any()) return new Dictionary<string, long>();
-            var transactionFeeDic = transactionResult.GetChargedTransactionFees();
-            var resourceTokenDic = transactionResult.GetConsumedResourceTokens();
-            foreach (var keyPair in resourceTokenDic)
-            {
-                if (transactionFeeDic.TryGetValue(keyPair.Key, out _)) transactionFeeDic[keyPair.Key] += keyPair.Value;
-                else transactionFeeDic[keyPair.Key] = keyPair.Value;
-            }
-
-            return transactionFeeDic;
         }
 
         private async Task<TransactionResult> GetMinedTransactionResultAsync(Hash transactionIdHash)
