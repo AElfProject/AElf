@@ -18,7 +18,6 @@ namespace AElf.OS.Network
             Configure<NetworkOptions>(o=>
             {
                 o.MaxPeers = 2;
-                o.PeerBlackListTimeoutInSeconds = 1;
             });
 
             var services = context.Services;
@@ -29,7 +28,7 @@ namespace AElf.OS.Network
                 mockService.Setup(m => m.GetChainAsync()).Returns(
                     Task.FromResult(new Chain
                     {
-                        BestChainHash = Hash.FromString("best"),
+                        BestChainHash = HashHelper.ComputeFrom("best"),
                         BestChainHeight = 10
                     }));
                 mockService.Setup(m => m.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).Returns(

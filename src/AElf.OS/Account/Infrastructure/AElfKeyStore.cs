@@ -123,7 +123,7 @@ namespace AElf.OS.Account.Infrastructure
             CreateKeystoreDirectory();
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
-            var fullPath = GetKeyFileFullPath(address.GetFormatted());
+            var fullPath = GetKeyFileFullPath(address.ToBase58());
 
             await Task.Run(() =>
             {
@@ -131,7 +131,7 @@ namespace AElf.OS.Account.Infrastructure
                 {
                     var scryptResult = _keyStoreService.EncryptAndGenerateDefaultKeyStoreAsJson(password,
                         keyPair.PrivateKey,
-                        address.GetFormatted());
+                        address.ToBase58());
                     writer.Write(scryptResult);
                     writer.Flush();
                 }

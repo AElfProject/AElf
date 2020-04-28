@@ -27,7 +27,7 @@ namespace AElf.Database.Benches
         public void Setup(BenchmarkContext context)
         {
             _counter = context.GetCounter("TestCounter");
-            _hash = Hash.FromString("FromStringFromStringFromStringFromString");
+            _hash = HashHelper.ComputeFrom("FromStringFromStringFromStringFromString");
             _hashBytes = _hash.Value.ToByteArray();
             _hashBase64 = _hash.Value.ToBase64();
         }

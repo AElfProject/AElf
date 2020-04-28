@@ -37,7 +37,7 @@ namespace AElf.OS.BlockSync.Worker
         [Fact]
         public async Task ProcessDownloadJob_Success()
         {
-            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("PeerBlock"), null);
             var peerBlock = response.Payload;
 
             var jobId = await _blockDownloadJobManager.EnqueueAsync(peerBlock.GetHash(), peerBlock.Height,
@@ -67,7 +67,7 @@ namespace AElf.OS.BlockSync.Worker
         public async Task ProcessDownloadJob_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var response = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("PeerBlock"), null);
             var peerBlock = response.Payload;
             var bestChainHash = chain.BestChainHash;
             var bestChainHeight = chain.BestChainHeight;

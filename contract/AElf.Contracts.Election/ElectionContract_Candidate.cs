@@ -55,7 +55,7 @@ namespace AElf.Contracts.Election
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
                     $"This public key already announced election. {pubkey}");
-                candidateInformation.AnnouncementTransactionId = Context.TransactionId;
+                candidateInformation.AnnouncementTransactionId = Context.OriginTransactionId;
                 candidateInformation.IsCurrentCandidate = true;
                 // In this way we can keep history of current candidate, like terms, missed time slots, etc.
                 State.CandidateInformationMap[pubkey] = candidateInformation;
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Election
                 State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
                     Pubkey = pubkey,
-                    AnnouncementTransactionId = Context.TransactionId,
+                    AnnouncementTransactionId = Context.OriginTransactionId,
                     IsCurrentCandidate = true
                 };
             }
@@ -89,7 +89,7 @@ namespace AElf.Contracts.Election
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
-                LockId = Context.TransactionId,
+                LockId = Context.OriginTransactionId,
                 Usage = "Lock for announcing election."
             });
         }

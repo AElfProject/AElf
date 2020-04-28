@@ -20,19 +20,19 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             Block = OsTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, PrepareTransactions);
             //await BlockExecutingService.ExecuteBlockAsync(Block.Header, PrepareTransactions);
             await OsTestHelper.BroadcastTransactions(PrepareTransactions);
-            Block = await MinerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
+            Block = (await MinerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
             await BlockchainService.AddBlockAsync(Block);
             await BlockAttachService.AttachBlockAsync(Block);
 
             SystemTransactions = await OsTestHelper.GenerateTransferTransactions(1);
-            CancellableTransactions = OsTestHelper.GenerateTransactionsWithoutConflict(KeyPairs);
+            CancellableTransactions = await OsTestHelper.GenerateTransactionsWithoutConflictAsync(KeyPairs);
             Block = OsTestHelper.GenerateBlock(Block.GetHash(), Block.Height,
                 SystemTransactions.Concat(CancellableTransactions));
 
             await OsTestHelper.BroadcastTransactions(SystemTransactions.Concat(CancellableTransactions));
-            var block = await BlockExecutingService.ExecuteBlockAsync(Block.Header,
-                SystemTransactions, CancellableTransactions, CancellationToken.None);
+            var block = (await BlockExecutingService.ExecuteBlockAsync(Block.Header,
+                SystemTransactions, CancellableTransactions, CancellationToken.None)).Block;
             block.TransactionIds.Count().ShouldBeGreaterThan(10);
         }
 
@@ -66,7 +66,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHeight = chain.BestChainHeight
             };
             var transaction = OsTestHelper.GenerateTransaction(SampleAddress.AddressList[0],
-                SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.StringName),
                 "GetBalance", new GetBalanceInput
                 {
                     Owner = SampleAddress.AddressList[0],
@@ -99,7 +99,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHeight = chain.BestChainHeight
             };
             var tokenAddress =
-                SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.StringName);
             var fileDescriptor =
                 (await TransactionReadOnlyExecutionService.GetFileDescriptorsAsync(context, tokenAddress)).ToList();
             fileDescriptor.Count.ShouldBeGreaterThan(0);

@@ -16,12 +16,11 @@ namespace AElf.OS.Helpers
             {
                 ChainId = chainId,
                 Height = height,
-                PreviousBlockHash = Hash.FromRawBytes(new byte[] {1, 2, 3} ),
+                PreviousBlockHash = HashHelper.ComputeFrom(new byte[] {1, 2, 3} ),
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
                 MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                ExtraData = {ByteString.Empty},
                 SignerPubkey = ByteString.CopyFrom(signer.PublicKey)
             };
         }

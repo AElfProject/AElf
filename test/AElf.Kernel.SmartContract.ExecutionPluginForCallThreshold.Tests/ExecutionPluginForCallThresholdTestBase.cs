@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Cryptography.ECDSA;
+using AElf.EconomicSystem;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Shouldly;
@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
             //Test contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                TestContractAddress = await DeployContractAsync(category, code, HashHelper.ComputeFrom("TestContract"),
                     DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

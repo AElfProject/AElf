@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
@@ -11,7 +12,6 @@ using AElf.CSharp.Core;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -22,6 +22,7 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
+        private readonly AssemblyLoadContext _assemblyLoadContext;
         private readonly Assembly _contractAssembly;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
@@ -44,8 +45,10 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly)
+        public Executive(Assembly assembly, AssemblyLoadContext assemblyLoadContext)
         {
+            //TODO Check whether need to keep assemblyLoadContext in Executive
+            _assemblyLoadContext = assemblyLoadContext;
             _contractAssembly = assembly;
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());

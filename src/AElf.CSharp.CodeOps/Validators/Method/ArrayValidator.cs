@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using AElf.Sdk.CSharp;
 using AElf.CSharp.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -43,8 +45,11 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             {OpCodes.Ldc_I4_8, 8},
         };
 
-        public IEnumerable<ValidationResult> Validate(MethodDefinition method)
+        public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
+            if (ct.IsCancellationRequested)
+                throw new ContractAuditTimeoutException();
+            
             if (!method.HasBody)
                 return Enumerable.Empty<ValidationResult>();
             

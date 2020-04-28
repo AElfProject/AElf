@@ -46,8 +46,6 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = new DataCenterRankingList();
 
-            InitializeVoteWeightInterest();
-
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -68,8 +66,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = Hash.FromTwoHashes(Hash.FromMessage(votingRegisterInput),
-                Hash.FromMessage(Context.Self));
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(votingRegisterInput),
+                HashHelper.ComputeFrom(Context.Self));
 
             State.VotingEventRegistered.Value = true;
             return new Empty();

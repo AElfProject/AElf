@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
-            return Hash.FromRawBytes(GetCheckableRound(isContainPreviousInValue));
+            return HashHelper.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
         }
         
         /// <summary>

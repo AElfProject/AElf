@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -11,6 +10,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.DApp;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
@@ -128,7 +128,7 @@ namespace AElf.Contracts.TokenHolder
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DAppContract).Assembly.Location)),
-                        Name = Hash.FromString("AElf.ContractNames.DApp"),
+                        Name = DappSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList =
                             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
                             {

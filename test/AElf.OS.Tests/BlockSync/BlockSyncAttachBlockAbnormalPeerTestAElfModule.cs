@@ -25,9 +25,9 @@ namespace AElf.OS.BlockSync
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 
-                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<string, bool>(
-                        (peerPubkey, blacklistPeer) =>
+                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(),It.IsAny<int>()))
+                    .Returns<string, int>(
+                        (peerPubkey, removalSeconds) =>
                         {
                             _peers.Remove(peerPubkey);
                             return Task.FromResult(true);
@@ -46,7 +46,7 @@ namespace AElf.OS.BlockSync
                 blockValidationServiceMock.Setup(p => p.ValidateBlockBeforeAttachAsync(It.IsAny<Block>()))
                     .Returns<Block>(block =>
                     {
-                        if (block.Header.PreviousBlockHash.Equals(Hash.FromString("BadBlock")))
+                        if (block.Header.PreviousBlockHash.Equals(HashHelper.ComputeFrom("BadBlock")))
                         {
                             return Task.FromResult(false);
                         }

@@ -51,7 +51,7 @@ namespace AElf.OS.BlockSync
                         BlockWithTransactions result = null;
                         if (peerPubkey == "AbnormalPeerPubkey")
                         {
-                            result = osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("BadBlock"),
+                            result = osTestHelper.Value.GenerateBlockWithTransactions(HashHelper.ComputeFrom("BadBlock"),
                                 1000);
                         }
 
@@ -77,12 +77,12 @@ namespace AElf.OS.BlockSync
                             }
 
                             var notLinkedBlock =
-                                osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("NotLinkedBlock"),
+                                osTestHelper.Value.GenerateBlockWithTransactions(HashHelper.ComputeFrom("NotLinkedBlock"),
                                     100);
                             result.Add(notLinkedBlock);
                         }
 
-                        if (hash == Hash.FromString("GoodBlockHash"))
+                        if (hash == HashHelper.ComputeFrom("GoodBlockHash"))
                         {
                             for (var i = 0; i < count; i++)
                             {
@@ -96,9 +96,9 @@ namespace AElf.OS.BlockSync
                         return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
 
-                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<string, bool>(
-                        (peerPubkey, blacklistPeer) =>
+                networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<int>()))
+                    .Returns<string, int>(
+                        (peerPubkey,removalSeconds) =>
                         {
                             _peers.Remove(peerPubkey);
                             return Task.FromResult(true);

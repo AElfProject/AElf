@@ -37,10 +37,13 @@ namespace AElf.OS.Network
 
         public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
         public const int DefaultMaximumReconnectionTime = 60_000 * 60 * 24; // 1 day
-        public const int DefaultPeerBlackListTimeoutInSeconds = 300;
+        public const int DefaultPeerRemovalSeconds = 300;
 
         public const int DefaultPeerPort = 6800;
 
         public const int DefaultNtpDriftThreshold = 1_000;
+
+        public const int DefaultPeerInvalidTransactionTimeout = 10_000;
+        public const int DefaultPeerInvalidTransactionLimit = 50;
     }
 }

@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
+using AElf.OS.Network;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,7 @@ namespace AElf.OS
             Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
-            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
+            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).ToBase58();
             var nodeAccountPassword = "123";
 
             Configure<AccountOptions>(o =>
@@ -58,6 +59,12 @@ namespace AElf.OS
             });
 
             context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+            
+            Configure<NetworkOptions>(o=>
+            {
+                o.PeerInvalidTransactionLimit = 5;
+                o.PeerInvalidTransactionTimeout = 1000;
+            });
         }
     }
 }

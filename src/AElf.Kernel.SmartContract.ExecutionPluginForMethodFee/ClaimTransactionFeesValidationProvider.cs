@@ -1,11 +1,9 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,16 +14,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     {
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITokenReaderFactory _tokenReaderFactory;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
         public ILogger<ClaimTransactionFeesValidationProvider> Logger { get; set; }
 
         public ClaimTransactionFeesValidationProvider(ITotalTransactionFeesMapProvider totalTransactionFeesMapProvider,
-            ISmartContractAddressService smartContractAddressService, ITokenReaderFactory tokenReaderFactory)
+            ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory)
         {
             _totalTransactionFeesMapProvider = totalTransactionFeesMapProvider;
             _smartContractAddressService = smartContractAddressService;
-            _tokenReaderFactory = tokenReaderFactory;
+            _contractReaderFactory = contractReaderFactory;
 
             Logger = NullLogger<ClaimTransactionFeesValidationProvider>.Instance;
         }
@@ -58,19 +58,27 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return true;
             }
 
-            var hashFromState = await _tokenReaderFactory.Create(block.GetHash(), block.Header.Height)
-                .GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+            var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                ContractAddress = tokenContractAddress
+            }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Header.Height
+                    BlockHash = block.Header.PreviousBlockHash,
+                    BlockHeight = block.Header.Height - 1
                 });
             if (totalTransactionFeesMapFromProvider == null)
             {
@@ -78,7 +86,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return hashFromState.Value.IsEmpty;
             }
 
-            var hashFromProvider = Hash.FromMessage(totalTransactionFeesMapFromProvider);
+            var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
             var result = hashFromProvider.Value.Equals(hashFromState.Value);
             if (!result)
             {

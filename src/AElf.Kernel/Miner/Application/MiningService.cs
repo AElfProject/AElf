@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -87,7 +89,7 @@ namespace AElf.Kernel.Miner.Application
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
 
-        public async Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
+        public async Task<BlockExecutedSet> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
             Timestamp blockTime)
         {
             try
@@ -113,14 +115,16 @@ namespace AElf.Kernel.Miner.Application
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
                     var pending = transactions;
-                    block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
+                    var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
+
+                    block = blockExecutedSet.Block;
                     await SignBlockAsync(block);
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
                                           $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
-                    return block;
+                    return blockExecutedSet;
                 }
             }
             catch (Exception e)

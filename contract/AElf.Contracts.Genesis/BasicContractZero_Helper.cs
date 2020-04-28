@@ -19,7 +19,7 @@ namespace AElf.Contracts.Genesis
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name has already been registered before");
 
-            var codeHash = Hash.FromRawBytes(code);
+            var codeHash = HashHelper.ComputeFrom(code);
             
             Assert(State.SmartContractRegistrations[codeHash] == null, "contract code has already been deployed before");
             
@@ -57,11 +57,12 @@ namespace AElf.Contracts.Genesis
                 CodeHash = codeHash,
                 Address = contractAddress,
                 Author = author,
-                Version = info.Version
+                Version = info.Version,
+                Name = name
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.ToBase58());
 
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
@@ -102,7 +103,7 @@ namespace AElf.Contracts.Genesis
 
         private Hash CalculateHashFromInput(IMessage input)
         {
-            return Hash.FromMessage(input);
+            return HashHelper.ComputeFrom(input);
         }
 
         private bool CheckOrganizationExist(AuthorityInfo authorityInfo)
@@ -216,13 +217,13 @@ namespace AElf.Contracts.Genesis
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         private static Address BuildContractAddress(Hash chainId, long serialNumber)
         {
-            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = HashHelper.ConcatAndCompute(chainId, HashHelper.ComputeFrom(serialNumber));
             return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, long serialNumber)
         {
-            return BuildContractAddress(chainId.ToHash(), serialNumber);
+            return BuildContractAddress(HashHelper.ComputeFrom(chainId), serialNumber);
         }
     }
 }

@@ -10,26 +10,12 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : IBestChainFoundLogEventProcessor
+    public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
+        IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private LogEvent _interestedEvent;
-
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                        .Name);
-                _interestedEvent = new IrreversibleBlockHeightUnacceptable().ToLogEvent(address);
-                return _interestedEvent;
-            }
-        }
-
+        
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
@@ -41,8 +27,25 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<IrreversibleBlockHeightUnacceptable>(smartContractAddressDto.SmartContractAddress
+                    .Address);
+            if (!smartContractAddressDto.Irreversible)return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+            return InterestedEvent;
+        }
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        protected override Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var distanceToLib = new IrreversibleBlockHeightUnacceptable();
             distanceToLib.MergeFrom(logEvent);
@@ -57,7 +60,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _transactionPackingOptions.IsTransactionPackable = true;
             }
 
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 }

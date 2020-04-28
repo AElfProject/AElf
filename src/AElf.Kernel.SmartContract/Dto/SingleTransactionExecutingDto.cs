@@ -11,5 +11,7 @@ namespace AElf.Kernel.SmartContract
         public Timestamp CurrentBlockTime { get; set; }
         public Address Origin { get; set; } = null;    
         public bool IsCancellable { get; set; } = true;
+        
+        public Hash OriginTransactionId { get; set; }
     }
 }

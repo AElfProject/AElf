@@ -23,11 +23,11 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task UpdateOneBlockIndexWithoutBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash"));
+            var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash"));
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block);
 
-            var txId = Hash.FromString("Transaction");
+            var txId = HashHelper.ComputeFrom("Transaction");
             var blockIndex = new BlockIndex
             {
                 BlockHash = block.GetHash(),
@@ -51,8 +51,8 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task UpdateOneBlockIndexWithBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash"));
-            var txId = Hash.FromString("Transaction");
+            var block = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash"));
+            var txId = HashHelper.ComputeFrom("Transaction");
             var blockIndex = new BlockIndex
             {
                 BlockHash = block.GetHash(),
@@ -74,13 +74,13 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task UpdateTwoBlockIndexesWithoutBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash1"));
-            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash2"));
+            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash2"));
 
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
 
-            var txId = Hash.FromString("Transaction");
+            var txId = HashHelper.ComputeFrom("Transaction");
             var blockIndex1 = new BlockIndex
             {
                 BlockHash = block1.GetHash(),
@@ -119,10 +119,10 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task UpdateTwoBlockIndexesWithFirstBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash1"));
-            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash2"));
+            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash2"));
 
-            var txId = Hash.FromString("Transaction");
+            var txId = HashHelper.ComputeFrom("Transaction");
 
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
@@ -163,10 +163,10 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task UpdateTwoBlockIndexesWithSecondBestChain()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash1"));
-            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash2"));
+            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block2 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash2"));
 
-            var txId = Hash.FromString("Transaction");
+            var txId = HashHelper.ComputeFrom("Transaction");
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
 
@@ -206,11 +206,11 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task GetTransactionBlockIndexBelowLibTest()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, Hash.FromString("PreBlockHash1"));
+            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
             var block2 =
                 _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, previousBlockHeader.PreviousBlockHash);
 
-            var txId = Hash.FromString("Transaction");
+            var txId = HashHelper.ComputeFrom("Transaction");
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
 

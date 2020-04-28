@@ -9,29 +9,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : IBlockAcceptedLogEventProcessor
+    public class SymbolListToPayTxFeeUpdatedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
-        private LogEvent _interestedEvent;
         private ILogger<SymbolListToPayTxFeeUpdatedLogEventProcessor> Logger { get; set; }
 
-        public LogEvent InterestedEvent
-        {
-            get
-            {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-
-                _interestedEvent = new ExtraTokenListModified().ToLogEvent(address);
-
-                return _interestedEvent;
-            }
-        }
-        
         public SymbolListToPayTxFeeUpdatedLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider)
         {
@@ -39,14 +22,31 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             Logger = NullLogger<SymbolListToPayTxFeeUpdatedLogEventProcessor>.Instance;
         }
+        
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
+        {
+            if (InterestedEvent != null)
+                return InterestedEvent;
 
-        public async Task ProcessAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, TokenSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<ExtraTokenListModified>(smartContractAddressDto.SmartContractAddress.Address);
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+            InterestedEvent = interestedEvent;
+
+            return InterestedEvent;
+        }
+
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var eventData = new ExtraTokenListModified();
             eventData.MergeFrom(logEvent);
             if (eventData.SymbolListToPayTxSizeFee == null)
                 return;
-            
+
             var transactionSizeFeeSymbols = new TransactionSizeFeeSymbols();
             foreach (var symbolToPayTxSizeFee in eventData.SymbolListToPayTxSizeFee.SymbolsToPayTxSizeFee)
             {

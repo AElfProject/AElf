@@ -14,6 +14,7 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
             context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();
+            context.Services.AddTransient(typeof(IContractReaderFactory<>), typeof(ContractReaderFactory<>));
         }
     }
 }

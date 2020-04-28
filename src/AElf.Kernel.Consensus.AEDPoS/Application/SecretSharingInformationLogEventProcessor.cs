@@ -6,12 +6,10 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class SecretSharingInformationLogEventProcessor : IBestChainFoundLogEventProcessor
+    internal class SecretSharingInformationLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;
-
-        private LogEvent _interestedEvent;
 
         public SecretSharingInformationLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
@@ -21,23 +19,26 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _secretSharingService = secretSharingService;
         }
 
-        public LogEvent InterestedEvent
+        public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
         {
-            get
-            {
-                if (_interestedEvent != null) return _interestedEvent;
-                var address =
-                    _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                        .Name);
-                _interestedEvent = new SecretSharingInformation().ToLogEvent(address);
-                return _interestedEvent;
-            }
+            if (InterestedEvent != null) return InterestedEvent;
+            var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
+            if (smartContractAddressDto == null) return null;
+            
+            var interestedEvent =
+                GetInterestedEvent<SecretSharingInformation>(smartContractAddressDto.SmartContractAddress.Address);
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+            
+            InterestedEvent = interestedEvent;
+            return InterestedEvent;
         }
 
-        public Task ProcessAsync(Block block, TransactionResult result, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
-            _secretSharingService.AddSharingInformationAsync(logEvent);
-            return Task.CompletedTask;
+            var secretSharingInformation = new SecretSharingInformation();
+            secretSharingInformation.MergeFrom(logEvent);
+            await _secretSharingService.AddSharingInformationAsync(secretSharingInformation);
         }
     }
 }

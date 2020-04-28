@@ -55,7 +55,7 @@ namespace AElf.WebApp.Application.Chain
             Hash transactionIdHash;
             try
             {
-                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+                transactionIdHash = Hash.LoadFromHex(transactionId);
             }
             catch
             {
@@ -135,7 +135,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = HashHelper.HexStringToHash(blockHash);
+                realBlockHash = Hash.LoadFromHex(blockHash);
             }
             catch
             {
@@ -174,7 +174,7 @@ namespace AElf.WebApp.Application.Chain
             Hash transactionIdHash;
             try
             {
-                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+                transactionIdHash = Hash.LoadFromHex(transactionId);
             }
             catch
             {
@@ -327,7 +327,7 @@ namespace AElf.WebApp.Application.Chain
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return Hash.FromRawBytes(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
         
         private bool IsValidMessage(IMessage message)

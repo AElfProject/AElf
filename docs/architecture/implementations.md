@@ -24,7 +24,7 @@ Conceptually, AElf is built on two main layers: OS and Kernel. The OS contains t
 
 AElf has a native runtime for smart contracts which is implemented in C# and for contracts written in C#. The implementation is the AElf.Runtime.CSharp.* projects.
 
-A big part of AElf is the side chain framework. It is mainly implemented in the AElf.CrossChain namespace and defines the main abstractions in the **core** project and an implementation with grpc in the AElf.Crosschain.Communication.Grpc project.
+A big part of AElf is the side chain framework. It is mainly implemented in the AElf.CrossChain namespace and defines the main abstractions in the **core** project and an implementation with grpc in the AElf.Crosschain.Grpc project.
 
 The AElf.Test solution folder contains all the tests, coverage of the main functional aspects must be at a maximum to ensure the quality of our system.
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.CodeOps.Patchers.Module;
@@ -154,43 +155,13 @@ namespace AElf.CSharp.CodeOps
         }
 
         [Fact]
-        public void ContractAuditor_Basic_Test()
-        {
-            var whiteList = new List<string>
-            {
-                "System.Collection",
-                "System.Linq"
-            };
-            var blackList = new List<string>
-            {
-                "System.Random",
-                "System.DateTime"
-            };
-
-            _auditor = new CSharpContractAuditor(blackList, whiteList);
-
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, _requiredAcs));
-        }
-
-        [Fact]
         public void ContractAuditor_AcsRequired_Test()
         {
-            var whiteList = new List<string>
-            {
-                "System.Collection",
-                "System.Linq"
-            };
-            var blackList = new List<string>
-            {
-                "System.Random",
-                "System.DateTime"
-            };
-
-            _auditor = new CSharpContractAuditor(whiteList, blackList);
+            _auditor = new CSharpContractAuditor();
 
             var requireAcs = new RequiredAcs();
             requireAcs.AcsList = new List<string> {"acs1"};
-            Should.Throw<CSharpInvalidCodeException>(() => _auditor.Audit(_badContractCode, requireAcs));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs));
 
             Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
@@ -198,7 +169,7 @@ namespace AElf.CSharp.CodeOps
             Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs));
 
             requireAcs.RequireAll = true;
-            Should.Throw<CSharpInvalidCodeException>(() => _auditor.Audit(_systemContractCode, requireAcs));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs));
         }
 
         [Fact]
@@ -209,7 +180,7 @@ namespace AElf.CSharp.CodeOps
             var md = ModuleDefinition.ReadModule(new MemoryStream(changedCode));
 
             var observerValidator = new ObserverProxyValidator();
-            var validateResult = observerValidator.Validate(md);
+            var validateResult = observerValidator.Validate(md, new CancellationToken());
             validateResult.Count().ShouldBeGreaterThan(0);
         }
         
@@ -221,7 +192,7 @@ namespace AElf.CSharp.CodeOps
             {
                 foreach (var method in typeInfo.Methods)
                 {
-                    var validateResult = validator.Validate(method).ToList();
+                    var validateResult = validator.Validate(method, new CancellationToken()).ToList();
                     var count = validateResult.Count();
                     if (count != 0)
                         validateList.AddRange(validateResult);

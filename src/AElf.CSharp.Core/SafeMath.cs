@@ -1,5 +1,8 @@
 ﻿namespace AElf.CSharp.Core
 {
+    /// <summary>
+    /// Helper methods for safe math operations that explicitly check for overflow.
+    /// </summary>
     public static class SafeMath
     {
         #region int

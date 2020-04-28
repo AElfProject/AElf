@@ -53,7 +53,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeploySystemSmartContract(category, code, Hash.FromString("TestContract"),
+                TestContractAddress = await DeploySystemSmartContract(category, code, HashHelper.ComputeFrom("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

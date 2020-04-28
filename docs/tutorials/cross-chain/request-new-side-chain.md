@@ -102,8 +102,7 @@ var setAllowance = async function(tokenContract, crossChainContractAddress)
 In order to request a side chain creation the developer must call **RequestSideChainCreation** on the cross-chain contract, this will create a proposal with the **Parliament** contract. After calling this method, a **ProposalCreated** log will be created in which the **ProposalId** be found. This ID will enable the producers to approve it.
 
 ```protobuf
-
-rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }
+rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){}
 
 message SideChainCreationRequest {
     int64 indexing_price = 1;
@@ -111,12 +110,12 @@ message SideChainCreationRequest {
     bool is_privilege_preserved = 3;
     string side_chain_token_symbol = 4;
     string side_chain_token_name = 5;
-    sint64 side_chain_token_total_supply = 6;
-    sint32 side_chain_token_decimals = 7;
+    int64 side_chain_token_total_supply = 6;
+    int32 side_chain_token_decimals = 7;
     bool is_side_chain_token_burnable = 8;
-    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 9;
-    map<string, sint32> initial_resource_amount = 10; 
-    bool is_side_chain_token_profitable = 11;
+    bool is_side_chain_token_profitable = 9;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
+    map<string, int32> initial_resource_amount = 11;
 }
 
 message SideChainTokenInitialIssue{
@@ -136,13 +135,15 @@ In order for the creation request to succeed, some assertions must pass:
 - the token initial issue list must contain at least one token and all with an **amount** greater than 0.
 - the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0.
 - the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)).
+- no need to provide data about side chain token if **is_privilege_preserved** is false, and side chain token won't be created even you provide token info.
+
 
 ```javascript
     console.log('\n>>>> Requesting the side-chain creation.');
     const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
         indexingPrice: 1,
         lockedTokenAmount: '20000',
-        isPrivilegePreserved: false,
+        isPrivilegePreserved: true,
         sideChainTokenDecimals: 8,
         sideChainTokenName: 'SCATokenName',
         sideChainTokenSymbol: 'SCA',
@@ -324,7 +325,7 @@ const createSideChain = async () => {
     const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
         indexingPrice: 1,
         lockedTokenAmount: '20000',
-        isPrivilegePreserved: false,
+        isPrivilegePreserved: true,
         sideChainTokenDecimals: 8,
         sideChainTokenName: 'SCATokenName',
         sideChainTokenSymbol: 'SCA',

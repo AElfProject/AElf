@@ -121,11 +121,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             var blocks = new List<Block>();
             var block = await Tester.MineEmptyBlockAsync(previousBlockHash, previousBlockHeight);
-            blocks.Add(block);
+            blocks.Add(block.Block);
             for (var i = 0; i < count - 1; i++)
             {
                 block = await Tester.MineEmptyBlockAsync(block.GetHash(), block.Height);
-                blocks.Add(block);
+                blocks.Add(block.Block);
             }
 
             return blocks;
