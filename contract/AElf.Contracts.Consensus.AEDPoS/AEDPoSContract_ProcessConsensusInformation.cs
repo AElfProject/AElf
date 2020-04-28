@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
             {
-                Context.SendInline(Context.Self, nameof(Release), new ReleaseInput());
+                Release();
             }
 
             // Clear cache.

@@ -92,8 +92,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty Release(ReleaseInput input)
         {
-            Assert(Context.Sender == Context.Self, "Only AEDPoS Contract itself can call this method.");
-            if (State.TokenHolderContract.Value == null) return new Empty();
+            Assert(false, "Side chain dividend pool can only release automatically.");
+            return new Empty();
+        }
+
+        public void Release()
+        {
+            if (State.TokenHolderContract.Value == null) return;
             var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
             var isTimeToRelease =
                 (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
@@ -111,8 +116,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     SchemeManager = Context.Self
                 });
             }
-
-            return new Empty();
         }
 
         public override Empty SetSymbolList(SymbolList input)
