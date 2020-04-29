@@ -161,7 +161,8 @@ namespace AElf.Contracts.Treasury
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
             var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol = connector.DepositConnector != null;
+            var canExchangeWithNativeSymbol =
+                connector.DepositConnector != null && connector.DepositConnector.IsPurchaseEnabled;
 
             if (Context.Sender != Context.Self)
             {
