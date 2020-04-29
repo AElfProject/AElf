@@ -265,8 +265,13 @@ namespace AElf.Contracts.Treasury
             Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
             foreach (var symbol in input.Value.Where(s => s != Context.Variables.NativeSymbol))
             {
+                var isTreasuryInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
+                {
+                    Symbol = symbol,
+                    Address = Context.Self
+                }).Value;
                 var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
-                Assert(tokenInfo.IsProfitable, "Symbol need to be profitable.");
+                Assert(tokenInfo.IsProfitable || isTreasuryInWhiteList, "Symbol need to be profitable.");
             }
 
             State.SymbolList.Value = input;
