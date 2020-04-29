@@ -73,14 +73,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             var currentReceivedDividends = State.SideChainReceivedDividends[Context.CurrentHeight];
-            if (currentReceivedDividends.Value.ContainsKey(input.Symbol))
+            if (currentReceivedDividends != null && currentReceivedDividends.Value.ContainsKey(input.Symbol))
             {
                 currentReceivedDividends.Value[input.Symbol] =
                     currentReceivedDividends.Value[input.Symbol].Add(input.Amount);
             }
             else
             {
-                currentReceivedDividends.Value.Add(input.Symbol, input.Amount);
+                currentReceivedDividends = new Dividends
+                {
+                    Value =
+                    {
+                        {
+                            input.Symbol, input.Amount
+                        }
+                    }
+                };
             }
 
             State.SideChainReceivedDividends[Context.CurrentHeight] = currentReceivedDividends;

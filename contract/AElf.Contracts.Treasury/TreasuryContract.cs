@@ -197,7 +197,7 @@ namespace AElf.Contracts.Treasury
                 });
 
                 var donatesOfCurrentBlock = State.DonatedDividends[Context.CurrentHeight];
-                if (Context.Variables.NativeSymbol == input.Symbol &&
+                if (donatesOfCurrentBlock != null && Context.Variables.NativeSymbol == input.Symbol &&
                     donatesOfCurrentBlock.Value.ContainsKey(Context.Variables.NativeSymbol))
                 {
                     donatesOfCurrentBlock.Value[Context.Variables.NativeSymbol] = donatesOfCurrentBlock
@@ -205,7 +205,13 @@ namespace AElf.Contracts.Treasury
                 }
                 else
                 {
-                    donatesOfCurrentBlock.Value.Add(input.Symbol, input.Amount);
+                    donatesOfCurrentBlock = new Dividends
+                    {
+                        Value =
+                        {
+                            {input.Symbol, input.Amount}
+                        }
+                    };
                 }
 
                 State.DonatedDividends[Context.CurrentHeight] = donatesOfCurrentBlock;
@@ -814,14 +820,22 @@ namespace AElf.Contracts.Treasury
             Assert(Context.CurrentHeight > input.Value, "Cannot query dividends of a future block.");
             var dividends = State.DonatedDividends[input.Value];
 
-            if (dividends.Value.ContainsKey(Context.Variables.NativeSymbol))
+            if (dividends != null && dividends.Value.ContainsKey(Context.Variables.NativeSymbol))
             {
                 dividends.Value[Context.Variables.NativeSymbol] =
                     dividends.Value[Context.Variables.NativeSymbol].Add(State.MiningReward.Value);
             }
             else
             {
-                dividends.Value.Add(Context.Variables.NativeSymbol, State.MiningReward.Value);
+                dividends = new Dividends
+                {
+                    Value =
+                    {
+                        {
+                            Context.Variables.NativeSymbol, State.MiningReward.Value
+                        }
+                    }
+                };
             }
 
             return dividends;
