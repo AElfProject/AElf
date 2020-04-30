@@ -7,7 +7,7 @@ This is why AElf side chains were introduced in the initial design. It’s envis
 The main idea is that the side-chains are **independent** and **specialized** to ensure that the dapps running on them can perform efficiently and smoothly. A network link will exist between main-chain node and side-chain nodes, but the communication is indirectly done through what's called a Merkle root.
 
 <p align="center">
-    <img src="introduction-topology.png" width="300" align="center" />
+    <img src="../../img/crosschain/introduction-topology.png" width="300" align="center" />
 </p>
 
 The diagram above illustrates the conceptual idea behind side chains.

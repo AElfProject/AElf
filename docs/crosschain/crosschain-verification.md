@@ -13,7 +13,7 @@ Indexing is a continuous process, the main chain is permanently gathering inform
 Merkle tree is a basic binary tree structure. Node value (which is not a leaf node) is the hash calculated from its children values until to the tree root.
 
  <p align="center">
-    <img src="merkle.png" height="200">
+    <img src="../../img/crosschain/merkle.png" height="200">
 </p>
 
 #### Merkle roots
@@ -25,5 +25,5 @@ When a transaction gets included in a side chain's block the block will also inc
 Merkle path is the node collection for one leaf node to calculate with to the root. Correct merkle path is necessary to complete any work related to cross chain verification. For the transaction ***tx*** from chain ***A***, you need the whole merkle path root for ***tx*** to calculate the final root if you want to verify the existence of this transaction on other chains, and verify the root by checking whether it is equals to the one got from indexing before.
 
  <p align="center">
-    <img src="merkle-path.png" height="250">
+    <img src="../../img/crosschain/merkle-path.png" height="250">
 </p>

@@ -11,7 +11,7 @@ One important aspect is the key role that the main chain plays, because its main
 In the current architecture, both the side chain node and the main chain node has one server and exactly one client. This is the base for AElf's two-way communication between main chain and side chains. Both the server and the client are implemented as a node plugins (a node has a collection of plugins). Interaction (listening and requesting) can start when both the nodes have started.
 
 <p align="center">
-    <img src="side-chain-nodes.png" width="900" align="center" />
+    <img src="../../img/crosschain/side-chain-nodes.png" width="900" align="center" />
 </p>
 
 The diagram above illustrates two nodes run by an entity: one main chain node and one side chain node. Note that the nodes don't have to be in the same physical location. 
@@ -45,6 +45,6 @@ Apart from the data in block, most cross chain data will be stored by the cross 
 Conceptually the node is like described in the following diagram:
 
 <p align="center">
-    <img src="architecture-node.png" width="600" align="center" />
+    <img src="../../img/crosschain/architecture-node.png" width="600" align="center" />
 </p>
 

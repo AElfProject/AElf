@@ -27,7 +27,7 @@ What follows in this section will give you a general overview of how AElf implem
 In AElf, Smart Contracts are defined like micro-services. This makes Smart Contracts independent of specific programming languages. This implies, for example, that our Consensus Protocol essentially becomes a service because it is defined through Smart Contract.
 
 <p align="center">
-  <img src="sc-as-service.png" width="300">
+  <img src="../../img/assets/sc-as-service.png" width="300">
 </p>
 
 As showed in the diagram above, smart contracts functionality is defined within the kernel. The kernel defines the fundamental components and infrastructure associated with establishing smart contracts as a service:
