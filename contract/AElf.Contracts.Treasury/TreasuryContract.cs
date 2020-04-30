@@ -160,9 +160,7 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = input.Symbol});
-            var canExchangeWithNativeSymbol =
-                connector.DepositConnector != null && connector.DepositConnector.IsPurchaseEnabled;
+            var canExchangeWithNativeSymbol = IsTokenCanExchangeWithNativeSymbol(input.Symbol);
 
             if (Context.Sender != Context.Self)
             {
@@ -229,6 +227,12 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
+        private bool IsTokenCanExchangeWithNativeSymbol(string symbol)
+        {
+            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = symbol});
+            return connector.DepositConnector != null && connector.DepositConnector.IsPurchaseEnabled;
+        }
+
         public override Empty DonateAll(DonateAllInput input)
         {
             if (State.TokenContract.Value == null)
@@ -273,6 +277,8 @@ namespace AElf.Contracts.Treasury
                 }).Value;
                 var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
                 Assert(tokenInfo.IsProfitable || isTreasuryInWhiteList, "Symbol need to be profitable.");
+                Assert(!IsTokenCanExchangeWithNativeSymbol(symbol),
+                    $"Token {symbol} don't need to set to symbol list because it would become native token after donation.");
             }
 
             State.SymbolList.Value = input;
