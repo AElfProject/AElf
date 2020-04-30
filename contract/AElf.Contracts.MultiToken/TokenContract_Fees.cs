@@ -634,6 +634,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Address GetFeeReceiver(Empty input)
+        {
+            return State.FeeReceiver.Value;
+        }
+
         private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
