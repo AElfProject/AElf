@@ -1,8 +1,8 @@
-Welcome to AElf's official documentation. This GitBook is where we centralize our guides, documents and api references. Wether you're a dApp developer looking to build some awesome apps on top of AElf or simply just interested in seeing what a running node looks like, this place is for you!
+Welcome to AElf's official documentation. This Doc is where we centralize our guides, documents and api references. Wether you're a dApp developer looking to build some awesome apps on top of AElf or simply just interested in seeing what a running node looks like, this place is for you!
 
 As of today the documentation is correct but still a work in progress so we invite you to frequently visit and discover any new content.
 
-#### A bit more about AElf push Test docS
+#### A bit more about AElf
 
 AElf's main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a main chain and multiple levels of side-chains (a tree like structure). Each side-chain will be designed for one business use case. 
 
@@ -10,9 +10,9 @@ AElf also aims to make it as easy as possible to extend/customize the system by 
 
 AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in their own side-chains in order to segregate the systems resources.
 
-## This GitBook
+## This Doc
 
-This GitBook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started.
+This Doc contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started.
 
 #### Guides and tutorials
 
