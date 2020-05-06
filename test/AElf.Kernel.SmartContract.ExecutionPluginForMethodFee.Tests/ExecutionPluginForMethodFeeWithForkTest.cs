@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
