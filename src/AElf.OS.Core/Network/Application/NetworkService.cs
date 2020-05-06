@@ -303,14 +303,14 @@ namespace AElf.OS.Network.Application
             foreach (var peer in _peerPool.GetPeers(true))
             {
                 Logger.LogDebug($"Health checking: {peer}");
-                
+
                 try
                 {
-                    await peer.PingAsync();
+                    await peer.CheckHealthAsync();
                 }
                 catch (NetworkException ex)
                 {
-                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable 
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable
                         || ex.ExceptionType == NetworkExceptionType.PeerUnstable)
                     {
                         Logger.LogInformation(ex, $"Removing unhealthy peer {peer}.");
