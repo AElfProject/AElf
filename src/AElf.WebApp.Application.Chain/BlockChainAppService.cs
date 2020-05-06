@@ -163,11 +163,12 @@ namespace AElf.WebApp.Application.Chain
                     Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64(): bloom.ToBase64(),
                     SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
-                Body = new BlockBodyDto()
+                Body = new BlockBodyDto
                 {
                     TransactionsCount = block.Body.TransactionsCount,
                     Transactions = new List<string>()
-                }
+                },
+                BlockSize = block.CalculateSize()
             };
 
             if (!includeTransactions) return blockDto;

@@ -20,10 +20,5 @@
     <ItemGroup>
         <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="1.1.2" />
     </ItemGroup>
-    <ItemGroup>
-        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-        </ContractMessage>
-    </ItemGroup>
 
 </Project>

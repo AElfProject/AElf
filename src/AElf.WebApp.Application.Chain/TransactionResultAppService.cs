@@ -75,6 +75,8 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            output.TransactionSize = transaction.CalculateSize();
+            
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
                 _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
@@ -262,6 +264,7 @@ namespace AElf.WebApp.Application.Chain
 
             transactionResultDto.Transaction =
                 JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            transactionResultDto.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
