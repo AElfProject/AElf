@@ -3,7 +3,6 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO Need to add state cache
     public class ContractReaderContext
     {
         public Address Sender { get; set; }
@@ -11,5 +10,6 @@ namespace AElf.Kernel.SmartContract.Application
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }
         public Timestamp Timestamp { get; set; }
+        public IStateCache StateCache { get; set; }
     }
 }
