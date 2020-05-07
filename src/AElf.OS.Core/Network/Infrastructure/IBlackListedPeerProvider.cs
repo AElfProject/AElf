@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool AddHostToBlackList(string host, int limitSeconds)
         {
-            CleanBlackListed();
+            CleanBlackList();
             return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow().AddSeconds(limitSeconds));
         }
 
@@ -57,7 +57,7 @@ namespace AElf.OS.Network.Infrastructure
             return TimestampHelper.GetUtcNow() > expirationDate;
         }
         
-        private void CleanBlackListed()
+        private void CleanBlackList()
         {
             foreach (var blackListedPeer in _blackListedPeers)
             {
