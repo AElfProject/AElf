@@ -100,7 +100,7 @@ namespace AElf.Types.Tests.Extensions
         [Fact]
         public void HexStringExtensions_Test()
         {
-            var hexStr = HashHelper.ComputeFromString("hex").ToHex();
+            var hexStr = HashHelper.ComputeFrom("hex").ToHex();
             var bs = hexStr.ToByteString();
             bs.ToHex().ShouldBe(hexStr);
         }
