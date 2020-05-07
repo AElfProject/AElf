@@ -462,3 +462,23 @@ message RentalAccountBalanceInsufficient {
     string symbol = 1;
     int64 amount = 2;
 }
+
+message TokenCreated {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    string token_name = 2;
+    int64 total_supply = 3;
+    int32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    bool is_profitable = 7;
+    int32 issue_chain_id = 8;
+}
+
+message Issued {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+    string memo = 3;
+    aelf.Address to = 4;
+}

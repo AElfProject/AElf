@@ -65,6 +65,18 @@ namespace AElf.Contracts.MultiToken
             }
 
             Context.LogDebug(() => $"Token created: {input.Symbol}");
+            
+            Context.Fire(new TokenCreated
+            {
+                Symbol = input.Symbol,
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                Decimals = input.Decimals,
+                Issuer = input.Issuer,
+                IsBurnable = input.IsBurnable,
+                IsProfitable = input.IsProfitable,
+                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+            });
 
             return new Empty();
         }
@@ -101,6 +113,13 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
+            Context.Fire(new Issued
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                To = input.To,
+                Memo = input.Memo
+            });
             return new Empty();
         }
 
