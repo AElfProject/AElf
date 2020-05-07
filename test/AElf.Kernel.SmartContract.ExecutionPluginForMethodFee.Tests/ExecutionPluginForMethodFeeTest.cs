@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
@@ -53,7 +54,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeploySystemSmartContract(category, code, HashHelper.ComputeFromString("TestContract"),
+                TestContractAddress = await DeploySystemSmartContract(category, code, HashHelper.ComputeFrom("TestContract"),
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

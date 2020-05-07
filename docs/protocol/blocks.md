@@ -1,8 +1,8 @@
 ## Blocks
 
-Blocks are produced by the miners or block producers, the following message definitions show the structure of a Block and its constituents:
+Blocks are produced by the miners aka block producers, the following message definitions show the structure of a Block and its constituents:
 
-```json
+``` protobuf
 message Block {
     BlockHeader header = 1;
     BlockBody body = 2;
@@ -16,7 +16,7 @@ message BlockHeader {
     Hash merkle_tree_root_of_world_state = 5;
     bytes bloom = 6;
     int64 height = 7;
-    repeated bytes extra_data = 8;
+    map<string, bytes> extra_data = 8;
     google.protobuf.Timestamp time = 9;
     Hash merkle_tree_root_of_transaction_status = 10;
     bytes signer_pubkey = 9999;

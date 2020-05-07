@@ -3,7 +3,7 @@ using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
 
-namespace AElf.Contracts.TestKit
+namespace AElf.Kernel.FeeCalculation.Extensions
 {
     public static class TransactionResultExtensions
     {

@@ -22,7 +22,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.CopyFrom(contractCode),
-                CodeHash = HashHelper.ComputeFromByteArray(contractCode)
+                CodeHash = HashHelper.ComputeFrom(contractCode)
             };
         }
 

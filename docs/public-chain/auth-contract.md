@@ -16,15 +16,18 @@ service AuthorizationContract {
 }
 
 message CreateProposalInput {
-    string contract_method_name = 2;
-    aelf.Address to_address = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expired_time = 5;
-    aelf.Address organization_address = 6;
+    string contract_method_name = 1;
+    aelf.Address to_address = 2;
+    bytes params = 3;
+    google.protobuf.Timestamp expired_time = 4;
+    aelf.Address organization_address = 5;
+    string proposal_description_url = 6;
+    aelf.Hash token = 7;
 }
 ```
 
 The mechanics of proposal **creations** and proposal **approval** are similar in the three contracts but with small differences that will be explained later in this section. Essentially a proposal is created within an **Organization** and will be either approved or rejected based on the organizations thresholds. When creating a proposal, a log with its ID will be placed in the transaction result.
+You can calculate the **proposal id** since the id generation method is public and definitive. It will generate id with the **token** you provide. And with **proposal_description_url**, you can provide external url for proposal description.
 
 When approving a **proposal** the users (address') send **approval(s)** to the contract by calling the **Approve** method. The contracts usually aggregate these approvals until reaching a certain threshold. When the required amount of approvals is reached, the proposal can then be released. The release usually triggers an inline transaction to another contract and transaction log.
 
@@ -37,7 +40,7 @@ As stated before AElf's Authority contracts implement **ACS3** and are centered 
 Before talking about the difference it's useful to introduce some common characteristics between the different Organizations and Proposals in AElf's authority contracts: 
 - Organizations common properties:
   - a **hash** and **address** used to identify the organization.
-  - a **release threshold** which is the amount of approvals needed before **proposals** of this organization are *releasable*.
+  - a **release threshold** as the specific threshold for proposal releasing.
 - Proposals common properties:
   - an **Hash** (ID) to identify the proposal.
   - a **proposer** that is the sender of the transaction.
@@ -52,7 +55,9 @@ The main difference between the **proposals** is how and by who they can be appr
 ```Protobuf
 service AssociationContract {
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
+    rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Empty){}
     rpc GetOrganization (aelf.Address) returns (Organization) { }
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
 }
 
 message Organization{
@@ -75,16 +80,20 @@ message ProposalInfo {
 }
 ```
 
-In **Association** (implemented by AssociationAuthContract) **Organizations** have **members**. Only members of the **Organization** can review its proposal and each reviewer can only review a proposal once. Once the proposal reached the Organizations' threshold only the Proposer can release it.
+In **Association** (implemented by AssociationAuthContract) **Organizations** have **members**. Any address in **proposer_white_list** has the permission to propose. Only members of the **Organization** can review its proposal and each reviewer can only review a proposal once. Once the proposal reached the Organizations' threshold only the Proposer can release it.
+
+Requirements for a proposal to be *releasable*:
+  
+    COUNT(approval) >= THRESHOLD(approval) &&  COUNT(rejection) < THRESHOLD(rejection) && COUNT(abstention) < THRESHOLD(abstention) && SUM(COUNT(approval), COUNT(rejection), COUNT(abstention)) >= THRESHOLD(SUM)
 
 #### Referendum
 
 ```Protobuf
 service ReferendumContract {
-    rpc Initialize (google.protobuf.Empty) return (google.protobuf.Empty) { }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) { }
     rpc GetOrganization (aelf.Address) returns (Organization) { }
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
 }
 
 message Organization {
@@ -96,7 +105,11 @@ message Organization {
 }
 ```
 
-The **referendum** contract is essentially for **voting** by **locking** tokens (which token is defined by the **Organization**). Thus when approving, the token contract is called to lock a certain amount of tokens. The amount of tokens locked is determined by existing allowance to the Referendum contract. Tokens can after be reclaimed when the transaction is released or expired.
+The **referendum** contract is essentially for **voting** by **locking** tokens (which token is defined by the **Organization**). Any address in **proposer_white_list** has the permission to propose. And the token contract is called to lock a certain amount of tokens during **Approve**/**Reject**/**Abstain** automatically. The amount of tokens locked is determined by existing allowance to the Referendum contract. Tokens can after be reclaimed when the transaction is released or expired.
+
+Requirements for a proposal to be *releasable*:
+  
+    COUNT(approval_token) >= THRESHOLD(approval_token) &&  COUNT(rejection_token) < THRESHOLD(rejection_token) && COUNT(abstention_token) < THRESHOLD(abstention_token) && SUM(COUNT(approval_token), COUNT(rejection_token), COUNT(abstention_token)) >= THRESHOLD(locked_token)
 
 #### Parliament
 
@@ -113,9 +126,7 @@ message Organization {
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
-    repeated aelf.Address approvals = 8;
-    repeated aelf.Address rejections = 9;
-    repeated aelf.Address abstentions = 10;
+    bool parliament_member_proposing_allowed = 5;
 }
 
 message ProposalInfo {
@@ -124,6 +135,11 @@ message ProposalInfo {
 }
 ```
 
-The **Parliament** has the same behavior as the Association.
+The **Parliament** has the same behavior as the Association except that the members of parliament organization are current miner list but not arbitrarily ones. All parliament organizations share the same **white_list**, which can be update by governing proposal.  
+Any address in **proposer_white_list** has the permission to propose. Any member of one parliament organization is able to propose if **parliament_member_proposing_allowed** is true.
+
+Requirements for a proposal to be *releasable*:
+  
+    COUNT(approval) / COUNT (MINER_LIST) >= THRESHOLD(approval) &&  COUNT(rejection) / COUNT (MINER_LIST) < THRESHOLD(rejection) && COUNT(abstention) / COUNT (MINER_LIST) < THRESHOLD(abstention) && SUM(COUNT(approval), COUNT(rejection), COUNT(abstention)) / COUNT (MINER_LIST) >= THRESHOLD(SUM)
 
 

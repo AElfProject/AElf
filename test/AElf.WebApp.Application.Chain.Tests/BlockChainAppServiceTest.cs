@@ -302,7 +302,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                HashHelper.ComputeFromByteArray(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -656,6 +656,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            response.TransactionSize.ShouldBe(transaction.CalculateSize());
         }
 
         [Fact]
@@ -721,11 +722,21 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
 
             response.Count.ShouldBe(15);
+            foreach (var transactionResultDto in response)
+            {
+                transactionResultDto.TransactionSize.ShouldBe(transactions
+                    .Single(t => t.GetHash() == Hash.LoadFromHex(transactionResultDto.TransactionId)).CalculateSize());
+            }
 
             response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
                 $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
 
             response.Count.ShouldBe(5);
+            foreach (var transactionResultDto in response)
+            {
+                transactionResultDto.TransactionSize.ShouldBe(transactions
+                    .Single(t => t.GetHash() == Hash.LoadFromHex(transactionResultDto.TransactionId)).CalculateSize());
+            }
         }
 
         [Fact]
@@ -801,6 +812,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.MerkleTreeRootOfTransactionState.ShouldBe(block.Header.MerkleTreeRootOfTransactionStatus.ToHex());
             response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
+            response.BlockSize.ShouldBe(block.CalculateSize());
 
             var responseTransactions = response.Body.Transactions;
             responseTransactions.Count.ShouldBe(3);
@@ -835,6 +847,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
             response.Header.MerkleTreeRootOfTransactionState.ShouldBe(block.Header.MerkleTreeRootOfTransactionStatus.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
+            response.BlockSize.ShouldBe(block.CalculateSize());
 
             var responseTransactions = response.Body.Transactions;
             responseTransactions.Count.ShouldBe(3);
@@ -1180,7 +1193,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                HashHelper.ComputeFromByteArray(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+                HashHelper.ComputeFrom(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -1438,7 +1451,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             // combine tx result status
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
-            return HashHelper.ComputeFromByteArray(rawBytes);
+            return HashHelper.ComputeFrom(rawBytes);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace AElf.Cryptography.SecretSharing
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
-                Array.Copy(HashHelper.ComputeFromByteArray(Guid.NewGuid().ToByteArray()).ToArray(), foo, 32);
+                Array.Copy(HashHelper.ComputeFrom(Guid.NewGuid().ToByteArray()).ToArray(), foo, 32);
                 coefficients[i] = BigInteger.Abs(new BigInteger(foo));
             }
 

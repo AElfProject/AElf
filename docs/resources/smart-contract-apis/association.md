@@ -13,19 +13,75 @@ message CreateOrganizationInput {
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
-```
-- **CreateOrganizationInput**:
-  - **organizer member list**: initial members.
-  - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the new value for the minimum approval threshold.
-    - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: he new value for the maximal abstention threshold.
-    - **minimal vote threshold**: the new value for the minimal vote threshold.
-  - **ProposerWhiteList**:
-    - **proposers**: the new value for the list.
 
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
+```
 
 Creates an organization and returns its address.
+
+**CreateOrganizationInput**:
+- **organizer member list**: 
+  - **organization_members**: initial organization members.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer whitelist.
+
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
+
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
+
+## **CreateOrganizationBySystemContract**
+
+```Protobuf
+rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){}
+
+message CreateOrganizationBySystemContractInput {
+    CreateOrganizationInput organization_creation_input = 1;
+    string organization_address_feedback_method = 2;
+}
+
+message CreateOrganizationInput{
+    OrganizationMemberList organization_member_list = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+
+message OrganizationMemberList {
+    repeated aelf.Address organization_members = 1;
+}
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    aelf.Address organization_address = 1;
+}
+```
+Creates an organization by system contract and returns its address.
+
+**CreateOrganizationBySystemContractInput**:
+- **CreateOrganizationInput**:
+  - **OrganizationMemberList**: 
+    - **organization_members**: initial organization members.
+  - **ProposalReleaseThreshold**:
+    - **minimal approval threshold**: the value for the minimum approval threshold.
+    - **maximal rejection threshold**: the value for the maximal rejection threshold.
+    - **maximal abstention threshold**: the value for the maximal abstention threshold.
+    - **minimal vote threshold**: the value for the minimal vote threshold.
+  - **ProposerWhiteList**:
+    - **proposers**: proposer whitelist.
+- **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
+
+After a successful execution, an **OrganizationCreated** event log can be found in the transaction result.
+
+**OrganizationCreated**:
+- **organization address**: the address of newly created organization
 
 ## **ChangeOrganizationMember**
 
@@ -72,18 +128,42 @@ message Organization {
 
 Returns the organization with the specified address.
 
-- **Organization**:
-  - **member list**: original members of this organization.
-  - **ProposalReleaseThreshold**:
-    - **minimal approval threshold**: the new value for the minimum approval threshold.
-    - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the new value for the maximal abstention threshold.
-    - **minimal vote threshold**: the new value for the minimal vote threshold.
-  - **ProposerWhiteList**:
-    - **proposers**: the new value for the list.
-  - **address**: the organizations address.
-  - **hash**: the organizations ID.
+**Organization**:
+- **member list**: original members of this organization.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer list.
+- **address**: the organizations address.
+- **hash**: the organizations ID.
 
+## **CalculateOrganizationAddress**
+
+```Protobuf
+rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
+
+message CreateOrganizationInput {
+    string token_symbol = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+```
+
+**CreateOrganizationInput**:
+- **organizer member list**: 
+  - **organization_members**: initial organization members.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+- **ProposerWhiteList**:
+  - **proposers**: proposer whitelist.
+
+Calculate with input and return the organization address.
 
 # **ACS3 specific methods**
 
@@ -98,7 +178,13 @@ message CreateProposalInput {
     bytes params = 3;
     google.protobuf.Timestamp expired_time = 4;
     aelf.Address organization_address = 5;
-    string proposal_description_url = 6
+    string proposal_description_url = 6,
+    aelf.Hash token = 7;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
 }
 ```
 
@@ -109,29 +195,92 @@ This method creates a proposal for which organization members can vote. When the
 **CreateProposalInput**:
 - **contract method name**: the name of the method to call after release.
 - **to address**: the address of the contract to call after release.
-- **expiration**: the date at which this proposal will expire.
+- **expiration**: the timestamp at which this proposal will expire.
 - **organization address**: the address of the organization.
-- **proposal_description_url**: the url is used for describing the proposal.
+- **proposal_description_url**: the url is used for proposal describing.
+- **token**: the token is for proposal id generation and with this token, proposal id can be calculated before proposing. 
+
+After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
+
+**ProposalCreated**:
+- **proposal_id**: the id of the created proposal.
+
+## **Approve**
+
+```Protobuf
+    rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {}
+    
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
+```
+This method is called to approve the specified proposal.
+
+**Hash**: the id of the proposal.
+
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to reject.
+- **address**: send address who votes for approval.
+- **receipt type**: Approve.
+- **time**: timestamp of this method call.
 
 ## **Reject**
 
 ```Protobuf
     rpc Reject(aelf.Hash) returns (google.protobuf.Empty) { }
+    
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
 ```
 
-This method is called to rejecting the specified proposal.
+This method is called to reject the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
+
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to reject.
+- **address**: send address who votes for rejection.
+- **receipt type**: Reject.
+- **time**: timestamp of this method call.
 
 ## **Abstain**
 
 ```Protobuf
     rpc Abstain(aelf.Hash) returns (google.protobuf.Empty) { }
+
+    message ReceiptCreated {
+        option (aelf.is_event) = true;
+        aelf.Hash proposal_id = 1;
+        aelf.Address address = 2;
+        string receipt_type = 3;
+        google.protobuf.Timestamp time = 4;
+    }
 ```
 
 This method is called to abstain from the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
+
+After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
+
+**ReceiptCreated**:
+- **proposal id**: id of proposal to abstain.
+- **address**: send address who votes for abstention.
+- **receipt type**: Abstain.
+- **time**: timestamp of this method call.
 
 ## **Release**
 
@@ -141,7 +290,7 @@ This method is called to abstain from the specified proposal.
 
 This method is called to release the specified proposal.
 
-**Hash**: the hash of the proposal.
+**Hash**: the id of the proposal.
 
 ## **ChangeOrganizationThreshold**
 
@@ -167,14 +316,14 @@ This method changes the thresholds associated with proposals. All fields will be
 **ProposalReleaseThreshold**:
 - **minimal approval threshold**: the new value for the minimum approval threshold.
 - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-- **maximal abstention threshold**: he new value for the maximal abstention threshold.
+- **maximal abstention threshold**: the new value for the maximal abstention threshold.
 - **minimal vote threshold**: the new value for the minimal vote threshold.
 
 After a successful execution, an **OrganizationThresholdChanged** event log can be found in the transaction result.
 
 **OrganizationThresholdChanged**:
 - **organization_address**: the organization address.
-- **proposer_release_threshold**: the new threshold.
+- **proposer_release_threshold**: the new release threshold.
 
 ## **ChangeOrganizationProposerWhiteList**
 
@@ -201,7 +350,7 @@ After a successful execution, a **OrganizationWhiteListChanged** event log can b
 
 **OrganizationWhiteListChanged**:
 - **organization_address**: the organization address.
-- **proposer_white_list**: the new value for the list.
+- **proposer_white_list**: the new proposer whitelist.
 
 ## **CreateProposalBySystemContract**
 
@@ -211,7 +360,11 @@ rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns 
 message CreateProposalBySystemContractInput {
     acs3.CreateProposalInput proposal_input = 1;
     aelf.Address origin_proposer = 2;
-    string proposal_id_feedback_method = 3;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
 }
 ```
 
@@ -223,9 +376,14 @@ Used by system contracts to create proposals.
   - **to address**: the address of the contract to call after release.
   - **expiration**: the date at which this proposal will expire.
   - **organization address**: the address of the organization.
-  - **proposal_description_url**: the url is used for describing the proposal.
+  - **proposal_description_url**: the url is used for proposal describing.
+  - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
 - **origin proposer**: the actor that trigger the call.
-- **proposal id feedback method**: the feedback method, called by inline transaction after creating the proposal.
+
+After a successful execution, a **OrganizationWhiteListChanged** event log can be found in the transaction result.
+
+**ProposalCreated**:
+- **proposal_id**: the id of the created proposal.
 
 ## **ClearProposal**
 
@@ -267,14 +425,18 @@ message ProposalOutput {
 
 Get the proposal with the given ID.
 
-**CreateProposalBySystemContractInput**:
+**ProposalOutput**:
 - **proposal id**: ID of the proposal.
 - **method name**: the method that this proposal will call when being released.
 - **to address**: the address of the target contract.
 - **params**: the parameters of the release transaction.
+- **expiration**: the date at which this proposal will expire.
 - **organization address**: address of this proposals organization.
 - **proposer**: address of the proposer of this proposal.
 - **to be release**: indicates if this proposal is releasable.
+- **approval count**: approval count for this proposal
+- **rejection count**: rejection count for this proposal
+- **abstention count**: abstention count for this proposal
 
 
 ## **ValidateProposerInWhiteList**

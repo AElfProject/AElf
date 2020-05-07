@@ -19,7 +19,7 @@
         * [Request side-chain creation](tutorials/cross-chain/request-new-side-chain.md) 
 * [AElf protocol](protocol/main.md)
     * [Addresses](protocol/addresses.md)
-    * [Transactions](protocol/txs.md)
+    * [Transactions](protocol/transactions.md)
     * [Blocks](protocol/blocks.md)
 * [Smart contracts](contract/main.md)
     * [Architecture](contract/architecture.md)

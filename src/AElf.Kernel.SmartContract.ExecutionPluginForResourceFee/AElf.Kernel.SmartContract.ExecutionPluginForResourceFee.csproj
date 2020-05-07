@@ -30,12 +30,6 @@
         <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf/Proto/token_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
-            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
-        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>
