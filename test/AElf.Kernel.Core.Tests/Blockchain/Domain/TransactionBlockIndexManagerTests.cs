@@ -21,17 +21,17 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             var transactionBlockIndex1 = new TransactionBlockIndex()
             {
-                BlockHash = HashHelper.ComputeFromString("BlockHash1"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash1"),
                 BlockHeight = 1L
             };
             var transactionBlockIndex2 = new TransactionBlockIndex()
             {
-                BlockHash = HashHelper.ComputeFromString("BlockHash2"),
+                BlockHash = HashHelper.ComputeFrom("BlockHash2"),
                 BlockHeight = 2L
             };
  
-            var transactionId1 = HashHelper.ComputeFromString("transactionId1");
-            var transactionId2 = HashHelper.ComputeFromString("transactionId2");
+            var transactionId1 = HashHelper.ComputeFrom("transactionId1");
+            var transactionId2 = HashHelper.ComputeFrom("transactionId2");
 
             await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(transactionId1, transactionBlockIndex1);
             var txBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId1);

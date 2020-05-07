@@ -23,7 +23,7 @@ namespace AElf.Kernel.Blockchain.Domain
             
             var tran = _kernelTestHelper.GenerateTransaction();
             var tranResult = _kernelTestHelper.GenerateTransactionResult(tran, TransactionResultStatus.Mined);
-            var disambiguationHash1 = HashHelper.ComputeFromString("disambiguationHash1");
+            var disambiguationHash1 = HashHelper.ComputeFrom("disambiguationHash1");
             await _transactionResultManager.AddTransactionResultAsync(tranResult, disambiguationHash1);
 
             var tranResult2 =

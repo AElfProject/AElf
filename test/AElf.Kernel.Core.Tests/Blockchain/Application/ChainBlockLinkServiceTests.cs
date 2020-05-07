@@ -23,7 +23,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         private async Task GetNotExecutedChainBlockLinksAsync_Tests()
         {
-            var l = await _chainBlockLinkService.GetNotExecutedChainBlockLinksAsync(HashHelper.ComputeFromString("test"));
+            var l = await _chainBlockLinkService.GetNotExecutedChainBlockLinksAsync(HashHelper.ComputeFrom("test"));
                 l.Count.ShouldBe(0);
         }
 
