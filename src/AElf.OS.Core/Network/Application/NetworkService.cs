@@ -304,6 +304,14 @@ namespace AElf.OS.Network.Application
             {
                 Logger.LogDebug($"Health checking: {peer}");
 
+                if (peer.IsInvalid)
+                {
+                    _peerPool.RemovePeer(peer.Info.Pubkey);
+                    await peer.DisconnectAsync(false);
+                    Logger.LogInformation($"Remove invalid peer: {peer}");
+                    continue;
+                }
+
                 try
                 {
                     await peer.CheckHealthAsync();

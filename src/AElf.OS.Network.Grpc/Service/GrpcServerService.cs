@@ -113,7 +113,7 @@ namespace AElf.OS.Network.Grpc
         
         private Task ProcessBlockAsync(BlockWithTransactions block, string peerPubkey)
         {
-            var peer = GetPeerByPubkey(peerPubkey);
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             if (peer.SyncState != SyncState.Finished)
             {
@@ -156,7 +156,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             }
 
-            var peer = GetPeerByPubkey(peerPubkey);
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             if (!peer.TryAddKnownBlock(announcement.BlockHash))
                 return Task.CompletedTask;
@@ -219,7 +219,7 @@ namespace AElf.OS.Network.Grpc
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return;
 
-            var peer = GetPeerByPubkey(peerPubkey);
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             if (!peer.TryAddKnownTransaction(tx.GetHash()))
                 return;
@@ -259,7 +259,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug(
                 $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {peerPubkey}.");
 
-            var peer = GetPeerByPubkey(peerPubkey);
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             peer.UpdateLastKnownLib(announcement);
 
@@ -420,13 +420,24 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new VoidReply());
         }
 
-        private GrpcPeer GetPeerByPubkey(string peerPubkey)
+        /// <summary>
+        /// Try to get the peer based on pubkey.
+        /// </summary>
+        /// <param name="peerPubkey"></param>
+        /// <returns></returns>
+        /// <exception cref="RpcException">
+        /// If the peer does not exist, a cancelled RPC exception is thrown to tell the client.
+        /// Need to verify the existence of the peer here,
+        /// because when we start transferring data using the streaming RPC,
+        /// the request no longer goes through the <see cref="AuthInterceptor"/>. 
+        /// </exception>
+        private GrpcPeer TryGetPeerByPubkey(string peerPubkey)
         {
             var peer = _connectionService.GetPeerByPubkey(peerPubkey);
 
             if (peer != null)
                 return peer;
-
+            
             Logger.LogInformation($"Peer: {peerPubkey} already removed.");
             throw new RpcException(Status.DefaultCancelled);
         }
