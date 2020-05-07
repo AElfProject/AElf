@@ -4,7 +4,7 @@ After defining a smart contract, the next step is to generate the code from the 
 
 Let's take the example from the previous section on defining the service:
 
-```json
+```protobuf
 service TokenContract {
     option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
 

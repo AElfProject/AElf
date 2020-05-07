@@ -51,10 +51,12 @@ aelf-command create
 Modify each miner's configuration with their respective accounts like in the previous tutorial. Once this is done you should update both config files with both accounts, so the configuration for **InitialMinerList** will look something like this in **both** miner1 and miner2's configuration files:
 
 ```json
-"InitialMinerList" : [
-    "0499d3bb14337961c4d338b9729f46b20de8a49ed38e260a5c19a18da569462b44b820e206df8e848185dac6c139f05392c268effe915c147cde422e69514cc927",
-    "048397dfd9e1035fdd7260329d9492d88824f42917c156aef93fd7c2e3ab73b636f482b8ceb5cb435c556bfa067445a86e6f5c3b44ae6853c7f3dd7052609ed40b"
-],
+{
+  "InitialMinerList" : [
+      "0499d3bb14337961c4d338b9729f46b20de8a49ed38e260a5c19a18da569462b44b820e206df8e848185dac6c139f05392c268effe915c147cde422e69514cc927",
+      "048397dfd9e1035fdd7260329d9492d88824f42917c156aef93fd7c2e3ab73b636f482b8ceb5cb435c556bfa067445a86e6f5c3b44ae6853c7f3dd7052609ed40b"
+  ],
+}
 ```
 
 Note that there's no need to change the default template for **appsettings.MainChain.MainNet.json**.
@@ -64,28 +66,34 @@ Note that there's no need to change the default template for **appsettings.MainC
 The next section we need to configure is the network options. Following is miner1's configuration of the **Network** section:
 
 ```json
-"Network": {
-    "BootNodes": [ ** insert other nodes P2P address here ** ],
-    "ListeningPort": ** the port your node will be listening on **,
-},
+{
+  "Network": {
+      "BootNodes": ["x.x.x.x:xxxx"],
+      "ListeningPort": 0000,
+  },
+}
 ```
 
 Only two options will be needed for this tutorial, **BootNodes** and **ListeningPort**. The listening port the node will be using to be reachable on the network: other nodes will use this to connect to your node. The boot nodes is a list of address that the node will connect to on when it's started. So in order for miner1 to connect to miner2 replace the configurations like following:
 
 - miner1 :
 ```json
+{
   "Network": {
     "BootNodes": ["127.0.0.1:6802"],
     "ListeningPort": 6801
   },
+}
 ```
 
 - miner2:
 ```json
+{
   "Network": {
     "BootNodes": ["127.0.0.1:6801"],
     "ListeningPort": 6802
   },
+}
 ```
 
 Note that with this configuration you will see an error printed in the logs. This is normal, when the first node comes online the second is probably not started.
@@ -95,10 +103,12 @@ Note that with this configuration you will see an error printed in the logs. Thi
 Each node will need it's own database, so in miner2 you'll need to change the database number (here 2):
 
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://localhost:6379?db=2",
     "StateDb": "redis://localhost:6379?db=2"
   },
+}
 ```
 
 #### RPC endpoint
@@ -106,6 +116,7 @@ Each node will need it's own database, so in miner2 you'll need to change the da
 The last configuration option we need to change is the RPC endpoint at which the node's API is reachable.
 
 ```json
+{
   "Kestrel": {
     "EndPoints": {
       "Http": {
@@ -113,7 +124,8 @@ The last configuration option we need to change is the RPC endpoint at which the
       }
     }
   },
-  ```
+}
+```
 
 The example shows that the port is 8000, for miner1 you can keep this value but since we're running this tutorial on a single machine, miner2 port must be different, lets say 8001.
 

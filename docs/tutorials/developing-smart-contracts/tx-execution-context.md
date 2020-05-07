@@ -14,7 +14,7 @@ message Transaction {
     bytes params;       // the parameters to pass to the method 
     bytes signature;    // the signature of this transaction (by the Sender)
 }
-`"
+```
 
 When users create and send a transaction to a node, it will eventually be packaged in a block. When this block is executed, the transactions it contains are executed one by one. 
 
@@ -41,7 +41,7 @@ To use these values, you can access them through the **Context** property.
 Context.Origin
 Context.Sender
 Context.Self
-`"
+```
 
 ## Useful properties
 
@@ -67,8 +67,8 @@ public override Empty Vote(VoteMinerInput input)
     {
         VoteId = input.VoteId,
         VotingItemId = votingRecord.VotingItemId,
-        Voter = votingRecord.Voter,
-        ...
+        Voter = votingRecord.Voter
+        //...
     });
 }
 ```
@@ -80,7 +80,7 @@ private Hash AssertValidNewVotingItem(VotingRegisterInput input)
 {
     // this is a method in the voting contract that will log to the applications log file
     // when a 'voting item' is created. 
-    Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+    Context.LogDebug(() => "Voting item created by {0}: {1}", Context.Sender, votingItemId.ToHex());
     // ...
 }
 ```

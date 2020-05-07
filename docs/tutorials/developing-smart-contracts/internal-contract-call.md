@@ -59,7 +59,7 @@ Imagine you want to transfer some tokens from the contract you're writing, the n
 var tokenContractAddress = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 Context.SendInline(tokenContractAddress, "Transfer", new TransferInput
 {
-    To = /* The address you wanna transfer to*/,
+    To = toAddress/* The address you wanna transfer to*/,
     Symbol = Context.Variables.NativeSymbol,// You will get "ELF" if this contract is deployed in AElf main chain.
     Amount = 100_000_00000000,// 100000 ELF tokens.
     Memo = "Gift."// Optional
@@ -68,7 +68,7 @@ Context.SendInline(tokenContractAddress, "Transfer", new TransferInput
 
 Again, because you have to reference a message defined by the m=Multi-Token contract proto file, you need to add these lines to the csproj file of your contract project.
 
-```C#
+```xml
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
@@ -91,7 +91,7 @@ Follow these three steps of preparation:
 Let's see a demo that implements these steps: check the balance of ELF token of the current contract, if the balance is more significant than 100 000, request a random number from `AEDPoS Contract`.
 
 First, reference proto files related to `MultiToken Contract` and `acs6.proto` (random number generation).
-```C#
+```xml
 <ItemGroup>
     <ContractReference Include="..\..\protobuf\acs6.proto">
         <Link>Protobuf\Proto\reference\acs6.proto</Link>

@@ -448,7 +448,7 @@ In this example, you can read the [protobuf file](https://github.com/AElfProject
 ```bash
 $ aelf-command send
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
-✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
+✔ Enter a valid wallet address, if you do not have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
 ✔ Fetching contract successfully!
@@ -486,7 +486,7 @@ aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "C9
 ```bash
 $ aelf-command call
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
-✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
+✔ Enter a valid wallet address, if you do not have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter contract name (System contracts only) or the address of contract … AElf.ContractNames.Token
 ✔ Fetching contract successfully!
@@ -623,7 +623,7 @@ aelf-command get-blk-info ca61c7c8f5fc1bc8af0536bc9b51c61a94f39641a93a748e72802b
 ```bash
 $ aelf-command console
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
-✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Enter a valid wallet address, if you do not have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Succeed!
 Welcome to aelf interactive console. Ctrl + C to terminate the program. Double tap Tab to list objects

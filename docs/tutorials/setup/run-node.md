@@ -51,7 +51,7 @@ Account info has been saved to "/Users/xxx/.local/share/**aelf**/keys/2Ue31YTuB5
 In the next steps of the tutorial you will need the **Public Key** and the **Address** for the account you just created. You'll notice the last line of the 
 commands output will show you the path to the newly created key. The **aelf** is the data directory (datadir) and this is where the node will read the keys from.
 
-Note that a more detailed section about the cli can be found [command line interface](../cli/cli.md).
+Note that a more detailed section about the cli can be found [command line interface](../../resources/cli/cli.md).
 
 ### Node configuration
 
@@ -66,19 +66,23 @@ This folder contains the default **appsettings.json** file, with some default va
 The account/key-pair associated with the node we are going to run:
 
 ```json
-"Account":
 {
-    "NodeAccount": "2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H",
-    "NodeAccountPassword": "********"
-},
+"Account":
+  {
+      "NodeAccount": "2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H",
+      "NodeAccountPassword": "********"
+  },
+}
 ```
 
 The *NodeAccount* field corresponds to the address, you also have to enter the password that you entered earlier.
 
 ```json
-"InitialMinerList" : [
-    "0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea"
-],
+{
+  "InitialMinerList" : [
+      "0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea"
+  ],
+}
 ```
 
 This is a configuration that is used to specify the initial miners for the DPoS consensus, for now just configure one, it's the accounts public key that was printed during the account creation.
@@ -86,10 +90,12 @@ This is a configuration that is used to specify the initial miners for the DPoS 
 Note that if your Redis server is on another host listening on a different port than the default, you will also have to configure the connection strings (port/db number):
 
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://localhost:6379?db=1",
     "StateDb": "redis://localhost:6379?db=1"
   },
+}
 ```
 
 We've created an account/key-pair and modified the configuration to use this account for the node and mining, we're now ready to launch the node.

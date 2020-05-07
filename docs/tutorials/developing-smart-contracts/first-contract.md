@@ -300,7 +300,7 @@ namespace AElf.Contracts.Greeter
             // Update State.GreetedList.Value by setting it's value directly.
             State.GreetedList.Value = greetList;
 
-            Context.LogDebug(() => $"Hello {input.Value}!");
+            Context.LogDebug(() => "Hello {0}!", input.Value);
 
             return new GreetToOutput
             {
@@ -356,7 +356,7 @@ From within the contract methods, you can easily access the contracts state thro
 #### Logging
 
 ```csharp
-Context.LogDebug(() => $"Hello {input.Value}!");
+Context.LogDebug(() => "Hello {0}!", input.Value);
 ```
 
 It is also possible to log from smart contract methods. The above example will log "Hello" and the value of the input. It also prints useful information like the ID of the transaction. 

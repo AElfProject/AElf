@@ -51,7 +51,7 @@ SuccessResponse:
 ### Get Block List By Bock Hash
 
 ```js
-URL: /api/block/transactions?limit={limit}&page={page}&order={order}&block_hash={block_hash}
+URL: api/block/transactions?limit={limit}&page={page}&order={order}&block_hash={block_hash}
 Method: GET
 SuccessResponse:
 {
@@ -93,7 +93,7 @@ SuccessResponse:
 ### Get Transactions List
 
 ```js
-URL: /api/all/transactions?limit={limit}&page={limit}
+URL: api/all/transactions?limit={limit}&page={limit}
 Method: GET
 SuccessResponse:
 {
@@ -148,7 +148,7 @@ SuccessResponse:
 ### Get Transactions List By Address
 
 ```js
-URL: /api/address/transactions?contract_address={contract_address}&limit={limit}&page={page}&address={address}
+URL: api/address/transactions?contract_address={contract_address}&limit={limit}&page={page}&address={address}
 Method: GET
 SuccessResponse:
 {
@@ -205,7 +205,7 @@ SuccessResponse:
 ### Get TPS Record
 
 ```js
-URL: /api/tps/list?start_time={unix_timestamp}&end_time={unix_timestamp}&order={order}
+URL: api/tps/list?start_time={unix_timestamp}&end_time={unix_timestamp}&order={order}
 Method: GET
 SuccessResponse:
 {

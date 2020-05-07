@@ -27,29 +27,32 @@ If at the time of launching the side-chain the P2P addresses of the other produc
 
 In **appsettings.json** change the following configuration sections:
 ```json
-"ChainId":"tDVV",
-"ChainType":"SideChain",
-"NetType": "MainNet",
-"ConnectionStrings": {
-        "BlockchainDb": "redis://localhost:6379?db=2",
-        "StateDb": "redis://localhost:6379?db=2"
-},
-"Account": {
-    "NodeAccount": "YOUR PRODUCER ACCOUNT",
-    "NodeAccountPassword": "YOUR PRODUCER PASSWORD"
-},
-"Kestrel": {
-    "EndPoints": {
-        "Http": {
-            "Url": "http://*:1235/"
-        }
-    }
-},
-"Consensus": {
-    "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
-    "MiningInterval": 4000,
-    "StartTimestamp": 0
-},
+{
+  "ChainId":"tDVV",
+  "ChainType":"SideChain",
+  "NetType": "MainNet",
+  "ConnectionStrings": {
+          "BlockchainDb": "redis://localhost:6379?db=2",
+          "StateDb": "redis://localhost:6379?db=2"
+  },
+  "Account": {
+      "NodeAccount": "YOUR PRODUCER ACCOUNT",
+      "NodeAccountPassword": "YOUR PRODUCER PASSWORD"
+  },
+  "Kestrel": {
+      "EndPoints": {
+          "Http": {
+              "Url": "http://*:1235/"
+          }
+      }
+  },
+  "Consensus": {
+      "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
+      "MiningInterval": 4000,
+      "StartTimestamp": 0
+  },
+}
+```
 
 In **appsettings.SideChain.MainNet.json** change the following configuration sections:
 

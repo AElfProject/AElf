@@ -64,11 +64,13 @@ Once this is done you should update config files with public keys, so the config
 
 - MultiNodeTutorial/miner{1, 2 and 3}/appsettings.json:
 ```json
-"InitialMinerList" : [
-    "0499d3bb14337961c4d338b9729f46b20de8a49ed38e260a5c19a18da569462b44b820e206df8e848185dac6c139f05392c268effe915c147cde422e69514cc927",
-    "048397dfd9e1035fdd7260329d9492d88824f42917c156aef93fd7c2e3ab73b636f482b8ceb5cb435c556bfa067445a86e6f5c3b44ae6853c7f3dd7052609ed40b",
-    "041cc962a51e7bbdd829a8855eca8a03fda708fdf31969251321cb31edadd564bf3c6e7ab31b4c1f49f0f206be81dbe68a75c70b293bf9d04d867ee5e415d3bf8a"
-],
+{
+  "InitialMinerList" : [
+      "0499d3bb14337961c4d338b9729f46b20de8a49ed38e260a5c19a18da569462b44b820e206df8e848185dac6c139f05392c268effe915c147cde422e69514cc927",
+      "048397dfd9e1035fdd7260329d9492d88824f42917c156aef93fd7c2e3ab73b636f482b8ceb5cb435c556bfa067445a86e6f5c3b44ae6853c7f3dd7052609ed40b",
+      "041cc962a51e7bbdd829a8855eca8a03fda708fdf31969251321cb31edadd564bf3c6e7ab31b4c1f49f0f206be81dbe68a75c70b293bf9d04d867ee5e415d3bf8a"
+  ],
+}
 ```
 
 Note you need to replace these three public keys with the ones you previously created.
@@ -78,36 +80,44 @@ Note you need to replace these three public keys with the ones you previously cr
 The next section we need to configure is the network options. Following is miner1's configuration of the **Network** section:
 
 ```json
-"Network": {
-    "BootNodes": [ ** insert other nodes P2P address here ** ],
-    "ListeningPort": ** the port your node will be listening on **,
-},
+{
+  "Network": {
+      "BootNodes": ["x.x.x.x:x"], 
+      "ListeningPort": 0000,   
+  },
+}
 ```
 
 Only two options need to be changed for this tutorial, **BootNodes** and **ListeningPort**. The listening port the node will be using to be reachable on the network: other nodes will use this to connect to the node. The boot nodes field is a list of peer addresses that the node will connect to on when it's started. So in order for three nodes to connect to others replace the configurations like following:
 
 - MultiNodeTutorial/miner1/appsettings.json:
 ```json
+{
   "Network": {
     "BootNodes": ["192.168.1.70:6802","192.168.1.70:6803"],
     "ListeningPort": 6801
   },
+}
 ```
 
 - MultiNodeTutorial/miner2/appsettings.json:
 ```json
+{
   "Network": {
     "BootNodes": ["192.168.1.70:6801","192.168.1.70:6803"],
     "ListeningPort": 6802
   },
+}
 ```
 
 - MultiNodeTutorial/miner3/appsettings.json:
 ```json
+{
   "Network": {
     "BootNodes": ["192.168.1.70:6801","192.168.1.70:6802"],
     "ListeningPort": 6803
   },
+}
 ```
 
 **Replace** "192.168.1.70" with the correct addresses of each node.
@@ -118,26 +128,32 @@ Each node will need it's own database, so in miner2 and miner3 you'll need to ch
 
 - MultiNodeTutorial/miner1/appsettings.json:
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://192.168.1.70:6379?db=1",
     "StateDb": "redis://192.168.1.70:6379?db=1"
   },
+}
 ```
 
 - MultiNodeTutorial/miner2/appsettings.json:
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://192.168.1.70:6379?db=2",
     "StateDb": "redis://192.168.1.70:6379?db=2"
   },
+}
 ```
 
 - MultiNodeTutorial/miner3/appsettings.json:
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://192.168.1.70:6379?db=3",
     "StateDb": "redis://192.168.1.70:6379?db=3"
   },
+}
 ```
 
 **Replace** "192.168.1.70" and 6379 with whatever host your Redis server is on.
@@ -147,6 +163,7 @@ Each node will need it's own database, so in miner2 and miner3 you'll need to ch
 The last configuration option we need to change is the RPC endpoint at which the node's API is reachable.
 
 ```json
+{
   "Kestrel": {
     "EndPoints": {
       "Http": {
@@ -154,7 +171,8 @@ The last configuration option we need to change is the RPC endpoint at which the
       }
     }
   },
-  ```
+}
+```
 
 The example shows that the port is 8000, for miner1 you can keep this value but since we're running this tutorial on a single machine, miner2 and miner3's port must be different, lets say 8001 and 8002.
 

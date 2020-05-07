@@ -173,7 +173,7 @@ The last line will print the proposal ID and this is what will be used for appro
 This is where the BPs approve the proposal:
 
 ```javascript
-    console.log(`\n>>>> Approving the proposal.`);
+    console.log('\n>>>> Approving the proposal.');
 
     var proposalApproveTx = await parliamentContract.Approve(deserializedLogs[0].proposalId);
     await pollMining(proposalApproveTx.TransactionId);
@@ -186,7 +186,7 @@ Note: when calling **Approve** it will be the *Sender* of the transaction that a
 This part of the script releases the proposal:
 
 ```javascript
-    console.log(`\n>>>> Release the side chain.`);
+    console.log('\n>>>> Release the side chain.');
 
     var releaseResult = await crossChainContract.ReleaseSideChainCreation({
         proposalId: deserializedLogs[0].proposalId
@@ -242,7 +242,7 @@ const parliamentContractName = 'AElf.ContractNames.Parliament';
 const crossChainContractName = 'AElf.ContractNames.CrossChain';
 
 var pollMining = async function(transactionId) {
-  console.log(`>> Waiting for ${transactionId} the transaction to be mined.`);
+  console.log('>> Waiting for ${transactionId} the transaction to be mined.');
 
   for (i = 0; i < 10; i++) {
       const currentResult = await aelf.chain.getTxResult(transactionId);
@@ -286,7 +286,7 @@ var checkAllowance = async function(tokenContract, owner, spender)
     let checkAllowanceTxResult = await pollMining(checkAllowanceTx.TransactionId);
     let txReturn = JSON.parse(checkAllowanceTxResult.ReadableReturnValue);
 
-    console.log(`>> allowance to the cross-chain contract: ${txReturn.allowance} ${txReturn.symbol}`);
+    console.log('>> allowance to the cross-chain contract: ${txReturn.allowance} ${txReturn.symbol}');
 } 
 
 const createSideChain = async () => {
@@ -345,16 +345,16 @@ const createSideChain = async () => {
 
     // deserialize the log to get the proposal's ID.
     let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
-    console.log(`>> side-chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
+    console.log('>> side-chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}');
 
     // 3. Approve the proposal 
-    console.log(`\n>>>> Approving the proposal.`);
+    console.log('\n>>>> Approving the proposal.');
 
     var proposalApproveTx = await parliamentContract.Approve(deserializedLogs[0].proposalId);
     await pollMining(proposalApproveTx.TransactionId);
 
     // 3. Release the side chain
-    console.log(`\n>>>> Release the side chain.`);
+    console.log('\n>>>> Release the side chain.');
 
     var releaseResult = await crossChainContract.ReleaseSideChainCreation({
         proposalId: deserializedLogs[0].proposalId

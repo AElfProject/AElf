@@ -22,7 +22,7 @@ Smart contracts are a part of what makes dApps possible. They implement a part o
 
 What follows in this section will give you a general overview of how AElf implements smart contracts. The other sections will walk you through different notions more specifically.
 
-## Architecture overview
+### Architecture overview
 
 In AElf, Smart Contracts are defined like micro-services. This makes Smart Contracts independent of specific programming languages. This implies, for example, that our Consensus Protocol essentially becomes a service because it is defined through Smart Contract.
 

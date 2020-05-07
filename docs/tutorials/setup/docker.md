@@ -29,10 +29,12 @@ vim appsettings.json
 This will open the file (press i for insert mode in vim). The only fields you have to change are the IP and port of your Redis instance :
 
 ```json
+{
   "ConnectionStrings": {
     "BlockchainDb": "redis://192.168.1.70:6379?db=1",
     "StateDb": "redis://192.168.1.70:6379?db=1"
   },
+}
 ```
 
 Replace "192.168.1.70" and 6379 with whatever host your Redis server is on.

@@ -592,7 +592,7 @@ AElf.version // eg. 3.2.23
 
 ## About contributing
 
-Read out [contributing guide](./.github/CONTRIBUTING.md)
+Read out [contributing guide]
 
 ## About Version
 

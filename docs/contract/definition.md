@@ -5,7 +5,7 @@ When writing a smart contract in AElf, the first thing that needs to be done is 
 
 As an example, here is part of the definition of our multi-token contract. Each functionality will be explained more in detail in their respective section. Note that for simplicity, the contract has been simplified to show only the essential.
 
-```json
+```protobuf
 syntax = "proto3";
 
 package token;
@@ -53,7 +53,7 @@ For the service we have two different types of methods:
 * Actions - these are normal smart contract methods that take input and output and usually modify the state of the chain.
 * Views - these methods are special in the sense that they do not modify the state of the chain. They are usually used in some way to query the value of the contracts state.
 
-```json
+```protobuf
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 ```
 
@@ -61,7 +61,7 @@ The services take protobuf messages as input and also return protobuf messages. 
 
 #### View option
 
-```json
+```protobuf
 rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
     option (aelf.is_view) = true;
 }
@@ -81,7 +81,7 @@ This service is annotated with a view option. This signifies that this is a read
 
 Here we define the concept of the message as defined by the protobuf language. We heavily use these messages for calling the smart contracts and serializing their state. The following is the definition of a simple message:
 
-```json
+```protobuf
 message CreateInput {
     string symbol = 1;
     sint64 totalSupply = 2;
@@ -93,7 +93,7 @@ Here we see a message with three field of type string, sint64 and sint32. In the
 
 #### Event option
 
-```json
+```protobuf
 message Transferred {
     option (aelf.is_event) = true;
     Address from = 1 [(aelf.is_indexed) = true];
@@ -105,7 +105,7 @@ message Transferred {
 
 #### Indexed option
 
-```json
+```protobuf
 message Transferred {
     option (aelf.is_event) = true;
     Address from = 1 [(aelf.is_indexed) = true];

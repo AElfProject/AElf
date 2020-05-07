@@ -4,7 +4,7 @@ When writing a smart contract in AElf the first thing that need to be done is to
 
 As an example, here is part of the definition of our multi-token contract. Each functionality will be explained more in detail in their respective sections. Note that for simplicity, the contract has been simplified to show only the essential.
 
-```json
+```protobuf
 syntax = "proto3";
 
 package token;
@@ -29,7 +29,7 @@ For the service we have two different types of methods:
 * Actions - these are normal smart contract methods that take input and output and usually modify the state of the chain.
 * Views - these methods are special in the sense that they do not modify the state of the chain. They are usually used in some way to query the value of the contracts state.
 
-```json
+```protobuf
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 ```
 
@@ -38,7 +38,7 @@ The services takes a protobuf message as input and also returns a protobuf messa
 
 #### View option
 
-```json
+```protobuf
 rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
     option (aelf.is_view) = true;
 }

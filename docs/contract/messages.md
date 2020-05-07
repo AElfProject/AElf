@@ -2,7 +2,7 @@
 
 Here we define the concept of the message as defined by the protobuf language. We heavily use these messages to call smart contracts and serializing their state. The following is the definition of a simple message:
 
-```json
+```protobuf
 message CreateInput {
     string symbol = 1;
     sint64 totalSupply = 2;
