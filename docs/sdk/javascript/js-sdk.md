@@ -34,12 +34,12 @@ You can also see full examples in `./examples`;
 
 Create a new instance of AElf, connect to an AELF chain node.
 
-    ```javascript
+```javascript
     import AElf from 'aelf-sdk';
 
     // create a new instance of AElf
     const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
-    ```
+```
 
 ### 2.Create or load a wallet
 
@@ -58,7 +58,7 @@ Create or load a wallet with `AElf.wallet`
 
 Get a system contract address, take `AElf.ContractNames.Token` as an example
 
-    ```javascript
+```javascript
     const tokenContractName = 'AElf.ContractNames.Token';
     let tokenContractAddress;
     (async () => {
@@ -71,13 +71,13 @@ Get a system contract address, take `AElf.ContractNames.Token` as an example
       // Get contract address by the read only method `GetContractAddressByName` of genesis contract
       tokenContractAddress = await zeroContract.GetContractAddressByName.call(AElf.utils.sha256(tokenContractName));
     })()
-    ```
+```
 
 ### 4.Get a contract instance
 
 Get a contract instance by contract address
 
-    ```javascript
+```javascript
     const wallet = AElf.wallet.createNewWallet();
     let tokenContract;
     // Use token contract for examples to demonstrate how to get a contract instance in different ways
@@ -95,7 +95,7 @@ Get a contract instance by contract address
     // callback way
     aelf.chain.contractAt(tokenContractAddress, wallet, (error, result) => {if (error) throw error; tokenContract = result;});
 
-    ```
+```
 
 ### 5.Use contract instance
 
@@ -103,7 +103,7 @@ How to use contract instance
 
     A contract instance consists of several contract methods and methods can be called in two ways: read-only and send transaction.
 
-    ```javascript
+```javascript
     (async () => {
       // get the balance of an address, this would not send a transaction,
       // or store any data on the chain, or required any transaction fee, only get the balance
@@ -134,7 +134,7 @@ How to use contract instance
         }
       */
     })()
-    ```
+```
 
 ### 6.Change the node endpoint
 
