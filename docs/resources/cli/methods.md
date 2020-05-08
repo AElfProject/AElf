@@ -1,3 +1,5 @@
+# Commands
+
 ### Common options
 
 * `datadir`: The directory that contains `aelf-command` files, such as `encrypted account info keyStore` files. Default to be `{home}/.local/share/aelf`

@@ -1,5 +1,5 @@
 Overview
---------
+========================
 
 Conceptually a side chain node and main chain node are similar, they are
 both independent blockchains, with their own peer-to-peer network and

@@ -1,6 +1,6 @@
 # Referendum Contract
 
-## **CreateOrganization**
+### **CreateOrganization**
 
 ```Protobuf
 rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) { }
@@ -33,7 +33,7 @@ After a successful execution, an **OrganizationCreated** event log can be found 
 **OrganizationCreated**:
 - **organization address**: the address of newly created organization
 
-## **CreateOrganizationBySystemContract**
+### **CreateOrganizationBySystemContract**
 
 ```Protobuf
 rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){}
@@ -73,7 +73,7 @@ After a successful execution, an **OrganizationCreated** event log can be found 
 **OrganizationCreated**:
 - **organization address**: the address of newly created organization
 
-## **ReclaimVoteToken**
+### **ReclaimVoteToken**
 
 ```Protobuf
 rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) { }
@@ -83,57 +83,9 @@ Used to unlock the tokens that where used for voting.
 
 **Hash**: proposal ID.
 
-# View methods
+## **ACS3 specific methods**
 
-## **GetOrganization**
-
-```Protobuf
-rpc GetOrganization (aelf.Address) returns (Organization) { }
-
-message Organization {
-    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
-    string token_symbol = 2;
-    aelf.Address organization_address = 3;
-    aelf.Hash organization_hash = 4;
-    acs3.ProposerWhiteList proposer_white_list = 5;
-}
-```
-
-**Organization**:
-- **release threshold**: the release threshold for proposals.
-- **token**: token used for proposal operations.
-- **organization address**: organization address.
-- **organization hash**: organization ID.
-- **ProposerWhiteList**:
-  - **proposers**: proposer white list.
-  
-
-## **CalculateOrganizationAddress**
-
-```Protobuf
-rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
-
-message CreateOrganizationInput {
-    string token_symbol = 1;
-    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
-    acs3.ProposerWhiteList proposer_white_list = 3;
-}
-```
-Calculate with input and return the organization address.
-
-**CreateOrganizationInput**:
-- **token symbol**: the token used during proposal operations.
-- **ProposalReleaseThreshold**:
-  - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-  - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-  - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-  - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
-- **ProposerWhiteList**:
-  - **proposers**: proposer white list.
-
-# **ACS3 specific methods**
-
-## **CreateProposal**
+### **CreateProposal**
 
 ```Protobuf
 rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) { }
@@ -171,7 +123,7 @@ After a successful execution, a **ProposalCreated** event log can be found in th
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.
 
-## **Approve**
+### **Approve**
 
 ```Protobuf
     rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {}
@@ -200,7 +152,7 @@ After a successful execution, a **ReferendumReceiptCreated** event log can be fo
 - **receipt type**: Approve.
 - **time**: timestamp of this method call.
 
-## **Reject**
+### **Reject**
 
 ```Protobuf
     rpc Reject(aelf.Hash) returns (google.protobuf.Empty) { }
@@ -230,7 +182,7 @@ After a successful execution, a **ReferendumReceiptCreated** event log can be fo
 - **receipt type**: Reject.
 - **time**: timestamp of this method call.
 
-## **Abstain**
+### **Abstain**
 
 ```Protobuf
     rpc Abstain(aelf.Hash) returns (google.protobuf.Empty) { }
@@ -260,7 +212,7 @@ After a successful execution, a **ReferendumReceiptCreated** event log can be fo
 - **receipt type**: Abstain.
 - **time**: timestamp of this method call.
 
-## **Release**
+### **Release**
 
 ```Protobuf
     rpc Release(aelf.Hash) returns (google.protobuf.Empty) { }
@@ -270,7 +222,7 @@ This method is called to release the specified proposal.
 
 **Hash**: the id of the proposal.
 
-## **ChangeOrganizationThreshold**
+### **ChangeOrganizationThreshold**
 
 ```Protobuf
 rpc ChangeOrganizationThreshold(ProposalReleaseThreshold) returns (google.protobuf.Empty) { }
@@ -303,7 +255,7 @@ After a successful execution, an **OrganizationThresholdChanged** event log can 
 - **organization_address**: the organization address.
 - **proposer_release_threshold**: the new release threshold.
 
-## **ChangeOrganizationProposerWhiteList**
+### **ChangeOrganizationProposerWhiteList**
 
 ```Protobuf
 rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty) { }
@@ -330,7 +282,7 @@ After a successful execution, a **OrganizationWhiteListChanged** event log can b
 - **organization_address**: the organization address.
 - **proposer_white_list**: the new proposer whitelist.
 
-## **CreateProposalBySystemContract**
+### **CreateProposalBySystemContract**
 
 ```Protobuf
 rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns (aelf.Hash) { }
@@ -363,7 +315,7 @@ Used by system contracts to create proposals.
 **ProposalCreated**:
 - **proposal_id**: the id of the created proposal.
 
-## **ClearProposal**
+### **ClearProposal**
 
 ```Protobuf
 rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty) { }
@@ -371,7 +323,7 @@ rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty) { }
 
 Removes the specified proposal.
 
-## **ValidateOrganizationExist**
+### **ValidateOrganizationExist**
 
 ```Protobuf
 rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue) { }
@@ -379,9 +331,55 @@ rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue) 
 
 Checks the existence of an organization.
 
-# View methods
+## View methods
 
-## **GetProposal**
+### **GetOrganization**
+
+```Protobuf
+rpc GetOrganization (aelf.Address) returns (Organization) { }
+
+message Organization {
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    string token_symbol = 2;
+    aelf.Address organization_address = 3;
+    aelf.Hash organization_hash = 4;
+    acs3.ProposerWhiteList proposer_white_list = 5;
+}
+```
+
+**Organization**:
+- **release threshold**: the release threshold for proposals.
+- **token**: token used for proposal operations.
+- **organization address**: organization address.
+- **organization hash**: organization ID.
+- **ProposerWhiteList**:
+  - **proposers**: proposer white list.
+  
+
+### **CalculateOrganizationAddress**
+
+```Protobuf
+rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){}
+
+message CreateOrganizationInput {
+    string token_symbol = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+```
+Calculate with input and return the organization address.
+
+**CreateOrganizationInput**:
+- **token symbol**: the token used during proposal operations.
+- **ProposalReleaseThreshold**:
+  - **minimal approval threshold**: the minimum locked token amount threshold for approval.
+  - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
+  - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
+  - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
+- **ProposerWhiteList**:
+  - **proposers**: proposer white list.
+
+### **GetProposal**
 
 ```Protobuf
 rpc GetProposal(aelf.Hash) returns (ProposalOutput) { }
@@ -417,7 +415,7 @@ Get the proposal with the given ID.
 - **abstention count**: locked token amount for abstention.
 
 
-## **ValidateProposerInWhiteList**
+### **ValidateProposerInWhiteList**
 
 ```Protobuf
 rpc ValidateProposerInWhiteList(ValidateProposerInWhiteListInput) returns (google.protobuf.BoolValue) { }

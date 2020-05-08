@@ -25,10 +25,10 @@ deployment:
    Contract Class Structure
 
 Limitations on Field Usage
-==========================
+--------------------------
 
 In Contract Implementation Class
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Initial value for non-readonly, non-constant fields is not allowed.
    (Applied to all static / non-static fields) The reason is, their
@@ -92,7 +92,7 @@ Not Allowed:
 \* T can only be primitive type
 
 In Non-Contract Classes (For classes that don’t inherit from ``ContractBase<T>``)
----------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Initial value for non-readonly, non-constant fields is not allowed
    for static fields. The reason is, their value will be reset to 0 or
@@ -224,7 +224,7 @@ Not Allowed:
    }
 
 In Contract State
------------------
+~~~~~~~~~~~~~~~~~
 
 In contract state, only below types are allowed:
 

@@ -1,5 +1,5 @@
 Design principles:
-------------------
+========================
 
 .. image:: node-archi.png
    :width: 300
@@ -18,7 +18,7 @@ announcement. The OS layer also contains the RPC implementation for the
 exposed API.
 
 Kernel
-~~~~~~
+--------------------------
 
 The kernel contains the smart contract and execution primitives and
 definitions. The kernel also defines the components necessary for

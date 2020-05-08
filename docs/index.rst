@@ -7,7 +7,6 @@ Welcome to first doc's documentation!
 =====================================   
 
 .. toctree::
-   :caption: Introduction
 
    Introduction <introduction>
 
@@ -144,7 +143,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :hidden:
-   docs/README
+   
    README
    advanced/CONSENSUS
    advanced/INTEROPERABILITY
