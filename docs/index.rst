@@ -14,7 +14,6 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Tutorials
 
-	Description <tutorials/main>
 	Environment setup <tutorials/setup/setup>
 	Single node <tutorials/setup/docker>
    Multi node <tutorials/setup/docker-multi-node>
@@ -34,7 +33,6 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Smart contracts
 
-   Description <contract/main>
    Architecture <contract/architecture>
    Service <contract/service>
    Event <contract/events>
@@ -51,7 +49,6 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Cross chain
 
-   Description <crosschain/main>
    Introduction <crosschain/introduction>
    Architecture <crosschain/architecture>
    Crosschain verification <crosschain/crosschain-verification>
@@ -63,7 +60,6 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: AElf mainnet/testnet
 
-   Description <public-chain/main>
    Introduction <public-chain/introduction>
    AElf consensus <public-chain/dpos>
    Crosschain tokens <public-chain/crosschain-multitoken>
@@ -74,7 +70,6 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Architecture
 
-   Description <architecture/main>
    Introduction <architecture/introduction>
    Implementations <architecture/implementations>
 
@@ -106,16 +101,13 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Contract SDK reference
 
-   Description <sdk/contract-sdk>
-   C# reference <sdk/csharp/main>
-   AElf.SDK.CSharp <sdk/csharp/contract-sdk>
-   AElf.CSharp.Core <sdk/csharp/core-sdk>
+   CSharpSmartContractContext <sdk/csharp/csharp-smart-contract-context>
+   CSharpSmartContract <sdk/csharp/csharp-smart-contract>
 
 
 .. toctree::
    :caption: Resources
 
-   Description <resources/resources>
    Smart Contract APIs <resources/smart-contract-apis/index>
    Association Contract <resources/smart-contract-apis/association>
    Referendum Contract <resources/smart-contract-apis/referendum>
@@ -145,12 +137,20 @@ Welcome to first doc's documentation!
    :hidden:
    
    README
+   tutorials/main
+   contract/main
+   crosschain/main
+   public-chain/main
+   architecture/main
+   sdk/contract-sdk
+   resources/resources
    advanced/CONSENSUS
    advanced/INTEROPERABILITY
    advanced/SCHEDULER
    contract/definition
    contract/implementation
    contract/introduction
+   sdk/csharp/main
    contract/update
    development/architecture
    development/main-class
@@ -175,8 +175,8 @@ Welcome to first doc's documentation!
    protocol/transactions
    public-chain/multi-level-chain
    resources/cli/cli
-   sdk/csharp/csharp-smart-contract
-   sdk/csharp/csharp-smart-contract-context
+   sdk/csharp/core-sdk
+   sdk/csharp/contract-sdk
    sdk/javascript/aelf
    sdk/javascript/wallet
    technical/design
