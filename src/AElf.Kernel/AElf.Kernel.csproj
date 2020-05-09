@@ -20,20 +20,4 @@
         <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf/Proto/acs3.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
-        </ContractStub>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
-    </ItemGroup>
-
 </Project>
