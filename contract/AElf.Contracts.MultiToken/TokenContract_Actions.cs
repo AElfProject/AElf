@@ -195,6 +195,16 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol
             };
             Burn(burnInput);
+            Context.Fire(new CrossChainTransferred
+            {
+                From = Context.Sender,
+                To = input.To,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                IssueChainId = input.IssueChainId,
+                Memo = input.Memo,
+                ToChainId = input.ToChainId
+            });
             return new Empty();
         }
 
@@ -237,6 +247,18 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;
             ModifyBalance(receivingAddress, symbol, amount);
+            
+            Context.Fire(new CrossChainReceived
+            {
+                From = transferSender,
+                To = receivingAddress,
+                Symbol = symbol,
+                Amount = amount,
+                Memo = crossChainTransferInput.Memo,
+                FromChainId = input.FromChainId,
+                ParentChainHeight = input.ParentChainHeight,
+                IssueChainId = issueChainId
+            });
             return new Empty();
         }
 
