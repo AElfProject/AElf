@@ -58,11 +58,11 @@ extensions = ['recommonmark', 'plantweb.directive'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Recommonmark'
-copyright = u'2015, Luca Barbato, Eric Holscher, and contributors'
-author = u'Luca Barbato, Eric Holscher, and contributors'
+project = u'AElf'
+copyright = u'todo'
+author = u'todo'
 
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/docs/'
+github_doc_root = 'https://github.com/AElfProject/AElf/docs'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -141,12 +141,12 @@ html_theme = 'sphinx_rtd_theme'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = 'img/logo.svg'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = 'img/favicon.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -183,13 +183,13 @@ html_theme = 'sphinx_rtd_theme'
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
@@ -203,7 +203,7 @@ html_theme = 'sphinx_rtd_theme'
 # Sphinx supports the following languages:
 #   'da', 'de', 'en', 'es', 'fi', 'fr', 'hu', 'it', 'ja'
 #   'nl', 'no', 'pt', 'ro', 'ru', 'sv', 'tr'
-#html_search_language = 'en'
+html_search_language = 'en'
 
 # A dictionary with options for the search language support, empty by default.
 # Now only 'ja' uses this config value
@@ -300,11 +300,11 @@ html_theme_options = {
     # 'canonical_url': '',
     # 'analytics_id': '',  #  Provided by Google in your dashboard
     'logo_only': True,
-    'display_version': True,
+    'display_version': False,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': True,
     # 'vcs_pageview_mode': '',
-    'style_nav_header_background': 'white',
+    'style_nav_header_background': '#2980B9',
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,
