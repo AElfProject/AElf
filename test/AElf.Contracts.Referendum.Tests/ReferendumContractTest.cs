@@ -29,7 +29,7 @@ namespace AElf.Contracts.Referendum
             //not exist
             {
                 var organization =
-                    await ReferendumContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                    await ReferendumContractStub.GetOrganization.CallAsync(Accounts[0].Address);
                 organization.ShouldBe(new Organization());
 
                 var result = await ReferendumContractStub.ValidateOrganizationExist.CallAsync(DefaultSender);
@@ -118,7 +118,7 @@ namespace AElf.Contracts.Referendum
                 //"Invalid proposal."
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = blockTime.AddDays(1),
                     OrganizationAddress = organizationAddress
@@ -145,7 +145,7 @@ namespace AElf.Contracts.Referendum
             {
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = null,
                     OrganizationAddress = organizationAddress,
@@ -161,7 +161,7 @@ namespace AElf.Contracts.Referendum
                 //"Expired proposal."
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-5),
                     OrganizationAddress = organizationAddress,
@@ -178,7 +178,7 @@ namespace AElf.Contracts.Referendum
                 //"No registered organization."
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     OrganizationAddress = DefaultSender,
@@ -194,7 +194,7 @@ namespace AElf.Contracts.Referendum
                 //"Proposal with same input."
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     OrganizationAddress = organizationAddress,
@@ -211,7 +211,7 @@ namespace AElf.Contracts.Referendum
                 //"Proposal with invalid url."
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     OrganizationAddress = organizationAddress,
@@ -232,7 +232,7 @@ namespace AElf.Contracts.Referendum
                 // unauthorized to propose
                 var createProposalInput = new CreateProposalInput
                 {
-                    ToAddress = SampleAddress.AddressList[0],
+                    ToAddress = Accounts[0].Address,
                     Params = ByteString.CopyFromUtf8("Test"),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     OrganizationAddress = organizationAddress,

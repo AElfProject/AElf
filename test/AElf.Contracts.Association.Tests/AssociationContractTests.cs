@@ -30,7 +30,7 @@ namespace AElf.Contracts.Association
             //failed case
             {
                 var organization =
-                    await AssociationContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                    await AssociationContractStub.GetOrganization.CallAsync(Accounts[0].Address);
                 organization.ShouldBe(new Organization());
             }
 
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Association
             //failed case
             {
                 var organization =
-                    await AssociationContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                    await AssociationContractStub.GetOrganization.CallAsync(Accounts[0].Address);
                 organization.ShouldBe(new Organization());
             }
 
@@ -319,7 +319,7 @@ namespace AElf.Contracts.Association
             var blockTime = BlockTimeProvider.GetBlockTime();
             var createProposalInput = new CreateProposalInput
             {
-                ToAddress = SampleAddress.AddressList[0],
+                ToAddress = Accounts[0].Address,
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress = organizationAddress
@@ -345,7 +345,7 @@ namespace AElf.Contracts.Association
             //ExpiredTime is null
             {
                 createProposalInput.ExpiredTime = null;
-                createProposalInput.ToAddress = SampleAddress.AddressList[0];
+                createProposalInput.ToAddress = Accounts[0].Address;
 
                 var transactionResult =
                     await associationContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
@@ -364,7 +364,7 @@ namespace AElf.Contracts.Association
             //"No registered organization."
             {
                 createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                createProposalInput.OrganizationAddress = SampleAddress.AddressList[1];
+                createProposalInput.OrganizationAddress = Accounts[1].Address;
 
                 var transactionResult =
                     await associationContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);

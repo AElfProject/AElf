@@ -25,7 +25,7 @@ namespace AElf.ContractTestBase
             // Default Initialization Data
             return new ChainInitializationData
             {
-                Creator = SampleAddress.AddressList.First(),
+                Creator = SampleAccount.Accounts.First().Address,
                 ChainId = ChainHelper.GetChainId(1),
                 ChainCreatorPrivilegePreserved = false,
                 ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
@@ -50,7 +50,7 @@ namespace AElf.ContractTestBase
                     TokenName = "ELF",
                     Decimals = 8,
                     TotalSupply = 100_000_000_000_000_000,
-                    Issuer = SampleAddress.AddressList.First(),
+                    Issuer = SampleAccount.Accounts.First().Address,
                     IssueChainId = ParentChainId,
                 }.ToByteString(),
                 ParentChainTokenContractAddress = SampleAddress.AddressList.Last(),
