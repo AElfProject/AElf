@@ -119,7 +119,6 @@ namespace AElf.Contracts.TestKit
 
             #endregion
 
-            context.Services.AddTransient<IAccount, Account>();
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
@@ -145,7 +144,7 @@ namespace AElf.Contracts.TestKit
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
-                .SetKeyPair(SampleECKeyPairs.KeyPairs[0]);
+                .SetKeyPair(SampleAccount.Accounts[0].KeyPair);
 
             var dto = new OsBlockchainNodeContextStartDto
             {

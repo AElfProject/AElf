@@ -10,7 +10,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         public const int ValidationDataCenterKeyPairCount = CoreDataCenterKeyPairCount * 5;
 
         public static readonly int CitizenKeyPairsCount =
-            SampleECKeyPairs.KeyPairs.Count - InitialKeyPairCount - CoreDataCenterKeyPairCount * 6;
+            SampleAccount.Accounts.Count - InitialKeyPairCount - CoreDataCenterKeyPairCount * 6;
 
         public const int MiningInterval = 4000;
         public const int TinyBlocksNumber = 8;

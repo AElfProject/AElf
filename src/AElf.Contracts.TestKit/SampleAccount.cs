@@ -1,29 +1,34 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Types;
 
 namespace AElf.Contracts.TestKit
 {
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public static class SampleECKeyPairs
+    public static class SampleAccount
     {
-        static SampleECKeyPairs()
+        static SampleAccount()
         {
-            KeyPairs = new ReadOnlyCollection<ECKeyPair>(
-                _keys.Select(x =>
+            Accounts = new ReadOnlyCollection<Account>(
+                Keys.Select(x =>
                 {
                     var privateKeyHex = x.Split(",").First();
                     var privateKey = ByteArrayHelper.HexStringToByteArray(privateKeyHex);
-                    return CryptoHelper.FromPrivateKey(privateKey);
+                    var keyPair = CryptoHelper.FromPrivateKey(privateKey);
+                    
+                    return new Account
+                    {
+                        KeyPair = keyPair,
+                        Address = Address.FromPublicKey(keyPair.PublicKey)
+                    };
                 }).ToList());
         }
 
-        public static IReadOnlyList<ECKeyPair> KeyPairs;
+        public static IReadOnlyList<Account> Accounts;
 
-        private static readonly string[] _keys =
+        private static readonly string[] Keys =
         {
             "5945c176c4269dc2aa7daf7078bc63b952832e880da66e5f2237cdf79bc59c5f,042dc50fd7d211f16bf4ad870f7790d4f9d98170f3712038c45830947f7d96c691ef2d1ab4880eeeeafb63ab77571be6cbe6bed89d5f89844b0fb095a7015713c8",
             "60e244471c7bbd3439c026477d0264c1d704111545aa459a86bdddb5e514d6d1,04c683806f919e58f2e374fcba44e0fa36629bf438407b82c1713b0ebd9b6b8185f7df52c2d65bb0f36e8f648dd8f9e9864340c1d718e1faf0e4a5b4821f4b2272",
@@ -156,5 +161,11 @@ namespace AElf.Contracts.TestKit
             "055832877713f9d284421f55b26c60ef6ff4a92eaf2d45422a6b0285dd555d6a,04ae59215cb0424fe66f868b13f807df7dd7c588830ca163ccd91b96c665ba218d8f9ee0b3a4d749946a6530be9c1b78ea267f55187f06162928e657985e7a776d",
             "f7c10cc06f0f64b772c453c7cc056c54b00d14353db0521a34c04af8208da4b2,04d7cf0b10a684bc536b473a8512c91f4b172e95dad42ff71268e49f56a6492f2e1f134cf03b702203b4d1b259788e86bb8ac7ba7b9afcc1497a989cf822974d77",
         };
+    }
+
+    public class Account
+    {
+        public ECKeyPair KeyPair { get; set; }
+        public Address Address { get; set; }
     }
 }

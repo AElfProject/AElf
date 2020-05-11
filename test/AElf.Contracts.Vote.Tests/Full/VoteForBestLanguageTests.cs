@@ -15,22 +15,22 @@ namespace AElf.Contracts.Vote
         {
             var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 3);
 
-            var user1 = SampleECKeyPairs.KeyPairs[1];
-            var user2 = SampleECKeyPairs.KeyPairs[2];
-            var user3 = SampleECKeyPairs.KeyPairs[3];
+            var user1 = Accounts[1];
+            var user2 = Accounts[2];
+            var user3 = Accounts[3];
 
             //phase 1
             {
                 //user1 vote 100
-                var transactionResult1 = await Vote(user1, registerItem.VotingItemId, registerItem.Options[0], 100);
+                var transactionResult1 = await Vote(user1.KeyPair, registerItem.VotingItemId, registerItem.Options[0], 100);
                 transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //user2 vote 150
-                var transactionResult2 = await Vote(user2, registerItem.VotingItemId, registerItem.Options[0], 150);
+                var transactionResult2 = await Vote(user2.KeyPair, registerItem.VotingItemId, registerItem.Options[0], 150);
                 transactionResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //user3 vote 200
-                var transactionResult3 = await Vote(user3, registerItem.VotingItemId, registerItem.Options[1], 200);
+                var transactionResult3 = await Vote(user3.KeyPair, registerItem.VotingItemId, registerItem.Options[1], 200);
                 transactionResult3.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var votingResult = await GetVotingResult(registerItem.VotingItemId, 1);
@@ -44,20 +44,20 @@ namespace AElf.Contracts.Vote
                 snapshotResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //query vote ids
-                var voteIds = await GetVoteIds(user1, registerItem.VotingItemId);
+                var voteIds = await GetVoteIds(user1.KeyPair, registerItem.VotingItemId);
                 //query result
                 var voteRecord = await GetVotingRecord(voteIds.ActiveVotes.First());
                 voteRecord.Option.ShouldBe(registerItem.Options[0]);
                 voteRecord.Amount.ShouldBe(100);
 
                 //withdraw
-                var beforeBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
-                await Withdraw(user1, voteIds.ActiveVotes.First());
-                var afterBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
+                var beforeBalance = GetUserBalance(user1.Address);
+                await Withdraw(user1.KeyPair, voteIds.ActiveVotes.First());
+                var afterBalance = GetUserBalance(user1.Address);
                 
                 beforeBalance.ShouldBe(afterBalance - 100);
                 
-                voteIds = await GetVoteIds(user1, registerItem.VotingItemId);
+                voteIds = await GetVoteIds(user1.KeyPair, registerItem.VotingItemId);
                 voteIds.ActiveVotes.Count.ShouldBe(0);
                 voteIds.WithdrawnVotes.Count.ShouldBe(1);
             }
@@ -79,17 +79,17 @@ namespace AElf.Contracts.Vote
                 optionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //user1 vote new option 1
-                var transactionResult1 = await Vote(user1, registerItem.VotingItemId, options[0], 100);
+                var transactionResult1 = await Vote(user1.KeyPair, registerItem.VotingItemId, options[0], 100);
                 transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //user2 vote new option 2
-                var transactionResult2 = await Vote(user2, registerItem.VotingItemId, options[1], 100);
+                var transactionResult2 = await Vote(user2.KeyPair, registerItem.VotingItemId, options[1], 100);
                 transactionResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //user3 vote new option 3 twice
-                var transactionResult3 = await Vote(user3, registerItem.VotingItemId, options[2], 100);
+                var transactionResult3 = await Vote(user3.KeyPair, registerItem.VotingItemId, options[2], 100);
                 transactionResult3.Status.ShouldBe(TransactionResultStatus.Mined);
-                transactionResult3 = await Vote(user3, registerItem.VotingItemId, options[2], 100);
+                transactionResult3 = await Vote(user3.KeyPair, registerItem.VotingItemId, options[2], 100);
                 transactionResult3.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var votingResult = await GetVotingResult(registerItem.VotingItemId, 2);
@@ -104,15 +104,15 @@ namespace AElf.Contracts.Vote
                 snapshotResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 //query vote ids
-                var user1VoteIds = await GetVoteIds(user1, registerItem.VotingItemId);
+                var user1VoteIds = await GetVoteIds(user1.KeyPair, registerItem.VotingItemId);
                 user1VoteIds.ActiveVotes.Count.ShouldBe(1);
                 user1VoteIds.WithdrawnVotes.Count.ShouldBe(1);
 
-                var user2VoteIds = await GetVoteIds(user2, registerItem.VotingItemId);
+                var user2VoteIds = await GetVoteIds(user2.KeyPair, registerItem.VotingItemId);
                 user2VoteIds.ActiveVotes.Count.ShouldBe(2);
                 user2VoteIds.WithdrawnVotes.Count.ShouldBe(0);
 
-                var user3VoteIds = await GetVoteIds(user3, registerItem.VotingItemId);
+                var user3VoteIds = await GetVoteIds(user3.KeyPair, registerItem.VotingItemId);
                 user3VoteIds.ActiveVotes.Count.ShouldBe(3);
                 user3VoteIds.WithdrawnVotes.Count.ShouldBe(0);
             }
@@ -123,7 +123,7 @@ namespace AElf.Contracts.Vote
                 var snapshotResult = await TakeSnapshot(registerItem.VotingItemId, 3);
                 snapshotResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var transactionResult = await VoteWithException(user2, registerItem.VotingItemId, registerItem.Options[0], 100);
+                var transactionResult = await VoteWithException(user2.KeyPair, registerItem.VotingItemId, registerItem.Options[0], 100);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Current voting item already ended").ShouldBeTrue();
             }

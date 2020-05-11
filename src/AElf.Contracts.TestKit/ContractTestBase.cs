@@ -35,6 +35,8 @@ namespace AElf.Contracts.TestKit
 
         public IReadOnlyDictionary<string, byte[]> Codes => _codes ??= ContractsDeployer.GetContractCodes<TModule>();
 
+        protected IReadOnlyList<Account> Accounts => SampleAccount.Accounts;
+
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
             options.UseAutofac();

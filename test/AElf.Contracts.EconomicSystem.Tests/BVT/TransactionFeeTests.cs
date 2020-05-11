@@ -160,7 +160,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             await Profit_SetMethodFee_Test();
 
-            var tester = SampleECKeyPairs.KeyPairs[11];
+            var tester = Accounts[11].KeyPair;
             var testerAddress = Address.FromPublicKey(tester.PublicKey);
             var creator = GetProfitContractTester(tester);
             var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

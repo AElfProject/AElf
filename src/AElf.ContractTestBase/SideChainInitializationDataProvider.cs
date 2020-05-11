@@ -36,8 +36,8 @@ namespace AElf.ContractTestBase
                         {
                             Pubkeys =
                             {
-                                SampleECKeyPairs.KeyPairs.Take(3)
-                                    .Select(keyPair => ByteString.CopyFrom(keyPair.PublicKey))
+                                SampleAccount.Accounts.Take(3)
+                                    .Select(a => ByteString.CopyFrom(a.KeyPair.PublicKey))
                             }
                         }
                     }.ToByteString()

@@ -22,17 +22,17 @@ namespace AElf.Contracts.Association
 {
     public class AssociationContractTestBase<T> : ContractTestBase<T> where T : ContractTestModule
     {
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair Reviewer1KeyPair => SampleECKeyPairs.KeyPairs[1];
-        protected ECKeyPair Reviewer2KeyPair => SampleECKeyPairs.KeyPairs[2];
-        protected ECKeyPair Reviewer3KeyPair => SampleECKeyPairs.KeyPairs[3];
-        protected Address Reviewer1 => Address.FromPublicKey(Reviewer1KeyPair.PublicKey);
-        protected Address Reviewer2 => Address.FromPublicKey(Reviewer2KeyPair.PublicKey);
-        protected Address Reviewer3 => Address.FromPublicKey(Reviewer3KeyPair.PublicKey);
-        
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
+        protected ECKeyPair Reviewer1KeyPair => Accounts[1].KeyPair;
+        protected ECKeyPair Reviewer2KeyPair => Accounts[2].KeyPair;
+        protected ECKeyPair Reviewer3KeyPair => Accounts[3].KeyPair;
+        protected Address Reviewer1 => Accounts[1].Address;
+        protected Address Reviewer2 => Accounts[2].Address;
+        protected Address Reviewer3 => Accounts[3].Address;
+
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(5).Select(a => a.KeyPair).ToList();
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
