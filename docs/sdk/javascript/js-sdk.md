@@ -573,6 +573,20 @@ Some basic format methods of aelf.
 
 For more information, please see the code in `src/utils/proto.js`. It is simple and easy to understand.
 
+### AElf.utils
+
+Some methods for aelf.
+
+For more information, please see the code in `src/utils/utils.js`. It is simple and easy to understand.
+
+#### Check address
+
+```javascript
+const AElf = require('aelf-sdk');
+const {base58} = AElf.utils;
+base58.decode('$addresss'); // throw error if invalid
+```
+
 ## AElf.version
 
 ```javascript
