@@ -10,16 +10,12 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     public class ChainBlockLinkCacheProviderTests : AElfKernelWithChainTestBase
     {
         private IChainBlockLinkCacheProvider _chainBlockLinkCacheProvider;
-        private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly KernelTestHelper _kernelTestHelper;
-        private readonly IChainManager _chainManager;
 
         public ChainBlockLinkCacheProviderTests()
         {
             _chainBlockLinkCacheProvider = GetRequiredService<IChainBlockLinkCacheProvider>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
-            _chainBlockLinkService = GetRequiredService<IChainBlockLinkService>();
-            _chainManager = GetRequiredService<IChainManager>();
         }
 
         [Fact]
