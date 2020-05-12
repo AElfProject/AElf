@@ -50,6 +50,9 @@ service TokenContractImpl {
     }
 
     // Views
+    rpc GetFeeReceiver (google.protobuf.Empty) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
     rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
         option (aelf.is_view) = true;
     }
