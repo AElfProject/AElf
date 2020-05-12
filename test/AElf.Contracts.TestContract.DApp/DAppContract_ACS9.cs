@@ -1,5 +1,5 @@
 using Acs9;
-using AElf.Contracts.Consensus.AEDPoS;
+using Acs10;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.CSharp.Core;
@@ -19,9 +19,9 @@ namespace AElf.Contracts.TestContract.DApp
             {
                 Symbol = input.Symbol,
                 Amount = amountForSideChainDividendsPool,
-                Spender = State.ConsensusContract.Value
+                Spender = State.DividendPoolContract.Value
             });
-            State.ConsensusContract.ContributeToSideChainDividendsPool.Send(new ContributeToSideChainDividendsPoolInput
+            State.DividendPoolContract.Donate.Send(new DonateInput
             {
                 Symbol = input.Symbol,
                 Amount = amountForSideChainDividendsPool

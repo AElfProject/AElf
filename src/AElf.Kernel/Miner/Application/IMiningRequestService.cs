@@ -49,9 +49,6 @@ namespace AElf.Kernel.Miner.Application
         private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
             Duration blockExecutionDuration)
         {
-            if (IsGenesisBlockMining(blockTime))
-                return true;
-
             if (miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) <
                 blockTime + blockExecutionDuration)
             {
@@ -68,16 +65,7 @@ namespace AElf.Kernel.Miner.Application
 
         private Duration CalculateBlockMiningDuration(Timestamp blockTime, Duration expectedDuration)
         {
-            if (IsGenesisBlockMining(blockTime))
-                return expectedDuration;
-
             return blockTime + expectedDuration - TimestampHelper.GetUtcNow();
-        }
-
-        private bool IsGenesisBlockMining(Timestamp blockTime)
-        {
-            //TODO: Verify genesis block timestamp as constant
-            return blockTime < new Timestamp {Seconds = 3600};
         }
     }
 }

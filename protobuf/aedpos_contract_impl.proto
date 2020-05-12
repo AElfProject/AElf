@@ -5,6 +5,7 @@ package AEDPoSImpl;
 import "acs1.proto";
 import "acs4.proto";
 import "acs6.proto";
+import "acs10.proto";
 import "aedpos_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
@@ -14,5 +15,7 @@ service AEDPoSContractImpl {
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs4.proto";
     option (aelf.base) = "acs6.proto";
+    // Dividend pool for side chain.
+    option (aelf.base) = "acs10.proto";
     option (aelf.base) = "aedpos_contract.proto";
 }
