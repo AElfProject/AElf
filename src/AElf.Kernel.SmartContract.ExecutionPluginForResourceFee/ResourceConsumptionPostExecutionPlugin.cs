@@ -15,19 +15,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
     internal class ResourceConsumptionPostExecutionPlugin : SmartContractExecutionPluginBase, IPostExecutionPlugin, ISingletonDependency
     {
-        private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IResourceTokenFeeService _resourceTokenFeeService;
         private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
             _contractReaderFactory;
         
         public ILogger<ResourceConsumptionPostExecutionPlugin> Logger { get; set; }
 
-        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+        public ResourceConsumptionPostExecutionPlugin(ISmartContractAddressService smartContractAddressService,
             IResourceTokenFeeService resourceTokenFeeService,
             IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
             base("acs8")
         {
-            _contextService = contextService;
+            _smartContractAddressService = smartContractAddressService;
             _resourceTokenFeeService = resourceTokenFeeService;
             _contractReaderFactory = contractReaderFactory;
 
@@ -41,12 +41,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return new List<Transaction>();
             }
-
-            var context = _contextService.Create();
-            context.TransactionContext = transactionContext;
+            
+            var chainContext = new ChainContext
+            {
+                BlockHash = transactionContext.PreviousBlockHash,
+                BlockHeight = transactionContext.BlockHeight - 1
+            };
 
             // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.StringName);
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();
@@ -63,19 +68,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return new List<Transaction>();
             }
-
-            if (transactionContext.Transaction.To == context.Self &&
+            
+            if (//transactionContext.Transaction.To == context.Self &&
                 transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
                     .ResourceConsumptionContractStub.BuyResourceToken))
             {
                 return new List<Transaction>();
             }
 
-            var chainContext = new ChainContext
-            {
-                BlockHash = transactionContext.PreviousBlockHash,
-                BlockHeight = transactionContext.BlockHeight - 1
-            };
             var chargeResourceTokenInput = new ChargeResourceTokenInput
             {
                 Caller = transactionContext.Transaction.From
