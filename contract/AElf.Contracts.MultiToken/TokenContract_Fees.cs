@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using Acs10;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
@@ -631,6 +632,11 @@ namespace AElf.Contracts.MultiToken
             Assert(State.FeeReceiver.Value == null, "Fee receiver already set.");
             State.FeeReceiver.Value = input;
             return new Empty();
+        }
+
+        public override Address GetFeeReceiver(Empty input)
+        {
+            return State.FeeReceiver.Value;
         }
 
         private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
