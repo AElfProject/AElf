@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package associationImpl;
+
+import "acs1.proto";
+import "acs3.proto";
+import "association_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Association";
+
+service AssociationContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
+    option (aelf.base) = "acs3.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "association_contract.proto";
+    
+    // Actions    
+    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
+    }
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
+    //view
+    rpc GetOrganization (aelf.Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateOrganizationInput{
+    association.OrganizationMemberList organization_member_list = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+}
+
+message Organization{
+    association.OrganizationMemberList organization_member_list = 1;
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    acs3.ProposerWhiteList proposer_white_list = 3;
+    aelf.Address organization_address = 4;
+    aelf.Hash organization_hash = 5;
+}
+
+message ProposalInfo {
+    aelf.Hash proposal_id = 1;
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expired_time = 5;
+    aelf.Address proposer = 6;
+    aelf.Address organization_address = 7;
+    repeated aelf.Address approvals = 8;
+    repeated aelf.Address rejections = 9;
+    repeated aelf.Address abstentions = 10;
+    string proposal_description_url = 11;
+}
+
+message CreateOrganizationBySystemContractInput {
+    CreateOrganizationInput organization_creation_input = 1;
+    string organization_address_feedback_method = 2;
+}
