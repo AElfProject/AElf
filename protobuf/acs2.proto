@@ -5,7 +5,7 @@ package acs2;
 import "aelf/core.proto";
 import "aelf/options.proto";
 
-option (aelf.identity) = "acs2";
+option (aelf.identity) = "AElf.Standards.ACS2";
 
 service ACS2Base {
     // Views

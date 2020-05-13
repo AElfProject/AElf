@@ -7,7 +7,7 @@ import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-option (aelf.identity) = "acs4";
+option (aelf.identity) = "AElf.Standards.ACS4";
 
 service ConsensusContract {
     rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {

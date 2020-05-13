@@ -7,7 +7,7 @@ import public "google/protobuf/empty.proto";
 import public "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
 
-option (aelf.identity) = "acs1";
+option (aelf.identity) = "AElf.Standards.ACS1";
 
 service MethodFeeProviderContract {
     

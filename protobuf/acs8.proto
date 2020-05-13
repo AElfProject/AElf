@@ -5,7 +5,7 @@ package acs8;
 import public "aelf/options.proto";
 import public "google/protobuf/empty.proto";
 
-option (aelf.identity) = "acs8";
+option (aelf.identity) = "AElf.Standards.ACS8";
 
 service ResourceConsumptionContract {
     // Actions

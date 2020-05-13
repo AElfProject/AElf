@@ -4,7 +4,7 @@ package acs6;
 import "aelf/options.proto";
 import "aelf/core.proto";
 
-option (aelf.identity) = "acs6";
+option (aelf.identity) = "AElf.Standards.ACS6";
 
 service RandomNumberProviderContract {
 
