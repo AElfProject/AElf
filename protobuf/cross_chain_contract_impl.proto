@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+import "acs7.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+import public "google/protobuf/timestamp.proto";
+import "cross_chain_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.CrossChain";
+
+service CrossChainContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
+    option (aelf.base) = "acs7.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "cross_chain_contract.proto";
+    
+    // Actions
+    rpc ChangeCrossChainIndexingController(acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput) returns (google.protobuf.Empty){
+    }
+    
+    // Views
+    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (acs1.AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    rpc GetChainStatus (google.protobuf.Int32Value) returns (GetChainStatusOutput) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CrossChainIndexingDataProposedEvent{
+    option (aelf.is_event) = true;
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+}
+
+message CrossChainIndexingProposal{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 3;
+    CrossChainIndexingProposalStatus status = 4;
+}
+
+message GetPendingCrossChainIndexingProposalOutput{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    bool to_be_released = 3;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    google.protobuf.Timestamp expired_time = 5;
+}
+
+enum CrossChainIndexingProposalStatus{
+    NON_PROPOSED = 0;
+    PROPOSED = 1;
+    PENDING = 2;
+    TO_BE_RELEASED = 3;
+}
+
+message GetSideChainIndexingFeeControllerOutput {
+    acs1.AuthorityInfo authority_info = 1;
+    bytes organization_creation_input_bytes = 2;
+}
+
+enum SideChainStatus
+{
+    FATAL = 0;
+    ACTIVE = 1;
+    INSUFFICIENT_BALANCE = 2;
+    TERMINATED = 3;
+}
+
+message SideChainInfo {
+    aelf.Address proposer = 1;
+    SideChainStatus side_chain_status = 2;
+    int32 side_chain_id = 3;
+    google.protobuf.Timestamp creation_timestamp = 4;
+    int64 creation_height_on_parent_chain = 5;
+    int64 indexing_price = 6;
+    bool is_privilege_preserved = 7;
+    map<string, int64> arrears_info = 8;
+    acs1.AuthorityInfo IndexingFeeController = 9;
+}
+
+message GetChainStatusOutput{
+    SideChainStatus status = 1;
+}
+
+message SideChainCreationRequestState{
+    acs7.SideChainCreationRequest side_chain_creation_request = 1;
+    google.protobuf.Timestamp expired_time = 2;
+    aelf.Address proposer = 3;
+}
+
+message ChangeSideChainIndexingFeeControllerInput{
+    int32 chain_id = 1;
+    acs1.AuthorityInfo authority_info = 2;
+}
+
+message SideChainLifetimeControllerChanged{
+    option (aelf.is_event) = true;
+    acs1.AuthorityInfo authority_info = 1;
+}
+
+message CrossChainIndexingControllerChanged{
+    option (aelf.is_event) = true;
+    acs1.AuthorityInfo authority_info = 1;
+}
+
+message SideChainIndexingFeeControllerChanged{
+    option (aelf.is_event) = true;
+    int32 chain_id = 1 [(aelf.is_indexed) = true];
+    acs1.AuthorityInfo authority_info = 2;
+}
