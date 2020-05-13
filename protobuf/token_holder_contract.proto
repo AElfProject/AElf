@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tokenHolder;
+package TokenHolder;
 
 import "aelf/core.proto";
 import "aelf/options.proto";

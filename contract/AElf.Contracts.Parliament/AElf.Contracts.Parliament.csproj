@@ -33,8 +33,11 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
-        <ContractCode Include="..\..\protobuf\parliament_contract.proto">
+        <ContractBase Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

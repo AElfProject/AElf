@@ -1,11 +1,9 @@
 syntax = "proto3";
 
-package treasury;
+package Treasury;
 
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
@@ -25,7 +23,9 @@ service TreasuryContract {
     }
     rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
     }
-
+    rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
     // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -37,6 +37,9 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

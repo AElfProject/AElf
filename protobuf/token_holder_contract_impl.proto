@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tokenHolderImpl;
+package TokenHolderImpl;
 
 import "acs1.proto";
 import "token_holder_contract.proto";

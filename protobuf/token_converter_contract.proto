@@ -1,11 +1,9 @@
 syntax = "proto3";
 
-package tokenConvert;
+package TokenConvert;
 
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
@@ -30,6 +28,8 @@ service TokenConverterContract {
     }
     rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
+    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -47,6 +47,9 @@ service TokenConverterContract {
         option (aelf.is_view) = true;
     }
     rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

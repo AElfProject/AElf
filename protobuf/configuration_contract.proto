@@ -4,8 +4,9 @@ package configuration;
 
 import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
-import public "aelf/options.proto";
-import public "google/protobuf/empty.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Configuration";
 
@@ -14,9 +15,14 @@ service Configuration {
     // Actions
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
+    rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
     
     // Views
     rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetConfigurationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     

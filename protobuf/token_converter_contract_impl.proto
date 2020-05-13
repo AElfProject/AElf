@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tokenConvertImpl;
+package TokenConvertImpl;
 
 import "acs1.proto";
 import "token_converter_contract.proto";
@@ -12,11 +12,4 @@ service TokenConverterContract {
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "token_converter_contract.proto";
-    
-    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    // Views
-    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
-        option (aelf.is_view) = true;
-    }
 }

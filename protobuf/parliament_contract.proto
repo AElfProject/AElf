@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package Parliament;
+
 import "acs1.proto";
 import "acs3.proto";
 
@@ -8,8 +10,6 @@ option csharp_namespace = "AElf.Contracts.Parliament";
 service ParliamentContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
     
     // Actions
     rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package treasuryImpl;
+package TreasuryImpl;
 
 import "aelf/core.proto";
 import "acs1.proto";
@@ -14,13 +14,4 @@ service TreasuryContract {
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "acs10.proto";
     option (aelf.base) = "treasury_contract.proto";
-
-    // Action
-    rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    
-    // View
-    rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
-        option (aelf.is_view) = true;
-    }
 }

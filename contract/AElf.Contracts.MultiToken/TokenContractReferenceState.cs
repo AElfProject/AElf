@@ -1,3 +1,4 @@
+using Acs10;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
@@ -11,5 +12,6 @@ namespace AElf.Contracts.MultiToken
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
         internal AssociationContractContainer.AssociationContractReferenceState AssociationContract { get; set; }
         internal ReferendumContractContainer.ReferendumContractReferenceState ReferendumContract { get; set; }
+        internal DividendPoolContractContainer.DividendPoolContractReferenceState  Acs10ForTreasuryContract{ get; set; }
     }
 }

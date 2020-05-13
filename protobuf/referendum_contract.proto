@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "aelf/core.proto";
 import "acs3.proto";
 
 option csharp_namespace = "AElf.Contracts.Referendum";
@@ -8,8 +10,7 @@ option csharp_namespace = "AElf.Contracts.Referendum";
 service ReferendumContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Referendum.ReferendumState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
+    
     // Actions
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
     }
