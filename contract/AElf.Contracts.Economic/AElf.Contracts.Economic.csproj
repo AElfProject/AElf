@@ -48,10 +48,13 @@
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\reference\acs1.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\economic_contract.proto">
-            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\economic_contract_impl.proto">
+            <Link>Protobuf/Proto/economic_contract_impl.proto</Link>
         </ContractCode>
     </ItemGroup>
     

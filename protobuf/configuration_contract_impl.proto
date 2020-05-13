@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package configurationImpl;
+
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+import "configuration_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Configuration";
+
+service Configuration {
+    option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "configuration_contract.proto";
+
+    rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
+    // view
+    rpc GetConfigurationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+}

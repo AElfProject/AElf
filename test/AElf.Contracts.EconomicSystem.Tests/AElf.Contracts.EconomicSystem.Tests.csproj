@@ -121,7 +121,10 @@
         <ContractStub Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+        <ContractMessage Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\configuration_contract_impl.proto">
             <Link>Protobuf/Proto/configuration_contract.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
@@ -157,7 +160,10 @@
         <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
             <Link>Protobuf/Proto/test_method_call_threshold_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\economic_contract.proto">
+        <ContractMessage Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\economic_contract_impl.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
