@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package ElectionImpl;
+
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+import "election_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Election";
+
+service ElectionContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "election_contract.proto";
+    
+    rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    // View
+    
+    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+}
+
+
+
+
+
+

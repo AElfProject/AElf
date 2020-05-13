@@ -5,14 +5,14 @@ package Election;
 import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
+import "google/protobuf/empty.proto";
+import "aelf/options.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
 service ElectionContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
-    option (aelf.base) = "acs1.proto";
 
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
@@ -40,8 +40,6 @@ service ElectionContract {
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
     }
     rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {
     }
@@ -108,9 +106,6 @@ service ElectionContract {
         option (aelf.is_view) = true;
     }
     rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetVoteWeightProportion (google.protobuf.Empty) returns (VoteWeightProportion) {
