@@ -2,16 +2,15 @@ syntax = "proto3";
 
 package treasury;
 
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
-import "acs1.proto";
-import "acs10.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
-    option (aelf.base) = "acs1.proto";
-    option (aelf.base) = "acs10.proto";
 
     // Action
     rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -19,8 +18,6 @@ service TreasuryContract {
     rpc InitialMiningRewardProfitItem (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){
     }
@@ -34,9 +31,6 @@ service TreasuryContract {
         option (aelf.is_view) = true;
     }
     rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion) {
