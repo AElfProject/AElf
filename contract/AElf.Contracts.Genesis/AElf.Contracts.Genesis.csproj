@@ -22,8 +22,11 @@
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
-        <ContractCode Include="..\..\protobuf\basic_contract_zero.proto">
+        <ContractBase Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\basic_contract_zero_impl.proto">
+            <Link>Protobuf\Proto\basic_contract_zero_impl.proto</Link>
         </ContractCode>
     </ItemGroup>
     
