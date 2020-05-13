@@ -36,13 +36,13 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
-        <ContractBase Include="..\..\protobuf\association_contract.proto">
-            <Link>Protobuf\Proto\association_contract.proto</Link>
-        </ContractBase>
+<!--        <ContractBase Include="..\..\protobuf\association_contract.proto">-->
+<!--            <Link>Protobuf\Proto\association_contract.proto</Link>-->
+<!--        </ContractBase>-->
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\association_contract_impl.proto">
-            <Link>Protobuf\Proto\association_contract_impl.proto</Link>
+        <ContractCode Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>
