@@ -181,7 +181,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
             const string proposalCreationMethodName =
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -201,7 +201,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController),
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController),
                 new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
@@ -214,7 +214,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             // Invalid organization address
             var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
             const string proposalCreationMethodName =
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo

@@ -82,7 +82,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         internal async Task<Hash> CreateProposalAsync(Address organizationAddress, IMessage input, string methodName)
         {
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = methodName,
@@ -98,13 +98,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task ApproveWithMinersAsync(Hash proposalId)
         {
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[0],
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve), Tester.InitialMinerList[0],
                 proposalId);
             var approveTransaction2 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[1],
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve), Tester.InitialMinerList[1],
                 proposalId);
             var approveTransaction3 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[2],
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve), Tester.InitialMinerList[2],
                 proposalId);
 
             // Mine a block with given normal txs and system txs.
@@ -115,7 +115,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.Release), proposalId);
             return transactionResult;
         }
 
@@ -127,7 +127,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     new Empty()))
                 .ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
@@ -161,7 +161,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         protected async Task<AuthorityInfo> GetMethodFeeController(Address configurationContractAddress)
         {
             var methodFeeControllerByteString = await Tester.CallContractMethodAsync(configurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetMethodFeeController), new Empty());
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.GetMethodFeeController), new Empty());
             return AuthorityInfo.Parser.ParseFrom(methodFeeControllerByteString);
         }
     }
