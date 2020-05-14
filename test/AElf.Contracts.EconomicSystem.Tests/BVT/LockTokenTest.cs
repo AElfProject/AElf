@@ -16,7 +16,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public class TokenTestBase : EconomicSystemTestBase
     {
         protected ECKeyPair AnnounceElectionKeyPair => SampleECKeyPairs.KeyPairs[81];
-        internal ElectionContractContainer.ElectionContractStub tokenTestElectionContractStub { get; set; }
+        internal ElectionContractImplContainer.ElectionContractImplStub tokenTestElectionContractStub { get; set; }
     }
 
     public class TokenTest : TokenTestBase
@@ -25,7 +25,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             InitializeContracts();
             tokenTestElectionContractStub =
-                GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress,
+                GetTester<ElectionContractImplContainer.ElectionContractImplStub>(ElectionContractAddress,
                     AnnounceElectionKeyPair);
 
             var issueResult = AsyncHelper.RunSync(() => EconomicContractStub.IssueNativeToken.SendAsync(

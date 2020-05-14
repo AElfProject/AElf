@@ -5,6 +5,7 @@ using AElf.Standards.ACS3;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Configuration;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

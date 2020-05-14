@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -17,7 +18,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var newParliament = new Parliament.CreateOrganizationInput
             {
                 ProposerAuthorityRequired = false,
-                ProposalReleaseThreshold = new Acs3.ProposalReleaseThreshold
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
                     MaximalAbstentionThreshold = 1,
                     MaximalRejectionThreshold = 1,
@@ -30,12 +31,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 (await ParliamentContractStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
             createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculatedNewParliamentAddress = await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
-            var newAuthority = new aelf.AuthorityInfo
+            var newAuthority = new AuthorityInfo
             {
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress
             };
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController), newAuthority);
+            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.ChangeConnectorController), newAuthority);
             var controller = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             controller.OwnerAddress.ShouldBe(calculatedNewParliamentAddress);
         }
@@ -62,7 +63,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 NativeVirtualBalance = 1_0000_0000,
             };
             await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector), pairConnector);
             var resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
             resourceConnector.ShouldNotBeNull();
             resourceConnector.IsPurchaseEnabled.ShouldBe(false);
@@ -122,7 +123,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Value = "test value"
                 };
                 var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
             }
@@ -134,7 +135,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Value = "1.05"
                 };
                 var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
             }
@@ -146,7 +147,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Value = "0.15"
                 };
                 var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
                 var feeRate1 = await TokenConverterContractStub.GetFeeRate.CallAsync(new Empty());
@@ -177,7 +178,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     NativeVirtualBalance = 1_000_000_00000000,
                 };
                 await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector), pairConnector);
                 var ramNewInfo = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol()
                 {
                     Symbol = tokenSymbol
@@ -208,7 +209,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 NativeVirtualBalance = 1_0000_0000,
             };
             await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector), pairConnector);
             var updateConnector = new Connector
             {
                 Symbol = token,
@@ -219,7 +220,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 RelatedSymbol = "change"
             };
             await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector), updateConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector), updateConnector);
             var resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
             resourceConnector.Weight.ShouldBe("0.49");
         }

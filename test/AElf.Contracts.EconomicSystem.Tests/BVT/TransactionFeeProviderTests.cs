@@ -156,12 +156,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             await ExecuteProposalTransaction(Tester, TokenHolderContractAddress, MethodName, new MethodFees
             {
-                MethodName = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw),
+                MethodName = nameof(TokenHolderContractImplContainer.TokenHolderContractImplStub.Withdraw),
                 Fees = { TokenAmount}
             });
             var result = await TokenHolderStub.GetMethodFee.CallAsync(new StringValue
             {
-                Value = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw)
+                Value = nameof(TokenHolderContractImplContainer.TokenHolderContractImplStub.Withdraw)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
