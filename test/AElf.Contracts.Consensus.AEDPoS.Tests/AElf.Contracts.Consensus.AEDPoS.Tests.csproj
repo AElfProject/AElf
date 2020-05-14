@@ -91,8 +91,11 @@
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf/Proto/acs6.proto</Link>

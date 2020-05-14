@@ -115,6 +115,9 @@
         <ContractStub Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </ContractStub>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
         </ContractStub>
@@ -154,8 +157,8 @@
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
 
