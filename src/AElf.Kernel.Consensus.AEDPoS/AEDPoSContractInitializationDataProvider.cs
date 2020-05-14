@@ -1,15 +1,14 @@
-using AElf.Kernel.Consensus.AEDPoS;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.ContractTestBase
+namespace AElf.Kernel.Consensus.AEDPoS
 {
-    // TODO: Same code in src/AElf.Blockchains.MainChain/AEDPoSContractInitializationDataProvider, need to resolve.
-    public class MainChainAEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider
+    public class AEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider,
+        ITransientDependency
     {
         private readonly ConsensusOptions _consensusOptions;
 
-        public MainChainAEDPoSContractInitializationDataProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
+        public AEDPoSContractInitializationDataProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
         {
             _consensusOptions = consensusOptions.Value;
         }

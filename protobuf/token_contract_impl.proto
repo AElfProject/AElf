@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package tokenimpl;
+package TokenImpl;
 
 import "aelf/core.proto";
 import "acs1.proto";

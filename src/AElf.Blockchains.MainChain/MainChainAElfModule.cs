@@ -1,4 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContractInitialization;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
@@ -26,6 +27,8 @@ namespace AElf.Blockchains.MainChain
             var services = context.Services;
             services.AddTransient<IContractDeploymentListProvider, MainChainContractDeploymentListProvider>();
             services.AddTransient<IGenesisSmartContractDtoProvider, MainChainGenesisSmartContractDtoProvider>();
+            services.AddTransient<IAEDPoSContractInitializationDataProvider,
+                AEDPoSContractInitializationDataProvider>();
         }
     }
 }
