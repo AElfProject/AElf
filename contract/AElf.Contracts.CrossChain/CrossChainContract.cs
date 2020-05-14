@@ -1,5 +1,4 @@
 using System.Linq;
-using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -11,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
-    public partial class CrossChainContract : CrossChainContractContainer.CrossChainContractBase
+    public partial class CrossChainContract : CrossChainContractImplContainer.CrossChainContractImplBase
     {
         public override Empty Initialize(InitializeInput input)
         {

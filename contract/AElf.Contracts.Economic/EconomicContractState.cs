@@ -6,6 +6,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.Economic
 {

@@ -28,7 +28,7 @@ service TokenConverterContract {
     }
     rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeConnectorController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
@@ -49,7 +49,7 @@ service TokenConverterContract {
     rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
         option (aelf.is_view) = true;
     }
-    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

@@ -44,7 +44,7 @@ service ElectionContract {
     }
     rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {
     }
-    rpc ChangeVoteWeightInterestController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeVoteWeightInterestController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
     // View
@@ -117,7 +117,7 @@ service ElectionContract {
     rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){
         option (aelf.is_view) = true;
     }
-    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

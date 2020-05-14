@@ -102,3 +102,8 @@ message BinaryMerkleTree {
     Hash root = 2;
     int32 leaf_count = 3;
 }
+
+message AuthorityInfo {
+    aelf.Address contract_address = 1;
+    aelf.Address owner_address = 2;
+}
