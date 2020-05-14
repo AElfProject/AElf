@@ -7,8 +7,8 @@ namespace AElf.CrossChain
     {
         public static readonly List<string> PrivilegeMethodNames = new List<string>
         {
-            nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
-            nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
+            nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ProposeCrossChainIndexing),
+            nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseCrossChainIndexing),
         };
     }
 }

@@ -26,7 +26,7 @@ namespace AElf.CrossChain
             return new List<InitializeMethod>
             {
                 new InitializeMethod{
-                    MethodName = nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                    MethodName = nameof(CrossChainContractImplContainer.CrossChainContractImplStub.Initialize),
                     Params = new InitializeInput
                     {
                         ParentChainId = initializationData.ParentChainId,

@@ -30,7 +30,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 (await ParliamentContractStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
             createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculatedNewParliamentAddress = await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
-            var newAuthority = new Acs1.AuthorityInfo
+            var newAuthority = new aelf.AuthorityInfo
             {
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress

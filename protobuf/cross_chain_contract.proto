@@ -18,9 +18,9 @@ service CrossChainContract {
     }
     rpc SetInitialIndexingControllerAddress(aelf.Address) returns (google.protobuf.Empty){
     }
-    rpc ChangeCrossChainIndexingController(acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeCrossChainIndexingController(aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainLifetimeController(aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
     rpc ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput) returns (google.protobuf.Empty){
     }
@@ -47,13 +47,13 @@ service CrossChainContract {
     rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+    rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (aelf.AuthorityInfo){
         option (aelf.is_view) = true;
     }
-    rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+    rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (aelf.AuthorityInfo){
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (acs1.AuthorityInfo){
+    rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (aelf.AuthorityInfo){
         option (aelf.is_view) = true;
     }
     rpc GetChainStatus (google.protobuf.Int32Value) returns (GetChainStatusOutput) {
@@ -110,7 +110,7 @@ enum CrossChainIndexingProposalStatus{
 }
 
 message GetSideChainIndexingFeeControllerOutput {
-    acs1.AuthorityInfo authority_info = 1;
+    aelf.AuthorityInfo authority_info = 1;
     bytes organization_creation_input_bytes = 2;
 }
 
@@ -131,7 +131,7 @@ message SideChainInfo {
     int64 indexing_price = 6;
     bool is_privilege_preserved = 7;
     map<string, int64> arrears_info = 8;
-    acs1.AuthorityInfo IndexingFeeController = 9;
+    aelf.AuthorityInfo IndexingFeeController = 9;
 }
 
 message GetChainStatusOutput{
@@ -146,21 +146,21 @@ message SideChainCreationRequestState{
 
 message ChangeSideChainIndexingFeeControllerInput{
     int32 chain_id = 1;
-    acs1.AuthorityInfo authority_info = 2;
+    aelf.AuthorityInfo authority_info = 2;
 }
 
 message SideChainLifetimeControllerChanged{
     option (aelf.is_event) = true;
-    acs1.AuthorityInfo authority_info = 1;
+    aelf.AuthorityInfo authority_info = 1;
 }
 
 message CrossChainIndexingControllerChanged{
     option (aelf.is_event) = true;
-    acs1.AuthorityInfo authority_info = 1;
+    aelf.AuthorityInfo authority_info = 1;
 }
 
 message SideChainIndexingFeeControllerChanged{
     option (aelf.is_event) = true;
     int32 chain_id = 1 [(aelf.is_indexed) = true];
-    acs1.AuthorityInfo authority_info = 2;
+    aelf.AuthorityInfo authority_info = 2;
 }

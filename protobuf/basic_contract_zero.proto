@@ -16,15 +16,15 @@ service BasicContractZero {
     }
     rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc ChangeContractDeploymentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeContractDeploymentController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeCodeCheckController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeCodeCheckController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
-    rpc GetContractDeploymentController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetContractDeploymentController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetCodeCheckController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+    rpc GetCodeCheckController(google.protobuf.Empty) returns (aelf.AuthorityInfo){
         option (aelf.is_view) = true;
     }
 }

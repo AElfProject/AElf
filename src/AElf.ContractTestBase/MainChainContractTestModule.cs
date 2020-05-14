@@ -37,7 +37,7 @@ namespace AElf.ContractTestBase
             services.AddTransient<IParliamentContractInitializationDataProvider,
                 MainChainParliamentContractInitializationDataProvider>();
             services.AddTransient<IAEDPoSContractInitializationDataProvider,
-                MainChainAEDPoSContractInitializationDataProvider>();
+                AEDPoSContractInitializationDataProvider>();
             services.AddTransient<ITokenContractInitializationDataProvider,
                 MainChainTokenContractInitializationDataProvider>();
             services.AddTransient<ICrossChainContractInitializationDataProvider,

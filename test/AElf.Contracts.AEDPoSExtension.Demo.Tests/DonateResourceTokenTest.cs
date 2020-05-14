@@ -210,7 +210,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var createNewAssociationOrganization = await AssociationStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
             var newControllerAddress = new Address();
             newControllerAddress.MergeFrom(createNewAssociationOrganization.TransactionResult.ReturnValue);
-            var authority = new Acs1.AuthorityInfo
+            var authority = new aelf.AuthorityInfo
             {
                 ContractAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
                 OwnerAddress = newControllerAddress
