@@ -12,10 +12,10 @@ namespace AElf.Blockchains.BasicBaseChain
     public abstract class GenesisSmartContractDtoProviderBase : IGenesisSmartContractDtoProvider
     {
         protected readonly IContractDeploymentListProvider ContractDeploymentListProvider;
-        protected readonly IEnumerable<IContractInitializationProvider> ContractInitializationProviders;
+        protected readonly IServiceContainer<IContractInitializationProvider> ContractInitializationProviders;
 
         protected GenesisSmartContractDtoProviderBase(IContractDeploymentListProvider contractDeploymentListProvider,
-            IEnumerable<IContractInitializationProvider> contractInitializationProviders)
+            IServiceContainer<IContractInitializationProvider> contractInitializationProviders)
         {
             ContractDeploymentListProvider = contractDeploymentListProvider;
             ContractInitializationProviders = contractInitializationProviders;

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace AElf.Kernel.CodeCheck.Infrastructure
 {
@@ -13,7 +12,7 @@ namespace AElf.Kernel.CodeCheck.Infrastructure
         private readonly ConcurrentDictionary<int, IContractAuditor> _contractAuditors =
             new ConcurrentDictionary<int, IContractAuditor>();
 
-        public ContractAuditorContainer(IEnumerable<IContractAuditor> contractAuditors)
+        public ContractAuditorContainer(IServiceContainer<IContractAuditor> contractAuditors)
         {
             foreach (var auditor in contractAuditors)
             {

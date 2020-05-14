@@ -18,7 +18,7 @@ namespace AElf.CrossChain
         private readonly ICrossChainRequestService _crossChainRequestService;
         private readonly List<ICrossChainCommunicationPlugin> _crossChainCommunicationPlugins;
         
-        public CrossChainPlugin(ICrossChainRequestService crossChainRequestService, IEnumerable<ICrossChainCommunicationPlugin> crossChainCommunicationPlugins)
+        public CrossChainPlugin(ICrossChainRequestService crossChainRequestService, IServiceContainer<ICrossChainCommunicationPlugin> crossChainCommunicationPlugins)
         {
             _crossChainRequestService = crossChainRequestService;
             _crossChainCommunicationPlugins = crossChainCommunicationPlugins.ToList();

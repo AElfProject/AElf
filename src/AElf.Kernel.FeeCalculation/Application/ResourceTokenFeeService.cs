@@ -7,9 +7,9 @@ namespace AElf.Kernel.FeeCalculation.Application
 {
     public class ResourceTokenFeeService : IResourceTokenFeeService
     {
-        private readonly IEnumerable<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
+        private readonly IServiceContainer<IResourceTokenFeeProvider> _resourceTokenFeeProviders;
 
-        public ResourceTokenFeeService(IEnumerable<IResourceTokenFeeProvider> resourceTokenFeeProviders)
+        public ResourceTokenFeeService(IServiceContainer<IResourceTokenFeeProvider> resourceTokenFeeProviders)
         {
             _resourceTokenFeeProviders = resourceTokenFeeProviders;
         }

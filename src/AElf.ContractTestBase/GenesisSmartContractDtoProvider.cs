@@ -9,11 +9,11 @@ namespace AElf.ContractTestBase
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IContractDeploymentListProvider _contractDeploymentListProvider;
-        private readonly IEnumerable<IContractInitializationProvider> _contractInitializationProviders;
+        private readonly IServiceContainer<IContractInitializationProvider> _contractInitializationProviders;
         private readonly IContractCodeProvider _contractCodeProvider;
 
         public GenesisSmartContractDtoProvider(IContractDeploymentListProvider contractDeploymentListProvider,
-            IEnumerable<IContractInitializationProvider> contractInitializationProviders,
+            IServiceContainer<IContractInitializationProvider> contractInitializationProviders,
             IContractCodeProvider contractCodeProvider)
         {
             _contractDeploymentListProvider = contractDeploymentListProvider;

@@ -9,7 +9,7 @@ namespace AElf.Kernel.Blockchain.Application
     {
         private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
 
-        public BlockExtraDataService(IEnumerable<IBlockExtraDataProvider> blockExtraDataProviders)
+        public BlockExtraDataService(IServiceContainer<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders.ToList();
         }
