@@ -2,8 +2,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.CodeOps;
@@ -17,7 +17,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInput;
-using ProposalCreated = Acs3.ProposalCreated;
+using ProposalCreated = AElf.Standards.ACS3.ProposalCreated;
 
 namespace AElf.Contracts.Genesis
 {

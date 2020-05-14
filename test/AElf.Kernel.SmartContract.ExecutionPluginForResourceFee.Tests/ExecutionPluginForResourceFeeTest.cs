@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Acs8;
+using AElf.Standards.ACS8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;

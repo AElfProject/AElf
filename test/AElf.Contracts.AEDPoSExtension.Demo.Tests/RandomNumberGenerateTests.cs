@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs6;
+using AElf.Standards.ACS6;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.TestContract.CommitmentScheme;
 using AElf.Contracts.TestKit;

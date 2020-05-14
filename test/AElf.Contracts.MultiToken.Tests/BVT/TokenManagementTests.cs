@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs2;
+using AElf.Standards.ACS2;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;

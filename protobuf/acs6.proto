@@ -4,7 +4,8 @@ package acs6;
 import "aelf/options.proto";
 import "aelf/core.proto";
 
-option (aelf.identity) = "AElf.Standards.ACS6";
+option (aelf.identity) = "acs6";
+option csharp_namespace = "AElf.Standards.ACS6";
 
 service RandomNumberProviderContract {
 

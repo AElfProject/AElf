@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs2;
+using AElf.Standards.ACS2;
 using AElf.Contracts.TestKit;
 using AElf.Types;
 using Google.Protobuf;

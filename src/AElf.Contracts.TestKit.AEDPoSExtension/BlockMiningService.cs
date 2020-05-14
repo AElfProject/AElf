@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Acs0;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;

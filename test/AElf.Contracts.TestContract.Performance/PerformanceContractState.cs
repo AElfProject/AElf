@@ -1,4 +1,4 @@
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;

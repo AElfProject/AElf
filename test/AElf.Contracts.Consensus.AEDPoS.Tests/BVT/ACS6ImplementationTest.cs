@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs6;
+using AElf.Standards.ACS6;
 using AElf.Contracts.Economic.TestBase;
 using AElf.CSharp.Core;
 using AElf.Kernel;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Types;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;

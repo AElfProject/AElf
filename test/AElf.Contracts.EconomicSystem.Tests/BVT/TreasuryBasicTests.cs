@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
-using Acs5;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Treasury;

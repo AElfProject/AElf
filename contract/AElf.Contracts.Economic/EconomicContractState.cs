@@ -1,5 +1,5 @@
 ﻿using Acs0;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;

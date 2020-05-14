@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
@@ -13,8 +13,8 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
-using ProposalCreated = Acs3.ProposalCreated;
-using ProposalReleased = Acs3.ProposalReleased;
+using ProposalCreated = AElf.Standards.ACS3.ProposalCreated;
+using ProposalReleased = AElf.Standards.ACS3.ProposalReleased;
 
 namespace AElf.Contracts.MultiToken
 {

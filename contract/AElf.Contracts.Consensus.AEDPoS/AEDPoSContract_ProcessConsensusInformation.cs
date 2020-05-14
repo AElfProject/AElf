@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Acs10;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Election;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;

@@ -5,7 +5,8 @@ package acs2;
 import "aelf/core.proto";
 import "aelf/options.proto";
 
-option (aelf.identity) = "AElf.Standards.ACS2";
+option (aelf.identity) = "acs2";
+option csharp_namespace = "AElf.Standards.ACS2";
 
 service ACS2Base {
     // Views

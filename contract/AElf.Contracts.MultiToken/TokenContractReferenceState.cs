@@ -1,4 +1,4 @@
-using Acs10;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;

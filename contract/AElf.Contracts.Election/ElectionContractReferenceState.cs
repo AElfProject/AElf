@@ -1,4 +1,4 @@
-using Acs10;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;

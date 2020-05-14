@@ -1,6 +1,6 @@
-﻿using Acs1;
-using Acs10;
-using Acs9;
+﻿using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
+using AElf.Standards.ACS9;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;

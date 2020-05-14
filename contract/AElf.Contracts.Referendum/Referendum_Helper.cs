@@ -1,5 +1,5 @@
 using System;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
