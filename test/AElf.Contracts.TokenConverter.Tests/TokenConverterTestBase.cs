@@ -44,21 +44,21 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub =>
             GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
 
-        internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub =>
-            GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub DefaultStub =>
+            GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 DefaultSenderKeyPair);
 
-        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedTokenConvertStub =>
-            GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub AuthorizedTokenConvertStub =>
+            GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 ManagerKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultSenderKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 

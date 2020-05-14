@@ -42,11 +42,11 @@ namespace AElf.Contracts.Referendum
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub { get; set; }
+        internal ReferendumContractImplContainer.ReferendumContractImplStub ReferendumContractStub { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
         protected void InitializeContracts()
@@ -101,9 +101,9 @@ namespace AElf.Contracts.Referendum
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
@@ -111,14 +111,14 @@ namespace AElf.Contracts.Referendum
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal ReferendumContractContainer.ReferendumContractStub GetReferendumContractTester(ECKeyPair keyPair)
+        internal ReferendumContractImplContainer.ReferendumContractImplStub GetReferendumContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress, keyPair);
+            return GetTester<ReferendumContractImplContainer.ReferendumContractImplStub>(ReferendumContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
         }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)

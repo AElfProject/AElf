@@ -32,14 +32,20 @@
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\referendum_contract.proto">
-            <Link>Protobuf/Proto/referendum_contract.proto.proto</Link>
+        <ContractMessage Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf/Proto/referendum_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\referendum_contract_impl.proto">
+            <Link>Protobuf/Proto/referendum_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+        <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero_impl.proto">
+            <Link>Protobuf/Proto/basic_contract_zero_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
@@ -50,8 +56,11 @@
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

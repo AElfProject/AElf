@@ -43,11 +43,17 @@
       <ContractStub Include="..\..\protobuf\token_contract.proto">
         <Link>Protobuf/Proto/token_contract.proto</Link>
       </ContractStub>
-      <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
-        <Link>Protobuf/Proto/token_converter_contract.proto</Link>
-      </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\token_converter_contract_impl.proto">
+            <Link>Protobuf/Proto/token_converter_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>

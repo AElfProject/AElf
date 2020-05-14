@@ -21,7 +21,7 @@ namespace AElf.Contracts.TokenHolder
             var userTokenStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[0]);
             var userTokenHolderStub =
-                GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
+                GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());

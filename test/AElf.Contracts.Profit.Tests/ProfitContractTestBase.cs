@@ -34,23 +34,23 @@ namespace AElf.Contracts.Profit
         protected Address ParliamentContractAddress{ get; set; }
 
         protected Address ConsensusContractAddress { get; set; }
-        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
-            .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
+        internal List<ProfitContractImplContainer.ProfitContractImplStub> Creators => CreatorKeyPair
+            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
 
-        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalKeyPair
-            .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
+        internal List<ProfitContractImplContainer.ProfitContractImplStub> Normal => NormalKeyPair
+            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
 
         protected List<ECKeyPair> CreatorKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
 
         protected List<ECKeyPair> NormalKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub { get; set; }
 
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
-        internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
+        internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub { get; set; }
         
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
         protected void InitializeContracts()
@@ -105,9 +105,9 @@ namespace AElf.Contracts.Profit
             AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
@@ -115,14 +115,14 @@ namespace AElf.Contracts.Profit
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        internal ProfitContractImplContainer.ProfitContractImplStub GetProfitContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
+            return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
         }
         
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
         }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)

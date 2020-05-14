@@ -168,7 +168,7 @@ namespace AElf.Contracts.Profit.BVT
             }
         }
 
-        private async Task ContributeAndDistribute(ProfitContractContainer.ProfitContractStub creator,
+        private async Task ContributeAndDistribute(ProfitContractImplContainer.ProfitContractImplStub creator,
             int contributeAmountEachTime, int period)
         {
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
@@ -185,7 +185,7 @@ namespace AElf.Contracts.Profit.BVT
             });
         }
 
-        private async Task<long> AddBeneficiaries(ProfitContractContainer.ProfitContractStub creator)
+        private async Task<long> AddBeneficiaries(ProfitContractImplContainer.ProfitContractImplStub creator)
         {
             await creator.AddBeneficiaries.SendAsync(new AddBeneficiariesInput
             {
