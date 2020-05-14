@@ -55,11 +55,11 @@ namespace AElf.Contracts.MultiToken
         public byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
         protected Address TreasuryContractAddress { get; set; }
 
-        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub;
+        internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
         public byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
         protected Address ProfitContractAddress { get; set; }
 
-        internal ProfitContractContainer.ProfitContractStub ProfitContractStub;
+        internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub;
         public byte[] TokenConverterContractCode => Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
 
         public byte[] ReferendumContractCode => Codes.Single(kv => kv.Key.Contains("Referendum")).Value;
@@ -69,15 +69,15 @@ namespace AElf.Contracts.MultiToken
         protected Address TokenConverterContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
-        internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
-        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
+        internal ReferendumContractImplContainer.ReferendumContractImplStub ReferendumContractStub;
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
@@ -258,7 +258,7 @@ namespace AElf.Contracts.MultiToken
 
             var releaseTxResult =
                 await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                    nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseSideChainCreation),
+                    nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseSideChainCreation),
                     new ReleaseSideChainCreationInput {ProposalId = proposalId});
             var sideChainCreatedEvent = SideChainCreatedEvent.Parser
                 .ParseFrom(releaseTxResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
@@ -286,7 +286,7 @@ namespace AElf.Contracts.MultiToken
         internal async Task<CrossChainMerkleProofContext> GetBoundParentChainHeightAndMerklePathByHeight(long height)
         {
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideCrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub
+                nameof(CrossChainContractImplContainer.CrossChainContractImplStub
                     .GetBoundParentChainHeightAndMerklePathByHeight), new Int64Value
                 {
                     Value = height
@@ -299,7 +299,7 @@ namespace AElf.Contracts.MultiToken
         internal async Task<long> GetSideChainHeight(int chainId)
         {
             var result = await MainChainTester.CallContractMethodAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub
+                nameof(CrossChainContractImplContainer.CrossChainContractImplStub
                     .GetSideChainHeight), new Int32Value
                 {
                     Value = chainId
@@ -313,7 +313,7 @@ namespace AElf.Contracts.MultiToken
             ContractTester<MultiTokenContractCrossChainTestAElfModule> tester, Address sideCrossChainContract)
         {
             var result = await tester.CallContractMethodAsync(sideCrossChainContract,
-                nameof(CrossChainContractContainer.CrossChainContractStub
+                nameof(CrossChainContractImplContainer.CrossChainContractImplStub
                     .GetParentChainHeight), new Empty());
 
             var height = Int64Value.Parser.ParseFrom(result);
@@ -348,7 +348,7 @@ namespace AElf.Contracts.MultiToken
                 });
             var requestSideChainCreationResult =
                 await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                    nameof(CrossChainContractContainer.CrossChainContractStub.RequestSideChainCreation),
+                    nameof(CrossChainContractImplContainer.CrossChainContractImplStub.RequestSideChainCreation),
                     createProposalInput);
 
             var proposalId = ProposalCreated.Parser.ParseFrom(requestSideChainCreationResult.Logs
@@ -360,13 +360,13 @@ namespace AElf.Contracts.MultiToken
             ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
         {
             var approveTransaction1 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve),
                 tester.InitialMinerList[1], proposalId);
             var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve),
                 tester.InitialMinerList[2], proposalId);
             var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve),
                 tester.InitialMinerList[0], proposalId);
             await tester.MineAsync(
                 new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
@@ -376,7 +376,7 @@ namespace AElf.Contracts.MultiToken
             ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
         {
             var transactionResult = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Release), proposalId);
             return transactionResult;
         }
 
@@ -387,11 +387,11 @@ namespace AElf.Contracts.MultiToken
         {
             var organizationAddress = Address.Parser.ParseFrom((await tester.ExecuteContractWithMiningAsync(
                     parliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = method,
@@ -488,7 +488,7 @@ namespace AElf.Contracts.MultiToken
         {
             var crossChainInitializationTransaction = await MainChainTester.GenerateTransactionAsync(
                 CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new CrossChain.InitializeInput
+                nameof(CrossChainContractImplContainer.CrossChainContractImplStub.Initialize), new CrossChain.InitializeInput
                 {
                     ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
                     CreationHeightOnParentChain = parentChainHeightOfCreation

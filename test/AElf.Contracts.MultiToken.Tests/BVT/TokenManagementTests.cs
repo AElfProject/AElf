@@ -138,7 +138,7 @@ namespace AElf.Contracts.MultiToken
                         DefaultKeyPair)
                 );
                 ProfitContractStub =
-                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
+                    GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress,
                         DefaultKeyPair);
             }
 
@@ -148,7 +148,7 @@ namespace AElf.Contracts.MultiToken
                 TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TreasuryContractStub =
-                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
+                    GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
                         DefaultKeyPair);
             }
 
@@ -158,7 +158,7 @@ namespace AElf.Contracts.MultiToken
                 TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenConverterContractStub =
-                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                    GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                         DefaultKeyPair);
             }
 
@@ -168,7 +168,7 @@ namespace AElf.Contracts.MultiToken
                 ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 ReferendumContractStub =
-                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
+                    GetTester<ReferendumContractImplContainer.ReferendumContractImplStub>(ReferendumContractAddress,
                         DefaultKeyPair);
             }
 
@@ -197,7 +197,7 @@ namespace AElf.Contracts.MultiToken
                 ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                    GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                         DefaultKeyPair);
                 AsyncHelper.RunSync(InitializeParliamentContract);
             }

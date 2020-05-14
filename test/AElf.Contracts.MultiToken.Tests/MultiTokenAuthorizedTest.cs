@@ -65,7 +65,7 @@ namespace AElf.Contracts.MultiToken
                 ParliamentMemberProposingAllowed = false
             };
             var parliamentCreateRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization), newParliament);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization), newParliament);
             var newParliamentAddress = new Address();
             newParliamentAddress.MergeFrom(parliamentCreateRet.ReturnValue);
             var newAuthority = new AuthorityInfo
@@ -74,7 +74,7 @@ namespace AElf.Contracts.MultiToken
                 OwnerAddress = newParliamentAddress
             };
             var parliamentOrgRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress), new Empty());
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress), new Empty());
             parliamentOrgRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var defaultParliamentAddress = new Address();
             defaultParliamentAddress.MergeFrom(parliamentOrgRet.ReturnValue);
@@ -89,7 +89,7 @@ namespace AElf.Contracts.MultiToken
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -106,14 +106,14 @@ namespace AElf.Contracts.MultiToken
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var updateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal), updateInput);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal), updateInput);
             var updateProposalId = new Hash();
             updateProposalId.MergeFrom(updateProposal.ReturnValue);
 
             await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), updateProposalId);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), updateProposalId);
             await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), updateProposalId);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Release), updateProposalId);
 
             symbolSetRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetSymbolsToPayTxSizeFee), newSymbolList);
@@ -410,7 +410,7 @@ namespace AElf.Contracts.MultiToken
 
             var createOrganizationResult =
                 await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                     new CreateOrganizationInput
                     {
                         ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -437,7 +437,7 @@ namespace AElf.Contracts.MultiToken
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -457,7 +457,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Change_CrossChainTokenContract_RegistrationController_Test()
         {
             var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                 new Parliament.CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -477,7 +477,7 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
             var defaultController = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
             var transactionResult2 = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress),
                 new Empty());
             var defaultOrganization = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
             defaultController.OwnerAddress.ShouldBe(defaultOrganization);
@@ -510,7 +510,7 @@ namespace AElf.Contracts.MultiToken
         public async Task Change_CrossChainTokenContract_RegistrationController_WithoutAuth_Test()
         {
             var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -553,11 +553,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -578,11 +578,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 approveProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -599,11 +599,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 releaseProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -620,7 +620,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.DeveloperController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var approveLeafProposalInput = new CreateProposalInput
@@ -628,11 +628,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = approveMidProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 approveLeafProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -655,11 +655,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 approveLeafProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -672,11 +672,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 approveLeafProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             parliamentProposalId = new Hash();
@@ -703,11 +703,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -729,11 +729,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 approveProposalInput);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -751,7 +751,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ReferendumController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentProposal = new CreateProposalInput
@@ -759,11 +759,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = ReferendumAddress,
                 Params = referendumProposal.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.CreateProposal),
+                ContractMethodName = nameof(ReferendumContractImplContainer.ReferendumContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 parliamentProposal);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();
@@ -774,7 +774,7 @@ namespace AElf.Contracts.MultiToken
                 .ParseFrom(ret.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
                     .NonIndexed).ProposalId;
             await MainChainTester.ExecuteContractWithMiningAsync(ReferendumAddress,
-                nameof(ReferendumContractContainer.ReferendumContractStub.Approve),
+                nameof(ReferendumContractImplContainer.ReferendumContractImplStub.Approve),
                 id);
 
             parliamentProposal = new CreateProposalInput
@@ -782,11 +782,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = ReferendumAddress,
                 Params = id.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.Release),
+                ContractMethodName = nameof(ReferendumContractImplContainer.ReferendumContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 parliamentProposal);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             parliamentProposalId = new Hash();
@@ -803,11 +803,11 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = AssociationAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 parliamentProposal);
             parliamentCreateProposal.Status.ShouldBe(TransactionResultStatus.Mined);
             var parliamentProposalId = new Hash();

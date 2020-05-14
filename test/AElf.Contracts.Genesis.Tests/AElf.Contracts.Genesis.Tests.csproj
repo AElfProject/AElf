@@ -30,31 +30,30 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
-    <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf/Proto/acs0.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\association_contract.proto">
-            <Link>Protobuf\Proto\reference\association_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
-        </ContractStub>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
-    </ItemGroup>
+<!--    <ItemGroup>-->
+<!--        <ContractStub Include="..\..\protobuf\acs0.proto">-->
+<!--            <Link>Protobuf/Proto/acs0.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\acs1.proto">-->
+<!--            <Link>Protobuf/Proto/acs1.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\acs3.proto">-->
+<!--            <Link>Protobuf\Proto\acs3.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\parliament_contract.proto">-->
+<!--            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\association_contract.proto">-->
+<!--            <Link>Protobuf\Proto\reference\association_contract.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">-->
+<!--            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>-->
+<!--        </ContractStub>-->
+<!--        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">-->
+<!--            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>-->
+<!--        </ContractStub>-->
+<!--    </ItemGroup>-->
+    
+    <Import Project="..\..\test\allProto.props" />
     <Import Project="..\..\test\AllContracts.props" />
 </Project>
