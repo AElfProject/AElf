@@ -80,33 +80,33 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #region Paliament
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultKeyPair);
 
-        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub { get; }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
-        internal AssociationContractContainer.AssociationContractStub GetAssociationContractStub(ECKeyPair keyPair)
+        internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractStub(ECKeyPair keyPair)
         {
-            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+            return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress,
                 keyPair);
         }
 
         #endregion
 
-        internal CrossChainContractContainer.CrossChainContractStub CrossChainContractStub =>
+        internal CrossChainContractImplContainer.CrossChainContractImplStub CrossChainContractStub =>
             GetCrossChainContractStub(DefaultKeyPair);
 
-        internal CrossChainContractContainer.CrossChainContractStub GetCrossChainContractStub(
+        internal CrossChainContractImplContainer.CrossChainContractImplStub GetCrossChainContractStub(
             ECKeyPair keyPair)
         {
-            return GetTester<CrossChainContractContainer.CrossChainContractStub>(
+            return GetTester<CrossChainContractImplContainer.CrossChainContractImplStub>(
                 CrossChainContractAddress,
                 keyPair);
         }
@@ -135,7 +135,7 @@ namespace AElf.Contracts.CrossChain.Tests
             AsyncHelper.RunSync(InitializeParliamentContractAsync);
 
             AssociationContractStub =
-                GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+                GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress,
                     DefaultKeyPair);
 
             ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
@@ -324,7 +324,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateAssociationProposalAsync(string method, Address organizationAddress,
             Address toAddress,
-            IMessage input, AssociationContractContainer.AssociationContractStub authorizationContractStub = null)
+            IMessage input, AssociationContractImplContainer.AssociationContractImplStub authorizationContractStub = null)
         {
             var proposalId = (await (authorizationContractStub ?? AssociationContractStub).CreateProposal.SendAsync(
                 new CreateProposalInput
