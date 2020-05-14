@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
 {
-    public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
+    public partial class ElectionContract : ElectionContractImplContainer.ElectionContractImplBase
     {
         /// <summary>
         /// Initialize the ElectionContract and corresponding contract states.

@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
+    public partial class TokenConverterContract : TokenConverterContractImplContainer.TokenConverterContractImplBase
     {
         private const string NtTokenPrefix = "nt";
 

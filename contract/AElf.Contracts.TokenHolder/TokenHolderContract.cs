@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenHolder
 {
-    public partial class TokenHolderContract : TokenHolderContractContainer.TokenHolderContractBase
+    public partial class TokenHolderContract : TokenHolderContractImplContainer.TokenHolderContractImplBase
     {
         public override Empty CreateScheme(CreateTokenHolderProfitSchemeInput input)
         {

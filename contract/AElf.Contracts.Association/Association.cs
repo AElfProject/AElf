@@ -7,7 +7,7 @@ using CreateProposalInput = AElf.Standards.ACS3.CreateProposalInput;
 
 namespace AElf.Contracts.Association
 {
-    public partial class AssociationContract : AssociationContractContainer.AssociationContractBase
+    public partial class AssociationContract : AssociationContractImplContainer.AssociationContractImplBase
     {
         #region View
 

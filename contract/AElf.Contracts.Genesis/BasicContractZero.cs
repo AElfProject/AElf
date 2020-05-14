@@ -9,7 +9,7 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Genesis
 {
-    public partial class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
+    public partial class BasicContractZero : BasicContractZeroImplContainer.BasicContractZeroImplBase
     {
         #region Views
 
@@ -121,7 +121,7 @@ namespace AElf.Contracts.Genesis
                 {
                     ToAddress = Context.Self,
                     ContractMethodName =
-                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                        nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ProposeContractCodeCheck),
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
@@ -163,7 +163,7 @@ namespace AElf.Contracts.Genesis
                 {
                     ToAddress = Context.Self,
                     ContractMethodName =
-                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                        nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ProposeContractCodeCheck),
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),

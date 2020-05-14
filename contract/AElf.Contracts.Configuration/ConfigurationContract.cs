@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
-    public partial class ConfigurationContract : ConfigurationContainer.ConfigurationBase
+    public partial class ConfigurationContract : ConfigurationImplContainer.ConfigurationImplBase
     {
         public override Empty SetConfiguration(SetConfigurationInput input)
         {

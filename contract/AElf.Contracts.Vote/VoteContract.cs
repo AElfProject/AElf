@@ -10,7 +10,7 @@ namespace AElf.Contracts.Vote
     /// <summary>
     /// Comments and documents see README.md of current project.
     /// </summary>
-    public partial class VoteContract : VoteContractContainer.VoteContractBase
+    public partial class VoteContract : VoteContractImplContainer.VoteContractImplBase
     {
         /// <summary>
         /// To register a new voting item while filling up with details.
