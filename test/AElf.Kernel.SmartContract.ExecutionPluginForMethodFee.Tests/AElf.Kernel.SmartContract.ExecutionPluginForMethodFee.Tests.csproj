@@ -74,8 +74,11 @@
         <ContractStub Include="..\..\protobuf\acs1_plugin_test_contract.proto">
             <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

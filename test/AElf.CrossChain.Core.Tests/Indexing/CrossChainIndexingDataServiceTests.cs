@@ -521,7 +521,7 @@ namespace AElf.CrossChain.Indexing
                     previousBlockHeight);
 
             Assert.Equal(crossChainTransactionInput.MethodName,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing));
+                nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseCrossChainIndexing));
 
             var proposalIdInParam = Hash.Parser.ParseFrom(crossChainTransactionInput.Value);
             Assert.Equal(pendingProposal.ProposalId, proposalIdInParam);

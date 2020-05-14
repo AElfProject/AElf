@@ -366,7 +366,7 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             
             var transaction = GenerateTransaction(accountAddress, basicContractZero,
-                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))

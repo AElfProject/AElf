@@ -25,7 +25,7 @@ namespace AElf.Kernel.Configuration.Tests
     {
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub _configurationStub;
-        private ParliamentContractContainer.ParliamentContractStub _parliamentContractStub;
+        private ParliamentContractImplContainer.ParliamentContractImplStub _parliamentContractStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Configuration.Tests
             var parliamentContractCode = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Parliament")).Value;
             var parliamentContractAddress = await DeploySystemSmartContract(category, parliamentContractCode,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-            _parliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
+            _parliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentContractAddress,
                 DefaultSenderKeyPair);
             
             await _parliamentContractStub.Initialize.SendAsync(new InitializeInput

@@ -19,8 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+        <ContractMessage Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract_impl.proto">
+            <Link>Protobuf\Proto\cross_chain_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
     <Import Project="..\AllContracts.props" />
