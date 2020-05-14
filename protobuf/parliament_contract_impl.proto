@@ -8,7 +8,7 @@ import "parliament_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Parliament";
 
-service ParliamentContract {
+service ParliamentContractImpl {
     
     option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
     option (aelf.base) = "acs3.proto";

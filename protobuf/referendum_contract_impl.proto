@@ -6,7 +6,7 @@ import "referendum_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Referendum";
 
-service ReferendumContract {
+service ReferendumContractImpl {
     
     option (aelf.csharp_state) = "AElf.Contracts.Referendum.ReferendumState";
     option (aelf.base) = "acs3.proto";

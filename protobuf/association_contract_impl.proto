@@ -8,7 +8,7 @@ import "association_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Association";
 
-service AssociationContract {
+service AssociationContractImpl {
     
     option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
     option (aelf.base) = "acs3.proto";

@@ -8,7 +8,7 @@ import "profit_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Profit";
 
-service ProfitContract {
+service ProfitContractImpl {
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "profit_contract.proto";

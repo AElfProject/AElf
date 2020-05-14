@@ -7,7 +7,7 @@ import "election_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
-service ElectionContract {
+service ElectionContractImpl {
     
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
     

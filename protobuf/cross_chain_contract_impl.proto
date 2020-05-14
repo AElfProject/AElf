@@ -8,7 +8,7 @@ import "cross_chain_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
-service CrossChainContract {
+service CrossChainContractImpl {
     
     option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
     option (aelf.base) = "acs7.proto";
