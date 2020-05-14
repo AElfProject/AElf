@@ -18,6 +18,9 @@
         <ContractBase Include="..\..\protobuf\acs5.proto">
             <Link>Protobuf\Proto\reference\acs5.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\reference\acs10.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\token_contract.proto">

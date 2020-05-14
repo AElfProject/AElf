@@ -4,36 +4,32 @@ package treasury;
 
 import "aelf/core.proto";
 import "acs1.proto";
+import "acs10.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
     option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs10.proto";
 
     // Action
     rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc InitialMiningRewardProfitItem (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc Donate (DonateInput) returns (google.protobuf.Empty) {
-    }
-    rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
-    }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
     rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {
     }
     rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){
     }
     rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){
     }
-    // View
-    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
+    rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
     }
+
+    // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
@@ -43,24 +39,12 @@ service TreasuryContract {
     rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {
+    rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion) {
         option (aelf.is_view) = true;
     }
-    rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion){
+    rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion){
-        option (aelf.is_view) = true;
-    }
-}
-
-message DonateInput {
-    string symbol = 1;
-    int64 amount = 2;
-}
-
-message ReleaseInput {
-    int64 term_number = 1;
 }
 
 message RegisterInput {
@@ -91,10 +75,6 @@ message MinerReElectionInformation {
     map<string, int64> continual_appointment_times = 1;
 }
 
-message SymbolList {
-    repeated string value = 1;
-}
-
 message DividendPoolWeightSetting {
     int32 citizen_welfare_weight = 1;
     int32 backup_subsidy_weight = 2;
@@ -107,7 +87,7 @@ message MinerRewardWeightSetting {
     int32 re_election_reward_weight = 3;
 }
 
-message SchemeProportionInfo{
+message SchemeProportionInfo {
     aelf.Hash scheme_id = 1;
     int32 proportion = 2;
 }
@@ -122,14 +102,4 @@ message MinerRewardWeightProportion {
     SchemeProportionInfo basic_miner_reward_proportion_info = 1;
     SchemeProportionInfo votes_weight_reward_proportion_info = 2;
     SchemeProportionInfo re_election_reward_proportion_info = 3;
-}
-// Events
-
-message DonationReceived {
-    option (aelf.is_event) = true;
-    aelf.Address from = 1 [(aelf.is_indexed) = true];
-    aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    int64 amount = 4 [(aelf.is_indexed) = true];
-    string memo = 5;
 }

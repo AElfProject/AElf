@@ -119,7 +119,7 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            var symbolList = State.TreasuryContract.GetDistributingSymbolList.Call(new Empty());
+            var symbolList = State.TreasuryContract.GetSymbolList.Call(new Empty());
             var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {

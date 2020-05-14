@@ -8,6 +8,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
