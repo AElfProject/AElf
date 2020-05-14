@@ -44,10 +44,10 @@ namespace AElf.Contracts.Association
         protected Address ConsensusContractAddress { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; set; }
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub { get; set; }
 
-        internal AssociationContractContainer.AssociationContractStub AnotherChainAssociationContractStub { get; set; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal AssociationContractImplContainer.AssociationContractImplStub AnotherChainAssociationContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
         
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
         private byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
@@ -109,14 +109,14 @@ namespace AElf.Contracts.Association
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal AssociationContractContainer.AssociationContractStub GetAssociationContractTester(ECKeyPair keyPair)
+        internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, keyPair);
+            return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
         }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)

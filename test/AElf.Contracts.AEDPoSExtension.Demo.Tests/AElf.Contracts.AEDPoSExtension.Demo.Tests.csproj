@@ -63,7 +63,7 @@
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
