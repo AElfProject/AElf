@@ -6,7 +6,6 @@ import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
-import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Configuration";
 

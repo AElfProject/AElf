@@ -7,7 +7,6 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 import "aelf/options.proto";
-import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 

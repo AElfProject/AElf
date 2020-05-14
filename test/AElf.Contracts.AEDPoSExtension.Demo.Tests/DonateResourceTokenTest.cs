@@ -210,7 +210,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var createNewAssociationOrganization = await AssociationStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
             var newControllerAddress = new Address();
             newControllerAddress.MergeFrom(createNewAssociationOrganization.TransactionResult.ReturnValue);
-            var authority = new aelf.AuthorityInfo
+            var authority = new AuthorityInfo
             {
                 ContractAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
                 OwnerAddress = newControllerAddress
@@ -233,7 +233,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 Params = associationProposalId.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = parliamentOrgAddress
@@ -328,7 +328,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 Params = associationProposalId.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = parliamentOrgAddress

@@ -35,14 +35,14 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
         
-        internal AssociationContractContainer.AssociationContractStub AssociationStub =>
-            GetTester<AssociationContractContainer.AssociationContractStub>(
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationStub =>
+            GetTester<AssociationContractImplContainer.AssociationContractImplStub>(
                 ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
 
 
-        internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
-            new List<ParliamentContractContainer.ParliamentContractStub>();
+        internal readonly List<ParliamentContractImplContainer.ParliamentContractImplStub> ParliamentStubs =
+            new List<ParliamentContractImplContainer.ParliamentContractImplStub>();
 
         internal readonly Hash CommitmentSchemeSmartContractAddressName =
             HashHelper.ComputeFrom("AElf.Contracts.TestContract.CommitmentScheme");
@@ -64,7 +64,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
             {
-                ParliamentStubs.Add(GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                ParliamentStubs.Add(GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                     ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
             }
         }

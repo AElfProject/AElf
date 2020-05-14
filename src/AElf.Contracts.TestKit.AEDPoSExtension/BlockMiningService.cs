@@ -9,17 +9,13 @@ using Acs0;
 using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -85,7 +81,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =
-                _contractTesterFactory.Create<BasicContractZeroContainer.BasicContractZeroStub>(
+                _contractTesterFactory.Create<ACS0Container.ACS0Stub>(
                     _smartContractAddressService.GetZeroSmartContractAddress(),
                     MissionedECKeyPairs.InitialKeyPairs.First());
             if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name) && deployConsensusContract)

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Contracts.Genesis;
+using Acs0;
 using AElf.Kernel;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -27,8 +27,8 @@ namespace AElf.Contracts.TestKit
         {
             return new List<string>
             {
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySmartContract),
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract),
+                nameof(ACS0Container.ACS0Stub.DeploySmartContract),
+                nameof(ACS0Container.ACS0Stub.DeploySystemSmartContract),
             }.Contains(transaction.MethodName);
         }
     }
