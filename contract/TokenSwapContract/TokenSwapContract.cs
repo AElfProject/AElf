@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using AElf;
+﻿using AElf;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -51,20 +50,22 @@ namespace TokenSwapContract
             return swapId;
         }
 
-        public override Empty AddSwapRound(AddSwapRoundInput input)
+        public override Empty CreateSwapRound(CreateSwapRoundInput input)
         {
             var swapInfo = GetTokenSwapInfo(input.SwapId);
             Assert(swapInfo.Controller == Context.Sender, "No permission.");
-            foreach (var (_, pairId) in swapInfo.SwapTargetTokenMap)
+            foreach (var (symbol, pairId) in swapInfo.SwapTargetTokenMap)
             {
                 var swapPair = State.SwapPairs[pairId];
-                swapPair.CurrentRound = new SwapRound
+                Assert(swapPair.RoundCount == input.RoundId, "Round id not matched.");
+                swapPair.RoundCount += 1;
+                State.SwapPairs[pairId] = swapPair;
+                State.SwapRounds[input.SwapId][symbol][input.RoundId] = new SwapRound
                 {
                     SwapId = swapInfo.SwapId,
                     MerkleTreeRoot = input.MerkleTreeRoot,
                     StartTime = Context.CurrentBlockTime
                 };
-                State.SwapPairs[pairId] = swapPair;
             }
             
             Context.Fire(new SwapRoundUpdated
@@ -79,22 +80,24 @@ namespace TokenSwapContract
         {
             var swapInfo = GetTokenSwapInfo(input.SwapId);
             ValidateSwapTokenInput(input);
+            Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount) && amount > 0,
+                "Invalid token swap input.");
+            var leafHash = ComputeLeafHash(amount, input.UniqueId, swapInfo, input.ReceiverAddress);
+            var computed = input.MerklePath.ComputeRootWithLeafNode(leafHash);
             foreach (var (symbol, pairId) in swapInfo.SwapTargetTokenMap)
             {
                 var swapPair = GetTokenSwapPair(pairId);
-                Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount) && amount > 0,
-                    "Invalid token swap input.");
-                var leafHash = ComputeLeafHash(amount, input.UniqueId, swapPair, input.ReceiverAddress);
-                var computed = input.MerklePath.ComputeRootWithLeafNode(leafHash);
-                Assert(computed == swapPair.CurrentRound.MerkleTreeRoot, "Failed to swap token.");
+                Assert(swapPair.RoundCount > input.RoundId, "Round id not matched.");
+                var swapRound = State.SwapRounds[input.SwapId][symbol][input.RoundId];
+                Assert(computed == swapRound.MerkleTreeRoot, "Failed to swap token.");
                 var targetTokenAmount = GetTargetTokenAmount(amount, swapPair.SwapRatio);
                 Assert(targetTokenAmount <= swapPair.DepositAmount, "Deposit not enough.");
 
                 // update swap pair and ledger
                 swapPair.SwappedAmount = swapPair.SwappedAmount.Add(targetTokenAmount);
                 swapPair.SwappedTimes = swapPair.SwappedTimes.Add(1);
-                swapPair.CurrentRound.SwappedAmount = swapPair.CurrentRound.SwappedAmount.Add(targetTokenAmount);
-                swapPair.CurrentRound.SwappedTimes = swapPair.CurrentRound.SwappedTimes.Add(1);
+                swapRound.SwappedAmount = swapRound.SwappedAmount.Add(targetTokenAmount);
+                swapRound.SwappedTimes = swapRound.SwappedTimes.Add(1);
                 swapPair.DepositAmount = swapPair.DepositAmount.Sub(targetTokenAmount);
             
                 AssertValidSwapPair(swapPair);
@@ -148,14 +151,9 @@ namespace TokenSwapContract
             return swapPair;
         }
 
-        public override SwapRound GetCurrentSwapRound(GetCurrentSwapRoundInput input)
+        public override SwapRound GetSwapRound(GetSwapRoundInput input)
         {
-            var swapPair = GetSwapPair(new GetSwapPairInput
-            {
-                SwapId = input.SwapId,
-                TargetTokenSymbol = input.TargetTokenSymbol
-            });
-            return swapPair.CurrentRound;
+            return State.SwapRounds[input.SwapId][input.TargetTokenSymbol][input.RoundId];
         }
 
         public override Empty Deposit(DepositInput input)

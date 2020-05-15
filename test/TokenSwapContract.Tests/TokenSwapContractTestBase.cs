@@ -153,14 +153,15 @@ namespace TokenSwapContract.Tests
             return swapId;
         }
 
-        protected async Task AddSwapRound(Hash swapId, Hash merkleTreeRoot)
+        protected async Task AddSwapRound(Hash swapId, Hash merkleTreeRoot, long roundId)
         {
-            var addSwapRoundInput = new AddSwapRoundInput
+            var addSwapRoundInput = new CreateSwapRoundInput
             {
                 MerkleTreeRoot = merkleTreeRoot,
-                SwapId = swapId
+                SwapId = swapId,
+                RoundId = roundId
             };
-            await TokenSwapContractStub.AddSwapRound.SendAsync(addSwapRoundInput);
+            await TokenSwapContractStub.CreateSwapRound.SendAsync(addSwapRoundInput);
         }
 
         internal TokenSwapContractContainer.TokenSwapContractStub GetTokenSwapContractStub(ECKeyPair ecKeyPair)

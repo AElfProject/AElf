@@ -11,6 +11,8 @@ namespace TokenSwapContract
     {
         public MappedState<Hash, SwapInfo> SwapInfo { get; set; }
         public MappedState<Hash, SwapPair> SwapPairs { get; set; }
+        
+        public MappedState<Hash, string, long, SwapRound> SwapRounds { get; set; }
 
         public MappedState<Hash, Hash, long> Ledger { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

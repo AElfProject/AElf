@@ -137,10 +137,10 @@ namespace TokenSwapContract
             return HashHelper.ComputeFrom(receiverAddress.ToBase58());
         }
 
-        private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapPair swapPair, Address receiverAddress)
+        private Hash ComputeLeafHash(decimal amount, Hash uniqueId, SwapInfo swapInfo, Address receiverAddress)
         {
-            var hashFromAmount = GetHashTokenAmountData(amount, swapPair.OriginTokenSizeInByte,
-                swapPair.OriginTokenNumericBigEndian);
+            var hashFromAmount = GetHashTokenAmountData(amount, swapInfo.OriginTokenSizeInByte,
+                swapInfo.OriginTokenNumericBigEndian);
             var hashFromAddress = GetHashFromAddressData(receiverAddress);
             return HashHelper.ConcatAndCompute(hashFromAmount, hashFromAddress, uniqueId);
         }

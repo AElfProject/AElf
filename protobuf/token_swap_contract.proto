@@ -12,7 +12,7 @@ service TokenSwapContract {
 
     rpc CreateSwap(CreateSwapInput) returns (aelf.Hash) {
     }
-    rpc AddSwapRound(AddSwapRoundInput) returns (google.protobuf.Empty) {
+    rpc CreateSwapRound(CreateSwapRoundInput) returns (google.protobuf.Empty) {
     }
     rpc SwapToken (SwapTokenInput) returns (google.protobuf.Empty) {
     }
@@ -24,7 +24,7 @@ service TokenSwapContract {
     }
     rpc GetSwapPair(GetSwapPairInput) returns (SwapPair) {
     }
-    rpc GetCurrentSwapRound(GetCurrentSwapRoundInput) returns (SwapRound) {
+    rpc GetSwapRound(GetSwapRoundInput) returns (SwapRound) {
     }
 }
 
@@ -56,7 +56,7 @@ message SwapPair{
     SwapRatio swap_ratio = 5;
     int64 swapped_amount = 6;
     int64 swapped_times = 7;
-    SwapRound current_round = 8;
+    int64 round_count = 8;
     int64 deposit_amount = 9;
 }
 
@@ -71,9 +71,10 @@ message ChangeSwapRatioInput {
     string target_token_symbol = 3;
 }
 
-message AddSwapRoundInput {
+message CreateSwapRoundInput {
     aelf.Hash swap_id = 1;
     aelf.Hash merkle_tree_root = 2;
+    int64 round_id = 3;
 }
 
 message SwapRound{
@@ -90,6 +91,7 @@ message SwapTokenInput{
     aelf.MerklePath merkle_path = 3;
     aelf.Address receiver_address = 4;
     aelf.Hash unique_id = 5; // to make every swap unique 
+    int64 round_id = 6;
 }
 
 message SwapPairAdded{
@@ -130,7 +132,8 @@ message GetSwapPairInput{
     string target_token_symbol = 2;
 }
 
-message GetCurrentSwapRoundInput{
+message GetSwapRoundInput{
     aelf.Hash swap_id = 1;
     string target_token_symbol = 2;
+    int64 round_id = 3;
 }

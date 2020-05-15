@@ -18,14 +18,14 @@ namespace TokenSwapContract.Tests
             _amountRangeSizeInByte = amountRangeSizeInByte;
         }
 
-        public Hash Lock(Address address, int amount, bool isBidEndian)
+        public Hash Lock(Address address, int amount, bool isBidEndian, int lockId)
         {
             _amountRangeSizeInByte.ShouldBe(4);
             var index = _leafHashList.Count;
-            GenerateNewLeaf(amount.ToBytes(isBidEndian), address);
-            return HashHelper.ComputeFrom(index);
+            GenerateNewLeaf(amount.ToBytes(isBidEndian), address, lockId);
+            return HashHelper.ComputeFrom(lockId);
         }
-        
+
         public Hash Lock(Address address, long amount, bool isBidEndian)
         {
             _amountRangeSizeInByte.ShouldBe(8);
@@ -71,6 +71,11 @@ namespace TokenSwapContract.Tests
         {
             return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(amountData), HashHelper.ComputeFrom(addressInString),
                 HashHelper.ComputeFrom(id));
+        }
+        
+        private void GenerateNewLeaf(byte[] amountData, Address address, int lockId)
+        {
+            _leafHashList.Add(ConcatLeafData(amountData, address.ToBase58(), lockId));
         }
     }
 }
