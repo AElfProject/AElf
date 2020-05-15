@@ -11,7 +11,7 @@ feel free to use them.
 
 This tutorial assumes that you have already built the **aelf command
 line tool** and **node executable** (if not please follow
-:doc:`this <../setup/run-node>` guide).
+:doc:`this guide<../setup/run-node>`.
 
 Open a terminal and create a new directory and navigate into it:
 

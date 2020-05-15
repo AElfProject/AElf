@@ -15,20 +15,15 @@ Welcome to first doc's documentation!
    :caption: Tutorials
 
 	Environment setup <tutorials/setup/setup>
-	Single node <tutorials/setup/docker>
-   Multi node <tutorials/setup/docker-multi-node>
-   Build and run sources <tutorials/setup/run-node>
+   Running a node <tutorials/setup/main>
    Smart contract development <tutorials/developing-smart-contracts/main>
-   Setup Boilerplate <tutorials/developing-smart-contracts/setup>
-   First contract - implement <tutorials/developing-smart-contracts/first-contract>
-   First contract - test <tutorials/developing-smart-contracts/first-contract-test>
-   First contract - deploy <tutorials/developing-smart-contracts/first-contract-deploy>
-   First contract - front end <tutorials/developing-smart-contracts/front>
-   Execution context <tutorials/developing-smart-contracts/tx-execution-context>
-   Inline contract calls <tutorials/developing-smart-contracts/internal-contract-call>
    Enterprise development <tutorials/enterprise>
-   Request side-chain creation <tutorials/cross-chain/request-new-side-chain>
+   Cross-chain <tutorials/cross-chain/main>
 
+.. toctree::
+   :caption: AElf protocol
+
+   protocol/main
 
 .. toctree::
    :caption: Smart contracts
@@ -40,10 +35,6 @@ Welcome to first doc's documentation!
    Deploy guide <contract/deployment>
    AELF Contract Standard <contract/acs>
    Requirements and Restrictions <contract/requirements-restrictions>
-   Project Requirements <contract/restrictions/project>
-   Structure Restrictions and Requirements <contract/restrictions/structure>
-   Namespace and Type Restrictions <contract/restrictions/type>
-   Other Restrictions <contract/restrictions/others>
 
 
 .. toctree::
@@ -109,25 +100,9 @@ Welcome to first doc's documentation!
    :caption: Resources
 
    Smart Contract APIs <resources/smart-contract-apis/index>
-   Association Contract <resources/smart-contract-apis/association>
-   Referendum Contract <resources/smart-contract-apis/referendum>
-   Parliament Contract <resources/smart-contract-apis/parliament>
-   Consensus Contract <resources/smart-contract-apis/consensus>
-   Election Contract <resources/smart-contract-apis/election>
-   Genesis Contract <resources/smart-contract-apis/genesis>
-   Multi Token Contract <resources/smart-contract-apis/multi-token>
-   Profit Contract <resources/smart-contract-apis/profit>
-   Resource Contract <resources/smart-contract-apis/resource>
-   Cross chain Contract <resources/smart-contract-apis/cross-chain>
-   Treasury Contract <resources/smart-contract-apis/treasury>
-   Vote Contract <resources/smart-contract-apis/vote>
-   Token Holder Contract <resources/smart-contract-apis/token-holder>
    Wallet and Block Explorer <resources/wallet-and-explorer/index>
-   explorer-api <resources/wallet-and-explorer/explorer-api>
-   Command line interface <resources/cli/introduction>
-   Commands <resources/cli/methods>
+   Command line interface <resources/cli/cli>
    Running AElf on the cloud <resources/cloud/main>
-   Google cloud <resources/cloud/gcp/GCP>
    Browser Extension <resources/browser-extension>
    Joining AElf testnet <resources/testnet>
    Running a side chain <tutorials/cross-chain/running-side-chain>
@@ -174,7 +149,6 @@ Welcome to first doc's documentation!
    protocol/main
    protocol/transactions
    public-chain/multi-level-chain
-   resources/cli/cli
    sdk/csharp/core-sdk
    sdk/csharp/contract-sdk
    sdk/javascript/aelf
@@ -193,7 +167,6 @@ Welcome to first doc's documentation!
    tutorials/developing-smart-contracts/descriptors
    tutorials/developing-smart-contracts/extra-types
    tutorials/developing-smart-contracts/token-issue
-   tutorials/setup/main
    tutorials/setup/multi-nodes
    wallet-and-explorer/wallet
 

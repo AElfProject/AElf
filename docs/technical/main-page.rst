@@ -89,7 +89,7 @@ Chains in the kernel represent accounts (AccountManager) and block data.
 -----------------
 
 To learn more about how we organize serialization please check out `this
-:doc:`page <serialization>` 
+:doc:`page <serialization>`
 
 Components
 ----------

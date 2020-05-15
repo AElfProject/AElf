@@ -111,7 +111,6 @@ as well as the port it’s listening on:
 
 .. image:: setup-redis.png
   :height: 400
-  :align: center
 
 SSDB
 ^^^^
@@ -163,7 +162,6 @@ workload:
 
 .. image:: setup-vs-install-workload.png
   :height: 300
-  :align: center
 
 If you don’t have any of the Visual Studio editions installed:
 
@@ -181,14 +179,12 @@ If you don’t have any of the Visual Studio editions installed:
 .. image:: setup-build-tools.png
   :height: 100
   :width: 600
-  :align: center
 
 After the installation open **Visual Studio Installer**, locate and
 install the *C++ build tools*.
 
 .. image:: setup-build-tools-2.png
   :height: 50
-  :align: center
 
 Git
 ~~~
@@ -236,7 +232,6 @@ these days), the page looks like this:
 
 .. image:: setup-dotnet-sdk-dl-link.png
   :height: 200
-  :align: center
 
 Wait for the download to finish, launch the installer and follow the
 instructions (for AElf all defaults provided in the installer should be
