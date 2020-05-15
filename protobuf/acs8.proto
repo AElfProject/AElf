@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ACS8;
+package acs8;
 
 import public "aelf/options.proto";
 import public "google/protobuf/empty.proto";

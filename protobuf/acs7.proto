@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ACS7;
+package acs7;
 
 import public "aelf/core.proto";
 import "aelf/options.proto";
