@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Acs10;
 using AElf.Contracts.Election;
 using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
@@ -82,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
             {
-                ReleaseSideChainDividendsPool();
+                Release();
             }
 
             // Clear cache.
@@ -140,7 +141,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             if (State.IsMainChain.Value && // Only detect evil miners in Main Chain.
-            currentRound.TryToDetectEvilMiners(out var evilMiners))
+                currentRound.TryToDetectEvilMiners(out var evilMiners))
             {
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
@@ -161,28 +162,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
-        }
-
-        private void ReleaseSideChainDividendsPool()
-        {
-            if (State.TokenHolderContract.Value == null) return;
-            var scheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
-            var isTimeToRelease =
-                (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(State.PeriodSeconds.Value) > scheme.Period - 1;
-            Context.LogDebug(() => "ReleaseSideChainDividendsPool Information:\n" +
-                                   $"CurrentBlockTime: {Context.CurrentBlockTime}\n" +
-                                   $"BlockChainStartTime: {State.BlockchainStartTimestamp.Value}\n" +
-                                   $"PeriodSeconds: {State.PeriodSeconds.Value}\n" +
-                                   $"Scheme Period: {scheme.Period}");
-            if (isTimeToRelease)
-            {
-                Context.LogDebug(() => "Ready to release side chain dividends pool.");
-                State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
-                {
-                    SchemeManager = Context.Self
-                });
-            }
         }
 
         private void ProcessNextTerm(Round nextRound)
@@ -234,7 +213,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.TreasuryContract.Release.Send(new ReleaseInput
                 {
-                    TermNumber = termNumber
+                    PeriodNumber = termNumber
                 });
 
                 Context.LogDebug(() => $"Released treasury profit for term {termNumber}");

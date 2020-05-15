@@ -264,7 +264,13 @@ namespace AElf.Contracts.Profit
                 {
                     currentDetail.Details.Remove(expiryDetail);
                 }
+                else
+                {
+                    expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                }
             }
+
+            Context.LogDebug(() => $"ProfitDetails after removing expiry details: {currentDetail}");
 
             // Clear old profit details.
             if (currentDetail.Details.Count != 0)
