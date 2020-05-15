@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Providers;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
@@ -10,24 +12,30 @@ namespace AElf
     {
         private readonly IEnumerable<ITestProvider> _testProvidersEnumerableWrap;
         private readonly IServiceContainer<ITestProvider> _testProvidersServiceContainerWrap;
+        private readonly ServiceContainerFactoryOptions<ITestProvider> _serviceContainerFactoryOptions;
 
         public RegistrationTests()
         {
             _testProvidersEnumerableWrap = GetRequiredService<IEnumerable<ITestProvider>>();
             _testProvidersServiceContainerWrap = GetRequiredService<IServiceContainer<ITestProvider>>();
+            var serviceContainerFactoryOptionsSnapshot = GetRequiredService<IOptionsSnapshot<ServiceContainerFactoryOptions<ITestProvider>>>();
+            _serviceContainerFactoryOptions = serviceContainerFactoryOptionsSnapshot.Value;
         }
 
         [Fact]
         public void IocRegistration_Test()
         {
             var count = _testProvidersEnumerableWrap.Count();
-            count.ShouldBeGreaterThan(0);
-            count.ShouldBeGreaterThan(_testProvidersEnumerableWrap.Select(provider => provider.Name).Distinct().Count());
+            
+            var testProvidersServiceContainerWrapList = _testProvidersServiceContainerWrap.ToList();
+            var count2 = testProvidersServiceContainerWrapList.Count;
+            count.ShouldBeGreaterThanOrEqualTo(count2);
+            count2.ShouldBe(_serviceContainerFactoryOptions.Types.Count);
 
-            var testProviderList = _testProvidersServiceContainerWrap.ToList(); 
-            var count2 = testProviderList.Count;
-            count2.ShouldBeGreaterThan(0);
-            count2.ShouldBeGreaterThan(testProviderList.Select(provider => provider.Name).Distinct().Count());
+            for (int i = 0; i < count2; i++)
+            {
+                testProvidersServiceContainerWrapList[i].GetType().ShouldBe(_serviceContainerFactoryOptions.Types[i]);
+            }
         }
     }
 }
