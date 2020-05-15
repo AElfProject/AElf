@@ -1,14 +1,25 @@
 using AElf.Modularity;
+using AElf.Providers;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf
 {
     [DependsOn(
         typeof(CoreAElfModule))]
-    public class CoreAElfTestModule: AElfModule
+    public class CoreAElfTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var services = context.Services;
+
+            services.AddSingleton(typeof(ITestProvider),
+                typeof(CTestProvider));
+            services.AddSingleton(typeof(ITestProvider),
+                typeof(CTestProvider));
+            services.AddSingleton(typeof(ITestProvider),
+                typeof(ATestProvider));
         }
     }
 }
