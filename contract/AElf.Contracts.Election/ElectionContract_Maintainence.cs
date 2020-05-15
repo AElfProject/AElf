@@ -113,13 +113,13 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
-            if (State.Acs10ForTreasuryContract.Value == null)
+            if (State.DividendPoolContract.Value == null)
             {
-                State.Acs10ForTreasuryContract.Value =
+                State.DividendPoolContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            var symbolList = State.Acs10ForTreasuryContract.GetSymbolList.Call(new Empty());
+            var symbolList = State.DividendPoolContract.GetSymbolList.Call(new Empty());
             var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {

@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS10;
-using AElf.Contracts.Association;
-using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -373,7 +371,7 @@ namespace AElf.Contracts.MultiToken
                 $"Now LatestTotalResourceTokensMapsHash is {State.LatestTotalResourceTokensMapsHash.Value}");
 
             var isMainChain = true;
-            if (State.TreasuryContract.Value == null || State.Acs10ForTreasuryContract.Value == null)
+            if (State.DividendPoolContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
@@ -383,8 +381,7 @@ namespace AElf.Contracts.MultiToken
                 }
                 else
                 {
-                    State.TreasuryContract.Value = treasuryContractAddress;
-                    State.Acs10ForTreasuryContract.Value = treasuryContractAddress;
+                    State.DividendPoolContract.Value = treasuryContractAddress;
                 }
             }
 
@@ -434,7 +431,7 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            State.Acs10ForTreasuryContract.Donate.Send(new DonateInput
+                            State.DividendPoolContract.Donate.Send(new DonateInput
                             {
                                 Symbol = symbol,
                                 Amount = amount
@@ -600,9 +597,9 @@ namespace AElf.Contracts.MultiToken
             if ( treasuryContractName!= null)
             {
                 // Main chain would donate tx fees to dividend pool.
-                if (State.Acs10ForTreasuryContract.Value == null)
-                    State.Acs10ForTreasuryContract.Value = treasuryContractName;
-                State.Acs10ForTreasuryContract.Donate.Send(new DonateInput
+                if (State.DividendPoolContract.Value == null)
+                    State.DividendPoolContract.Value = treasuryContractName;
+                State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
                     Amount = transferAmount
