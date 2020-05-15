@@ -80,6 +80,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf/Proto/transaction_fee.proto</Link>
         </ContractMessage>

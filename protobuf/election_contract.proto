@@ -7,6 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 import "aelf/options.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
@@ -43,7 +44,7 @@ service ElectionContract {
     }
     rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {
     }
-    rpc ChangeVoteWeightInterestController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeVoteWeightInterestController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
     // View
@@ -116,7 +117,7 @@ service ElectionContract {
     rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){
         option (aelf.is_view) = true;
     }
-    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
+    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }
