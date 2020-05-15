@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package TokenConvertImpl;
+package TokenConverterImpl;
 
 import "acs1.proto";
 import "token_converter_contract.proto";

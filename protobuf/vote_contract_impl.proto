@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package voteImp;
+package VoteImp;
 
 import "acs1.proto";
 import "vote_contract.proto";

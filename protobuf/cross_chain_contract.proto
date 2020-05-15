@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package crossChain;
+package CrossChain;
 
 import "acs7.proto";
 import "aelf/options.proto";

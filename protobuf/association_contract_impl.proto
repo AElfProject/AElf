@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package associationImpl;
+package AssociationImpl;
 
 import "acs1.proto";
 import "acs3.proto";

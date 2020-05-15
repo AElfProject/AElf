@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package CrossChainImpl;
+
 import "acs1.proto";
 import "acs7.proto";
 import "google/protobuf/wrappers.proto";

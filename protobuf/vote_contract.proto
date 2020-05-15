@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package vote;
+package Vote;
 
 import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";

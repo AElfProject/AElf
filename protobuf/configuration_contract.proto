@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package configuration;
+package Configuration;
 
 import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
