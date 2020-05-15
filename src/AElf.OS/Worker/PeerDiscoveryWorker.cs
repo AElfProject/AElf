@@ -33,10 +33,10 @@ namespace AElf.OS.Worker
 
         protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            await ProcessPeerDiscoveryJob();
+            await ProcessPeerDiscoveryJobAsync();
         }
 
-        internal async Task ProcessPeerDiscoveryJob()
+        internal async Task ProcessPeerDiscoveryJobAsync()
         {
             var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
 

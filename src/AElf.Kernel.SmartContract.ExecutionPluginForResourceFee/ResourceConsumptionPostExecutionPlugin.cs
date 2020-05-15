@@ -69,8 +69,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                 return new List<Transaction>();
             }
             
-            if (//transactionContext.Transaction.To == context.Self &&
-                transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+            if (transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
                     .ResourceConsumptionContractStub.BuyResourceToken))
             {
                 return new List<Transaction>();
