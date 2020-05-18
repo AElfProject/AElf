@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package zeroImpl;
+package ZeroImpl;
 
 import "acs0.proto";
 import "acs1.proto";

@@ -48,6 +48,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+
+    <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>
         </ContractStub>
@@ -68,9 +74,6 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\stub\parliament_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\resource_contract.proto">
-            <Link>Protobuf\Proto\stub\resource_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>

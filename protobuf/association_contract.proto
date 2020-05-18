@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package Association;
+
 import "acs3.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";

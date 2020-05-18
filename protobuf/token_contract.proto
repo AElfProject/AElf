@@ -1,11 +1,12 @@
 syntax = "proto3";
 
-package token;
+package Token;
 
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
@@ -93,15 +94,15 @@ service TokenContract {
 
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSideChainRentalController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeSideChainRentalController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSymbolsToPayTXSizeFeeController(aelf.AuthorityInfo) returns (google.protobuf.Empty){
+    rpc ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo) returns (google.protobuf.Empty){
     }
-    rpc ChangeCrossChainTokenContractRegistrationController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeCrossChainTokenContractRegistrationController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeUserFeeController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeUserFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeDeveloperController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -164,10 +165,10 @@ service TokenContract {
     rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (aelf.AuthorityInfo){
+    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (AuthorityInfo){
         option (aelf.is_view) = true;
     }
-    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
+    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){
@@ -176,7 +177,7 @@ service TokenContract {
     rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -643,13 +644,13 @@ message ReceiveProfitsInput {
 
 // about authority
 message UserFeeController{
-    aelf.AuthorityInfo root_controller = 1;
-    aelf.AuthorityInfo parliament_controller = 2;
-    aelf.AuthorityInfo referendum_controller = 3;
+    AuthorityInfo root_controller = 1;
+    AuthorityInfo parliament_controller = 2;
+    AuthorityInfo referendum_controller = 3;
 }
 
 message DeveloperFeeController {
-    aelf.AuthorityInfo root_controller = 1;
-    aelf.AuthorityInfo parliament_controller = 2;
-    aelf.AuthorityInfo developer_controller = 3;
+    AuthorityInfo root_controller = 1;
+    AuthorityInfo parliament_controller = 2;
+    AuthorityInfo developer_controller = 3;
 }

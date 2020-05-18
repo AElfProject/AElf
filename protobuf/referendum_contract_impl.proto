@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package ReferendumImpl;
+
 import "acs1.proto";
 import "acs3.proto";
 import "referendum_contract.proto";

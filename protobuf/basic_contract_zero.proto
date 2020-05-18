@@ -1,31 +1,31 @@
 syntax = "proto3";
 
-package zero;
+package Zero;
 
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
-
     
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc ChangeContractDeploymentController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeContractDeploymentController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeCodeCheckController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeCodeCheckController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
-    rpc GetContractDeploymentController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
+    rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetCodeCheckController(google.protobuf.Empty) returns (aelf.AuthorityInfo){
+    rpc GetCodeCheckController(google.protobuf.Empty) returns (AuthorityInfo){
         option (aelf.is_view) = true;
     }
 }

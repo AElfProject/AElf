@@ -6,6 +6,7 @@ import public "aelf/options.proto";
 import public "google/protobuf/empty.proto";
 import public "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
+import "authority_info.proto";
 
 option (aelf.identity) = "acs1";
 option csharp_namespace = "AElf.Standards.ACS1";
@@ -16,7 +17,7 @@ service MethodFeeProviderContract {
     rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty) {
     }
 
-    rpc ChangeMethodFeeController (aelf.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
     // Views
@@ -24,7 +25,7 @@ service MethodFeeProviderContract {
         option (aelf.is_view) = true;
     }
 
-    rpc GetMethodFeeController (google.protobuf.Empty) returns (aelf.AuthorityInfo) {
+    rpc GetMethodFeeController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

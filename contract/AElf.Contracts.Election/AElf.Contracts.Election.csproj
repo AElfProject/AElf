@@ -18,6 +18,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+
+    <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
@@ -38,9 +44,6 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
-            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

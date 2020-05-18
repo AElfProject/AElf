@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package economic;
+package Economic;
 
 import "aelf/core.proto";
 import "aelf/options.proto";

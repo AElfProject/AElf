@@ -17,7 +17,13 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\reference\test_basic_function_contract.proto</Link>
