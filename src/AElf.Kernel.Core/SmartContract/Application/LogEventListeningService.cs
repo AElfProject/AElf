@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public ILogger<LogEventListeningService<T>> Logger { get; set; }
 
-        public LogEventListeningService(IServiceContainer<T> logEventProcessors)
+        public LogEventListeningService(IEnumerable<T> logEventProcessors)
         {
             _logEventProcessors = logEventProcessors.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }

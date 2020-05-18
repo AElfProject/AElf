@@ -1,5 +1,6 @@
 using MartinCostello.Logging.XUnit;
 using Volo.Abp;
+using Volo.Abp.Testing;
 using Volo.Abp.Modularity;
 using Xunit.Abstractions;
 
