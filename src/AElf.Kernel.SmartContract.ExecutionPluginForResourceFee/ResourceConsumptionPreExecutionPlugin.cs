@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -14,15 +12,19 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceConsumptionPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
+    internal class ResourceConsumptionPreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
         ISingletonDependency
     {
-        private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
+            _contractReaderFactory;
 
-        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService) :
+        public ResourceConsumptionPreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
+            IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
             base("acs8")
         {
-            _contextService = contextService;
+            _smartContractAddressService = smartContractAddressService;
+            _contractReaderFactory = contractReaderFactory;
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -32,40 +34,41 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             {
                 return new List<Transaction>();
             }
-
-            var context = _contextService.Create();
-            context.TransactionContext = transactionContext;
+            
+            var chainContext = new ChainContext
+            {
+                BlockHash = transactionContext.PreviousBlockHash,
+                BlockHeight = transactionContext.BlockHeight - 1
+            };
 
             // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractImplContainer.TokenContractImplStub
+            var tokenStub = _contractReaderFactory.Create(new ContractReaderContext
             {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = tokenContractAddress
-                }
-            };
+                ContractAddress = tokenContractAddress,
+                Sender = transactionContext.Transaction.To
+            });
+            
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
                 return new List<Transaction>();
             }
 
-            if (transactionContext.Transaction.To == context.Self &&
-                transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+            if (transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
                     .ResourceConsumptionContractStub.BuyResourceToken))
             {
                 return new List<Transaction>();
             }
 
-            var checkResourceTokenTransaction =
-                (await tokenStub.CheckResourceToken.SendAsync(new Empty())).Transaction;
+            var checkResourceTokenTransaction = tokenStub.CheckResourceToken.GetTransaction(new Empty());
 
             return new List<Transaction>
             {

@@ -1,9 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Genesis;
-using AElf.CrossChain.Communication.Grpc;
+using AElf.CrossChain;
+using AElf.CrossChain.Grpc;
 using AElf.CSharp.CodeOps;
+using AElf.EconomicSystem;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
@@ -32,8 +34,9 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(AEDPoSAElfModule),
+        typeof(CrossChainAElfModule),
         typeof(KernelAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
@@ -42,11 +45,13 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
+        
+        typeof(GovernmentSystemAElfModule),
+        typeof(EconomicSystemAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
         typeof(ParallelExecutionModule),
-        typeof(ContractNamesAElfModule),
 
         //plugin
         typeof(ExecutionPluginForMethodFeeModule),

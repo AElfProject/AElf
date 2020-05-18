@@ -26,7 +26,7 @@ namespace AElf.Kernel
         static SampleAddress()
         {
             AddressList = new ReadOnlyCollection<Address>(
-                Base58Strings.Select(AddressHelper.Base58StringToAddress).ToList());
+                Base58Strings.Select(Address.FromBase58).ToList());
         }
     }
 }

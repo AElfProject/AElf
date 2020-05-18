@@ -1,16 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
@@ -33,40 +29,39 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (preBlockHeight == 1) return generatedTransactions;
-
-            if (preBlockHeight < AElfConstants.GenesisBlockHeight)
-                return generatedTransactions;
-
-            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
-                TokenSmartContractAddressNameProvider.Name);
-
-            if (tokenContractAddress == null)
-            {
-                return generatedTransactions;
-            }
 
             var chainContext = new ChainContext
             {
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
             };
+
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                    TokenSmartContractAddressNameProvider.StringName);
+
+            if (tokenContractAddress == null)
+            {
+                return generatedTransactions;
+            }
+
             var totalResourceTokensMaps = await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(
                 chainContext);
 
-            var input = ByteString.Empty;
+            ByteString input;
             if (totalResourceTokensMaps != null && totalResourceTokensMaps.BlockHeight == preBlockHeight &&
                 totalResourceTokensMaps.BlockHash == preBlockHash)
             {
+                // If totalResourceTokensMaps match current block.
                 input = totalResourceTokensMaps.ToByteString();
             }
             else
             {
-                await _totalResourceTokensMapsProvider.SetTotalResourceTokensMapsAsync(new BlockIndex
+                input = new TotalResourceTokensMaps
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                }, TotalResourceTokensMaps.Parser.ParseFrom(ByteString.Empty));
+                }.ToByteString();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
@@ -77,7 +72,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
                     MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.DonateResourceToken),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
-                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
+                    RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
                     Params = input
                 }
             });

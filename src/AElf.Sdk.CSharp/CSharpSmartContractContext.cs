@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContract;
 namespace AElf.Sdk.CSharp
 {
     /// <summary>
-    /// represents the transaction execution context in a smart contract. An instance of this class is present in the
+    /// Represents the transaction execution context in a smart contract. An instance of this class is present in the
     /// base class for smart contracts (Context property). It provides access to properties and methods useful for
     /// implementing the logic in smart contracts.
     /// </summary>
@@ -29,7 +29,7 @@ namespace AElf.Sdk.CSharp
         /// Provides access to the underlying state provider.
         /// </summary>
         public IStateProvider StateProvider => _smartContractBridgeContextImplementation.StateProvider;
-        
+
         /// <summary>
         /// The chain id of the chain on which the contract is currently running.
         /// </summary>
@@ -40,7 +40,7 @@ namespace AElf.Sdk.CSharp
         /// applications log file to simplify development. Note that these logs are only visible when the node
         /// executing the transaction is build in debug mode.
         /// </summary>
-        /// <param name="func">the logic that will be executed for logging purposes.</param>
+        /// <param name="func">The logic that will be executed for logging purposes.</param>
         public void LogDebug(Func<string> func)
         {
             _smartContractBridgeContextImplementation.LogDebug(func);
@@ -69,7 +69,7 @@ namespace AElf.Sdk.CSharp
         /// The address of the contract currently being executed. This changes for every transaction and inline transaction.
         /// </summary>
         public Address Self => _smartContractBridgeContextImplementation.Self;
-        
+
         /// <summary>
         /// The address of the sender (signer) of the transaction being executed. It’s type is an AElf address. It
         /// corresponds to the From field of the transaction. This value never changes, even for nested inline calls.
@@ -77,6 +77,8 @@ namespace AElf.Sdk.CSharp
         /// the transaction (user or smart contract through an inline call).
         /// </summary>
         public Address Origin => _smartContractBridgeContextImplementation.Origin;
+
+        public Hash OriginTransactionId => _smartContractBridgeContextImplementation.OriginTransactionId;
 
         /// <summary>
         /// The height of the block that contains the transaction currently executing.
@@ -119,8 +121,8 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Returns whether or not the given transaction is well formed and the signature is correct.
         /// </summary>
-        /// <param name="tx">the transaction to verify</param>
-        /// <returns>true if correct, false otherwise</returns>
+        /// <param name="tx">The transaction to verify.</param>
+        /// <returns>The verification results.</returns>
         public bool VerifySignature(Transaction tx)
         {
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
@@ -139,24 +141,25 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Calls a method on another contract.
         /// </summary>
-        /// <param name="address">the address of the contract you're seeking to interact with</param>
-        /// <param name="methodName">the name of method you want to call</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromAddress">The address to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to call.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type</param>
         /// <typeparam name="T">The type of the return message.</typeparam>
         /// <returns>The result of the call.</returns>
-        public T Call<T>(Address address, string methodName, ByteString args)
+        public T Call<T>(Address fromAddress, Address toAddress, string methodName, ByteString args)
             where T : IMessage<T>, new()
         {
-            return _smartContractBridgeContextImplementation.Call<T>(address, methodName, args);
+            return _smartContractBridgeContextImplementation.Call<T>(fromAddress, toAddress, methodName, args);
         }
 
         /// <summary>
         /// Sends an inline transaction to another contract.
         /// </summary>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
         public void SendInline(Address toAddress, string methodName, ByteString args)
         {
@@ -166,49 +169,76 @@ namespace AElf.Sdk.CSharp
         /// <summary>
         /// Sends a virtual inline transaction to another contract.
         /// </summary>
-        /// <param name="fromVirtualAddress">the virtual address to use as sender.</param>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromVirtualAddress">The virtual address to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
         {
-            _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName, args);
+            _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
+                args);
         }
 
         /// <summary>
         /// Like SendVirtualInline but the virtual address us a system smart contract. 
         /// </summary>
-        /// <param name="fromVirtualAddress">the virtual address of the system contract to use as sender.</param>
-        /// <param name="toAddress">the address of the contract you're seeking to interact with.</param>
-        /// <param name="methodName">the name of method you want to invoke.</param>
-        /// <param name="args">the input arguments for calling that method. This is usually generated from the protobuf
+        /// <param name="fromVirtualAddress">The virtual address of the system contract to use as sender.</param>
+        /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
+        /// <param name="methodName">The name of method you want to invoke.</param>
+        /// <param name="args">The input arguments for calling that method. This is usually generated from the protobuf
         /// definition of the input type.</param>
-        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
+        public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
+            ByteString args)
         {
             _smartContractBridgeContextImplementation.SendVirtualInlineBySystemContract(fromVirtualAddress, toAddress,
                 methodName, args);
         }
 
         /// <summary>
-        /// Converts a virtual address to the contracts address.
+        /// Converts a virtual address to a contract address.
         /// </summary>
-        /// <param name="virtualAddress">The address.</param>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
         /// <returns>The converted address.</returns>
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress);
         }
-        
+
         /// <summary>
-        /// Converts a virtual address to the contracts address.
+        /// Converts a virtual address to a contract address with the current contract hash name.
         /// </summary>
-        /// <param name="virtualAddress"></param>
-        /// <returns></returns>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <returns>The converted address.</returns>
         public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress)
         {
             return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
                 virtualAddress);
+        }
+
+        /// <summary>
+        /// Converts a virtual address to a contract address with the contract address.
+        /// </summary>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <param name="contractAddress">The contract address.</param>
+        /// <returns>The converted address.</returns>
+        public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress)
+        {
+            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress,
+                contractAddress);
+        }
+
+        /// <summary>
+        /// Converts a virtual address to a contract address with the contract hash name.
+        /// </summary>
+        /// <param name="virtualAddress">The virtual address that want to convert.</param>
+        /// <param name="contractAddress">The contract address.</param>
+        /// <returns></returns>
+        public Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,
+            Address contractAddress)
+        {
+            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddressWithContractHashName(
+                virtualAddress, contractAddress);
         }
 
         /// <summary>
@@ -237,11 +267,11 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         /// <param name="hash">The hash of the name.</param>
         /// <returns>The address of the system contract.</returns>
-        public Address GetContractAddressByName(Hash hash)
+        public Address GetContractAddressByName(string hash)
         {
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
         }
-        
+
         /// <summary>
         /// Get the mapping that associates the system contract addresses and their name's hash.
         /// </summary>
@@ -250,7 +280,7 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GetSystemContractNameToAddressMapping();
         }
-        
+
         /// <summary>
         /// Encrypts a message with the given public key.
         /// </summary>
@@ -271,6 +301,17 @@ namespace AElf.Sdk.CSharp
         public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
             return _smartContractBridgeContextImplementation.DecryptMessage(senderPublicKey, cipherMessage);
+        }
+
+        /// <summary>
+        /// Generate a hash type id based on the contract address and the bytes.
+        /// </summary>
+        /// <param name="contractAddress">The contract address on which the id generation is based.</param>
+        /// <param name="bytes">The bytes on which the id generation is based.</param>
+        /// <returns>The generated hash type id.</returns>
+        public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
+        {
+            return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
     }
 }

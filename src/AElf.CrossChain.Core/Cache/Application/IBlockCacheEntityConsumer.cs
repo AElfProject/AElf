@@ -1,3 +1,4 @@
+using AElf.CrossChain.Cache.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 

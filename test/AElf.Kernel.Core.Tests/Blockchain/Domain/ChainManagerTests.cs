@@ -28,7 +28,7 @@ namespace AElf.Kernel.Blockchain.Domain
             var bytes = BitConverter.GetBytes(n);
             var arr = new byte[32];
             Array.Copy(bytes, arr, bytes.Length);
-            return Hash.FromByteArray(arr);
+            return Hash.LoadFromByteArray(arr);
         }
 
         public ChainManagerTests()

@@ -185,7 +185,7 @@ namespace AElf.Contracts.TokenConverter
 
             // Transfer base token
             State.TokenContract.Transfer.Send(
-                new TransferInput()
+                new TransferInput
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     To = Context.Sender,
@@ -195,14 +195,14 @@ namespace AElf.Contracts.TokenConverter
                 State.DepositBalance[toConnector.Symbol].Sub(amountToReceive);
             // Transfer sold token
             State.TokenContract.TransferFrom.Send(
-                new TransferFromInput()
+                new TransferFromInput
                 {
                     Symbol = input.Symbol,
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = input.Amount
                 });
-            Context.Fire(new TokenSold()
+            Context.Fire(new TokenSold
             {
                 Symbol = input.Symbol,
                 SoldAmount = input.Amount,
@@ -295,14 +295,6 @@ namespace AElf.Contracts.TokenConverter
         public override Empty ChangeConnectorController(AuthorityInfo input)
         {
             AssertPerformedByConnectorController();
-            Assert(input != null, "invalid input");
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-            
-            Assert(input.ContractAddress == State.ParliamentContract.Value, "wrong organization type");
             Assert(CheckOrganizationExist(input), "new controller does not exist");
             State.ConnectorController.Value = input;
             return new Empty();

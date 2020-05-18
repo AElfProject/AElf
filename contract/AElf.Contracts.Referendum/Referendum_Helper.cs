@@ -42,8 +42,8 @@ namespace AElf.Contracts.Referendum
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
-            var lockId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(proposalId), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            var lockId = Context.GenerateId(Context.Self,
+                HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFrom(lockedAddress)));
             RequireTokenContractStateSet();
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -140,10 +140,14 @@ namespace AElf.Contracts.Referendum
             return allowance;
         }
 
+        private Hash GenerateProposalId(CreateProposalInput input)
+        {
+            return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFrom(input));
+        }
+        
         private Hash CreateNewProposal(CreateProposalInput input)
         {
-            Hash proposalId = Hash.FromTwoHashes(Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId),
-                Hash.FromRawBytes(Context.CurrentBlockTime.ToByteArray()));
+            Hash proposalId = GenerateProposalId(input);
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             var proposal = new ProposalInfo
             {
@@ -164,7 +168,7 @@ namespace AElf.Contracts.Referendum
 
         private void AssertIsAuthorizedProposer(Address organizationAddress, Address proposer)
         {
-            var organization = State.Organisations[organizationAddress];
+            var organization = State.Organizations[organizationAddress];
             Assert(organization != null, "Organization not found.");
             Assert(organization.ProposerWhiteList.Contains(proposer), "Unauthorized to propose.");
         }
@@ -172,7 +176,7 @@ namespace AElf.Contracts.Referendum
         private OrganizationHashAddressPair CalculateOrganizationHashAddressPair(
             CreateOrganizationInput createOrganizationInput)
         {
-            var organizationHash = Hash.FromMessage(createOrganizationInput);
+            var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
             var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
             return new OrganizationHashAddressPair
             {

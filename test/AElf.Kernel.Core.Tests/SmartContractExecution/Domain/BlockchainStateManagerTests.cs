@@ -25,7 +25,7 @@ namespace AElf.Kernel
             {
                 _tv.Add(new TestPair()
                 {
-                    BlockHash = Hash.FromRawBytes(new[] {Convert.ToByte(i)}),
+                    BlockHash = HashHelper.ComputeFrom(new[] {Convert.ToByte(i)}),
                     BlockHeight = i,
                     Key = $"key{i}",
                     Value = ByteString.CopyFromUtf8($"value{i}")
@@ -272,7 +272,7 @@ namespace AElf.Kernel
             {
                 BlockHash = _tv[0].BlockHash,
                 BlockHeight = _tv[0].BlockHeight,
-                PreviousHash = Hash.FromString("PreviousHash"),
+                PreviousHash = HashHelper.ComputeFrom("PreviousHash"),
                 Changes =
                 {
                     {
@@ -343,7 +343,7 @@ namespace AElf.Kernel
             {
                 BlockHash = _tv[1].BlockHash,
                 BlockHeight = _tv[1].BlockHeight,
-                PreviousHash = Hash.FromString("PreviousHash"),
+                PreviousHash = HashHelper.ComputeFrom("PreviousHash"),
                 Changes =
                 {
                     {

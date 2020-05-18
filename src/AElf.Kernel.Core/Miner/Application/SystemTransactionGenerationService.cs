@@ -11,6 +11,7 @@ namespace AElf.Kernel.Miner.Application
 
         public ILogger<SystemTransactionGenerationService> Logger { get; set; }
 
+        // TODO: A better strategy to control system transaction order.
         public SystemTransactionGenerationService(IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
             _systemTransactionGenerators = systemTransactionGenerators;

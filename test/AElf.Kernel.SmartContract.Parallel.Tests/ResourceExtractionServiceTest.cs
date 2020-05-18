@@ -8,7 +8,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shouldly;
-using Volo.Abp;
+using Volo.Abp.Testing;
 using Xunit;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
@@ -113,8 +113,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = AddressHelper.Base58StringToAddress("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
-                To = AddressHelper.Base58StringToAddress(InternalConstants.Acs2),
+                From = Address.FromBase58("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
+                To = Address.FromBase58(InternalConstants.Acs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
@@ -125,8 +125,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = AddressHelper.Base58StringToAddress("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
-                To = AddressHelper.Base58StringToAddress(InternalConstants.NonAcs2),
+                From = Address.FromBase58("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
+                To = Address.FromBase58(InternalConstants.NonAcs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)

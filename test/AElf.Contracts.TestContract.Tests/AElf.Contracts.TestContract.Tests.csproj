@@ -11,7 +11,7 @@
     </PropertyGroup>
 
    <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -41,6 +41,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -93,6 +94,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs8.proto">
             <Link>Protobuf/Proto/acs8.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\stub\acs10.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>

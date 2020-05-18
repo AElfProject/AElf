@@ -14,11 +14,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
         typeof(KernelTestAElfModule),
+        typeof(SmartContractAElfModule),
         typeof(AEDPoSAElfModule))]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSTestAElfModule : AElfModule
@@ -36,7 +38,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     var chain = new Chain
                     {
                         LastIrreversibleBlockHeight = 10,
-                        LastIrreversibleBlockHash = Hash.FromString("LastIrreversibleBlockHash")
+                        LastIrreversibleBlockHash = HashHelper.ComputeFrom("LastIrreversibleBlockHash")
                     };
 
                     return Task.FromResult(chain);
@@ -54,9 +56,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         {
                             TransactionIds =
                             {
-                                Hash.FromString("not exist"),
-                                Hash.FromString("failed case"),
-                                Hash.FromString("mined case")
+                                HashHelper.ComputeFrom("not exist"),
+                                HashHelper.ComputeFrom("failed case"),
+                                HashHelper.ComputeFrom("mined case")
                             }
                         }
                     }
@@ -71,15 +73,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ITransactionResultQueryService>();
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("not exist"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(HashHelper.ComputeFrom("not exist"))))
                     .Returns(Task.FromResult<TransactionResult>(null));
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("failed case"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(HashHelper.ComputeFrom("failed case"))))
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Error = "failed due to some reason",
                         Status = TransactionResultStatus.Failed
                     }));
-                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("mined case"))))
+                mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(HashHelper.ComputeFrom("mined case"))))
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Status = TransactionResultStatus.Mined,
@@ -100,12 +102,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                var consensusHash = ConsensusSmartContractAddressNameProvider.Name;
-                mockService.Setup(o => o.GetAddressByContractName(It.Is<Hash>(hash => hash != consensusHash)))
-                    .Returns(SampleAddress.AddressList[0]);
+                var consensusHash = ConsensusSmartContractAddressNameProvider.StringName;
+                mockService.Setup(o => o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<string>(hash => hash != consensusHash)))
+                    .Returns(Task.FromResult(SampleAddress.AddressList[0]));
                 mockService.Setup(o =>
-                        o.GetAddressByContractName(It.Is<Hash>(hash => hash == consensusHash)))
-                    .Returns(SampleAddress.AddressList[1]);
+                        o.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.Is<string>(hash => hash == consensusHash)))
+                    .Returns(Task.FromResult(SampleAddress.AddressList[1]));
 
                 return mockService.Object;
             });

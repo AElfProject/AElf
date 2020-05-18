@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -7,29 +8,38 @@ namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusReaderContextService
     {
-        Timestamp GetBlockTime();
-        Task<Address> GetAccountAsync();
+        Task<ContractReaderContext> GetContractReaderContextAsync(IChainContext chainContext);
     }
 
     public class ConsensusReaderContextService : IConsensusReaderContextService
     {
         private readonly IBlockTimeProvider _blockTimeProvider;
         private readonly IAccountService _accountService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ConsensusReaderContextService(IBlockTimeProvider blockTimeProvider, IAccountService accountService)
+        public ConsensusReaderContextService(IBlockTimeProvider blockTimeProvider, IAccountService accountService,
+            ISmartContractAddressService smartContractAddressService)
         {
             _blockTimeProvider = blockTimeProvider;
             _accountService = accountService;
+            _smartContractAddressService = smartContractAddressService;
         }
 
-        public Timestamp GetBlockTime()
+        public async Task<ContractReaderContext> GetContractReaderContextAsync(IChainContext chainContext)
         {
-            return _blockTimeProvider.GetBlockTime();
-        }
+            var timestamp = _blockTimeProvider.GetBlockTime();
+            var sender = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
+            var consensusContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
+                chainContext, ConsensusSmartContractAddressNameProvider.StringName);
 
-        public async Task<Address> GetAccountAsync()
-        {
-            return Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
+            return new ContractReaderContext
+            {
+                BlockHash = chainContext.BlockHash,
+                BlockHeight = chainContext.BlockHeight,
+                ContractAddress = consensusContractAddress,
+                Sender = sender,
+                Timestamp = timestamp
+            };
         }
     }
 }

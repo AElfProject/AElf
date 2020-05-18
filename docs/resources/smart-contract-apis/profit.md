@@ -14,6 +14,8 @@ message CreateSchemeInput {
     bool is_release_all_balance_every_time_by_default = 2;
     sint32 delay_distribute_period_count = 3;
     aelf.Address manager = 4;
+    bool can_remove_beneficiary_directly = 5;
+    aelf.Hash token = 6;
 }
 
 message SchemeCreated {
@@ -30,6 +32,8 @@ message SchemeCreated {
 - **profit receiving due period_count** optional, defaults to 10.
 - **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
 - **delay distribute period count** distribute bonus after terms.
+- **can remove beneficiary directly** indicates whether the beneficiary can be removed without considering its EndPeriod and IsWeightRemoved.
+- **token** used to indicates scheme id.
 
 **returns**:
 - **value**: the newly created scheme id.

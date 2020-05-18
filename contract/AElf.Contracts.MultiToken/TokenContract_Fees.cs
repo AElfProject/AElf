@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
+using Acs10;
 using AElf.Contracts.Association;
 using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
@@ -177,23 +178,9 @@ namespace AElf.Contracts.MultiToken
             {
                 Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = GetBalance(Context.Sender, pair.Key);
-                if (existingBalance < pair.Value)
-                {
-                    bill.FeesMap.Add(pair.Key, existingBalance);
-                    var owningBalance = State.OwningResourceToken[Context.Sender][pair.Key]
-                        .Add(pair.Value.Sub(existingBalance));
-                    State.OwningResourceToken[Context.Sender][pair.Key] = owningBalance;
-                    Context.LogDebug(() => $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
-                    Context.Fire(new ResourceTokenOwned
-                    {
-                        Symbol = pair.Key,
-                        Amount = owningBalance
-                    });
-                }
-                else
-                {
-                    bill.FeesMap.Add(pair.Key, pair.Value);
-                }
+                Assert(existingBalance >= pair.Value,
+                    $"Insufficient resource of {pair.Key}. Need balance: {pair.Value}; Current balance: {existingBalance}.");
+                bill.FeesMap.Add(pair.Key, pair.Value);
             }
 
             foreach (var pair in bill.FeesMap)
@@ -359,7 +346,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
             Context.LogDebug(() => $"Claim transaction fee. {input}");
-            State.LatestTotalTransactionFeesMapHash.Value = Hash.FromMessage(input);
+            State.LatestTotalTransactionFeesMapHash.Value = HashHelper.ComputeFrom(input);
             foreach (var bill in input.Value)
             {
                 var symbol = bill.Key;
@@ -381,7 +368,10 @@ namespace AElf.Contracts.MultiToken
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
             Context.LogDebug(() => $"Start donate resource token. {input}");
-            State.LatestTotalResourceTokensMapsHash.Value = Hash.FromMessage(input);
+            State.LatestTotalResourceTokensMapsHash.Value = HashHelper.ComputeFrom(input);
+            Context.LogDebug(() =>
+                $"Now LatestTotalResourceTokensMapsHash is {State.LatestTotalResourceTokensMapsHash.Value}");
+
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
@@ -397,7 +387,7 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            PayTransactionFee(input, isMainChain);
+            PayResourceTokens(input, isMainChain);
 
             if (!isMainChain)
             {
@@ -412,33 +402,50 @@ namespace AElf.Contracts.MultiToken
             return State.LatestTotalResourceTokensMapsHash.Value;
         }
 
-        private void PayTransactionFee(TotalResourceTokensMaps billMaps, bool isMainChain)
+        private void PayResourceTokens(TotalResourceTokensMaps billMaps, bool isMainChain)
         {
             foreach (var bill in billMaps.Value)
             {
                 foreach (var feeMap in bill.TokensMap.Value)
                 {
-                    if (feeMap.Value > 0)
+                    var symbol = feeMap.Key;
+                    var amount = feeMap.Value;
+                    // Check balance in case of insufficient balance.
+                    var existingBalance = GetBalance(bill.ContractAddress, symbol);
+                    if (amount > existingBalance)
                     {
-                        ModifyBalance(bill.ContractAddress, feeMap.Key, -feeMap.Value);
+                        var owned = amount.Sub(existingBalance);
+                        var currentOwning = State.OwningResourceToken[bill.ContractAddress][symbol].Add(owned);
+                        State.OwningResourceToken[bill.ContractAddress][symbol] = currentOwning;
+                        Context.Fire(new ResourceTokenOwned
+                        {
+                            Symbol = symbol,
+                            Amount = currentOwning,
+                            ContractAddress = bill.ContractAddress
+                        });
+                        amount = existingBalance;
+                    }
+                    if (amount > 0)
+                    {
+                        ModifyBalance(bill.ContractAddress, symbol, -amount);
                         if (isMainChain)
                         {
-                            Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to dividend pool.");
+                            Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
-                            ModifyBalance(Context.Self, feeMap.Key, feeMap.Value);
+                            ModifyBalance(Context.Self, symbol, amount);
                             State.TreasuryContract.Donate.Send(new DonateInput
                             {
-                                Symbol = feeMap.Key,
-                                Amount = feeMap.Value
+                                Symbol = symbol,
+                                Amount = amount
                             });
                         }
                         else
                         {
-                            Context.LogDebug(() => $"Adding {feeMap.Value} of {feeMap.Key}s to consensus address account.");
+                            Context.LogDebug(() => $"Adding {amount} of {symbol}s to consensus address account.");
                             // Side Chain
                             var consensusContractAddress =
                                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                            ModifyBalance(consensusContractAddress, feeMap.Key, feeMap.Value);
+                            ModifyBalance(consensusContractAddress, symbol, amount);
                         }
                     }
                 }
@@ -627,6 +634,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Address GetFeeReceiver(Empty input)
+        {
+            return State.FeeReceiver.Value;
+        }
+
         private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
@@ -643,28 +655,6 @@ namespace AElf.Contracts.MultiToken
                 "Invalid symbol.");
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
-        }
-
-        private void AssertControllerForSideChainRental()
-        {
-            Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var createOrganizationInput = GetControllerCreateInputForSideChainRental();
-            var controllerForRental =
-                CalculateSideChainRentalController(createOrganizationInput.OrganizationCreationInput);
-            Assert(controllerForRental == Context.Sender, "no permission");
-        }
-
-        private Address CalculateSideChainRentalController(
-            CreateOrganizationInput input)
-        {
-            if (State.AssociationContract.Value == null)
-            {
-                State.AssociationContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.AssociationContractSystemName);
-            }
-
-            var address = State.AssociationContract.CalculateOrganizationAddress.Call(input);
-            return address;
         }
     }
 }

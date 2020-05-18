@@ -79,7 +79,7 @@ namespace AElf.Contracts.TokenHolder
                 SchemeId = scheme.SchemeId
             }).Details.Single();
             var lockedAmount = detail.Shares;
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput 
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
                 Beneficiary = input.Beneficiary
@@ -87,7 +87,7 @@ namespace AElf.Contracts.TokenHolder
             if (lockedAmount > input.Amount &&
                 input.Amount != 0) // If input.Amount == 0, means just remove this beneficiary.
             {
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput 
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {
                     SchemeId = scheme.SchemeId,
                     BeneficiaryShare = new BeneficiaryShare
@@ -148,6 +148,7 @@ namespace AElf.Contracts.TokenHolder
             {
                 distributeProfitsInput.AmountsMap.Add(input.AmountsMap);
             }
+
             State.ProfitContract.DistributeProfits.Send(distributeProfitsInput);
             scheme.Period = scheme.Period.Add(1);
             State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
@@ -156,6 +157,7 @@ namespace AElf.Contracts.TokenHolder
 
         public override Empty RegisterForProfits(RegisterForProfitsInput input)
         {
+            Assert(State.LockIds[input.SchemeManager][Context.Sender] == null, "Already registered.");
             var scheme = GetValidScheme(input.SchemeManager);
             if (State.TokenContract.Value == null)
             {
@@ -163,15 +165,17 @@ namespace AElf.Contracts.TokenHolder
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var lockId = Context.GenerateId(Context.Self,
+                ByteArrayHelper.ConcatArrays(input.SchemeManager.ToByteArray(), Context.Sender.ToByteArray()));
             State.TokenContract.Lock.Send(new LockInput
             {
-                LockId = Context.TransactionId,
+                LockId = lockId,
                 Symbol = scheme.Symbol,
                 Address = Context.Sender,
                 Amount = input.Amount,
             });
-            State.LockIds[input.SchemeManager][Context.Sender] = Context.TransactionId;
-            State.LockTimestamp[Context.TransactionId] = Context.CurrentBlockTime;
+            State.LockIds[input.SchemeManager][Context.Sender] = lockId;
+            State.LockTimestamp[lockId] = Context.CurrentBlockTime;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = scheme.SchemeId,
@@ -224,7 +228,8 @@ namespace AElf.Contracts.TokenHolder
             }).Amount;
 
             var lockId = State.LockIds[input][Context.Sender];
-            Assert(State.LockTimestamp[lockId].AddMinutes(scheme.MinimumLockMinutes) < Context.CurrentBlockTime, "Cannot withdraw.");
+            Assert(State.LockTimestamp[lockId].AddMinutes(scheme.MinimumLockMinutes) < Context.CurrentBlockTime,
+                "Cannot withdraw.");
 
             State.TokenContract.Unlock.Send(new UnlockInput
             {
@@ -282,7 +287,8 @@ namespace AElf.Contracts.TokenHolder
             return scheme;
         }
 
-        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme, Address manager, bool updateSchemePeriod)
+        private void UpdateTokenHolderProfitScheme(ref TokenHolderProfitScheme scheme, Address manager,
+            bool updateSchemePeriod)
         {
             if (scheme.SchemeId != null && !updateSchemePeriod) return;
             var originSchemeId = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput

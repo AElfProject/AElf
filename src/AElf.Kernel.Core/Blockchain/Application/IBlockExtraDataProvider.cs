@@ -10,6 +10,8 @@ namespace AElf.Kernel.Blockchain.Application
         /// </summary>
         /// <param name="blockHeader"></param>
         /// <returns></returns>
-        Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader);
+        Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader);
+
+        string BlockHeaderExtraDataKey { get; }
     }
 }

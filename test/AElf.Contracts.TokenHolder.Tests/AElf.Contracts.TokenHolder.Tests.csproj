@@ -9,7 +9,7 @@
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
@@ -22,6 +22,7 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.TokenHolder\AElf.Contracts.TokenHolder.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
         <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.DApp\AElf.Contracts.TestContract.DApp.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
@@ -39,6 +40,9 @@
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf/Proto/parliament_contract.proto</Link>
         </ContractStub>
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+        </ContractBase>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractBase>
@@ -71,6 +75,9 @@
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractBase>
     </ItemGroup>
 </Project>

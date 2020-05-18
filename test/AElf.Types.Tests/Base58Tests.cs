@@ -10,7 +10,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Encode_And_Decode_Hash()
         {
-            var hash = Hash.FromString("hash");
+            var hash = HashHelper.ComputeFrom("hash");
             var data = hash.ToByteArray();
 
             var enCode = Base58CheckEncoding.Encode(data);
@@ -22,7 +22,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Encode_And_Decode_Address()
         {
-            var address = AddressHelper.Base58StringToAddress("xFqJD9R33mQBQPr1hCFUZMayXFQ577j34MPyUdXzbPpAYufG2");
+            var address = Address.FromBase58("xFqJD9R33mQBQPr1hCFUZMayXFQ577j34MPyUdXzbPpAYufG2");
             var data = address.ToByteArray();
 
             var enCode = Base58CheckEncoding.Encode(data);
@@ -37,7 +37,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void EncodePlain_And_DecodePlain_Hash()
         {
-            var hash = Hash.FromString("hash");
+            var hash = HashHelper.ComputeFrom("hash");
             var data = hash.ToByteArray();
             var bytes = new byte[]{0};
 
@@ -57,7 +57,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void EncodePlain_And_DecodePlain_Address()
         {
-            var address = AddressHelper.Base58StringToAddress("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
+            var address = Address.FromBase58("2DZER7qHVwv3PUMFsHuQaQbE4wDFsCRzJsxLwYEk8rgM3HVn1S");
             var data = address.ToByteArray();
 
             var enCode = Base58CheckEncoding.EncodePlain(data);

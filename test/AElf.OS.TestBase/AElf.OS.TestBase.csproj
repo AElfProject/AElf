@@ -7,6 +7,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+        <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
@@ -46,6 +47,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\stub\acs10.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>

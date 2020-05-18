@@ -54,17 +54,10 @@ namespace AElf.Contracts.Profit
                     "Invalid profit receiving due period count.");
             }
 
+            var schemeId = GenerateSchemeId(input);
             var manager = input.Manager ?? Context.Sender;
-            var schemeId = Context.TransactionId;
-            // Why? Because one transaction may create many profit schemes via inline transactions.
-            var createdSchemeIds = State.ManagingSchemeIds[manager]?.SchemeIds;
-            if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
-            {
-                // So we choose this way to avoid profit id conflicts in aforementioned situation.
-                schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
-            }
-
             var scheme = GetNewScheme(input, schemeId, manager);
+            Assert(State.SchemeInfos[schemeId] == null, "Already exists.");
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -271,7 +264,13 @@ namespace AElf.Contracts.Profit
                 {
                     currentDetail.Details.Remove(expiryDetail);
                 }
+                else
+                {
+                    expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                }
             }
+
+            Context.LogDebug(() => $"ProfitDetails after removing expiry details: {currentDetail}");
 
             // Clear old profit details.
             if (currentDetail.Details.Count != 0)
@@ -767,7 +766,7 @@ namespace AElf.Contracts.Profit
             return profitsMap;
         }
 
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        private void ValidateContractState(ContractReferenceState state, string contractSystemName)
         {
             if (state.Value != null)
                 return;
@@ -798,6 +797,15 @@ namespace AElf.Contracts.Profit
             var decimalShares = (decimal) shares;
             var decimalTotalShares = (decimal) totalShares;
             return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
+        }
+
+        private Hash GenerateSchemeId(CreateSchemeInput createSchemeInput)
+        {
+            var manager = createSchemeInput.Manager ?? Context.Sender;
+            if (createSchemeInput.Token != null) 
+                return Context.GenerateId(Context.Self, createSchemeInput.Token);
+            var createdSchemeCount = State.ManagingSchemeIds[manager]?.SchemeIds.Count ?? 0;
+            return Context.GenerateId(Context.Self, createdSchemeCount.ToBytes(false));
         }
     }
 }

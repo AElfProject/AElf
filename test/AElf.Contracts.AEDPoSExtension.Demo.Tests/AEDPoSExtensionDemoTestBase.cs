@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Blockchains.BasicBaseChain.ContractNames;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
@@ -11,6 +10,7 @@ using AElf.Contracts.Association;
 using AElf.Contracts.TestContract.CommitmentScheme;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
@@ -45,7 +45,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             new List<ParliamentContractContainer.ParliamentContractStub>();
 
         internal readonly Hash CommitmentSchemeSmartContractAddressName =
-            Hash.FromString("AElf.Contracts.TestContract.CommitmentScheme");
+            HashHelper.ComputeFrom("AElf.Contracts.TestContract.CommitmentScheme");
 
         public AEDPoSExtensionDemoTestBase()
         {

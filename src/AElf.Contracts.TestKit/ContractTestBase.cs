@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
@@ -10,12 +9,14 @@ using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.Testing;
 using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -89,9 +90,13 @@ namespace AElf.Contracts.TestKit
             {
                 throw new Exception($"DeploySystemSmartContract failed: {res.TransactionResult}");
             }
-
-            var address = await zeroStub.GetContractAddressByName.CallAsync(name);
-            ContractAddressService.SetAddress(name, address);
+            
+            var address = await zeroStub.GetContractAddressByName.CallAsync(name);	
+            await ContractAddressService.SetSmartContractAddressAsync(new BlockIndex
+            {
+                BlockHash = res.TransactionResult.BlockHash,
+                BlockHeight = res.TransactionResult.BlockNumber
+            }, name.ToStorageKey(), address);
 
             return res.Output;
         }

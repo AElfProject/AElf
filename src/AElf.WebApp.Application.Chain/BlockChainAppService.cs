@@ -71,7 +71,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = HashHelper.HexStringToHash(blockHash);
+                realBlockHash = Hash.LoadFromHex(blockHash);
             }
             catch
             {
@@ -122,7 +122,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
-            var blockState = await _blockStateSetManger.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
+            var blockState = await _blockStateSetManger.GetBlockStateSetAsync(Hash.LoadFromHex(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             
@@ -163,11 +163,12 @@ namespace AElf.WebApp.Application.Chain
                     Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64(): bloom.ToBase64(),
                     SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
-                Body = new BlockBodyDto()
+                Body = new BlockBodyDto
                 {
                     TransactionsCount = block.Body.TransactionsCount,
                     Transactions = new List<string>()
-                }
+                },
+                BlockSize = block.CalculateSize()
             };
 
             if (!includeTransactions) return blockDto;

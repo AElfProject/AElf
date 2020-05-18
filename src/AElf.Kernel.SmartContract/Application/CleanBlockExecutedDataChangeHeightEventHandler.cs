@@ -15,4 +15,15 @@ namespace AElf.Kernel.SmartContract.Application
         {
         }
     }
+    
+    public class CleanSmartContractAddressChangeHeightEventHandler :
+        CleanBlockExecutedDataChangeHeightBaseEventHandler<SmartContractAddress>,
+        ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
+    {
+        public CleanSmartContractAddressChangeHeightEventHandler(
+            ICachedBlockchainExecutedDataService<SmartContractAddress> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
+        {
+        }
+    }
 }

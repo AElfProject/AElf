@@ -48,6 +48,7 @@ service ACS0 {
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
+    // TODO: Change name to GetSmartContractRegistrationByCodeHash
     rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
@@ -111,6 +112,7 @@ message ContractDeployed
     aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
     int32 version = 4;
+    aelf.Hash Name = 5;
 }
 
 message CodeCheckRequired

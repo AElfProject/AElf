@@ -22,17 +22,21 @@
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
-        <ContractCode Include="..\..\protobuf\configuration_contract.proto">
-            <Link>Protobuf/Proto/configuration_contract.proto</Link>
-        </ContractCode>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf/Proto/configuration_contract.proto</Link>
+        </ContractCode>
     </ItemGroup>
 </Project>

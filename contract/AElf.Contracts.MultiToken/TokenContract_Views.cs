@@ -66,11 +66,6 @@ namespace AElf.Contracts.MultiToken
             return new BoolValue {Value = State.LockWhiteLists[input.Symbol][input.Address]};
         }
 
-        public override ProfitReceivingInformation GetProfitReceivingInformation(Address input)
-        {
-            return State.ProfitReceivingInfos[input] ?? new ProfitReceivingInformation();
-        }
-
         public override GetLockedAmountOutput GetLockedAmount(GetLockedAmountInput input)
         {
             var virtualAddress = GetVirtualAddressForLocking(new GetVirtualAddressForLockingInput
@@ -89,7 +84,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Address GetVirtualAddressForLocking(GetVirtualAddressForLockingInput input)
         {
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             return virtualAddress;
@@ -184,17 +179,12 @@ namespace AElf.Contracts.MultiToken
             return State.DeveloperFeeController.Value;
         }
         
-        public override ControllerCreateInfo GetSideChainRentalControllerCreateInfo(Empty input)
+        public override AuthorityInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
-            var organization = GetControllerCreateInputForSideChainRental().OrganizationCreationInput;
-            var controllerAddress = CalculateSideChainRentalController(organization);
-            var controllerInfo = new ControllerCreateInfo
-            {
-                Controller = controllerAddress,
-                OrganizationCreationInputBytes = organization.ToByteString()
-            };
-            return controllerInfo;
+            Assert(State.SideChainRentalController.Value != null,
+                "controller does not initialize, call InitializeAuthorizedController first");
+            return State.SideChainRentalController.Value;
         }
 
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
@@ -202,6 +192,15 @@ namespace AElf.Contracts.MultiToken
             if(State.SymbolToPayTxFeeController.Value == null)
                 return GetDefaultSymbolToPayTxFeeController();
             return State.SymbolToPayTxFeeController.Value;
+        }
+        
+        public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
+        {
+            if (State.CrossChainTokenContractRegistrationController.Value == null)
+            {
+                return GetCrossChainTokenContractRegistrationController();
+            }
+            return State.CrossChainTokenContractRegistrationController.Value;
         }
     }
 }

@@ -8,7 +8,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shouldly;
-using Volo.Abp;
+using Volo.Abp.Testing;
 using Volo.Abp.Modularity;
 using Xunit;
 
@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var chainContext = new ChainContext
             {
                 BlockHeight = 10,
-                BlockHash = Hash.FromString("blockHash")
+                BlockHash = HashHelper.ComputeFrom("blockHash")
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
             var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
@@ -101,7 +101,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var chainContext = new ChainContext
             {
                 BlockHeight = 10,
-                BlockHash = Hash.FromString("blockHash")
+                BlockHash = HashHelper.ComputeFrom("blockHash")
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
             

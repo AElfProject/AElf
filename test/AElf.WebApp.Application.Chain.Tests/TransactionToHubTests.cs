@@ -44,7 +44,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             //user without token - NotExisted
             {
                 var keyPair = CryptoHelper.GenerateKeyPair();
-                var tokenAddress = GetTokenContractAddress();
+                var tokenAddress =
+                    await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(),
+                        TokenSmartContractAddressNameProvider.StringName);
 
                 //approve transaction
                 var transaction = await GenerateTransaction(keyPair, tokenAddress, "Approve", new ApproveInput
@@ -96,7 +98,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             await SendTransactionAsync(transactions[0]);
 
             //send consensus transaction
-            var consensusContract = GetConsensusContractAddress();
+            var consensusContract =
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(),
+                    ConsensusSmartContractAddressNameProvider.StringName);
             var transaction = await GenerateTransaction(keyPairs[0], consensusContract, "FirstRound", new Round());
 
             var transactionId = await SendTransactionAsync(transaction);
@@ -136,24 +140,13 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var chain = await _blockchainService.GetChainAsync();
             transaction.RefBlockNumber = chain.BestChainHeight;
-            transaction.RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray());
+            transaction.RefBlockPrefix = BlockHelper.GetRefBlockPrefix(chain.BestChainHash);
 
             transaction.Signature =
                 ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
                     transaction.GetHash().ToByteArray()));
 
             return transaction;
-        }
-
-        private Address GetTokenContractAddress()
-        {
-            return _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-        }
-
-        private Address GetConsensusContractAddress()
-        {
-            return _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                .Name);
         }
     }
 }
