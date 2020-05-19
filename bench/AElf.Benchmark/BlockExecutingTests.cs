@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -22,6 +23,7 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private ITransactionResultManager _transactionResultManager;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
+        private IBlockchainStore<TransactionResult> _transactionResultStore;
         private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
@@ -36,6 +38,7 @@ namespace AElf.Benchmark
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
+            _transactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
@@ -59,9 +62,12 @@ namespace AElf.Benchmark
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetDisambiguatingHash());
+            await _transactionResultStore.RemoveAllAsync(transactionIds
+                .Select(t => HashHelper.XorAndCompute(t, _block.GetHash()).ToStorageKey())
+                .ToList());
+            await _transactionResultStore.RemoveAllAsync(transactionIds
+                .Select(t => HashHelper.XorAndCompute(t, _block.Header.GetDisambiguatingHash()).ToStorageKey())
+                .ToList());
         }
     }
 }

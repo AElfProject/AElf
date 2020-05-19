@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain;
@@ -12,6 +13,7 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark
@@ -23,13 +25,12 @@ namespace AElf.Benchmark
         private IBlockchainStore<Chain> _chains;
         private IBlockManager _blockManager;
         private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
-        private IBlockchainStateManager _blockchainStateManager;
         private IBlockchainStateService _blockchainStateService;
         private IBlockStateSetManger _blockStateSetManger;
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private ITxHub _txHub;
+        private IBlockchainStore<TransactionResult> _transactionResultStore;
         private OSTestHelper _osTestHelper;
 
         private Chain _chain;
@@ -46,7 +47,6 @@ namespace AElf.Benchmark
         {
             _chains = GetRequiredService<IBlockchainStore<Chain>>();
             _chainStateInfoCollection = GetRequiredService<IStateStore<ChainStateInfo>>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
             _blockchainService = GetRequiredService<IBlockchainService>();
@@ -54,7 +54,7 @@ namespace AElf.Benchmark
             _chainManager = GetRequiredService<IChainManager>();
             _blockManager = GetRequiredService<IBlockManager>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
+            _transactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
             _txHub = GetRequiredService<ITxHub>();
             
 
@@ -124,10 +124,12 @@ namespace AElf.Benchmark
                 });
 
                 await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);
-                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.Header.GetDisambiguatingHash());
+                await _transactionResultStore.RemoveAllAsync(block.Body.TransactionIds
+                    .Select(t => HashHelper.XorAndCompute(t, block.GetHash()).ToStorageKey())
+                    .ToList());
+                await _transactionResultStore.RemoveAllAsync(block.Body.TransactionIds
+                    .Select(t => HashHelper.XorAndCompute(t, block.Header.GetDisambiguatingHash()).ToStorageKey())
+                    .ToList());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
