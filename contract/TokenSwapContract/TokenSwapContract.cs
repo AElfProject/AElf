@@ -78,6 +78,7 @@ namespace TokenSwapContract
 
         public override Empty SwapToken(SwapTokenInput input)
         {
+            Assert(Context.Sender == input.ReceiverAddress, "Only receiver has permission to swap token.");
             var swapInfo = GetTokenSwapInfo(input.SwapId);
             ValidateSwapTokenInput(input);
             Assert(TryGetOriginTokenAmount(input.OriginAmount, out var amount) && amount > 0,
