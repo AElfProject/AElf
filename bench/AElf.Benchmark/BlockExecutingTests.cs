@@ -65,9 +65,6 @@ namespace AElf.Benchmark
             await _transactionResultStore.RemoveAllAsync(transactionIds
                 .Select(t => HashHelper.XorAndCompute(t, _block.GetHash()).ToStorageKey())
                 .ToList());
-            await _transactionResultStore.RemoveAllAsync(transactionIds
-                .Select(t => HashHelper.XorAndCompute(t, _block.Header.GetDisambiguatingHash()).ToStorageKey())
-                .ToList());
         }
     }
 }

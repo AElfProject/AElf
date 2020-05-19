@@ -127,9 +127,6 @@ namespace AElf.Benchmark
                 await _transactionResultStore.RemoveAllAsync(block.Body.TransactionIds
                     .Select(t => HashHelper.XorAndCompute(t, block.GetHash()).ToStorageKey())
                     .ToList());
-                await _transactionResultStore.RemoveAllAsync(block.Body.TransactionIds
-                    .Select(t => HashHelper.XorAndCompute(t, block.Header.GetDisambiguatingHash()).ToStorageKey())
-                    .ToList());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
