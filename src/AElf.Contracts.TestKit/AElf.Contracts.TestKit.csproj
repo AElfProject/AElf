@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
 

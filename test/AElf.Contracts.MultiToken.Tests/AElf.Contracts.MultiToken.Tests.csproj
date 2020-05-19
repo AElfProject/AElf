@@ -4,7 +4,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Contracts.MultiToken</RootNamespace>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
@@ -49,6 +48,9 @@
         <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
             <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
         </ContractStub>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
@@ -69,9 +71,6 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
@@ -94,6 +93,12 @@
         </ContractStub>
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractBase>
     </ItemGroup>
     <Import Project="..\..\test\AllContracts.props" />

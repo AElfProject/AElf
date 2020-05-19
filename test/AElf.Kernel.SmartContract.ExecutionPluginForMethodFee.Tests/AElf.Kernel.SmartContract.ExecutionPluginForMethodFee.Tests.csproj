@@ -4,9 +4,9 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <NoWarn>0436</NoWarn>
-    </PropertyGroup>
+<!--    <PropertyGroup>-->
+<!--        <NoWarn>0436</NoWarn>-->
+<!--    </PropertyGroup>-->
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
@@ -65,6 +65,9 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractStub>

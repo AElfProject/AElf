@@ -8,6 +8,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,6 +24,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             _testOutputHelper = testOutputHelper;
         }
 
+        private async Task<IDictionary<string,long>> GetTransactionFeesMapAsync(IChainContext chainContext)
+        {
+            var totalTransactionFeesMapProvider =
+                Application.ServiceProvider.GetService<ITotalTransactionFeesMapProvider>();
+            var transactionFeesMap = await totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
+            if (chainContext.BlockHash != transactionFeesMap.BlockHash ||
+                chainContext.BlockHeight != transactionFeesMap.BlockHeight)
+            {
+                return null;
+            }
+            return transactionFeesMap.Value;
+        }
+        
         [Fact]
         public async Task ChargeFee_With_Fork_Test()
         {
@@ -52,7 +66,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
             var targetFee = transactionResult.GetChargedTransactionFees().First().Value;
             
-            var transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+            var transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
             {
                 BlockHash = result.Item1.GetHash(), BlockHeight = result.Item1.Height
             });
@@ -63,7 +77,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 var branchOneBlock = await Tester.MineEmptyBlockAsync();
             
-                transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+                transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
                 {
                     BlockHash = branchOneBlock.GetHash(), BlockHeight = branchOneBlock.Height
                 });
@@ -91,7 +105,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     });
                 transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
                 var fee = transactionResult.GetChargedTransactionFees().First().Value;
-                transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+                transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
                 {
                     BlockHash = result.Item1.GetHash(), BlockHeight = result.Item1.Height
                 });

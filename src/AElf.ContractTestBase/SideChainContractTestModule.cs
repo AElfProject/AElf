@@ -5,7 +5,7 @@ using AElf.CrossChain.Application;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;

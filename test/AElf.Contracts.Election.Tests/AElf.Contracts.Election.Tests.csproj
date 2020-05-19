@@ -5,6 +5,7 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
+        <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
@@ -34,9 +35,6 @@
         <ProjectReference Include="..\..\test\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </ContractStub>
