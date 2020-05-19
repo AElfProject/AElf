@@ -4,8 +4,7 @@ using AElf.Kernel.Blockchain;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    //TODO: rename
-    public interface ILogEventListeningService<T> where T : ILogEventProcessor
+    public interface ILogEventProcessingService<T> where T : ILogEventProcessor
     {
         Task ProcessAsync(List<BlockExecutedSet> blockExecutedSets);
     }
