@@ -592,13 +592,13 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            var treasuryContractName =
+            var treasuryContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            if ( treasuryContractName!= null)
+            if ( treasuryContractAddress!= null)
             {
                 // Main chain would donate tx fees to dividend pool.
                 if (State.DividendPoolContract.Value == null)
-                    State.DividendPoolContract.Value = treasuryContractName;
+                    State.DividendPoolContract.Value = treasuryContractAddress;
                 State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,

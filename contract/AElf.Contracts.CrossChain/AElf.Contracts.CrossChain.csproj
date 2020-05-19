@@ -35,7 +35,7 @@
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\reference\parliament_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\reference\association_contract.proto</Link>
