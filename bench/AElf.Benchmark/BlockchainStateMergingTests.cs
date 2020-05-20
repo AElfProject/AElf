@@ -13,7 +13,6 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
-using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark
@@ -30,7 +29,6 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private ITxHub _txHub;
-        private IBlockchainStore<TransactionResult> _transactionResultStore;
         private OSTestHelper _osTestHelper;
 
         private Chain _chain;
@@ -54,7 +52,6 @@ namespace AElf.Benchmark
             _chainManager = GetRequiredService<IChainManager>();
             _blockManager = GetRequiredService<IBlockManager>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _transactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
             _txHub = GetRequiredService<ITxHub>();
             
 
@@ -124,9 +121,7 @@ namespace AElf.Benchmark
                 });
 
                 await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);
-                await _transactionResultStore.RemoveAllAsync(block.Body.TransactionIds
-                    .Select(t => HashHelper.XorAndCompute(t, block.GetHash()).ToStorageKey())
-                    .ToList());
+                await RemoveTransactionResultsAsync(block.Body.TransactionIds, block.GetHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }

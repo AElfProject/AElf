@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -8,7 +7,6 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
-using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark
@@ -23,7 +21,6 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IBlockAttachService _blockAttachService;
         private ITransactionManager _transactionManager;
-        private IBlockchainStore<TransactionResult> _transactionResultStore;
         private OSTestHelper _osTestHelper;
 
         private Chain _chain;
@@ -41,7 +38,6 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _transactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
             _chain = await _blockchainService.GetChainAsync();
@@ -68,9 +64,7 @@ namespace AElf.Benchmark
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
-            await _transactionResultStore.RemoveAllAsync(_block.Body.TransactionIds
-                .Select(t => HashHelper.XorAndCompute(t, _block.GetHash()).ToStorageKey())
-                .ToList());
+            await RemoveTransactionResultsAsync(_block.Body.TransactionIds, _block.GetHash());
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);

@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -24,7 +22,6 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IMinerService _minerService;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private IBlockchainStore<TransactionResult> _transactionResultStore;
         private OSTestHelper _osTestHelper;
 
         private List<Transaction> _systemTransactions;
@@ -42,7 +39,6 @@ namespace AElf.Benchmark
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _minerService = GetRequiredService<IMinerService>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
-            _transactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
             _prepareTransactions = new List<Transaction>();
@@ -83,9 +79,7 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
 
             var transactionIds = _systemTransactions.Concat(_cancellableTransactions).Select(t => t.GetHash()).ToList();
-            await _transactionResultStore.RemoveAllAsync(transactionIds
-                .Select(t => HashHelper.XorAndCompute(t, _block.GetHash()).ToStorageKey())
-                .ToList());
+            await RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
         }
     }
 }
