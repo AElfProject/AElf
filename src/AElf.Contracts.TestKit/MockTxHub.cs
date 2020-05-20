@@ -24,16 +24,14 @@ namespace AElf.Contracts.TestKit
             _blockchainService = blockchainService;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
         {
-            var executableTransactionSet = await Task.FromResult(new ExecutableTransactionSet
+            return Task.FromResult(new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight,
                 Transactions = _allTransactions.Values.ToList()
             });
-
-            return executableTransactionSet;
         }
 
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)

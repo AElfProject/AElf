@@ -27,16 +27,14 @@ namespace AElf.OS
             _blockchainService = blockchainService;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
         {
-            var executableTransactionSet = await Task.FromResult(new ExecutableTransactionSet
+            return Task.FromResult(new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight,
                 Transactions = _allTransactions.Values.ToList()
             });
-
-            return executableTransactionSet;
         }
 
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
@@ -44,10 +42,12 @@ namespace AElf.OS
             var txs = transactions.ToList();
             foreach (var transaction in txs)
             {
+                if (_allTransactions.ContainsKey(transaction.GetHash()))
+                    continue;
                 _allTransactions.Add(transaction.GetHash(), transaction);
             }
 
-            await _blockchainService.AddTransactionsAsync(txs);
+            await _transactionManager.AddTransactionsAsync(txs);
         }
 
         public Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds)
