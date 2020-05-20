@@ -51,7 +51,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 Logger.LogInformation(
                     "Won't generate ClaimTransactionFees because no tx fee charged in previous block.");
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
-                return new List<Transaction>();
+                totalTxFeesMap = new TotalTransactionFeesMap
+                {
+                    IsInvalid = true
+                };
+                generatedTransactions.AddRange(new List<Transaction>
+                {
+                    new Transaction
+                    {
+                        From = from,
+                        MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees),
+                        To = tokenContractAddress,
+                        RefBlockNumber = preBlockHeight,
+                        RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
+                        Params = totalTxFeesMap.ToByteString()
+                    }
+                });
+                return generatedTransactions;
             }
 
             generatedTransactions.AddRange(new List<Transaction>

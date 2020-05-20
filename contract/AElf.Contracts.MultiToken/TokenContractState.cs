@@ -46,5 +46,8 @@ namespace AElf.Contracts.MultiToken
 
         public SingletonState<Hash> LatestTotalResourceTokensMapsHash { get; set; }
         public SingletonState<Hash> LatestTotalTransactionFeesMapHash { get; set; }
+        
+        public SingletonState<long> ClaimTransactionFeeNextHeightIndicator  { get; set; }
+        public SingletonState<long> DonateReourceTokenNextHeightIndicator  { get; set; }
     }
 }

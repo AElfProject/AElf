@@ -21,6 +21,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
+            Assert(Context.Origin == Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),"invalid sender");
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
@@ -167,6 +168,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
+            Assert(Context.Origin == Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),"invalid sender");
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
@@ -203,6 +205,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
+            Assert(Context.Origin == Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),"invalid sender");
             foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
             {
                 var balance = GetBalance(Context.Sender, symbol);
@@ -345,6 +348,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
+            if (State.ClaimTransactionFeeNextHeightIndicator.Value == 0)
+            {
+                State.ClaimTransactionFeeNextHeightIndicator.Value = Context.CurrentHeight;
+            }
+            Assert(State.ClaimTransactionFeeNextHeightIndicator.Value == Context.CurrentHeight, $"invalid height {State.ClaimTransactionFeeNextHeightIndicator.Value}");
+            State.ClaimTransactionFeeNextHeightIndicator.Value += 1;
+            if (input.IsInvalid)
+            {
+                return new Empty();
+            }
             Context.LogDebug(() => $"Claim transaction fee. {input}");
             State.LatestTotalTransactionFeesMapHash.Value = HashHelper.ComputeFrom(input);
             foreach (var bill in input.Value)
@@ -367,6 +380,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
+            if (State.DonateReourceTokenNextHeightIndicator.Value == 0)
+            {
+                State.DonateReourceTokenNextHeightIndicator.Value = Context.CurrentHeight;
+            }
+            Assert(State.DonateReourceTokenNextHeightIndicator.Value == Context.CurrentHeight, $"invalid height {State.DonateReourceTokenNextHeightIndicator.Value}");
+            State.DonateReourceTokenNextHeightIndicator.Value += 1;
             Context.LogDebug(() => $"Start donate resource token. {input}");
             State.LatestTotalResourceTokensMapsHash.Value = HashHelper.ComputeFrom(input);
             Context.LogDebug(() =>
