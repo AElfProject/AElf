@@ -1,4 +1,5 @@
 ﻿using Acs1;
+using Acs10;
 using Acs9;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
@@ -12,7 +13,7 @@ namespace AElf.Contracts.TestContract.DApp
     {
         internal TokenHolderContractContainer.TokenHolderContractReferenceState TokenHolderContract { get; set; }
         internal TokenContractImplContainer.TokenContractImplReferenceState TokenContract { get; set; }
-        internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
+        internal DividendPoolContractContainer.DividendPoolContractReferenceState DividendPoolContract { get; set; }
 
         public SingletonState<string> Symbol { get; set; }
         public SingletonState<Address> ProfitReceiver { get; set; }

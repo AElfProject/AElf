@@ -54,28 +54,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MaximumMinersCount.Value = int.MaxValue;
 
-            return new Empty();
-        }
-
-        private void InitialProfitSchemeForSideChain(long periodSeconds)
-        {
-            var tokenHolderContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-            // No need to continue if Token Holder Contract didn't deployed.
-            if (tokenHolderContractAddress == null)
+            if (State.TreasuryContract.Value != null)
             {
-                Context.LogDebug(() => "Token Holder Contract not found, so won't initial side chain dividends pool.");
-                return;
+                State.TreasuryContract.UpdateMiningReward.Send(new Int64Value
+                {
+                    Value = AEDPoSContractConstants.InitialMiningRewardPerBlock
+                });
             }
 
-            State.TokenHolderContract.Value = tokenHolderContractAddress;
-            State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
-            {
-                Symbol = AEDPoSContractConstants.SideChainShareProfitsTokenSymbol,
-                MinimumLockMinutes = periodSeconds.Div(60)
-            });
-
-            Context.LogDebug(() => "Side chain dividends pool created.");
+            return new Empty();
         }
 
         #endregion
@@ -304,41 +291,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(input.Value > 1, "Invalid block height.");
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
             return State.RandomHashes[input.Value] ?? Hash.Empty;
-        }
-
-        public override Empty ContributeToSideChainDividendsPool(ContributeToSideChainDividendsPoolInput input)
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                To = Context.Self
-            });
-
-            State.TokenContract.Approve.Send(new ApproveInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Spender = State.TokenHolderContract.Value
-            });
-
-            State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
-            {
-                SchemeManager = Context.Self,
-                Symbol = input.Symbol,
-                Amount = input.Amount
-            });
-
-            Context.LogDebug(() => $"Contributed {input.Amount} {input.Symbol}s to side chain dividends pool.");
-
-            return new Empty();
         }
     }
 }
