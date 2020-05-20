@@ -33,7 +33,7 @@ namespace AElf.OS
 
             var beforePeers = _networkService.GetPeers().Count;
 
-            await _peerDiscoveryWorker.ProcessPeerDiscoveryJob();
+            await _peerDiscoveryWorker.ProcessPeerDiscoveryJobAsync();
 
             var afterDiscoveryPeers = _networkService.GetPeers().Count;
             beforePeers.ShouldBe(afterDiscoveryPeers);

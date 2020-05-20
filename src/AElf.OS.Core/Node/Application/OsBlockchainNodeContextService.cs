@@ -24,12 +24,12 @@ namespace AElf.OS.Node.Application
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IAElfNetworkServer _networkServer;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IServiceContainer<INodePlugin> _nodePlugins;
+        private readonly IEnumerable<INodePlugin> _nodePlugins;
         private readonly ContractOptions _contractOptions;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
             IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
-            IServiceContainer<INodePlugin> nodePlugins,IOptionsSnapshot<ContractOptions> contractOptions)
+            IEnumerable<INodePlugin> nodePlugins,IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;

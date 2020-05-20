@@ -15,7 +15,7 @@ namespace AElf.Blockchains.MainChain
         private readonly ContractOptions _contractOptions;
 
         public MainChainGenesisSmartContractDtoProvider(IContractDeploymentListProvider contractDeploymentListProvider,
-            IServiceContainer<IContractInitializationProvider> contractInitializationProviders,
+            IEnumerable<IContractInitializationProvider> contractInitializationProviders,
             IOptionsSnapshot<ContractOptions> contractOptions)
             : base(contractDeploymentListProvider, contractInitializationProviders)
         {
