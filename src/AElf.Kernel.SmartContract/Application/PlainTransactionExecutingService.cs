@@ -284,8 +284,7 @@ namespace AElf.Kernel.SmartContract.Application
                         ChainContext = internalChainContext,
                         Transaction = preTx,
                         CurrentBlockTime = currentBlockTime,
-                        OriginTransactionId = txContext.OriginTransactionId,
-                        Origin = Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7")
+                        OriginTransactionId = txContext.OriginTransactionId
                     };
                     var preTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
                     if (preTrace == null)
@@ -347,8 +346,7 @@ namespace AElf.Kernel.SmartContract.Application
                         ChainContext = internalChainContext,
                         Transaction = postTx,
                         CurrentBlockTime = currentBlockTime,
-                        OriginTransactionId = txContext.OriginTransactionId,
-                        Origin = Address.FromBase58("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7")
+                        OriginTransactionId = txContext.OriginTransactionId
                     };
                     var postTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
 
