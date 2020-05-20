@@ -351,5 +351,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeTraffic - afterTraffic,
                 beforeStorage - afterStorage, txResult);
         }
+
+        [Fact]
+        public async Task Donate_Resource_Token_Send_By_User_False()
+        {
+            var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
+            result.Error.Contains("invalid height").ShouldBeTrue();
+        }
     }
 }
