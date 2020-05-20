@@ -53,21 +53,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
                 totalTxFeesMap = new TotalTransactionFeesMap
                 {
-                    IsInvalid = true
+                    IsPreviousBlockChargedFees = false
                 };
-                generatedTransactions.AddRange(new List<Transaction>
-                {
-                    new Transaction
-                    {
-                        From = from,
-                        MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees),
-                        To = tokenContractAddress,
-                        RefBlockNumber = preBlockHeight,
-                        RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
-                        Params = totalTxFeesMap.ToByteString()
-                    }
-                });
-                return generatedTransactions;
+            }
+            else
+            {
+                totalTxFeesMap.IsPreviousBlockChargedFees = true;
             }
 
             generatedTransactions.AddRange(new List<Transaction>
