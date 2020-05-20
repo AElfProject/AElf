@@ -55,9 +55,45 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
+        public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            return Task.FromResult(true);
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.StringName);
+            if (tokenContractAddress == null)
+            {
+                return true;
+            }
+
+            var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                ContractAddress = tokenContractAddress
+            }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+            var totalTransactionFeesMapFromProvider =
+                await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
+                {
+                    BlockHash = block.Header.PreviousBlockHash,
+                    BlockHeight = block.Header.Height - 1
+                });
+            if (totalTransactionFeesMapFromProvider == null)
+            {
+                Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
+                return hashFromState.Value.IsEmpty;
+            }
+
+            var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
+            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            if (!result)
+            {
+                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+            }
+
+            return result;
         }
     }
 }

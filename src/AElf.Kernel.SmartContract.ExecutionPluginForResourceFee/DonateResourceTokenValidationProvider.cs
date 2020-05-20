@@ -55,9 +55,54 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
+        public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            return Task.FromResult(true);
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight) return true;
+
+            var tokenContractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                }, TokenSmartContractAddressNameProvider.StringName);
+            if (tokenContractAddress == null)
+            {
+                return true;
+            }
+
+            var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                ContractAddress = tokenContractAddress
+            }).GetLatestTotalResourceTokensMapsHash.CallAsync(new Empty());
+
+            var totalResourceTokensMapsFromProvider =
+                await _totalResourceTokensMapsProvider.GetTotalResourceTokensMapsAsync(new ChainContext
+                {
+                    BlockHash = block.Header.PreviousBlockHash,
+                    BlockHeight = block.Header.Height - 1
+                });
+
+            if (hashFromState.Value.IsEmpty)
+            {
+                // If hash from state is empty, data from provider must be null.
+                return totalResourceTokensMapsFromProvider == null;
+            }
+
+            if (hashFromState == HashHelper.ComputeFrom(new TotalResourceTokensMaps
+            {
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
+            }))
+            {
+                if (totalResourceTokensMapsFromProvider == null) return true;
+                return totalResourceTokensMapsFromProvider.BlockHeight != block.Header.Height - 1;
+            }
+
+            if (totalResourceTokensMapsFromProvider == null) return false;
+            var hashFromProvider = HashHelper.ComputeFrom(totalResourceTokensMapsFromProvider);
+            return hashFromState == hashFromProvider;
         }
     }
 }
