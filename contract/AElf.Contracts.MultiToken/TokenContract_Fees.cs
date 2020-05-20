@@ -351,7 +351,7 @@ namespace AElf.Contracts.MultiToken
                 claimTransactionExecuteHeight = Context.CurrentHeight;
             }
             Assert(claimTransactionExecuteHeight == Context.CurrentHeight, $"invalid height {State.ClaimTransactionFeeExecuteHeight.Value}");
-            State.ClaimTransactionFeeExecuteHeight.Value = ++claimTransactionExecuteHeight;
+            State.ClaimTransactionFeeExecuteHeight.Value = claimTransactionExecuteHeight.Add(1);
             if (input.IsInvalid)
             {
                 return new Empty();
@@ -384,7 +384,7 @@ namespace AElf.Contracts.MultiToken
                 donateResourceTokenExecuteHeight = Context.CurrentHeight;
             }
             Assert(donateResourceTokenExecuteHeight == Context.CurrentHeight, $"invalid height {State.DonateResourceTokenExecuteHeight.Value}");
-            State.DonateResourceTokenExecuteHeight.Value = ++donateResourceTokenExecuteHeight;
+            State.DonateResourceTokenExecuteHeight.Value = donateResourceTokenExecuteHeight.Add(1);
             Context.LogDebug(() => $"Start donate resource token. {input}");
             State.LatestTotalResourceTokensMapsHash.Value = HashHelper.ComputeFrom(input);
             Context.LogDebug(() =>
