@@ -348,13 +348,13 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
-            long claimTransactionFeeNextHeightIndicator = State.ClaimTransactionFeeNextHeightIndicator.Value;
-            if (claimTransactionFeeNextHeightIndicator == 0)
+            long claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
+            if (claimTransactionExecuteHeight == 0)
             {
-                claimTransactionFeeNextHeightIndicator = Context.CurrentHeight;
+                claimTransactionExecuteHeight = Context.CurrentHeight;
             }
-            Assert(claimTransactionFeeNextHeightIndicator == Context.CurrentHeight, $"invalid height {State.ClaimTransactionFeeNextHeightIndicator.Value}");
-            State.ClaimTransactionFeeNextHeightIndicator.Value = ++claimTransactionFeeNextHeightIndicator;
+            Assert(claimTransactionExecuteHeight == Context.CurrentHeight, $"invalid height {State.ClaimTransactionFeeExecuteHeight.Value}");
+            State.ClaimTransactionFeeExecuteHeight.Value = ++claimTransactionExecuteHeight;
             if (input.IsInvalid)
             {
                 return new Empty();
@@ -381,13 +381,13 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
-            long donateResourceTokenNextHeightIndicator = State.DonateResourceTokenNextHeightIndicator.Value;  
-            if (donateResourceTokenNextHeightIndicator == 0)
+            long donateResourceTokenExecuteHeight = State.DonateResourceTokenExecuteHeight.Value;  
+            if (donateResourceTokenExecuteHeight == 0)
             {
-                donateResourceTokenNextHeightIndicator = Context.CurrentHeight;
+                donateResourceTokenExecuteHeight = Context.CurrentHeight;
             }
-            Assert(donateResourceTokenNextHeightIndicator == Context.CurrentHeight, $"invalid height {State.DonateResourceTokenNextHeightIndicator.Value}");
-            State.DonateResourceTokenNextHeightIndicator.Value = ++donateResourceTokenNextHeightIndicator;
+            Assert(donateResourceTokenExecuteHeight == Context.CurrentHeight, $"invalid height {State.DonateResourceTokenExecuteHeight.Value}");
+            State.DonateResourceTokenExecuteHeight.Value = ++donateResourceTokenExecuteHeight;
             Context.LogDebug(() => $"Start donate resource token. {input}");
             State.LatestTotalResourceTokensMapsHash.Value = HashHelper.ComputeFrom(input);
             Context.LogDebug(() =>
