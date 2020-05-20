@@ -1,11 +1,10 @@
-using AElf.Kernel.Node.Infrastructure;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 
 namespace AElf.Kernel.Node.Domain
 {
     public class BlockchainNodeContext
     {
-        public ITxHub TxHub { get; set; }
+        public ITransactionPoolService TransactionPoolService { get; set; }
         
         public int ChainId { get; set; }
     }

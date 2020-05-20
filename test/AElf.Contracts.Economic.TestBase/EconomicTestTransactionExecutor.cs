@@ -7,8 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -29,11 +28,8 @@ namespace AElf.Contracts.Economic.TestBase
         public async Task<TransactionResult> ExecuteAsync(Transaction transaction)
         {
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-            {
-                Transactions = new List<Transaction> {transaction}
-            });
+            var transactionPoolService = _serviceProvider.GetRequiredService<ITransactionPoolService>();
+            await transactionPoolService.AddTransactionsAsync(new List<Transaction> {transaction});
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = _serviceProvider.GetRequiredService<IMinerService>();

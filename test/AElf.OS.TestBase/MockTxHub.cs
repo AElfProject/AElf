@@ -4,8 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.TransactionPool;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
@@ -40,39 +39,33 @@ namespace AElf.OS
             return executableTransactionSet;
         }
 
-        public async Task AddTransactionsAsync(TransactionsReceivedEvent eventData)
+        public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
-            foreach (var transaction in eventData.Transactions)
+            var txs = transactions.ToList();
+            foreach (var transaction in txs)
             {
-                if (_allTransactions.ContainsKey(transaction.GetHash()))
-                    continue;
                 _allTransactions.Add(transaction.GetHash(), transaction);
-                await _transactionManager.AddTransactionAsync(transaction);
             }
+
+            await _blockchainService.AddTransactionsAsync(txs);
         }
 
-        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        public Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds)
         {
-            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+            CleanTransactions(transactionIds);
             
             return Task.CompletedTask;
         }
 
-        public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
+        public async Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight)
         {
-            _bestChainHeight = eventData.BlockHeight;
-            _bestChainHash = eventData.BlockHash;
+            _bestChainHeight = bestChainHeight;
+            _bestChainHash = bestChainHash;
             await Task.CompletedTask;
         }
 
-        public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task CleanByHeightAsync(long height)
         {
-            await Task.CompletedTask;
-        }
-
-        public async Task CleanTransactionsAsync(IEnumerable<Hash> transactions)
-        {
-            CleanTransactions(transactions);
             await Task.CompletedTask;
         }
 
@@ -92,19 +85,12 @@ namespace AElf.OS
             return queuedTransaction;
         }
 
-        public Task<int> GetAllTransactionCountAsync()
+        public Task<TransactionPoolStatus> GetTransactionPoolStatusAsync()
         {
-            return Task.FromResult(_allTransactions.Count);
-        }
-
-        public Task<int> GetValidatedTransactionCountAsync()
-        {
-            return Task.FromResult(_allTransactions.Count);
-        }
-
-        public Task<bool> IsTransactionExistsAsync(Hash transactionId)
-        {
-            throw new System.NotImplementedException();
+            return Task.FromResult<TransactionPoolStatus>(new TransactionPoolStatus
+            {
+                AllTransactionCount = _allTransactions.Count,
+            });
         }
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)

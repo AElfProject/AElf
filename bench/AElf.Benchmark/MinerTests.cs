@@ -10,7 +10,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
@@ -26,7 +26,7 @@ namespace AElf.Benchmark
         private IMinerService _minerService;
         private ITransactionResultManager _transactionResultManager;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private ITxHub _txHub;
+        private ITransactionPoolService _transactionPoolService;
         private ITransactionManager _transactionManager;
         private OSTestHelper _osTestHelper;
 
@@ -45,7 +45,7 @@ namespace AElf.Benchmark
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _txHub = GetRequiredService<ITxHub>();
+            _transactionPoolService = GetRequiredService<ITransactionPoolService>();
 
             _transactions = new List<Transaction>();
             _chain = await _blockchainService.GetChainAsync();
@@ -75,13 +75,9 @@ namespace AElf.Benchmark
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
                 _block.Header.GetDisambiguatingHash());
 
-            await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
-
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                BlockHash = _chain.BestChainHash,
-                BlockHeight = _chain.BestChainHeight
-            });
+            await _transactionPoolService.CleanByTransactionIdsAsync(_transactions.Select(t => t.GetHash()).ToList());
+            await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,
+                _chain.BestChainHeight);
         }
     }
 }
