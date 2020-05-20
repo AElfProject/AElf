@@ -352,7 +352,7 @@ namespace AElf.Contracts.MultiToken
             }
             Assert(claimTransactionExecuteHeight == Context.CurrentHeight, $"invalid height {State.ClaimTransactionFeeExecuteHeight.Value}");
             State.ClaimTransactionFeeExecuteHeight.Value = claimTransactionExecuteHeight.Add(1);
-            if (input.IsInvalid)
+            if (input.IsChargeFeeNotInPreviousBlock)
             {
                 return new Empty();
             }

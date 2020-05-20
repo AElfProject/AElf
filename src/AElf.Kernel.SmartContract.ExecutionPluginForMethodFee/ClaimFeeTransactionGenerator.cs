@@ -53,7 +53,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
                 totalTxFeesMap = new TotalTransactionFeesMap
                 {
-                    IsInvalid = true
+                    IsChargeFeeNotInPreviousBlock = true
                 };
                 generatedTransactions.AddRange(new List<Transaction>
                 {
