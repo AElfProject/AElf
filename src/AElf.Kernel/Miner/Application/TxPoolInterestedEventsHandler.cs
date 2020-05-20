@@ -11,6 +11,7 @@ namespace AElf.Kernel.Miner.Application
     public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
         ILocalEventHandler<BlockAcceptedEvent>,
         ILocalEventHandler<BestChainFoundEventData>,
+        ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
@@ -39,6 +40,11 @@ namespace AElf.Kernel.Miner.Application
         public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
         {
             await _transactionPoolService.CleanByTransactionIdsAsync(eventData.Transactions);
+        }
+
+        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        {
+            await _transactionPoolService.UpdateTransactionPoolByLibAsync(eventData.BlockHeight);
         }
     }
 }
