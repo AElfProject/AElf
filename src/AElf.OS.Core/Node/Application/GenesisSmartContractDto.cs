@@ -1,4 +1,4 @@
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Types;
 
 namespace AElf.OS.Node.Application

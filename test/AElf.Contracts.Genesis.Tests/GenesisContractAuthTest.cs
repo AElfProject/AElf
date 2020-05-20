@@ -1,7 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Contracts.Association;

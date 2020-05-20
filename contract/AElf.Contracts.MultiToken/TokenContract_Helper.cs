@@ -5,7 +5,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS7;
 using AElf.CSharp.Core;

@@ -1,4 +1,4 @@
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Standards.ACS5;
 using AElf.Sdk.CSharp.State;
 
