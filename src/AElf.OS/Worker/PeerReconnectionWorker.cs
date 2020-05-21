@@ -10,10 +10,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.OS.Worker
 {
-    public class PeerReconnectionWorker : PeriodicBackgroundWorkerBase
+    public class PeerReconnectionWorker : AsyncPeriodicBackgroundWorkerBase
     {
         private readonly IPeerPool _peerPool;
         private readonly IReconnectionService _reconnectionService;
@@ -24,8 +25,9 @@ namespace AElf.OS.Worker
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
         public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
-            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService)
-            : base(timer)
+            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService,
+            IServiceScopeFactory serviceScopeFactory)
+            : base(timer, serviceScopeFactory)
         {
             _peerPool = peerPool;
             _reconnectionService = reconnectionService;
@@ -35,9 +37,9 @@ namespace AElf.OS.Worker
             timer.Period = _networkOptions.PeerReconnectionPeriod;
         }
         
-        protected override void DoWork()
+        protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
         {
-            AsyncHelper.RunSync(DoReconnectionJobAsync);
+            await DoReconnectionJobAsync();
         }
 
         internal async Task DoReconnectionJobAsync()
