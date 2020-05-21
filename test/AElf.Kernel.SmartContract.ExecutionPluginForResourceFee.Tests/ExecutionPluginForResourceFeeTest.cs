@@ -356,7 +356,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         public async Task Donate_Resource_Token_Send_By_User_False()
         {
             var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
-            result.Error.Contains("invalid height").ShouldBeTrue();
+            result.Error.Contains("This method already executed in height").ShouldBeTrue();
         }
     }
 }

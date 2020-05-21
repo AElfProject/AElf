@@ -124,7 +124,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-            transactionResult.Error.Contains("invalid height").ShouldBeTrue();
+            transactionResult.Error.Contains("This method already executed in height").ShouldBeTrue();
         }
 
         private async Task<List<Block>> GenerateEmptyBlocksAsync(int count , Hash previousBlockHash, long previousBlockHeight)

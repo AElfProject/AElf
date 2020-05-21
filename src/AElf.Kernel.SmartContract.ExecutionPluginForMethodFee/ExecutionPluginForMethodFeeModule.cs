@@ -17,7 +17,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
-            context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
