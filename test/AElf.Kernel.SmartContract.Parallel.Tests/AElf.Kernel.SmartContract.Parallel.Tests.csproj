@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
+<!--        <NoWarn>0436</NoWarn>-->
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />

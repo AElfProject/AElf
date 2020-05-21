@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <NoWarn>0436</NoWarn>
+<!--        <NoWarn>0436</NoWarn>-->
     </PropertyGroup>
 
     <ItemGroup>

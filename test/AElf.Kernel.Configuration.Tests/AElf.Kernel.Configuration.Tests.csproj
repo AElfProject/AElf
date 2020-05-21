@@ -14,7 +14,7 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
     </ItemGroup>
     <PropertyGroup>
-        <NoWarn>0436</NoWarn>
+<!--        <NoWarn>0436</NoWarn>-->
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">

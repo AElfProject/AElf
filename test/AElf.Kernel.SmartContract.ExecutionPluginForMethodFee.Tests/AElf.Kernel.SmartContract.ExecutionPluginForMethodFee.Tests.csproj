@@ -4,9 +4,9 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
-<!--    <PropertyGroup>-->
+    <PropertyGroup>
 <!--        <NoWarn>0436</NoWarn>-->
-<!--    </PropertyGroup>-->
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
