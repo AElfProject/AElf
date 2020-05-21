@@ -19,8 +19,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
-            Assert(Context.TransactionId != Context.OriginTransactionId,
-                "This method can only be executed in plugin tx.");
+            AssertTransactionGeneratedByPlugin();
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
@@ -167,8 +166,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
-            Assert(Context.TransactionId != Context.OriginTransactionId,
-                "This method can only be executed in plugin tx.");
+            AssertTransactionGeneratedByPlugin();
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
@@ -205,8 +203,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
-            Assert(Context.TransactionId != Context.OriginTransactionId,
-                "This method can only be executed in plugin tx.");
+            AssertTransactionGeneratedByPlugin();
             foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
             {
                 var balance = GetBalance(Context.Sender, symbol);
@@ -687,6 +684,12 @@ namespace AElf.Contracts.MultiToken
                 "Invalid symbol.");
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+        }
+
+        private void AssertTransactionGeneratedByPlugin()
+        {
+            Assert(Context.TransactionId != Context.OriginTransactionId,
+                "This method can only be executed in plugin tx.");
         }
     }
 }
