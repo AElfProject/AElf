@@ -22,5 +22,9 @@ namespace AElf
 
             return 0;
         }
+        public static ByteString ToByteString(this string hexString)
+        {
+            return ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(hexString));
+        }
     }
 }
