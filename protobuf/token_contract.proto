@@ -382,7 +382,6 @@ message TotalTransactionFeesMap
     map<string, int64> value = 1;
     aelf.Hash block_hash = 2;
     int64 block_height = 3;
-    bool is_previous_block_charged_fees = 4;
 }
 
 message TotalResourceTokensMaps {
