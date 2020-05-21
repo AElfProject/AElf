@@ -360,7 +360,7 @@ namespace AElf.Contracts.MultiToken
             Assert(claimTransactionExecuteHeight == Context.CurrentHeight,
                 $"This method already executed in height {State.ClaimTransactionFeeExecuteHeight.Value}");
             State.ClaimTransactionFeeExecuteHeight.Value = claimTransactionExecuteHeight.Add(1);
-            if (!input.IsPreviousBlockChargedFees)
+            if (input.BlockHeight == 0)
             {
                 return new Empty();
             }

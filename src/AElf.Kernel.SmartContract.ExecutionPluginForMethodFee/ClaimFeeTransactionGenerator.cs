@@ -48,14 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any() || totalTxFeesMap.BlockHeight != preBlockHeight ||
                 totalTxFeesMap.BlockHash != preBlockHash)
             {
-                totalTxFeesMap = new TotalTransactionFeesMap
-                {
-                    IsPreviousBlockChargedFees = false
-                };
-            }
-            else
-            {
-                totalTxFeesMap.IsPreviousBlockChargedFees = true;
+                totalTxFeesMap = new TotalTransactionFeesMap();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
