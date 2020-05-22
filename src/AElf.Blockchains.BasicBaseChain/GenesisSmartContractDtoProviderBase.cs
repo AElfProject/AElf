@@ -35,7 +35,8 @@ namespace AElf.Blockchains.BasicBaseChain
                     var genesisSmartContractDto = new GenesisSmartContractDto
                     {
                         Code = code,
-                        SystemSmartContractName = p.SystemSmartContractName
+                        SystemSmartContractName = p.SystemSmartContractName,
+                        ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
                     };
                     foreach (var method in methodList)
                     {
