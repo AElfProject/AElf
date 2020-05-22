@@ -13,11 +13,11 @@ namespace AElf.Kernel.Configuration.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton(typeof(LogEventListeningService<>));
+            context.Services.AddSingleton(typeof(LogEventProcessingService<>));
             context.Services
                 .Replace(ServiceDescriptor
-                    .Singleton<ILogEventListeningService<IBlockAcceptedLogEventProcessor>,
-                        OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>>());
+                    .Singleton<ILogEventProcessingService<IBlockAcceptedLogEventProcessor>,
+                        OptionalLogEventProcessingService<IBlockAcceptedLogEventProcessor>>());
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
