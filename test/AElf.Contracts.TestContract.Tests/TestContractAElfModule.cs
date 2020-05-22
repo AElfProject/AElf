@@ -31,7 +31,6 @@ namespace AElf.Contract.TestContract
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
             context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
             //TODO Fix never claim transaction fee

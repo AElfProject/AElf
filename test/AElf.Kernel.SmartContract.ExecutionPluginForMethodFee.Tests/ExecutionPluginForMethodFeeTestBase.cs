@@ -6,6 +6,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestKit;
+using AElf.ContractTestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal;
@@ -18,7 +19,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPluginForMethodFeeTestModule>
+    public class ExecutionPluginForMethodFeeTestBase : MainChainContractTestBase<ExecutionPluginForMethodFeeTestModule>
     {
     }
 
