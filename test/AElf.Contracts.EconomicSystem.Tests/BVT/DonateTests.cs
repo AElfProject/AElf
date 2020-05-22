@@ -18,9 +18,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_FewELF_Success_Test()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
-            await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
-            var stub = GetTreasuryContractTester(keyPair);
+            var account = Accounts[1];
+            await TransferToken(account.KeyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
+            var stub = GetTreasuryContractTester(account.KeyPair);
 
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
@@ -31,7 +31,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(keyPair.PublicKey),
+                Owner = account.Address,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             })).Balance;
             userBalance.ShouldBe(50);
@@ -43,9 +43,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_AllELF_Success_Test()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
-            await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
-            var stub = GetTreasuryContractTester(keyPair);
+            var account = Accounts[1];
+            await TransferToken(account.KeyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
+            var stub = GetTreasuryContractTester(account.KeyPair);
 
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
@@ -55,7 +55,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(keyPair.PublicKey),
+                Owner = account.Address,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             })).Balance;
             userBalance.ShouldBe(0);
@@ -67,10 +67,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_ELF_LessThan_Owned_Test()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var account = Accounts[1];
 
-            await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 50);
-            var stub = GetTreasuryContractTester(keyPair);
+            await TransferToken(account.KeyPair, EconomicSystemTestConstants.NativeTokenSymbol, 50);
+            var stub = GetTreasuryContractTester(account.KeyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
@@ -80,7 +80,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(keyPair.PublicKey),
+                Owner = account.Address,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             })).Balance;
             userBalance.ShouldBe(50);
