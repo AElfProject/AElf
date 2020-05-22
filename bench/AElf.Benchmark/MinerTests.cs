@@ -14,8 +14,6 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
-using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.Threading;
 
 namespace AElf.Benchmark
 {
@@ -24,7 +22,6 @@ namespace AElf.Benchmark
     {
         private IBlockchainService _blockchainService;
         private IMinerService _minerService;
-        private ITransactionResultManager _transactionResultManager;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private ITransactionPoolService _transactionPoolService;
         private ITransactionManager _transactionManager;
@@ -42,7 +39,6 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _minerService = GetRequiredService<IMinerService>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionPoolService = GetRequiredService<ITransactionPoolService>();
@@ -71,9 +67,7 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionManager.RemoveTransactionsAsync(transactionIds);
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetDisambiguatingHash());
+            await RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
 
             await _transactionPoolService.CleanByTransactionIdsAsync(_transactions.Select(t => t.GetHash()).ToList());
             await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,

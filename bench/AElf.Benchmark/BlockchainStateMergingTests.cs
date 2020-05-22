@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain;
@@ -23,8 +24,6 @@ namespace AElf.Benchmark
         private IBlockchainStore<Chain> _chains;
         private IBlockManager _blockManager;
         private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
-        private IBlockchainStateManager _blockchainStateManager;
         private IBlockchainStateService _blockchainStateService;
         private IBlockStateSetManger _blockStateSetManger;
         private IBlockchainService _blockchainService;
@@ -46,7 +45,6 @@ namespace AElf.Benchmark
         {
             _chains = GetRequiredService<IBlockchainStore<Chain>>();
             _chainStateInfoCollection = GetRequiredService<IStateStore<ChainStateInfo>>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
             _blockchainService = GetRequiredService<IBlockchainService>();
@@ -54,7 +52,6 @@ namespace AElf.Benchmark
             _chainManager = GetRequiredService<IChainManager>();
             _blockManager = GetRequiredService<IBlockManager>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _transactionPoolService = GetRequiredService<ITransactionPoolService>();
             
 
@@ -121,10 +118,7 @@ namespace AElf.Benchmark
                 await _transactionPoolService.CleanByTransactionIdsAsync(block.TransactionIds);
 
                 await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);
-                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultsAsync(block.Body.TransactionIds,
-                    block.Header.GetDisambiguatingHash());
+                await RemoveTransactionResultsAsync(block.Body.TransactionIds, block.GetHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }

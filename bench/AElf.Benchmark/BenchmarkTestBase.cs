@@ -9,6 +9,9 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Application;
@@ -16,14 +19,32 @@ using AElf.OS.Node.Application;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf;
+using Volo.Abp.Modularity;
 
 namespace AElf.Benchmark
 {
-    public class BenchmarkTestBase : AElfIntegratedTest<BenchmarkAElfModule>
+    public class BenchmarkTestBase : BenchmarkTestBase<BenchmarkAElfModule>
     {
     }
 
-    public class MiningWithTransactionsBenchmarkBase : AElfIntegratedTest<MiningBenchmarkAElfModule>
+    public class BenchmarkTestBase<TModule> : AElfIntegratedTest<TModule>
+        where TModule : IAbpModule
+    {
+        protected readonly IBlockchainStore<TransactionResult> TransactionResultStore;
+        
+        public BenchmarkTestBase()
+        {
+            TransactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
+        }
+
+        protected async Task RemoveTransactionResultsAsync(IEnumerable<Hash> transactionIds, Hash disambiguationHash)
+        {
+            await TransactionResultStore.RemoveAllAsync(transactionIds
+                .Select(t => HashHelper.XorAndCompute(t, disambiguationHash).ToStorageKey()).ToList());
+        }
+    }
+
+    public class MiningWithTransactionsBenchmarkBase : BenchmarkTestBase<MiningBenchmarkAElfModule>
     {
         private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IAccountService _accountService;
@@ -138,7 +159,7 @@ namespace AElf.Benchmark
         }
     }
 
-    public class BenchmarkParallelTestBase : AElfIntegratedTest<BenchmarkParallelAElfModule>
+    public class BenchmarkParallelTestBase : BenchmarkTestBase<BenchmarkParallelAElfModule>
     {
     }
 }
