@@ -39,7 +39,7 @@
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
