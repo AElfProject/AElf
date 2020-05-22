@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return true;
             }
             
-            // for upgrade
+            // for upgrading
             var defaultHashState = HashHelper.ComputeFrom(new TotalTransactionFeesMap());
             
             var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 ContractAddress = tokenContractAddress
             }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
             
-            //for upgrade
+            //for upgrading
             if (hashFromState.Value.Equals(defaultHashState.Value))
                 return true;
             
