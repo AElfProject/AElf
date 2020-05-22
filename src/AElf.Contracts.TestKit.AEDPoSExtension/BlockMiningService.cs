@@ -402,7 +402,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             MinerInRound minerInRound)
         {
             var pubkey = ByteArrayHelper.HexStringToByteArray(minerInRound.Pubkey);
-            var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
+            var keyPair = SampleAccount.Accounts.First(a => a.KeyPair.PublicKey.BytesEqual(pubkey)).KeyPair;
             _testDataProvider.SetKeyPair(keyPair);
             Debug.WriteLine($"Chosen miner: {keyPair.PublicKey.ToHex()}");
             return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(

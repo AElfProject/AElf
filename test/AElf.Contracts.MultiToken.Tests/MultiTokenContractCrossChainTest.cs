@@ -12,7 +12,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
-using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 using ProposalCreated = AElf.Standards.ACS3.ProposalCreated;
 using ProposalReleased = AElf.Standards.ACS3.ProposalReleased;
 

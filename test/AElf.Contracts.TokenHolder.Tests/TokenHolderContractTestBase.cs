@@ -25,19 +25,19 @@ namespace AElf.Contracts.TokenHolder
 {
     public class TokenHolderContractTestBase : ContractTestBase<TokenHolderContractTestAElfModule>
     {
-        protected ECKeyPair StarterKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
+        protected ECKeyPair StarterKeyPair => Accounts[0].KeyPair;
+        protected Address Starter => Accounts[0].Address;
 
-        protected ECKeyPair ProfitReceiverKeyPair => SampleECKeyPairs.KeyPairs[1];
-        protected Address Receiver => Address.FromPublicKey(ProfitReceiverKeyPair.PublicKey);
+        protected ECKeyPair ProfitReceiverKeyPair => Accounts[1].KeyPair;
+        protected Address Receiver => Accounts[1].Address;
 
-        protected List<ECKeyPair> UserKeyPairs => SampleECKeyPairs.KeyPairs.Skip(2).Take(3).ToList();
+        protected List<ECKeyPair> UserKeyPairs => Accounts.Skip(2).Take(3).Select(a=>a.KeyPair).ToList();
 
         protected List<Address> UserAddresses =>
             UserKeyPairs.Select(k => Address.FromPublicKey(k.PublicKey)).ToList();
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(TokenHolderContractTestConstants.InitialCoreDataCenterCount).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(TokenHolderContractTestConstants.InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ParliamentContractAddress { get; set; }

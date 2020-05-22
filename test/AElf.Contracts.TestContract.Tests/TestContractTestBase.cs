@@ -39,8 +39,8 @@ namespace AElf.Contract.TestContract
             PatchedCodes = GetPatchedCodes(ContractPatchedDllDir);
         }
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
@@ -160,7 +160,7 @@ namespace AElf.Contract.TestContract
                     MinValue = 10L,
                     MaxValue = 1000L,
                     MortgageValue = 1000_000_000L,
-                    Manager = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey)
+                    Manager = Accounts[1].Address
                 });
         }
 
@@ -176,12 +176,12 @@ namespace AElf.Contract.TestContract
         protected const long VirtualElfSupplyToken = 1_000_000_00000000L;
         protected const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
         protected const long VirtualResourceToken = 100_000;
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair OtherTesterKeyPair => SampleECKeyPairs.KeyPairs[1];
-        protected Address OtherTester => Address.FromPublicKey(OtherTesterKeyPair.PublicKey);
-        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
-        protected Address ManagerTester => Address.FromPublicKey(ManagerKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
+        protected ECKeyPair OtherTesterKeyPair => Accounts[1].KeyPair;
+        protected Address OtherTester => Accounts[1].Address;
+        protected ECKeyPair ManagerKeyPair => Accounts[10].KeyPair;
+        protected Address ManagerTester => Accounts[10].Address;
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address Acs8ContractAddress { get; set; }
         protected Address TokenContractAddress { get; set; }

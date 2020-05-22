@@ -66,12 +66,12 @@ namespace AElf.Contracts.TokenConverter
 
         #region Properties
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
         protected Address FeeReceiverAddress => TreasuryContractAddress;
-        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
+        protected ECKeyPair ManagerKeyPair => Accounts[11].KeyPair;
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs => SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs => Accounts.Take(5).Select(a => a.KeyPair).ToList();
 
         #endregion
 

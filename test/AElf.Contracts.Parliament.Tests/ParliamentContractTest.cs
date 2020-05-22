@@ -13,7 +13,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
-using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
 namespace AElf.Contracts.Parliament
 {
@@ -90,7 +89,7 @@ namespace AElf.Contracts.Parliament
         public async Task Get_OrganizationFailed_Test()
         {
             var organization =
-                await ParliamentContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                await ParliamentContractStub.GetOrganization.CallAsync(Accounts[0].Address);
             organization.ShouldBe(new Organization());
         }
 
@@ -266,7 +265,7 @@ namespace AElf.Contracts.Parliament
             var blockTime = BlockTimeProvider.GetBlockTime();
             var createProposalInput = new CreateProposalInput
             {
-                ToAddress = SampleAddress.AddressList[0],
+                ToAddress = Accounts[0].Address,
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress = organizationAddress
@@ -292,7 +291,7 @@ namespace AElf.Contracts.Parliament
             //ExpiredTime is null
             {
                 createProposalInput.ExpiredTime = null;
-                createProposalInput.ToAddress = SampleAddress.AddressList[0];
+                createProposalInput.ToAddress = Accounts[0].Address;
 
                 var transactionResult =
                     await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);
@@ -309,7 +308,7 @@ namespace AElf.Contracts.Parliament
             //"No registered organization."
             {
                 createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                createProposalInput.OrganizationAddress = SampleAddress.AddressList[1];
+                createProposalInput.OrganizationAddress = Accounts[1].Address;
 
                 var transactionResult =
                     await ParliamentContractStub.CreateProposal.SendWithExceptionAsync(createProposalInput);

@@ -26,7 +26,7 @@ namespace AElf.Kernel.Configuration.Tests
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub _configurationStub;
         private ParliamentContractImplContainer.ParliamentContractImplStub _parliamentContractStub;
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IBlockchainStateService _blockchainStateService;

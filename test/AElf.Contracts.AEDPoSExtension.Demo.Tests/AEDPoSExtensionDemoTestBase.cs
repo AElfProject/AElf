@@ -28,17 +28,17 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal TokenContractImplContainer.TokenContractImplStub TokenStub =>
             GetTester<TokenContractImplContainer.TokenContractImplStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
         
         internal AssociationContractImplContainer.AssociationContractImplStub AssociationStub =>
             GetTester<AssociationContractImplContainer.AssociationContractImplStub>(
                 ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
 
         internal readonly List<ParliamentContractImplContainer.ParliamentContractImplStub> ParliamentStubs =

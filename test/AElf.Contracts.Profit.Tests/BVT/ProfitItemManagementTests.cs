@@ -194,27 +194,27 @@ namespace AElf.Contracts.Profit.BVT
                 {
                     new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[11].PublicKey),
+                        Beneficiary = Accounts[11].Address,
                         Shares = 1
                     },
                     new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[12].PublicKey),
+                        Beneficiary = Accounts[12].Address,
                         Shares = 1
                     },
                     new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[13].PublicKey),
+                        Beneficiary = Accounts[13].Address,
                         Shares = 1
                     },
                     new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[14].PublicKey),
+                        Beneficiary = Accounts[14].Address,
                         Shares = 1
                     },
                     new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[15].PublicKey),
+                        Beneficiary = Accounts[15].Address,
                         Shares = 1
                     },
                 }

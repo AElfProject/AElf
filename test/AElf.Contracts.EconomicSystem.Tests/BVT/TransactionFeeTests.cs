@@ -63,7 +63,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            var address = SampleAddress.AddressList[1].ToBase58();
+            var address = Accounts[10].Address.ToBase58();
             var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
             {
                 Option = address,
@@ -160,7 +160,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             await Profit_SetMethodFee_Test();
 
-            var tester = SampleECKeyPairs.KeyPairs[11];
+            var tester = Accounts[11].KeyPair;
             var testerAddress = Address.FromPublicKey(tester.PublicKey);
             var creator = GetProfitContractTester(tester);
             var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -255,7 +255,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             int totalSnapshotNumber = int.MaxValue)
         {
             var startTime = TimestampHelper.GetUtcNow();
-            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].ToBase58())
+            var options = Enumerable.Range(0, optionsCount).Select(_ => Accounts[0].Address.ToBase58())
                 .ToList();
             var input = new VotingRegisterInput
             {

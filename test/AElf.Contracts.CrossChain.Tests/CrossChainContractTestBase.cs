@@ -49,13 +49,13 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #endregion
 
-        protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
 
-        protected ECKeyPair AnotherKeyPair => SampleECKeyPairs.KeyPairs.Last();
-        protected Address AnotherSender => Address.FromPublicKey(AnotherKeyPair.PublicKey);
+        protected ECKeyPair AnotherKeyPair => Accounts.Last().KeyPair;
+        protected Address AnotherSender => Accounts.Last().Address;
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(AEDPoSExtensionConstants.InitialKeyPairCount).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(AEDPoSExtensionConstants.InitialKeyPairCount).Select(a=>a.KeyPair).ToList();
 
         protected Address DefaultSender => Address.FromPublicKey(DefaultKeyPair.PublicKey);
 

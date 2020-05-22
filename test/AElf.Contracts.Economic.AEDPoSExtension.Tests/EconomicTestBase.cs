@@ -29,37 +29,37 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal TokenContractContainer.TokenContractStub TokenStub =>
             GetTester<TokenContractContainer.TokenContractStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
             GetTester<ParliamentContractContainer.ParliamentContractStub>(
                 ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal ElectionContractContainer.ElectionContractStub ElectionStub =>
             GetTester<ElectionContractContainer.ElectionContractStub>(
                 ContractAddresses[ElectionSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal EconomicContractContainer.EconomicContractStub EconomicStub =>
             GetTester<EconomicContractContainer.EconomicContractStub>(
                 ContractAddresses[EconomicSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal TreasuryContractContainer.TreasuryContractStub TreasuryStub =>
             GetTester<TreasuryContractContainer.TreasuryContractStub>(
                 ContractAddresses[TreasurySmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         internal ProfitContractContainer.ProfitContractStub ProfitStub =>
             GetTester<ProfitContractContainer.ProfitContractStub>(
                 ContractAddresses[ProfitSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
         public EconomicTestBase()
         {
@@ -123,7 +123,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 issueTransactions.Add(EconomicStub.IssueNativeToken.GetTransaction(new IssueNativeTokenInput
                 {
                     To = Address.FromPublicKey(coreDataCenterKeyPair.PublicKey),
-                    Amount = 8_800_000_000_00000000 / SampleECKeyPairs.KeyPairs.Count,
+                    Amount = 8_800_000_000_00000000 / Accounts.Count,
                 }));
             }
 

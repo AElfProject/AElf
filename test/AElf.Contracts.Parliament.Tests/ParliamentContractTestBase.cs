@@ -19,7 +19,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
-using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.Parliament
 {
@@ -33,11 +32,11 @@ namespace AElf.Contracts.Parliament
         protected byte[] ParliamentCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         protected byte[] DPoSConsensusCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[10];
-        protected ECKeyPair TesterKeyPair => SampleECKeyPairs.KeyPairs[MinersCount + 1];
-        protected List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(MinersCount).ToList();
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address Tester => Address.FromPublicKey(TesterKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[10].KeyPair;
+        protected ECKeyPair TesterKeyPair => Accounts[MinersCount + 1].KeyPair;
+        protected List<ECKeyPair> InitialMinersKeyPairs => Accounts.Take(MinersCount).Select(a => a.KeyPair).ToList();
+        protected Address DefaultSender => Accounts[10].Address;
+        protected Address Tester => Accounts[MinersCount + 1].Address;
 
         protected Address TokenContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }

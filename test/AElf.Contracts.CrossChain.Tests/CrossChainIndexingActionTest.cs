@@ -60,7 +60,7 @@ namespace AElf.Contracts.CrossChain.Tests
             };
 
             {
-                var txRes = await GetCrossChainContractStub(SampleECKeyPairs.KeyPairs.Last()).ProposeCrossChainIndexing
+                var txRes = await GetCrossChainContractStub(Accounts.Last().KeyPair).ProposeCrossChainIndexing
                     .SendWithExceptionAsync(crossChainBlockData);
                 Assert.Equal(TransactionResultStatus.Failed, txRes.TransactionResult.Status);
             }

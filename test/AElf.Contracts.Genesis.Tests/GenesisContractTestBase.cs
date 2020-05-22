@@ -18,7 +18,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
-using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.Genesis
 {
@@ -38,10 +37,10 @@ namespace AElf.Contracts.Genesis
             GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
-        protected Address AnotherUser => Address.FromPublicKey(AnotherUserKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts.First().KeyPair;
+        protected Address DefaultSender => Accounts.First().Address;
+        protected ECKeyPair AnotherUserKeyPair => Accounts.Last().KeyPair;
+        protected Address AnotherUser => Accounts.Last().Address;
 
         internal ACS0Container.ACS0Stub AnotherTester =>
             GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, AnotherUserKeyPair);

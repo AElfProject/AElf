@@ -48,7 +48,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var dict = await DeployCommitmentSchemeContract();
             CommitmentSchemeStub =
                 GetTester<CommitmentSchemeContractContainer.CommitmentSchemeContractStub>(dict.First().Value,
-                    SampleECKeyPairs.KeyPairs[0]);
+                    Accounts[0].KeyPair);
 
             var commitment = HashHelper.ComputeFrom(Secret);
             var requestTx = CommitmentSchemeStub.RequestRandomNumber.GetTransaction(commitment);

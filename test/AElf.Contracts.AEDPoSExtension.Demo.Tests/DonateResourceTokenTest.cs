@@ -33,7 +33,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
         private const long ResourceSupply = 1_0000_0000_00000000;
 
-        private static Address Creator => Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+        private Address Creator => Accounts[0].Address;
 
         private static List<string> Symbols => new List<string> {"CPU", "RAM", "DISK", "NET"};
 
@@ -187,7 +187,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await InitialTokenContract();
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var member = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+            var member = Accounts[0].Address;
             var proposers = new List<Address> {member};
             var newOrganizationCreationInput = new Association.CreateOrganizationInput
             {
