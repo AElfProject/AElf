@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Database.RedisProtocol;
 using Xunit;
 
 namespace AElf.Database.Tests
@@ -33,7 +34,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            await _database.SetAsync(key, Helper.StringToBytes(value));
+            await _database.SetAsync(key, value.ToUtf8Bytes());
         }
 
         [Fact]
@@ -42,10 +43,10 @@ namespace AElf.Database.Tests
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            await _database.SetAsync(key, Helper.StringToBytes(value));
+            await _database.SetAsync(key, value.ToUtf8Bytes());
             var getResult = await _database.GetAsync(key);
 
-            Assert.Equal(value, Helper.BytesToString(getResult));
+            Assert.Equal(value, getResult.FromUtf8Bytes());
         }
 
         [Fact]
@@ -104,7 +105,7 @@ namespace AElf.Database.Tests
         {
             var key = string.Empty;
             var value = Guid.NewGuid().ToString();
-            Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, Helper.StringToBytes(value)); });
+            Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, value.ToUtf8Bytes()); });
         }
 
         [Fact]
