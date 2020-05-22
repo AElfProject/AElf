@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class LogEventListeningService<T> : ILogEventListeningService<T>
+    public class LogEventProcessingService<T> : ILogEventProcessingService<T>
         where T : ILogEventProcessor
     {
         private readonly List<T> _logEventProcessors;
 
-        public ILogger<LogEventListeningService<T>> Logger { get; set; }
+        public ILogger<LogEventProcessingService<T>> Logger { get; set; }
 
-        public LogEventListeningService(IEnumerable<T> logEventProcessors)
+        public LogEventProcessingService(IEnumerable<T> logEventProcessors)
         {
             _logEventProcessors = logEventProcessors.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }

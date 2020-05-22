@@ -10,25 +10,25 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     public static class MissionedECKeyPairs
     {
         public static readonly IEnumerable<ECKeyPair> InitialKeyPairs =
-            SampleECKeyPairs.KeyPairs
-                .Take(AEDPoSExtensionConstants.InitialKeyPairCount);
+            SampleAccount.Accounts
+                .Take(AEDPoSExtensionConstants.InitialKeyPairCount).Select(a => a.KeyPair);
 
         public static readonly IEnumerable<ECKeyPair> CoreDataCenterKeyPairs =
-            SampleECKeyPairs.KeyPairs
+            SampleAccount.Accounts
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount)
-                .Take(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
+                .Take(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount).Select(a => a.KeyPair);
 
         public static readonly IEnumerable<ECKeyPair> ValidationDataCenterKeyPairs =
-            SampleECKeyPairs.KeyPairs
+            SampleAccount.Accounts
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount +
                       AEDPoSExtensionConstants.CoreDataCenterKeyPairCount)
-                .Take(AEDPoSExtensionConstants.ValidationDataCenterKeyPairCount);
+                .Take(AEDPoSExtensionConstants.ValidationDataCenterKeyPairCount).Select(a => a.KeyPair);
         
         public static readonly IEnumerable<ECKeyPair> CitizenKeyPairs =
-            SampleECKeyPairs.KeyPairs
+            SampleAccount.Accounts
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount +
                       AEDPoSExtensionConstants.CoreDataCenterKeyPairCount + 
                       AEDPoSExtensionConstants.ValidationDataCenterKeyPairCount)
-                .Take(AEDPoSExtensionConstants.CitizenKeyPairsCount);
+                .Take(AEDPoSExtensionConstants.CitizenKeyPairsCount).Select(a => a.KeyPair);
     }
 }
