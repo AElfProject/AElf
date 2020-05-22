@@ -32,7 +32,6 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Volo.Abp.Threading;
-using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -43,14 +42,14 @@ namespace AElf.Contracts.MultiToken
         protected long BobCoinTotalAmount => 1_000_000_000_0000L;
         protected Address TokenContractAddress { get; set; }
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
-        protected ECKeyPair DefaultKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultAddress => Address.FromPublicKey(DefaultKeyPair.PublicKey);
-        protected ECKeyPair User1KeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
-        protected Address User1Address => Address.FromPublicKey(User1KeyPair.PublicKey);
-        protected ECKeyPair User2KeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
-        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[12];
-        protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        protected Address User2Address => Address.FromPublicKey(User2KeyPair.PublicKey);
+        protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultAddress => Accounts[0].Address;
+        protected ECKeyPair User1KeyPair => Accounts[10].KeyPair;
+        protected Address User1Address => Accounts[10].Address;
+        protected ECKeyPair User2KeyPair => Accounts[11].KeyPair;
+        protected ECKeyPair ManagerKeyPair => Accounts[12].KeyPair;
+        protected Address ManagerAddress => Accounts[12].Address;
+        protected Address User2Address => Accounts[11].Address;
         protected const string DefaultSymbol = "ELF";
         public byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
         protected Address TreasuryContractAddress { get; set; }
@@ -86,8 +85,8 @@ namespace AElf.Contracts.MultiToken
             return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
         protected Address ReferendumContractAddress { get; set; }
 
         internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
@@ -108,7 +107,7 @@ namespace AElf.Contracts.MultiToken
         protected Hash BasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
 
-        protected readonly Address Address = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey);
+        protected Address Address => Accounts[0].Address;
 
         protected const string SymbolForTest = "ELF";
 

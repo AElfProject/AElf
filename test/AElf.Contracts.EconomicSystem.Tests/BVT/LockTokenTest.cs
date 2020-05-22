@@ -15,7 +15,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 {
     public class TokenTestBase : EconomicSystemTestBase
     {
-        protected ECKeyPair AnnounceElectionKeyPair => SampleECKeyPairs.KeyPairs[81];
+        protected ECKeyPair AnnounceElectionKeyPair => Accounts[81].KeyPair;
         internal ElectionContractContainer.ElectionContractStub tokenTestElectionContractStub { get; set; }
     }
 
