@@ -20,11 +20,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public sealed class ExecutionPluginForMethodFeeTest : ExecutionPluginForMethodFeeTestBase
     {
-        private TokenContractContainer.TokenContractStub _tokenContractStub;
         private Address _testContractAddress;
         private TestContract.ContractContainer.ContractStub _testContractStub;
         private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
-        private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        private Address DefaultSender => Accounts[0].Address;
         
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
@@ -39,7 +38,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             _totalTransactionFeesMapProvider = GetRequiredService<ITotalTransactionFeesMapProvider>();
         }
 
-        private async Task DeployContractsAsync()
+        private async Task DeployTestContractAsync()
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
@@ -75,25 +74,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             }
         }
 
-        private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStub(ECKeyPair senderKey = null)
+        private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStub()
         {
-            if (_tokenContractStub == null)
+            var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var chainContext = new ChainContext
             {
-                var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-                var chainContext = new ChainContext
-                {
-                    BlockHash = preBlockHeader.GetHash(),
-                    BlockHeight = preBlockHeader.Height
-                };
-                var contractMapping =
-                    await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
+                BlockHash = preBlockHeader.GetHash(),
+                BlockHeight = preBlockHeader.Height
+            };
+            var contractMapping =
+                await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
 
-                _tokenContractStub = GetTester<TokenContractContainer.TokenContractStub>(
-                    contractMapping[TokenSmartContractAddressNameProvider.Name],
-                    senderKey ?? Accounts[0].KeyPair);
-            }
+            var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
+                contractMapping[TokenSmartContractAddressNameProvider.Name], Accounts[0].KeyPair);
 
-            return _tokenContractStub;
+            return tokenStub;
         }
 
         private async Task<Address> GetTokenContractAddress()
@@ -113,7 +108,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task GetPreTransactionsTest()
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
 
             await SetMethodFee_Successful(10);
             var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
@@ -160,7 +155,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task ChargeFee_SuccessfulTest()
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
 
             var feeAmount = 7;
             await SetMethodFee_Successful(feeAmount);
@@ -203,7 +198,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task ChargeFee_TxFee_FailedTest()
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
             
             var issueAmount = 99999;
             var tokenContractStub = await GetTokenContractStub();
@@ -246,7 +241,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2,
             long fee3, string chargedSymbol, long chargedAmount, bool isChargingSuccessful)
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
 
             var tokenContractStub = await GetTokenContractStub();
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
@@ -358,7 +353,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task Method_Fee_Set_Zero_ChargeFee_Should_Be_Zero()
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
             
             await SetMethodFee_Successful(0);
 
@@ -384,7 +379,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task Method_Fee_Not_Set_Zero_ChargeFee()
         {
-            await DeployContractsAsync();
+            await DeployTestContractAsync();
 
             var tokenContractStub = await GetTokenContractStub();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
