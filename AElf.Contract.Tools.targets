@@ -52,7 +52,7 @@
         <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
         <Exec Condition="@(ContractBase) != '' And $(IsContract) != '' AND '$(IsContract)' " Command="$(GenerateContractBaseCommand) %(Identity) "/>
         <Exec Condition="@(ContractBase) != '' And %(ContractBase.PublicAccessibility) == 'true'" Command="$(GenerateContractBaseCommand) %(Identity) "/>
-        <Exec Condition="@(ContractBase) != '' And $(IsContract) == '' And %(ContractBase.PublicAccessibility) != 'true'" Command="$(GenerateContractBaseCommand) %(Identity) 'internal_access'"/>
+        <Exec Condition="@(ContractBase) != '' And $(IsContract) == '' And %(ContractBase.PublicAccessibility) != 'true'" Command="$(GenerateContractBaseCommand) %(Identity) internal_access"/>
         <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
         <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
