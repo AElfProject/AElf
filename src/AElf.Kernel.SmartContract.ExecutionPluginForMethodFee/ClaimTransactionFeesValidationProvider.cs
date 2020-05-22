@@ -82,7 +82,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 });
             
             //for upgrading
-            if (hashFromState == HashHelper.ComputeFrom(new TotalTransactionFeesMap()))
+            if (hashFromState == HashHelper.ComputeFrom(new TotalTransactionFeesMap
+            {
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
+            }))
             {
                 if (totalTransactionFeesMapFromProvider == null)
                     return true;

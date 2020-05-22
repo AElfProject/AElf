@@ -49,7 +49,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 totalTxFeesMap.BlockHash != preBlockHash)
             {
 
-                totalTxFeesMap = new TotalTransactionFeesMap();
+                totalTxFeesMap = new TotalTransactionFeesMap
+                {
+                    BlockHash = preBlockHash,
+                    BlockHeight = preBlockHeight
+                };
             }
 
             generatedTransactions.AddRange(new List<Transaction>

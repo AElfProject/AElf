@@ -355,11 +355,6 @@ namespace AElf.Contracts.MultiToken
             Assert(claimTransactionExecuteHeight == Context.CurrentHeight,
                 $"This method already executed in height {State.ClaimTransactionFeeExecuteHeight.Value}");
             State.ClaimTransactionFeeExecuteHeight.Value = claimTransactionExecuteHeight.Add(1);
-            if (input.BlockHeight == 0)
-            {
-                return new Empty();
-            }
-
             Context.LogDebug(() => $"Claim transaction fee. {input}");
             State.LatestTotalTransactionFeesMapHash.Value = HashHelper.ComputeFrom(input);
             foreach (var bill in input.Value)
