@@ -30,16 +30,16 @@
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf/Proto/acs3.proto</Link>
+            <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\association_contract.proto">
-            <Link>Protobuf/Proto/association_contract.proto</Link>
+            <Link>Protobuf\Proto\association_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>

@@ -17,18 +17,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginForMethodFeeWithForkTestBase
     {
-        private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
-
-
-        public ExecutionPluginForMethodFeeWithForkTest()
-        {
-            _totalTransactionFeesMapProvider = GetRequiredService<ITotalTransactionFeesMapProvider>();
-        }
-
         private async Task<IDictionary<string, long>> GetTransactionFeesMapAsync(IChainContext chainContext)
         {
+            var totalTransactionFeesMapProvider = Tester.GetService<ITotalTransactionFeesMapProvider>();
             var transactionFeesMap =
-                await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
+                await totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
             if (chainContext.BlockHash != transactionFeesMap.BlockHash ||
                 chainContext.BlockHeight != transactionFeesMap.BlockHeight)
             {

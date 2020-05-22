@@ -408,6 +408,12 @@ namespace AElf.Contracts.TestBase
             return new ContractTester<TContractTestAElfModule>(Application, chainId);
         }
 
+        // TODO: This can be deprecated after Tester reconstructed.
+        public T GetService<T>()
+        {
+            return Application.ServiceProvider.GetService<T>();
+        }
+
         public async Task<byte[]> GetPublicKeyAsync()
         {
             var accountService = Application.ServiceProvider.GetRequiredService<IAccountService>();

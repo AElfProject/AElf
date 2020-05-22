@@ -1051,13 +1051,5 @@ namespace AElf.Contracts.Referendum
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
         }
-
-        [Fact]
-        public void ParsEvent()
-        {
-            string base64 = "CiIKIMJhA4ym1KFp5sGGKXS1DS/1J2KLcBsOFzy78U9fvcFI";
-            var proposalId = ProposalCreated.Parser.ParseFrom(ByteString.FromBase64(base64));
-            ;
-        }
     }
 }

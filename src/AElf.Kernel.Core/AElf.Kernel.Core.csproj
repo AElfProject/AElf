@@ -22,7 +22,4 @@
         <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="SmartContractInitialization" />
-    </ItemGroup>
 </Project>
