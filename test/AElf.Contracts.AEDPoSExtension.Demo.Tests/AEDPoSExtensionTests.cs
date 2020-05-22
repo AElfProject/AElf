@@ -48,7 +48,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 Symbol = "ELF",
                 Decimals = 8,
                 TokenName = "Test",
-                Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+                Issuer = Accounts[0].Address,
                 IsBurnable = true,
                 TotalSupply = 1_000_000_000_00000000
             });
