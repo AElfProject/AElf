@@ -71,7 +71,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_QuitElection_NotCandidate_Test()
         {
-            var userKeyPair = SampleECKeyPairs.KeyPairs[2];
+            var userKeyPair = Accounts[2].KeyPair;
 
             var transactionResult = await QuitElectionAsync(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

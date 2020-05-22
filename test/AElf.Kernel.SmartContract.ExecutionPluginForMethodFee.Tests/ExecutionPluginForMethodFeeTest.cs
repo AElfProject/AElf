@@ -24,7 +24,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private Address TestContractAddress { get; set; }
         private Address TokenContractAddress { get; set; }
         private TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         
         private readonly IBlockchainService _blockchainService;
