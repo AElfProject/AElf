@@ -67,13 +67,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             {
                 return true;
             }
-
+            
+            // for upgrade
+            var defaultHashState = HashHelper.ComputeFrom(new TotalTransactionFeesMap());
+            
             var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Header.Height,
                 ContractAddress = tokenContractAddress
             }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+            
+            //for upgrade
+            if (hashFromState.Value.Equals(defaultHashState.Value))
+                return true;
+            
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
