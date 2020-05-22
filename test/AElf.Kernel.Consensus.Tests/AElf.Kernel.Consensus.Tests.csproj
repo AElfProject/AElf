@@ -4,7 +4,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Kernel.Consensus</RootNamespace>
         <IsPackable>false</IsPackable>
-<!--        <NoWarn>0436</NoWarn>-->
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
@@ -23,8 +22,5 @@
         <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf/Proto/acs4.proto</Link>
-        </ContractStub>
     </ItemGroup>
 </Project>

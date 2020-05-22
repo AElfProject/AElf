@@ -5,7 +5,6 @@
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
-<!--        <NoWarn>0436</NoWarn>-->
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />

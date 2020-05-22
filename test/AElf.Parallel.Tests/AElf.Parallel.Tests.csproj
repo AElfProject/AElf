@@ -2,7 +2,8 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
-<!--        <NoWarn>0436</NoWarn>-->
+        <!--Conflict with contract-->
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Moq" Version="4.14.0" />
