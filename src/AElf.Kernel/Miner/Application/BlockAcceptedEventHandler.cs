@@ -10,17 +10,17 @@ namespace AElf.Kernel.Miner.Application
 {
     public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
     {
-        private readonly ILogEventListeningService<IBlockAcceptedLogEventProcessor> _logEventListeningService;
+        private readonly ILogEventProcessingService<IBlockAcceptedLogEventProcessor> _logEventProcessingService;
 
         public BlockAcceptedEventHandler(
-            ILogEventListeningService<IBlockAcceptedLogEventProcessor> logEventListeningService)
+            ILogEventProcessingService<IBlockAcceptedLogEventProcessor> logEventProcessingService)
         {
-            _logEventListeningService = logEventListeningService;
+            _logEventProcessingService = logEventProcessingService;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            await _logEventListeningService.ProcessAsync(new List<BlockExecutedSet> {eventData.BlockExecutedSet});
+            await _logEventProcessingService.ProcessAsync(new List<BlockExecutedSet> {eventData.BlockExecutedSet});
         }
     }
 }

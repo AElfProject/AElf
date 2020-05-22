@@ -9,13 +9,10 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
-using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.Threading;
 
 namespace AElf.Benchmark
 {
@@ -24,7 +21,6 @@ namespace AElf.Benchmark
     {
         private IBlockchainService _blockchainService;
         private IMinerService _minerService;
-        private ITransactionResultManager _transactionResultManager;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private ITxHub _txHub;
         private ITransactionManager _transactionManager;
@@ -42,7 +38,6 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _minerService = GetRequiredService<IMinerService>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _transactionManager = GetRequiredService<ITransactionManager>();
             _txHub = GetRequiredService<ITxHub>();
@@ -71,12 +66,8 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionManager.RemoveTransactionsAsync(transactionIds);
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetDisambiguatingHash());
-
+            await RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
-
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                 BlockHash = _chain.BestChainHash,

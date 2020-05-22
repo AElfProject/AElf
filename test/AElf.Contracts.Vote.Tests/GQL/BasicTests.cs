@@ -77,7 +77,7 @@ namespace AElf.Contracts.Vote
                     VotingItemId = votingItem.VotingItemId,
                     Option = "Somebody"
                 };
-                var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
+                var otherKeyPair = Accounts[1].KeyPair;
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);
                 
                 var transactionResult = (await otherVoteStub.Vote.SendWithExceptionAsync(input)).TransactionResult;
@@ -96,7 +96,7 @@ namespace AElf.Contracts.Vote
                     Option = votingItemId.Options.First(),
                     Amount = 2000_000_000_00000000L
                 };
-                var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
+                var otherKeyPair = Accounts[1].KeyPair;
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);
                 
                 var transactionResult = (await otherVoteStub.Vote.SendWithExceptionAsync(input)).TransactionResult;

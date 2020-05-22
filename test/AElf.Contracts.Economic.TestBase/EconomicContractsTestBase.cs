@@ -16,36 +16,36 @@ namespace AElf.Contracts.Economic.TestBase
         
         protected Timestamp StartTimestamp => TimestampHelper.GetUtcNow();
         
-        protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected ECKeyPair BootMinerKeyPair => Accounts[0].KeyPair;
 
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
-        protected static List<ECKeyPair> CoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Take(EconomicContractsTestConstants.CoreDataCenterCount).ToList();
+        protected List<ECKeyPair> CoreDataCenterKeyPairs =>
+            Accounts.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
+                .Take(EconomicContractsTestConstants.CoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
-        protected static List<ECKeyPair> ValidationDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs
+        protected List<ECKeyPair> ValidationDataCenterKeyPairs =>
+            Accounts
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount +
                       EconomicContractsTestConstants.CoreDataCenterCount)
-                .Take(EconomicContractsTestConstants.ValidateDataCenterCount).ToList();
+                .Take(EconomicContractsTestConstants.ValidateDataCenterCount).Select(a => a.KeyPair).ToList();
 
-        protected static List<ECKeyPair> ValidationDataCenterCandidateKeyPairs =>
-            SampleECKeyPairs.KeyPairs
+        protected List<ECKeyPair> ValidationDataCenterCandidateKeyPairs =>
+            Accounts
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount +
                       EconomicContractsTestConstants.CoreDataCenterCount +
                       EconomicContractsTestConstants.ValidateDataCenterCount)
-                .Take(EconomicContractsTestConstants.ValidateDataCenterCandidateCount).ToList();
+                .Take(EconomicContractsTestConstants.ValidateDataCenterCandidateCount).Select(a => a.KeyPair).ToList();
 
-        protected static List<ECKeyPair> VoterKeyPairs =>
-            SampleECKeyPairs.KeyPairs
+        protected List<ECKeyPair> VoterKeyPairs =>
+            Accounts
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount +
                       EconomicContractsTestConstants.CoreDataCenterCount +
                       EconomicContractsTestConstants.ValidateDataCenterCount +
                       EconomicContractsTestConstants.ValidateDataCenterCandidateCount)
-                .Take(EconomicContractsTestConstants.VoterCount).ToList();
+                .Take(EconomicContractsTestConstants.VoterCount).Select(a => a.KeyPair).ToList();
     }
 }
