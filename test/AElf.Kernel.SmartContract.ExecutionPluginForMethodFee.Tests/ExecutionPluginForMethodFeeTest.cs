@@ -76,17 +76,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
         private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStub()
         {
-            var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var chainContext = new ChainContext
-            {
-                BlockHash = preBlockHeader.GetHash(),
-                BlockHeight = preBlockHeader.Height
-            };
-            var contractMapping =
-                await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
-
+            var tokenContractAddress = await GetTokenContractAddress();
             var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
-                contractMapping[TokenSmartContractAddressNameProvider.Name], Accounts[0].KeyPair);
+                tokenContractAddress, Accounts[0].KeyPair);
 
             return tokenStub;
         }
