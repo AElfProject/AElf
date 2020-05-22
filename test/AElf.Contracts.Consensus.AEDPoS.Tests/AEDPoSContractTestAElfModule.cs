@@ -17,6 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
         }
     }
 }

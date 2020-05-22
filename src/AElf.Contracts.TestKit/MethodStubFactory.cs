@@ -31,6 +31,8 @@ namespace AElf.Contracts.TestKit
         {
             _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
             _testTransactionExecutor = serviceProvider.GetRequiredService<ITestTransactionExecutor>();
+            _blockTimeProvider = serviceProvider.GetRequiredService<IBlockTimeProvider>();
+            _resetBlockTimeProvider = serviceProvider.GetRequiredService<IResetBlockTimeProvider>();
         }
 
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
@@ -86,6 +88,7 @@ namespace AElf.Contracts.TestKit
 
             void ResetBlockTime()
             {
+                if (!_resetBlockTimeProvider.Enabled) return;
                 var currentBlockTime = _blockTimeProvider.GetBlockTime();
                 currentBlockTime.AddMilliseconds(_resetBlockTimeProvider.StepMilliseconds);
                 _blockTimeProvider.SetBlockTime(currentBlockTime);
