@@ -37,7 +37,7 @@ namespace AElf.Contracts.MultiToken
             TotalSupply = TotalSupply,
             Decimals = 8,
             IsBurnable = true,
-            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Issuer = Accounts[0].Address,
             Supply = 0,
             IssueChainId = _chainId
         };
@@ -49,7 +49,7 @@ namespace AElf.Contracts.MultiToken
             TotalSupply = TotalSupply,
             Decimals = 8,
             IsBurnable = true,
-            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Issuer = Accounts[0].Address,
             Supply = 0,
             IssueChainId = _chainId
         };
@@ -64,7 +64,7 @@ namespace AElf.Contracts.MultiToken
             TotalSupply = TotalSupply,
             Decimals = 8,
             IsBurnable = true,
-            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Issuer = Accounts[0].Address,
             Supply = 0,
             IssueChainId = _chainId
         };
@@ -72,28 +72,28 @@ namespace AElf.Contracts.MultiToken
         /// <summary>
         /// Not Burnable & Transferable
         /// </summary>
-        private TokenInfo BobCoinTokenInfo { get; set; } = new TokenInfo
+        private TokenInfo BobCoinTokenInfo => new TokenInfo
         {
             Symbol = "BOB",
             TokenName = "For testing multi-token contract",
             TotalSupply = 1_000_000_000_0000,
             Decimals = 4,
             IsBurnable = false,
-            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Issuer = Accounts[0].Address,
             Supply = 0
         };
 
         /// <summary>
         /// Not Burnable & Not Transferable
         /// </summary>
-        private TokenInfo EanCoinTokenInfo { get; set; } = new TokenInfo
+        private TokenInfo EanCoinTokenInfo => new TokenInfo
         {
             Symbol = "EAN",
             TokenName = "For testing multi-token contract",
             TotalSupply = 1_000_000_000,
             Decimals = 0,
             IsBurnable = true,
-            Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+            Issuer = Accounts[0].Address,
             Supply = 0
         };
 

@@ -32,7 +32,7 @@ namespace AElf.ContractTestBase.Tests
             var contractMapping = await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
 
             var crossChainStub = GetTester<CrossChainContractContainer.CrossChainContractStub>(
-                contractMapping[CrossChainSmartContractAddressNameProvider.Name], SampleECKeyPairs.KeyPairs[0]);
+                contractMapping[CrossChainSmartContractAddressNameProvider.Name], Accounts[0].KeyPair);
             var parentChainId = await crossChainStub.GetParentChainId.CallAsync(new Empty());
             ChainHelper.ConvertChainIdToBase58(parentChainId.Value).ShouldBe("AELF");
         }

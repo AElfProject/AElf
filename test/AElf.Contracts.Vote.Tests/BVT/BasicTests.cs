@@ -57,7 +57,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 await TakeSnapshot(registerItem.VotingItemId, 1);
 
-                var voter = SampleECKeyPairs.KeyPairs[11];
+                var voter = Accounts[11].KeyPair;
                 var voteResult =
                     await VoteWithException(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Vote
             //vote without enough token
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var voter = SampleECKeyPairs.KeyPairs[31];
+                var voter = Accounts[31].KeyPair;
                 var voteResult =
                     await VoteWithException(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -76,8 +76,8 @@ namespace AElf.Contracts.Vote
             //vote option not exist
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var voter = SampleECKeyPairs.KeyPairs[11];
-                var option = SampleAddress.AddressList[3].ToBase58();
+                var voter = Accounts[11].KeyPair;
+                var option = Accounts[3].Address.ToBase58();
                 var voteResult = await VoteWithException(voter, registerItem.VotingItemId, option, 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 voteResult.Error.Contains($"Option {option} not found").ShouldBeTrue();
@@ -86,7 +86,7 @@ namespace AElf.Contracts.Vote
             //vote success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var voter = SampleECKeyPairs.KeyPairs[11];
+                var voter = Accounts[11].KeyPair;
                 var voteResult = await Vote(voter, registerItem.VotingItemId, registerItem.Options[1], 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
@@ -99,7 +99,7 @@ namespace AElf.Contracts.Vote
             //without vote
             {
                 var withdrawResult =
-                    await WithdrawWithException(SampleECKeyPairs.KeyPairs[1], HashHelper.ComputeFrom("hash1"));
+                    await WithdrawWithException(Accounts[1].KeyPair, HashHelper.ComputeFrom("hash1"));
                 withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 withdrawResult.Error.Contains("Voting record not found").ShouldBeTrue();
             }
@@ -108,9 +108,9 @@ namespace AElf.Contracts.Vote
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
 
-                var voteUser = SampleECKeyPairs.KeyPairs[1];
-                var voteAddress = Address.FromPublicKey(voteUser.PublicKey);
-                var withdrawUser = SampleECKeyPairs.KeyPairs[2];
+                var voteUser = Accounts[1].KeyPair;
+                var voteAddress = Accounts[1].Address;
+                var withdrawUser = Accounts[2].KeyPair;
 
                 await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
                 await TakeSnapshot(registerItem.VotingItemId, 1);
@@ -131,8 +131,8 @@ namespace AElf.Contracts.Vote
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
 
-                var voteUser = SampleECKeyPairs.KeyPairs[1];
-                var voteAddress = Address.FromPublicKey(voteUser.PublicKey);
+                var voteUser = Accounts[1].KeyPair;
+                var voteAddress = Accounts[1].Address;
 
                 await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
                 await TakeSnapshot(registerItem.VotingItemId, 1);
@@ -154,11 +154,11 @@ namespace AElf.Contracts.Vote
             //add without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var otherUser = Accounts[10].KeyPair;
                 var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendWithExceptionAsync(
                     new AddOptionInput
                     {
-                        Option = SampleAddress.AddressList[0].ToBase58(),
+                        Option = Accounts[0].Address.ToBase58(),
                         VotingItemId = registerItem.VotingItemId
                     })).TransactionResult;
 
@@ -182,7 +182,7 @@ namespace AElf.Contracts.Vote
             //add success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var address = SampleAddress.AddressList[3].ToBase58();
+                var address = Accounts[3].Address.ToBase58();
                 var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
                 {
                     Option = address,
@@ -203,7 +203,7 @@ namespace AElf.Contracts.Vote
             //remove without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var otherUser = Accounts[10].KeyPair;
                 var transactionResult = (await GetVoteContractTester(otherUser).RemoveOption.SendWithExceptionAsync(
                     new RemoveOptionInput
                     {
@@ -221,7 +221,7 @@ namespace AElf.Contracts.Vote
                 var transactionResult = (await VoteContractStub.RemoveOption.SendWithExceptionAsync(
                     new RemoveOptionInput
                     {
-                        Option = SampleAddress.AddressList[3].ToBase58(),
+                        Option = Accounts[3].Address.ToBase58(),
                         VotingItemId = registerItem.VotingItemId
                     })).TransactionResult;
 
@@ -253,15 +253,15 @@ namespace AElf.Contracts.Vote
             //without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var otherUser = Accounts[10].KeyPair;
                 var transactionResult = (await GetVoteContractTester(otherUser).AddOptions.SendWithExceptionAsync(
                     new AddOptionsInput
                     {
                         VotingItemId = registerItem.VotingItemId,
                         Options =
                         {
-                            SampleAddress.AddressList[0].ToBase58(),
-                            SampleAddress.AddressList[1].ToBase58()
+                            Accounts[0].Address.ToBase58(),
+                            Accounts[1].Address.ToBase58()
                         }
                     })).TransactionResult;
 
@@ -271,13 +271,12 @@ namespace AElf.Contracts.Vote
             //with some of exist
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await VoteContractStub.AddOptions.SendWithExceptionAsync(new AddOptionsInput
                 {
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        SampleAddress.AddressList[0].ToBase58(),
+                        Accounts[0].Address.ToBase58(),
                         registerItem.Options[1]
                     }
                 })).TransactionResult;
@@ -288,14 +287,13 @@ namespace AElf.Contracts.Vote
             //success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await VoteContractStub.AddOptions.SendAsync(new AddOptionsInput
                 {
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        SampleAddress.AddressList[3].ToBase58(),
-                        SampleAddress.AddressList[4].ToBase58()
+                        Accounts[3].Address.ToBase58(),
+                        Accounts[4].Address.ToBase58()
                     }
                 })).TransactionResult;
 
@@ -312,7 +310,7 @@ namespace AElf.Contracts.Vote
             //without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var otherUser = Accounts[10].KeyPair;
                 var transactionResult = (await GetVoteContractTester(otherUser).RemoveOptions.SendWithExceptionAsync(
                     new RemoveOptionsInput
                     {
@@ -330,7 +328,6 @@ namespace AElf.Contracts.Vote
             //with some of not exist
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await VoteContractStub.RemoveOptions.SendWithExceptionAsync(
                     new RemoveOptionsInput
                     {
@@ -338,7 +335,7 @@ namespace AElf.Contracts.Vote
                         Options =
                         {
                             registerItem.Options[0],
-                            SampleAddress.AddressList[0].ToBase58()
+                            Accounts[0].Address.ToBase58()
                         }
                     })).TransactionResult;
 
@@ -348,7 +345,6 @@ namespace AElf.Contracts.Vote
             //success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await VoteContractStub.RemoveOptions.SendAsync(new RemoveOptionsInput
                 {
                     VotingItemId = registerItem.VotingItemId,
@@ -369,7 +365,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_VotesAndGetVotedItems_Test()
         {
-            var voteUser = SampleECKeyPairs.KeyPairs[2];
+            var voteUser = Accounts[2].KeyPair;
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
 
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
@@ -391,8 +387,8 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_GetLatestVotingResult_Test()
         {
-            var voteUser1 = SampleECKeyPairs.KeyPairs[2];
-            var voteUser2 = SampleECKeyPairs.KeyPairs[3];
+            var voteUser1 = Accounts[2].KeyPair;
+            var voteUser2 = Accounts[3].KeyPair;
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
 
             await Vote(voteUser1, votingItem.VotingItemId, votingItem.Options.First(), 100L);

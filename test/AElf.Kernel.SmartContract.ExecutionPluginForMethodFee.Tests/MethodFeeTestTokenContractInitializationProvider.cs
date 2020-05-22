@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = 1_000_000_00000000L,
-                    Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey)
+                    Issuer = SampleAccount.Accounts[0].Address
                 }.ToByteString()
             });
 
@@ -42,7 +42,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 {
                     Symbol = "ELF",
                     Amount = 1_000_000_00000000L,
-                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+                    To = SampleAccount.Accounts[0].Address,
                     Memo = "Set for token converter."
                 }.ToByteString()
             });

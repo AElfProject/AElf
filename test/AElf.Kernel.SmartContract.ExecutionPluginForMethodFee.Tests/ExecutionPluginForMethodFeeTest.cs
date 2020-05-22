@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private TokenContractContainer.TokenContractStub _tokenContractStub;
         private Address _testContractAddress;
         private TestContract.ContractContainer.ContractStub _testContractStub;
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         
         private readonly IBlockchainService _blockchainService;
@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
                 _tokenContractStub = GetTester<TokenContractContainer.TokenContractStub>(
                     contractMapping[TokenSmartContractAddressNameProvider.Name],
-                    senderKey ?? SampleECKeyPairs.KeyPairs[0]);
+                    senderKey ?? Accounts[0].KeyPair);
             }
 
             return _tokenContractStub;
@@ -211,7 +211,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 Symbol = "ELF",
                 Amount = issueAmount,
-                To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey),
+                To = Accounts[1].Address,
                 Memo = "Set for token converter."
             });
 
@@ -220,7 +220,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var userTestContractStub =
                 GetTester<TestContract.ContractContainer.ContractStub>(_testContractAddress,
-                    SampleECKeyPairs.KeyPairs[1]);
+                    Accounts[1].KeyPair);
             var dummy = await userTestContractStub.DummyMethod
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -230,7 +230,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             
             var afterFee = (await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
-                Owner = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey),
+                Owner = Accounts[1].Address,
                 Symbol = "ELF"
             })).Balance;
             afterFee.ShouldBe(0);
@@ -248,17 +248,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await DeployContractsAsync();
 
-            var userKeyPair = SampleECKeyPairs.KeyPairs[1];
             var tokenContractStub = await GetTokenContractStub();
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
                 Amount = balance1,
-                To = Address.FromPublicKey(userKeyPair.PublicKey),
+                To = Accounts[1].Address,
                 Memo = "Set for token converter."
             });
-            await CreateAndIssueTokenAsync("TSA", balance2,Address.FromPublicKey(userKeyPair.PublicKey));
-            await CreateAndIssueTokenAsync("TSB", balance3,Address.FromPublicKey(userKeyPair.PublicKey));
+            await CreateAndIssueTokenAsync("TSA", balance2,Accounts[1].Address);
+            await CreateAndIssueTokenAsync("TSB", balance3,Accounts[1].Address);
 
             var methodFee = new MethodFees
             {
@@ -274,13 +273,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var originBalance = (await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(userKeyPair.PublicKey),
+                Owner = Accounts[1].Address,
                 Symbol = chargedSymbol ?? "ELF"
             })).Balance;
 
             Dictionary<string,long> transactionFeeDic;
             var userTestContractStub =
-                GetTester<TestContract.ContractContainer.ContractStub>(_testContractAddress, userKeyPair);
+                GetTester<TestContract.ContractContainer.ContractStub>(_testContractAddress, Accounts[1].KeyPair);
             if (isChargingSuccessful)
             {
                 var dummyResult = await userTestContractStub.DummyMethod.SendAsync(new Empty());
@@ -310,7 +309,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             var finalBalance = (await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(userKeyPair.PublicKey),
+                Owner = Accounts[1].Address,
                 Symbol = chargedSymbol ?? "ELF"
             })).Balance;
 
