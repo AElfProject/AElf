@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
             context.Services.RemoveAll<IContractInitializationProvider>();

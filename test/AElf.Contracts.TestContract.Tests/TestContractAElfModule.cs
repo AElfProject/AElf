@@ -32,7 +32,7 @@ namespace AElf.Contract.TestContract
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             //TODO Fix never claim transaction fee
             context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
         } 

@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         }
     }
