@@ -34,7 +34,6 @@ namespace AElf.Kernel.Node.Application
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
-        private readonly ITransactionPoolService _transactionPoolService;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -44,14 +43,12 @@ namespace AElf.Kernel.Node.Application
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService, 
-            ITransactionPoolService transactionPoolService)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
-            _transactionPoolService = transactionPoolService;
 
             EventBus = NullLocalEventBus.Instance;
         }
@@ -63,7 +60,6 @@ namespace AElf.Kernel.Node.Application
             var context = new BlockchainNodeContext
             {
                 ChainId = dto.ChainId,
-                TransactionPoolService = _transactionPoolService
             };
             var chain = await _blockchainService.GetChainAsync();
             chain = chain == null
