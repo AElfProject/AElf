@@ -14,15 +14,12 @@ using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.CodeOps;
-using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.CSharp.Core;
 using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using Mono.Cecil.Cil;
 using Volo.Abp.Threading;
 using Xunit;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
@@ -48,15 +45,15 @@ namespace AElf.Contract.TestContract
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
+        internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
+        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<Acs0.ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
+            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub GetTestBasicFunctionContractStub(
