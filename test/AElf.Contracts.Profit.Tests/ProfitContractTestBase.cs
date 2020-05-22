@@ -24,10 +24,11 @@ namespace AElf.Contracts.Profit
 {
     public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfModule>
     {
-        protected ECKeyPair StarterKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected ECKeyPair StarterKeyPair => Accounts[0].KeyPair;
+        protected Address Starter => Accounts[0].Address;
+
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(5).Select(a => a.KeyPair).ToList();
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         
@@ -40,9 +41,9 @@ namespace AElf.Contracts.Profit
         internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
-        protected List<ECKeyPair> CreatorKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
+        protected List<ECKeyPair> CreatorKeyPair => Accounts.Skip(1).Take(4).Select(a => a.KeyPair).ToList();
 
-        protected List<ECKeyPair> NormalKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
+        protected List<ECKeyPair> NormalKeyPair => Accounts.Skip(5).Take(5).Select(a => a.KeyPair).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 

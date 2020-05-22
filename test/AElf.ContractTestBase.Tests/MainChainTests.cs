@@ -34,16 +34,16 @@ namespace AElf.ContractTestBase.Tests
             var contractMapping = await ContractAddressService.GetSystemContractNameToAddressMappingAsync(chainContext);
             
             var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
-                contractMapping[TokenSmartContractAddressNameProvider.Name], SampleECKeyPairs.KeyPairs[0]);
+                contractMapping[TokenSmartContractAddressNameProvider.Name], Accounts[0].KeyPair);
             var balance = await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+                Owner = Accounts[0].Address,
                 Symbol = "ELF"
             });
             balance.Balance.ShouldBe(88000000000000000L);
 
             var electionStub = GetTester<ElectionContractContainer.ElectionContractStub>(
-                contractMapping[ElectionSmartContractAddressNameProvider.Name], SampleECKeyPairs.KeyPairs[0]);
+                contractMapping[ElectionSmartContractAddressNameProvider.Name], Accounts[0].KeyPair);
             var minerCount = await electionStub.GetMinersCount.CallAsync(new Empty());
             minerCount.Value.ShouldBe(1);
         }

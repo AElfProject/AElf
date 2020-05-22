@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -74,7 +73,7 @@ namespace AElf.Contracts.MultiToken
                         Amount = transferAmountInSystemTxn,
                         Memo = "transfer test",
                         Symbol = DefaultSymbol,
-                        To = SampleAddress.AddressList[0]
+                        To = Accounts[1].Address
                     }.ToByteString(),
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash)

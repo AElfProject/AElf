@@ -45,7 +45,7 @@ namespace AElf.Contract.TestContract
                         ContractName = "Test initialize again",
                         MinValue = 1000,
                         MaxValue = 10000,
-                        Manager = SampleAddress.AddressList[0]
+                        Manager = Accounts[0].Address
                     })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -77,8 +77,8 @@ namespace AElf.Contract.TestContract
 
                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
-                    First = SampleAddress.AddressList[0],
-                    Second = SampleAddress.AddressList[1]
+                    First = Accounts[0].Address,
+                    Second = Accounts[1].Address
                 }.ToByteString();
                 var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, contractAddress,
                     "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, blockHeader.Height, blockHeader.GetHash());
@@ -116,8 +116,8 @@ namespace AElf.Contract.TestContract
 
                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
-                    First = SampleAddress.AddressList[0],
-                    Second = SampleAddress.AddressList[1]
+                    First = Accounts[0].Address,
+                    Second = Accounts[1].Address
                 }.ToByteString();
                 var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, contractAddress,
                     "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
