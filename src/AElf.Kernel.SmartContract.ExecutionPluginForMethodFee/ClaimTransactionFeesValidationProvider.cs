@@ -96,11 +96,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (totalTransactionFeesMapFromProvider == null)
             {
                 Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
-                return hashFromState.Value.IsEmpty;
+                return false;
             }
 
             var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
-            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            var result = hashFromProvider == hashFromState;
             if (!result)
             {
                 Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");

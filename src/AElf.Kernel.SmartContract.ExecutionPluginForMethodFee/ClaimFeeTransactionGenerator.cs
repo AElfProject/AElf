@@ -45,15 +45,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 return generatedTransactions;
 
             var totalTxFeesMap = await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
-            if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any() || totalTxFeesMap.BlockHeight != preBlockHeight ||
-                totalTxFeesMap.BlockHash != preBlockHash)
-            {
 
-                totalTxFeesMap = new TotalTransactionFeesMap
+            ByteString input;
+            if (totalTxFeesMap != null && totalTxFeesMap.BlockHeight == preBlockHeight &&
+                totalTxFeesMap.BlockHash == preBlockHash)
+            {
+                input = totalTxFeesMap.ToByteString();
+            }
+            else
+            {
+                input = new TotalTransactionFeesMap
                 {
                     BlockHash = preBlockHash,
                     BlockHeight = preBlockHeight
-                };
+                }.ToByteString();
             }
 
             generatedTransactions.AddRange(new List<Transaction>
@@ -65,7 +70,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = BlockHelper.GetRefBlockPrefix(preBlockHash),
-                    Params = totalTxFeesMap.ToByteString()
+                    Params = input
                 }
             });
 
