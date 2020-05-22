@@ -51,7 +51,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
         private async Task CreateAndIssueTokenAsync(string symbol, long issueAmount, Address to)
         {
-            var tokenStub = await GetTokenContractStub();
+            var tokenStub = await GetTokenContractStubAsync();
             await tokenStub.Create.SendAsync(new CreateInput
             {
                 Symbol = symbol,
@@ -74,16 +74,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             }
         }
 
-        private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStub()
+        private async Task<TokenContractContainer.TokenContractStub> GetTokenContractStubAsync()
         {
-            var tokenContractAddress = await GetTokenContractAddress();
+            var tokenContractAddress = await GetTokenContractAddressAsync();
             var tokenStub = GetTester<TokenContractContainer.TokenContractStub>(
-                tokenContractAddress, Accounts[0].KeyPair);
+                tokenContractAddress, DefaultSenderKeyPair);
 
             return tokenStub;
         }
 
-        private async Task<Address> GetTokenContractAddress()
+        private async Task<Address> GetTokenContractAddressAsync()
         {
             var preBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var chainContext = new ChainContext
@@ -124,7 +124,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 
             transactions.ShouldNotBeEmpty();
             transactions[0].From.ShouldBe(DefaultSender);
-            transactions[0].To.ShouldBe(await GetTokenContractAddress());
+            transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
         }
 
         private async Task SetMethodFee_Successful(long feeAmount)
@@ -152,7 +152,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var feeAmount = 7;
             await SetMethodFee_Successful(feeAmount);
 
-            var tokenContractStub = await GetTokenContractStub();
+            var tokenContractStub = await GetTokenContractStubAsync();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
@@ -193,7 +193,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             await DeployTestContractAsync();
             
             var issueAmount = 99999;
-            var tokenContractStub = await GetTokenContractStub();
+            var tokenContractStub = await GetTokenContractStubAsync();
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
@@ -235,7 +235,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await DeployTestContractAsync();
 
-            var tokenContractStub = await GetTokenContractStub();
+            var tokenContractStub = await GetTokenContractStubAsync();
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
@@ -349,7 +349,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             
             await SetMethodFee_Successful(0);
 
-            var tokenContractStub = await GetTokenContractStub();
+            var tokenContractStub = await GetTokenContractStubAsync();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
@@ -373,7 +373,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await DeployTestContractAsync();
 
-            var tokenContractStub = await GetTokenContractStub();
+            var tokenContractStub = await GetTokenContractStubAsync();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
