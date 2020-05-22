@@ -37,7 +37,7 @@ namespace AElf.Kernel.SmartContract.Application
                 };
                 var transaction = new Transaction()
                 {
-                    From = _contractReaderContext.Sender ?? Address.FromBytes(new byte[] { }.ComputeHash()),
+                    From = _contractReaderContext.Sender ?? _contractReaderContext.ContractAddress,
                     To = _contractReaderContext.ContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

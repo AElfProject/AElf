@@ -17,14 +17,14 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         {
         }
 
-        protected override async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
+        protected override async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            await base.CleanUpReturnSetCollectionAsync(blockHeader, returnSetCollection);
-            if (returnSetCollection.Conflict.Count > 0)
+            await base.CleanUpReturnSetCollectionAsync(blockHeader, executionReturnSetCollection);
+            if (executionReturnSetCollection.Conflict.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                    blockHeader, returnSetCollection.Executed.Concat(returnSetCollection.Unexecutable).ToList(),
-                    returnSetCollection.Conflict
+                    blockHeader, executionReturnSetCollection.Executed.Concat(executionReturnSetCollection.Unexecutable).ToList(),
+                    executionReturnSetCollection.Conflict
                 ));
             }
         }

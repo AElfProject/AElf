@@ -24,7 +24,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
         }

@@ -44,7 +44,7 @@ namespace AElf.Kernel.Configuration.Tests
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
-            OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>.Enabled = true;
+            OptionalLogEventProcessingService<IBlockAcceptedLogEventProcessor>.Enabled = true;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             _configurationStub =
