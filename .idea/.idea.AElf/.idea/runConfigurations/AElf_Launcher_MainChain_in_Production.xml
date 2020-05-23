@@ -1,12 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="AElf.Launcher in Development" type="DotNetProject" factoryName=".NET Project" singleton="false">
+  <configuration default="false" name="AElf.Launcher MainChain in Production" type="DotNetProject" factoryName=".NET Project" singleton="false">
     <option name="EXE_PATH" value="$PROJECT_DIR$/src/AElf.Launcher/bin/Debug/netcoreapp3.1/AElf.Launcher.dll" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/AElf.Launcher/bin/Debug/netcoreapp3.1" />
     <option name="PASS_PARENT_ENVS" value="1" />
-    <envs>
-      <env name="ASPNETCORE_ENVIRONMENT" value="Development" />
-    </envs>
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
     <option name="RUNTIME_ARGUMENTS" value="" />
