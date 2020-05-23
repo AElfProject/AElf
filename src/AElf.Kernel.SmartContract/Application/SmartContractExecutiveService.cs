@@ -21,8 +21,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
         
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-
         public ILogger<SmartContractExecutiveService> Logger { get; set; }
 
         public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -173,7 +171,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var transaction = new Transaction()
             {
-                From = FromAddress,
+                From = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = address.ToByteString()

@@ -14,12 +14,12 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task ACS2_GetResourceInfo_Transfer_Test()
         {
-            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.Transfer),
+            var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.Transfer),
                 new TransferInput
                 {
                     Amount = 100,
                     Symbol = "ELF",
-                    To = SampleAddress.AddressList[1],
+                    To = Accounts[1].Address,
                     Memo = "Test get resource"
                 });
                 
@@ -31,13 +31,13 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task ACS2_GetResourceInfo_TransferFrom_Test()
         {
-            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.TransferFrom),
+            var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.TransferFrom),
                 new TransferFromInput
                 {
                     Amount = 100,
                     Symbol = "ELF",
-                    From = SampleAddress.AddressList[1],
-                    To = SampleAddress.AddressList[2],
+                    From = Accounts[1].Address,
+                    To = Accounts[2].Address,
                     Memo = "Test get resource"
                 });
                 
@@ -49,7 +49,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task ACS2_GetResourceInfo_DonateResourceToken_Test()
         {
-            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.DonateResourceToken),
+            var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.DonateResourceToken),
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
@@ -59,7 +59,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task ACS2_GetResourceInfo_ClaimTransactionFees_Test()
         {
-            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.ClaimTransactionFees),
+            var transaction = GenerateTokenTransaction(Accounts[0].Address, nameof(TokenContractStub.ClaimTransactionFees),
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
@@ -69,7 +69,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task ACS2_GetResourceInfo_UnsupportedMethod_Test()
         {
-            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], "TestMethod",
+            var transaction = GenerateTokenTransaction(Accounts[0].Address, "TestMethod",
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);

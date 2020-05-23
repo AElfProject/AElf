@@ -26,11 +26,11 @@ namespace AElf.Contracts.Referendum
 {
     public class ReferendumContractTestBase : ContractTestBase<ReferendumContractTestAElfModule>
     {
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(5).Select(a => a.KeyPair).ToList();
         protected Address TokenContractAddress { get; set; }
         protected Address ReferendumContractAddress { get; set; }
 
@@ -158,7 +158,7 @@ namespace AElf.Contracts.Referendum
                 {
                     Symbol = symbol,
                     Amount = 100_000,
-                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    To = Accounts[i].Address,
                     Memo = "Issue token to users"
                 });
             }

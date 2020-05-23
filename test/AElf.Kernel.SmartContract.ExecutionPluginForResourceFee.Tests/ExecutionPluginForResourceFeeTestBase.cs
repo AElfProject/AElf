@@ -116,13 +116,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
 
-        internal ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        internal ECKeyPair OtherTester => SampleECKeyPairs.KeyPairs[1];
-        internal Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair FeeReceiverKeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
-        protected Address FeeReceiverAddress => Address.FromPublicKey(FeeReceiverKeyPair.PublicKey);
-        protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
-        protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
+        internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        internal ECKeyPair OtherTester => Accounts[1].KeyPair;
+        internal Address DefaultSender => Accounts[0].Address;
+        protected ECKeyPair FeeReceiverKeyPair => Accounts[10].KeyPair;
+        protected Address FeeReceiverAddress => Accounts[10].Address;
+        protected ECKeyPair ManagerKeyPair => Accounts[11].KeyPair;
+        protected Address ManagerAddress => Accounts[11].Address;
 
         protected async Task InitializeContracts()
         {

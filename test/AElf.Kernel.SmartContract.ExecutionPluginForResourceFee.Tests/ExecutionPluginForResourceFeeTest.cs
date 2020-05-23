@@ -271,28 +271,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
             
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
             
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = SampleAddress.AddressList.Last(),
+                Owner = Accounts.Last().Address,
                 Symbol = "ELF"
             })).Balance;
             balance.ShouldBe(30);
