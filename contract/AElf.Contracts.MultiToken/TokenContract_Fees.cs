@@ -348,14 +348,10 @@ namespace AElf.Contracts.MultiToken
         {
             //TODO: Add current miner authority check
             var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
-            if (claimTransactionExecuteHeight == 0)
-            {
-                claimTransactionExecuteHeight = Context.CurrentHeight;
-            }
 
-            Assert(claimTransactionExecuteHeight == Context.CurrentHeight,
+            Assert(claimTransactionExecuteHeight < Context.CurrentHeight,
                 $"This method already executed in height {State.ClaimTransactionFeeExecuteHeight.Value}");
-            State.ClaimTransactionFeeExecuteHeight.Value = claimTransactionExecuteHeight.Add(1);
+            State.ClaimTransactionFeeExecuteHeight.Value = Context.CurrentHeight;
             Context.LogDebug(() => $"Claim transaction fee. {input}");
             State.LatestTotalTransactionFeesMapHash.Value = HashHelper.ComputeFrom(input);
             foreach (var bill in input.Value)
