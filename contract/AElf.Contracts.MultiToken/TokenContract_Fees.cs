@@ -346,6 +346,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
+            //TODO: Add current miner authority check
             var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
             if (claimTransactionExecuteHeight == 0)
             {
@@ -377,6 +378,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
+            //TODO: Add current miner authority check
             var donateResourceTokenExecuteHeight = State.DonateResourceTokenExecuteHeight.Value;
             if (donateResourceTokenExecuteHeight == 0)
             {

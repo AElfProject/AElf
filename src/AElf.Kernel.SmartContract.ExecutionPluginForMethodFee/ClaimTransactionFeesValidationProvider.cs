@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             {
                 return true;
             }
-            
+
             var hashFromState = await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = block.GetHash(),
@@ -81,28 +81,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = block.Header.PreviousBlockHash,
                     BlockHeight = block.Header.Height - 1
                 });
-            
-            if (hashFromState.Value.IsEmpty)
-            {
-                // If hash from state is empty, data from provider must be null.
-                return totalTransactionFeesMapFromProvider == null;
-            }
-            
-            if (hashFromState == HashHelper.ComputeFrom(new TotalTransactionFeesMap
-            {
-                BlockHash = block.Header.PreviousBlockHash,
-                BlockHeight = block.Header.Height - 1
-            }))
-            {
-                if (totalTransactionFeesMapFromProvider == null)
-                    return true;
-                return totalTransactionFeesMapFromProvider.BlockHeight != block.Header.Height - 1;
-            }
-            
             if (totalTransactionFeesMapFromProvider == null)
             {
                 Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
-                return false;
+                return hashFromState.Value.IsEmpty;
             }
 
             var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
