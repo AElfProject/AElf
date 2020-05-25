@@ -22,7 +22,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            Assert(Context.CurrentHeight == 1 && !State.ContractInitialized.Value, "Already initialized.");
+            Assert(Context.CurrentHeight == AElfConstants.GenesisBlockHeight
+                   && !State.ContractInitialized.Value, "Already initialized.");
             State.ContractInitialized.Value = true;
 
             State.PeriodSeconds.Value = input.IsTermStayOne
@@ -80,7 +81,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty FirstRound(Round input)
         {
             /* Basic checks. */
-            Assert(Context.CurrentHeight == 1 && !State.FirstRoundInitialized.Value, "Already initialized.");
+            Assert(Context.CurrentHeight == AElfConstants.GenesisBlockHeight
+                   && !State.FirstRoundInitialized.Value, "Already initialized.");
             State.FirstRoundInitialized.Value = true;
 
             // Ensure the execution of the current method only happened
