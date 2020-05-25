@@ -11,7 +11,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class AEDPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        public BoolState FirstRoundInitialized { get; set; }
 
         /// <summary>
         /// Seconds.

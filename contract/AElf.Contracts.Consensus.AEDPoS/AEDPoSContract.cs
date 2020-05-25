@@ -80,8 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty FirstRound(Round input)
         {
             /* Basic checks. */
-            Assert(!State.FirstRoundInitialized.Value && State.CurrentRoundNumber.Value == 0, "Already initialized.");
-            State.FirstRoundInitialized.Value = true;
+            Assert(State.CurrentRoundNumber.Value == 0, "Already initialized.");
 
             // Ensure the execution of the current method only happened
             // at the very beginning of the consensus process.
