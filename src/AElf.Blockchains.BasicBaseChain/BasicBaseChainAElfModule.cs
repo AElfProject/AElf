@@ -1,13 +1,18 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
+using AElf.CrossChain.Application;
 using AElf.CrossChain.Grpc;
 using AElf.CSharp.CodeOps;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
@@ -100,6 +105,15 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ContractOptions>(options =>
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
+            });
+            
+            Configure<ServiceContainerFactoryOptions<ISystemTransactionGenerator>>(options =>
+            {
+                options.Types = new List<Type>
+                {
+                    typeof(ConsensusTransactionGenerator),
+                    typeof(CrossChainTransactionGenerator)
+                };
             });
         }
 
