@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
+            Assert(State.CurrentRoundNumber.Value == 0 && !State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
 
             State.PeriodSeconds.Value = input.IsTermStayOne
