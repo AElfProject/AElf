@@ -293,7 +293,7 @@ namespace AElf.Parallel.Tests
             var transferTransactions =  await _parallelTestHelper.GenerateTransferTransactions(16);
             await _parallelTestHelper.BroadcastTransactions(transferTransactions);
 
-            var poolSize = await _txHub.GetAllTransactionCountAsync();
+            var poolSize = (await _txHub.GetTransactionPoolStatusAsync()).AllTransactionCount;
             poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count);
 
             var groupedTransactions = await _grouper.GroupAsync(
@@ -420,7 +420,7 @@ namespace AElf.Parallel.Tests
             groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
             groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
             
-            poolSize = await _txHub.GetAllTransactionCountAsync();
+            poolSize = (await _txHub.GetTransactionPoolStatusAsync()).AllTransactionCount;
 
             poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count - block.TransactionIds.Count());
         }

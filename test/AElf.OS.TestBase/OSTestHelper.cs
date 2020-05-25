@@ -19,8 +19,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
@@ -52,7 +51,7 @@ namespace AElf.OS
         private readonly IMinerService _minerService;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITxHub _txHub;
+        private readonly ITransactionPoolService _transactionPoolService;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITransactionResultService _transactionResultService;
@@ -78,12 +77,12 @@ namespace AElf.OS
             IAccountService accountService,
             IMinerService minerService,
             IBlockchainService blockchainService,
-            ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
             ITransactionResultService transactionResultService,
-            IOptionsSnapshot<ChainOptions> chainOptions)
+            IOptionsSnapshot<ChainOptions> chainOptions, 
+            ITransactionPoolService transactionPoolService)
         {
             _chainOptions = chainOptions.Value;
             _osBlockchainNodeContextService = osBlockchainNodeContextService;
@@ -92,9 +91,9 @@ namespace AElf.OS
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
             _blockAttachService = blockAttachService;
-            _txHub = txHub;
             _staticChainInformationProvider = staticChainInformationProvider;
             _transactionResultService = transactionResultService;
+            _transactionPoolService = transactionPoolService;
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
@@ -137,11 +136,8 @@ namespace AElf.OS
                     BestBranchBlockList[4].GetHash());
             }
 
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                 BlockHash = chain.BestChainHash,
-                 BlockHeight = chain.BestChainHeight
-            });
+            await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash,
+                chain.BestChainHeight);
         }
 
         public async Task DisposeMock()
@@ -287,12 +283,7 @@ namespace AElf.OS
 
         public async Task BroadcastTransactions(IEnumerable<Transaction> transactions)
         {
-            var transactionsReceivedEvent = new TransactionsReceivedEvent
-            {
-                Transactions = transactions
-            };
-
-            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
+            await _transactionPoolService.AddTransactionsAsync(transactions);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)

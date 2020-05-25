@@ -27,8 +27,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
@@ -573,14 +572,8 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         private async Task AddTransactionsAsync(IEnumerable<Transaction> txs)
         {
-            var txHub = Application.ServiceProvider.GetRequiredService<ITxHub>();
-            foreach (var tx in txs)
-            {
-                await txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {tx}
-                });
-            }
+            var transactionPoolService = Application.ServiceProvider.GetRequiredService<ITransactionPoolService>();
+            await transactionPoolService.AddTransactionsAsync(txs);
         }
 
         /// <summary>
