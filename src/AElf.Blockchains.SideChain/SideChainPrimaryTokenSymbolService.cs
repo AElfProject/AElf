@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.SideChain
 {
-    internal class SideChainPrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
+    internal class SideChainPrimaryTokenSymbolService : IPrimaryTokenSymbolService
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub>
@@ -16,7 +16,7 @@ namespace AElf.Blockchains.SideChain
         private readonly IBlockchainService _blockchainService;
         private string _primaryTokenSymbol;
 
-        public SideChainPrimaryTokenSymbolProvider(IBlockchainService blockchainService,
+        public SideChainPrimaryTokenSymbolService(IBlockchainService blockchainService,
             ISmartContractAddressService smartContractAddressService,
             IContractReaderFactory<TokenContractContainer.TokenContractStub> contractReaderFactory)
         {

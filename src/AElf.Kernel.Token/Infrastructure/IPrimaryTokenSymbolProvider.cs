@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Token
+namespace AElf.Kernel.Token.Infrastructure
 {
-    //TODO: IPrimaryTokenSymbolProvider should be in infrastructure layer, other service cannot directly use it.
     /// <summary>
     /// Primary token symbol is the token symbol used in validating tx sender's balance.
     /// </summary>

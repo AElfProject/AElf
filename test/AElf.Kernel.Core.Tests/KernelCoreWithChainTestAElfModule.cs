@@ -13,7 +13,7 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
+            context.Services.AddSingleton<IPrimaryTokenSymbolService, DefaultPrimaryTokenSymbolService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

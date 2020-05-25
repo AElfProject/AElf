@@ -19,7 +19,7 @@ namespace AElf.Kernel.ChainController
             var services = context.Services;
 
             services.AddTransient<ChainCreationService>();
-            services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
+            services.AddSingleton<IPrimaryTokenSymbolService, DefaultPrimaryTokenSymbolService>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }

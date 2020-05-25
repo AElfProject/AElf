@@ -17,7 +17,7 @@ namespace AElf.OS
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
 
-            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, PrimaryTokenSymbolProvider>();
+            context.Services.AddSingleton<IPrimaryTokenSymbolService, PrimaryTokenSymbolService>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

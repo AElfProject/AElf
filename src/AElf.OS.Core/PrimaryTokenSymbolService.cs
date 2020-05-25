@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.OS
 {
-    public class PrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
+    public class PrimaryTokenSymbolService : IPrimaryTokenSymbolService
     {
         private readonly EconomicOptions _economicOptions;
 
-        public PrimaryTokenSymbolProvider(IOptionsSnapshot<EconomicOptions> economicOptions)
+        public PrimaryTokenSymbolService(IOptionsSnapshot<EconomicOptions> economicOptions)
         {
             _economicOptions = economicOptions.Value;
         }
