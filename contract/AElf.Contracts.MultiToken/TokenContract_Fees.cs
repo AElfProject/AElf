@@ -62,6 +62,8 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
+            State.LatestChargeTransactionFeeHeight.Value = Context.CurrentHeight;
+
             return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
         }
 
@@ -346,7 +348,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
-            //TODO: Add current miner authority check
+            Assert(State.LatestChargeTransactionFeeHeight.Value == Context.CurrentHeight.Sub(1),
+                "Previous block didn't charge tx fee.");
             var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
 
             Assert(claimTransactionExecuteHeight < Context.CurrentHeight,
