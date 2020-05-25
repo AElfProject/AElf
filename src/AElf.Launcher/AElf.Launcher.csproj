@@ -20,6 +20,9 @@
         <Content Include="appsettings.Development.json">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </Content>
+        <Content Include="appsettings.Production.json">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
         <Content Include="appsettings.json">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </Content>
