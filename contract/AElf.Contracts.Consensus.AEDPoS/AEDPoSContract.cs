@@ -22,7 +22,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            if (State.Initialized.Value) return new Empty();
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
 
             State.PeriodSeconds.Value = input.IsTermStayOne
                 ? int.MaxValue
