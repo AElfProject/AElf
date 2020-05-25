@@ -173,7 +173,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString()};
+            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.FromHexString()};
             var bestChainHash = peer.CurrentBlockHash;
             var bestChainHeight = peer.CurrentBlockHeight;
 

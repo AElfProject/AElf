@@ -70,10 +70,10 @@ namespace AElf.Contracts.Election
             if (diff > 0)
             {
                 victories =
-                    new List<ByteString>(validCandidates.Select(vc => vc.ToByteString()));
+                    new List<ByteString>(validCandidates.Select(vc => vc.FromHexString()));
                 victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
-                    .Select(p => p.ToByteString()));
+                    .Select(p => p.FromHexString()));
                 Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
                 return victories;
             }
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Election
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
-                Pubkey = input.Value.ToByteString()
+                Pubkey = input.Value.FromHexString()
             };
         }
 
@@ -145,7 +145,7 @@ namespace AElf.Contracts.Election
             if (votes == null)
                 return new ElectorVote
                 {
-                    Pubkey = input.Value.ToByteString()
+                    Pubkey = input.Value.FromHexString()
                 };
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -239,7 +239,7 @@ namespace AElf.Contracts.Election
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote
             {
-                Pubkey = input.Value.ToByteString()
+                Pubkey = input.Value.FromHexString()
             };
         }
 

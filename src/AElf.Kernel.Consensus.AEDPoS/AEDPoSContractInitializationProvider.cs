@@ -42,7 +42,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     {
                         Pubkeys =
                         {
-                            initializationData.InitialMinerList.Select(p => p.ToByteString())
+                            initializationData.InitialMinerList.Select(p => p.FromHexString())
                         }
                     }.GenerateFirstRoundOfNewTerm(initializationData.MiningInterval,
                         initializationData.StartTimestamp.ToDateTime()).ToByteString()

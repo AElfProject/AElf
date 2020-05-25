@@ -169,7 +169,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             return new MinerList
             {
-                Pubkeys = {RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+                Pubkeys = {RealTimeMinersInformation.Keys.Select(k => k.FromHexString())}
             };
         }
 

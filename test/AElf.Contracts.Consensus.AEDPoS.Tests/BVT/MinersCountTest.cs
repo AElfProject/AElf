@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     new AElfConsensusTriggerInformation
                     {
                         Behaviour = AElfConsensusBehaviour.NextTerm,
-                        Pubkey = currentRound.RealTimeMinersInformation.ElementAt(0).Value.Pubkey.ToByteString()
+                        Pubkey = currentRound.RealTimeMinersInformation.ElementAt(0).Value.Pubkey.FromHexString()
                     }.ToBytesValue())).ToConsensusHeaderInformation();
 
                 await newMinerStub.NextTerm.SendAsync(nextRoundInformation.Round);
