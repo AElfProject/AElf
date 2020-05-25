@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable UnusedAutoPropertyAccessor.Global
     public partial class AEDPoSContractState : ContractState
     {
-        public BoolState ContractInitialized { get; set; }
+        public BoolState Initialized { get; set; }
         public BoolState FirstRoundInitialized { get; set; }
 
         /// <summary>
