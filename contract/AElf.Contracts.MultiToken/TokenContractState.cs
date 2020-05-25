@@ -49,6 +49,5 @@ namespace AElf.Contracts.MultiToken
 
         public SingletonState<long> ClaimTransactionFeeExecuteHeight { get; set; }
         public SingletonState<long> DonateResourceTokenExecuteHeight { get; set; }
-        public SingletonState<long> LatestChargeTransactionFeeHeight { get; set; }
     }
 }

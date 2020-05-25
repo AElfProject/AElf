@@ -62,8 +62,6 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            State.LatestChargeTransactionFeeHeight.Value = Context.CurrentHeight;
-
             return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
         }
 
@@ -348,8 +346,10 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
-            Assert(State.LatestChargeTransactionFeeHeight.Value == Context.CurrentHeight.Sub(1),
-                "Previous block didn't charge tx fee.");
+            if (State.ConsensusContract.Value == null)
+                State.ConsensusContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "Sender isn't current miner.");
             var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
 
             Assert(claimTransactionExecuteHeight < Context.CurrentHeight,
@@ -377,7 +377,10 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
-            //TODO: Add current miner authority check
+            if (State.ConsensusContract.Value == null)
+                State.ConsensusContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "Sender isn't current miner.");
             var donateResourceTokenExecuteHeight = State.DonateResourceTokenExecuteHeight.Value;
             if (donateResourceTokenExecuteHeight == 0)
             {
