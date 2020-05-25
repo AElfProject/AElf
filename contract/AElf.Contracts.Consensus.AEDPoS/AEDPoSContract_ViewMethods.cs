@@ -187,9 +187,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
             }
-            else
+            else if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                if (!TryToGetPreviousRoundInformation(out var previousRound)) return false;
                 if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
             }
 
