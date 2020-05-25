@@ -196,10 +196,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
-            {
-                return new Empty();
-            }
+            Assert(
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                "Only Cross Chain Contract can call this method.");
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
 
