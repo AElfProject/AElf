@@ -82,10 +82,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /* Basic checks. */
             Assert(State.CurrentRoundNumber.Value == 0, "Already initialized.");
 
-            // Ensure the execution of the current method only happened
-            // at the very beginning of the consensus process.
-            if (State.CurrentRoundNumber.Value != 0) return new Empty();
-
             /* Initial settings. */
             State.CurrentTermNumber.Value = 1;
             State.CurrentRoundNumber.Value = 1;
