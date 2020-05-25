@@ -7,8 +7,6 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainContext : IBlockIndex
     {
-        long BlockHeight { get; set; }
-        Hash BlockHash { get; set; }
         IStateCache StateCache { get; set; }
     }
 }
