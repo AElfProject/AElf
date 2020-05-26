@@ -9,8 +9,6 @@ namespace AElf.Kernel.Token
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
-            context.Services.AddSingleton<IPrimaryTokenSymbolService, DefaultPrimaryTokenSymbolService>();
         }
     }
 }
