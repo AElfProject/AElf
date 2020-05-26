@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -15,36 +15,36 @@ namespace AElf.Kernel.Miner.Application
         ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
-        private readonly ITxHub _txHub;
+        private readonly ITransactionPoolService _transactionPoolService;
 
-        public TxPoolInterestedEventsHandler(ITxHub txHub)
+        public TxPoolInterestedEventsHandler(ITransactionPoolService transactionPoolService)
         {
-            _txHub = txHub;
+            _transactionPoolService = transactionPoolService;
         }
 
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
         {
-            await _txHub.AddTransactionsAsync(eventData);
+            await _transactionPoolService.AddTransactionsAsync(eventData.Transactions);
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            await _txHub.HandleBlockAcceptedAsync(eventData);
+            await _transactionPoolService.CleanByTransactionIdsAsync(eventData.Block.TransactionIds);
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _txHub.HandleBestChainFoundAsync(eventData);
-        }
-
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
-        {
-            await _txHub.HandleNewIrreversibleBlockFoundAsync(eventData);
+            await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(eventData.BlockHash, eventData.BlockHeight);
         }
 
         public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            await _txHub.CleanTransactionsAsync(eventData.Transactions);
+            await _transactionPoolService.CleanByTransactionIdsAsync(eventData.Transactions);
+        }
+
+        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        {
+            await _transactionPoolService.UpdateTransactionPoolByLibAsync(eventData.BlockHeight);
         }
     }
 }
