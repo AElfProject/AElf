@@ -45,7 +45,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
-        
+
         typeof(GovernmentSystemAElfModule),
         typeof(EconomicSystemAElfModule),
 
@@ -65,7 +65,8 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
+            var hostingEnvironment = context.Services.GetHostingEnvironment();
+            var contentRootPath = hostingEnvironment.ContentRootPath;
             var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
             var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
@@ -73,6 +74,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json")
                 .SetBasePath(contentRootPath)
                 .Build();
 
