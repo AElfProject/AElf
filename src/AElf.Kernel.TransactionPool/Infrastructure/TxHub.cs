@@ -44,6 +44,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
+        private List<TransformBlock<QueuedTransaction, QueuedTransaction>> _validationTransformBlockList =
+            new List<TransformBlock<QueuedTransaction, QueuedTransaction>>();
+
         public ILocalEventBus LocalEventBus { get; set; }
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
@@ -258,7 +261,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 BoundedCapacity = _transactionOptions.PoolLimit,
                 MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
             };
-            var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
+            var linkOptions = new DataflowLinkOptions { PropagateCompletion = true };
 
             var updateBucketIndexTransformBlock =
                 new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
@@ -277,6 +280,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     {
                         BoundedCapacity = _transactionOptions.PoolLimit
                     });
+                _validationTransformBlockList.Add(validationTransformBlock);
                 var index = i;
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
                     queuedTransaction =>
@@ -294,8 +298,18 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
         {
+            Logger.LogDebug($"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}");
+
             queuedTransaction.BucketIndex =
                 queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree;
+
+            var index = (int) (queuedTransaction.BucketIndex >= 0
+                ? queuedTransaction.BucketIndex
+                : -queuedTransaction.BucketIndex);
+            var validationTransformBlock = _validationTransformBlockList[index];
+            Logger.LogDebug(
+                $"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}, BucketIndex is {queuedTransaction.BucketIndex}, " +
+                $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}");
             return queuedTransaction;
         }
 
@@ -309,37 +323,97 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
-                return null;
-
-            var validationResult =
-                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
-                {
-                    BlockHash = _bestChainHash,
-                    BlockHeight = _bestChainHeight
-                }, queuedTransaction.Transaction);
-            if (!validationResult)
+            try
             {
-                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
-                return null;
+                var index = (int) (queuedTransaction.BucketIndex >= 0
+                    ? queuedTransaction.BucketIndex
+                    : -queuedTransaction.BucketIndex);
+                var validationTransformBlock = _validationTransformBlockList[index];
+                Logger.LogDebug(
+                    $"AcceptTransactionAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction bucket index is {queuedTransaction.BucketIndex}, " +
+                    $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}");
+                
+                if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
+                {
+                    Logger.LogDebug($"AcceptTransactionAsync-->VerifyTransactionAcceptableAsync: "+
+                    $"Transaction id is { queuedTransaction.TransactionId }; "+
+                    $"queuedTransaction bucket index is { queuedTransaction.BucketIndex }; "+        
+                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
+                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
+                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
+                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    return null;
+                }
+
+                var validationResult =
+                    await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
+                    {
+                        BlockHash = _bestChainHash,
+                        BlockHeight = _bestChainHeight
+                    }, queuedTransaction.Transaction);
+                if (!validationResult)
+                {
+                    Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
+                    return null;
+                }
+
+                // double check
+                var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+                if (hasTransaction)
+                {
+                    Logger.LogDebug($"AcceptTransactionAsync-->hasTransaction is {hasTransaction}: " +
+                    $"Transaction id is { queuedTransaction.TransactionId }; "+
+                    $"queuedTransaction bucket index is { queuedTransaction.BucketIndex }; "+        
+                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
+                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
+                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
+                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    return null;
+                }
+
+                await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+                var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                if (addSuccess)
+                {
+                    Logger.LogDebug($"AcceptTransactionAsync-->addSuccess is True"  +
+                    $"Transaction id is { queuedTransaction.TransactionId }; "+
+                    $"queuedTransaction bucket index is { queuedTransaction.BucketIndex }; "+        
+                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
+                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
+                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
+                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    return queuedTransaction;
+                }
+
+                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
+                Logger.LogDebug($"AcceptTransactionAsync-->addSuccess is False" +
+                    $"Transaction id is { queuedTransaction.TransactionId }; "+
+                    $"queuedTransaction bucket index is { queuedTransaction.BucketIndex }; "+        
+                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
+                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
+                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
+                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                 return null;
             }
-            
-            // double check
-            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
-            if (hasTransaction)
-                return null;
-            
-            await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
-            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (addSuccess)
-                return queuedTransaction;
-            Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
-            return null;
+            catch (Exception e)
+            {
+                Logger.LogDebug($"AcceptTransactionAsync-->Catch: "+
+                    $"Transaction id is { queuedTransaction.TransactionId }; "+
+                    $"queuedTransaction bucket index is { queuedTransaction.BucketIndex }; "+        
+                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
+                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
+                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
+                    $"Transaction To is { queuedTransaction.Transaction.To }");
+
+                Logger.LogError(e, e.Message);
+                throw;
+            }
         }
 
         private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(
             QueuedTransaction queuedTransaction)
         {
+            Logger.LogDebug($"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}");
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             queuedTransaction.RefBlockStatus =
                 CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
@@ -351,6 +425,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = queuedTransaction.Transaction
                 });
             }
+            Logger.LogDebug($"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction bucket index is { queuedTransaction.BucketIndex }");
 
             return queuedTransaction;
         }
