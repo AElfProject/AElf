@@ -43,9 +43,6 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
             Assert.True(chainStatus.Status == SideChainStatus.Active);
-
-            var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
-            Assert.True(parentChain.Equals(new Int32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
         }
 
         [Fact]
@@ -342,9 +339,6 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
             Assert.True(chainStatus.Status == SideChainStatus.Active);
-
-            var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
-            Assert.True(parentChain.Equals(new Int32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
         }
 
         [Fact]
@@ -1384,9 +1378,9 @@ namespace AElf.Contracts.CrossChain.Tests
                 long lockedTokenAmount = 10;
                 await ApproveBalanceAsync(lockedTokenAmount * 2);
                 // Create proposal and approve
-                var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+                // var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
                 var txResult =
-                    await CreateSideChainByDefaultSenderAsync(true, 0, parentChainId, lockedTokenAmount, 1, true);
+                    await CreateSideChainByDefaultSenderAsync(true, 0, 0, lockedTokenAmount, 1, true);
                 var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(txResult.Logs
                     .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
                 
@@ -1438,7 +1432,8 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task SecondarySideChainCreationTest()
         {
-            await InitializeCrossChainContractAsync();
+            var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+            await InitializeCrossChainContractAsync(0, parentChainId);
 
             // initialize as side chain
             var organizationAddress =
