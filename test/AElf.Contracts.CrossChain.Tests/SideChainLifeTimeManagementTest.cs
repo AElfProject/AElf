@@ -1462,6 +1462,15 @@ namespace AElf.Contracts.CrossChain.Tests
             var tokenCreatedEventFired =
                 releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(TokenCreated)));
             tokenCreatedEventFired.ShouldBeFalse();
+
+            var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(releaseTx.TransactionResult.Logs
+                .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
+                
+            var sideChainId = sideChainCreatedEvent.ChainId;
+            var chainInitializationData =
+                await CrossChainContractStub.GetChainInitializationData.CallAsync(new Int32Value {Value = sideChainId});
+            chainInitializationData.ChainCreatorPrivilegePreserved.ShouldBeTrue();
+            chainInitializationData.ChainPrimaryTokenInfo.ShouldBeNull();
         }
     }
 }
