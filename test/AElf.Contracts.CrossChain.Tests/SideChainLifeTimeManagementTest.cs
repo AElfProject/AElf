@@ -1434,5 +1434,39 @@ namespace AElf.Contracts.CrossChain.Tests
                 chainInitializationData.ResourceTokenInfo.ShouldNotBeNull();
             }
         }
+
+        [Fact]
+        public async Task SecondarySideChainCreationTest()
+        {
+            await InitializeCrossChainContractAsync();
+
+            // initialize as side chain
+            var organizationAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalId = await CreateParliamentProposalAsync(nameof(TokenContractStub.InitializeFromParentChain),
+                organizationAddress, new InitializeFromParentChainInput
+                {
+                    Creator = DefaultSender
+                }, TokenContractAddress);
+            await ApproveWithMinersAsync(proposalId);
+            await ReleaseProposalAsync(proposalId);
+
+            long lockedTokenAmount = 10;
+            await ApproveBalanceAsync(lockedTokenAmount);
+
+            // Create proposal and approve
+            var sideChainCreationProposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, null, null, true);
+            await ApproveWithMinersAsync(sideChainCreationProposalId);
+            var releaseTx =
+                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                    {ProposalId = sideChainCreationProposalId});
+            var sideChainCreatedEventFired =
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(SideChainCreatedEvent)));
+            sideChainCreatedEventFired.ShouldBeTrue();
+
+            var tokenCreatedEventFired =
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(TokenCreated)));
+            tokenCreatedEventFired.ShouldBeFalse();
+        }
     }
 }

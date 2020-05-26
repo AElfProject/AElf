@@ -156,7 +156,9 @@ namespace AElf.Contracts.CrossChain
         private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, int chainId,
             Address creator)
         {
-            if (!sideChainCreationRequest.IsPrivilegePreserved)
+            // there won't be new token creation if parent chain is not main chain
+            // or the side chain is not exclusive
+            if (!sideChainCreationRequest.IsPrivilegePreserved || State.ParentChainId.Value != 0)
                 return;
 
             // new token needed only for exclusive side chain
