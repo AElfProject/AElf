@@ -284,7 +284,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var index = i;
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
                     queuedTransaction =>
-                        queuedTransaction.BucketIndex == index || queuedTransaction.BucketIndex == -index);
+                    {
+                        var bucketHit = queuedTransaction.BucketIndex == index ||
+                                        queuedTransaction.BucketIndex == -index;
+                        if (bucketHit)
+                            Logger.LogDebug(
+                                $"Transaction {queuedTransaction.TransactionId}, enqueue time {queuedTransaction.EnqueueTime}hits the bucket {index}. ");
+                        return bucketHit;
+                    });
 
                 validationTransformBlock.LinkTo(updateRefBlockStatusActionBlock, linkOptions,
                     queuedTransaction => queuedTransaction != null);
