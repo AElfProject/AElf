@@ -8,7 +8,7 @@ version: 2
 # Build documentation with sphinx
 sphinx:
   builder: html
-  configuration: docs/conf.py
+  configuration: docs-sphinx/conf.py
   fail_on_warning: true
 
 # Optionally build your docs in additional formats such as PDF and ePub
@@ -18,7 +18,7 @@ formats: all
 python:
   version: 3.7
   install:
-    - requirements: docs/requirements.txt
+    - requirements: docs-sphinx/requirements.txt
 
 
 
