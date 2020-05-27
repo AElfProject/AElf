@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -11,9 +11,9 @@ namespace AElf.EconomicSystem
         public Hash SystemSmartContractName { get; } = TokenConverterSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.TokenConverter";
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            return new List<InitializeMethod>();
+            return new List<ContractInitializationMethodCall>();
         }
     }
 }

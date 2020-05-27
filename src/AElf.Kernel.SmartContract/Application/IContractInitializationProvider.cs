@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContractInitialization
+namespace AElf.Kernel.SmartContract.Application
 {
     public interface IContractInitializationProvider
     {
         Hash SystemSmartContractName { get; }
         string ContractCodeName { get; }
-        List<InitializeMethod> GetInitializeMethodList(byte[] contractCode);
+        List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode);
     }
     
-    public class InitializeMethod
+    public class ContractInitializationMethodCall
     {
         public string MethodName { get; set; }
 

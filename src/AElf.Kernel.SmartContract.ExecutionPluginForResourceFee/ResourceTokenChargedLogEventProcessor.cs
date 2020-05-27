@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class ResourceTokenChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
+    internal class ResourceTokenChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalResourceTokensMapsProvider _totalTotalResourceTokensMapsProvider;

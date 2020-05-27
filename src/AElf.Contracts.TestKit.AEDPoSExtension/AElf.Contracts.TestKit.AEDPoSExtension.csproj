@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Contracts.TestKet.AEDPoSExtension</RootNamespace>
+        <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
@@ -10,13 +11,9 @@
         <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
         <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\acs0.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
