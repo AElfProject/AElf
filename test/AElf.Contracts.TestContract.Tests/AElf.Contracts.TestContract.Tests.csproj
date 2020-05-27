@@ -95,6 +95,9 @@
         <ContractStub Include="..\..\protobuf\acs8.proto">
             <Link>Protobuf/Proto/acs8.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\stub\acs10.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>

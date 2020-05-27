@@ -17,12 +17,12 @@ namespace AElf.Contract.Vote
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
         
         internal TokenContractContainer.TokenContractStub TokenStub =>
             GetTester<TokenContractContainer.TokenContractStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                SampleECKeyPairs.KeyPairs[0]);
+                Accounts[0].KeyPair);
 
 
         public VoteContractTestBase()

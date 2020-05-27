@@ -32,11 +32,12 @@ namespace AElf.Kernel.SmartContract.Application
                 var chainContext = new ChainContext
                 {
                     BlockHash = _contractReaderContext.BlockHash,
-                    BlockHeight = _contractReaderContext.BlockHeight
+                    BlockHeight = _contractReaderContext.BlockHeight,
+                    StateCache = _contractReaderContext.StateCache
                 };
                 var transaction = new Transaction()
                 {
-                    From = _contractReaderContext.Sender ?? Address.FromBytes(new byte[] { }.ComputeHash()),
+                    From = _contractReaderContext.Sender ?? _contractReaderContext.ContractAddress,
                     To = _contractReaderContext.ContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

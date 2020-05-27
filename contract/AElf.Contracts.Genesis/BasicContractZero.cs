@@ -58,7 +58,7 @@ namespace AElf.Contracts.Genesis
             return State.SmartContractRegistrations[info.CodeHash];
         }
         
-        public override SmartContractRegistration GetSmartContractRegistration(Hash input)
+        public override SmartContractRegistration GetSmartContractRegistrationByCodeHash(Hash input)
         {
             return State.SmartContractRegistrations[input];
         }

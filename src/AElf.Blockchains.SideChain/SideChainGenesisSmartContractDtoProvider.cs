@@ -29,7 +29,7 @@ namespace AElf.Blockchains.SideChain
         public SideChainGenesisSmartContractDtoProvider(
             ISideChainInitializationDataProvider sideChainInitializationDataProvider,
             IContractDeploymentListProvider contractDeploymentListProvider,
-            IServiceContainer<IContractInitializationProvider> contractInitializationProviders,
+            IEnumerable<IContractInitializationProvider> contractInitializationProviders,
             IOptionsSnapshot<ContractOptions> contractOptions)
             :base(contractDeploymentListProvider, contractInitializationProviders)
         {

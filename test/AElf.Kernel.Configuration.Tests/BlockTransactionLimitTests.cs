@@ -26,7 +26,7 @@ namespace AElf.Kernel.Configuration.Tests
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub _configurationStub;
         private ParliamentContractContainer.ParliamentContractStub _parliamentContractStub;
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IBlockchainStateService _blockchainStateService;
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Configuration.Tests
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
-            OptionalLogEventListeningService<IBlockAcceptedLogEventProcessor>.Enabled = true;
+            OptionalLogEventProcessingService<IBlockAcceptedLogEventProcessor>.Enabled = true;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             _configurationStub =

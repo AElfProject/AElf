@@ -8,7 +8,7 @@ Since `AElf.Contracts.TestKit` is a contract testing framework for testing AElf 
 Basically add bellowing references:
 ```MSBUILD
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.2.0" />
+        <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />

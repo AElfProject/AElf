@@ -7,7 +7,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
@@ -18,7 +18,7 @@ namespace AElf.Benchmark
     public class TxHubTransactionsReceiveTests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
-        private ITxHub _txHub;
+        private ITransactionPoolService _transactionPoolService;
         private ITransactionManager _transactionManager;
         private OSTestHelper _osTestHelper;
 
@@ -33,7 +33,7 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _txHub = GetRequiredService<ITxHub>();
+            _transactionPoolService = GetRequiredService<ITransactionPoolService>();
 
             _chain = await _blockchainService.GetChainAsync();
         }
@@ -47,22 +47,15 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task HandleTransactionsReceivedTest()
         {
-            await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-            {
-                Transactions = _transactions
-            });
+            await _transactionPoolService.AddTransactionsAsync(_transactions);
         }
 
         [IterationCleanup]
         public async Task IterationCleanup()
         {
-            await _txHub.CleanTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
-
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                BlockHash = _chain.BestChainHash,
-                BlockHeight = _chain.BestChainHeight
-            });
+            await _transactionPoolService.CleanByTransactionIdsAsync(_transactions.Select(t => t.GetHash()).ToList());
+            await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,
+                _chain.BestChainHeight);
 
             await _transactionManager.RemoveTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
         }

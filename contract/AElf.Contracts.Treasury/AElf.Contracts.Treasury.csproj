@@ -45,6 +45,9 @@
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf/Proto/acs10.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\treasury_contract.proto">
