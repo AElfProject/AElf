@@ -136,7 +136,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.FromHexString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = updatedRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -182,7 +182,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.FromHexString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = currentRound.GetTinyBlockRound(pubkey),
                 Behaviour = triggerInformation.Behaviour
             };
@@ -197,7 +197,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 return new AElfConsensusHeaderInformation
                 {
-                    SenderPubkey = pubkey.FromHexString(),
+                    SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                     Round = nextRound,
                     Behaviour = triggerInformation.Behaviour
                 };
@@ -216,7 +216,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.FromHexString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = nextRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.FromHexString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = firstRoundOfNextTerm,
                 Behaviour = triggerInformation.Behaviour
             };

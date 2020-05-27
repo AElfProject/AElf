@@ -32,7 +32,7 @@ namespace AElf.Contracts.Election
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
-                Value = {input.MinerList.Select(k => k.FromHexString())}
+                Value = {input.MinerList.Select(ByteStringHelper.FromHexString)}
             };
             foreach (var pubkey in input.MinerList)
             {
@@ -170,7 +170,7 @@ namespace AElf.Contracts.Election
             if (candidateInformation == null) return;
             candidateInformation.Terms.Add(lastTermNumber);
             var victories = GetVictories(previousMiners);
-            candidateInformation.ContinualAppointmentCount = victories.Contains(pubkey.FromHexString())
+            candidateInformation.ContinualAppointmentCount = victories.Contains(ByteStringHelper.FromHexString(pubkey))
                 ? candidateInformation.ContinualAppointmentCount.Add(1)
                 : 0;
             State.CandidateInformationMap[pubkey] = candidateInformation;
