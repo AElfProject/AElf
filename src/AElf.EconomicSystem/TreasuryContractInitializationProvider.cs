@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.Treasury;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,15 +13,15 @@ namespace AElf.EconomicSystem
         public Hash SystemSmartContractName { get; } = TreasurySmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Treasury";
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            return new List<InitializeMethod>
+            return new List<ContractInitializationMethodCall>
             {
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
                     Params = ByteString.Empty
                 },
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
                     Params = ByteString.Empty
                 }

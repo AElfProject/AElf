@@ -6,7 +6,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class CleanTotalTransactionFeesMapChangeHeightEventHandler :
+    internal class CleanTotalTransactionFeesMapChangeHeightEventHandler :
         CleanBlockExecutedDataChangeHeightBaseEventHandler<TotalTransactionFeesMap>,
         ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
     {

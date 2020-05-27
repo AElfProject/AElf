@@ -23,11 +23,11 @@ namespace AElf.Contracts.Vote
 {
     public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
     {
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
 
-        protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(5).Select(a=>a.KeyPair).ToList();
 
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
@@ -159,7 +159,7 @@ namespace AElf.Contracts.Vote
                 {
                     Symbol = TestTokenSymbol,
                     Amount = 100_000_0000_0000L,
-                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    To = Accounts[i].Address,
                     Memo = "set voters few amount for voting."
                 });
             }

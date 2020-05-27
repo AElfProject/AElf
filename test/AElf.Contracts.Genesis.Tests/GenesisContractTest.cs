@@ -73,7 +73,7 @@ namespace AElf.Contracts.Genesis
                 
                 //query by hash
                 var registrationInfo1 =
-                    await DefaultTester.GetSmartContractRegistration.CallAsync(registrationInfo.CodeHash);
+                    await DefaultTester.GetSmartContractRegistrationByCodeHash.CallAsync(registrationInfo.CodeHash);
                 registrationInfo1.ShouldBe(registrationInfo);
             }
         }

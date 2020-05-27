@@ -1,7 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.TransactionPool.Application;
 using Google.Protobuf;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -32,7 +32,7 @@ namespace AElf.WebApp.Application.Chain
     public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly ITxHub _txHub;
+        private readonly ITransactionPoolService _transactionPoolService;
         private readonly IBlockStateSetManger _blockStateSetManger;
 
         public ILogger<BlockChainAppService> Logger { get; set; }
@@ -40,11 +40,12 @@ namespace AElf.WebApp.Application.Chain
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
-            ITxHub txHub, IBlockStateSetManger blockStateSetManger)
+            IBlockStateSetManger blockStateSetManger, 
+            ITransactionPoolService transactionPoolService)
         {
             _blockchainService = blockchainService;
-            _txHub = txHub;
             _blockStateSetManger = blockStateSetManger;
+            _transactionPoolService = transactionPoolService;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -108,10 +109,11 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
         {
+            var transactionPoolStatus = await _transactionPoolService.GetTransactionPoolStatusAsync();
             return new GetTransactionPoolStatusOutput
             {
-                Queued = await _txHub.GetAllTransactionCountAsync(),
-                Validated = await _txHub.GetValidatedTransactionCountAsync()
+                Queued = transactionPoolStatus.AllTransactionCount,
+                Validated = transactionPoolStatus.ValidatedTransactionCount
             };
         }
 
