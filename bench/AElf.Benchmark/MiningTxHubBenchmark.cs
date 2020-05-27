@@ -56,15 +56,8 @@ namespace AElf.Benchmark
                 txCount += blockExecutedSet.TransactionIds.Count();
                 _transactionIdList.AddRange(blockExecutedSet.TransactionIds.ToList());
                 await BlockchainService.SetBestChainAsync(_chain, preBlockHeight, preBlockHash);
-                await TxHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
-                {
-                    BlockExecutedSet = blockExecutedSet
-                });
-                await TxHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                {
-                    BlockHash = preBlockHash,
-                    BlockHeight = preBlockHeight
-                });
+                await TransactionPoolService.CleanByTransactionIdsAsync(blockExecutedSet.TransactionIds);
+                await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(preBlockHash, preBlockHeight);
             }
         }
 
@@ -72,24 +65,17 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _transactionManager.RemoveTransactionsAsync(_transactionIdList);
-            await TxHub.CleanTransactionsAsync(_transactionIdList);
+            await TransactionPoolService.CleanByTransactionIdsAsync(_transactionIdList);
 
-            await TxHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                BlockHash = _chain.BestChainHash,
-                BlockHeight = _chain.BestChainHeight
-            });
+            await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(_chain.BestChainHash,
+                _chain.BestChainHeight);
             _transactionIdList.Clear();
         }
 
         private async Task AddTransactionsToTxHub(int txCount)
         {
             var txList = await GenerateTransferTransactionsAsync(txCount);
-            var transactionsReceivedEvent = new TransactionsReceivedEvent
-            {
-                Transactions = txList
-            };
-            await TxHub.AddTransactionsAsync(transactionsReceivedEvent);
+            await TransactionPoolService.AddTransactionsAsync(txList);
         }
     }
 }

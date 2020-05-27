@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
 
-            var returnSetCollection = new ReturnSetCollection(returnSets);
+            var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
             var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
 
             var tasks = groupedTransactions.Parallelizables.Select(
@@ -184,10 +184,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             return returnSets;
         }
 
-        private BlockStateSet GetUpdatedBlockStateSet(ReturnSetCollection returnSetCollection,
+        private BlockStateSet GetUpdatedBlockStateSet(ExecutionReturnSetCollection executionReturnSetCollection,
             TransactionExecutingDto transactionExecutingDto)
         {
-            var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
+            var updatedPartialBlockStateSet = executionReturnSetCollection.ToBlockStateSet();
             if (transactionExecutingDto.PartialBlockStateSet != null)
             {
                 var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();

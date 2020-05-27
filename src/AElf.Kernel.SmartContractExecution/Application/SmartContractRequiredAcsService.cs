@@ -13,9 +13,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-        //TODO: strange way
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-
         public SmartContractRequiredAcsService(ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
@@ -35,7 +32,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     ConfigurationSmartContractAddressNameProvider.StringName);
             var tx = new Transaction
             {
-                From = FromAddress,
+                From = configurationContractAddress,
                 To = configurationContractAddress,
                 MethodName = nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
                 Params = new StringValue {Value = RequiredAcsInContractsConfigurationNameProvider.Name}.ToByteString(),

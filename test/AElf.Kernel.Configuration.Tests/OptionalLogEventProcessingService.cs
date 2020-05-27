@@ -5,11 +5,11 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Configuration.Tests
 {
-    public class OptionalLogEventListeningService<T> : ILogEventListeningService<T> where T : ILogEventProcessor
+    public class OptionalLogEventProcessingService<T> : ILogEventProcessingService<T> where T : ILogEventProcessor
     {
-        private LogEventListeningService<T> _inner;
+        private LogEventProcessingService<T> _inner;
 
-        public OptionalLogEventListeningService(LogEventListeningService<T> inner)
+        public OptionalLogEventProcessingService(LogEventProcessingService<T> inner)
         {
             _inner = inner;
         }

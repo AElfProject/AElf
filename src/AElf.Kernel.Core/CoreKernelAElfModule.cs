@@ -43,6 +43,8 @@ namespace AElf.Kernel
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
             services.AddSingleton(typeof(ICachedBlockchainExecutedDataService<>),
                 typeof(CachedBlockchainExecutedDataService<>));
+            services.AddSingleton(typeof(IBlockchainExecutedDataCacheProvider<>),
+                typeof(BlockchainExecutedDataCacheProvider<>));
             
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());

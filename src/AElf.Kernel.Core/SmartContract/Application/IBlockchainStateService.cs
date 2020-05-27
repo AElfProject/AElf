@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -69,19 +70,19 @@ namespace AElf.Kernel.SmartContract.Application
     public class CachedBlockchainExecutedDataService<T> : ICachedBlockchainExecutedDataService<T>
     {
         private readonly IBlockchainExecutedDataManager _blockchainExecutedDataManager;
+        private readonly IBlockchainExecutedDataCacheProvider<T> _blockchainExecutedDataCacheProvider;
 
-        //TODO: make a store in Infrastructure
-        private readonly ConcurrentDictionary<string, T> _dictionary = new ConcurrentDictionary<string, T>();
-        private readonly ConcurrentDictionary<string, long> _changeHeight = new ConcurrentDictionary<string, long>();
-
-        public CachedBlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager)
+        public CachedBlockchainExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager
+            , IBlockchainExecutedDataCacheProvider<T> blockchainExecutedDataCacheProvider)
         {
             _blockchainExecutedDataManager = blockchainExecutedDataManager;
+            _blockchainExecutedDataCacheProvider = blockchainExecutedDataCacheProvider;
         }
 
         public T GetBlockExecutedData(IBlockIndex chainContext, string key)
         {
-            if ( !_changeHeight.TryGetValue(key,out _) && _dictionary.TryGetValue(key, out var value))
+            if ( !_blockchainExecutedDataCacheProvider.TryGetChangeHeight(key,out _) 
+                 && _blockchainExecutedDataCacheProvider.TryGetBlockExecutedData(key, out var value))
             {
                 return value;
             }
@@ -93,8 +94,8 @@ namespace AElf.Kernel.SmartContract.Application
             var blockExecutedData = Deserialize(ret.Value);
             
             //if executed is in Store, it will not change when forking
-            if(ret.IsInStore && !_changeHeight.TryGetValue(key, out _))
-                _dictionary[key] = blockExecutedData;
+            if (ret.IsInStore && !_blockchainExecutedDataCacheProvider.TryGetChangeHeight(key, out _))
+                _blockchainExecutedDataCacheProvider.SetBlockExecutedData(key, blockExecutedData);
             return blockExecutedData;
         }
 
@@ -105,25 +106,19 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var pair in blockExecutedData)
             {
                 if (blockIndex.BlockHeight > AElfConstants.GenesisBlockHeight &&
-                    (!_changeHeight.TryGetValue(pair.Key, out var height) || height < blockIndex.BlockHeight))
-                    _changeHeight[pair.Key] = blockIndex.BlockHeight;
-                _dictionary.TryRemove(pair.Key, out _);
+                    (!_blockchainExecutedDataCacheProvider.TryGetChangeHeight(pair.Key, out var height) ||
+                     height < blockIndex.BlockHeight))
+                {
+                    _blockchainExecutedDataCacheProvider.SetChangeHeight(pair.Key, blockIndex.BlockHeight);
+                }
+                _blockchainExecutedDataCacheProvider.RemoveBlockExecutedData(pair.Key);
             }
+
         }
 
         public void CleanChangeHeight(long height)
         {
-            
-            var keys = new List<string>();
-            foreach (var pair in _changeHeight)
-            {
-                if(pair.Value <= height) keys.Add(pair.Key);
-            }
-
-            foreach (var key in keys)
-            {
-                _changeHeight.TryRemove(key, out _);
-            }
+            _blockchainExecutedDataCacheProvider.CleanChangeHeight(height);
         }
 
         protected virtual T Deserialize(ByteString byteString)

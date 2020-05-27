@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
@@ -17,6 +16,7 @@ using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.Testing;
 using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,6 +34,8 @@ namespace AElf.Contracts.TestKit
 
 
         public IReadOnlyDictionary<string, byte[]> Codes => _codes ??= ContractsDeployer.GetContractCodes<TModule>();
+
+        protected IReadOnlyList<Account> Accounts => SampleAccount.Accounts;
 
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
