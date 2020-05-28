@@ -89,6 +89,7 @@ namespace AElf.CSharp.CodeOps
         public void CheckSystemContracts_AllShouldPass(Type contractType)
         {
             _auditor.Audit(ReadPatchedContractCode(contractType), true);
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(ReadPatchedContractCode(contractType), false));
         }
 
         [Fact]

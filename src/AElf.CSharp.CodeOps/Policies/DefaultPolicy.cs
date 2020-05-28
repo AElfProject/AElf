@@ -13,7 +13,6 @@ using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
 using Mono.Cecil;
-
 using AElf.Types;
 
 
@@ -47,7 +46,6 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Assembly(Assembly.Load("System.Linq"), Trust.Full)
                 .Assembly(Assembly.Load("System.Collections"), Trust.Full)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
-
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
@@ -86,22 +84,22 @@ namespace AElf.CSharp.CodeOps.Policies
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
                         .Member(nameof(DateTime.Today), Permission.Denied))
                     .Type(typeof(void).Name, Permission.Allowed)
-                    .Type(typeof(object).Name, Permission.Allowed)
-                    .Type(typeof(Type).Name, Permission.Allowed)
-                    .Type(typeof(IDisposable).Name, Permission.Allowed)
-                    .Type(typeof(Convert).Name, Permission.Allowed)
-                    .Type(typeof(Math).Name, Permission.Allowed)
+                    .Type(nameof(Object), Permission.Allowed)
+                    .Type(nameof(Type), Permission.Allowed)
+                    .Type(nameof(IDisposable), Permission.Allowed)
+                    .Type(nameof(Convert), Permission.Allowed)
+                    .Type(nameof(Math), Permission.Allowed)
                     // Primitive types
-                    .Type(typeof(bool).Name, Permission.Allowed)
-                    .Type(typeof(byte).Name, Permission.Allowed)
-                    .Type(typeof(sbyte).Name, Permission.Allowed)
-                    .Type(typeof(char).Name, Permission.Allowed)
-                    .Type(typeof(int).Name, Permission.Allowed)
-                    .Type(typeof(uint).Name, Permission.Allowed)
-                    .Type(typeof(long).Name, Permission.Allowed)
-                    .Type(typeof(ulong).Name, Permission.Allowed)
-                    .Type(typeof(decimal).Name, Permission.Allowed)
-                    .Type(typeof(string).Name, Permission.Allowed, member => member
+                    .Type(nameof(Boolean), Permission.Allowed)
+                    .Type(nameof(Byte), Permission.Allowed)
+                    .Type(nameof(SByte), Permission.Allowed)
+                    .Type(nameof(Char), Permission.Allowed)
+                    .Type(nameof(Int32), Permission.Allowed)
+                    .Type(nameof(UInt32), Permission.Allowed)
+                    .Type(nameof(Int64), Permission.Allowed)
+                    .Type(nameof(UInt64), Permission.Allowed)
+                    .Type(nameof(Decimal), Permission.Allowed)
+                    .Type(nameof(String), Permission.Allowed, member => member
                         .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
@@ -143,7 +141,6 @@ namespace AElf.CSharp.CodeOps.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
-
                 .Namespace("System.Text", Permission.Denied, type => type
                     .Type(nameof(Encoding), Permission.Denied, member => member
                         .Member(nameof(Encoding.UTF8), Permission.Allowed)
@@ -160,7 +157,7 @@ namespace AElf.CSharp.CodeOps.Policies
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
                 new GetHashCodeValidator(),
-                new DescriptorAccessValidator(), 
+                new DescriptorAccessValidator(),
             });
         }
 
@@ -168,8 +165,8 @@ namespace AElf.CSharp.CodeOps.Policies
         {
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
-                new ObserverProxyValidator(), 
-                new ContractStructureValidator(), 
+                new ObserverProxyValidator(),
+                new ContractStructureValidator(),
                 new ResetFieldsValidator()
             });
         }

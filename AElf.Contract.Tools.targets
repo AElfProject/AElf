@@ -32,6 +32,17 @@
             </PropertyGroup>
         </Otherwise>
     </Choose>
+
+    <!-- Build patcher before building the contract -->
+    <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <IsContract Condition="'@(ContractCode)' != ''">true</IsContract>
+            <IsSystemContract Condition="'@(ContractCode)' != '' And %(ContractCode.SystemContract) != '' And %(ContractCode.SystemContract)" >true</IsSystemContract>
+        </PropertyGroup>
+        <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'"
+                 Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
+    </Target>
+    
     <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
         <PropertyGroup>
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
@@ -62,14 +73,7 @@
             <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
-    <!-- Build patcher before building the contract -->
-    <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
-        <PropertyGroup>
-            <IsContract Condition="'$(IsSystemContract)' != '' AND '$(IsSystemContract)'">true</IsContract>
-        </PropertyGroup>
-        <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
-                 Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
-    </Target>
+
     <!-- Patch the contract dll after building the contract -->
     <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
         <PropertyGroup>

@@ -25,6 +25,13 @@ namespace AElf.CSharp.CodeOps
 
         public IOptionsMonitor<CSharpCodeOpsOptions> CodeOpsOptionsMonitor { get; set; }
 
+        // private readonly List<IValidator<MethodDefinition>> _methodValidators;
+        //
+        // public CSharpContractAuditor(IEnumerable<IValidator<MethodDefinition>> methodValidators)
+        // {
+        //     _methodValidators = methodValidators.ToList();
+        // }
+
         public void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract)
         {
             var findings = new List<ValidationResult>();

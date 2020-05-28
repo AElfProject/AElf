@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Parliament</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsSystemContract>true</IsSystemContract>
         <Description>Parliament is a contract that enables the creation of organizations and approvals. The created 
             proposals can be voted for and eventually released.</Description>
     </PropertyGroup>
@@ -37,6 +36,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Economic</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsSystemContract>true</IsSystemContract>
         <Description>Economic is a contract that implements the basic functionality used to manage the economic 
             system.</Description>
     </PropertyGroup>
@@ -52,6 +51,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
     
