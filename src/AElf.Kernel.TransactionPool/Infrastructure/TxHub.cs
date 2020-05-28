@@ -291,7 +291,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         if (bucketHit)
                             Logger.LogDebug(
                                 $"Transaction {queuedTransaction.TransactionId}, enqueue time {queuedTransaction.EnqueueTime} hits the bucket {index}." +
-                                $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}");
+                                $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}" + 
+                                $"completion status {validationTransformBlock.Completion.Status}");
                                 
                         return bucketHit;
                     });
