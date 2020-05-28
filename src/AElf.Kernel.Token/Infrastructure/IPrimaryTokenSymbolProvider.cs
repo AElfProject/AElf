@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using Volo.Abp.DependencyInjection;
-
 namespace AElf.Kernel.Token.Infrastructure
 {
     /// <summary>
@@ -9,18 +6,21 @@ namespace AElf.Kernel.Token.Infrastructure
     public interface IPrimaryTokenSymbolProvider
     {
         void SetPrimaryTokenSymbol(string symbol);
-        Task<string> GetPrimaryTokenSymbol();
+        string GetPrimaryTokenSymbol();
     }
 
-    public class DefaultPrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
+    public class PrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
     {
+        private string _primaryTokenSymbol;
+
         public void SetPrimaryTokenSymbol(string symbol)
         {
+            _primaryTokenSymbol = symbol;
         }
 
-        public Task<string> GetPrimaryTokenSymbol()
+        public string GetPrimaryTokenSymbol()
         {
-            return Task.FromResult("ELF");
+            return _primaryTokenSymbol;
         }
     }
 }

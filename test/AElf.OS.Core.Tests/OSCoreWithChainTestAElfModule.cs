@@ -76,8 +76,6 @@ namespace AElf.OS
             context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
             context.Services
                 .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
-            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
-            context.Services.AddSingleton<IPrimaryTokenSymbolService, DefaultPrimaryTokenSymbolService>();
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
