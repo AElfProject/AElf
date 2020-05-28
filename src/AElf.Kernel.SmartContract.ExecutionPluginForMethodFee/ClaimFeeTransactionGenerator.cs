@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
+    internal class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;

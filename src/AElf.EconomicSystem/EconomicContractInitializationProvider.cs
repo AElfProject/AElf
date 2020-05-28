@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Economic;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.OS;
 using AElf.Types;
 using Google.Protobuf;
@@ -28,11 +28,11 @@ namespace AElf.EconomicSystem
             _economicOptions = economicOptions.Value;
         }
         
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            return new List<InitializeMethod>
+            return new List<ContractInitializationMethodCall>
             {
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
                     Params = new InitialEconomicSystemInput
                     {
@@ -46,7 +46,7 @@ namespace AElf.EconomicSystem
                         TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                     }.ToByteString()
                 },
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken),
                     Params = new IssueNativeTokenInput
                     {

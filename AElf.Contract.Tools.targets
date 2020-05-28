@@ -42,12 +42,17 @@
             <GenerateCommonMessageCommand>protoc --proto_path=../../protobuf --csharp_out=$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateCommonMessageCommand>
         </PropertyGroup>
 
+        <ItemGroup>
+            <Compile Remove="Protobuf/Generated/*.cs"/>
+        </ItemGroup>
         <RemoveDir Directories="Protobuf\Generated" />
         
         <MakeDir Condition="@(ContractInternal) != '' Or @(CommonMessage) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
         <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
         <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
-        <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
+        <Exec Condition="@(ContractBase) != '' And $(IsContract) != '' AND '$(IsContract)' " Command="$(GenerateContractBaseCommand) %(Identity) "/>
+        <Exec Condition="@(ContractBase) != '' And %(ContractBase.PublicAccessibility) == 'true'" Command="$(GenerateContractBaseCommand) %(Identity) "/>
+        <Exec Condition="@(ContractBase) != '' And $(IsContract) == '' And %(ContractBase.PublicAccessibility) != 'true'" Command="$(GenerateContractBaseCommand) %(Identity) internal_access"/>
         <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
         <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>

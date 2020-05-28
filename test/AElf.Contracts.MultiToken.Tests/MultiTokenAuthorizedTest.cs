@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.Association;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Referendum;
 using AElf.CSharp.Core.Extension;
@@ -404,7 +405,7 @@ namespace AElf.Contracts.MultiToken
         public async Task MethodFeeController_Test()
         {
             var byteResult = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.GetMethodFeeController),
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.GetMethodFeeController),
                 new Empty());
             var defaultController = AuthorityInfo.Parser.ParseFrom(byteResult);
 
@@ -432,8 +433,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = newController.ToByteString(),
                 OrganizationAddress = defaultController.OwnerAddress,
-                ContractMethodName = nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub
-                    .ChangeMethodFeeController),
+                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ChangeMethodFeeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -447,7 +447,7 @@ namespace AElf.Contracts.MultiToken
             releaseRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             byteResult = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.GetMethodFeeController),
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.GetMethodFeeController),
                 new Empty());
             var queryController = AuthorityInfo.Parser.ParseFrom(byteResult);
             queryController.ShouldBe(newController);

@@ -11,7 +11,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         /// <summary>
         /// Use this property to cache CalculateFeeCoefficients message.
         /// </summary>
-        public CalculateFeeCoefficients CalculateFeeCoefficients { get; set; }
+        internal CalculateFeeCoefficients CalculateFeeCoefficients { get; set; }
 
         public CalculateFunction(int feeType)
         {

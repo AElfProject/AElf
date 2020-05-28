@@ -1,33 +1,27 @@
 using System.Collections.Generic;
-using Acs0;
-using AElf.Types;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 
 namespace AElf.OS.Node.Application
 {
     public static class GenesisSmartContractDtoExtensions
     {
-        public static void AddGenesisSmartContract(this List<GenesisSmartContractDto> genesisSmartContracts,
-            byte[] code, Hash name = null,
-            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = null)
+        public static void AddGenesisTransactionMethodCall(this GenesisSmartContractDto genesisSmartContractDto,
+            params ContractInitializationMethodCall[] contractInitializationMethodCalls)
         {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                Code = code,
-                SystemSmartContractName = name,
-                TransactionMethodCallList = systemTransactionMethodCallList
-            });
+            genesisSmartContractDto.ContractInitializationMethodCallList.AddRange(contractInitializationMethodCalls);
         }
         
-        public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
+        public static void Add(
+            this List<ContractInitializationMethodCall> contractInitializationMethodCallList,
+            string methodName,
             IMessage input)
         {
-            systemTransactionMethodCallList.Value.Add(new SystemContractDeploymentInput.Types.SystemTransactionMethodCall()
+            contractInitializationMethodCallList.Add(new ContractInitializationMethodCall
             {
                 MethodName = methodName,
                 Params = input?.ToByteString() ?? ByteString.Empty
             });
         }
-
     }
 }
