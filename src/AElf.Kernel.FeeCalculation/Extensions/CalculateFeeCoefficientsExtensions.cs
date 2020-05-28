@@ -7,7 +7,7 @@ namespace AElf.Kernel.FeeCalculation.Extensions
 {
     public static class CalculateFeeCoefficientsExtensions
     {
-        public static CalculateFunction ToCalculateFunction(
+        internal static CalculateFunction ToCalculateFunction(
             this CalculateFeeCoefficients calculateFeeCoefficients)
         {
             var pieceCalculateFunction = new CalculateFunction(calculateFeeCoefficients.FeeTokenType);

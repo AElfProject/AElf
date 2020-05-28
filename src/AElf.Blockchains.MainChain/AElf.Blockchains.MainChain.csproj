@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
         <Description>Main module for a mainchain node.</Description>
     </PropertyGroup>
