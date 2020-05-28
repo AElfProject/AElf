@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
+// using AElf.Contracts.Genesis;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -48,7 +49,7 @@ namespace AElf.OS.Node.Application
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p => GetTransactionForDeployment(p.Code, p.SystemSmartContractName,
                     dto.SmartContractRunnerCategory,
-                    p.TransactionMethodCallList)));
+                    p.ContractInitializationMethodCallList)));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -82,29 +83,35 @@ namespace AElf.OS.Node.Application
 
         private Transaction GetTransactionForDeployment(Type contractType, Hash systemContractName,
             int category,
-            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
+            List<ContractInitializationMethodCall> contractInitializationMethodCallList = null)
         {
             var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{contractType.Assembly.GetName().Name}.dll")
                 : contractType.Assembly.Location;
             var code = File.ReadAllBytes(dllPath);
 
-            return GetTransactionForDeployment(code, systemContractName, category, transactionMethodCallList);
+            return GetTransactionForDeployment(code, systemContractName, category, contractInitializationMethodCallList);
         }
 
         private Transaction GetTransactionForDeployment(byte[] code, Hash systemContractName,
             int category,
-            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
+            List<ContractInitializationMethodCall> contractInitializationMethodCallList = null)
         {
-            if (transactionMethodCallList == null)
-                transactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var transactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            if (contractInitializationMethodCallList != null)
+                transactionMethodCallList.Value.Add(contractInitializationMethodCallList.Select(call =>
+                    new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
+                    {
+                        MethodName = call.MethodName,
+                        Params = call.Params ?? ByteString.Empty
+                    }));
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
 
             return new Transaction()
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(BasicContractZero.DeploySystemSmartContract),
+                MethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract),
                 Params = new SystemContractDeploymentInput()
                 {
                     Name = systemContractName,
@@ -122,7 +129,7 @@ namespace AElf.OS.Node.Application
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(BasicContractZero.Initialize),
+                MethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.Initialize),
                 Params = new InitializeInput
                     {ContractDeploymentAuthorityRequired = dto.ContractDeploymentAuthorityRequired}.ToByteString()
             };

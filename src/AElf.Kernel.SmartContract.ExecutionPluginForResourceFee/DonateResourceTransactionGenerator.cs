@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
+    internal class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalResourceTokensMapsProvider _totalResourceTokensMapsProvider;

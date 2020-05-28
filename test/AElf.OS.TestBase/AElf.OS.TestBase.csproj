@@ -3,7 +3,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.OS</RootNamespace>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
@@ -13,6 +12,7 @@
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />

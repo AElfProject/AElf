@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class TransactionFeeChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
+    internal class TransactionFeeChargedLogEventProcessor : LogEventProcessorBase, IBlockAcceptedLogEventProcessor
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;

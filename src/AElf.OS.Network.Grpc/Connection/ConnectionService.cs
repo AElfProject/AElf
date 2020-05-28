@@ -173,7 +173,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString()};
+            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = ByteStringHelper.FromHexString(peer.Info.Pubkey)};
             var bestChainHash = peer.CurrentBlockHash;
             var bestChainHeight = peer.CurrentBlockHeight;
 
@@ -182,10 +182,19 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private async Task<GrpcPeer> GetDialedPeerWithEndpointAsync(DnsEndPoint endpoint)
         {
-            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
+            var peer = _peerPool.FindPeerByEndpoint(endpoint);
+            if (peer != null)
             {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
-                return null;
+                if (peer.IsInvalid)
+                {
+                    _peerPool.RemovePeer(peer.Info.Pubkey);
+                    await peer.DisconnectAsync(false);
+                }
+                else
+                {
+                    Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
+                    return null; 
+                }
             }
 
             if (_peerPool.IsPeerBlackListed(endpoint.Host))

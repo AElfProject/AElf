@@ -5,13 +5,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public interface ITotalTransactionFeesMapProvider
+    internal interface ITotalTransactionFeesMapProvider
     {
         Task<TotalTransactionFeesMap> GetTotalTransactionFeesMapAsync(IChainContext chainContext);
         Task SetTotalTransactionFeesMapAsync(IBlockIndex blockIndex, TotalTransactionFeesMap totalTransactionFeesMap);
     }
 
-    public class TotalTransactionFeesMapProvider : BlockExecutedDataBaseProvider<TotalTransactionFeesMap>,
+    internal class TotalTransactionFeesMapProvider : BlockExecutedDataBaseProvider<TotalTransactionFeesMap>,
         ITotalTransactionFeesMapProvider, ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TotalTransactionFeesMap);
