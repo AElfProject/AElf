@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -54,17 +53,12 @@
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf\Proto\economic_contract.proto</Link>
         </ContractStub>
-
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractStub>
-
-        <ContractMessage Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf\Proto\acs1.proto</Link>
-        </ContractMessage>
         <ContractStub Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractStub>

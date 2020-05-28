@@ -11,7 +11,7 @@ namespace AElf.Kernel.Configuration
         Task SetLimitAsync(IBlockIndex blockIndex, int limit);
     }
 
-    public class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<BlockTransactionLimit>, IBlockTransactionLimitProvider,
+    internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<BlockTransactionLimit>, IBlockTransactionLimitProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(BlockTransactionLimit);

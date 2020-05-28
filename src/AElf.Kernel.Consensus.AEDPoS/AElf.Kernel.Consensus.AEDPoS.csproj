@@ -10,10 +10,6 @@
         <Description>AElf DPoS consensus.</Description>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <NoWarn>0436</NoWarn>
-    </PropertyGroup>
-
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
     </ItemGroup>
