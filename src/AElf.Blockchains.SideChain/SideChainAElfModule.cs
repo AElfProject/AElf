@@ -1,5 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Node.Application;

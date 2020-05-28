@@ -6,10 +6,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Smart contract execution related components.</Description>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <NoWarn>0436</NoWarn>
-    </PropertyGroup>
     
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
