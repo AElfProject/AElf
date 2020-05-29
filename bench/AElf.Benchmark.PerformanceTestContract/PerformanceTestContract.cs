@@ -28,7 +28,7 @@ namespace AElf.Benchmark.PerformanceTestContract
             return new Int32Value {Value = input.Seed};
         }
 
-        public override DoubleValue LoopDivAdd(DivAddTestInput input)
+        public override UIntValue LoopDivAdd(DivAddTestInput input)
         {
             var r = input.X;
             for (uint i = 0; i < input.N; i++) 

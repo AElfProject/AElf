@@ -14,7 +14,7 @@ service PerformanceTestContract {
     rpc LoopExpNop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
     }
     
-    rpc LoopDivAdd(DivAddTestInput) returns (google.protobuf.DoubleValue){
+    rpc LoopDivAdd(DivAddTestInput) returns (google.protobuf.){
         
     }
 }
@@ -26,8 +26,8 @@ message PerformanceTesteInput {
 }
 
 message DivAddTestInput{
-    double x =1;
-    double y =2;
-    double k = 3;
+    uint32 x =1;
+    uint32 y =2;
+    uint32 k = 3;
     uint32 n = 4;
 }
