@@ -53,6 +53,11 @@ namespace AElf.CSharp.CodeOps
             _auditor.Audit(code, _requiredAcs, isSystemContract);
         }
 
+        public void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract)
+        {
+            _auditor.Audit(code, requiredAcs, isSystemContract);
+        }
+
         public void Dispose()
         {
             _auditor = null;
@@ -111,7 +116,7 @@ namespace AElf.CSharp.CodeOps
             var exception = Record.Exception(() => _auditor.Audit(updateCode, true));
             exception.ShouldBeNull();
         }
-        
+
         [Fact]
         public void ContractAudit_SystemPolicy_Test()
         {
@@ -292,6 +297,25 @@ namespace AElf.CSharp.CodeOps
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditor.Audit(ContractPatcher.Patch(contractCode, false), false));
+        }
+
+        [Fact]
+        public void ContractAuditor_AcsRequired_Test()
+        {
+            var requireAcs = new RequiredAcs();
+            requireAcs.AcsList = new List<string> {"acs1"};
+            var badContractCode = ReadContractCode(typeof(BadContract));
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(badContractCode, requireAcs, false));
+
+            var systemContractCode = ReadPatchedContractCode(typeof(BasicContractZero));
+
+            Should.NotThrow(() => _auditor.Audit(systemContractCode, requireAcs, true));
+
+            requireAcs.AcsList.Add("acs8");
+            Should.NotThrow(() => _auditor.Audit(systemContractCode, requireAcs, true));
+
+            requireAcs.RequireAll = true;
+            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(systemContractCode, requireAcs, true));
         }
 
         #endregion

@@ -21,7 +21,7 @@
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.7.82" />
-      <PackageReference Include="Volo.Abp.Core" Version="2.8.0" />
+      <PackageReference Include="Volo.Abp.Core" Version="2.7.0" />
     </ItemGroup>
 
     <Target Name="CopyDlls" AfterTargets="AfterBuild">

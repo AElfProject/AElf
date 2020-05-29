@@ -18,6 +18,7 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.EconomicSystem;
 using AElf.Kernel;
+using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
