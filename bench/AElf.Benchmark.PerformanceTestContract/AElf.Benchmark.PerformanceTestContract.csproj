@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <IsPackable>false</IsPackable>
+        <SkipAudit>true</SkipAudit>
     </PropertyGroup>
 
     <ItemGroup>
