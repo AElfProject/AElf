@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using AElf.CSharp.CodeOps;
+using AElf.Kernel.CodeCheck.Infrastructure;
 using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 
 namespace AElf.Contracts.Deployer
 {
@@ -62,7 +65,9 @@ namespace AElf.Contracts.Deployer
             {
                 try
                 {
-                    var auditor = new CSharpContractAuditor();
+                    using var application = AbpApplicationFactory.Create<ContractDeployerModule>();
+                    application.Initialize();
+                    var auditor = application.ServiceProvider.GetRequiredService<IContractAuditor>();
                     auditor.Audit(patchedCode, null, o.IsSystemContract);
                 }
                 catch (CSharpCodeCheckException ex)

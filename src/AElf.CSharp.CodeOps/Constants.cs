@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using AElf.CSharp.CodeOps.Validators.Module;
 using Mono.Cecil.Cil;
 
 namespace AElf.CSharp.CodeOps
@@ -44,5 +46,10 @@ namespace AElf.CSharp.CodeOps
             typeof(ulong).FullName,
             typeof(string).FullName,
         };
+        
+        public static readonly List<Type> SystemContractInApplicableValidatorList = new List<Type>
+        {
+            typeof(ObserverProxyValidator)
+        }; 
     }
 }

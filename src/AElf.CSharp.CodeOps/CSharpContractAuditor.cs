@@ -16,44 +16,40 @@ namespace AElf.CSharp.CodeOps
 {
     public class CSharpContractAuditor : IContractAuditor
     {
-        readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
-        readonly AbstractPolicy _systemPolicy = new SystemPolicy();
-        
-        private readonly AcsValidator _acsValidator = new AcsValidator();
+        private readonly IAcsValidator _acsValidator;
 
         public int Category { get; } = 0;
 
         public IOptionsMonitor<CSharpCodeOpsOptions> CodeOpsOptionsMonitor { get; set; }
 
-        // private readonly List<IValidator<MethodDefinition>> _methodValidators;
-        //
-        // public CSharpContractAuditor(IEnumerable<IValidator<MethodDefinition>> methodValidators)
-        // {
-        //     _methodValidators = methodValidators.ToList();
-        // }
+        private readonly IAuditPolicy _auditPolicy;
+
+        public CSharpContractAuditor(IAuditPolicy auditPolicy, IAcsValidator acsValidator)
+        {
+            _auditPolicy = auditPolicy;
+            _acsValidator = acsValidator;
+        }
 
         public void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract)
         {
             var findings = new List<ValidationResult>();
-            var policy = isSystemContract ? _systemPolicy : _defaultPolicy;
             var asm = Assembly.Load(code);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var cts = new CancellationTokenSource(CodeOpsOptionsMonitor?.CurrentValue.AuditTimeoutDuration ??
                                                   Constants.DefaultAuditTimeoutDuration);
 
             // Check against whitelist
-            findings.AddRange(policy.Whitelist.Validate(modDef, cts.Token));
 
             // Run module validators
-            findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef, cts.Token)));
+            findings.AddRange(Validate(modDef, cts.Token, isSystemContract));
 
             // Run assembly validators (run after module validators since we invoke BindService method below)
-            findings.AddRange(policy.AssemblyValidators.SelectMany(v => v.Validate(asm, cts.Token)));
+            findings.AddRange(Validate(asm, cts.Token, isSystemContract));
 
             // Run method validators
             foreach (var type in modDef.Types)
             {
-                findings.AddRange(ValidateMethodsInType(policy, type, cts.Token));
+                findings.AddRange(ValidateMethodsInType(type, cts.Token, isSystemContract));
             }
 
             // Perform ACS validation
@@ -68,19 +64,28 @@ namespace AElf.CSharp.CodeOps
             }
         }
 
-        private IEnumerable<ValidationResult> ValidateMethodsInType(AbstractPolicy policy, TypeDefinition type,
-            CancellationToken ct)
+        private IEnumerable<ValidationResult> Validate<T>(T t, CancellationToken ct, bool isSystemContract)
+        {
+            var validators = _auditPolicy.GetValidators<T>();
+            validators = isSystemContract
+                ? validators.FilterSystemContractApplicableValidators()
+                : validators;
+            return validators.SelectMany(v => v.Validate(t, ct));
+        }
+        
+        private IEnumerable<ValidationResult> ValidateMethodsInType(TypeDefinition type,
+            CancellationToken ct, bool isSystemContract)
         {
             var findings = new List<ValidationResult>();
 
             foreach (var method in type.Methods)
             {
-                findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method, ct)));
+                findings.AddRange(Validate(method, ct, isSystemContract));
             }
 
             foreach (var nestedType in type.NestedTypes)
             {
-                findings.AddRange(ValidateMethodsInType(policy, nestedType, ct));
+                findings.AddRange(ValidateMethodsInType(nestedType, ct, isSystemContract));
             }
 
             return findings;

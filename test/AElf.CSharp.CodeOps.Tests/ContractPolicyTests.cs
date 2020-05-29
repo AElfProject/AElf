@@ -154,23 +154,23 @@ namespace AElf.CSharp.CodeOps
             validateResult1.First().Message.ShouldContain("contains unsafe OpCode add");
         }
 
-        [Fact]
-        public void ContractAuditor_AcsRequired_Test()
-        {
-            _auditor = new CSharpContractAuditor();
-
-            var requireAcs = new RequiredAcs();
-            requireAcs.AcsList = new List<string> {"acs1"};
-            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs, false));
-
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
-
-            requireAcs.AcsList.Add("acs8");
-            Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
-
-            requireAcs.RequireAll = true;
-            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
-        }
+        // [Fact]
+        // public void ContractAuditor_AcsRequired_Test()
+        // {
+        //     _auditor = new CSharpContractAuditor();
+        //
+        //     var requireAcs = new RequiredAcs();
+        //     requireAcs.AcsList = new List<string> {"acs1"};
+        //     Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_badContractCode, requireAcs, false));
+        //
+        //     Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+        //
+        //     requireAcs.AcsList.Add("acs8");
+        //     Should.NotThrow(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+        //
+        //     requireAcs.RequireAll = true;
+        //     Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(_systemContractCode, requireAcs, true));
+        // }
 
         [Fact]
         public void ContractAudit_NotInjectAndCheckObserverProxy_Test()

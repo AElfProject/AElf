@@ -5,10 +5,11 @@ using AElf.CSharp.CodeOps.Patchers.Module;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ResetFieldsValidator : IValidator<ModuleDefinition>
+    public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
