@@ -37,9 +37,6 @@ namespace AElf.CSharp.CodeOps
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var cts = new CancellationTokenSource(CodeOpsOptionsMonitor?.CurrentValue.AuditTimeoutDuration ??
                                                   Constants.DefaultAuditTimeoutDuration);
-
-            // Check against whitelist
-
             // Run module validators
             findings.AddRange(Validate(modDef, cts.Token, isSystemContract));
 

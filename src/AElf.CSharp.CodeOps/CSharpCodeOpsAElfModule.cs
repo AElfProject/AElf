@@ -19,21 +19,10 @@ namespace AElf.CSharp.CodeOps
             context.Services.AddSingleton<IContractAuditor, CSharpContractAuditor>();
             var configuration = context.Services.GetConfiguration();
             Configure<CSharpCodeOpsOptions>(configuration.GetSection("CSharpCodeOps"));
-            
-            // context.Services.AddSingleton<IValidator, ArrayValidator>();
-            // context.Services.AddSingleton<IValidator, DescriptorAccessValidator>();
-            // context.Services.AddSingleton<IValidator, FloatOpsValidator>();
-            // context.Services.AddSingleton<IValidator, GetHashCodeValidator>();
-            // context.Services.AddSingleton<IValidator, MultiDimArrayValidator>();
-            // context.Services.AddSingleton<IValidator, UncheckedMathValidator>();
 
             context.Services.AddSingleton<IAuditPolicy, DefaultAuditPolicy>();
             context.Services.AddSingleton<IAcsValidator, AcsValidator>();
             context.Services.AddSingleton<IWhitelistProvider, WhitelistProvider>();
-
-            //
-            // context.Services.AddSingleton(typeof(IValidator<>),
-            //     typeof(ResetFieldsValidator));
         }
     }
 }
