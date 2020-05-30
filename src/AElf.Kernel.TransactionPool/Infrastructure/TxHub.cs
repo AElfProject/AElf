@@ -44,8 +44,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
-        private List<TransformBlock<QueuedTransaction, QueuedTransaction>> _validationTransformBlockList =
-            new List<TransformBlock<QueuedTransaction, QueuedTransaction>>();
+        private readonly List<ActionBlock<QueuedTransaction>> _validationActionBlockList =
+            new List<ActionBlock<QueuedTransaction>>();
 
         public ILocalEventBus LocalEventBus { get; set; }
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             return output;
         }
-        
+
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
             if (_bestChainHash == Hash.Empty)
@@ -261,19 +261,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 BoundedCapacity = _transactionOptions.PoolLimit,
                 MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
             };
-            var linkOptions = new DataflowLinkOptions { PropagateCompletion = true };
+            var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
 
             var updateBucketIndexTransformBlock =
                 new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
                     executionDataFlowBlockOptions);
-            var updateRefBlockStatusActionBlock = new ActionBlock<QueuedTransaction>(
-                async queuedTransaction =>
-                    await ProcessQueuedTransactionAsync(queuedTransaction, UpdateQueuedTransactionRefBlockStatusAsync),
-                executionDataFlowBlockOptions);
+            // var updateRefBlockStatusActionBlock = new ActionBlock<QueuedTransaction>(
+            //     async queuedTransaction =>
+            //         await ProcessQueuedTransactionAsync(queuedTransaction, UpdateQueuedTransactionRefBlockStatusAsync),
+            //     executionDataFlowBlockOptions);
             int i = 0;
             while (i < _transactionOptions.PoolParallelismDegree)
             {
-                var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
+                var validationTransformBlock = new ActionBlock<QueuedTransaction>(
                     async queuedTransaction =>
                         await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                     new ExecutionDataflowBlockOptions
@@ -281,7 +281,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         BoundedCapacity = _transactionOptions.PoolLimit,
                         EnsureOrdered = false
                     });
-                _validationTransformBlockList.Add(validationTransformBlock);
+                _validationActionBlockList.Add(validationTransformBlock);
                 var index = i;
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
                     queuedTransaction =>
@@ -291,15 +291,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         if (bucketHit)
                             Logger.LogDebug(
                                 $"Transaction {queuedTransaction.TransactionId}, enqueue time {queuedTransaction.EnqueueTime} hits the bucket {index}." +
-                                $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}" + 
+                                $"validation transform block input count {validationTransformBlock.InputCount}" +
                                 $"completion status {validationTransformBlock.Completion.Status}");
-                                
+
                         return bucketHit;
                     });
 
-                validationTransformBlock.LinkTo(updateRefBlockStatusActionBlock, linkOptions,
-                    queuedTransaction => queuedTransaction != null);
-                validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+                // validationTransformBlock.LinkTo(updateRefBlockStatusActionBlock, linkOptions,
+                //     queuedTransaction => queuedTransaction != null);
+                // validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
                 i++;
             }
 
@@ -313,10 +313,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             queuedTransaction.BucketIndex =
                 Math.Abs(queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree);
-            var validationTransformBlock = _validationTransformBlockList[(int) queuedTransaction.BucketIndex];
+            var validationTransformBlock = _validationActionBlockList[(int) queuedTransaction.BucketIndex];
             Logger.LogDebug(
                 $"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}, BucketIndex is {queuedTransaction.BucketIndex}, " +
-                $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}");
+                $"validation transform block input count {validationTransformBlock.InputCount}");
             return queuedTransaction;
         }
 
@@ -335,20 +335,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var index = (int) (queuedTransaction.BucketIndex >= 0
                     ? queuedTransaction.BucketIndex
                     : -queuedTransaction.BucketIndex);
-                var validationTransformBlock = _validationTransformBlockList[index];
+                var validationTransformBlock = _validationActionBlockList[index];
                 Logger.LogDebug(
                     $"AcceptTransactionAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}, " +
-                    $"validation transform block input count {validationTransformBlock.InputCount}, output count {validationTransformBlock.OutputCount}");
-                
+                    $"validation transform block input count {validationTransformBlock.InputCount}");
+
                 if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
                 {
-                    Logger.LogDebug($"AcceptTransactionAsync-->VerifyTransactionAcceptableAsync: "+
-                    $"Transaction id is { queuedTransaction.TransactionId }; "+
-                    $"queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }; "+        
-                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
-                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
-                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
-                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    Logger.LogDebug($"AcceptTransactionAsync-->VerifyTransactionAcceptableAsync: " +
+                                    $"Transaction id is {queuedTransaction.TransactionId}; " +
+                                    $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                                    $"EnqueueTime is {queuedTransaction.EnqueueTime};");
                     return null;
                 }
 
@@ -368,13 +365,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
                 if (hasTransaction)
                 {
-                    Logger.LogDebug($"AcceptTransactionAsync-->hasTransaction is {hasTransaction}: " +
-                    $"Transaction id is { queuedTransaction.TransactionId }; "+
-                    $"queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }; "+        
-                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
-                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
-                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
-                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    Logger.LogDebug($"AcceptTransactionAsync-->hasTransaction " +
+                                    $"Transaction id is {queuedTransaction.TransactionId}; " +
+                                    $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                                    $"EnqueueTime is {queuedTransaction.EnqueueTime}; ");
                     return null;
                 }
 
@@ -382,35 +376,34 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                 if (addSuccess)
                 {
-                    Logger.LogDebug($"AcceptTransactionAsync-->addSuccess is True"  +
-                    $"Transaction id is { queuedTransaction.TransactionId }; "+
-                    $"queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }; "+        
-                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
-                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
-                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
-                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                    Logger.LogDebug($"AcceptTransactionAsync-->addSuccess is True" +
+                                    $"Transaction id is {queuedTransaction.TransactionId}; " +
+                                    $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                                    $"EnqueueTime is {queuedTransaction.EnqueueTime}; ");
+
+                    await UpdateQueuedTransactionRefBlockStatusAsync(queuedTransaction);
                     return queuedTransaction;
                 }
 
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
                 Logger.LogDebug($"AcceptTransactionAsync-->addSuccess is False" +
-                    $"Transaction id is { queuedTransaction.TransactionId }; "+
-                    $"queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }; "+        
-                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
-                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
-                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
-                    $"Transaction To is { queuedTransaction.Transaction.To }");
-                 return null;
+                                $"Transaction id is {queuedTransaction.TransactionId}; " +
+                                $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                                $"EnqueueTime is {queuedTransaction.EnqueueTime}; " +
+                                $"RefBlockStatus is {queuedTransaction.RefBlockStatus}; " +
+                                $"Transaction From is {queuedTransaction.Transaction.From}; " +
+                                $"Transaction To is {queuedTransaction.Transaction.To}");
+                return null;
             }
             catch (Exception e)
             {
-                Logger.LogDebug($"AcceptTransactionAsync-->Catch: "+
-                    $"Transaction id is { queuedTransaction.TransactionId }; "+
-                    $"queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }; "+        
-                    $"EnqueueTime is { queuedTransaction.EnqueueTime }; "+    
-                    $"RefBlockStatus is { queuedTransaction.RefBlockStatus }; "+   
-                    $"Transaction From is { queuedTransaction.Transaction.From }; "+   
-                    $"Transaction To is { queuedTransaction.Transaction.To }");
+                Logger.LogDebug($"AcceptTransactionAsync-->Catch: " +
+                                $"Transaction id is {queuedTransaction.TransactionId}; " +
+                                $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                                $"EnqueueTime is {queuedTransaction.EnqueueTime}; " +
+                                $"RefBlockStatus is {queuedTransaction.RefBlockStatus}; " +
+                                $"Transaction From is {queuedTransaction.Transaction.From}; " +
+                                $"Transaction To is {queuedTransaction.Transaction.To}");
 
                 Logger.LogError(e, e.Message);
                 throw;
@@ -420,7 +413,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(
             QueuedTransaction queuedTransaction)
         {
-            Logger.LogDebug($"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}");
+            Logger.LogDebug(
+                $"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}");
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             queuedTransaction.RefBlockStatus =
                 CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
@@ -432,7 +426,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = queuedTransaction.Transaction
                 });
             }
-            Logger.LogDebug($"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction BucketIndex is { queuedTransaction.BucketIndex }");
+
+            Logger.LogDebug(
+                $"UpdateQueuedTransactionRefBlockStatusAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}");
 
             return queuedTransaction;
         }
