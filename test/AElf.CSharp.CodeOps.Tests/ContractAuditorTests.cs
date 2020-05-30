@@ -67,12 +67,13 @@ namespace AElf.CSharp.CodeOps
     public class ContractAuditorTests : CSharpCodeOpsTestBase
     {
         private readonly ContractAuditor _auditor;
-
+        private readonly IContractPatcher _patcher;
 
         public ContractAuditorTests()
         {
             // Use fixture to instantiate auditor only once
             _auditor = GetRequiredService<ContractAuditor>();
+            _patcher = GetRequiredService<IContractPatcher>();
         }
 
         #region Positive Cases
@@ -111,7 +112,7 @@ namespace AElf.CSharp.CodeOps
         public void ContractPatcher_Test()
         {
             var code = ReadContractCode(typeof(TokenContract));
-            var updateCode = ContractPatcher.Patch(code, false);
+            var updateCode = _patcher.Patch(code, false);
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(() => _auditor.Audit(updateCode, true));
             exception.ShouldBeNull();
@@ -296,7 +297,7 @@ namespace AElf.CSharp.CodeOps
                 .ShouldNotBeNull();
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
-            Should.NotThrow(() => _auditor.Audit(ContractPatcher.Patch(contractCode, false), false));
+            Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));
         }
 
         [Fact]

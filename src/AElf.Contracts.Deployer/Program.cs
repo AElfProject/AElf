@@ -59,14 +59,15 @@ namespace AElf.Contracts.Deployer
                 Console.WriteLine($"[CONTRACT-PATCHER] Saving as {saveAsPath}");
             }
             
-            var patchedCode = ContractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath), o.IsSystemContract);
+            using var application = AbpApplicationFactory.Create<ContractDeployerModule>();
+            application.Initialize();
+            var contractPatcher = application.ServiceProvider.GetRequiredService<IContractPatcher>();
+            var patchedCode = contractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath), o.IsSystemContract);
 
             if (!o.SkipAudit)
             {
                 try
                 {
-                    using var application = AbpApplicationFactory.Create<ContractDeployerModule>();
-                    application.Initialize();
                     var auditor = application.ServiceProvider.GetRequiredService<IContractAuditor>();
                     auditor.Audit(patchedCode, null, o.IsSystemContract);
                 }

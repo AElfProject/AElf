@@ -22,11 +22,11 @@ namespace AElf.CSharp.CodeOps
 
         public IOptionsMonitor<CSharpCodeOpsOptions> CodeOpsOptionsMonitor { get; set; }
 
-        private readonly IAuditPolicy _auditPolicy;
+        private readonly IPolicy _policy;
 
-        public CSharpContractAuditor(IAuditPolicy auditPolicy, IAcsValidator acsValidator)
+        public CSharpContractAuditor(IPolicy policy, IAcsValidator acsValidator)
         {
-            _auditPolicy = auditPolicy;
+            _policy = policy;
             _acsValidator = acsValidator;
         }
 
@@ -63,7 +63,7 @@ namespace AElf.CSharp.CodeOps
 
         private IEnumerable<ValidationResult> Validate<T>(T t, CancellationToken ct, bool isSystemContract)
         {
-            var validators = _auditPolicy.GetValidators<T>();
+            var validators = _policy.GetValidators<T>();
             validators = isSystemContract
                 ? validators.FilterSystemContractApplicableValidators()
                 : validators;

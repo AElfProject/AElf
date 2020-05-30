@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Validators.Module;
 using Mono.Cecil.Cil;
 
@@ -9,7 +10,7 @@ namespace AElf.CSharp.CodeOps
     {
         public const int DefaultAuditTimeoutDuration = 60000;
         public const int MaxInheritanceThreshold = 5;
-        
+
         public static readonly HashSet<OpCode> JumpingOpCodes = new HashSet<OpCode>
         {
             OpCodes.Beq,
@@ -33,7 +34,7 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Brtrue_S,
             OpCodes.Br_S
         };
-        
+
         public static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
         {
             typeof(bool).FullName,
@@ -46,10 +47,15 @@ namespace AElf.CSharp.CodeOps
             typeof(ulong).FullName,
             typeof(string).FullName,
         };
-        
+
         public static readonly List<Type> SystemContractInApplicableValidatorList = new List<Type>
         {
             typeof(ObserverProxyValidator)
-        }; 
+        };
+
+        public static readonly List<Type> SystemContractInApplicablePatcherList = new List<Type>
+        {
+            typeof(ExecutionObserverInjector)
+        };
     }
 }

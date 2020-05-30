@@ -7,4 +7,9 @@ namespace AElf.Kernel.CodeCheck.Infrastructure
     {
         void Audit(byte[] code, RequiredAcs requiredAcs, bool isSystemContract);
     }
+
+    public interface IContractPatcher : ISmartContractCategoryProvider
+    {
+        byte[] Patch(byte[] code, bool isSystemContract);
+    }
 }

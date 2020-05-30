@@ -9,6 +9,7 @@ using AElf.Contracts.Parliament;
 using AElf.CSharp.CodeOps;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -243,7 +244,8 @@ namespace AElf.Contracts.Genesis
         [Fact(Skip = "Skip due to need very long task delay.")]
         public async Task DeploySmartContractWithCodeCheck_Test()
         {
-            var contractCode = ContractPatcher.Patch(ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll")), true);
+            var contractPatcher = GetRequiredService<IContractPatcher>();
+            var contractCode = contractPatcher.Patch(ReadCode(Path.Combine(BaseDir, "AElf.Contracts.MultiToken.dll")), true);
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory,
