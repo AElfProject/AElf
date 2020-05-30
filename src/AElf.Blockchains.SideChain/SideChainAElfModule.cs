@@ -24,7 +24,6 @@ namespace AElf.Blockchains.SideChain
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, SideChainPrimaryTokenSymbolProvider>();
             context.Services.AddTransient<IContractDeploymentListProvider, SideChainContractDeploymentListProvider>();
             context.Services.AddTransient<IGenesisSmartContractDtoProvider, SideChainGenesisSmartContractDtoProvider>();
         }
