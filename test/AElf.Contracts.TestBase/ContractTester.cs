@@ -315,7 +315,7 @@ namespace AElf.Contracts.TestBase
                 {
                     Pubkeys =
                     {
-                        consensusOptions.InitialMinerList.Select(k => k.ToByteString())
+                        consensusOptions.InitialMinerList.Select(ByteStringHelper.FromHexString)
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp));
@@ -337,7 +337,7 @@ namespace AElf.Contracts.TestBase
                 {
                     Pubkeys =
                     {
-                        initialMiners.Select(k => k.ToByteString())
+                        initialMiners.Select(ByteStringHelper.FromHexString)
                     }
                 }.GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp));
             return consensusMethodCallList;
