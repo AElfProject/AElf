@@ -288,11 +288,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     {
                         var bucketHit = queuedTransaction.BucketIndex == index ||
                                         queuedTransaction.BucketIndex == -index;
-                        if (bucketHit)
-                            Logger.LogDebug(
-                                $"Transaction {queuedTransaction.TransactionId}, enqueue time {queuedTransaction.EnqueueTime} hits the bucket {index}." +
-                                $"validation transform block input count {validationTransformBlock.InputCount}" +
-                                $"completion status {validationTransformBlock.Completion.Status}");
+                        // if (bucketHit)
+                        //     Logger.LogDebug(
+                        //         $"Transaction {queuedTransaction.TransactionId}, enqueue time {queuedTransaction.EnqueueTime} hits the bucket {index}." +
+                        //         $"validation transform block input count {validationTransformBlock.InputCount}" +
+                        //         $"completion status {validationTransformBlock.Completion.Status}");
 
                         return bucketHit;
                     });
@@ -309,14 +309,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
         {
-            Logger.LogDebug($"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}");
+            // Logger.LogDebug($"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}");
 
             queuedTransaction.BucketIndex =
                 Math.Abs(queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree);
             var validationTransformBlock = _validationActionBlockList[(int) queuedTransaction.BucketIndex];
-            Logger.LogDebug(
-                $"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}, BucketIndex is {queuedTransaction.BucketIndex}, " +
-                $"validation transform block input count {validationTransformBlock.InputCount}");
+            // Logger.LogDebug(
+            //     $"UpdateBucketIndex-->queuedTransaction id is {queuedTransaction.TransactionId}, BucketIndex is {queuedTransaction.BucketIndex}, " +
+            //     $"validation transform block input count {validationTransformBlock.InputCount}");
             return queuedTransaction;
         }
 
@@ -336,16 +336,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     ? queuedTransaction.BucketIndex
                     : -queuedTransaction.BucketIndex);
                 var validationTransformBlock = _validationActionBlockList[index];
-                Logger.LogDebug(
-                    $"AcceptTransactionAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}, " +
-                    $"validation transform block input count {validationTransformBlock.InputCount}");
+                // Logger.LogDebug(
+                //     $"AcceptTransactionAsync-->queuedTransaction id is {queuedTransaction.TransactionId}; queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}, " +
+                //     $"validation transform block input count {validationTransformBlock.InputCount}");
 
                 if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
                 {
-                    Logger.LogDebug($"AcceptTransactionAsync-->VerifyTransactionAcceptableAsync: " +
-                                    $"Transaction id is {queuedTransaction.TransactionId}; " +
-                                    $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
-                                    $"EnqueueTime is {queuedTransaction.EnqueueTime};");
+                    // Logger.LogDebug($"AcceptTransactionAsync-->VerifyTransactionAcceptableAsync: " +
+                    //                 $"Transaction id is {queuedTransaction.TransactionId}; " +
+                    //                 $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                    //                 $"EnqueueTime is {queuedTransaction.EnqueueTime};");
                     return null;
                 }
 
@@ -365,10 +365,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
                 if (hasTransaction)
                 {
-                    Logger.LogDebug($"AcceptTransactionAsync-->hasTransaction " +
-                                    $"Transaction id is {queuedTransaction.TransactionId}; " +
-                                    $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
-                                    $"EnqueueTime is {queuedTransaction.EnqueueTime}; ");
+                    // Logger.LogDebug($"AcceptTransactionAsync-->hasTransaction " +
+                    //                 $"Transaction id is {queuedTransaction.TransactionId}; " +
+                    //                 $"queuedTransaction BucketIndex is {queuedTransaction.BucketIndex}; " +
+                    //                 $"EnqueueTime is {queuedTransaction.EnqueueTime}; ");
                     return null;
                 }
 
