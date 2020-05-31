@@ -184,7 +184,7 @@ namespace AElf.Contracts.CrossChain
                 InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount}
             };
             
-            if (sideChainCreationRequest.IsPrivilegePreserved)
+            if (IsPrimaryTokenNeeded(sideChainCreationRequest))
             {
                 ByteString sideChainTokenInformation =
                     GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
