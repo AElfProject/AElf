@@ -65,7 +65,7 @@ namespace AElf.Contracts.CrossChain
             TransferFrom(new TransferFromInput
             {
                 From = lockAddress,
-                To = Context.Self,
+                To = Context.ConvertVirtualAddressToContractAddress(ConvertChainIdToHash(chainId)),
                 Amount = amount,
                 Symbol = Context.Variables.NativeSymbol
             });
@@ -79,12 +79,12 @@ namespace AElf.Contracts.CrossChain
             var balance = State.IndexingBalance[chainId];
             if (balance <= 0)
                 return;
-            Transfer(new TransferInput
+            TransferDepositToken(new TransferInput
             {
                 To = sideChainInfo.Proposer,
                 Amount = balance,
                 Symbol = Context.Variables.NativeSymbol
-            });
+            }, chainId);
             State.IndexingBalance[chainId] = 0;
         }
 
@@ -148,10 +148,11 @@ namespace AElf.Contracts.CrossChain
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
 
-        private void Transfer(TransferInput input)
+        private void TransferDepositToken(TransferInput input, int chainId)
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-            State.TokenContract.Transfer.Send(input);
+            Context.SendVirtualInline(ConvertChainIdToHash(chainId), State.TokenContract.Value,
+                nameof(State.TokenContract.Transfer), input);
         }
 
         private void TransferFrom(TransferFromInput input)
@@ -701,11 +702,11 @@ namespace AElf.Contracts.CrossChain
             Address proposer)
         {
             var indexedSideChainBlockData = new IndexedSideChainBlockData();
-            long indexingFeeAmount = 0;
             var groupResult = sideChainBlockDataList.GroupBy(data => data.ChainId, data => data);
             var formattedProposerAddress = proposer.ToByteString().ToBase64();
             foreach (var group in groupResult)
             {
+                long indexingFeeAmount = 0;
                 var chainId = group.Key;
 
                 var sideChainInfo = State.SideChainInfo[chainId];
@@ -744,6 +745,17 @@ namespace AElf.Contracts.CrossChain
                     currentSideChainHeight++;
                     indexedSideChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
                 }
+                
+                if (indexingFeeAmount > 0)
+                {
+                    TransferDepositToken(new TransferInput
+                    {
+                        To = proposer,
+                        Symbol = Context.Variables.NativeSymbol,
+                        Amount = indexingFeeAmount,
+                        Memo = "Index fee."
+                    }, chainId);
+                }
 
                 if (arrearsAmount > 0)
                 {
@@ -759,17 +771,6 @@ namespace AElf.Contracts.CrossChain
                 State.CurrentSideChainHeight[chainId] = currentSideChainHeight;
             }
 
-            if (indexingFeeAmount > 0)
-            {
-                Transfer(new TransferInput
-                {
-                    To = proposer,
-                    Symbol = Context.Variables.NativeSymbol,
-                    Amount = indexingFeeAmount,
-                    Memo = "Index fee."
-                });
-            }
-
             return indexedSideChainBlockData;
         }
 
@@ -777,6 +778,11 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
+        }
+
+        private Hash ConvertChainIdToHash(int chainId)
+        {
+            return HashHelper.ComputeFrom(chainId);
         }
     }
 }

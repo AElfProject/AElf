@@ -158,7 +158,7 @@ namespace AElf.Contracts.CrossChain
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
-                To = Context.Self,
+                To = Context.ConvertVirtualAddressToContractAddress(ConvertChainIdToHash(chainId)),
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = input.Amount,
                 Memo = "Indexing fee recharging."
@@ -169,13 +169,13 @@ namespace AElf.Contracts.CrossChain
                 // arrears
                 foreach (var arrears in sideChainInfo.ArrearsInfo)
                 {
-                    Transfer(new TransferInput
+                    TransferDepositToken(new TransferInput
                     {
                         To = Address.Parser.ParseFrom(ByteString.FromBase64(arrears.Key)),
                         Symbol = Context.Variables.NativeSymbol,
                         Amount = arrears.Value,
                         Memo = "Indexing fee recharging."
-                    });
+                    }, chainId);
                 }
             }
 

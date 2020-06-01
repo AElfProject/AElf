@@ -385,6 +385,15 @@ namespace AElf.Contracts.CrossChain.Tests
             }
         }
 
+        protected async Task<long> GetBalance(Address address, string symbol = "ELF")
+        {
+            return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = address,
+                Symbol = "ELF"
+            })).Balance;
+        }
+        
         internal async Task<bool> DoIndexAsync(CrossChainBlockData crossChainBlockData)
         {
             var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);

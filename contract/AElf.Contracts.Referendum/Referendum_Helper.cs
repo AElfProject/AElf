@@ -4,7 +4,6 @@ using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
-using Google.Protobuf;
 
 namespace AElf.Contracts.Referendum
 {
@@ -45,14 +44,14 @@ namespace AElf.Contracts.Referendum
                 HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFrom(lockedAddress)));
             RequireTokenContractStateSet();
             Context.SendVirtualInline(proposalId, State.TokenContract.Value,
-                nameof(TokenContractContainer.TokenContractReferenceState.Lock), new LockInput
+                nameof(TokenContractContainer.TokenContractReferenceState.TransferFrom), new TransferFromInput
                 {
-                    Address = Context.Sender,
+                    From = Context.Sender,
+                    To = GetProposalVirtualAddress(proposalId),
                     Symbol = symbol,
                     Amount = amount,
-                    LockId = lockId,
-                    Usage = "Referendum."
-                }.ToByteString());
+                    Memo = "Referendum."
+                });
             State.LockedTokenAmount[Context.Sender][proposalId] = new Receipt
             {
                 Amount = amount,
@@ -75,14 +74,14 @@ namespace AElf.Contracts.Referendum
             RequireTokenContractStateSet();
             var receipt = State.LockedTokenAmount[lockedAddress][proposalId];
             Assert(receipt != null, "Nothing to reclaim.");
-            State.TokenContract.Unlock.Send(new UnlockInput
-            {
-                Amount = receipt.Amount,
-                Address = Context.Sender,
-                LockId = receipt.LockId,
-                Symbol = receipt.TokenSymbol,
-                Usage = "Referendum."
-            });
+            Context.SendVirtualInline(proposalId, State.TokenContract.Value,
+                nameof(TokenContractContainer.TokenContractReferenceState.Transfer), new TransferInput
+                {
+                    Amount = receipt.Amount,
+                    To = Context.Sender,
+                    Symbol = receipt.TokenSymbol,
+                    Memo = "Referendum."
+                });
             State.LockedTokenAmount[Context.Sender].Remove(proposalId);
         }
 
