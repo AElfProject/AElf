@@ -5,7 +5,6 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Referendum
 {
@@ -45,14 +44,15 @@ namespace AElf.Contracts.Referendum
             var lockId = Context.GenerateId(Context.Self,
                 HashHelper.ConcatAndCompute(proposalId, HashHelper.ComputeFrom(lockedAddress)));
             RequireTokenContractStateSet();
-            State.TokenContract.Lock.Send(new LockInput
-            {
-                Address = Context.Sender,
-                Symbol = symbol,
-                Amount = amount,
-                LockId = lockId,
-                Usage = "Referendum."
-            });
+            Context.SendVirtualInline(proposalId, State.TokenContract.Value,
+                nameof(TokenContractContainer.TokenContractReferenceState.Lock), new LockInput
+                {
+                    Address = Context.Sender,
+                    Symbol = symbol,
+                    Amount = amount,
+                    LockId = lockId,
+                    Usage = "Referendum."
+                }.ToByteString());
             State.LockedTokenAmount[Context.Sender][proposalId] = new Receipt
             {
                 Amount = amount,
@@ -127,13 +127,13 @@ namespace AElf.Contracts.Referendum
             return proposal;
         }
 
-        private long GetAllowance(Address owner, string tokenSymbol)
+        private long GetAllowance(Address owner, string tokenSymbol, Hash proposalId)
         {
             RequireTokenContractStateSet();
             var allowance = State.TokenContract.GetAllowance.Call(new GetAllowanceInput
             {
                 Owner = owner,
-                Spender = Context.Self,
+                Spender = GetProposalVirtualAddress(proposalId),
                 Symbol = tokenSymbol
             }).Allowance;
             Assert(allowance > 0, "Allowance not enough.");
