@@ -1,4 +1,4 @@
-Introduction
+Wallet and Block Explorer
 ============
 
 Explorer
@@ -28,4 +28,4 @@ The Web Wallet provides basic transaction related functionality.
 .. toctree::
    :caption: Wallet and Block Explorer
 
-   explorer-api <explorer-api>
+   Explorer API <explorer-api>
