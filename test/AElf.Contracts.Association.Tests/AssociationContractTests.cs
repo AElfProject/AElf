@@ -1,14 +1,13 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -19,11 +18,6 @@ namespace AElf.Contracts.Association
 {
     public class AssociationContractTests : AssociationContractTestBase<AssociationContractTestAElfModule>
     {
-        public AssociationContractTests()
-        {
-            DeployContracts();
-        }
-
         [Fact]
         public async Task Get_Organization_Test()
         {
@@ -111,8 +105,15 @@ namespace AElf.Contracts.Association
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 var organizationAddress = transactionResult.Output;
 
-                var organizationAddressOnAnotherChain =
-                    await new SideChainAssociationContractTestBase().CreateOrganization(createOrganizationInput);
+                var testKit = CreateContractTestKit<AssociationContractTestAElfModule>(new ChainInitializationDto
+                {
+                    ChainId = 1
+                });
+                SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name].ShouldNotBe(testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name]);
+                var otherChainAssociationContractStub = testKit.GetTester<AssociationContractContainer.AssociationContractStub>(
+                    testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name], DefaultSenderKeyPair);
+                var executionResult = await otherChainAssociationContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                var organizationAddressOnAnotherChain = executionResult.Output;
                 organizationAddressOnAnotherChain.ShouldBe(organizationAddress);
             }
         }
@@ -442,13 +443,13 @@ namespace AElf.Contracts.Association
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
             var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-            var error = await AssociationContractStub.Approve.CallWithExceptionAsync(proposalId);
+            var error = await associationContractStub.Approve.CallWithExceptionAsync(proposalId);
             error.Value.ShouldContain("Invalid proposal.");
 
             //Clear expire proposal
-            var result = await AssociationContractStub.ClearProposal.SendAsync(proposalId);
+            var result = await associationContractStub.ClearProposal.SendAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var queryProposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
@@ -576,8 +577,8 @@ namespace AElf.Contracts.Association
             //not found
             {
                 var fakeId = HashHelper.ComputeFrom("test");
-                AssociationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
-                var result = await AssociationContractStub.Release.SendWithExceptionAsync(fakeId);
+                var associationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
+                var result = await associationContractStub.Release.SendWithExceptionAsync(fakeId);
                 //Proposal not found
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.Contains("Invalid proposal id.").ShouldBeTrue();
@@ -763,14 +764,14 @@ namespace AElf.Contracts.Association
                     OrganizationMembers = {Reviewer1, Reviewer2}
                 };
 
-                AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
                 var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                    nameof(AssociationContractStub.ChangeOrganizationMember), organizationAddress);
+                    nameof(associationContractStub.ChangeOrganizationMember), organizationAddress);
                 await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-                var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+                var releaseResult = await associationContractStub.Release.SendAsync(changeProposalId);
                 releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var organizationInfo = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
+                var organizationInfo = await associationContractStub.GetOrganization.CallAsync(organizationAddress);
                 organizationInfo.OrganizationMemberList.ShouldBe(organizationMember);
             }
         }
@@ -790,11 +791,11 @@ namespace AElf.Contracts.Association
                 Proposers = {Reviewer2}
             };
 
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, proposerWhiteList,
-                nameof(AssociationContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                nameof(associationContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
             await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-            var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+            var releaseResult = await associationContractStub.Release.SendAsync(changeProposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             await TransferToOrganizationAddressAsync(organizationAddress);
             var transferInput = new TransferInput()
@@ -804,7 +805,7 @@ namespace AElf.Contracts.Association
                 To = Reviewer1,
                 Memo = "Transfer"
             };
-            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             var createProposalInput = new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContractStub.Approve),

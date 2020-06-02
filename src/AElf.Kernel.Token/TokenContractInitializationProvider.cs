@@ -21,7 +21,7 @@ namespace AElf.Kernel.Token
             _tokenContractInitializationDataProvider = tokenContractInitializationDataProvider;
         }
 
-        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
+        public virtual List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
             var methodList = new List<ContractInitializationMethodCall>();
             var initializationData = _tokenContractInitializationDataProvider.GetContractInitializationData();

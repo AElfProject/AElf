@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 

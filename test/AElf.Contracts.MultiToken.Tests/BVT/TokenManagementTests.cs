@@ -1,24 +1,11 @@
 using System.Threading.Tasks;
-using Acs2;
-using AElf.Contracts.Parliament;
-using AElf.Contracts.Profit;
-using AElf.Contracts.Referendum;
-using AElf.Contracts.TestContract.BasicFunction;
-using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
-using AElf.Contracts.Treasury;
-using AElf.EconomicSystem;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
 
 // ReSharper disable CheckNamespace
@@ -118,109 +105,7 @@ namespace AElf.Contracts.MultiToken
 
         public MultiTokenContractTests()
         {
-            var category = KernelConstants.CodeCoverageRunnerCategory;
-
-            // TokenContract
-            {
-                var code = TokenContractCode;
-                TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TokenContractStub =
-                    GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
-                Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
-            }
-
-            // ProfitContract
-            {
-                var code = ProfitContractCode;
-                ProfitContractAddress = AsyncHelper.RunSync(() =>
-                    DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
-                        DefaultKeyPair)
-                );
-                ProfitContractStub =
-                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
-                        DefaultKeyPair);
-            }
-
-            // TreasuryContract
-            {
-                var code = TreasuryContractCode;
-                TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TreasuryContractStub =
-                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //TokenConvertContract
-            {
-                var code = TokenConverterContractCode;
-                TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TokenConverterContractStub =
-                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //ReferendumContract
-            {
-                var code = ReferendumContractCode;
-                ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ReferendumContractStub =
-                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //BasicFunctionContract
-            {
-                BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, BasicFunctionContractCode,
-                    BasicFunctionContractName, DefaultKeyPair));
-                BasicFunctionContractStub =
-                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
-                        DefaultKeyPair);
-
-                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, OtherBasicFunctionContractCode,
-                    OtherBasicFunctionContractName, DefaultKeyPair));
-                OtherBasicFunctionContractStub =
-                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
-                        OtherBasicFunctionContractAddress,
-                        DefaultKeyPair);
-            }
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            
-            //ParliamentContract
-            {
-                var code = ParliamentCode;
-                ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
-                        DefaultKeyPair);
-                AsyncHelper.RunSync(InitializeParliamentContract);
-            }
-            
-            //AEDPOSContract
-            {
-                ConsensusContractAddress = AsyncHelper.RunSync(() =>
-                    DeploySystemSmartContract(
-                        KernelConstants.CodeCoverageRunnerCategory,
-                        ConsensusContractCode,
-                        HashHelper.ComputeFrom("AElf.ContractNames.Consensus"),
-                        DefaultKeyPair
-                    ));
-                AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
-                AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
-            }
-            
-            //AssociationContract
-            {
-                var code = AssociationContractCode;
-                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
-            }
         }
 
         private async Task CreateNativeTokenAsync()
