@@ -21,6 +21,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="callerMethodName"></param>
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string callerMethodName = null)
         {
+            if (!IsCurrentMiner(Context.Sender).Value)
+            {
+                Assert(false, $"Not current miner. {Context.CurrentHeight} - a");
+            }
+
             EnsureTransactionOnlyExecutedOnceInOneBlock();
 
             Context.LogDebug(() => $"Processing {callerMethodName}");
@@ -88,6 +93,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Clear cache.
             _processingBlockMinerPubkey = null;
+
+            if (!IsCurrentMiner(Context.Sender).Value)
+            {
+                Assert(false, $"Not current miner. {Context.CurrentHeight} - b");
+            }
         }
 
         /// <summary>
