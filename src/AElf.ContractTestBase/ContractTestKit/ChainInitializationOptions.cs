@@ -9,5 +9,6 @@ namespace AElf.ContractTestBase.ContractTestKit
         public Address ParentChainTokenContractAddress { get; set; }
         public int ParentChainId { get; set; }
         public long CreationHeightOnParentChain { get; set; }
+        public bool RegisterParentChainTokenContractAddress { get; set; } = true;
     }
 }

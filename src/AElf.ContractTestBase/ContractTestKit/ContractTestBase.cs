@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +29,6 @@ namespace AElf.ContractTestBase.ContractTestKit
 {
     public class ContractTestBase<TModule> : AbpIntegratedTest<TModule> where TModule: AbpModule
     {
-        protected new IAbpApplication Application { get;}
         protected Account DefaultAccount => Accounts[0];
         protected IReadOnlyList<Account> Accounts => SampleAccount.Accounts;
         
@@ -61,7 +59,6 @@ namespace AElf.ContractTestBase.ContractTestKit
 
         public ContractTestBase()
         {
-            Application = base.Application;
             _contractTestKitFactory = Application.ServiceProvider.GetRequiredService<IContractTestKitFactory>();
             _contractTestService = Application.ServiceProvider.GetRequiredService<IContractTestService>();
 
@@ -138,6 +135,7 @@ namespace AElf.ContractTestBase.ContractTestKit
                         o.ParentChainId = dto.ParentChainId;
                         o.CreationHeightOnParentChain = dto.CreationHeightOnParentChain;
                         o.ParentChainTokenContractAddress = dto.ParentChainTokenContractAddress;
+                        o.RegisterParentChainTokenContractAddress = dto.RegisterParentChainTokenContractAddress;
                     });
                 });
 

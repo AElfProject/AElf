@@ -23,15 +23,6 @@ namespace AElf.Contracts.MultiToken
 
         private async Task InitializeAsync()
         {
-            // TokenContract
-            var category = KernelConstants.CodeCoverageRunnerCategory;
-            var code = TokenContractCode;
-            TokenContractAddress =
-                await DeployContractAsync(category, code, HashHelper.ComputeFrom("MultiToken"), DefaultKeyPair);
-            TokenContractStub =
-                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
-            Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
-
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = DefaultSymbol,
