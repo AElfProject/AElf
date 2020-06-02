@@ -45,7 +45,6 @@ namespace AElf.Runtime.CSharp
 
         public Executive(Assembly assembly)
         {
-            //TODO Check whether need to keep assemblyLoadContext in Executive
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);

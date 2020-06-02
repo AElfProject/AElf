@@ -51,6 +51,8 @@ namespace AElf.Runtime.CSharp
                 ContractVersion = ContractVersion
             };
             
+            // AssemblyLoadContext needs to be called after initializing the Executive
+            // to ensure that it is not unloaded early in release mode.
             loadContext.Unload();
 
             return await Task.FromResult(executive);
