@@ -22,8 +22,6 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly AssemblyLoadContext _assemblyLoadContext;
-        private readonly Assembly _contractAssembly;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -45,11 +43,9 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, AssemblyLoadContext assemblyLoadContext)
+        public Executive(Assembly assembly)
         {
             //TODO Check whether need to keep assemblyLoadContext in Executive
-            _assemblyLoadContext = assemblyLoadContext;
-            _contractAssembly = assembly;
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
