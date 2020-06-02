@@ -1,8 +1,6 @@
-using AElf.Contracts.TestKit;
-
 namespace AElf.ContractTestBase
 {
-    public class MainChainContractTestBase<T> : ContractTestBase<T>
+    public class MainChainContractTestBase<T> : ContractTestKit.ContractTestBase<T>
         where T : MainChainContractTestModule
     {
         

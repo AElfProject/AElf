@@ -8,19 +8,38 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-      <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
-      <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
-      <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
+        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+        </ContractMessage>
         <ContractMessage Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
+        <PackageReference Include="Moq" Version="4.14.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="2.7.0" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="2.7.0" />
+        <PackageReference Include="xunit.assert" Version="2.4.1" />
     </ItemGroup>
 </Project>
