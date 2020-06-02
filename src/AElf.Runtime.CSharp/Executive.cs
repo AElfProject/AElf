@@ -43,7 +43,7 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, AssemblyLoadContext assemblyLoadContext)
+        public Executive(Assembly assembly)
         {
             //TODO Check whether need to keep assemblyLoadContext in Executive
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
