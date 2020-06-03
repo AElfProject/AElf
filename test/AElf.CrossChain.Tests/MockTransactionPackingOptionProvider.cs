@@ -6,7 +6,7 @@ namespace AElf.CrossChain
 {
     public class MockTransactionPackingOptionProvider : ITransactionPackingOptionProvider
     {
-        private bool _isTransactionPackable;
+        private bool _isTransactionPackable = true;
 
         public Task SetTransactionPackingOptionAsync(IBlockIndex blockIndex, bool isTransactionPackable)
         {
