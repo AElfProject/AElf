@@ -991,7 +991,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
+        public async Task AdjustCrossChainIndexingFeePriceTest_IndexingFeeDebt_Dispose()
         {
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
@@ -1034,6 +1034,9 @@ namespace AElf.Contracts.CrossChain.Tests
                     await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new Int32Value()
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
+                
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
             }
 
             {
@@ -1060,9 +1063,8 @@ namespace AElf.Contracts.CrossChain.Tests
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
 
-                var sideChainStatus =
-                    await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = sideChainId});
-                sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
 
                 var disposalProposalId = await DisposeSideChainProposalAsync(new Int32Value
                 {

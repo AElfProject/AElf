@@ -121,7 +121,7 @@ enum SideChainStatus
 {
     FATAL = 0;
     ACTIVE = 1;
-    INSUFFICIENT_BALANCE = 2;
+    INDEXING_FEE_DEBT = 2;
     TERMINATED = 3;
 }
 

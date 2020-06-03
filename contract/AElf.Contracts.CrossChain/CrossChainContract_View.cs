@@ -97,7 +97,7 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Side chain not found.");
-            return new Int64Value {Value = State.IndexingBalance[chainId]};
+            return new Int64Value {Value = GetSideChainBalance(chainId)};
         }
 
         public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)

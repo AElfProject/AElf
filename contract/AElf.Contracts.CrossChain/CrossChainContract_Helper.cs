@@ -69,14 +69,13 @@ namespace AElf.Contracts.CrossChain
                 Amount = amount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = amount;
         }
 
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
         {
             // unlock token
             var chainId = sideChainInfo.SideChainId;
-            var balance = State.IndexingBalance[chainId];
+            var balance = GetSideChainBalance(chainId);
             if (balance <= 0)
                 return;
             TransferDepositToken(new TransferInput
@@ -85,9 +84,20 @@ namespace AElf.Contracts.CrossChain
                 Amount = balance,
                 Symbol = Context.Variables.NativeSymbol
             }, chainId);
-            State.IndexingBalance[chainId] = 0;
         }
 
+        private long GetSideChainBalance(int chainId)
+        {
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            var balanceOutput = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Owner = Context.ConvertVirtualAddressToContractAddress(ConvertChainIdToHash(chainId)),
+                Symbol = Context.Variables.NativeSymbol
+            });
+            
+            return balanceOutput.Balance;
+        }
+        
         private void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
@@ -282,12 +292,6 @@ namespace AElf.Contracts.CrossChain
             Assert(sideChainLifetimeController.OwnerAddress == address, "Unauthorized behavior.");
         }
 
-        private void AssertAddressIsParliamentContract(Address address)
-        {
-            SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
-            Assert(State.ParliamentContract.Value == address, "Unauthorized behavior.");
-        }
-
         private void AssertAddressIsCurrentMiner(Address address)
         {
             SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
@@ -316,18 +320,6 @@ namespace AElf.Contracts.CrossChain
                 pendingCrossChainIndexingProposal.Proposer == recordCrossChainDataInput.Proposer,
                 "Incorrect cross chain indexing proposal status.");
             State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal();
-        }
-
-        private void AssertIsCrossChainBlockDataAlreadyProposed()
-        {
-            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Proposed,
-                out var proposedCrossChainIndexingProposal);
-            Assert(
-                pendingProposalExists &&
-                proposedCrossChainIndexingProposal.Proposer != null &&
-                proposedCrossChainIndexingProposal.ProposedCrossChainBlockData != null &&
-                proposedCrossChainIndexingProposal.ProposalId == null,
-                "Incorrect cross chain indexing proposal status.");
         }
 
         private int GetChainId(long serialNumber)
@@ -714,6 +706,10 @@ namespace AElf.Contracts.CrossChain
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 long arrearsAmount = 0;
+                var lockedToken = sideChainInfo.SideChainStatus == SideChainStatus.IndexingFeeDebt
+                    ? 0
+                    : GetSideChainBalance(chainId);
+
                 foreach (var sideChainBlockData in group)
                 {
                     var target = currentSideChainHeight != 0
@@ -725,21 +721,18 @@ namespace AElf.Contracts.CrossChain
 
                     // indexing fee
                     var indexingPrice = sideChainInfo.IndexingPrice;
-                    var lockedToken = State.IndexingBalance[chainId];
 
                     lockedToken -= indexingPrice;
-                    State.IndexingBalance[chainId] = lockedToken;
 
                     if (lockedToken < 0)
                     {
                         // record arrears
                         arrearsAmount += indexingPrice;
+                        sideChainInfo.SideChainStatus = SideChainStatus.IndexingFeeDebt;
                     }
                     else
                     {
                         indexingFeeAmount += indexingPrice;
-                        if (lockedToken < indexingPrice)
-                            sideChainInfo.SideChainStatus = SideChainStatus.InsufficientBalance;
                     }
 
                     currentSideChainHeight++;
