@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs1;
 using Acs3;
 using Acs7;
@@ -97,7 +98,19 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Side chain not found.");
-            return new Int64Value {Value = GetSideChainBalance(chainId)};
+            return new Int64Value {Value = GetSideChainIndexingFeeDeposit(chainId)};
+        }
+        
+        public override Int64Value GetSideChainIndexingFeeDebt(Int32Value input)
+        {
+            var chainId = input.Value;
+            var sideChainInfo = State.SideChainInfo[chainId];
+            Assert(sideChainInfo != null, "Side chain not found.");
+            
+            return new Int64Value
+            {
+                Value = sideChainInfo.ArrearsInfo.Values.Sum()
+            };
         }
 
         public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)

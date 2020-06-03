@@ -46,6 +46,9 @@ service CrossChainContract {
     rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
     rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
         option (aelf.is_view) = true;
     }

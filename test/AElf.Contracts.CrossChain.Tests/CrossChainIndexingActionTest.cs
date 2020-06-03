@@ -362,6 +362,10 @@ namespace AElf.Contracts.CrossChain.Tests
                 await DoIndexAsync(crossChainBlockData);
                 var chainStatus = await GetSideChainStatusAsync(sideChainId);
                 chainStatus.ShouldBe(SideChainStatus.IndexingFeeDebt);
+                
+                var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                    {Value = sideChainId});
+                debt.Value.ShouldBe(1);
             }
             
             {
@@ -390,6 +394,10 @@ namespace AElf.Contracts.CrossChain.Tests
                 balanceAfterRecharge.ShouldBe(1);
                 var chainStatus = await GetSideChainStatusAsync(sideChainId);
                 chainStatus.ShouldBe(SideChainStatus.Active);
+                
+                var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                    {Value = sideChainId});
+                debt.Value.ShouldBe(0);
             }
         }
         
@@ -489,7 +497,18 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var txResult =
                 await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var proposalId = ProposalCreated.Parser
+                .ParseFrom(txResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                    .NonIndexed).ProposalId;
+            await ApproveWithMinersAsync(proposalId);
+            
+            // release
+            await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+                
+            var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                {Value = sideChainId});
+            debt.Value.ShouldBe(1);
         }
         
         [Fact]

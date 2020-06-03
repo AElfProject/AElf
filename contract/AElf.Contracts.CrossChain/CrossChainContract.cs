@@ -176,7 +176,7 @@ namespace AElf.Contracts.CrossChain
                     }, chainId);
                 }
                 
-                var originBalance = GetSideChainBalance(chainId); 
+                var originBalance = GetSideChainIndexingFeeDeposit(chainId); 
                 Assert(input.Amount + originBalance >= arrearsAmount + sideChainInfo.IndexingPrice,
                     "Indexing fee recharging not enough.");
             }

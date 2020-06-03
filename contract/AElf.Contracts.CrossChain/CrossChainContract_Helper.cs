@@ -75,7 +75,7 @@ namespace AElf.Contracts.CrossChain
         {
             // unlock token
             var chainId = sideChainInfo.SideChainId;
-            var balance = GetSideChainBalance(chainId);
+            var balance = GetSideChainIndexingFeeDeposit(chainId);
             if (balance <= 0)
                 return;
             TransferDepositToken(new TransferInput
@@ -86,7 +86,7 @@ namespace AElf.Contracts.CrossChain
             }, chainId);
         }
 
-        private long GetSideChainBalance(int chainId)
+        private long GetSideChainIndexingFeeDeposit(int chainId)
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var balanceOutput = State.TokenContract.GetBalance.Call(new GetBalanceInput
@@ -708,7 +708,7 @@ namespace AElf.Contracts.CrossChain
                 long arrearsAmount = 0;
                 var lockedToken = sideChainInfo.SideChainStatus == SideChainStatus.IndexingFeeDebt
                     ? 0
-                    : GetSideChainBalance(chainId);
+                    : GetSideChainIndexingFeeDeposit(chainId);
 
                 foreach (var sideChainBlockData in group)
                 {
