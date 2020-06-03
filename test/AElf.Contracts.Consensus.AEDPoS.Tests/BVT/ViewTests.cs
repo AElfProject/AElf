@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentTermRemainSeconds =
                 (await AEDPoSContractStub.GetNextElectCountDown.CallAsync(new Empty())).Value;
             currentTermRemainSeconds.ShouldBeGreaterThan(0);
-            currentTermRemainSeconds.ShouldBeLessThan(604800);
+            currentTermRemainSeconds.ShouldBe(604800);
 
             //get term number
             var termNumber = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
