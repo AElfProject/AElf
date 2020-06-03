@@ -16,19 +16,19 @@ namespace AElf.Kernel.Miner.Application
     {
         public ILogger<MinerService> Logger { get; set; }
         private readonly ITransactionPoolService _transactionPoolService;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly IMiningService _miningService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
+        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
 
         public MinerService(IMiningService miningService,
             IBlockTransactionLimitProvider blockTransactionLimitProvider,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions, 
+            ITransactionPackingOptionProvider transactionPackingOptionProvider,
             ITransactionPoolService transactionPoolService)
         {
             _miningService = miningService;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
+            _transactionPackingOptionProvider = transactionPackingOptionProvider;
             _transactionPoolService = transactionPoolService;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
 
             Logger = NullLogger<MinerService>.Instance;
         }
@@ -41,13 +41,14 @@ namespace AElf.Kernel.Miner.Application
         public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
-            var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
+            var chainContext = new ChainContext
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
-            });
+            };
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
-                _transactionPackingOptions.IsTransactionPackable
+                _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
                     ? limit
                     : -1);
             var pending = new List<Transaction>();

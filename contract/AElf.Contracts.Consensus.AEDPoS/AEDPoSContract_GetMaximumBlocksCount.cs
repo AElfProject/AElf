@@ -70,6 +70,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return 1;
             }
 
+            // Normal case.
+            Context.Fire(new IrreversibleBlockHeightUnacceptable
+            {
+                DistanceToIrreversibleBlockHeight = 0
+            });
+
             return AEDPoSContractConstants.MaximumTinyBlocksCount;
         }
 
