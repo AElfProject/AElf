@@ -46,21 +46,10 @@ namespace AElf.Kernel.Miner.Application
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
             });
-            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(previousBlockHash,
                 _transactionPackingOptions.IsTransactionPackable
                     ? limit
                     : -1);
-            var pending = new List<Transaction>();
-            if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-            {
-                pending = executableTransactionSet.Transactions;
-            }
-            else
-            {
-                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
-                                  $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
-                                  $"best chain hash {previousBlockHash}.");
-            }
 
             Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
@@ -70,7 +59,7 @@ namespace AElf.Kernel.Miner.Application
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
-                }, pending, blockTime);
+                }, executableTransactionSet.Transactions, blockTime);
         }
     }
 }
