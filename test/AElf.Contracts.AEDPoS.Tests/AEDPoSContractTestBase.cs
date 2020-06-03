@@ -1,22 +1,24 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.TestKit;
-using AElf.ContractTestBase;
-using AElf.Kernel;
+using AElf.ContractTestBase.ContractTestKit;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
+using BlockTimeProvider = AElf.ContractTestBase.ContractTestKit.BlockTimeProvider;
 
 namespace AElf.Contracts.AEDPoS
 {
-    public class AEDPoSContractTestBase : MainChainContractTestBase<AEDPoSContractTestAElfModule>
+    public class AEDPoSContractTestBase<T> : ContractTestBase<T> where T : AbpModule
     {
-        public IEnumerable<Account> MinerAccounts => SampleAccount.Accounts.Take(17);
+        public IEnumerable<Account> MinerAccounts => Accounts.Take(17);
 
         internal List<Miner> Miners => MinerAccounts.Select(a =>
             new Miner
@@ -25,22 +27,39 @@ namespace AElf.Contracts.AEDPoS
                 Stub = GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusAddress, a.KeyPair)
             }).ToList();
 
+        internal BlockTimeProvider BlockTimeProvider =>
+            Application.ServiceProvider.GetRequiredService<BlockTimeProvider>();
+
+        internal ITransactionResultQueryService TransactionResultQueryService =>
+            Application.ServiceProvider.GetRequiredService<ITransactionResultQueryService>();
+
+        internal IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+
+        public AEDPoSContractTestBase()
+        {
+            BlockTimeProvider.SetBlockTime(new Timestamp());
+        }
+
         internal async Task<Miner> GetNextMinerAsync()
         {
+            var dict = new Dictionary<Miner, long>();
             foreach (var miner in Miners)
             {
                 var consensusCommand =
                     await miner.Stub.GetConsensusCommand.CallAsync(new BytesValue
                         {Value = ByteString.CopyFrom(miner.Account.KeyPair.PublicKey)});
-                var distance = (consensusCommand.ArrangedMiningTime - TimestampHelper.GetUtcNow()).ToTimeSpan()
+                var currentBlockTime = BlockTimeProvider.GetBlockTime();
+                var distance = (consensusCommand.ArrangedMiningTime - currentBlockTime).ToTimeSpan()
                     .Milliseconds;
-                if (distance == 500)
+                miner.ConsensusCommand = consensusCommand;
+                if (distance <= 4000)
                 {
-                    return miner;
+                    dict.Add(miner, distance);
                 }
             }
 
-            return null;
+            return dict.OrderBy(d => d.Value).First().Key;
         }
 
         internal async Task PackageConsensusTransactionAsync()
@@ -52,6 +71,12 @@ namespace AElf.Contracts.AEDPoS
                 triggerInformationProvider.GetTriggerInformationForConsensusTransactions(miner.ConsensusCommand
                     .ToBytesValue()));
             await MineAsync(new List<Transaction> {transaction}, miner.ConsensusCommand.ArrangedMiningTime);
+            var txResult = await TransactionResultQueryService.GetTransactionResultAsync(transaction.GetHash());
+            if (txResult == null || txResult.Status != TransactionResultStatus.Mined)
+            {
+                var chain = await BlockchainService.GetChainAsync();
+                throw new Exception($"Height: {chain.BestChainHeight}");
+            }
         }
     }
 

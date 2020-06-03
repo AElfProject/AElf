@@ -5,10 +5,9 @@
         <RootNamespace>AElf.Contracts.AEDPoS</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-    <PropertyGroup>
-        <!--Conflict with contract-->
-        <NoWarn>0436</NoWarn>
-    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
@@ -17,62 +16,32 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
-    <Import Project="..\..\test\AllContracts.props" />
+
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
-        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
-        <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.DApp\AElf.Contracts.TestContract.DApp.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf/Proto/parliament_contract.proto</Link>
-        </ContractStub>
-        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf/Proto/transaction_fee.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </ContractBase>
-        <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
-            <Link>Protobuf/Proto/token_contract_impl.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_holder_contract.proto">
-            <Link>Protobuf/Proto/token_holder_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\dapp_contract.proto">
-            <Link>Protobuf/Proto/dapp_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
-        <ContractBase Include="..\..\protobuf\acs4.proto">
+        <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\acs6.proto">
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\acs2.proto">
-            <Link>Protobuf\Proto\acs2.proto</Link>
-        </ContractBase>
-        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf\Proto\transaction_fee.proto</Link>
-        </ContractBase>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\election_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>
