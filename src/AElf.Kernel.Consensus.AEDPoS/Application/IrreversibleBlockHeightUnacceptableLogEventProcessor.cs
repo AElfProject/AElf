@@ -58,11 +58,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, true);
+                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, false);
             }
             else
             {
-                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, false);
+                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, true);
             }
 
             return Task.CompletedTask;

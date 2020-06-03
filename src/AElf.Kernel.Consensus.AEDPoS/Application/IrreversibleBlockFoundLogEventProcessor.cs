@@ -75,7 +75,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     {
                         BlockHeight = block.Height,
                         BlockHash = block.GetHash()
-                    }, false);
+                    }, true);
                 if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
