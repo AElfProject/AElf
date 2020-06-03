@@ -29,22 +29,16 @@ namespace AElf.Contracts.Association
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
-        protected Address TokenContractAddress { get; }
-        protected Address AssociationContractAddress { get; }
-        protected Address ParliamentContractAddress { get; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; }
         internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; }
 
         public AssociationContractTestBase()
         {
-            AssociationContractAddress = SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name];
             AssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
-
-            TokenContractAddress = SystemContractAddresses[TokenSmartContractAddressNameProvider.Name];
+            
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
 
-            ParliamentContractAddress = SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
             ParliamentContractStub =GetParliamentContractTester(DefaultSenderKeyPair);
         }
         

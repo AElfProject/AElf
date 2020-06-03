@@ -41,12 +41,12 @@ namespace AElf.ContractTestBase.ContractTestKit
         protected Address CrossChainContractAddress =>
             SystemContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
         protected Address TokenContractAddress => SystemContractAddresses[TokenSmartContractAddressNameProvider.Name];
-        protected Address ParliamentAddress => SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
-        protected Address ConsensusAddress => SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
-        protected Address ReferendumAddress => SystemContractAddresses[ReferendumSmartContractAddressNameProvider.Name];
+        protected Address ParliamentContractAddress => SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+        protected Address ConsensusContractAddress => SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
+        protected Address ReferendumContractAddress => SystemContractAddresses[ReferendumSmartContractAddressNameProvider.Name];
         protected Address TreasuryContractAddress =>
             SystemContractAddresses[TreasurySmartContractAddressNameProvider.Name];
-        protected Address AssociationAddress =>
+        protected Address AssociationContractAddress =>
             SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name];
         protected Address TokenConverterContractAddress =>
             SystemContractAddresses[TokenConverterSmartContractAddressNameProvider.Name];

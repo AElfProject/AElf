@@ -55,7 +55,6 @@ namespace AElf.Contracts.MultiToken
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub;
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
         
-        protected Address ParliamentContractAddress { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
         
         protected Hash BasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.BasicFunction");
@@ -85,7 +84,6 @@ namespace AElf.Contracts.MultiToken
             OtherBasicFunctionContractStub = GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                 OtherBasicFunctionContractAddress, DefaultKeyPair);
 
-            ParliamentContractAddress = SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
             ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(
                 ParliamentContractAddress, DefaultKeyPair);
         }
@@ -142,9 +140,6 @@ namespace AElf.Contracts.MultiToken
         protected long BalanceOfStarter;
         protected Timestamp BlockchainStartTimestamp => TimestampHelper.GetUtcNow();
 
-        // protected ContractTester<MultiTokenContractCrossChainTestAElfModule> MainChainTester;
-        // protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChainTester;
-        // protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChain2Tester;
         protected ContractTestKit<MultiTokenContractSideChainTestAElfModule> SideChainTestKit;
         protected ContractTestKit<MultiTokenContractSideChainTestAElfModule> SideChain2TestKit;
 
@@ -169,13 +164,13 @@ namespace AElf.Contracts.MultiToken
                     DefaultAccount.KeyPair);
 
             ParliamentContractStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAddress,
+                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                     DefaultAccount.KeyPair);
 
-            AEDPoSContractStub = GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusAddress);
+            AEDPoSContractStub = GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress);
 
             ReferendumContractStub =
-                GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumAddress,
+                GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
                     DefaultAccount.KeyPair);
 
             ResourceTokenSymbolList = Application.ServiceProvider
@@ -195,12 +190,6 @@ namespace AElf.Contracts.MultiToken
                 CreationHeightOnParentChain = height,
                 RegisterParentChainTokenContractAddress = registerParentChainTokenContractAddress
             });
-            // AsyncHelper.RunSync(() =>
-            //     SideChainTester.InitialCustomizedChainAsync(chainId,
-            //         configureSmartContract: SideChainTester.GetSideChainSystemContract(
-            //             SideChainTester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-            //             SideChainTester.GetCallOwnerAddress(), height,
-            //             registerParentChainTokenContractAddress ? TokenContractAddress : null)));
             SideBasicContractZeroAddress = SideChainTestKit.ContractZeroAddress;
             SideChainBasicContractZeroStub =
                 SideChainTestKit.GetTester<BasicContractZeroContainer.BasicContractZeroStub>(
@@ -259,7 +248,6 @@ namespace AElf.Contracts.MultiToken
         protected async Task<int> InitAndCreateSideChainAsync(string symbol, long parentChainHeightOfCreation = 0,
             int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            //await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
             await ApproveBalanceAsync(lockedTokenAmount);
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, symbol);
             await ApproveWithMinersAsync(proposalId);
@@ -343,7 +331,7 @@ namespace AElf.Contracts.MultiToken
                 foreach (var account in SampleAccount.Accounts.Take(4))
                 {
                     var parliamentContractStub =
-                        GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentAddress,
+                        GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
                             account.KeyPair);
                     transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
                 }

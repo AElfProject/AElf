@@ -45,10 +45,13 @@ namespace AElf.ContractTestBase.ContractTestKit
         protected int InitialCoreDataCenterCount = 5;
 
         public Dictionary<Hash, Address> SystemContractAddresses { get; } = new Dictionary<Hash, Address>();
+        
+        private readonly IContractTestService _contractTestService;
 
         public ContractTestKit(IAbpApplication application)
         {
             Application = application;
+            _contractTestService = Application.ServiceProvider.GetRequiredService<IContractTestService>();
             AsyncHelper.RunSync(InitSystemContractAddressesAsync);
         }
         
@@ -76,8 +79,7 @@ namespace AElf.ContractTestBase.ContractTestKit
 
         public T GetTester<T>(Address contractAddress, ECKeyPair senderKey = null) where T : ContractStubBase, new()
         {
-            var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
-            return factory.Create<T>(contractAddress, senderKey ?? DefaultAccount.KeyPair);
+            return _contractTestService.GetTester<T>(contractAddress, senderKey ?? DefaultAccount.KeyPair);
         }
         
         /// <summary>
@@ -89,40 +91,12 @@ namespace AElf.ContractTestBase.ContractTestKit
         /// <returns></returns>
         public async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime = null)
         {
-            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            return await MineAsync(txs, blockTime, preBlock.GetHash(), preBlock.Height);
-        }
-
-        private async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime, Hash preBlockHash,
-            long preBlockHeight)
-        {
-            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var miningService = Application.ServiceProvider.GetRequiredService<IMiningService>();
-            var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
-
-            var blockExecutedSet = await miningService.MineAsync(
-                new RequestMiningDto
-                {
-                    PreviousBlockHash = preBlockHash, PreviousBlockHeight = preBlockHeight,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
-                }, txs, blockTime ?? DateTime.UtcNow.ToTimestamp());
-            
-            var block = blockExecutedSet.Block;
-
-            await blockchainService.AddTransactionsAsync(txs);
-            await blockchainService.AddBlockAsync(block);
-            await blockAttachService.AttachBlockAsync(block);
-
-            return blockExecutedSet;
+            return await _contractTestService.MineAsync(txs, blockTime);
         }
         
         public async Task<TransactionResult> ExecuteTransactionWithMiningAsync(Transaction transaction, Timestamp blockTime = null)
         {
-            var blockExecutedSet = await MineAsync(new List<Transaction> {transaction}, blockTime);
-            var result = blockExecutedSet.TransactionResultMap[transaction.GetHash()];
-
-            return result;
+            return await _contractTestService.ExecuteTransactionWithMiningAsync(transaction,blockTime);
         }
     }
 }

@@ -31,7 +31,6 @@ namespace AElf.ContractTestBase
             });
 
             var services = context.Services;
-            //services.AddTransient<IGenesisSmartContractDtoProvider, GenesisSmartContractDtoProvider>();
             services.AddTransient<IContractDeploymentListProvider, MainChainContractDeploymentListProvider>();
             services.AddTransient<IParliamentContractInitializationDataProvider,
                 MainChainParliamentContractInitializationDataProvider>();

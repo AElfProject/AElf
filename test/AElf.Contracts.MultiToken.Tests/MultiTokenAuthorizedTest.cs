@@ -56,7 +56,7 @@ namespace AElf.Contracts.MultiToken
             var newParliamentAddress = parliamentCreateResult.Output;
             var newAuthority = new AuthorityInfo
             {
-                ContractAddress = ParliamentAddress,
+                ContractAddress = ParliamentContractAddress,
                 OwnerAddress = newParliamentAddress
             };
             var defaultParliamentAddress =
@@ -410,7 +410,7 @@ namespace AElf.Contracts.MultiToken
                 .ChangeCrossChainTokenContractRegistrationController);
             var newAuthority = new AuthorityInfo
             {
-                ContractAddress = ParliamentAddress,
+                ContractAddress = ParliamentContractAddress,
                 OwnerAddress = newOrganization
             };
             var proposalId = await CreateProposalAsync(ParliamentContractStub,proposalCreationMethodName, newAuthority.ToByteString(),
@@ -442,7 +442,7 @@ namespace AElf.Contracts.MultiToken
             var newOrganization = createOrganizationResult.Output;
             var newAuthority = new AuthorityInfo
             {
-                ContractAddress = ParliamentAddress,
+                ContractAddress = ParliamentContractAddress,
                 OwnerAddress = newOrganization
             };
             var executionResult = await TokenContractStub.ChangeCrossChainTokenContractRegistrationController.SendWithExceptionAsync(newAuthority);
@@ -464,7 +464,7 @@ namespace AElf.Contracts.MultiToken
             };
             var createProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
@@ -485,7 +485,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForDeveloperFee();
             var approveProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
@@ -502,7 +502,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForDeveloperFee();
             var releaseProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
@@ -519,7 +519,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForDeveloperFee();
             var approveMidProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.DeveloperController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
@@ -527,7 +527,7 @@ namespace AElf.Contracts.MultiToken
             };
             var approveLeafProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = approveMidProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
@@ -551,7 +551,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForDeveloperFee();
             var approveLeafProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
@@ -564,7 +564,7 @@ namespace AElf.Contracts.MultiToken
         
             approveLeafProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
@@ -591,7 +591,7 @@ namespace AElf.Contracts.MultiToken
         
             var createProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
@@ -613,7 +613,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForUserFee();
             var approveProposalInput = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
@@ -631,7 +631,7 @@ namespace AElf.Contracts.MultiToken
         
             var referendumProposal = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ReferendumController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
@@ -639,7 +639,7 @@ namespace AElf.Contracts.MultiToken
             };
             var parliamentProposal = new CreateProposalInput
             {
-                ToAddress = ReferendumAddress,
+                ToAddress = ReferendumContractAddress,
                 Params = referendumProposal.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.CreateProposal),
@@ -656,7 +656,7 @@ namespace AElf.Contracts.MultiToken
         
             parliamentProposal = new CreateProposalInput
             {
-                ToAddress = ReferendumAddress,
+                ToAddress = ReferendumContractAddress,
                 Params = id.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.Release),
@@ -673,7 +673,7 @@ namespace AElf.Contracts.MultiToken
             var organizations = await GetControllerForUserFee();
             var parliamentProposal = new CreateProposalInput
             {
-                ToAddress = AssociationAddress,
+                ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
@@ -709,7 +709,7 @@ namespace AElf.Contracts.MultiToken
 
             await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
-                Spender = ReferendumAddress,
+                Spender = ReferendumContractAddress,
                 Symbol = symbol.Value,
                 Amount = 100000
             });
