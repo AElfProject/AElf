@@ -59,7 +59,7 @@ namespace AElf.CrossChain
             Assert.Empty(bytes);
         }
 
-        [Fact(Skip = "Cannot execute SetTransactionPackingOptionAsync because block set is null.")]
+        [Fact]
         public async Task FIllExtraData_TransactionPackingDisabled()
         {
             var merkleTreeRoot = HashHelper.ComputeFrom("MerkleTreeRoot");
