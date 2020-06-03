@@ -5,6 +5,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -23,13 +24,15 @@ namespace AElf.Contracts.TestKit
 
         private readonly IRefBlockInfoProvider _refBlockInfoProvider;
         private readonly ITestTransactionExecutor _testTransactionExecutor;
-        private readonly ITransactionResultService _transactionResultService;
+        private readonly IBlockTimeProvider _blockTimeProvider;
+        private readonly IResetBlockTimeProvider _resetBlockTimeProvider;
 
         public MethodStubFactory(IServiceProvider serviceProvider)
         {
             _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
             _testTransactionExecutor = serviceProvider.GetRequiredService<ITestTransactionExecutor>();
-            _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
+            _blockTimeProvider = serviceProvider.GetRequiredService<IBlockTimeProvider>();
+            _resetBlockTimeProvider = serviceProvider.GetRequiredService<IResetBlockTimeProvider>();
         }
 
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
@@ -58,6 +61,7 @@ namespace AElf.Contracts.TestKit
                     return new ExecutionResult<TOutput> {Transaction = transaction};
                 }
 
+                ResetBlockTime();
                 return new ExecutionResult<TOutput>
                 {
                     Transaction = transaction, TransactionResult = transactionResult,
@@ -74,11 +78,20 @@ namespace AElf.Contracts.TestKit
                     return new ExecutionResult<TOutput> {Transaction = transaction};
                 }
 
+                ResetBlockTime();
                 return new ExecutionResult<TOutput>
                 {
                     Transaction = transaction, TransactionResult = transactionResult,
                     Output = method.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
                 };
+            }
+
+            void ResetBlockTime()
+            {
+                if (!_resetBlockTimeProvider.Enabled) return;
+                var currentBlockTime = _blockTimeProvider.GetBlockTime();
+                currentBlockTime.AddMilliseconds(_resetBlockTimeProvider.StepMilliseconds);
+                _blockTimeProvider.SetBlockTime(currentBlockTime);
             }
 
             async Task<TOutput> CallAsync(TInput input)
