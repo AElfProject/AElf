@@ -217,7 +217,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                Pubkeys = {minersKeys.Select(k => k.ToByteString())}
+                Pubkeys = {minersKeys.Select(ByteStringHelper.FromHexString)}
             };
 
             return new Empty();

@@ -149,7 +149,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 CrossChainContractStub.Initialize.GetTransaction(new InitializeInput
                 {
-                    ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
+                    ParentChainId = parentChainId,
                     CreationHeightOnParentChain = parentChainHeightOfCreation
                 })
             }, withException);

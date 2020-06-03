@@ -1,7 +1,4 @@
-﻿using System;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Secp256k1Net;
+﻿using Secp256k1Net;
 
 namespace AElf.Cryptography.ECDSA
 {

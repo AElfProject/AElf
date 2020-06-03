@@ -8,6 +8,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,11 +17,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
     public sealed class ExecutionPluginForMethodFeeWithForkTest : ExecutionPluginForMethodFeeWithForkTestBase
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public ExecutionPluginForMethodFeeWithForkTest(ITestOutputHelper testOutputHelper)
+        private async Task<IDictionary<string, long>> GetTransactionFeesMapAsync(IChainContext chainContext)
         {
-            _testOutputHelper = testOutputHelper;
+            var totalTransactionFeesMapProvider = Tester.GetService<ITotalTransactionFeesMapProvider>();
+            var transactionFeesMap =
+                await totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(chainContext);
+            if (chainContext.BlockHash != transactionFeesMap.BlockHash ||
+                chainContext.BlockHeight != transactionFeesMap.BlockHeight)
+            {
+                return null;
+            }
+
+            return transactionFeesMap.Value;
         }
 
         [Fact]
@@ -40,7 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     }
                 }
             }.ToByteString());
-            
+
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {
@@ -51,8 +59,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 });
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
             var targetFee = transactionResult.GetChargedTransactionFees().First().Value;
-            
-            var transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+
+            var transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
             {
                 BlockHash = result.Item1.GetHash(), BlockHeight = result.Item1.Height
             });
@@ -62,8 +70,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             // branch one
             {
                 var branchOneBlock = await Tester.MineEmptyBlockAsync();
-            
-                transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+
+                transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
                 {
                     BlockHash = branchOneBlock.GetHash(), BlockHeight = branchOneBlock.Height
                 });
@@ -80,7 +88,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                         }
                     }
                 }.ToByteString());
-            
+
                 result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                     nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                     {
@@ -91,24 +99,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     });
                 transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
                 var fee = transactionResult.GetChargedTransactionFees().First().Value;
-                transactionFeesMap = await Tester.GetTransactionFeesMapAsync(new ChainContext
+                transactionFeesMap = await GetTransactionFeesMapAsync(new ChainContext
                 {
                     BlockHash = result.Item1.GetHash(), BlockHeight = result.Item1.Height
                 });
-                transactionFeesMap.First().Value.ShouldBe(fee);  //300000
+                transactionFeesMap.First().Value.ShouldBe(fee); //300000
                 targetFee.ShouldNotBe(fee);
             }
 
             // branch two
             {
                 var branchTwoBlocks = await GenerateEmptyBlocksAsync(13, chain.BestChainHash, chain.BestChainHeight);
-                chain= await Tester.GetChainAsync();
+                chain = await Tester.GetChainAsync();
                 chain.BestChainHash.ShouldBe(result.Item1.GetHash());
                 var branchTwoBlock =
                     await Tester.MineEmptyBlockAsync(branchTwoBlocks.Last().GetHash(), branchTwoBlocks.Last().Height);
                 chain = await Tester.GetChainAsync();
                 chain.BestChainHash.ShouldBe(branchTwoBlock.GetHash());
-                
+
                 var transactions =
                     await Tester.GetTransactionsAsync(branchTwoBlocks.First().Body.TransactionIds);
                 var transaction = transactions.Single(t =>
@@ -149,7 +157,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             transactionResult.Error.Contains("This method already executed in height").ShouldBeTrue();
         }
 
-        private async Task<List<Block>> GenerateEmptyBlocksAsync(int count , Hash previousBlockHash, long previousBlockHeight)
+        private async Task<List<Block>> GenerateEmptyBlocksAsync(int count, Hash previousBlockHash,
+            long previousBlockHeight)
         {
             var blocks = new List<Block>();
             var block = await Tester.MineEmptyBlockAsync(previousBlockHash, previousBlockHeight);

@@ -105,7 +105,7 @@ namespace AElf.Contracts.MultiToken
 
             return new StringValue
             {
-                Value = _primaryTokenSymbol ?? string.Empty
+                Value = _primaryTokenSymbol ?? Context.Variables.NativeSymbol
             };
         }
 

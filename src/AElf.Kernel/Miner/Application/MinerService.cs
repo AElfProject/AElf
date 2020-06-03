@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Configuration;
-using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
@@ -16,18 +15,19 @@ namespace AElf.Kernel.Miner.Application
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private readonly ITxHub _txHub;
+        private readonly ITransactionPoolService _transactionPoolService;
         private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly IMiningService _miningService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
 
-        public MinerService(IMiningService miningService, ITxHub txHub,
+        public MinerService(IMiningService miningService,
             IBlockTransactionLimitProvider blockTransactionLimitProvider,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions, 
+            ITransactionPoolService transactionPoolService)
         {
             _miningService = miningService;
-            _txHub = txHub;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
+            _transactionPoolService = transactionPoolService;
             _transactionPackingOptions = transactionPackingOptions.CurrentValue;
 
             Logger = NullLogger<MinerService>.Instance;
@@ -46,21 +46,10 @@ namespace AElf.Kernel.Miner.Application
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
             });
-            var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_transactionPackingOptions.IsTransactionPackable
+            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(previousBlockHash,
+                _transactionPackingOptions.IsTransactionPackable
                     ? limit
                     : -1);
-            var pending = new List<Transaction>();
-            if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-            {
-                pending = executableTransactionSet.Transactions;
-            }
-            else
-            {
-                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
-                                  $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
-                                  $"best chain hash {previousBlockHash}.");
-            }
 
             Logger.LogDebug(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
@@ -70,7 +59,7 @@ namespace AElf.Kernel.Miner.Application
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
-                }, pending, blockTime);
+                }, executableTransactionSet.Transactions, blockTime);
         }
     }
 }
