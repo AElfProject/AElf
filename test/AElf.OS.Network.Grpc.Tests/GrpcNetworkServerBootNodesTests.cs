@@ -44,7 +44,7 @@ namespace AElf.OS.Network
 
             await peer.DisconnectAsync(false);
 
-            var exHealthCheck = await Assert.ThrowsAsync<NetworkException>(async () => await peer.PingAsync());
+            var exHealthCheck = await Assert.ThrowsAsync<NetworkException>(async () => await peer.CheckHealthAsync());
             exHealthCheck.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
             
             var exGetBlocks = await Assert.ThrowsAsync<NetworkException>(

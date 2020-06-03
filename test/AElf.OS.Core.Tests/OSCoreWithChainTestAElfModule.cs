@@ -7,6 +7,8 @@ using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.Token;
+using AElf.Kernel.Token.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;

@@ -88,7 +88,7 @@ namespace AElf.Contracts.CrossChain
             State.IndexingBalance[chainId] = 0;
         }
 
-        public void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
+        private void AssertValidSideChainCreationRequest(SideChainCreationRequest sideChainCreationRequest,
             Address proposer)
         {
             var proposedRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
@@ -103,19 +103,26 @@ namespace AElf.Contracts.CrossChain
                 Symbol = Context.Variables.NativeSymbol
             }).Allowance;
             Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
-            if (sideChainCreationRequest.IsPrivilegePreserved)
-            {
-                Assert(
-                    sideChainCreationRequest.LockedTokenAmount > 0 &&
-                    sideChainCreationRequest.IndexingPrice >= 0 &&
-                    sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice &&
-                    sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
-                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
-                    "Invalid chain creation request.");
-                AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
-                    sideChainCreationRequest.SideChainTokenName, sideChainCreationRequest.SideChainTokenTotalSupply);
-                AssertValidResourceTokenAmount(sideChainCreationRequest);
-            }
+            if (!sideChainCreationRequest.IsPrivilegePreserved) 
+                return; // there is no restriction for non-exclusive side chain creation
+            
+            Assert(
+                sideChainCreationRequest.LockedTokenAmount > 0 &&
+                sideChainCreationRequest.IndexingPrice >= 0 &&
+                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
+                "Invalid chain creation request.");
+            AssertValidResourceTokenAmount(sideChainCreationRequest);
+
+            if (!IsPrimaryTokenNeeded(sideChainCreationRequest)) 
+                return;
+            
+            // assert primary token to create
+            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
+                sideChainCreationRequest.SideChainTokenName,
+                sideChainCreationRequest.SideChainTokenTotalSupply);
+            Assert(sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
+                   sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
+                "Invalid side chain token initial issue list.");
         }
 
         private void AssertValidResourceTokenAmount(SideChainCreationRequest sideChainCreationRequest)
@@ -156,7 +163,7 @@ namespace AElf.Contracts.CrossChain
         private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, int chainId,
             Address creator)
         {
-            if (!sideChainCreationRequest.IsPrivilegePreserved)
+            if (!IsPrimaryTokenNeeded(sideChainCreationRequest))
                 return;
 
             // new token needed only for exclusive side chain
@@ -625,6 +632,18 @@ namespace AElf.Contracts.CrossChain
             }
 
             return true;
+        }
+
+        private bool IsPrimaryTokenNeeded(SideChainCreationRequest sideChainCreationRequest)
+        {
+            // there won't be new token creation if it is secondary side chain
+            // or the side chain is not exclusive
+            return sideChainCreationRequest.IsPrivilegePreserved && !IsParentChainExist();
+        }
+
+        private bool IsParentChainExist()
+        {
+            return State.ParentChainId.Value != 0;
         }
 
         /// <summary>

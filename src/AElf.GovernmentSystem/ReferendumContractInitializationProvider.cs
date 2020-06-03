@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.GovernmentSystem
@@ -11,9 +10,9 @@ namespace AElf.GovernmentSystem
         public Hash SystemSmartContractName { get; } = ReferendumSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Referendum";
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            return new List<InitializeMethod>();
+            return new List<ContractInitializationMethodCall>();
         }
     }
 }

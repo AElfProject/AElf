@@ -5,6 +5,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -88,7 +89,7 @@ namespace AElf.Benchmark
         private async Task StartNodeAsync()
         {
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            List<ContractInitializationMethodCall> callList = new List<ContractInitializationMethodCall> ();
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = _nativeSymbol,
@@ -113,10 +114,15 @@ namespace AElf.Benchmark
             {
                 ZeroSmartContract = typeof(BasicContractZero),
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
-                SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory
+                SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory,
             };
-            dto.InitializationSmartContracts.AddGenesisSmartContract(tokenContractCode,
-                TokenSmartContractAddressNameProvider.Name, callList);
+            var genesisSmartContractDto = new GenesisSmartContractDto
+            {
+                Code = tokenContractCode,
+                SystemSmartContractName = TokenSmartContractAddressNameProvider.Name,
+            };
+            genesisSmartContractDto.AddGenesisTransactionMethodCall(callList.ToArray());
+            dto.InitializationSmartContracts.Add(genesisSmartContractDto);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
         }
