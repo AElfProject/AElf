@@ -124,7 +124,14 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                profitsDict = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+                var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+                foreach (var kp in profitsDictForEachProfitDetail)
+                {
+                    if (profitsDict.ContainsKey(kp.Key))
+                        profitsDict[kp.Key] = profitsDict[kp.Key].Add(kp.Value);
+                    else
+                        profitsDict[kp.Key] = kp.Value;
+                }
             }
 
             return new ReceivedProfitsMap
