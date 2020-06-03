@@ -11,7 +11,7 @@ namespace AElf.Kernel.TransactionPool.Application
         Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight);
         Task UpdateTransactionPoolByLibAsync(long libHeight);
         Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds);
-        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0);
+        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0);
         Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
         Task<TransactionPoolStatus> GetTransactionPoolStatusAsync();
     }
@@ -19,7 +19,7 @@ namespace AElf.Kernel.TransactionPool.Application
     public class TransactionPoolService : ITransactionPoolService
     {
         private readonly ITxHub _txHub;
-        
+
         public TransactionPoolService(ITxHub txHub)
         {
             _txHub = txHub;
@@ -45,9 +45,9 @@ namespace AElf.Kernel.TransactionPool.Application
             await _txHub.CleanByTransactionIdsAsync(transactionIds);
         }
         
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
         {
-            return await _txHub.GetExecutableTransactionSetAsync(transactionCount);
+            return await _txHub.GetExecutableTransactionSetAsync(blockHash, transactionCount);
         }
         
         public async Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)
