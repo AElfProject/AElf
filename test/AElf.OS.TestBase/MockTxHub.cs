@@ -27,7 +27,7 @@ namespace AElf.OS
             _blockchainService = blockchainService;
         }
 
-        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
         {
             return Task.FromResult(new ExecutableTransactionSet
             {

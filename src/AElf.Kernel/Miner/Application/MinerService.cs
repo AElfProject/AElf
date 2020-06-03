@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Configuration;
@@ -8,7 +7,6 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Miner.Application
 {
@@ -38,7 +36,8 @@ namespace AElf.Kernel.Miner.Application
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
+        public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight,
+            Timestamp blockTime,
             Duration blockExecutionTime)
         {
             var chainContext = new ChainContext
@@ -48,20 +47,10 @@ namespace AElf.Kernel.Miner.Application
             };
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+                previousBlockHash,
                 _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
                     ? limit
                     : -1);
-            var pending = new List<Transaction>();
-            if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-            {
-                pending = executableTransactionSet.Transactions;
-            }
-            else
-            {
-                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
-                                  $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
-                                  $"best chain hash {previousBlockHash}.");
-            }
 
             Logger.LogDebug(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
@@ -71,7 +60,7 @@ namespace AElf.Kernel.Miner.Application
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
-                }, pending, blockTime);
+                }, executableTransactionSet.Transactions, blockTime);
         }
     }
 }
