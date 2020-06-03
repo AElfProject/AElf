@@ -41,14 +41,14 @@ namespace AElf.Kernel.Consensus.Application
 
             if (block.Header.ExtraData.Count == 0)
             {
-                Logger.LogWarning($"Block header extra data is empty {block}");
+                Logger.LogDebug($"Block header extra data is empty {block}");
                 return false;
             }
 
             var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
-                Logger.LogWarning($"Invalid consensus extra data {block}");
+                Logger.LogDebug($"Invalid consensus extra data {block}");
                 return false;
             }
 
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Consensus.Application
             var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
-                Logger.LogWarning($"Invalid consensus extra data {block}");
+                Logger.LogDebug($"Invalid consensus extra data {block}");
                 return false;
             }
 
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Consensus.Application
             if (chain.BestChainHash == block.Header.PreviousBlockHash &&
                 block.Body.TransactionsCount > _systemTransactionCount)
             {
-                Logger.LogWarning("Cannot package normal transaction.");
+                Logger.LogDebug("Cannot package normal transaction.");
                 return false;
             }
 
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Consensus.Application
             var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
-                Logger.LogWarning($"Invalid consensus extra data {block}");
+                Logger.LogDebug($"Invalid consensus extra data {block}");
                 return false;
             }
 

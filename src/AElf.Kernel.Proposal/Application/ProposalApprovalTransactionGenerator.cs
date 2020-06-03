@@ -68,7 +68,7 @@ namespace AElf.Kernel.Proposal.Application
             };
             generatedTransactions.Add(generatedTransaction);
             
-            Logger.LogInformation("Proposal approval transaction generated.");
+            Logger.LogDebug("Proposal approval transaction generated.");
 
             return generatedTransactions;
         }

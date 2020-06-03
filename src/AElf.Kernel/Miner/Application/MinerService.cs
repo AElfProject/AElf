@@ -62,7 +62,7 @@ namespace AElf.Kernel.Miner.Application
                                   $"best chain hash {previousBlockHash}.");
             }
 
-            Logger.LogDebug(
+            Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
             return await _miningService.MineAsync(
                 new RequestMiningDto

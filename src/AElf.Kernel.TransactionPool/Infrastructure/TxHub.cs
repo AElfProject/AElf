@@ -320,7 +320,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }, queuedTransaction.Transaction);
             if (!validationResult)
             {
-                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
+                Logger.LogDebug($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
             }
             
@@ -333,7 +333,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (addSuccess)
                 return queuedTransaction;
-            Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
+            Logger.LogDebug($"Transaction {queuedTransaction.TransactionId} insert failed.");
             return null;
         }
 

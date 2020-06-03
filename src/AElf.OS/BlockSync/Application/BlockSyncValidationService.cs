@@ -38,7 +38,7 @@ namespace AElf.OS.BlockSync.Application
         {
             if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogWarning(
+                Logger.LogDebug(
                     $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
                 return Task.FromResult(false);
             }
@@ -56,13 +56,13 @@ namespace AElf.OS.BlockSync.Application
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
+                Logger.LogDebug($"Receive lower block {blockWithTransactions} ignore.");
                 return Task.FromResult(false);
             }
 
             if (blockWithTransactions.Header.SignerPubkey.ToHex() != senderPubKey)
             {
-                Logger.LogWarning($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
+                Logger.LogDebug($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
                 return Task.FromResult(false);
             }
 
@@ -95,7 +95,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
                 {
-                    Logger.LogWarning($"Transaction {transaction.GetHash()} expired.");
+                    Logger.LogDebug($"Transaction {transaction.GetHash()} expired.");
                     return false;
                 }
 

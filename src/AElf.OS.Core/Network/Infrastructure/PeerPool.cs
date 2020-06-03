@@ -72,7 +72,7 @@ namespace AElf.OS.Network.Infrastructure
         {
             if (IsPeerBlackListed(host))
             {
-                Logger.LogWarning($"{host} - peer pool is blacklisted.");
+                Logger.LogDebug($"{host} - peer pool is blacklisted.");
                 return false;
             }
 
@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Infrastructure
                     if (!handshakes.TryAdd(pubkey, pubkey))
                     {
                         added = false;
-                        Logger.LogWarning($"{host} - pubkey {pubkey} is already handshaking.");
+                        Logger.LogDebug($"{host} - pubkey {pubkey} is already handshaking.");
                     }
                     
                     return handshakes;

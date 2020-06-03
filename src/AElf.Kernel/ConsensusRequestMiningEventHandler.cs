@@ -50,7 +50,7 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 if (eventData.PreviousBlockHash != chain.BestChainHash)
                 {
-                    Logger.LogWarning("Mining canceled because best chain already updated.");
+                    Logger.LogDebug("Mining canceled because best chain already updated.");
                     return;
                 }
 
