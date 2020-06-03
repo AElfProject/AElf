@@ -69,7 +69,7 @@ namespace AElf.OS.BlockSync.Application
             if (enqueueTime != null && TimestampHelper.GetUtcNow() >
                 enqueueTime + TimestampHelper.DurationFromMilliseconds(ageLimit))
             {
-                Logger.LogDebug($"Enqueue time is more then limit : {enqueueTime}");
+                Logger.LogDebug($"Enqueue time is more than limit : {enqueueTime}");
                 return false;
             }
 

@@ -119,7 +119,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 {
                     // we started the dial first, replace the inbound connection with the dialed 
                     if (!_peerPool.TryReplace(inboundPeer.Info.Pubkey, inboundPeer, dialedPeer))
-                        Logger.LogDebug("Replacing the inbound connection failed.");
+                        Logger.LogWarning("Replacing the inbound connection failed.");
                     
                     await inboundPeer.DisconnectAsync(false);
 
