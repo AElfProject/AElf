@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -125,12 +124,12 @@ namespace AElf.Contracts.Profit
                 }
 
                 var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
-                foreach (var kp in profitsDictForEachProfitDetail)
+                foreach (var kv in profitsDictForEachProfitDetail)
                 {
-                    if (profitsDict.ContainsKey(kp.Key))
-                        profitsDict[kp.Key] = profitsDict[kp.Key].Add(kp.Value);
+                    if (profitsDict.ContainsKey(kv.Key))
+                        profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
                     else
-                        profitsDict[kp.Key] = kp.Value;
+                        profitsDict[kv.Key] = kv.Value;
                 }
             }
 
