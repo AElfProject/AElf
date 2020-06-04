@@ -9,25 +9,7 @@ namespace AElf.Types.Tests.Extensions
 {
     public class ExtensionTests
     {
-        [Fact]
-        public void String_Extension_Methods_Test()
-        {
-            var hexValue = HashHelper.ComputeFrom("hx").ToHex();
 
-            var hexValueWithPrefix = hexValue.AppendHexPrefix();
-            hexValueWithPrefix.Substring(0, 2).ShouldBe("0x");
-            var hexValueWithPrefix1 = hexValueWithPrefix.AppendHexPrefix();
-            hexValueWithPrefix1.ShouldBeSameAs(hexValueWithPrefix);
-
-            var byteArray = HashHelper.ComputeFrom("hx").ToByteArray();
-            var hexString = byteArray.ToHex(true);
-            hexString.Substring(0, 2).ShouldBe("0x");
-
-            var hex = hexValueWithPrefix.RemoveHexPrefix();
-            hex.ShouldBe(hexValue);
-            var hex1 = hex.RemoveHexPrefix();
-            hex1.ShouldBeSameAs(hex);
-        }
 
         [Fact]
         public void Number_Extensions_Methods_Test()

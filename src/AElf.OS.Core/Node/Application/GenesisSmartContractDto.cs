@@ -1,4 +1,5 @@
-using Acs0;
+using System.Collections.Generic;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 
 namespace AElf.OS.Node.Application
@@ -8,7 +9,6 @@ namespace AElf.OS.Node.Application
         public byte[] Code { get; set; }
         public Hash SystemSmartContractName { get; set; }
 
-        public SystemContractDeploymentInput.Types.SystemTransactionMethodCallList TransactionMethodCallList { get; set; } =
-            new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+        public List<ContractInitializationMethodCall> ContractInitializationMethodCallList { get; set; }
     }
 }

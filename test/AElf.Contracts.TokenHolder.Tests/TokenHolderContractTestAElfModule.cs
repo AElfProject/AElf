@@ -17,6 +17,7 @@ namespace AElf.Contracts.TokenHolder
             context.Services.RemoveAll<IPostExecutionPlugin>();
             context.Services.RemoveAll<ISystemTransactionGenerator>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Database;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContractInitialization;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Configuration;

@@ -151,7 +151,7 @@ namespace AElf.Contracts.Election
             {
                 candidateVotes = new CandidateVote
                 {
-                    Pubkey = candidatePublicKey.ToByteString(),
+                    Pubkey = ByteStringHelper.FromHexString(candidatePublicKey),
                     ObtainedActiveVotingRecordIds = {voteId},
                     ObtainedActiveVotedVotesAmount = amount,
                     AllObtainedVotedVotesAmount = amount
@@ -271,7 +271,7 @@ namespace AElf.Contracts.Election
             {
                 State.CandidateVotes[input.CandidatePubkey] = new CandidateVote
                 {
-                    Pubkey = input.CandidatePubkey.ToByteString(),
+                    Pubkey = ByteStringHelper.FromHexString(input.CandidatePubkey),
                     ObtainedActiveVotingRecordIds = {input.VoteId},
                     ObtainedActiveVotedVotesAmount = votingRecord.Amount,
                     AllObtainedVotedVotesAmount = votingRecord.Amount
