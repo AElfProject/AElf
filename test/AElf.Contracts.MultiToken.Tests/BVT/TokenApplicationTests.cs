@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
-using AElf.CSharp.Core;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -735,6 +734,34 @@ namespace AElf.Contracts.MultiToken
                     Memo = "TransferToContract test"
                 })).TransactionResult;
             result1.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        [Fact(DisplayName = "[MultiToken] ChangeTokenIssuer test")]
+        public async Task MultiTokenContract_ChangeTokenIssuer_Test()
+        {
+            const string tokenSymbol = "PO";
+            await CreateAndIssueMultiTokensAsync();
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = tokenSymbol,
+                TokenName = "Name",
+                TotalSupply = 100_000_000_000L,
+                Decimals = 10,
+                IsBurnable = true,
+                Issuer = Accounts[1].Address
+            });
+            var tokenIssuerStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[1].KeyPair);
+            await tokenIssuerStub.ChangeTokenIssuer.SendAsync(new ChangeTokenIssuerInput
+            {
+                Symbol = tokenSymbol,
+                NewTokenOwner = Accounts[2].Address
+            });
+            var tokenInfo = await tokenIssuerStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = tokenSymbol
+            });
+            tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
         }
     }
 }

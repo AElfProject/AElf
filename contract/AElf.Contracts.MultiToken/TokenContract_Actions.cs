@@ -521,5 +521,16 @@ namespace AElf.Contracts.MultiToken
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }
+
+        public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            tokenInfo.Issuer = input.NewTokenOwner;
+            State.TokenInfos[input.Symbol] = tokenInfo;
+            return new Empty();
+        }
     }
 }
