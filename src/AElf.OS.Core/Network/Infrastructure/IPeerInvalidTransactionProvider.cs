@@ -22,8 +22,8 @@ namespace AElf.OS.Network.Infrastructure
         private readonly NetworkOptions _networkOptions;
 
         private readonly ConcurrentDictionary<string, ConcurrentQueue<InvalidTransaction>> _invalidTransactionCache;
-        private readonly ConcurrentDictionary<string,int> _hostInvalidTransactionIdCache;
-        
+        private readonly ConcurrentDictionary<string, int> _hostInvalidTransactionIdCache;
+
         public ILogger<PeerInvalidTransactionProvider> Logger { get; set; }
 
         public PeerInvalidTransactionProvider(IOptionsSnapshot<NetworkOptions> networkOptions)
@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Infrastructure
         public bool TryMarkInvalidTransaction(string host, Hash transactionId)
         {
             var txId = transactionId.ToHex();
-            if (_hostInvalidTransactionIdCache.TryAdd(host + txId, 1))
+            if (_hostInvalidTransactionIdCache.TryAdd(GetHostInvalidTransactionIdCacheKey(host, txId), 1))
             {
                 if (!_invalidTransactionCache.TryGetValue(host, out var queue))
                 {
@@ -52,11 +52,12 @@ namespace AElf.OS.Network.Infrastructure
                     TransactionId = txId,
                     Timestamp = TimestampHelper.GetUtcNow()
                 });
-                
+
                 Logger.LogDebug($"Mark peer invalid transaction. host: {host}, count: {queue.Count}");
 
                 return queue.Count <= _networkOptions.PeerInvalidTransactionLimit;
             }
+
             return true;
         }
 
@@ -66,8 +67,10 @@ namespace AElf.OS.Network.Infrastructure
             {
                 foreach (var invalidTransaction in invalidTransactions)
                 {
-                    _hostInvalidTransactionIdCache.TryRemove(host + invalidTransaction.TransactionId, out _);
+                    _hostInvalidTransactionIdCache.TryRemove(
+                        GetHostInvalidTransactionIdCacheKey(host, invalidTransaction.TransactionId), out _);
                 }
+
                 return _invalidTransactionCache.TryRemove(host, out _);
             }
 
@@ -78,11 +81,18 @@ namespace AElf.OS.Network.Infrastructure
         {
             while (!queue.IsEmpty
                    && queue.TryPeek(out var invalidTransaction)
-                   && invalidTransaction.Timestamp.AddMilliseconds(_networkOptions.PeerInvalidTransactionTimeout) < TimestampHelper.GetUtcNow())
+                   && invalidTransaction.Timestamp.AddMilliseconds(_networkOptions.PeerInvalidTransactionTimeout) <
+                   TimestampHelper.GetUtcNow())
             {
-                _hostInvalidTransactionIdCache.TryRemove(host + invalidTransaction.TransactionId, out _);
+                _hostInvalidTransactionIdCache.TryRemove(
+                    GetHostInvalidTransactionIdCacheKey(host, invalidTransaction.TransactionId), out _);
                 queue.TryDequeue(out _);
             }
+        }
+
+        private string GetHostInvalidTransactionIdCacheKey(string host, string transactionId)
+        {
+            return host + transactionId;
         }
     }
 
