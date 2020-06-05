@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /* Privilege check. */
             if (!PreCheck())
             {
-                return;
+                Assert(false, "No permission.");
             }
 
             State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
