@@ -23,8 +23,7 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
-
-            //services.AddTransient<IBlockValidationProvider, SystemTransactionValidationProvider>();
+            services.AddTransient<IBlockValidationProvider, SystemTransactionValidationProvider>();
             
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 

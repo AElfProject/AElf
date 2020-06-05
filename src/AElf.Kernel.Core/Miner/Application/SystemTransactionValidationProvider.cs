@@ -20,9 +20,7 @@ namespace AElf.Kernel.Miner.Application
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            if (block.Header.Height == AElfConstants.GenesisBlockHeight) return Task.FromResult(true);
-            return Task.FromResult(!_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(block.Header,
-                                       out var systemTransactionCount) || systemTransactionCount != 0);
+            return Task.FromResult(true);
         }
 
         public Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
