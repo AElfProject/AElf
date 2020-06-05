@@ -2,6 +2,7 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -23,6 +24,8 @@ namespace AElf.Kernel
 
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
 
+            //services.AddTransient<IBlockValidationProvider, SystemTransactionValidationProvider>();
+            
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
             services.AddStoreKeyPrefixProvide<BlockBody>("bb");

@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -52,7 +48,6 @@ namespace AElf.Kernel.SmartContract.Application
                     transactionExecutingDto.BlockHeader.PreviousBlockHash,
                     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
-                var transactionResults = new List<TransactionResult>();
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
@@ -121,8 +116,6 @@ namespace AElf.Kernel.SmartContract.Application
                     }
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-
-                    transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
