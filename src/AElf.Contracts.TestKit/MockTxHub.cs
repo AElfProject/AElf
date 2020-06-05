@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,8 +14,8 @@ namespace AElf.Contracts.TestKit
     {
         private readonly IBlockchainService _blockchainService;
 
-        private readonly Dictionary<Hash, Transaction> _allTransactions =
-            new Dictionary<Hash, Transaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _allTransactions =
+            new ConcurrentDictionary<Hash, Transaction>();
 
         private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
@@ -39,7 +40,7 @@ namespace AElf.Contracts.TestKit
             var txs = transactions.ToList();
             foreach (var transaction in txs)
             {
-                _allTransactions.Add(transaction.GetHash(), transaction);
+                _allTransactions.TryAdd(transaction.GetHash(), transaction);
             }
 
             await _blockchainService.AddTransactionsAsync(txs);
@@ -48,7 +49,7 @@ namespace AElf.Contracts.TestKit
         public Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds)
         {
             CleanTransactions(transactionIds);
-            
+
             return Task.CompletedTask;
         }
 
@@ -71,7 +72,7 @@ namespace AElf.Contracts.TestKit
 
         public Task<TransactionPoolStatus> GetTransactionPoolStatusAsync()
         {
-            return Task.FromResult<TransactionPoolStatus>(new TransactionPoolStatus
+            return Task.FromResult(new TransactionPoolStatus
             {
                 AllTransactionCount = _allTransactions.Count,
             });
