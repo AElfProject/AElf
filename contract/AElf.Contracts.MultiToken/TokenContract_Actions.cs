@@ -528,7 +528,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
             // ReSharper disable once PossibleNullReferenceException
             Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
-            tokenInfo.Issuer = input.NewTokenOwner;
+            tokenInfo.Issuer = input.NewTokenIssuer;
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }

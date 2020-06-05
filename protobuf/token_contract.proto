@@ -405,7 +405,7 @@ message TotalResourceTokensMap
 message ChangeTokenIssuerInput
 {
     string symbol = 1;
-    aelf.Address new_token_owner = 2;
+    aelf.Address new_token_Issuer = 2;
 }
 
 // Events

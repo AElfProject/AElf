@@ -755,7 +755,7 @@ namespace AElf.Contracts.MultiToken
             await tokenIssuerStub.ChangeTokenIssuer.SendAsync(new ChangeTokenIssuerInput
             {
                 Symbol = tokenSymbol,
-                NewTokenOwner = Accounts[2].Address
+                NewTokenIssuer = Accounts[2].Address
             });
             var tokenInfo = await tokenIssuerStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
