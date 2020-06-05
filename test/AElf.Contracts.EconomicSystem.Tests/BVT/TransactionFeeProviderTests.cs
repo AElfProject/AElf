@@ -180,49 +180,5 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
-        
-        [Fact]
-        public async Task ChargeTransactionFees_Test()
-        {
-            await Token_FeeProvider_Test();
-            var beforeBalance = 5000_00000000L;
-            await TokenConverterContractStub.Buy.SendAsync(new BuyInput
-            {
-                Symbol = "CPU",
-                Amount = beforeBalance
-            });
-            const long txFee = 4000_0000L;
-            var transactionFeeInput = new ChargeTransactionFeesInput
-            {
-                ContractAddress = TokenContractAddress,
-                MethodName = nameof(TokenContractStub.Transfer),
-                PrimaryTokenSymbol = "ELF",
-                TransactionSizeFee = txFee,
-                SymbolsToPayTxSizeFee =
-                {
-                    new SymbolToPayTxSizeFee
-                    {
-                        TokenSymbol = "CPU",
-                        BaseTokenWeight = 1,
-                        AddedTokenWeight = 50
-                    },
-                    new SymbolToPayTxSizeFee
-                    {
-                        TokenSymbol = "ELF",
-                        BaseTokenWeight = 1,
-                        AddedTokenWeight = 1
-                    }
-                }
-            };
-            var transactionResult = await TokenContractStub.ChargeTransactionFees.SendAsync(transactionFeeInput);
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = BootMinerAddress,
-                Symbol = "CPU"
-            });
-            balance.Balance.ShouldBe(beforeBalance - txFee * 50);
-        }
     }
 }
