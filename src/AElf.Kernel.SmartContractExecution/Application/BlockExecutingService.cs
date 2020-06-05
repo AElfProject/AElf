@@ -40,8 +40,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
-            IEnumerable<Transaction> nonCancellableTransactions)
+            List<Transaction> nonCancellableTransactions)
         {
+            if (_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
+                out var systemTransactionCount))
+                return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
+                    nonCancellableTransactions.Skip(systemTransactionCount),
+                    CancellationToken.None);
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
@@ -52,26 +57,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             Logger.LogTrace("Entered ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
-            
-            _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
-                out var systemTransactionCount);
-            var systemTransactionReturnSets = await ExecuteTransactionsAsync(
-                nonCancellable.Take(systemTransactionCount).ToList(), blockHeader, null, CancellationToken.None);
-            Logger.LogTrace("Executed system txs");
-            
-            var returnSetCollection = new ExecutionReturnSetCollection(systemTransactionReturnSets);
-            var nonCancellableReturnSets = await ExecuteTransactionsAsync(
-                nonCancellable.Skip(systemTransactionCount).ToList(), blockHeader,
-                returnSetCollection.ToBlockStateSet(), CancellationToken.None);
-            returnSetCollection.AddRange(nonCancellableReturnSets);
+            var cancellable = cancellableTransactions.ToList();
+            var nonCancellableReturnSets =
+                await _transactionExecutingService.ExecuteAsync(
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
+                    CancellationToken.None);
             Logger.LogTrace("Executed non-cancellable txs");
 
-            var cancellable = cancellableTransactions.ToList();
-            var cancellableReturnSets = new List<ExecutionReturnSet>();
+            var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
+            List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
+
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
-                cancellableReturnSets = await ExecuteTransactionsAsync(cancellable, blockHeader,
-                    returnSetCollection.ToBlockStateSet(), cancellationToken);
+                cancellableReturnSets = await _transactionExecutingService.ExecuteAsync(
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = cancellable,
+                        PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+                    },
+                    cancellationToken);
                 returnSetCollection.AddRange(cancellableReturnSets);
                 Logger.LogTrace("Executed cancellable txs");
             }
@@ -102,20 +107,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
                 TransactionResultMap = transactionResults.ToDictionary(p => p.TransactionId, p => p)
             };
-        }
-
-        private async Task<List<ExecutionReturnSet>> ExecuteTransactionsAsync(List<Transaction> transactions,
-            BlockHeader blockHeader, BlockStateSet blockStateSet, CancellationToken cancellationToken)
-        {
-            if (!transactions.Any()) return new List<ExecutionReturnSet>();
-            return await _transactionExecutingService.ExecuteAsync(
-                new TransactionExecutingDto
-                {
-                    BlockHeader = blockHeader,
-                    Transactions = transactions,
-                    PartialBlockStateSet = blockStateSet
-                },
-                cancellationToken);
         }
 
         private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,

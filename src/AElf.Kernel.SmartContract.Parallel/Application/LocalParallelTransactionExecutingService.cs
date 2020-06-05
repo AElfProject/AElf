@@ -49,9 +49,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var returnSets = new List<ExecutionReturnSet>();
             List<ExecutionReturnSet> conflictingSets;
 
-            var hashSystemTransactionExtraData =
-                _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader, out _);
-            if (hashSystemTransactionExtraData)
+            if (_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader, out _))
             {
                 var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
                     blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);

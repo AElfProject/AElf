@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -6,7 +5,6 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application
 {
