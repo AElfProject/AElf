@@ -54,38 +54,12 @@ namespace AElf.Kernel.Miner
         }
 
         [Fact]
-        public async Task ValidateBlockBeforeExecute_WithoutExtraData_Test()
+        public async Task ValidateBlockBeforeExecute_Test()
         {
             var block = new Block
             {
                 Header = new BlockHeader()
             };
-            var validateResult = await _systemTransactionValidationProvider.ValidateBlockBeforeExecuteAsync(block);
-            validateResult.ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task ValidateBlockBeforeExecute_WithExtraData_False_Test()
-        {
-            var block = new Block
-            {
-                Header = new BlockHeader()
-            };
-            
-            _systemTransactionExtraDataProvider.SetSystemTransactionCount(0, block.Header);
-            var validateResult = await _systemTransactionValidationProvider.ValidateBlockBeforeExecuteAsync(block);
-            validateResult.ShouldBeFalse();
-        }
-        
-        [Fact]
-        public async Task ValidateBlockBeforeExecute_WithExtraData_True_Test()
-        {
-            var block = new Block
-            {
-                Header = new BlockHeader()
-            };
-            
-            _systemTransactionExtraDataProvider.SetSystemTransactionCount(1, block.Header);
             var validateResult = await _systemTransactionValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeTrue();
         }
