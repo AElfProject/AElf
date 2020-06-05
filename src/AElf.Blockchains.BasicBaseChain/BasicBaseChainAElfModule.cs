@@ -74,7 +74,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
-                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json")
+                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json", true)
                 .SetBasePath(contentRootPath)
                 .Build();
 
