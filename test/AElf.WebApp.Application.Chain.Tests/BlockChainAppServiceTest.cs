@@ -43,7 +43,6 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateService _blockchainStateService;
-        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
@@ -54,7 +53,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
@@ -384,7 +382,8 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
 
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
@@ -525,7 +524,8 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             responseTransactionIds.Count.ShouldBe(2);
 
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[0]);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[1]);
 
@@ -1208,7 +1208,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldBeNull();
 
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
 
             parameters = new Dictionary<string, string>
@@ -1233,7 +1233,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(chain.BestChainHash).ToBase64());
             sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
 
-            existTransaction = await _txHub.GetExecutableTransactionSetAsync();
+            existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }
 

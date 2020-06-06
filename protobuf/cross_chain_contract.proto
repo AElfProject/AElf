@@ -46,6 +46,9 @@ service CrossChainContract {
     rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
     rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
         option (aelf.is_view) = true;
     }
@@ -121,7 +124,7 @@ enum SideChainStatus
 {
     FATAL = 0;
     ACTIVE = 1;
-    INSUFFICIENT_BALANCE = 2;
+    INDEXING_FEE_DEBT = 2;
     TERMINATED = 3;
 }
 

@@ -279,11 +279,12 @@ namespace AElf.Contracts.Referendum
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
+            var proposalVirtualAddress = await ReferendumContractStub.GetProposalVirtualAddress.CallAsync(proposalId);
             long amount = 1000;
             await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
                 Amount = amount,
-                Spender = ReferendumContractAddress,
+                Spender = proposalVirtualAddress,
                 Symbol = "ELF"
             });
             var balance1 = await GetBalanceAsync("ELF", DefaultSender);
@@ -306,16 +307,14 @@ namespace AElf.Contracts.Referendum
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            
             var keyPair = Accounts[1].KeyPair;
             var userBalanceBeforeApprove =
                 await GetBalanceAsync("ELF", Address.FromPublicKey(keyPair.PublicKey));
             long amount = 1000;
-            await GetTokenContractTester(keyPair).Approve.SendAsync(new ApproveInput
-            {
-                Amount = amount,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
+
+            var tokenContractStub = GetTokenContractTester(keyPair);
+            await ApproveAllowanceAsync(keyPair, amount, proposalId);
             var referendumContractStub = GetReferendumContractTester(keyPair);
             await referendumContractStub.Approve.SendAsync(proposalId);
             var userBalance =
@@ -325,12 +324,7 @@ namespace AElf.Contracts.Referendum
             var transactionResult2 = await referendumContractStub.Approve.SendWithExceptionAsync(proposalId);
             transactionResult2.TransactionResult.Error.ShouldContain("Allowance not enough.");
 
-            await GetTokenContractTester(keyPair).Approve.SendAsync(new ApproveInput
-            {
-                Amount = amount,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
+            await ApproveAllowanceAsync(keyPair, amount, proposalId);
 
             var result = await referendumContractStub.Reject.SendWithExceptionAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -394,13 +388,13 @@ namespace AElf.Contracts.Referendum
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var amount = 5000;
             var accountApprove = Accounts[3];
-            await ApproveAllowanceAsync(accountApprove.KeyPair, amount);
+            await ApproveAllowanceAsync(accountApprove.KeyPair, amount, proposalId);
             var balanceApprove1 = await GetBalanceAsync("ELF", accountApprove.Address);
             var accountReject = Accounts[4];
-            await ApproveAllowanceAsync(accountReject.KeyPair, amount);
+            await ApproveAllowanceAsync(accountReject.KeyPair, amount, proposalId);
             var balanceReject1 = await GetBalanceAsync("ELF", accountReject.Address);
             var accountAbstain = Accounts[5];
-            await ApproveAllowanceAsync(accountAbstain.KeyPair, amount);
+            await ApproveAllowanceAsync(accountAbstain.KeyPair, amount, proposalId);
             var balanceAbstain1 = await GetBalanceAsync("ELF", accountAbstain.Address);
 
             await ApproveAsync(accountApprove.KeyPair, proposalId);
@@ -446,7 +440,7 @@ namespace AElf.Contracts.Referendum
                 await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress, timeStamp.AddSeconds(5));
             var amount = 5000;
             var account = Accounts[3];
-            await ApproveAllowanceAsync(account.KeyPair, amount);
+            await ApproveAllowanceAsync(account.KeyPair, amount, proposalId);
             var balance1 = await GetBalanceAsync("ELF", account.Address);
 
             await ApproveAsync(account.KeyPair, proposalId);
@@ -477,7 +471,7 @@ namespace AElf.Contracts.Referendum
 
             var account = Accounts[1];
             var amount = 2000;
-            await ApproveAllowanceAsync(account.KeyPair, amount);
+            await ApproveAllowanceAsync(account.KeyPair, amount, proposalId);
             await ApproveAsync(account.KeyPair, proposalId);
 
             var reclaimResult = await GetReferendumContractTester(account.KeyPair).ReclaimVoteToken
@@ -520,12 +514,12 @@ namespace AElf.Contracts.Referendum
                 var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
                 var keyPair1 = Accounts[1].KeyPair;
                 var amount = 1001;
-                await ApproveAllowanceAsync(keyPair1, amount);
+                await ApproveAllowanceAsync(keyPair1, amount, proposalId);
                 await ApproveAsync(keyPair1, proposalId);
                 var result = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
                 result.ToBeReleased.ShouldBeTrue();
                 var keyPair2 = Accounts[2].KeyPair;
-                await ApproveAllowanceAsync(keyPair2, amount);
+                await ApproveAllowanceAsync(keyPair2, amount, proposalId);
                 await AbstainAsync(keyPair2, proposalId);
                 result = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
                 result.ToBeReleased.ShouldBeFalse();
@@ -535,12 +529,12 @@ namespace AElf.Contracts.Referendum
                 var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
                 var keyPair1 = Accounts[1].KeyPair;
                 var amount = 1001;
-                await ApproveAllowanceAsync(keyPair1, amount);
+                await ApproveAllowanceAsync(keyPair1, amount, proposalId);
                 await ApproveAsync(keyPair1, proposalId);
                 var result = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
                 result.ToBeReleased.ShouldBeTrue();
                 var keyPair2 = Accounts[2].KeyPair;
-                await ApproveAllowanceAsync(keyPair2, amount);
+                await ApproveAllowanceAsync(keyPair2, amount, proposalId);
                 await RejectAsync(keyPair2, proposalId);
                 result = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
                 result.ToBeReleased.ShouldBeFalse();
@@ -559,7 +553,7 @@ namespace AElf.Contracts.Referendum
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var keyPair = Accounts[3].KeyPair;
             var amount = 2000;
-            await ApproveAllowanceAsync(keyPair, amount);
+            await ApproveAllowanceAsync(keyPair, amount, proposalId);
             await ApproveAsync(keyPair, proposalId);
 
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -591,7 +585,7 @@ namespace AElf.Contracts.Referendum
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var keyPair = Accounts[3].KeyPair;
             var amount = 5000;
-            await ApproveAllowanceAsync(keyPair, amount);
+            await ApproveAllowanceAsync(keyPair, amount, proposalId);
             await ApproveAsync(keyPair, proposalId);
 
             var referendumContractStub = GetReferendumContractTester(keyPair);
@@ -609,12 +603,7 @@ namespace AElf.Contracts.Referendum
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
-            await GetTokenContractTester(Accounts[3].KeyPair).Approve.SendAsync(new ApproveInput
-            {
-                Amount = minimalApproveThreshold,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
+            await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, proposalId);
 
             await ApproveAsync(Accounts[3].KeyPair, proposalId);
 
@@ -641,7 +630,7 @@ namespace AElf.Contracts.Referendum
             {
                 var amount = 5000;
                 var keyPair = Accounts[3].KeyPair;
-                await ApproveAllowanceAsync(keyPair, amount);
+                await ApproveAllowanceAsync(keyPair, amount, proposalId);
                 await ApproveAsync(keyPair, proposalId);
 
                 var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
@@ -659,7 +648,7 @@ namespace AElf.Contracts.Referendum
             {
                 var amount = 5000;
                 var keyPair = Accounts[3].KeyPair;
-                await ApproveAllowanceAsync(keyPair, amount);
+                await ApproveAllowanceAsync(keyPair, amount, proposalId);
 
                 //approve the same proposal again
                 var referendumContractStub = GetReferendumContractTester(keyPair);
@@ -686,7 +675,7 @@ namespace AElf.Contracts.Referendum
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var keyPair = Accounts[3].KeyPair;
-            await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
+            await ApproveAllowanceAsync(keyPair, minimalApproveThreshold, proposalId);
             await ApproveAsync(Accounts[3].KeyPair, proposalId);
             var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeTrue();
@@ -701,7 +690,7 @@ namespace AElf.Contracts.Referendum
                 var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                     proposalReleaseThresholdInput,
                     nameof(referendumContractStub.ChangeOrganizationThreshold), organizationAddress);
-                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
+                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold, changeProposalId);
                 await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
                 referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
                 var result = await referendumContractStub.Release.SendWithExceptionAsync(changeProposalId);
@@ -719,7 +708,7 @@ namespace AElf.Contracts.Referendum
                 var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
                     proposalReleaseThresholdInput,
                     nameof(ReferendumContractStub.ChangeOrganizationThreshold), organizationAddress);
-                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold);
+                await ApproveAllowanceAsync(keyPair, minimalApproveThreshold, changeProposalId);
                 await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
                 var referendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
                 var result = await referendumContractStub.Release.SendAsync(changeProposalId);
@@ -749,12 +738,7 @@ namespace AElf.Contracts.Referendum
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             var changeProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair, proposerWhiteList,
                 nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
-            await GetTokenContractTester(Accounts[3].KeyPair).Approve.SendAsync(new ApproveInput
-            {
-                Amount = minimalApproveThreshold,
-                Spender = ReferendumContractAddress,
-                Symbol = "ELF"
-            });
+            await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, changeProposalId);
             await ApproveAsync(Accounts[3].KeyPair, changeProposalId);
             ReferendumContractStub = GetReferendumContractTester(DefaultSenderKeyPair);
             var releaseResult = await ReferendumContractStub.Release.SendAsync(changeProposalId);
@@ -1014,12 +998,13 @@ namespace AElf.Contracts.Referendum
             referendumReceiptCreated.ReceiptType.ShouldBe(receiptType);
         }
         
-        private async Task ApproveAllowanceAsync(ECKeyPair keyPair, long amount, string symbol = "ELF")
+        private async Task ApproveAllowanceAsync(ECKeyPair keyPair, long amount, Hash proposalId, string symbol = "ELF")
         {
+            var proposalVirtualAddress = await ReferendumContractStub.GetProposalVirtualAddress.CallAsync(proposalId);
             await GetTokenContractTester(keyPair).Approve.SendAsync(new ApproveInput
             {
                 Amount = amount,
-                Spender = ReferendumContractAddress,
+                Spender = proposalVirtualAddress,
                 Symbol = symbol
             });
         }
