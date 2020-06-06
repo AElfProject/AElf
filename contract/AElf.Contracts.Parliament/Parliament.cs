@@ -292,6 +292,9 @@ namespace AElf.Contracts.Parliament
             AssertCurrentMiner();
             foreach (var proposalId in input.ProposalIds)
             {
+                var proposal = State.Proposals[proposalId];
+                if (proposal == null || !CheckProposalNotExpired(proposal)) 
+                    continue;
                 Approve(proposalId);
                 Context.LogDebug(() => $"Proposal {proposalId} approved by {Context.Sender}");
             }
