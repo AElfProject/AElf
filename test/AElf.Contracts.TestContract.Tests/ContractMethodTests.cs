@@ -37,7 +37,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_WithException_Test()
         {
-            var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
+            var managerStub = GetTestBasicFunctionContractStub(Accounts[1].KeyPair);
             var transactionResult = (await managerStub.UpdateBetLimit.SendWithExceptionAsync(
                 new BetLimitInput
                 {
@@ -52,7 +52,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_Success_Test()
         {
-            var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
+            var managerStub = GetTestBasicFunctionContractStub(Accounts[1].KeyPair);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
                 {
@@ -68,7 +68,7 @@ namespace AElf.Contract.TestContract
         {
             for (int i = 0; i < 10; i++)
             {
-                var testUser = SampleECKeyPairs.KeyPairs[i];
+                var testUser = Accounts[i].KeyPair;
                 var basicStub = GetTestBasicFunctionContractStub(testUser);
                 await basicStub.UserPlayBet.SendAsync(new BetInput
                 {
@@ -305,9 +305,9 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic_Mapped1Type_Test()
         {
-            var from = SampleAddress.AddressList[0].ToBase58();
+            var from = Accounts[0].Address.ToBase58();
             var pairA = "ELF";
-            var to = SampleAddress.AddressList[1].ToBase58();
+            var to = Accounts[1].Address.ToBase58();
             var pairB = "USDT";
                     
             await TestBasicSecurityContractStub.TestMapped2State.SendAsync(new Complex3Input

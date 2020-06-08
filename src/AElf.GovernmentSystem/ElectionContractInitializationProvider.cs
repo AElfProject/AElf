@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Contracts.Election;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.OS;
 using AElf.Types;
 using Google.Protobuf;
@@ -26,11 +26,11 @@ namespace AElf.GovernmentSystem
             _economicOptions = economicOptions.Value;
         }
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            return new List<InitializeMethod>
+            return new List<ContractInitializationMethodCall>
             {
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
                     Params = new InitialElectionContractInput
                     {

@@ -5,7 +5,7 @@ using AElf.CrossChain.Application;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +29,7 @@ namespace AElf.ContractTestBase
             Configure<ConsensusOptions>(options =>
             {
                 options.MiningInterval = 4000;
-                options.InitialMinerList = new List<string> {SampleECKeyPairs.KeyPairs[0].PublicKey.ToHex()};
+                options.InitialMinerList = new List<string> {SampleAccount.Accounts[0].KeyPair.PublicKey.ToHex()};
             });
             
             Configure<CrossChainConfigOptions>(options => { options.ParentChainId = "AELF"; });

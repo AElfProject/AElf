@@ -4,14 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using AElf.Types;
 using BenchmarkDotNet.Attributes;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
 {
@@ -20,7 +18,6 @@ namespace AElf.Benchmark
     {
         private IBlockExecutingService _blockExecutingService;
         private IBlockchainService _blockchainService;
-        private ITransactionResultManager _transactionResultManager;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private OSTestHelper _osTestHelper;
 
@@ -34,7 +31,6 @@ namespace AElf.Benchmark
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
@@ -59,9 +55,7 @@ namespace AElf.Benchmark
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                _block.Header.GetDisambiguatingHash());
+            await RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
         }
     }
 }

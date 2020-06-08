@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.CSharp.Core.Utils;
@@ -12,7 +13,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
-using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 using ProposalCreated = Acs3.ProposalCreated;
 using ProposalReleased = Acs3.ProposalReleased;
 
@@ -844,7 +844,7 @@ namespace AElf.Contracts.MultiToken
             Address tokenContractAddress, Hash name, bool isMainChain)
         {
             var validateTransaction = await GenerateTransactionAsync(basicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ValidateSystemContractAddress), null,
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.ValidateSystemContractAddress), null,
                 new ValidateSystemContractAddressInput
                 {
                     Address = tokenContractAddress,

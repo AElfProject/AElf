@@ -3,6 +3,8 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Kernel.Consensus.DPoS.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
+        <!--Conflict with contract-->
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.11.4" />

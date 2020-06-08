@@ -7,13 +7,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public interface ITotalResourceTokensMapsProvider
+    internal interface ITotalResourceTokensMapsProvider
     {
         Task<TotalResourceTokensMaps> GetTotalResourceTokensMapsAsync(IChainContext chainContext);
         Task SetTotalResourceTokensMapsAsync(IBlockIndex blockIndex, TotalResourceTokensMaps totalResourceTokensMap);
     }
 
-    public class TotalResourceTokensMapsProvider : BlockExecutedDataBaseProvider<TotalResourceTokensMaps>,
+    internal class TotalResourceTokensMapsProvider : BlockExecutedDataBaseProvider<TotalResourceTokensMaps>,
         ITotalResourceTokensMapsProvider, ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TotalResourceTokensMaps);

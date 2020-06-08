@@ -3,9 +3,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-    <PropertyGroup>
-        <NoWarn>0436</NoWarn>
-    </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
@@ -54,12 +51,6 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf/Proto/acs0.proto</Link>
-        </ContractReference>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
@@ -78,12 +69,6 @@
         <ContractStub Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractBase>
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>

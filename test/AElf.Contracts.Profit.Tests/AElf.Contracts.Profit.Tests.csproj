@@ -6,6 +6,7 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
+        <!--Conflict with contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
@@ -17,6 +18,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
+        <!-- TODO Remove reference to contract projects -->
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj" />

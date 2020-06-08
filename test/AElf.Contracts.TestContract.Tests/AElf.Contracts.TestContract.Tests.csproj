@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <!--Conflict with genesis contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
@@ -85,9 +86,6 @@
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf/Proto/stub/acs0.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf/Proto/acs2.proto</Link>

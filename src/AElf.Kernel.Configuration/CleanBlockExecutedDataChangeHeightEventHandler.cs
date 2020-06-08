@@ -6,7 +6,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Configuration
 {
-    public class CleanBlockExecutedDataChangeHeightEventHandler : CleanBlockExecutedDataChangeHeightBaseEventHandler<
+    internal class CleanBlockExecutedDataChangeHeightEventHandler : CleanBlockExecutedDataChangeHeightBaseEventHandler<
         BlockTransactionLimit>, ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
     {
         public CleanBlockExecutedDataChangeHeightEventHandler(

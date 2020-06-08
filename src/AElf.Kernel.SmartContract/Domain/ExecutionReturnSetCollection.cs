@@ -4,8 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Domain
 {
-    //TODO: rename
-    public class ReturnSetCollection
+    public class ExecutionReturnSetCollection
     {
         private List<ExecutionReturnSet> _executed = new List<ExecutionReturnSet>();
         private List<ExecutionReturnSet> _unexecutable = new List<ExecutionReturnSet>();
@@ -17,7 +16,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
         public List<ExecutionReturnSet> Conflict => _conflict;
 
-        public ReturnSetCollection(IEnumerable<ExecutionReturnSet> returnSets)
+        public ExecutionReturnSetCollection(IEnumerable<ExecutionReturnSet> returnSets)
         {
             AddRange(returnSets);
         }

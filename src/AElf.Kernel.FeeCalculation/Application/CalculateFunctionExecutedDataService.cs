@@ -5,6 +5,7 @@ using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,8 +17,9 @@ namespace AElf.Kernel.FeeCalculation.Application
     {
         public ILogger<CalculateFunctionExecutedDataService> Logger { get; set; }
 
-        public CalculateFunctionExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager) :
-            base(blockchainExecutedDataManager)
+        public CalculateFunctionExecutedDataService(IBlockchainExecutedDataManager blockchainExecutedDataManager,
+            IBlockchainExecutedDataCacheProvider<Dictionary<string, CalculateFunction>> blockchainExecutedDataCacheProvider) :
+            base(blockchainExecutedDataManager, blockchainExecutedDataCacheProvider)
         {
             Logger = NullLogger<CalculateFunctionExecutedDataService>.Instance;
         }
