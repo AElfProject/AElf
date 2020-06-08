@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 

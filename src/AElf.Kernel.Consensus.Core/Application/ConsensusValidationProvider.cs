@@ -52,7 +52,7 @@ namespace AElf.Kernel.Consensus.Application
                 return false;
             }
 
-            return await ValidateTransactionCount(block);
+            return true;
         }
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -74,10 +74,10 @@ namespace AElf.Kernel.Consensus.Application
             }, consensusExtraData.ToByteArray());
             if (!isValid) return false;
 
-            return await ValidateTransactionCount(block);
+            return ValidateTransactionCount(block);
         }
 
-        private async Task<bool> ValidateTransactionCount(IBlock block)
+        private bool ValidateTransactionCount(IBlock block)
         {
             var chainContext = new ChainContext
             {
@@ -87,9 +87,7 @@ namespace AElf.Kernel.Consensus.Application
             if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
                 return true;
 
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain.BestChainHash == block.Header.PreviousBlockHash &&
-                block.Body.TransactionsCount > _systemTransactionCount)
+            if (block.Body.TransactionsCount > _systemTransactionCount)
             {
                 Logger.LogWarning("Cannot package normal transaction.");
                 return false;
