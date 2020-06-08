@@ -11,7 +11,7 @@ using AElf.CSharp.Core.Extension;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
-        IBlocksExecutionSucceededLogEventProcessor
+        IBlockAcceptedLogEventProcessor
     {
         private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;

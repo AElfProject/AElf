@@ -18,18 +18,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
 
         public ILogger<IrreversibleBlockFoundLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager,
-            ITransactionPackingOptionProvider transactionPackingOptionProvider)
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
             _taskQueueManager = taskQueueManager;
-            _transactionPackingOptionProvider = transactionPackingOptionProvider;
 
             Logger = NullLogger<IrreversibleBlockFoundLogEventProcessor>.Instance;
         }
@@ -69,13 +66,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 if (libBlockHash == null) return;
 
-                // enable transaction packing
-                await _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(
-                    new BlockIndex
-                    {
-                        BlockHeight = block.Height,
-                        BlockHash = block.GetHash()
-                    }, true);
                 if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);

@@ -38,7 +38,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+                .AddSingleton<IBlockAcceptedLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
             
             context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
