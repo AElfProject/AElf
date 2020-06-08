@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 }
             }
 
-            if (totalTxFeesMap.Value.Any())
+            if (totalTxFeesMap.Value.Any()) // for some TransactionFeeCharged event with 0 fee to charge.
             {
                 await _totalTransactionFeesMapProvider.SetTotalTransactionFeesMapAsync(new BlockIndex
                 {

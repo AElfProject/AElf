@@ -41,8 +41,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 .AddSingleton<IBlockAcceptedLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
             
-            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
-
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.
             // (ConsensusOption itself can support all kinds of consensus protocol via adding more properties.)

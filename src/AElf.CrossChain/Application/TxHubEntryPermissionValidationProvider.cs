@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.CrossChain.Application
 {
+    // TODO: Remove all TxHubEntryPermissionValidationProviders.
     public class TxHubEntryPermissionValidationProvider : ITransactionValidationProvider
     {
         public bool ValidateWhileSyncing => false;
