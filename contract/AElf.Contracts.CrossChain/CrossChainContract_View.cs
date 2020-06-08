@@ -213,22 +213,31 @@ namespace AElf.Contracts.CrossChain
 
         public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
         {
-            var res = new GetPendingCrossChainIndexingProposalOutput();
-            var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
-                out var pendingCrossChainIndexingProposal);
-            Assert(exists, "Cross chain indexing with Pending status not found.");
+            // Deprecated
+            return new GetPendingCrossChainIndexingProposalOutput();
+        }
+        
+        public override GetIndexingProposalStatusOutput GetIndexingProposalStatus(Empty input)
+        {
+            var res = new GetIndexingProposalStatusOutput();
+            var pendingCrossChainIndexingProposal = State.IndexingPendingProposal.Value;
             var crossChainIndexingController = GetCrossChainIndexingController();
-
-            res.Proposer = pendingCrossChainIndexingProposal.Proposer;
-            res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
-            var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
-                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
-                pendingCrossChainIndexingProposal.ProposalId);
-
-            res.ToBeReleased = proposalInfo.ToBeReleased &&
-                               proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
-            res.ExpiredTime = proposalInfo.ExpiredTime;
-            res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
+            foreach (var chainIndexingProposal in pendingCrossChainIndexingProposal.ChainIndexingProposalCollections.Values)
+            {
+                var pendingChainIndexingProposalStatus = new PendingChainIndexingProposalStatus();
+                var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+                    nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
+                    chainIndexingProposal.ProposalId);
+                pendingChainIndexingProposalStatus.Proposer = chainIndexingProposal.Proposer;
+                pendingChainIndexingProposalStatus.ProposalId = chainIndexingProposal.ProposalId;
+                pendingChainIndexingProposalStatus.ToBeReleased =
+                    proposalInfo.ToBeReleased &&
+                    proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
+                pendingChainIndexingProposalStatus.ExpiredTime = proposalInfo.ExpiredTime;
+                pendingChainIndexingProposalStatus.ProposedCrossChainBlockData = chainIndexingProposal.ProposedCrossChainBlockData;
+                res.ChainIndexingProposalStatus[chainIndexingProposal.ChainId] = pendingChainIndexingProposalStatus;
+            }
+            
             return res;
         }
 

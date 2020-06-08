@@ -16,7 +16,7 @@ service ACS7 {
     }
     rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
     }
-    rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
+    rpc ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput) returns (google.protobuf.Empty) {
     }
     rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
     }
@@ -187,6 +187,10 @@ message IndexedParentChainBlockData {
 
 message IndexedSideChainBlockData{
     repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
+}
+
+message ReleaseCrossChainIndexingProposalInput{
+    repeated int32 chain_id_list = 1;
 }
 
 message RecordCrossChainDataInput{

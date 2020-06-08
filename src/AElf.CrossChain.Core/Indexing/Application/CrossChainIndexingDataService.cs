@@ -33,7 +33,7 @@ namespace AElf.CrossChain.Indexing.Application
             return _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
                 CrossChainSmartContractAddressNameProvider.StringName);
         }
-            
+
 
         public CrossChainIndexingDataService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
             ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
@@ -47,10 +47,10 @@ namespace AElf.CrossChain.Indexing.Application
             _contractReaderFactory = contractReaderFactory;
             _smartContractAddressService = smartContractAddressService;
         }
-        
+
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
-            long blockHeight)
+            long blockHeight, List<int> excludeChainIdList)
         {
             var crossChainContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
             {
@@ -70,6 +70,8 @@ namespace AElf.CrossChain.Indexing.Application
             {
                 var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
                 var sideChainId = sideChainIndexingInformation.ChainId;
+                if (excludeChainIdList.Contains(sideChainId))
+                    continue;
                 var sideChainHeightInLibValue = await _contractReaderFactory
                     .Create(new ContractReaderContext
                     {
@@ -136,7 +138,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         private async Task<List<ParentChainBlockData>> GetNonIndexedParentChainBlockDataAsync(Hash blockHash,
-            long blockHeight)
+            long blockHeight, List<int> excludeChainIdList)
         {
             var parentChainBlockDataList = new List<ParentChainBlockData>();
             var libExists = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
@@ -148,7 +150,7 @@ namespace AElf.CrossChain.Indexing.Application
                 BlockHash = blockHash,
                 BlockHeight = blockHeight
             });
-            
+
             var returnValue = await _contractReaderFactory.Create(new ContractReaderContext
                 {
                     BlockHash = blockHash,
@@ -157,7 +159,7 @@ namespace AElf.CrossChain.Indexing.Application
                 }).GetParentChainId
                 .CallAsync(new Empty());
             var parentChainId = returnValue?.Value ?? 0;
-            if (parentChainId == 0)
+            if (parentChainId == 0 || excludeChainIdList.Contains(parentChainId))
             {
                 //Logger.LogTrace("No configured parent chain");
                 // no configured parent chain
@@ -250,45 +252,51 @@ namespace AElf.CrossChain.Indexing.Application
 
         public async Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp)
         {
-            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, timestamp);
-            return pendingProposal != null && pendingProposal.ToBeReleased && pendingProposal.ExpiredTime > timestamp;
+            var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
+            var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
+            return toBeReleasedChainIdList.Count > 0;
         }
 
         public async Task<ByteString> PrepareExtraDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
             var utcNow = TimestampHelper.GetUtcNow();
-            var pendingProposal = await GetPendingCrossChainIndexingProposalAsync(blockHash, blockHeight, utcNow);
+            var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
 
-            if (pendingProposal == null || pendingProposal.ExpiredTime.AddMilliseconds(500) <= utcNow)
+
+            var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
+
+            if (toBeReleasedChainIdList.Count > 0)
             {
-                // propose new cross chain indexing data if pending proposal is null or expired 
-                var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight);
-                if (!crossChainBlockData.IsNullOrEmpty())
-                    _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
-                        new CrossChainTransactionInput
-                        {
-                            PreviousBlockHeight = blockHeight,
-                            MethodName =
-                                nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
-                            Value = crossChainBlockData.ToByteString()
-                        });
-                return ByteString.Empty;
+                // release pending proposal and unable to propose anything if it is ready
+                _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
+                    new CrossChainTransactionInput
+                    {
+                        PreviousBlockHeight = blockHeight,
+                        MethodName =
+                            nameof(CrossChainContractContainer.CrossChainContractStub
+                                .ReleaseCrossChainIndexingProposal),
+                        Value = new ReleaseCrossChainIndexingProposalInput {ChainIdList = {toBeReleasedChainIdList}}
+                            .ToByteString()
+                    });
+                var toBeReleasedCrossChainBlockData = AggregateToBeReleasedCrossChainData(
+                    toBeReleasedChainIdList.Select(chainId =>
+                        indexingProposalStatusList.ChainIndexingProposalStatus[chainId].ProposedCrossChainBlockData));
+                return toBeReleasedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
             }
-
-            if (!pendingProposal.ToBeReleased)
-                return ByteString.Empty; // do nothing if pending proposal is not ready to be released
-
-            // release pending proposal and unable to propose anything if it is ready
-            _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
-                new CrossChainTransactionInput
-                {
-                    PreviousBlockHeight = blockHeight,
-                    MethodName =
-                        nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
-                    Value = pendingProposal.ProposalId.ToByteString()
-                });
-            Logger.LogInformation("Cross chain extra data generated.");
-            return pendingProposal.ProposedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
+                
+            var pendingChainIdList =
+                FindPendingStatusChainIdList(indexingProposalStatusList, utcNow);
+            var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight, pendingChainIdList);
+            if (!crossChainBlockData.IsNullOrEmpty())
+                _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
+                    new CrossChainTransactionInput
+                    {
+                        PreviousBlockHeight = blockHeight,
+                        MethodName =
+                            nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
+                        Value = crossChainBlockData.ToByteString()
+                    });
+            return ByteString.Empty;
         }
 
         public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
@@ -343,10 +351,10 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
-            long blockHeight)
+            long blockHeight, List<int> excludeChainIdList)
         {
-            var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
-            var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
+            var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight, excludeChainIdList);
+            var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight, excludeChainIdList);
 
             var crossChainBlockData = new CrossChainBlockData
             {
@@ -357,7 +365,7 @@ namespace AElf.CrossChain.Indexing.Application
             return crossChainBlockData;
         }
 
-        private async Task<GetPendingCrossChainIndexingProposalOutput> GetPendingCrossChainIndexingProposalAsync(
+        private async Task<GetIndexingProposalStatusOutput> GetIndexingProposalStatusAsync(
             Hash blockHash, long blockHeight, Timestamp timestamp)
         {
             var pendingProposal = await _contractReaderFactory
@@ -372,8 +380,51 @@ namespace AElf.CrossChain.Indexing.Application
                     }),
                     Timestamp = timestamp
                 })
-                .GetPendingCrossChainIndexingProposal.CallAsync(new Empty());
+                .GetIndexingProposalStatus.CallAsync(new Empty());
             return pendingProposal;
+        }
+
+        private List<int> FindPendingStatusChainIdList(
+            GetIndexingProposalStatusOutput pendingChainIndexingProposalStatusList, Timestamp timestamp)
+        {
+            var pendingChainIdList = new List<int>();
+
+            foreach (var pair in pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus)
+            {
+                if (!pair.Value.ToBeReleased && pair.Value.ExpiredTime.AddMilliseconds(500) > timestamp)
+                {
+                    pendingChainIdList.Add(pair.Key);
+                }
+            }
+
+            return pendingChainIdList;
+        }
+        
+        private List<int> FindToBeReleasedChainIdList(
+            GetIndexingProposalStatusOutput pendingChainIndexingProposalStatusList, Timestamp timestamp)
+        {
+            var pendingChainIdList = new List<int>();
+            foreach (var pair in pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus)
+            {
+                if (pair.Value.ToBeReleased && pair.Value.ExpiredTime > timestamp)
+                {
+                    pendingChainIdList.Add(pair.Key);
+                }
+            }
+
+            return pendingChainIdList;
+        }
+
+        private CrossChainBlockData AggregateToBeReleasedCrossChainData(IEnumerable<CrossChainBlockData> toBeIndexedList)
+        {
+            var res = new CrossChainBlockData();
+            foreach (var chainBlockData in toBeIndexedList)
+            {
+                res.ParentChainBlockDataList.Add(chainBlockData.ParentChainBlockDataList);
+                res.SideChainBlockDataList.Add(chainBlockData.SideChainBlockDataList);
+            }
+
+            return res;
         }
     }
 }

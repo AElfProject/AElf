@@ -18,10 +18,7 @@ namespace AElf.Contracts.CrossChain
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
-            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal
-            {
-                Status = CrossChainIndexingProposalStatus.NonProposed
-            };
+            State.IndexingPendingProposal.Value = new ProposedCrossChainIndexing();
 
             CreateInitialOrganizationForInitialControllerAddress();
             if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
@@ -254,8 +251,8 @@ namespace AElf.Contracts.CrossChain
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             ClearCrossChainIndexingProposalIfExpired();
-            AssertValidCrossChainDataBeforeIndexing(input);
-            ProposeCrossChainBlockData(input, Context.Sender);
+            var crossChainDataDto = ValidateCrossChainDataBeforeIndexing(input);
+            ProposeCrossChainBlockData(crossChainDataDto, Context.Sender);
             return new Empty();
         }
 
@@ -266,21 +263,31 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override Empty ReleaseCrossChainIndexing(Hash input)
         {
+            // Deprecated
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
-            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
-                out var pendingCrossChainIndexingProposal);
-            Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
-                "Cross chain indexing pending proposal not found.");
-            HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId, pendingCrossChainIndexingProposal);
             return new Empty();
         }
 
-        public override Empty RecordCrossChainData(RecordCrossChainDataInput input)
+        public override Empty ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput input)
+        {
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
+            AssertAddressIsCurrentMiner(Context.Sender);
+            var recordCrossChainDataInput = TryReleaseIndexingProposal(input.ChainIdList);
+            return RecordCrossChainData(recordCrossChainDataInput);
+        }
+
+        public override Empty AcceptCrossChainIndexingProposal(AcceptCrossChainIndexingProposalInput input)
+        {
+            AssertCrossChainIndexingControllerAuthority(Context.Sender);
+            AssertIsCrossChainBlockDataAccepted(input.ChainId);
+            ResetChainIndexingProposal(input.ChainId);
+            return new Empty();
+        }
+
+        private Empty RecordCrossChainData(RecordCrossChainDataInput input)
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
-            AssertCrossChainIndexingControllerAuthority(Context.Sender);
-            AssertIsCrossChainBlockDataToBeReleased(input);
 
             var indexedParentChainBlockData =
                 IndexParentChainBlockData(input.ProposedCrossChainData.ParentChainBlockDataList);
@@ -303,9 +310,7 @@ namespace AElf.Contracts.CrossChain
                     $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
                 Context.Fire(new SideChainBlockDataIndexed());
             }
-
-            ResetCrossChainIndexingProposal();
-
+            
             Context.LogDebug(() => "Finished RecordCrossChainData.");
 
             return new Empty();

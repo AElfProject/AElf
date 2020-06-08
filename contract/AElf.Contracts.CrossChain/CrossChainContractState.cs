@@ -1,3 +1,4 @@
+using System;
 using Acs1;
 using Acs7;
 using AElf.Sdk.CSharp.State;
@@ -17,7 +18,7 @@ namespace AElf.Contracts.CrossChain
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
         
-        public SingletonState<CrossChainIndexingProposal> CrossChainIndexingProposal { get; set; }
+        public SingletonState<ProposedCrossChainIndexing> IndexingPendingProposal { get; set; }
         
         public MappedState<Address, long> BannedMinerHeight { get; set; }
         
@@ -33,6 +34,7 @@ namespace AElf.Contracts.CrossChain
         public MappedState<int, SideChainInfo> SideChainInfo { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
         
+        // public MappedState<int, CrossChainIndexingProposal> CrossChainIndexingProposals { get; set; }
         internal MappedState<int, BytesValue> SideChainInitialConsensusInfo { get; set; }
 
         public MappedState<long, IndexedSideChainBlockData> IndexedSideChainBlockData { get; set; }
