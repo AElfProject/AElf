@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
     internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
+        private readonly IPrimaryTokenSymbolService _primaryTokenSymbolService;
         private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
@@ -28,7 +28,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
-            IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
+            IPrimaryTokenSymbolService primaryTokenSymbolService,
             ITransactionFeeExemptionService transactionFeeExemptionService,
             IPrimaryTokenFeeService txFeeService,
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider,
@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             base("acs1")
         {
             _smartContractAddressService = smartContractAddressService;
-            _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
+            _primaryTokenSymbolService = primaryTokenSymbolService;
             _txFeeService = txFeeService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _contractReaderFactory = contractReaderFactory;
@@ -91,7 +91,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     MethodName = transactionContext.Transaction.MethodName,
                     ContractAddress = transactionContext.Transaction.To,
                     TransactionSizeFee = txCost,
-                    PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol(),
+                    PrimaryTokenSymbol = await _primaryTokenSymbolService.GetPrimaryTokenSymbol(),
                 };
                 
                 var transactionSizeFeeSymbols =

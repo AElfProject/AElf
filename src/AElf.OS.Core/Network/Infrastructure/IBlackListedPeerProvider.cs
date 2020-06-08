@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -27,29 +28,42 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool AddHostToBlackList(string host, int limitSeconds)
         {
+            CleanBlackList();
             return _blackListedPeers.TryAdd(host, TimestampHelper.GetUtcNow().AddSeconds(limitSeconds));
         }
 
         public bool RemoveHostFromBlackList(string host)
         {
+            Logger.LogDebug($"Removing blacklisted peer {host}");
             return _blackListedPeers.TryRemove(host, out _);
         }
 
         public bool IsIpBlackListed(string host)
         {
-            // TODO: It's weird to clean black listed peers while querying an ip is black listed.
-            CleanBlackListed();
-            return _blackListedPeers.ContainsKey(host);
+            if (!_blackListedPeers.TryGetValue(host, out var expirationDate)) 
+                return false;
+
+            if (IsOverdue(expirationDate))
+            {
+                RemoveHostFromBlackList(host);
+                return false;
+            }
+            
+            return true;
         }
 
-        private void CleanBlackListed()
+        private bool IsOverdue(Timestamp expirationDate)
+        {
+            return TimestampHelper.GetUtcNow() > expirationDate;
+        }
+        
+        private void CleanBlackList()
         {
             foreach (var blackListedPeer in _blackListedPeers)
             {
-                if (TimestampHelper.GetUtcNow() > blackListedPeer.Value 
-                    && _blackListedPeers.TryRemove(blackListedPeer.Key, out _))
+                if (IsOverdue(blackListedPeer.Value))
                 {
-                    Logger.LogDebug($"Removed blacklisted peer {blackListedPeer.Key}");
+                    RemoveHostFromBlackList(blackListedPeer.Key);
                 }
             }
         }

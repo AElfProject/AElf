@@ -1,6 +1,7 @@
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
+using AElf.Kernel.Token.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -10,7 +11,8 @@ namespace AElf.Kernel.ChainController
 {
     [DependsOn(
         typeof(ChainControllerAElfModule),
-        typeof(KernelCoreTestAElfModule)
+        typeof(KernelCoreTestAElfModule),
+        typeof(TokenKernelAElfModule)
     )]
     public class ChainControllerTestAElfModule : AElfModule
     {
@@ -19,7 +21,7 @@ namespace AElf.Kernel.ChainController
             var services = context.Services;
 
             services.AddTransient<ChainCreationService>();
-            services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
+            services.AddTransient<IPrimaryTokenSymbolProvider, PrimaryTokenSymbolProvider>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }

@@ -5,13 +5,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public interface ITransactionSizeFeeSymbolsProvider
+    internal interface ITransactionSizeFeeSymbolsProvider
     {
         Task<TransactionSizeFeeSymbols> GetTransactionSizeFeeSymbolsAsync(IChainContext chainContext);
         Task SetTransactionSizeFeeSymbolsAsync(IBlockIndex blockIndex, TransactionSizeFeeSymbols transactionSizeFeeSymbols);
     }
 
-    public class TransactionSizeFeeSymbolsProvider : BlockExecutedDataBaseProvider<TransactionSizeFeeSymbols>, ITransactionSizeFeeSymbolsProvider,
+    internal class TransactionSizeFeeSymbolsProvider : BlockExecutedDataBaseProvider<TransactionSizeFeeSymbols>, ITransactionSizeFeeSymbolsProvider,
         ISingletonDependency
     {
         private const string BlockExecutedDataName = nameof(TransactionSizeFeeSymbols);

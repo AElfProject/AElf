@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 700;
-        private const int PingTimeout = 1000;
+        private const int CheckHealthTimeout = 1000;
         private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
@@ -203,17 +203,17 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = libAnnouncement.LibHeight;
         }
 
-        public async Task PingAsync()
+        public async Task CheckHealthAsync()
         {
-            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Ping failed." };
+            var request = new GrpcRequest { ErrorMessage = "Check health failed." };
 
-            Metadata data = new Metadata
+            var data = new Metadata
             {
-                { GrpcConstants.TimeoutMetadataKey, PingTimeout.ToString() },
+                { GrpcConstants.TimeoutMetadataKey, CheckHealthTimeout.ToString() },
                 { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
             };
 
-            await RequestAsync(() => _client.PingAsync(new PingRequest(), data), request);
+            await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)

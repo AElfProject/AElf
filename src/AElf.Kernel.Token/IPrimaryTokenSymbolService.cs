@@ -1,43 +1,40 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
+using AElf.Kernel.Token.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Blockchains.SideChain
+namespace AElf.Kernel.Token
 {
-    internal class SideChainPrimaryTokenSymbolProvider : IPrimaryTokenSymbolProvider
+    public interface IPrimaryTokenSymbolService
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub>
-            _contractReaderFactory;
-        private readonly IBlockchainService _blockchainService;
-        private string _primaryTokenSymbol;
+        Task<string> GetPrimaryTokenSymbol();
+    }
 
-        public SideChainPrimaryTokenSymbolProvider(IBlockchainService blockchainService,
-            ISmartContractAddressService smartContractAddressService,
+    internal class PrimaryTokenSymbolService : IPrimaryTokenSymbolService
+    {
+        private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
+        private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IContractReaderFactory<TokenContractContainer.TokenContractStub> _contractReaderFactory;
+
+        public PrimaryTokenSymbolService(IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
+            IBlockchainService blockchainService, ISmartContractAddressService smartContractAddressService,
             IContractReaderFactory<TokenContractContainer.TokenContractStub> contractReaderFactory)
         {
+            _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
             _contractReaderFactory = contractReaderFactory;
         }
 
-        public void SetPrimaryTokenSymbol(string symbol)
-        {
-            if (_primaryTokenSymbol == null)
-            {
-                _primaryTokenSymbol = symbol;
-            }
-        }
-
         public async Task<string> GetPrimaryTokenSymbol()
         {
-            if (_primaryTokenSymbol != null)
+            var tokenSymbol = _primaryTokenSymbolProvider.GetPrimaryTokenSymbol();
+            if (tokenSymbol != null)
             {
-                return _primaryTokenSymbol;
+                return tokenSymbol;
             }
 
             var chain = await _blockchainService.GetChainAsync();
@@ -47,14 +44,15 @@ namespace AElf.Blockchains.SideChain
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 }, TokenSmartContractAddressNameProvider.StringName);
-            _primaryTokenSymbol = (await _contractReaderFactory.Create(new ContractReaderContext
+            tokenSymbol = (await _contractReaderFactory.Create(new ContractReaderContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight,
                 ContractAddress = tokenContractAddress
             }).GetPrimaryTokenSymbol.CallAsync(new Empty())).Value;
+            _primaryTokenSymbolProvider.SetPrimaryTokenSymbol(tokenSymbol);
 
-            return _primaryTokenSymbol;
+            return tokenSymbol;
         }
     }
 }
