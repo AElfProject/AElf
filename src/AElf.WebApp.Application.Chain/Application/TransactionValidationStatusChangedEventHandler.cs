@@ -1,11 +1,14 @@
 using System.Threading.Tasks;
-using AElf.Kernel.TransactionPool;
+using AElf.Kernel;
 using AElf.WebApp.Application.Chain.Infrastructure;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.WebApp.Application.Chain.Application
 {
-    public class TransactionValidationStatusChangedEventHandler : ILocalEventHandler<TransactionValidationStatusChangedEvent>
+    public class TransactionValidationStatusChangedEventHandler :
+        ILocalEventHandler<TransactionValidationStatusChangedEvent>,
+        ITransientDependency
     {
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
