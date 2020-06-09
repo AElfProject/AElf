@@ -38,7 +38,8 @@ namespace AElf.Kernel.Consensus.Application
             block.Header = new BlockHeader
             {
                 Height = 10,
-                ExtraData = {{ConsensusConstants.ConsensusExtraDataKey, ByteString.CopyFromUtf8("test")}}
+                ExtraData = {{ConsensusConstants.ConsensusExtraDataKey, ByteString.CopyFromUtf8("test")}},
+                PreviousBlockHash = HashHelper.ComputeFrom("PreviousBlockHash")
             };
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
