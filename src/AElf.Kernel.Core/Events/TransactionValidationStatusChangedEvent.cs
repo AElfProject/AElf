@@ -1,6 +1,6 @@
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool
+namespace AElf.Kernel
 {
     public class TransactionValidationStatusChangedEvent
     {

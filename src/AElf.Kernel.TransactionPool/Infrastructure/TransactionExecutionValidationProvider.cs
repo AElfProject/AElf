@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public class TransactionExecutionValidationProvider : ITransactionValidationProvider
     {
         private readonly IPlainTransactionExecutingService _plainTransactionExecutingService;
-        private readonly IBlockchainService _blockchainService;
         private readonly TransactionOptions _transactionOptions;
         public ILocalEventBus LocalEventBus { get; set; }
 
@@ -24,7 +22,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             IBlockchainService blockchainService, IOptionsMonitor<TransactionOptions> transactionOptionsMonitor)
         {
             _plainTransactionExecutingService = plainTransactionExecutingService;
-            _blockchainService = blockchainService;
             _transactionOptions = transactionOptionsMonitor.CurrentValue;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -35,12 +32,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             if (!_transactionOptions.EnableTransactionExecutionValidation)
                 return true;
-
-            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-            {
-                TransactionId = transaction.GetHash(),
-                TransactionResultStatus = TransactionResultStatus.PendingValidation
-            });
 
             var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
             {
@@ -57,9 +48,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 executionReturnSets.FirstOrDefault()?.Status == TransactionResultStatus.Mined;
             if (!executionValidationResult)
             {
+                var transactionId = transaction.GetHash();
+                // TODO: Consider to remove TransactionExecutionValidationFailedEvent.
                 await LocalEventBus.PublishAsync(new TransactionExecutionValidationFailedEvent
                 {
-                    TransactionId = transaction.GetHash()
+                    TransactionId = transactionId
+                });
+                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                {
+                    TransactionId = transactionId,
+                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                    Error = executionReturnSets.FirstOrDefault()?.TransactionResult.Error
                 });
             }
 
