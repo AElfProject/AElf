@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.WebApp.Application.Chain.Infrastructure;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -33,16 +34,19 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
         public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
         }
 
         /// <summary>
@@ -70,7 +74,17 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
-                output.Status = transactionResult.Status.ToString();
+                var validationStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+                if (validationStatus == null)
+                {
+                    output.Status = transactionResult.Status.ToString();
+
+                }
+                else
+                {
+                    output.Status = validationStatus.TransactionResultStatus.ToString();
+                    output.Error = validationStatus.Error;
+                }
                 return output;
             }
 

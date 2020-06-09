@@ -36,6 +36,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (!_transactionOptions.EnableTransactionExecutionValidation)
                 return true;
 
+            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+            {
+                TransactionId = transaction.GetHash(),
+                TransactionResultStatus = TransactionResultStatus.PendingValidation
+            });
+
             var executionReturnSets = await _plainTransactionExecutingService.ExecuteAsync(new TransactionExecutingDto()
             {
                 Transactions = new[] {transaction},
