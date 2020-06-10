@@ -48,7 +48,7 @@ extensions = ['recommonmark',
               'sphinx.ext.viewcode'
             ]
 
-latex_engine = 'xelatex'
+#latex_engine = 'xelatex'
 
 # source_parsers = {
 #     '.md': CommonMarkParser,
