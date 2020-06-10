@@ -236,4 +236,4 @@ http://your-ip:8002/swagger/index.html
 
 The ip should be localhost if your browser and docker are running local.
 
-From here you can try out any of the available API commands on the Swagger page. You can also have a look at the API reference [**here**](../../reference/web-api/reference.md).
+From here you can try out any of the available API commands on the Swagger page. You can also have a look at the API reference [**here**](../../reference/web-api/web-api.md).

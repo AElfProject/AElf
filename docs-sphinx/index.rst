@@ -51,5 +51,4 @@ Welcome to first doc's documentation!
    
    tutorials/boot-sequence/cross-chain/running-side-chain
    tutorials/__run-node
-   reference/web-api/reference
    reference/cli/cli
