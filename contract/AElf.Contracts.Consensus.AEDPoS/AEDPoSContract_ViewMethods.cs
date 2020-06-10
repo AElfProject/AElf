@@ -187,10 +187,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
             }
-            else if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
-            }
 
             Context.LogDebug(() =>
                 $"Extra block producer of previous round: {currentRound.ExtraBlockProducerOfPreviousRound}");
