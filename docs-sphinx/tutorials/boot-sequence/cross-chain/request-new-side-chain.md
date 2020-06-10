@@ -12,7 +12,7 @@ This creation of a side-chain (logical, on-chain creation) is done in four steps
 
 Keep in mind that this is just the logical on-chain creation of the side-chain. After the side-chain is released there's extra steps needed for it to be a fully functional blockchain, including the producers running the side-chain's nodes.
 
-Note: for more information about the meaning of the different fields, refer to the document in the [cross-chain section](../../crosschain/setup.md).
+Note: for more information about the meaning of the different fields, refer to the document in the [cross-chain section](../../../architecture/cross-chain/setup.md).
 
 ## Set-up 
 

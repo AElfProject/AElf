@@ -1,5 +1,5 @@
 Wallet and Block Explorer
-============
+=========================
 
 Explorer
 --------

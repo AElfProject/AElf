@@ -6,7 +6,7 @@ Side-chains can be created in the AELF ecosystem to enable scalability. The prop
 
 This section show the API to use in order to propose the creation of a side-chain. The fields that are in the **SideChainCreationRequest** will determine the type of side-chain that is created. Later sections explain what they mean.
 
-Note: for a more practical approach you can follow the [request side-chain creation](../tutorials/cross-chain/request-new-side-chain.md).
+Note: for a more practical approach you can follow the [request side-chain creation](../../tutorials/boot-sequence/cross-chain/request-new-side-chain.md).
 
 ```Proto
 rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }

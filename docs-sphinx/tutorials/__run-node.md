@@ -47,7 +47,7 @@ Account info has been saved to "/Users/xxx/.local/share/**aelf**/keys/2Ue31YTuB5
 In the next steps of the tutorial you will need the **Public Key** and the **Address** for the account you just created. You'll notice the last line of the 
 commands output will show you the path to the newly created key. The **aelf** is the data directory (datadir) and this is where the node will read the keys from.
 
-Note that a more detailed section about the cli can be found [command line interface](../resources/cli/cli.md).
+Note that a more detailed section about the cli can be found [command line interface](../reference/cli/cli.md).
 
 ### Node configuration
 

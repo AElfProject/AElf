@@ -22,7 +22,7 @@ import Aelf from 'aelf-sdk';
 const address = aelf.wallet.getAddressFromPubKey(pubKey);
 ```
 
-For more information about how the js-sdk works, please refer to the [SDK reference](../sdk/javascript/js-sdk.md).
+For more information about how the js-sdk works, please refer to the [SDK reference](../reference/chain-sdk/javascript/js-sdk.md).
 
 Finally here is the Protobuf message we use for representing an address, it is often used by other types to represent addresses:
 

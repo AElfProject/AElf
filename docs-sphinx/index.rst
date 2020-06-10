@@ -44,66 +44,12 @@ Welcome to first doc's documentation!
    :caption: Resources
 
    resources/index
-   
+
 
 .. toctree::
    :hidden:
    
-   README
-   tutorials/main
-   contract/main
-   crosschain/main
-   public-chain/main
-   architecture/main
-   sdk/contract-sdk
-   resources/resources
-   advanced/CONSENSUS
-   advanced/INTEROPERABILITY
-   advanced/SCHEDULER
-   contract/definition
-   contract/implementation
-   contract/introduction
-   sdk/csharp/main
-   contract/update
-   development/architecture
-   development/main-class
-   development/main-sequence
-   development/smart-contract
-   introduction/config
-   introduction/main
-   multitoken/contract
-   old-docs/README
-   old-docs/consensus
-   old-docs/interoperability
-   old-docs/roadmap
-   old-docs/scheduler
-   old-docs/technical/README
-   old-docs/technical/desgin
-   old-docs/technical/main-page
-   old-docs/technical/serialization
-   performance/performance
-   protocol/addresses
-   protocol/blocks
-   protocol/main
-   protocol/transactions
-   public-chain/multi-level-chain
-   sdk/csharp/core-sdk
-   sdk/csharp/contract-sdk
-   sdk/javascript/aelf
-   sdk/javascript/wallet
-   technical/design
-   technical/main-page
-   technical/serialization
-   tutorials/DApp/__save-smart-contract-helloworld
-   tutorials/DApp/browser-extension
-   tutorials/DApp/jssdk
-   tutorials/DApp/main
+   tutorials/boot-sequence/cross-chain/running-side-chain
    tutorials/__run-node
-   tutorials/__save
-   tutorials/cross-chain/main
-   tutorials/developing-smart-contracts/complex-state
-   tutorials/developing-smart-contracts/descriptors
-   tutorials/developing-smart-contracts/extra-types
-   tutorials/developing-smart-contracts/token-issue
-   tutorials/setup/multi-nodes
-   wallet-and-explorer/wallet
+   reference/web-api/reference
+   reference/cli/cli

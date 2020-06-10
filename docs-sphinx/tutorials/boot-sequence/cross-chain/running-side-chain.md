@@ -11,7 +11,7 @@ Note: this tutorial assumes the following:
 
 It's also **important** to know that the key-pair (account) used for mining on the side-chain must be the **same** as the one you use for mining on the main-chain. Said in another way both production nodes need to be launched with the **same** key-pair.
 
-Note: for more information about the side-chain creation, refer to the document in the [cross-chain section](../../crosschain/setup.md).
+Note: for more information about the side-chain creation, refer to the document in the [cross-chain section](../../../architecture/cross-chain/setup.md).
 
 ### Side chain configuration:
 
@@ -26,30 +26,31 @@ In this example, we will set up the side-chain node with **tDVV** (1866392 conve
 If at the time of launching the side-chain the P2P addresses of the other producers is know, they should be added to the bootnodes in the configuration of the side-chain.
 
 In **appsettings.json** change the following configuration sections:
+
 ```json
 {
   "ChainId":"tDVV",
   "ChainType":"SideChain",
   "NetType": "MainNet",
   "ConnectionStrings": {
-          "BlockchainDb": "redis://localhost:6379?db=2",
-          "StateDb": "redis://localhost:6379?db=2"
+    "BlockchainDb": "redis://localhost:6379?db=2",
+    "StateDb": "redis://localhost:6379?db=2"
   },
   "Account": {
-      "NodeAccount": "YOUR PRODUCER ACCOUNT",
-      "NodeAccountPassword": "YOUR PRODUCER PASSWORD"
+    "NodeAccount": "YOUR PRODUCER ACCOUNT",
+    "NodeAccountPassword": "YOUR PRODUCER PASSWORD"
   },
   "Kestrel": {
-      "EndPoints": {
-          "Http": {
-              "Url": "http://*:1235/"
-          }
-      }
+    "EndPoints": {
+        "Http": {
+            "Url": "http://*:1235/"
+        }
+    }
   },
   "Consensus": {
-      "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
-      "MiningInterval": 4000,
-      "StartTimestamp": 0
+    "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
+    "MiningInterval": 4000,
+    "StartTimestamp": 0
   },
 }
 ```
