@@ -16,44 +16,46 @@ namespace AElf.Kernel.Proposal.Application
     public class ProposalApprovalTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly IProposalService _proposalService;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        
+        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
+
         public ILogger<ProposalApprovalTransactionGenerator> Logger { get; set; }
 
         public ProposalApprovalTransactionGenerator(IProposalService proposalService,
             ISmartContractAddressService smartContractAddressService,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            ITransactionPackingOptionProvider transactionPackingOptionProvider)
         {
             _proposalService = proposalService;
             _smartContractAddressService = smartContractAddressService;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
+            _transactionPackingOptionProvider = transactionPackingOptionProvider;
 
             Logger = NullLogger<ProposalApprovalTransactionGenerator>.Instance;
         }
-        
-        public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight, Hash preBlockHash)
+
+        public async Task<List<Transaction>> GenerateTransactionsAsync(Address from, long preBlockHeight,
+            Hash preBlockHash)
         {
             var generatedTransactions = new List<Transaction>();
-            if (!_transactionPackingOptions.IsTransactionPackable)
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash, BlockHeight = preBlockHeight
+            };
+            if (!_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
                 return generatedTransactions;
 
             var parliamentContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
-                new ChainContext
-                {
-                    BlockHash = preBlockHash,
-                    BlockHeight = preBlockHeight
-                }, ParliamentSmartContractAddressNameProvider.StringName);
+                chainContext, ParliamentSmartContractAddressNameProvider.StringName);
 
             if (parliamentContractAddress == null)
             {
                 return generatedTransactions;
             }
 
-            var proposalIdList = await _proposalService.GetNotApprovedProposalIdListAsync(from, preBlockHash, preBlockHeight);
-            if (proposalIdList == null || proposalIdList.Count == 0) 
+            var proposalIdList =
+                await _proposalService.GetNotApprovedProposalIdListAsync(from, preBlockHash, preBlockHeight);
+            if (proposalIdList == null || proposalIdList.Count == 0)
                 return generatedTransactions;
-            
+
             var generatedTransaction = new Transaction
             {
                 From = from,
@@ -67,7 +69,7 @@ namespace AElf.Kernel.Proposal.Application
                 }.ToByteString()
             };
             generatedTransactions.Add(generatedTransaction);
-            
+
             Logger.LogInformation("Proposal approval transaction generated.");
 
             return generatedTransactions;
