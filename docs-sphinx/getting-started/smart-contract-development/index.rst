@@ -3,6 +3,7 @@ Smart Contract Development
 
 .. toctree::
 
-   Hello World Contract <hello-world>
+   Greeter Contract <greeter-contract/index>
    Contract Deployment <deployment>
-   AElf Boilerplate <developing-smart-contracts/index>
+   AElf Boilerplate <https://boilerplate-doc.readthedocs.io/en/latest/> 
+
