@@ -1,6 +1,6 @@
 .. toctree::
 
-    Consensus <>
+    Consensus <consensus>
     Network <network>
     Addresses <addresses>
     Transactions <transactions>

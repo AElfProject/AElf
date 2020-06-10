@@ -1,2 +1,0 @@
-## Smart contract introduction
-

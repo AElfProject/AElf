@@ -210,9 +210,10 @@ namespace AElf.Contracts.Profit
             }
 
             // Remove details too old.
-            foreach (var detail in currentProfitDetails.Details.Where(
+            var oldProfitDetails = currentProfitDetails.Details.Where(
                 d => d.EndPeriod != long.MaxValue && d.LastProfitPeriod >= d.EndPeriod &&
-                     d.EndPeriod.Add(scheme.ProfitReceivingDuePeriodCount) < scheme.CurrentPeriod))
+                     d.EndPeriod.Add(scheme.ProfitReceivingDuePeriodCount) < scheme.CurrentPeriod).ToList();
+            foreach (var detail in oldProfitDetails)
             {
                 currentProfitDetails.Details.Remove(detail);
             }

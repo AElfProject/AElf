@@ -4,6 +4,11 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <!--Conflict with genesis contract-->
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
     </ItemGroup>

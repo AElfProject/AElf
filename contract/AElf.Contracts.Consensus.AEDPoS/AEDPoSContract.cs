@@ -22,7 +22,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            if (State.Initialized.Value) return new Empty();
+            Assert(State.CurrentRoundNumber.Value == 0 && !State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
 
             State.PeriodSeconds.Value = input.IsTermStayOne
                 ? int.MaxValue
@@ -79,10 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty FirstRound(Round input)
         {
             /* Basic checks. */
-
-            // Ensure the execution of the current method only happened
-            // at the very beginning of the consensus process.
-            if (State.CurrentRoundNumber.Value != 0) return new Empty();
+            Assert(State.CurrentRoundNumber.Value == 0, "Already initialized.");
 
             /* Initial settings. */
             State.CurrentTermNumber.Value = 1;
@@ -193,10 +191,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
-            {
-                return new Empty();
-            }
+            Assert(
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                "Only Cross Chain Contract can call this method.");
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
 
@@ -220,7 +217,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                Pubkeys = {minersKeys.Select(k => k.ToByteString())}
+                Pubkeys = {minersKeys.Select(ByteStringHelper.FromHexString)}
             };
 
             return new Empty();

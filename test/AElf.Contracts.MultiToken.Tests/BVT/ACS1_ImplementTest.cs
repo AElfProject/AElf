@@ -4,7 +4,6 @@ using Acs3;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -103,6 +102,27 @@ namespace AElf.Contracts.MultiToken
                 var approveResult = await tester.Approve.SendAsync(proposalId);
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
+        }
+
+        [Fact]
+        public async Task SendInvalidTransactionsTest()
+        {
+            const string assertionMessage = "This method can only be executed in plugin tx.";
+
+            var txResult =
+                (await TokenContractStub.ChargeTransactionFees.SendWithExceptionAsync(new ChargeTransactionFeesInput()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
+
+            txResult =
+                (await TokenContractStub.ChargeResourceToken.SendWithExceptionAsync(new ChargeResourceTokenInput()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
+
+            txResult =
+                (await TokenContractStub.CheckResourceToken.SendWithExceptionAsync(new Empty()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
         }
     }
 }

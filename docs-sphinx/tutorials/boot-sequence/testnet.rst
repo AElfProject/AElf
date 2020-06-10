@@ -112,7 +112,7 @@ aelf directory is the data directory (datadir) and this is where the
 node will read the keys from.
 
 Note that a more detailed section about the CLI can be found
-:doc:`here <cli/introduction>` 
+:doc:`here <../../reference/cli/introduction>` 
 
 Prepare node configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
