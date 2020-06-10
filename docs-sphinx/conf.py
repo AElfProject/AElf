@@ -41,8 +41,14 @@ source_suffix = ['.rst', '.md']
 #     'sphinx.ext.mathjax',
 #     'recommonmark',
 # ]
-extensions = ['recommonmark', 'plantweb.directive'
-]
+extensions = ['recommonmark', 
+              'plantweb.directive',
+              'sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              'sphinx.ext.viewcode'
+            ]
+
+latex_engine = 'xelatex'
 
 # source_parsers = {
 #     '.md': CommonMarkParser,
@@ -78,7 +84,8 @@ release = recommonmark.__version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'zh-CN'
+locale_dirs = ['locale/'] 
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -308,7 +315,7 @@ html_theme_options = {
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,
-    'navigation_depth': 6,
+    'navigation_depth': 4,
     'includehidden': False,
     'titles_only': False,
 }
