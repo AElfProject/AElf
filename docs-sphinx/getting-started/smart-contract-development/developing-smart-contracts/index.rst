@@ -67,9 +67,5 @@ focus on exposing more complex functionality.
    :caption: Smart contract development
    
    Setup Boilerplate <setup>
-   First Contract - Implement <first-contract>
-   First Contract - Test <first-contract-test>
-   First Contract - Deploy <first-contract-deploy>
-   First Contract - Front End <front>
    Execution Context <tx-execution-context>
    Inline Contract Calls <internal-contract-call>
