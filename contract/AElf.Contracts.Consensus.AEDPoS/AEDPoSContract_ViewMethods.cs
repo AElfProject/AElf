@@ -225,7 +225,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Check saving extra block time slot.
             var arrangedMiningTime =
                 currentRound.ArrangeAbnormalMiningTime(pubkey, currentRound.GetExtraBlockMiningTime(), true);
-            if (arrangedMiningTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            if (arrangedMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
             {
                 Context.LogDebug(() => "[CURRENT MINER]SAVING");
                 return true;
@@ -251,7 +252,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Miners of new round are same with current round.
                 var miners = new MinerList();
-                miners.Pubkeys.AddRange(currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
+                miners.Pubkeys.AddRange(
+                    currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
                 newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
                     Context.CurrentBlockTime, currentRound);
             }
@@ -552,6 +554,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return result;
+        }
+
+        public override Int64Value GetMaximumMinersCount(Empty input)
+        {
+            if (State.BlockchainStartTimestamp.Value == null)
+            {
+                return new Int64Value {Value = AEDPoSContractConstants.SupposedMinersCount};
+            }
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return new Int64Value();
+            return new Int64Value
+            {
+                Value = Math.Min(currentRound.RealTimeMinersInformation.Count <
+                                 AEDPoSContractConstants.SupposedMinersCount
+                    ? AEDPoSContractConstants.SupposedMinersCount
+                    : AEDPoSContractConstants.SupposedMinersCount.Add(
+                        (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                        .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value)
+            };
         }
     }
 }

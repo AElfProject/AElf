@@ -91,6 +91,9 @@ service AEDPoSContract {
     rpc GetRandomHash (google.protobuf.Int64Value) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
+    rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {

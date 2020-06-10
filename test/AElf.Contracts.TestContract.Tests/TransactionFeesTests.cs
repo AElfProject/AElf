@@ -20,6 +20,7 @@ using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contract.TestContract
 {
+    // TODO: Need to be refactored by new framework.
     public class TransactionFeesTests : TestFeesContractTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
