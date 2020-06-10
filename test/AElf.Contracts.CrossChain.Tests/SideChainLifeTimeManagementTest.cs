@@ -1368,7 +1368,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 // Create proposal and approve
                 // var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
                 var txResult =
-                    await CreateSideChainByDefaultSenderAsync(true, 0, 0, lockedTokenAmount, 1, true);
+                    await CreateSideChainAsync(true, 0, 0, lockedTokenAmount, 1, true);
                 var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(txResult.Logs
                     .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
                 
@@ -1396,7 +1396,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 // Create proposal and approve
                 var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
                 var txResult =
-                    await CreateSideChainByDefaultSenderAsync(false, 0, parentChainId, lockedTokenAmount, 1, false);
+                    await CreateSideChainAsync(false, 0, parentChainId, lockedTokenAmount, 1, false);
+
                 var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(txResult.Logs
                     .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
                 var sideChainId = sideChainCreatedEvent.ChainId;

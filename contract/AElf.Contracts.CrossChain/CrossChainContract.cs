@@ -273,8 +273,9 @@ namespace AElf.Contracts.CrossChain
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
-            var recordCrossChainDataInput = TryReleaseIndexingProposal(input.ChainIdList);
-            return RecordCrossChainData(recordCrossChainDataInput);
+            ReleaseIndexingProposal(input.ChainIdList);
+            RecordCrossChainData(input.ChainIdList);
+            return new Empty();
         }
 
         public override Empty AcceptCrossChainIndexingProposal(AcceptCrossChainIndexingProposalInput input)
@@ -282,37 +283,6 @@ namespace AElf.Contracts.CrossChain
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
             AssertIsCrossChainBlockDataAccepted(input.ChainId);
             ResetChainIndexingProposal(input.ChainId);
-            return new Empty();
-        }
-
-        private Empty RecordCrossChainData(RecordCrossChainDataInput input)
-        {
-            Context.LogDebug(() => "Start RecordCrossChainData.");
-
-            var indexedParentChainBlockData =
-                IndexParentChainBlockData(input.ProposedCrossChainData.ParentChainBlockDataList);
-
-            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
-            {
-                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.LogDebug(() =>
-                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
-            }
-
-            var indexedSideChainBlockData = IndexSideChainBlockData(
-                input.ProposedCrossChainData.SideChainBlockDataList,
-                input.Proposer);
-
-            if (indexedSideChainBlockData.SideChainBlockDataList.Count > 0)
-            {
-                State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
-                Context.LogDebug(() =>
-                    $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
-                Context.Fire(new SideChainBlockDataIndexed());
-            }
-            
-            Context.LogDebug(() => "Finished RecordCrossChainData.");
-
             return new Empty();
         }
 

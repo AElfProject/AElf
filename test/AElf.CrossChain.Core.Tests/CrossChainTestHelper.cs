@@ -13,7 +13,10 @@ namespace AElf.CrossChain
     {
         private readonly Dictionary<int, long> _sideChainIdHeights = new Dictionary<int, long>();
         private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
-        private GetPendingCrossChainIndexingProposalOutput _pendingCrossChainIndexingProposalOutput;
+
+        private GetIndexingProposalStatusOutput _pendingCrossChainIndexingProposalOutput =
+            new GetIndexingProposalStatusOutput();
+        
         public long FakeLibHeight { get; private set;}
         private readonly Dictionary<long, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<long, CrossChainBlockData>();
         
@@ -32,9 +35,10 @@ namespace AElf.CrossChain
             _indexedCrossChainBlockData.Add(height, crossChainBlockData);
         }
 
-        internal void AddFakePendingCrossChainIndexingProposal(GetPendingCrossChainIndexingProposalOutput pendingCrossChainIndexingProposalOutput)
+        internal void AddFakePendingCrossChainIndexingProposal(int chainId, PendingChainIndexingProposalStatus pendingCrossChainIndexingProposalOutput)
         {
-            _pendingCrossChainIndexingProposalOutput = pendingCrossChainIndexingProposalOutput;
+            _pendingCrossChainIndexingProposalOutput.ChainIndexingProposalStatus[chainId] =
+                pendingCrossChainIndexingProposalOutput;
         }
 
         public TransactionTrace CreateFakeTransactionTrace(Transaction transaction)
@@ -122,8 +126,7 @@ namespace AElf.CrossChain
                 return sideChainIndexingInformationList.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetPendingCrossChainIndexingProposal))
+            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexingProposalStatus))
             {
                 return _pendingCrossChainIndexingProposalOutput?.ToByteArray();
             }

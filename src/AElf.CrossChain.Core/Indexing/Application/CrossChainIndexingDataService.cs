@@ -262,7 +262,6 @@ namespace AElf.CrossChain.Indexing.Application
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
 
-
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
             if (toBeReleasedChainIdList.Count > 0)
@@ -284,8 +283,8 @@ namespace AElf.CrossChain.Indexing.Application
                 return toBeReleasedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
             }
                 
-            var pendingChainIdList =
-                FindPendingStatusChainIdList(indexingProposalStatusList, utcNow);
+            var pendingChainIdList = FindPendingStatusChainIdList(indexingProposalStatusList, utcNow);
+            
             var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight, pendingChainIdList);
             if (!crossChainBlockData.IsNullOrEmpty())
                 _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
@@ -387,42 +386,28 @@ namespace AElf.CrossChain.Indexing.Application
         private List<int> FindPendingStatusChainIdList(
             GetIndexingProposalStatusOutput pendingChainIndexingProposalStatusList, Timestamp timestamp)
         {
-            var pendingChainIdList = new List<int>();
-
-            foreach (var pair in pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus)
-            {
-                if (!pair.Value.ToBeReleased && pair.Value.ExpiredTime.AddMilliseconds(500) > timestamp)
-                {
-                    pendingChainIdList.Add(pair.Key);
-                }
-            }
-
-            return pendingChainIdList;
+            return pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus
+                .Where(pair => !pair.Value.ToBeReleased && pair.Value.ExpiredTime.AddMilliseconds(500) > timestamp)
+                .Select(pair => pair.Key).ToList();
         }
         
         private List<int> FindToBeReleasedChainIdList(
             GetIndexingProposalStatusOutput pendingChainIndexingProposalStatusList, Timestamp timestamp)
         {
-            var pendingChainIdList = new List<int>();
-            foreach (var pair in pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus)
-            {
-                if (pair.Value.ToBeReleased && pair.Value.ExpiredTime > timestamp)
-                {
-                    pendingChainIdList.Add(pair.Key);
-                }
-            }
-
-            return pendingChainIdList;
+            return pendingChainIndexingProposalStatusList.ChainIndexingProposalStatus
+                .Where(pair => pair.Value.ToBeReleased && pair.Value.ExpiredTime > timestamp).Select(pair => pair.Key)
+                .ToList();
         }
 
         private CrossChainBlockData AggregateToBeReleasedCrossChainData(IEnumerable<CrossChainBlockData> toBeIndexedList)
         {
             var res = new CrossChainBlockData();
-            foreach (var chainBlockData in toBeIndexedList)
+            toBeIndexedList.Aggregate(res, (cur, element) =>
             {
-                res.ParentChainBlockDataList.Add(chainBlockData.ParentChainBlockDataList);
-                res.SideChainBlockDataList.Add(chainBlockData.SideChainBlockDataList);
-            }
+                cur.ParentChainBlockDataList.Add(element.ParentChainBlockDataList);
+                cur.SideChainBlockDataList.Add(element.SideChainBlockDataList);
+                return cur;
+            });
 
             return res;
         }
