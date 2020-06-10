@@ -38,7 +38,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockFoundLogEventProcessor>();
             context.Services
-                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+                .AddSingleton<IBlockAcceptedLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
             
             // Our purpose is that other modules won't sense which consensus protocol are using, 
