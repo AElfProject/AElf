@@ -17,7 +17,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 
@@ -30,12 +30,14 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             //TODO Fix never claim transaction fee
-            context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
-        } 
+            context.Services.RemoveAll(s =>
+                s.ImplementationType != null && s.ImplementationType.FullName != null &&
+                s.ImplementationType.FullName.Contains("TransactionFeeChargedLogEventProcessor"));
+        }
     }
 }

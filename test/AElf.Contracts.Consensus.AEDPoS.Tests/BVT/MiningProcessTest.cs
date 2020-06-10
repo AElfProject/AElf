@@ -141,21 +141,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transactionResult = await AEDPoSContractStub.UpdateTinyBlockInformation.SendAsync(input);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-
-        [Fact]
-        public async Task Update_ConsensusInformation_Test()
-        {
-            await AEDPoSContract_FirstRound_BootMiner_Test();
-
-            //just verify method, will add other logic
-            {
-                var input = new ConsensusInformation
-                {
-                    Value = ByteString.CopyFromUtf8("test")
-                };
-                var transactionResult = await AEDPoSContractStub.UpdateConsensusInformation.SendAsync(input);
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-        }
     }
 }

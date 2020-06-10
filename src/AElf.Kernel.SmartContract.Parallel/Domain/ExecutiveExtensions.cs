@@ -11,8 +11,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     internal static class ExecutiveExtensions
     {
-        private static Address FromAddress => Address.FromBytes(new byte[] { }.ComputeHash());
-
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
@@ -66,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             var generatedTxn = new Transaction
             {
-                From = FromAddress,
+                From = to,
                 To = to,
                 MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
                 Params = param,

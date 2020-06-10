@@ -75,6 +75,8 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            output.TransactionSize = transaction.CalculateSize();
+            
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
                 _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
@@ -210,7 +212,8 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
-            var queuedTransaction = await _transactionResultProxyService.TxHub.GetQueuedTransactionAsync(transactionId);
+            var queuedTransaction =
+                await _transactionResultProxyService.TransactionPoolService.GetQueuedTransactionAsync(transactionId);
             if (queuedTransaction != null)
             {
                 return new TransactionResult
@@ -262,6 +265,7 @@ namespace AElf.WebApp.Application.Chain
 
             transactionResultDto.Transaction =
                 JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            transactionResultDto.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,

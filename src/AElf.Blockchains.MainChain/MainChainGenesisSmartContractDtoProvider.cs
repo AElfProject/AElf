@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Deployer;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Blockchains.MainChain
@@ -15,7 +15,7 @@ namespace AElf.Blockchains.MainChain
         private readonly ContractOptions _contractOptions;
 
         public MainChainGenesisSmartContractDtoProvider(IContractDeploymentListProvider contractDeploymentListProvider,
-            IServiceContainer<IContractInitializationProvider> contractInitializationProviders,
+            IEnumerable<IContractInitializationProvider> contractInitializationProviders,
             IOptionsSnapshot<ContractOptions> contractOptions)
             : base(contractDeploymentListProvider, contractInitializationProviders)
         {

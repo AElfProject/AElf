@@ -1,34 +1,32 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Configuration;
-using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Miner.Application
 {
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private readonly ITxHub _txHub;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
+        private readonly ITransactionPoolService _transactionPoolService;
         private readonly IMiningService _miningService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
+        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
 
-        public MinerService(IMiningService miningService, ITxHub txHub,
+        public MinerService(IMiningService miningService,
             IBlockTransactionLimitProvider blockTransactionLimitProvider,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            ITransactionPackingOptionProvider transactionPackingOptionProvider,
+            ITransactionPoolService transactionPoolService)
         {
             _miningService = miningService;
-            _txHub = txHub;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
+            _transactionPackingOptionProvider = transactionPackingOptionProvider;
+            _transactionPoolService = transactionPoolService;
 
             Logger = NullLogger<MinerService>.Instance;
         }
@@ -38,29 +36,21 @@ namespace AElf.Kernel.Miner.Application
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
+        public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight,
+            Timestamp blockTime,
             Duration blockExecutionTime)
         {
-            var limit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
+            var chainContext = new ChainContext
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
-            });
-            var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_transactionPackingOptions.IsTransactionPackable
+            };
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
+            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+                previousBlockHash,
+                _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
                     ? limit
                     : -1);
-            var pending = new List<Transaction>();
-            if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-            {
-                pending = executableTransactionSet.Transactions;
-            }
-            else
-            {
-                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
-                                  $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
-                                  $"best chain hash {previousBlockHash}.");
-            }
 
             Logger.LogDebug(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
@@ -70,7 +60,7 @@ namespace AElf.Kernel.Miner.Application
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
-                }, pending, blockTime);
+                }, executableTransactionSet.Transactions, blockTime);
         }
     }
 }

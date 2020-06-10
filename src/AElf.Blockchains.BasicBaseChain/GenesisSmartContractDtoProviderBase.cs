@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs0;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.BasicBaseChain
@@ -12,10 +11,10 @@ namespace AElf.Blockchains.BasicBaseChain
     public abstract class GenesisSmartContractDtoProviderBase : IGenesisSmartContractDtoProvider
     {
         protected readonly IContractDeploymentListProvider ContractDeploymentListProvider;
-        protected readonly IServiceContainer<IContractInitializationProvider> ContractInitializationProviders;
+        protected readonly IEnumerable<IContractInitializationProvider> ContractInitializationProviders;
 
         protected GenesisSmartContractDtoProviderBase(IContractDeploymentListProvider contractDeploymentListProvider,
-            IServiceContainer<IContractInitializationProvider> contractInitializationProviders)
+            IEnumerable<IContractInitializationProvider> contractInitializationProviders)
         {
             ContractDeploymentListProvider = contractDeploymentListProvider;
             ContractInitializationProviders = contractInitializationProviders;
@@ -36,16 +35,12 @@ namespace AElf.Blockchains.BasicBaseChain
                     var genesisSmartContractDto = new GenesisSmartContractDto
                     {
                         Code = code,
-                        SystemSmartContractName = p.SystemSmartContractName
+                        SystemSmartContractName = p.SystemSmartContractName,
+                        ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
                     };
                     foreach (var method in methodList)
                     {
-                        genesisSmartContractDto.TransactionMethodCallList.Value.Add(
-                            new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
-                            {
-                                MethodName = method.MethodName,
-                                Params = method.Params
-                            });
+                        genesisSmartContractDto.AddGenesisTransactionMethodCall(method);
                     }
 
                     return genesisSmartContractDto;

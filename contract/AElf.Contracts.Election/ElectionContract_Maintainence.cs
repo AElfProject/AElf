@@ -32,7 +32,7 @@ namespace AElf.Contracts.Election
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
-                Value = {input.MinerList.Select(k => k.ToByteString())}
+                Value = {input.MinerList.Select(ByteStringHelper.FromHexString)}
             };
             foreach (var pubkey in input.MinerList)
             {
@@ -119,7 +119,7 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            var symbolList = State.TreasuryContract.GetDistributingSymbolList.Call(new Empty());
+            var symbolList = State.TreasuryContract.GetSymbolList.Call(new Empty());
             var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
@@ -170,7 +170,7 @@ namespace AElf.Contracts.Election
             if (candidateInformation == null) return;
             candidateInformation.Terms.Add(lastTermNumber);
             var victories = GetVictories(previousMiners);
-            candidateInformation.ContinualAppointmentCount = victories.Contains(pubkey.ToByteString())
+            candidateInformation.ContinualAppointmentCount = victories.Contains(ByteStringHelper.FromHexString(pubkey))
                 ? candidateInformation.ContinualAppointmentCount.Add(1)
                 : 0;
             State.CandidateInformationMap[pubkey] = candidateInformation;

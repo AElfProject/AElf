@@ -150,33 +150,35 @@ namespace AElf.Contracts.CrossChain
             var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null && sideChainInfo.SideChainStatus != SideChainStatus.Terminated,
                 "Side chain not found or incorrect side chain status.");
-            var oldBalance = State.IndexingBalance[chainId];
-            var newBalance = oldBalance + input.Amount;
-            Assert(newBalance >= sideChainInfo.IndexingPrice, "Indexing fee recharging not enough.");
-            State.IndexingBalance[chainId] = newBalance;
 
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
-                To = Context.Self,
+                To = Context.ConvertVirtualAddressToContractAddress(ConvertChainIdToHash(chainId)),
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = input.Amount,
                 Memo = "Indexing fee recharging."
             });
 
-            if (oldBalance < 0)
+            long arrearsAmount = 0;
+            if (sideChainInfo.SideChainStatus == SideChainStatus.IndexingFeeDebt)
             {
                 // arrears
                 foreach (var arrears in sideChainInfo.ArrearsInfo)
                 {
-                    Transfer(new TransferInput
+                    arrearsAmount += arrears.Value;
+                    TransferDepositToken(new TransferInput
                     {
                         To = Address.Parser.ParseFrom(ByteString.FromBase64(arrears.Key)),
                         Symbol = Context.Variables.NativeSymbol,
                         Amount = arrears.Value,
                         Memo = "Indexing fee recharging."
-                    });
+                    }, chainId);
                 }
+                
+                var originBalance = GetSideChainIndexingFeeDeposit(chainId); 
+                Assert(input.Amount + originBalance >= arrearsAmount + sideChainInfo.IndexingPrice,
+                    "Indexing fee recharging not enough.");
             }
 
             sideChainInfo.ArrearsInfo.Clear();
@@ -219,9 +221,6 @@ namespace AElf.Contracts.CrossChain
             var expectedOrganizationAddress = info.IndexingFeeController.OwnerAddress;
             Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
             info.IndexingPrice = input.IndexingFee;
-            var balance = State.IndexingBalance[input.SideChainId];
-            if (balance < info.IndexingPrice)
-                info.SideChainStatus = SideChainStatus.InsufficientBalance;
             State.SideChainInfo[input.SideChainId] = info;
             return new Empty();
         }

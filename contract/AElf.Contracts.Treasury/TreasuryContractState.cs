@@ -1,4 +1,5 @@
 ﻿using Acs1;
+using Acs10;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -21,7 +22,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
         public SingletonState<MinerReElectionInformation> MinerReElectionInformation { get; set; }
-        
+
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
@@ -30,5 +31,9 @@ namespace AElf.Contracts.Treasury
 
         public SingletonState<DividendPoolWeightSetting> DividendPoolWeightSetting { get; set; }
         public SingletonState<MinerRewardWeightSetting> MinerRewardWeightSetting { get; set; }
+
+        public MappedState<long, Dividends> DonatedDividends { get; set; }
+
+        public SingletonState<long> MiningReward { get; set; }
     }
 }

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package acs10;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+import public "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+
+option (aelf.identity) = "acs10";
+
+service DividendPoolContract {
+    // Actions
+    rpc Donate (DonateInput) returns (google.protobuf.Empty) {
+    }
+    rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetSymbolList (SymbolList) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    rpc GetSymbolList (google.protobuf.Empty) returns (SymbolList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetUndistributedDividends (google.protobuf.Empty) returns (Dividends) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDividends (google.protobuf.Int64Value) returns (Dividends) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message DonateInput {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message ReleaseInput {
+    int64 period_number = 1;
+}
+
+message SymbolList {
+    repeated string value = 1;
+}
+
+message Dividends {
+    map<string, int64> value = 1;
+}
+
+// Events
+
+message DonationReceived {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1;
+    string symbol = 2;
+    int64 amount = 3;
+    aelf.Address pool_contract = 4;
+}

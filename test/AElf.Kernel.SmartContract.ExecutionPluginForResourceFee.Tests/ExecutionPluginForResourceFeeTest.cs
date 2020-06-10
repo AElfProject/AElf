@@ -8,6 +8,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -270,28 +271,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
             
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
             
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
-                To = SampleAddress.AddressList.Last(),
+                To = Accounts.Last().Address,
                 Symbol = "ELF",
                 Amount = 10
             });
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = SampleAddress.AddressList.Last(),
+                Owner = Accounts.Last().Address,
                 Symbol = "ELF"
             })).Balance;
             balance.ShouldBe(30);
@@ -349,6 +350,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeTraffic - afterTraffic,
                 beforeStorage - afterStorage, txResult);
+        }
+
+        [Fact]
+        public async Task Donate_Resource_Token_Send_By_User_False()
+        {
+            var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
+            result.Error.Contains("This method already executed in height").ShouldBeTrue();
         }
     }
 }

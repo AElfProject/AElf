@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -124,7 +123,14 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                profitsDict = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+                var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+                foreach (var kv in profitsDictForEachProfitDetail)
+                {
+                    if (profitsDict.ContainsKey(kv.Key))
+                        profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
+                    else
+                        profitsDict[kv.Key] = kv.Value;
+                }
             }
 
             return new ReceivedProfitsMap

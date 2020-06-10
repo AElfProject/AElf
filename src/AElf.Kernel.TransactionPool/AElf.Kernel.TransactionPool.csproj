@@ -7,26 +7,10 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <LangVersion>latest</LangVersion>
         <Description>Transaction collection and fee functionality (tx hub).</Description>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf/Proto/acs0.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </ContractStub>
     </ItemGroup>
 
 </Project>

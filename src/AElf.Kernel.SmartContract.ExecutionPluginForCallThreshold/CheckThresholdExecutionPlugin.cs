@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs5;
 using AElf.Contracts.MultiToken;
@@ -45,7 +44,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
                 BlockHeight = transactionContext.BlockHeight - 1,
                 ContractAddress = transactionContext.Transaction.To,
                 Sender = transactionContext.Transaction.To,
-                Timestamp = transactionContext.CurrentBlockTime
+                Timestamp = transactionContext.CurrentBlockTime,
+                StateCache = transactionContext.StateCache
             });
 
             var threshold = await thresholdSettingStub.GetMethodCallingThreshold.CallAsync(new StringValue

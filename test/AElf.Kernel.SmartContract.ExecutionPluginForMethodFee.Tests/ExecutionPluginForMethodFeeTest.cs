@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
@@ -23,7 +24,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private Address TestContractAddress { get; set; }
         private Address TokenContractAddress { get; set; }
         private TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         
         private readonly IBlockchainService _blockchainService;

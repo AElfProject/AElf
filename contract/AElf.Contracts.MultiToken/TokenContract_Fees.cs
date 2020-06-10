@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
-using AElf.Contracts.Association;
-using AElf.Contracts.Treasury;
+using Acs10;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -20,6 +19,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
+            AssertTransactionGeneratedByPlugin();
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
@@ -39,7 +39,7 @@ namespace AElf.Contracts.MultiToken
             {
                 successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
-            
+
             var successToChargeSizeFee = true;
             if (!IsMethodFeeSetToZero(methodFees))
             {
@@ -166,12 +166,13 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
+            AssertTransactionGeneratedByPlugin();
             Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
                 return new Empty();
             }
-        
+
             var bill = new TransactionFeeBill();
             foreach (var pair in input.CostDic)
             {
@@ -202,6 +203,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
+            AssertTransactionGeneratedByPlugin();
             foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName))
             {
                 var balance = GetBalance(Context.Sender, symbol);
@@ -344,6 +346,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
+            //TODO: Add current miner authority check
+            var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
+
+            Assert(claimTransactionExecuteHeight < Context.CurrentHeight,
+                $"This method already executed in height {State.ClaimTransactionFeeExecuteHeight.Value}");
+            State.ClaimTransactionFeeExecuteHeight.Value = Context.CurrentHeight;
             Context.LogDebug(() => $"Claim transaction fee. {input}");
             State.LatestTotalTransactionFeesMapHash.Value = HashHelper.ComputeFrom(input);
             foreach (var bill in input.Value)
@@ -366,6 +374,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
+            //TODO: Add current miner authority check
+            var donateResourceTokenExecuteHeight = State.DonateResourceTokenExecuteHeight.Value;
+            if (donateResourceTokenExecuteHeight == 0)
+            {
+                donateResourceTokenExecuteHeight = Context.CurrentHeight;
+            }
+
+            Assert(donateResourceTokenExecuteHeight == Context.CurrentHeight,
+                $"This method already executed in height {State.DonateResourceTokenExecuteHeight.Value}");
+            State.DonateResourceTokenExecuteHeight.Value = donateResourceTokenExecuteHeight.Add(1);
             Context.LogDebug(() => $"Start donate resource token. {input}");
             State.LatestTotalResourceTokensMapsHash.Value = HashHelper.ComputeFrom(input);
             Context.LogDebug(() =>
@@ -395,7 +413,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        
+
         public override Hash GetLatestTotalResourceTokensMapsHash(Empty input)
         {
             return State.LatestTotalResourceTokensMapsHash.Value;
@@ -424,6 +442,7 @@ namespace AElf.Contracts.MultiToken
                         });
                         amount = existingBalance;
                     }
+
                     if (amount > 0)
                     {
                         ModifyBalance(bill.ContractAddress, symbol, -amount);
@@ -534,7 +553,9 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSideChainRental();
             foreach (var pair in input.Rental)
             {
-                Assert(Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Contains(pair.Key), "Invalid symbol.");
+                Assert(
+                    Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Contains(pair.Key),
+                    "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.Rental[pair.Key] = pair.Value;
             }
@@ -547,7 +568,9 @@ namespace AElf.Contracts.MultiToken
             AssertControllerForSideChainRental();
             foreach (var pair in input.ResourceAmount)
             {
-                Assert(Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Contains(pair.Key), "Invalid symbol.");
+                Assert(
+                    Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Contains(pair.Key),
+                    "Invalid symbol.");
                 Assert(pair.Value >= 0, "Invalid amount.");
                 State.ResourceAmount[pair.Key] = pair.Value;
             }
@@ -633,6 +656,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Address GetFeeReceiver(Empty input)
+        {
+            return State.FeeReceiver.Value;
+        }
+
         private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
@@ -649,6 +677,12 @@ namespace AElf.Contracts.MultiToken
                 "Invalid symbol.");
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+        }
+
+        private void AssertTransactionGeneratedByPlugin()
+        {
+            Assert(Context.TransactionId != Context.OriginTransactionId,
+                "This method can only be executed in plugin tx.");
         }
     }
 }

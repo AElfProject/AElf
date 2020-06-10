@@ -131,7 +131,7 @@ namespace AElf.Contracts.Profit
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput()
             {
                 SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = shares}
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = shares}
             });
 
             // Add profits to virtual address of this profit scheme.
@@ -295,8 +295,8 @@ namespace AElf.Contracts.Profit
 
             const int shares1 = 100;
             const int shares2 = 200;
-            var receiver1 = SampleAddress.AddressList[0];
-            var receiver2 = SampleAddress.AddressList[1];
+            var receiver1 = Accounts[0].Address;
+            var receiver2 = Accounts[1].Address;
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -354,7 +354,7 @@ namespace AElf.Contracts.Profit
             const long shares = 10;
 
             var creator = Creators[0];
-            var beneficiary = SampleAddress.AddressList[0];
+            var beneficiary = Accounts[0].Address;
 
             var schemeId = await CreateScheme();
 
@@ -421,7 +421,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
             {
                 SchemeId = HashHelper.ComputeFrom("SchemeId"),
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -620,7 +620,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.RemoveBeneficiary.SendWithExceptionAsync(new RemoveBeneficiaryInput
             {
                 SchemeId = HashHelper.ComputeFrom("SchemeId"),
-                Beneficiary = SampleAddress.AddressList[0]
+                Beneficiary = Accounts[0].Address
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -638,7 +638,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -669,7 +669,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -747,7 +747,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -1247,7 +1247,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
                 SchemeId = schemeId,
             });
 

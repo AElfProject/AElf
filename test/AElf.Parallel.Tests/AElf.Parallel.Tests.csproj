@@ -2,11 +2,12 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
+        <!--Conflict with contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Moq" Version="4.13.1" />
-        <PackageReference Include="Volo.Abp.EventBus" Version="1.1.2" />
+        <PackageReference Include="Moq" Version="4.14.0" />
+        <PackageReference Include="Volo.Abp.EventBus" Version="2.7.0" />
         <PackageReference Include="coverlet.collector" Version="1.2.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
@@ -19,7 +20,6 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -42,6 +42,9 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
@@ -54,6 +57,9 @@
         <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
@@ -63,5 +69,8 @@
         <ContractStub Include="..\..\protobuf\test_basic_function_with_parallel_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_with_parallel_contract.proto</Link>
         </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs2.proto">
+            <Link>Protobuf/Proto/acs2.proto</Link>
+        </ContractBase>
     </ItemGroup>
 </Project>

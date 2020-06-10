@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     CancellationToken.None);
             Logger.LogTrace("Executed non-cancellable txs");
 
-            var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
+            var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
 
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
@@ -101,17 +101,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
-            IEnumerable<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
+            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection, BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
-            foreach (var returnSet in returnSetCollection.Executed)
+            foreach (var returnSet in executionReturnSetCollection.Executed)
             {
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
             
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var orderedReturnSets = returnSetCollection.GetExecutionReturnSetList()
+            var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
 
             var block = new Block
@@ -133,13 +133,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return Task.FromResult(block);
         }
 
-        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
+        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            if (returnSetCollection.Unexecutable.Count > 0)
+            if (executionReturnSetCollection.Unexecutable.Count > 0)
             {
                 await EventBus.PublishAsync(
                     new UnexecutableTransactionsFoundEvent(blockHeader,
-                        returnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
+                        executionReturnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
             }
         }
 
@@ -209,14 +209,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,
-            ReturnSetCollection returnSetCollection)
+            ExecutionReturnSetCollection executionReturnSetCollection)
         {
             var blockStateSet = new BlockStateSet
             {
                 BlockHeight = blockHeight,
                 PreviousHash = previousBlockHash
             };
-            foreach (var returnSet in returnSetCollection.Executed)
+            foreach (var returnSet in executionReturnSetCollection.Executed)
             {
                 foreach (var change in returnSet.StateChanges)
                 {
@@ -234,10 +234,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return blockStateSet;
         }
 
-        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ReturnSetCollection returnSetCollection, BlockHeader blockHeader)
+        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
         {
             //save all transaction results
-            var results = returnSetCollection.GetExecutionReturnSetList()
+            var results = executionReturnSetCollection.GetExecutionReturnSetList()
                 .Select(p =>
                 {
                     p.TransactionResult.BlockHash = blockHeader.GetHash();

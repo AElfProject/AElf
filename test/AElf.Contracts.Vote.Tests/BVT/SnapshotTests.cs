@@ -13,7 +13,7 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 1);
 
-            var otherUser = SampleECKeyPairs.KeyPairs[2];
+            var otherUser = Accounts[2].KeyPair;
             var transactionResult = (await GetVoteContractTester(otherUser).TakeSnapshot.SendWithExceptionAsync(
                 new TakeSnapshotInput
                 {

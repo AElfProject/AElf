@@ -15,13 +15,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
@@ -53,7 +51,7 @@ namespace AElf.OS
         private readonly IMinerService _minerService;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITxHub _txHub;
+        private readonly ITransactionPoolService _transactionPoolService;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITransactionResultService _transactionResultService;
@@ -79,12 +77,12 @@ namespace AElf.OS
             IAccountService accountService,
             IMinerService minerService,
             IBlockchainService blockchainService,
-            ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
             ITransactionResultService transactionResultService,
-            IOptionsSnapshot<ChainOptions> chainOptions)
+            IOptionsSnapshot<ChainOptions> chainOptions, 
+            ITransactionPoolService transactionPoolService)
         {
             _chainOptions = chainOptions.Value;
             _osBlockchainNodeContextService = osBlockchainNodeContextService;
@@ -93,9 +91,9 @@ namespace AElf.OS
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
             _blockAttachService = blockAttachService;
-            _txHub = txHub;
             _staticChainInformationProvider = staticChainInformationProvider;
             _transactionResultService = transactionResultService;
+            _transactionPoolService = transactionPoolService;
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
@@ -138,11 +136,8 @@ namespace AElf.OS
                     BestBranchBlockList[4].GetHash());
             }
 
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                 BlockHash = chain.BestChainHash,
-                 BlockHeight = chain.BestChainHeight
-            });
+            await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash,
+                chain.BestChainHeight);
         }
 
         public async Task DisposeMock()
@@ -288,12 +283,7 @@ namespace AElf.OS
 
         public async Task BroadcastTransactions(IEnumerable<Transaction> transactions)
         {
-            var transactionsReceivedEvent = new TransactionsReceivedEvent
-            {
-                Transactions = transactions
-            };
-
-            await _txHub.AddTransactionsAsync(transactionsReceivedEvent);
+            await _transactionPoolService.AddTransactionsAsync(transactions);
         }
 
         public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)
@@ -410,38 +400,67 @@ namespace AElf.OS
             };
 
             dto.SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
-            dto.InitializationSmartContracts.AddGenesisSmartContract(
-                ConsensusContractCode,
-                ConsensusSmartContractAddressNameProvider.Name);
+            var consensusContractDto = new GenesisSmartContractDto
+            {
+                Code = ConsensusContractCode,
+                SystemSmartContractName = ConsensusSmartContractAddressNameProvider.Name,
+                ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
+            };
+            dto.InitializationSmartContracts.Add(consensusContractDto);
 
+            var tokenContractDto = new GenesisSmartContractDto
+            {
+                Code = TokenContractCode,
+                SystemSmartContractName = TokenSmartContractAddressNameProvider.Name,
+                ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
+            };
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+            tokenContractDto
+                .AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+                {
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Create), Params = new CreateInput
+                    {
+                        Symbol = "ELF",
+                        TokenName = "ELF_Token",
+                        TotalSupply = TokenTotalSupply,
+                        Decimals = 2,
+                        Issuer = ownAddress,
+                        IsBurnable = true
+                    }.ToByteString()
+                });
+
+            tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
             {
-                Symbol = "ELF",
-                TokenName = "ELF_Token",
-                TotalSupply = TokenTotalSupply,
-                Decimals = 2,
-                Issuer =  ownAddress,
-                IsBurnable = true
+                MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+                Params =
+                    new SetPrimaryTokenSymbolInput {Symbol = "ELF"}.ToByteString()
             });
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+            tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
             {
-                Symbol = "ELF",
-                Amount = TokenTotalSupply,
-                To = ownAddress,
-                Memo = "Issue"
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Issue), Params = new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = TokenTotalSupply,
+                    To = ownAddress,
+                    Memo = "Issue"
+                }.ToByteString()
             });
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients), new Empty());
+
+            tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+            {
+                MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+                Params = new Empty().ToByteString()
+            });
+            dto.InitializationSmartContracts.Add(tokenContractDto);
+
             
-            dto.InitializationSmartContracts.AddGenesisSmartContract(
-                ElectionContractCode,
-                ElectionSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract(
-                TokenContractCode,
-                TokenSmartContractAddressNameProvider.Name, callList);
+            var electionContractDto = new GenesisSmartContractDto
+            {
+                Code = ElectionContractCode,
+                SystemSmartContractName = ElectionSmartContractAddressNameProvider.Name,
+                ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
+            };
+            dto.InitializationSmartContracts.Add(electionContractDto);
 
             _blockchainNodeCtxt = await _osBlockchainNodeContextService.StartAsync(dto);
         }
