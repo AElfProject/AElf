@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,21 +46,55 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 Paths =
                 {
                     GetPath(12345)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
+                }
+            });
+            var otherTxn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(6789)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
                 }
             });
             var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn,otherTxn}, CancellationToken.None))
                 .ToList();
-
+            var readOnlyPaths = resourceInfos.GetReadOnlyPaths();
+            readOnlyPaths.Count.ShouldBe(1);
+            readOnlyPaths.ShouldContain(GetPath(123));
             var executive =
                 await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
-            resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().TransactionResourceInfo.ShouldBe(new TransactionResourceInfo()
+            resourceInfos.Count.ShouldBe(2);
+            resourceInfos[0].TransactionResourceInfo.ShouldBe(new TransactionResourceInfo
             {
                 TransactionId = txn.GetHash(),
                 WritePaths =
                 {
                     GetPath(12345)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
+                },
+                ContractHash = executive.ContractHash
+            });
+            resourceInfos[1].TransactionResourceInfo.ShouldBe(new TransactionResourceInfo
+            {
+                TransactionId = otherTxn.GetHash(),
+                WritePaths =
+                {
+                    GetPath(6789)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
                 },
                 ContractHash = executive.ContractHash
             });
