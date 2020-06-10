@@ -20,7 +20,7 @@ namespace AElf.WebApp.Application.Chain.Application
 
         public Task HandleEventAsync(TransactionValidationStatusChangedEvent eventData)
         {
-            _transactionResultStatusCacheProvider.SetTransactionResultStatus(eventData.TransactionId,
+            _transactionResultStatusCacheProvider.ChangeTransactionResultStatus(eventData.TransactionId,
                 new TransactionValidateStatus
                 {
                     TransactionResultStatus = eventData.TransactionResultStatus,

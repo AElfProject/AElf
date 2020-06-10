@@ -1,6 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Types;
 using Microsoft.Extensions.Options;
 
@@ -8,7 +6,8 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
 {
     public interface ITransactionResultStatusCacheProvider
     {
-        void SetTransactionResultStatus(Hash transactionId, TransactionValidateStatus status);
+        void AddTransactionResultStatus(Hash transactionId);
+        void ChangeTransactionResultStatus(Hash transactionId, TransactionValidateStatus status);
         TransactionValidateStatus GetTransactionResultStatus(Hash transactionId);
     }
 
@@ -19,36 +18,42 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
         private readonly ConcurrentDictionary<Hash, TransactionValidateStatus> _transactionValidateResults =
             new ConcurrentDictionary<Hash, TransactionValidateStatus>();
 
-        private readonly List<Hash> _transactionIds = new List<Hash>();
+        private readonly ConcurrentQueue<Hash> _transactionIds = new ConcurrentQueue<Hash>();
 
         public TransactionResultStatusCacheProvider(IOptionsSnapshot<WebAppOptions> webAppOptions)
         {
             _webAppOptions = webAppOptions.Value;
         }
 
-        public void SetTransactionResultStatus(Hash transactionId, TransactionValidateStatus status)
+        public void AddTransactionResultStatus(Hash transactionId)
         {
-            // Only update status when current status is PendingValidation.
-            _transactionValidateResults.AddOrUpdate(transactionId, status,
-                (hash, oldStatus) => oldStatus.TransactionResultStatus == TransactionResultStatus.PendingValidation
-                    ? status
-                    : oldStatus);
-            if (!_transactionIds.Contains(transactionId))
+            if (!_transactionValidateResults.TryAdd(transactionId, new TransactionValidateStatus
             {
-                _transactionIds.Add(transactionId);
-            }
+                TransactionResultStatus = TransactionResultStatus.PendingValidation
+            })) return;
 
+            _transactionIds.Enqueue(transactionId);
             ClearOldTransactionResultStatus();
+        }
+
+        public void ChangeTransactionResultStatus(Hash transactionId, TransactionValidateStatus status)
+        {
+            if (!_transactionValidateResults.TryGetValue(transactionId, out var currentStatus)) return;
+
+            // Only update status when current status is PendingValidation.
+            if (currentStatus.TransactionResultStatus == TransactionResultStatus.PendingValidation)
+            {
+                _transactionValidateResults.TryUpdate(transactionId, status, currentStatus);
+            }
         }
 
         private void ClearOldTransactionResultStatus()
         {
             if (_transactionIds.Count < _webAppOptions.TransactionResultStatusCacheSize) return;
 
-            var firstTransactionId = _transactionIds.First();
-            if (_transactionValidateResults.TryRemove(firstTransactionId, out _))
+            if (_transactionIds.TryDequeue(out var firstTransactionId))
             {
-                _transactionIds.Remove(firstTransactionId);
+                _transactionValidateResults.TryRemove(firstTransactionId, out _);
             }
         }
 
