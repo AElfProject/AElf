@@ -1,4 +1,4 @@
-## Application pattern
+# Application pattern
 
 We follow generally accepted good practices when it comes to programming, especially those practices that make sense to our project. Some practices are related to C# and others are more general to OOP principles (like SOLID, DRY...). 
 
@@ -13,7 +13,7 @@ A few key points concerning DDD:
 
 We also have a Github issue where we list some of the [coding standards](https://github.com/AElfProject/AElf/issues/1040) that we follow while developing AElf.
 
-### Frameworks and libraries:
+## Frameworks and libraries:
 
 The main programming language used to code and build AElf is C# and is built with the dotnet core framework. It’s a choice that was made due to the excellent performances observed with the framework. Dotnet core also comes with the benefit of being cross platform, at least for the three main ones that are Windows, MacOS and Linux. Dotnet core also is a dynamic and open source framework and comes with many advantages of current modern development patterns and is backed by big actors in the IT space.
 
