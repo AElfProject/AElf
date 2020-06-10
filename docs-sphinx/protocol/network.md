@@ -28,15 +28,15 @@ The network is split into 3 different layers/projects, namely:
 At the AElf.OS layer, the network monitors events of interest to the network through event handlers, such as kernel layer transaction verification, block packaging, block execution success, and discovery of new libs. The handler will call NetworkService to broadcast this information to its connected peer. And it will run background workers to process network tasks regularly.
 
 Currently, the AElf.OS layer handles those events related to the network:
-- Transaction Accepted Event：The event that the transaction pool receives the transaction and passes verification。
-- Block Mined Event：When the current node is BP, the event that the block packaging is completed.
-- Block Accepted Event：The event that the node successfully executes the block.
-- New Irreversible Block Found Event：Then event that the chain found the new irreversible block.
+- Transaction Accepted Event：the event that the transaction pool receives the transaction and passes verification。
+- Block Mined Event：when the current node is BP, the event that the block packaging is completed.
+- Block Accepted Event：the event that the node successfully executes the block.
+- New Irreversible Block Found Event：the event that the chain found the new irreversible block.
 
 Currently, the AElf.OS layer will periodically process the following tasks.
-- Peer health check: Regularly check whether the connected peer is healthy and remove the abnormally connected peer.
-- Peer retry connection: Peer with abnormal connection will try to reconnect.
-- Network node discovery: Regularly discover more available nodes through the network.
+- Peer health check: regularly check whether the connected peer is healthy and remove the abnormally connected peer.
+- Peer retry connection: peer with abnormal connection will try to reconnect.
+- Network node discovery: regularly discover more available nodes through the network.
 
 ### 2.2 AElf.OS.Core.Network
 AElf.OS.Core.Network is the core module of the network，contains services(service layer exposed to higher levels (OS)) and definitions (abstraction of the Infrastructure layer).
@@ -54,13 +54,13 @@ AElf.OS.Core.Network is the core module of the network，contains services(servi
 ### 2.3 AElf.OS.Network.Grpc
 
 The AElf.OS.Network.Grpc layer is the network infrastructure layer that we implement using the gRPC framework.
-- GrpcPeer：Implemented the interface IPeer defined by the AElf.OS.Core.Network layer
-- GrpcNetworkServer: Implemented the interface IAElfNetworkServer defined by the AElf.OS.Core.Network layer
-- GrpcServerService: Implemented network service interfaces, including interfaces between nodes and data exchange.
+- GrpcPeer：implemented the interface IPeer defined by the AElf.OS.Core.Network layer
+- GrpcNetworkServer: implemented the interface IAElfNetworkServer defined by the AElf.OS.Core.Network layer
+- GrpcServerService: implemented network service interfaces, including interfaces between nodes and data exchange.
 - Extra functionality:
-    - serializing requests/deserializing responses (protobuf).
-    - some form of request/response mechanism for peers (optionally with the timeout, retry, etc).
-    - authentification.
+    - Serializing requests/deserializing responses (protobuf).
+    - Some form of request/response mechanism for peers (optionally with the timeout, retry, etc).
+    - Authentification.
 
 In fact, gRPC is not the only option. Someone could if they wanted to replace the gRPC stack with a low-level socket API (like the one provided by the dotnet framework) and re-implement the needed functionality. As long as the contract (the interface) is respected, any suitable framework can be used if needed.
 
