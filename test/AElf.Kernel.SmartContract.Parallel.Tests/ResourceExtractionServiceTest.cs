@@ -57,7 +57,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().TransactionResourceInfo.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
                 },

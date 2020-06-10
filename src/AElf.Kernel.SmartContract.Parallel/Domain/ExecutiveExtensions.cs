@@ -28,10 +28,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return new TransactionResourceInfo
                 {
                     TransactionId = txId,
-                    Paths =
+                    WritePaths =
                     {
                         resourceInfo.Paths
                     },
+                    ReadPaths = {resourceInfo.ReadPaths},
                     ParallelType = resourceInfo.NonParallelizable
                         ? ParallelType.NonParallelizable
                         : ParallelType.Parallelizable,

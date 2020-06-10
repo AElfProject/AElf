@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Org.BouncyCastle.Utilities.Collections;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -141,13 +142,18 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             var executionReturnSets =
                 await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
-            var keys = new HashSet<string>(
-                executionReturnSets.SelectMany(s =>
-                    s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
+            var changeKeys =
+                    executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
+            var allKeys = new HashSet<string>(
+                executionReturnSets.SelectMany(s =>s.StateAccesses.Keys));
+            var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
+            
             return new GroupedExecutionReturnSets
             {
                 ReturnSets = executionReturnSets,
-                Keys = keys
+                AllKeys = allKeys,
+                ChangeKeys = changeKeys,
+                ReadKeys = readKeys
             };
         }
 
@@ -155,22 +161,36 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             public List<ExecutionReturnSet> ReturnSets { get; set; }
 
-            public HashSet<string> Keys { get; set; }
+            public HashSet<string> AllKeys { get; set; }
+            
+            public IEnumerable<string> ChangeKeys { get; set; }
+            
+            public IEnumerable<string> ReadKeys { get; set; }
+        }
+
+        private HashSet<string> GetReadOnlyKeys(GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
+        {
+            var readKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ReadKeys));;
+            var changeKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ChangeKeys));
+            readKeys.ExceptWith(changeKeys);
+            return readKeys;
         }
 
         private List<ExecutionReturnSet> MergeResults(
-            IEnumerable<GroupedExecutionReturnSets> groupedExecutionReturnSetsList,
+            GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray,
             out List<ExecutionReturnSet> conflictingSets)
         {
             var returnSets = new List<ExecutionReturnSet>();
             conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();
-            foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsList)
+            var readOnlyKeys = GetReadOnlyKeys(groupedExecutionReturnSetsArray);
+            foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
             {
-                if (!existingKeys.Overlaps(groupedExecutionReturnSets.Keys))
+                groupedExecutionReturnSets.AllKeys.ExceptWith(readOnlyKeys);
+                if (!existingKeys.Overlaps(groupedExecutionReturnSets.AllKeys))
                 {
                     returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
-                    foreach (var key in groupedExecutionReturnSets.Keys)
+                    foreach (var key in groupedExecutionReturnSets.AllKeys)
                     {
                         existingKeys.Add(key);
                     }
@@ -179,6 +199,13 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     conflictingSets.AddRange(groupedExecutionReturnSets.ReturnSets);
                 }
+            }
+
+            if (readOnlyKeys.Count == 0) return returnSets;
+            
+            foreach (var returnSet in returnSets.Concat(conflictingSets))
+            {
+                returnSet.StateAccesses.RemoveAll(k => readOnlyKeys.Contains(k.Key));
             }
 
             return returnSets;

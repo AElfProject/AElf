@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -53,18 +54,20 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             txnWithResources =
                 txnWithResources.Where(t => t.TransactionResourceInfo.ParallelType == ParallelType.Parallelizable);
 
+            var txnWithResourceList = txnWithResources.ToList();
+            var readOnlyKeys = txnWithResourceList.GetReadOnlyPaths().Select(p=>p.ToStateKey()).ToList();
             var returnSetLookup = returnSets.ToDictionary(rs => rs.TransactionId, rs => rs);
             var wrongTxnWithResources = new List<TransactionWithResourceInfo>();
-            foreach (var txnWithResource in txnWithResources)
+            foreach (var txnWithResource in txnWithResourceList)
             {
-                var extracted = new HashSet<string>(txnWithResource.TransactionResourceInfo.Paths.Select(p => p.ToStateKey()));
+                var extracted = new HashSet<string>(txnWithResource.TransactionResourceInfo.WritePaths
+                    .Concat(txnWithResource.TransactionResourceInfo.ReadPaths).Select(p => p.ToStateKey()));
+                extracted.ExceptWith(readOnlyKeys);
                 var actual = GetKeys(returnSetLookup[txnWithResource.Transaction.GetHash()]);
                 actual.ExceptWith(extracted);
-                if (actual.Count > 0)
-                {
-                    Logger.LogWarning($"Conflict keys:{string.Join(";", actual)}");
-                    wrongTxnWithResources.Add(txnWithResource);
-                }
+                if (actual.Count == 0) continue;
+                Logger.LogWarning($"Conflict keys:{string.Join(";", actual)}");
+                wrongTxnWithResources.Add(txnWithResource);
             }
 
             return wrongTxnWithResources;
