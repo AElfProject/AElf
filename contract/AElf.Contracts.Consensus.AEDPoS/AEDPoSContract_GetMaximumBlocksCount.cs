@@ -67,8 +67,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
                 });
+                State.IsPreviousBlockInSevereStatus.Value = true;
                 return 1;
             }
+
+            if (!State.IsPreviousBlockInSevereStatus.Value)
+                return AEDPoSContractConstants.MaximumTinyBlocksCount;
+
+            Context.Fire(new IrreversibleBlockHeightUnacceptable
+            {
+                DistanceToIrreversibleBlockHeight = 0
+            });
+            State.IsPreviousBlockInSevereStatus.Value = false;
 
             return AEDPoSContractConstants.MaximumTinyBlocksCount;
         }
