@@ -58,7 +58,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     TransactionId = transactionId,
                     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = executionReturnSets.FirstOrDefault()?.TransactionResult.Error
+                    Error = executionReturnSets.FirstOrDefault()?.TransactionResult?.Error ?? string.Empty
                 });
             }
 
