@@ -52,13 +52,13 @@ namespace AElf.Kernel.Miner.Application
             if (miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) <
                 blockTime + blockExecutionDuration)
             {
-                Logger.LogWarning(
+                Logger.LogDebug(
                     $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
                 return false;
             }
 
             if (blockTime + blockExecutionDuration >= TimestampHelper.GetUtcNow()) return true;
-            Logger.LogTrace($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
+            Logger.LogDebug($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
                             $"execution limit: {blockExecutionDuration.Milliseconds()} ms.");
             return false;
         }

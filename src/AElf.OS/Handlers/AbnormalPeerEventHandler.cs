@@ -23,7 +23,7 @@ namespace AElf.OS.Handlers
 
         public async Task HandleEventAsync(AbnormalPeerFoundEventData eventData)
         {
-            Logger.LogWarning(
+            Logger.LogDebug(
                 $"Remove abnormal peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
             await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey);

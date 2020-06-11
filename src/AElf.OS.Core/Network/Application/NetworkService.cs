@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Application
         {
             if (!AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint))
             {
-                Logger.LogWarning($"Could not parse endpoint {endpoint}.");
+                Logger.LogDebug($"Could not parse endpoint {endpoint}.");
                 return false;
             }
 
@@ -176,14 +176,14 @@ namespace AElf.OS.Network.Application
 
                     if (ex != null)
                     {
-                        Logger.LogInformation(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
+                        Logger.LogWarning(ex, $"Could not broadcast block to {peer} - status {peer.ConnectionStatus}.");
                         await HandleNetworkException(peer, ex);
                     }
                 });
             }
             catch (NetworkException ex)
             {
-                Logger.LogInformation(ex, $"Could not enqueue block to {peer} - status {peer.ConnectionStatus}.");
+                Logger.LogWarning(ex, $"Could not enqueue block to {peer} - status {peer.ConnectionStatus}.");
             }
         }
         
@@ -227,7 +227,7 @@ namespace AElf.OS.Network.Application
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogInformation(ex, $"Could not enqueue announcement to {peer} " +
+                    Logger.LogWarning(ex, $"Could not enqueue announcement to {peer} " +
                                               $"- status {peer.ConnectionStatus}.");
                 }
             }
@@ -249,7 +249,7 @@ namespace AElf.OS.Network.Application
                     {
                         if (ex != null)
                         {
-                            Logger.LogInformation(ex, $"Could not broadcast transaction to {peer} " +
+                            Logger.LogWarning(ex, $"Could not broadcast transaction to {peer} " +
                                                       $"- status {peer.ConnectionStatus}.");
 
                             await HandleNetworkException(peer, ex);
@@ -258,7 +258,7 @@ namespace AElf.OS.Network.Application
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogInformation(ex, $"Could not enqueue transaction to {peer} - " +
+                    Logger.LogWarning(ex, $"Could not enqueue transaction to {peer} - " +
                                               $"status {peer.ConnectionStatus}.");
                 }
             }
@@ -282,7 +282,7 @@ namespace AElf.OS.Network.Application
                     {
                         if (ex != null)
                         {
-                            Logger.LogInformation(ex, $"Could not broadcast lib announcement to {peer} " +
+                            Logger.LogWarning(ex, $"Could not broadcast lib announcement to {peer} " +
                                                       $"- status {peer.ConnectionStatus}.");
                             await HandleNetworkException(peer, ex);
                         }
@@ -290,7 +290,7 @@ namespace AElf.OS.Network.Application
                 }
                 catch (NetworkException ex)
                 {
-                    Logger.LogInformation(ex, $"Could not enqueue lib announcement to {peer} " +
+                    Logger.LogWarning(ex, $"Could not enqueue lib announcement to {peer} " +
                                               $"- status {peer.ConnectionStatus}.");
                 }
             }
@@ -346,7 +346,7 @@ namespace AElf.OS.Network.Application
             if (response.Success && response.Payload != null
                                  && (response.Payload.Count == 0 || response.Payload.Count != count))
             {
-                Logger.LogInformation($"Requested blocks from {peer} - count miss match, " +
+                Logger.LogDebug($"Requested blocks from {peer} - count miss match, " +
                                   $"asked for {count} but got {response.Payload.Count} (from {previousBlock})");
             }
 
@@ -378,7 +378,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogInformation(ex, $"Could not request block(s) from {peer.RemoteEndpoint}.");
+                Logger.LogWarning(ex, $"Request failed from {peer.RemoteEndpoint}.");
                 
                 if (ex.ExceptionType == NetworkExceptionType.HandlerException)
                     return new Response<T>(default(T));
@@ -398,7 +398,7 @@ namespace AElf.OS.Network.Application
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogInformation(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
+                Logger.LogDebug(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
