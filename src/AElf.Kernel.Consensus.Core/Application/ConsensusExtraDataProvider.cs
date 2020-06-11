@@ -35,9 +35,7 @@ namespace AElf.Kernel.Consensus.Application
             });
 
             if (consensusInformation == null) return ByteString.Empty;
-
-            Logger.LogDebug($"Consensus extra data generated. Of size {consensusInformation.Length}");
-
+            
             return ByteString.CopyFrom(consensusInformation);
         }
     }

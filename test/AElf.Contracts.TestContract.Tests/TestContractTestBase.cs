@@ -18,6 +18,7 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.Core;
 using AElf.EconomicSystem;
 using AElf.Kernel;
+using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -147,11 +148,8 @@ namespace AElf.Contract.TestContract
         
         protected void CheckCode(byte[] code)
         {
-            var auditor = new CSharpContractAuditor();
-            auditor.Audit(code, new RequiredAcs
-            {
-                AcsList = new List<string>()
-            });
+            var auditor = GetRequiredService<IContractAuditor>();
+            auditor.Audit(code, new RequiredAcs { AcsList = new List<string>() }, false);
         }
         
         private async Task InitialBasicFunctionContract()

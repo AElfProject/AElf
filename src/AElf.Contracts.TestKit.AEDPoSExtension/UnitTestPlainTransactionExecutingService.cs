@@ -12,9 +12,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     public class UnitTestPlainTransactionExecutingService : PlainTransactionExecutingService
     {
         public UnitTestPlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IInlineTransactionValidationService inlineTransactionValidationService) : base(
-            smartContractExecutiveService, postPlugins, prePlugins, inlineTransactionValidationService)
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins) : base(
+            smartContractExecutiveService, postPlugins, prePlugins)
         {
         }
 

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +22,6 @@ namespace AElf.Kernel.SmartContract.Application
     public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -28,13 +29,11 @@ namespace AElf.Kernel.SmartContract.Application
         public ILocalEventBus LocalEventBus { get; set; }
 
         public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IInlineTransactionValidationService inlineTransactionValidationService)
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _inlineTransactionValidationService = inlineTransactionValidationService;
-            _prePlugins = GetUniquePrePlugins(prePlugins);
-            _postPlugins = GetUniquePostPlugins(postPlugins);
+            _prePlugins = GetUniquePlugins(prePlugins);
+            _postPlugins = GetUniquePlugins(postPlugins);
             Logger = NullLogger<PlainTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -44,15 +43,11 @@ namespace AElf.Kernel.SmartContract.Application
         {
             try
             {
-                var groupStateCache = transactionExecutingDto.PartialBlockStateSet == null
-                    ? new TieredStateCache()
-                    : new TieredStateCache(
-                        new StateCacheFromPartialBlockStateSet(transactionExecutingDto.PartialBlockStateSet));
+                var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
                 var groupChainContext = new ChainContextWithTieredStateCache(
                     transactionExecutingDto.BlockHeader.PreviousBlockHash,
                     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
-                var transactionResults = new List<TransactionResult>();
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
@@ -83,46 +78,16 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
 
-                    if (trace == null)
+
+                    if (!TryUpdateStateCache(trace, groupStateCache))
                         break;
-
-                    if (!trace.IsSuccessful())
-                    {
-                        // Do not package this transaction if any of his inline transactions canceled.
-                        if (IsTransactionCanceled(trace))
-                        {
-                            break;
-                        }
-
-                        var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
-                        foreach (var preTrace in trace.PreTraces)
-                        {
-                            if (preTrace.IsSuccessful())
-                                transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
-                        }
-
-                        foreach (var postTrace in trace.PostTraces)
-                        {
-                            if (postTrace.IsSuccessful())
-                                transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
-                        }
-
-                        groupStateCache.Update(transactionExecutingStateSets);
-                        trace.SurfaceUpError();
-                    }
-                    else
-                    {
-                        groupStateCache.Update(trace.GetStateSets());
-                    }
 #if DEBUG
                     if (trace.Error != string.Empty)
                     {
-                        Logger.LogError(trace.Error);
+                        Logger.LogInformation(trace.Error);
                     }
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-
-                    transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
@@ -137,13 +102,50 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
+        private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
+        {
+            if (trace == null)
+                return false;
+
+            if (!trace.IsSuccessful())
+            {
+                // Do not package this transaction if any of his inline transactions canceled.
+                if (IsTransactionCanceled(trace))
+                {
+                    return false;
+                }
+
+                var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+
+                AddToTransactionStateSets(transactionExecutingStateSets, trace.PreTraces);
+                AddToTransactionStateSets(transactionExecutingStateSets, trace.PostTraces);
+
+                groupStateCache.Update(transactionExecutingStateSets);
+                trace.SurfaceUpError();
+            }
+            else
+            {
+                groupStateCache.Update(trace.GetStateSets());
+            }
+
+            return true;
+        }
+
+        private static void AddToTransactionStateSets(List<TransactionExecutingStateSet> transactionExecutingStateSets,
+            RepeatedField<TransactionTrace> traces)
+        {
+            transactionExecutingStateSets.AddRange(traces.Where(p => p.IsSuccessful())
+                .SelectMany(p => p.GetStateSets()));
+        }
+
         private static bool IsTransactionCanceled(TransactionTrace trace)
         {
             return trace.ExecutionStatus == ExecutionStatus.Canceled || trace.PreTraces.Any(IsTransactionCanceled) ||
                    trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
         }
 
-        protected virtual async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
+        protected virtual async Task<TransactionTrace> ExecuteOneAsync(
+            SingleTransactionExecutingDto singleTxExecutingDto,
             CancellationToken cancellationToken)
         {
             if (singleTxExecutingDto.IsCancellable)
@@ -245,10 +247,6 @@ namespace AElf.Kernel.SmartContract.Application
                     Origin = txContext.Origin,
                     OriginTransactionId = originTransactionId
                 };
-
-                // Only system contract can send TransferFrom tx as inline tx.
-                if (!_inlineTransactionValidationService.Validate(inlineTx))
-                    break;
 
                 var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
 
@@ -506,13 +504,7 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSet;
         }
 
-        private static List<IPreExecutionPlugin> GetUniquePrePlugins(IEnumerable<IPreExecutionPlugin> plugins)
-        {
-            // One instance per type
-            return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
-        }
-
-        private static List<IPostExecutionPlugin> GetUniquePostPlugins(IEnumerable<IPostExecutionPlugin> plugins)
+        private static List<T> GetUniquePlugins<T>(IEnumerable<T> plugins)
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();

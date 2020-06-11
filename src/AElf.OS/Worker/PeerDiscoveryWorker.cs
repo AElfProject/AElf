@@ -42,11 +42,11 @@ namespace AElf.OS.Worker
 
             if (newNodes == null || newNodes.Nodes.Count <= 0)
             {
-                Logger.LogDebug("No new nodes discovered");
+                Logger.LogTrace("No new nodes discovered");
                 return;
             }
 
-            Logger.LogDebug($"New nodes discovered : {newNodes}.");
+            Logger.LogInformation($"New nodes discovered : {newNodes}.");
 
             foreach (var node in newNodes.Nodes)
             {
@@ -62,7 +62,7 @@ namespace AElf.OS.Worker
                     
                     if (_networkService.IsPeerPoolFull())
                     {
-                        Logger.LogDebug("Peer pool is full, aborting add.");
+                        Logger.LogTrace("Peer pool is full, aborting add.");
                         break;
                     }
                     

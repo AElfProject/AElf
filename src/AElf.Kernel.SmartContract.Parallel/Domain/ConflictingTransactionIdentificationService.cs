@@ -66,7 +66,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 var actual = GetKeys(returnSetLookup[txnWithResource.Transaction.GetHash()]);
                 actual.ExceptWith(extracted);
                 if (actual.Count == 0) continue;
-                Logger.LogWarning($"Conflict keys:{string.Join(";", actual)}");
+                Logger.LogDebug($"Conflict keys:{string.Join(";", actual)}");
                 wrongTxnWithResources.Add(txnWithResource);
             }
 
