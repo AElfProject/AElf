@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace AElf.WebApp.Application.Chain.Infrastructure
@@ -20,9 +22,13 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
 
         private readonly ConcurrentQueue<Hash> _transactionIds = new ConcurrentQueue<Hash>();
 
+        public ILogger<TransactionResultStatusCacheProvider> Logger { get; set; }
+
         public TransactionResultStatusCacheProvider(IOptionsSnapshot<WebAppOptions> webAppOptions)
         {
             _webAppOptions = webAppOptions.Value;
+            
+            Logger = NullLogger<TransactionResultStatusCacheProvider>.Instance;
         }
 
         public void AddTransactionResultStatus(Hash transactionId)
@@ -32,6 +38,7 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
                 TransactionResultStatus = TransactionResultStatus.PendingValidation
             })) return;
 
+            Logger.LogTrace($"Tx {transactionId} entered tx result status cache provider.");
             _transactionIds.Enqueue(transactionId);
             ClearOldTransactionResultStatus();
         }
@@ -43,6 +50,7 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
             // Only update status when current status is PendingValidation.
             if (currentStatus.TransactionResultStatus == TransactionResultStatus.PendingValidation)
             {
+                Logger.LogTrace($"Tx {transactionId} result status tunes to {status}.");
                 _transactionValidateResults.TryUpdate(transactionId, status, currentStatus);
             }
         }
