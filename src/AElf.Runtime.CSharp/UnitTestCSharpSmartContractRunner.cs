@@ -32,7 +32,6 @@ namespace AElf.Runtime.CSharp
             if (assembly2 != null && code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
             {
                 assembly = assembly2;
-                loadContext.Unload();
             }
 
             return assembly;
