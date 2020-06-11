@@ -128,14 +128,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Initialize current miners' information in Election Contract.
                 if (State.IsMainChain.Value)
                 {
-                    var minersCount = GetMinersCount(nextRound);
-                    if (minersCount != 0 && State.ElectionContract.Value != null)
-                    {
-                        State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                        {
-                            MinersCount = minersCount
-                        });
-                    }
+                    UpdateMinersCountToElectionContract(nextRound);
                 }
             }
 

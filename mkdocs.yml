@@ -61,6 +61,7 @@ nav:
     - 'Addresses' : 'protocol/addresses.md'
     - 'Transactions' : 'protocol/transactions.md'
     - 'Blocks' : 'protocol/blocks.md'
+    - 'Consensus' : 'protocol/consensus.md'
 
   - Smart contracts : 'contract/main.md'
   - Smart contracts:
