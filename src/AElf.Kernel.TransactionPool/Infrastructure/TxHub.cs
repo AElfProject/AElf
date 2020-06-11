@@ -58,7 +58,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _processTransactionJobs = CreateQueuedTransactionBufferBlock();
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
         {
             var output = new ExecutableTransactionSet
             {
@@ -70,10 +70,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 return output;
             }
-
-            // TODO: It does not make sense to compare _bestChainHash with chain, especially when it comes to parallel block execution. Branch hash through interface params should be used instead. 
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain.BestChainHash != _bestChainHash)
+            
+            if (blockHash != _bestChainHash)
             {
                 Logger.LogWarning(
                     $"Attempting to retrieve executable transactions while best chain records don't match.");
