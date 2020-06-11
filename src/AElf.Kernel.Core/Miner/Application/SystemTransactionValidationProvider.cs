@@ -15,7 +15,7 @@ namespace AElf.Kernel.Miner.Application
         public Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             return Task.FromResult(!_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(block.Header,
-                                       out var systemTransactionCount) || systemTransactionCount != 0);
+                                       out var systemTransactionCount) || systemTransactionCount > 0);
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
