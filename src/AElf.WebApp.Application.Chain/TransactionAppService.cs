@@ -292,10 +292,17 @@ namespace AElf.WebApp.Application.Chain
         }
 
         private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
-            string methodName)
+            string methodName, bool throwException = true)
         {
-            return await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                _transactionReadOnlyExecutionService, contractAddress, methodName);
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetContractMethodDescriptorAsync(chainContext,
+                contractAddress, methodName, throwException);
         }
 
         private async Task<byte[]> CallReadOnlyAsync(Transaction tx)

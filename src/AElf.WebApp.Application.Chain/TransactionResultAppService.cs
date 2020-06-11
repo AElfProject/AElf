@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Kernel;
+using Google.Protobuf.Reflection;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -76,9 +78,9 @@ namespace AElf.WebApp.Application.Chain
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             output.TransactionSize = transaction.CalculateSize();
-            
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
+
+            var methodDescriptor =
+                await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
@@ -268,8 +270,7 @@ namespace AElf.WebApp.Application.Chain
             transactionResultDto.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
-                await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
+                await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
@@ -346,6 +347,20 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return true;
+        }
+        
+        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
+            string methodName, bool throwException = true)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetContractMethodDescriptorAsync(chainContext,
+                contractAddress, methodName, throwException);
         }
     }
 }
