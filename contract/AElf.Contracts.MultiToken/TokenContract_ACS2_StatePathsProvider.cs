@@ -16,7 +16,7 @@ namespace AElf.Contracts.MultiToken
                     var args = TransferInput.Parser.ParseFrom(txn.Params);
                     var resourceInfo = new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
                             GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
@@ -37,7 +37,7 @@ namespace AElf.Contracts.MultiToken
                     var args = TransferFromInput.Parser.ParseFrom(txn.Params);
                     var resourceInfo = new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
                                 args.Symbol),
@@ -69,8 +69,8 @@ namespace AElf.Contracts.MultiToken
             var paths = symbols.Select(symbol => GetPath(nameof(TokenContractState.Balances), from.ToString(), symbol));
             foreach (var path in paths)
             {
-                if(resourceInfo.Paths.Contains(path)) continue;
-                resourceInfo.Paths.Add(path);
+                if(resourceInfo.WritePaths.Contains(path)) continue;
+                resourceInfo.WritePaths.Add(path);
             }
         }
 

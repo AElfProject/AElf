@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
                 },
@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             });
             var otherTxn = GetAcs2Transaction(new ResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     GetPath(6789)
                 },
@@ -107,7 +107,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             cancelTokenSource.Cancel();
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
                 }
