@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -85,7 +84,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             return output;
         }
-        
+
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
             if (_bestChainHash == Hash.Empty)
@@ -261,28 +260,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var updateBucketIndexTransformBlock =
                 new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
                     executionDataFlowBlockOptions);
-            var updateRefBlockStatusActionBlock = new ActionBlock<QueuedTransaction>(
-                async queuedTransaction =>
-                    await ProcessQueuedTransactionAsync(queuedTransaction, UpdateQueuedTransactionRefBlockStatusAsync),
-                executionDataFlowBlockOptions);
             int i = 0;
             while (i < _transactionOptions.PoolParallelismDegree)
             {
-                var validationTransformBlock = new TransformBlock<QueuedTransaction, QueuedTransaction>(
+                var validationTransformBlock = new ActionBlock<QueuedTransaction>(
                     async queuedTransaction =>
                         await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                     new ExecutionDataflowBlockOptions
                     {
-                        BoundedCapacity = _transactionOptions.PoolLimit
+                        BoundedCapacity = _transactionOptions.PoolLimit,
+                        EnsureOrdered = false
                     });
                 var index = i;
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
-                    queuedTransaction =>
-                        queuedTransaction.BucketIndex == index || queuedTransaction.BucketIndex == -index);
-
-                validationTransformBlock.LinkTo(updateRefBlockStatusActionBlock, linkOptions,
-                    queuedTransaction => queuedTransaction != null);
-                validationTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+                    queuedTransaction => queuedTransaction.BucketIndex == index);
                 i++;
             }
 
@@ -293,7 +284,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
         {
             queuedTransaction.BucketIndex =
-                queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree;
+                Math.Abs(queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree);
             return queuedTransaction;
         }
 
@@ -321,16 +312,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
             }
-            
+
             // double check
             var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
             if (hasTransaction)
                 return null;
-            
+
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (addSuccess)
+            {
+                await UpdateQueuedTransactionRefBlockStatusAsync(queuedTransaction);
                 return queuedTransaction;
+            }
+
             Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
             return null;
         }
