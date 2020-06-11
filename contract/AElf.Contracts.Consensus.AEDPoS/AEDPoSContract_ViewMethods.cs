@@ -172,10 +172,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private string ConvertAddressToPubkey(Address address)
         {
             if (!TryToGetCurrentRoundInformation(out var currentRound)) return null;
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
+            var possibleKeys = currentRound.RealTimeMinersInformation.Keys.ToList();
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                possibleKeys.AddRange(previousRound.RealTimeMinersInformation.Keys);
+            }
 
-            var possibleKeys =
-                currentRound.RealTimeMinersInformation.Keys.Concat(previousRound.RealTimeMinersInformation.Keys);
             return possibleKeys.FirstOrDefault(k =>
                 Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k)) == address);
         }
