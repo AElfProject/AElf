@@ -1,6 +1,16 @@
-## Transactions
+# Overview
 
-Transactions ultimately are what will change the state of the blockchain, by calling methods on contracts. A transaction is either sent to the node via RPC or received from the network. When broadcasting a transaction and if valid it will be eventually included in a block. When this block is received and executed by the node, it will potential change the state of contracts. The following message describes the structure of a transaction:
+Transactions ultimately are what will change the state of the blockchain, by calling methods on smart contracts. A transaction is either sent to the node via RPC or received from the network. When broadcasting a transaction and if valid it will be eventually included in a block. When this block is received and executed by the node, it will potential change the state of contracts.
+
+## Smart Contract
+
+## Action & View
+
+There are two types of smart contract methods, actions and views.
+
+# Transaction Instance
+
+Here's the defination of the Transaction.
 
 ``` protobuf
 option csharp_namespace = "AElf.Types";

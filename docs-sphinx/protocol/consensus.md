@@ -49,7 +49,7 @@ In the first round, the ordering of block generations as well as the signature (
 
 ![consensus-3](./pictures/consensus-3.png)
 
-In the second round, the block generations are again arbitrarily ordered. However, from the second round, the signature will be calculated by **sig_node(t+1) = hash(in_node(t) + all_t)** where ![consensus-4](./pictures/consensus-4.png) here **node[i](t)**, means the node is processing the **i-th** transaction in round **t**.
+In the second round, the block generations are again arbitrarily ordered. However, from the second round, the signature will be calculated by **sig_node(t+1) = hash(in_node(t) + all_t)** where ![consensus-4](./pictures/consensus-4.png) here **node[i][t]**, means the node is processing the **i-th** transaction in round **t**.
 
 From round 3, the ordering within a round is generated from the ordering and the node signature from the previous round.
 
