@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Cryptography;
 using Shouldly;
 using Xunit;

@@ -34,7 +34,6 @@ namespace AElf.Contracts.CrossChain
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
         
         internal MappedState<int, BytesValue> SideChainInitialConsensusInfo { get; set; }
-        public MappedState<int, long> IndexingBalance { get; set; }
 
         public MappedState<long, IndexedSideChainBlockData> IndexedSideChainBlockData { get; set; }
         

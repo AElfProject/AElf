@@ -117,7 +117,7 @@ namespace AElf.Kernel.SmartContract.Application
 #if DEBUG
                     if (trace.Error != string.Empty)
                     {
-                        Logger.LogError(trace.Error);
+                        Logger.LogDebug(trace.Error);
                     }
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);

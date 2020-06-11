@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Profit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Profit is a contract that enables the creation of schemes for profit distribution.</Description>
     </PropertyGroup>
 
@@ -39,6 +38,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf\Proto\profit_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

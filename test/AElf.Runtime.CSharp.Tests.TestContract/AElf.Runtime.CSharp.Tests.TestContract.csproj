@@ -3,7 +3,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <AssemblyName>AElf.Runtime.CSharp.Tests.TestContract</AssemblyName>
         <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
-        <IsContract>true</IsContract>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
