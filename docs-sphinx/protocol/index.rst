@@ -1,3 +1,6 @@
+Protocol
+--------
+
 .. toctree::
 
     Consensus <consensus>

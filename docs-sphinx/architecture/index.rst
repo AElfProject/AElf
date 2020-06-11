@@ -1,3 +1,6 @@
+Artchitecture
+-------------
+
 .. toctree::
 
    Core <core/index>

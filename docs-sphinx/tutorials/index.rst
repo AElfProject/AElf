@@ -1,3 +1,6 @@
+Tutorials
+---------
+
 .. toctree::
    :caption: Tutorials
 
