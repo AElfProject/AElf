@@ -298,6 +298,110 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
+        public async Task RechargeForSideChain_IndexingFeeDebt()
+        {
+            int parentChainId = 123;
+            long lockedToken = 2;
+            long indexingPrice = 1;
+            long parentChainHeightOfCreation = 10;
+            
+            // transfer token
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Amount = 1000,
+                Symbol = "ELF",
+                To = AnotherSender
+            });
+            
+            var sideChainId =
+                await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken,
+                    indexingPrice, AnotherKeyPair);
+
+            var fakeSideChainBlockHash = HashHelper.ComputeFrom("sideChainBlockHash");
+            var fakeTxMerkleTreeRoot = HashHelper.ComputeFrom("txMerkleTreeRoot");
+            
+            {
+                var sideChainBlockData1 =
+                    CreateSideChainBlockData(fakeSideChainBlockHash, 1, sideChainId, fakeTxMerkleTreeRoot);
+                var sideChainBlockData2 =
+                    CreateSideChainBlockData(fakeSideChainBlockHash, 2, sideChainId, fakeTxMerkleTreeRoot);
+                var crossChainBlockData = new CrossChainBlockData
+                {
+                    SideChainBlockDataList = {sideChainBlockData1, sideChainBlockData2}
+                };
+
+                await DoIndexAsync(crossChainBlockData);
+                var chainStatus = await GetSideChainStatusAsync(sideChainId);
+                chainStatus.ShouldBe(SideChainStatus.Active);
+            }
+
+            {
+                await ApproveBalanceAsync(1);
+                var rechargeInput = new RechargeInput
+                {
+                    ChainId = sideChainId,
+                    Amount = 1
+                };
+                await CrossChainContractStub.Recharge.SendAsync(rechargeInput);
+                var chainStatus = await GetSideChainStatusAsync(sideChainId);
+                chainStatus.ShouldBe(SideChainStatus.Active);
+                var balance = await GetSideChainBalanceAsync(sideChainId);
+                balance.ShouldBe(1);
+            }
+
+            {
+                var sideChainBlockData3 =
+                    CreateSideChainBlockData(fakeSideChainBlockHash, 3, sideChainId, fakeTxMerkleTreeRoot);
+                var sideChainBlockData4 =
+                    CreateSideChainBlockData(fakeSideChainBlockHash, 4, sideChainId, fakeTxMerkleTreeRoot);
+                var crossChainBlockData = new CrossChainBlockData
+                {
+                    SideChainBlockDataList = {sideChainBlockData3, sideChainBlockData4}
+                };
+
+                await DoIndexAsync(crossChainBlockData);
+                var chainStatus = await GetSideChainStatusAsync(sideChainId);
+                chainStatus.ShouldBe(SideChainStatus.IndexingFeeDebt);
+                
+                var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                    {Value = sideChainId});
+                debt.Value.ShouldBe(1);
+            }
+            
+            {
+                await ApproveBalanceAsync(2);
+                var rechargeInput = new RechargeInput
+                {
+                    ChainId = sideChainId,
+                    Amount = 2
+                };
+                var balanceBeforeRecharge = await GetSideChainBalanceAsync(sideChainId);
+                balanceBeforeRecharge.ShouldBe(0);
+                
+                var rechargeTx = await CrossChainContractStub.Recharge.SendAsync(rechargeInput);
+
+                var transferredNonIndexedEvents = rechargeTx.TransactionResult.Logs
+                    .Where(l => l.Name.Contains(nameof(Transferred))).Select(e => e.NonIndexed);
+                var transferredNonIndexed = Transferred.Parser.ParseFrom(transferredNonIndexedEvents.Last());
+                transferredNonIndexed.Amount.ShouldBe(1);
+                
+                var transferredIndexedEvents = rechargeTx.TransactionResult.Logs
+                    .Where(l => l.Name.Contains(nameof(Transferred))).Select(e => e.Indexed[1]);
+                var transferredIndexed = Transferred.Parser.ParseFrom(transferredIndexedEvents.Last());
+                transferredIndexed.To.ShouldBe(DefaultSender);
+                
+                var balanceAfterRecharge = await GetSideChainBalanceAsync(sideChainId);
+                balanceAfterRecharge.ShouldBe(1);
+                var chainStatus = await GetSideChainStatusAsync(sideChainId);
+                chainStatus.ShouldBe(SideChainStatus.Active);
+                
+                var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                    {Value = sideChainId});
+                debt.Value.ShouldBe(0);
+            }
+        }
+        
+        [Fact]
         public async Task ProposeSideChainData()
         {
             var parentChainId = 123;
@@ -369,7 +473,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task ProposeSideChainData_WithChainInsufficientBalance()
+        public async Task ProposeSideChainData_WithChainIndexingFeeDebt()
         {
             int parentChainId = 123;
             long lockedToken = 2;
@@ -393,7 +497,18 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var txResult =
                 await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var proposalId = ProposalCreated.Parser
+                .ParseFrom(txResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                    .NonIndexed).ProposalId;
+            await ApproveWithMinersAsync(proposalId);
+            
+            // release
+            await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+                
+            var debt = await CrossChainContractStub.GetSideChainIndexingFeeDebt.CallAsync(new Int32Value
+                {Value = sideChainId});
+            debt.Value.ShouldBe(1);
         }
         
         [Fact]
@@ -615,7 +730,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     Value = sideChainId
                 });
-                chainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                chainStatus.Status.ShouldBe(SideChainStatus.Active);
             }
         }
         
@@ -662,12 +777,12 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     Value = sideChainId
                 });
-                chainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                chainStatus.Status.ShouldBe(SideChainStatus.Active);
             }
         }
 
         [Fact]
-        public async Task Release_IndexingSideChain_InsufficientBalance()
+        public async Task Release_IndexingSideChain_IndexingFeeDebt()
         {
             int parentChainId = 123;
             long lockedToken = 2;
@@ -731,7 +846,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 {
                     Value = sideChainId
                 });
-                chainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                chainStatus.Status.ShouldBe(SideChainStatus.IndexingFeeDebt);
             }
 
             var sideChainIndexedHeight =

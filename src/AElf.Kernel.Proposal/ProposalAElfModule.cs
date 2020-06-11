@@ -14,7 +14,6 @@ namespace AElf.Kernel.Proposal
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ProposalApprovalTransactionGenerator>();
             context.Services.AddSingleton<IProposalProvider, ProposalProvider>();
-            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
         }
     }
 }
