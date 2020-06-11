@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     ChainBlockLinkExecutionStatus.ExecutionFailed);
                 await _blockchainService.RemoveLongestBranchAsync(chain);
 
-                Logger.LogWarning("No block executed successfully or no block is higher than best chain.");
+                Logger.LogDebug("No block executed successfully or no block is higher than best chain.");
                 return;
             }
 

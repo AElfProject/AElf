@@ -61,7 +61,7 @@ namespace AElf.Kernel.Configuration
                 BlockHeight = block.Height
             }, limit.Value);
 
-            Logger.LogInformation($"BlockTransactionLimit has been changed to {limit.Value}");
+            Logger.LogDebug($"BlockTransactionLimit has been changed to {limit.Value}");
         }
     }
 }

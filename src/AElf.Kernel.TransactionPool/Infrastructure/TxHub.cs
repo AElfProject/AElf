@@ -309,7 +309,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }, queuedTransaction.Transaction);
             if (!validationResult)
             {
-                Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} validation failed.");
+                Logger.LogDebug($"Transaction {queuedTransaction.TransactionId} validation failed.");
                 return null;
             }
 
