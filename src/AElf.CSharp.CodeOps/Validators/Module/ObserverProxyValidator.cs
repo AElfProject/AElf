@@ -4,10 +4,11 @@ using System.Threading;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ObserverProxyValidator : IValidator<ModuleDefinition>
+    public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
         private readonly TypeDefinition _counterProxyTypeRef;
         private TypeDefinition _injProxyType;
