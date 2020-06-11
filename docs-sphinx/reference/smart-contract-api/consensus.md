@@ -1,4 +1,5 @@
 # Consensus Contract
+
 The Consensus contract is essentially used for managing block producers and synchronizing data.
 
 ## view methods
@@ -10,7 +11,8 @@ For reference, you can find here the available view methods.
 Gets the list of current miners.
 
 ```Protobuf
-rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {}
+rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList){
+}
 
 message MinerList {
     repeated bytes pubkeys = 1;
@@ -18,6 +20,7 @@ message MinerList {
 ```
 
 **returns**:
+
 - **pubkeys**: miners' public keys.
 
 ### GetCurrentMinerPubkeyList
@@ -25,7 +28,8 @@ message MinerList {
 Gets the list of current miners, each item a block producer's public key in hexadecimal format.
 
 ```Protobuf
- rpc GetCurrentMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {}
+ rpc GetCurrentMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList){
+ }
 
 message PubkeyList {
     repeated string pubkeys = 1;
@@ -33,6 +37,7 @@ message PubkeyList {
 ```
 
 **returns**:
+
 - **pubkeys**: miner's public key (hexadecimal string).
 
 ### GetCurrentMinerListWithRoundNumber
@@ -40,7 +45,8 @@ message PubkeyList {
 Gets the list of current miners along with the round number.
 
 ```Protobuf
-rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {}
+rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber){
+}
 
 message MinerListWithRoundNumber {
     MinerList miner_list = 1;
@@ -53,10 +59,12 @@ message MinerList {
 ```
 
 **returns**:
+
 - **miner list**: miners list.
 - **round number**: current round number.
 
 **MinerList**:
+
 - **pubkeys**: miners' public keys.
 
 ### GetRoundInformation
@@ -64,7 +72,9 @@ message MinerList {
 Gets information of the round specified as input.
 
 ```Protobuf
-rpc GetRoundInformation (aelf.SInt64Value) returns (Round) {}
+rpc GetRoundInformation (aelf.SInt64Value) returns (Round){
+}
+
 message SInt64Value
 {
     sint64 value = 1;
@@ -105,12 +115,14 @@ message MinerInRound {
 ```
 
 **SInt64Value**:
+
 - **value**: round number.
 
 **returns**:
+
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
-- **blockchain age**: current time minus block chain start time (if the round number is 1, the block chain age is 1), represented in seconds. 
+- **blockchain age**: current time minus block chain start time (if the round number is 1, the block chain age is 1), represented in seconds.
 - **extra block producer of previous round**: the public key (hexadecimal string) of the first miner, who comes from the last term, in the current term.
 - **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
@@ -119,6 +131,7 @@ message MinerInRound {
 - **round id for validation**: round id, calculated by summing block producers' expecting time (second).
 
 **MinerInRound**:
+
 - **order**: the order of miners producing block.
 - **is extra block producer**: The miner who is the first miner in the first round of each term.
 - **in value**: the previous miner's public key.
@@ -142,7 +155,8 @@ message MinerInRound {
 Gets the current round number.
 
 ```Protobuf
-rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value){
+}
 
 message SInt64Value
 {
@@ -151,6 +165,7 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: number of current round.
 
 ### GetCurrentRoundInformation
@@ -158,14 +173,16 @@ message SInt64Value
 Gets the current round's information.
 
 ```Protobuf
- rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {}
+ rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round){
+ }
 ```
 
 **returns**:
+
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
-- **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second. 
+- **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second.
 - **extra block producer of previous round**: the public key (hexadecimal string) of the first miner, who comes from the last term, in the current term.
 - **term number**: the current term number.
 - **confirmed irreversible block height**: irreversible block height.
@@ -174,6 +191,7 @@ Gets the current round's information.
 - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
+
 - **order**: the order of miners producing block.
 - **is extra block producer**: The miner who is the first miner in the first round of each term.
 - **in value**: the previous miner's public key.
@@ -197,10 +215,12 @@ Gets the current round's information.
 Gets the previous round information.
 
 ```Protobuf
-rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
+rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round){
+}
 ```
 
 **returns**:
+
 - **round number**: round number.
 - **real time miners information**: public key => miner information.
 - **main chain miners round number**: is not used.
@@ -213,6 +233,7 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
 
 **MinerInRound**:
+
 - **order**: the order of miners producing block.
 - **is extra block producer**: The miner who is the first miner in the first round of each term.
 - **in value**: the previous miner's public key.
@@ -236,7 +257,8 @@ rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {}
 Gets the current term number.
 
 ```Protobuf
-rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value){
+}
 
 message SInt64Value
 {
@@ -245,6 +267,7 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: the current term number.
 
 ### GetCurrentWelfareReward
@@ -252,7 +275,8 @@ message SInt64Value
 Gets the current welfare reward.
 
 ```Protobuf
-rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value){
+}
 
 message SInt64Value
 {
@@ -261,6 +285,7 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: the current welfare reward.
 
 ### GetPreviousMinerList
@@ -268,7 +293,8 @@ message SInt64Value
 Gets the miners in the previous term.
 
 ```Protobuf
-rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {}
+rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList){
+}
 
 message MinerList {
     repeated bytes pubkeys = 1;
@@ -276,6 +302,7 @@ message MinerList {
 ```
 
 **MinerList**:
+
 - **pubkeys**: public keys (represented by hexadecimal strings) of miners in the previous term.
 
 ### GetMinedBlocksOfPreviousTerm
@@ -283,7 +310,8 @@ message MinerList {
 Gets the number of mined blocks during the previous term.
 
 ```Protobuf
-rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value){
+}
 
 message SInt64Value
 {
@@ -293,6 +321,7 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: the number of mined blocks.
 
 ### GetNextMinerPubkey
@@ -300,21 +329,25 @@ message SInt64Value
 Gets the miner who will produce the block next, which means the miner is the first one whose expected mining time is greater than the current time. If this miner can not be found, the first miner who is extra block producer will be selected.
 
 ```Protobuf
-rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
+rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue){
+}
 
 message StringValue {
   string value = 1;
 }
 ```
+
 **returns**:
+
 - **value**: the miner's public key.
 
 ### GetCurrentMinerPubkey
 
-Gets the current miner. 
+Gets the current miner.
 
 ```Protobuf
-rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {}
+rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue){
+}
 
 message StringValue {
   string value = 1;
@@ -322,6 +355,7 @@ message StringValue {
 ```
 
 **returns**:
+
 - **value**: miner's public key.
 
 ### IsCurrentMiner
@@ -329,7 +363,8 @@ message StringValue {
 Query whether the miner is the current miner.
 
 ```Protobuf
-rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {}
+rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue){
+}
 
 message Address
 {
@@ -338,9 +373,11 @@ message Address
 ```
 
 **Address**:
+
 - **value**: miner's address.
 
 **returns**:
+
 - **value**: indicates if the input miner is the current miner.
 
 ### GetNextElectCountDown
@@ -348,7 +385,8 @@ message Address
 Count down to the next election.
 
 ```Protobuf
-rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {}
+rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value){
+}
 
 message SInt64Value
 {
@@ -357,4 +395,5 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: total seconds to next election.
