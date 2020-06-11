@@ -60,6 +60,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 },
                 ReadPaths =
                 {
+                    GetPath(12345),
                     GetPath(123)
                 }
             });
@@ -94,6 +95,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 },
                 ReadPaths =
                 {
+                    GetPath(12345),
                     GetPath(123)
                 },
                 ContractHash = executive.ContractHash
