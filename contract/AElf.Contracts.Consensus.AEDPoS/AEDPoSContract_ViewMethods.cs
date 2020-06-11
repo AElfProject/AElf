@@ -560,24 +560,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return result;
         }
-
-        public override Int64Value GetMaximumMinersCount(Empty input)
-        {
-            if (State.BlockchainStartTimestamp.Value == null)
-            {
-                return new Int64Value {Value = AEDPoSContractConstants.SupposedMinersCount};
-            }
-
-            if (!TryToGetCurrentRoundInformation(out var currentRound)) return new Int64Value();
-            return new Int64Value
-            {
-                Value = Math.Min(currentRound.RealTimeMinersInformation.Count <
-                                 AEDPoSContractConstants.SupposedMinersCount
-                    ? AEDPoSContractConstants.SupposedMinersCount
-                    : AEDPoSContractConstants.SupposedMinersCount.Add(
-                        (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                        .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value)
-            };
-        }
     }
 }
