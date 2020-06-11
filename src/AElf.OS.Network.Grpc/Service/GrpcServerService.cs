@@ -92,7 +92,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> BlockBroadcastStream(
             IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -105,7 +105,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -129,7 +129,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> AnnouncementBroadcastStream(
             IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -142,7 +142,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -173,7 +173,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream,
             ServerCallContext context)
         {
-            Logger.LogTrace($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -186,7 +186,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -229,7 +229,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> LibAnnouncementBroadcastStream(
             IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
@@ -242,7 +242,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -354,7 +354,7 @@ namespace AElf.OS.Network.Grpc
                     await context.WriteResponseHeadersAsync(headers);
                 }
 
-                Logger.LogTrace(
+                Logger.LogDebug(
                     $"Replied to {context.GetPeerInfo()} with {blockList.Blocks.Count}, request was {request}");
             }
             catch (Exception e)
@@ -437,7 +437,7 @@ namespace AElf.OS.Network.Grpc
             if (peer != null)
                 return peer;
             
-            Logger.LogInformation($"Peer: {peerPubkey} already removed.");
+            Logger.LogDebug($"Peer: {peerPubkey} already removed.");
             throw new RpcException(Status.DefaultCancelled);
         }
     }

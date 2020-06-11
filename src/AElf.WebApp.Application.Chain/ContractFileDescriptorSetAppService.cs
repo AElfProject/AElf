@@ -45,7 +45,7 @@ namespace AElf.WebApp.Application.Chain
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Error during GetContractFileDescriptorSetAsync.");
+                Logger.LogWarning(e, "Error during GetContractFileDescriptorSetAsync.");
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
         }

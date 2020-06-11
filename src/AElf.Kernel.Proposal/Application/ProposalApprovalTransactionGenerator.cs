@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Miner.Application;
@@ -9,7 +8,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Proposal.Application
 {
@@ -69,8 +67,8 @@ namespace AElf.Kernel.Proposal.Application
                 }.ToByteString()
             };
             generatedTransactions.Add(generatedTransaction);
-
-            Logger.LogInformation("Proposal approval transaction generated.");
+            
+            Logger.LogTrace("Proposal approval transaction generated.");
 
             return generatedTransactions;
         }
