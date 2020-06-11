@@ -2,12 +2,13 @@
 
 The Vote contract is an abstract layer for voting. Developers implement concrete voting activities by calling this contract.
 
-## **Voting for Block Producers**:
+## **Voting for Block Producers**
 
 To build a voting activity, the developer should register first.
 
 ```Protobuf
-rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {}
+rpc Register (VotingRegisterInput) returns (google.protobuf.Empty){
+}
 
 message VotingRegisterInput {
     google.protobuf.Timestamp start_timestamp = 1;
@@ -20,6 +21,7 @@ message VotingRegisterInput {
 ```
 
 **VotingRegisterInput**:
+
 - **start timestamp**: activity start time.
 - **end timestamp**: activity end time.
 - **accepted currency**: the token symbol which will be accepted.
@@ -32,7 +34,8 @@ message VotingRegisterInput {
 After building successfully a voting activity, others are able to vote.
 
 ```Protobuf
-rpc Vote (VoteInput) returns (google.protobuf.Empty) {}
+rpc Vote (VoteInput) returns (google.protobuf.Empty){
+}
 
 message VoteInput {
     aelf.Hash voting_item_id = 1;
@@ -56,6 +59,7 @@ message Voted {
 ```
 
 **VoteInput**:
+
 - **voting item id**: indicates which voting activity the user participate in.
 - **voter**: voter's address.
 - **amount**: vote amount.
@@ -66,6 +70,7 @@ message Voted {
 After a successfully vote, a **Voted** event log can be found in the transaction result. 
 
 **Voted**:
+
 - **voting item id**: voting activity id.
 - **voter**: voter's address.
 - **snapshot number**: the current round.
@@ -80,7 +85,8 @@ After a successfully vote, a **Voted** event log can be found in the transaction
 A voter can withdraw the token after the lock time.
 
 ```Protobuf
-rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {}
+rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty){
+}
 
 message WithdrawInput {
     aelf.Hash vote_id = 1;
@@ -92,11 +98,13 @@ message Withdrawn {
 ```
 
 **WithdrawInput**:
+
 - **vote id**: transaction id.
 
 After a successful vote, a **Withdrawn** event log can be found in the transaction result. 
 
 **Withdrawn**:
+
 - **vote id**: transaction id.
 
 ## **TakeSnapshot**
@@ -113,6 +121,7 @@ message TakeSnapshotInput {
 ```
 
 **TakeSnapshotInput**:
+
 - **voting item id**: voting activity id.
 - **snapshot number**: the round number.
 
@@ -121,7 +130,8 @@ message TakeSnapshotInput {
 Adds an option (a choice) to a voting activity.
 
 ```Protobuf
-rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {}
+rpc AddOption (AddOptionInput) returns (google.protobuf.Empty){
+}
 
 message AddOptionInput {
     aelf.Hash voting_item_id = 1;
@@ -130,7 +140,8 @@ message AddOptionInput {
 ```
 
 **AddOptionInput**:
-- **voting item id**: voting activity id.
+
+- **voting item id**: vote activity id.
 - **option**: the new option.
 
 ## **AddOptions**
@@ -138,14 +149,17 @@ message AddOptionInput {
 Adds multiple options (choices) to a voting activity.
 
 ```Protobuf
-rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {}
+rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty){
+}
 
 message AddOptionsInput {
     aelf.Hash voting_item_id = 1;
     repeated string options = 2;
 }
 ```
+
 **AddOptionsInput**:
+
 - **voting item id**: voting activity id.
 - **option**: the list of new options.
 
@@ -154,7 +168,8 @@ message AddOptionsInput {
 Removes an option from a voting activity.
 
 ```Protobuf
-rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {}
+rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty){  
+}
 
 message RemoveOptionInput {
     aelf.Hash voting_item_id = 1;
@@ -163,6 +178,7 @@ message RemoveOptionInput {
 ```
 
 **RemoveOptionInput**:
+
 - **voting item id**: voting activity id.
 - **option**: the option to remove.
 
@@ -171,7 +187,8 @@ message RemoveOptionInput {
 Removes multiple options from a voting activity.
 
 ```Protobuf
-rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {}
+rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty){
+}
 
 message RemoveOptionsInput {
     aelf.Hash voting_item_id = 1;
@@ -180,6 +197,7 @@ message RemoveOptionsInput {
 ```
 
 **RemoveOptionsInput**:
+
 - **voting item id**: voting activity id.
 - **option**: the options to remove.
 
@@ -192,7 +210,8 @@ For reference, you can find here the available view methods.
 Gets the information related to a voting activity.
 
 ```Protobuf
-rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {}
+rpc GetVotingItem (GetVotingItemInput) returns (VotingItem){
+}
 
 message GetVotingItemInput {
     aelf.Hash voting_item_id = 1;
@@ -214,9 +233,11 @@ message VotingItem {
 ```
 
 **GetVotingItemInput**:
+
 - **voting item id**: voting activity id.
 
 **returns**:
+
 - **voting item id**: voting activity id.
 - **accepted currency**: vote token.
 - **is lock token**: indicates if the token will be locked after voting.
@@ -252,10 +273,12 @@ message VotingResult {
 ```
 
 **GetVotingResultInput**:
+
 - **voting item id**: voting activity id.
 - **snapshot number**: round number.
 
 **returns**:
+
 - **voting item id**: voting activity id.
 - **results**: candidate => vote amount.
 - **snapshot number**: round number.
@@ -288,9 +311,11 @@ message VotingResult {
 ```
 
 **Hash**:
+
 - **value**: voting activity id.
 
 **returns**:
+
 - **voting item id**: voting activity id.
 - **results**: candidate => vote amount.
 - **snapshot number**: round number.
@@ -304,12 +329,13 @@ message VotingResult {
 Get the voting record for the given record ID.
 
 ```Protobuf
-rpc GetVotingRecord (aelf.Hash) returns (VotingRecord) {}
+rpc GetVotingRecord (aelf.Hash) returns (VotingRecord){
+}
 
-message Hash
-{
+message Hash{
     bytes value = 1;
 }
+
 message VotingRecord {
     aelf.Hash voting_item_id = 1;
     aelf.Address voter = 2;
@@ -324,9 +350,11 @@ message VotingRecord {
 ```
 
 **Hash**:
+
 - **value**: transaction id.
 
 **returns**:
+
 - **voting item id**: voting activity id.
 - **voter**: voter's address.
 - **snapshot number**: round number.
@@ -341,7 +369,8 @@ message VotingRecord {
 Get the voting records for the given record IDs.
 
 ```Protobuf
-rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {}
+rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords){
+}
 
 message GetVotingRecordsInput {
     repeated aelf.Hash ids = 1;
@@ -371,15 +400,19 @@ message VotingRecord {
 ```
 
 **GetVotingRecordsInput**:
+
 - **ids**: transaction ids.
 
 **Hash**:
+
 - **value**: transaction id.
 
 **returns**:
+
 - **records**: records.
 
 **VotingRecord**:
+
 - **voting item id**: voting activity id.
 - **voter**: voter's address.
 - **snapshot number**: round number.
@@ -394,10 +427,10 @@ message VotingRecord {
 Get the voter's withdrawn and valid transaction ids respectively.
 
 ```Protobuf
-rpc GetVotedItems (aelf.Address) returns (VotedItems) {}
+rpc GetVotedItems (aelf.Address) returns (VotedItems){
+}
 
-message Address
-{
+message Address{
     bytes value = 1;
 }
 
@@ -412,12 +445,15 @@ message VotedIds {
 ```
 
 **Address**:
+
 - **value**: voter's address.
 
 **returns**:
+
 - **voted item vote ids**: voting activity id => vote information.
 
 **VotedIds**:
+
 - **active votes**: valid transaction id.
 - **withdrawn votes**: withdrawn transaction id.
 
@@ -426,7 +462,8 @@ message VotedIds {
 Get the voter's withdrawn and valid transaction ids respectively according to voting activity id.
 
 ```Protobuf
-rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {}
+rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds){
+}
 
 message GetVotingIdsInput {
     aelf.Address voter = 1;
@@ -440,10 +477,12 @@ message VotedIds {
 ```
 
 **GetVotingIdsInput**:
+
 - **voter**: voter's address.
 - **voting item id**: voting activity id.
 
 **returns**:
+
 - **active votes**: valid transaction id.
 - **withdrawn votes**: withdrawn transaction id.
 

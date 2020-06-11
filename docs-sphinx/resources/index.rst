@@ -1,3 +1,6 @@
+Resources
+---------
+
 .. toctree::
 
    Wallet and Block Explorer <wallet-and-explorer/index>

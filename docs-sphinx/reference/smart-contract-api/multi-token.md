@@ -28,7 +28,7 @@ The token contract permits the creation of an entirely new token and the first a
 
 - **issuer** is the creator of this token.
 - **symbol** is a short string between 1 and 8 characters composed only of upper-case letters like for example "ELF" or "AETC" (no numbers allowed). Of course, since tokens are uniquely identified by the symbol, it must not already exist.
-- **token_name** is a more descriptive name for your token or the long name. For example, "RMB" could be the token symbol and "RenMinBi" the token's name. This is a non-optional field up to 80 characters in length. 
+- **token_name** is a more descriptive name for your token or the long name. For example, "RMB" could be the token symbol and "RenMinBi" the token's name. This is a non-optional field up to 80 characters in length.
 - **total_supply** for the token is the amount of tokens that will exist. This must be larger than 0.
 - **decimals** is a positive integer between 0-18.
 - **issue_chain_id** is the id of the chain, this defaults to the chain id of the node.
@@ -51,7 +51,7 @@ Issuing some amount of tokens to an address is the action of increasing that add
 - **symbol** is the symbol that identifies the token, it must exist.
 - **amount** is the amount to issue.
 - **to** field the receiver address of the newly issued tokens.
-- **memo** optionally you can specify a later accessible when parsing the transaction. 
+- **memo** optionally you can specify a later accessible when parsing the transaction.
 
 ### **Transfer**
 
@@ -72,7 +72,7 @@ The **Transfer** method takes exactly one parameter, a **TransferInput** message
 - **to** field is the receiver of the tokens.
 - **symbol** is the symbol that identifies the token, it must exist.
 - **amount** is the amount to to transfer.
-- **memo** optionally you can specify a later accessible when parsing the transaction. 
+- **memo** optionally you can specify a later accessible when parsing the transaction.
 
 ### **TransferFrom**
 
@@ -96,7 +96,7 @@ The **TransferFrom** action will transfer a specified amount of tokens from one 
 - **amount** the amount to transfer.
 - **memo** an optional memo.
 
-## Allowances.
+## Allowances
 
 Allowances allow some entity (in fact an address) to authorize another address to transfer tokens on his behalf (see **TransferFrom**). There are two methods available for controlling this, namely **Approve** and **UnApprove**.
 
@@ -136,7 +136,7 @@ This is the reverse operation for **Approve**, it will decrease the allowance.
 - **symbol** the symbol of the token to un-approve.
 - **amount** the amount of tokens to un-approve.
 
-## Locking.
+## Locking
 
 ### **Lock**
 
@@ -155,7 +155,7 @@ message LockInput {
 This method can be used to lock tokens.
 
 - **address** the entity that wants to lock its tokens.
-- **lock_id** id of the lock. 
+- **lock_id** id of the lock.
 - **symbol** the symbol of the token to lock.
 - **usage** a memo.
 - **amount** the amount of tokens to lock.
@@ -177,12 +177,12 @@ message UnlockInput {
 This is the reverse operation of locking, it un-locks some previously locked tokens.
 
 - **address** the entity that wants to un-lock its tokens.
-- **lock_id** id of the lock. 
+- **lock_id** id of the lock.
 - **symbol** the symbol of the token to un-lock.
 - **usage** a memo.
 - **amount** the amount of tokens to un-lock.
 
-## Burning tokens.
+## Burning tokens
 
 ### **Burn**
 
@@ -283,6 +283,7 @@ message SymbolToPayTxSizeFee{
     sint32 added_token_weight = 3;
 }
 ```
+
 This action sets available tokens that can be used to pay for transaction fee.
 
 - **symbols_to_pay_tx_size_fee** available token list.
@@ -435,7 +436,7 @@ rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protob
 }
 ```
 
-This method initializes the controller for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Note that, if the current chain is side chain, it will create a controller for managing chain rental. 
+This method initializes the controller for calling UpdateCoefficientsForContract and UpdateCoefficientsForSender. Note that, if the current chain is side chain, it will create a controller for managing chain rental.
 
 ### **ChangeUserFeeController**
 
@@ -449,6 +450,7 @@ message AuthorityInfo {
 ```
 
  **AuthorityInfo**:
+
 - **contract address**: controller type.
 - **owner address**: controller's address.
 
@@ -466,10 +468,12 @@ message AuthorityInfo {
 ```
 
 **AuthorityInfo**:
+
 - **contract address**: controller type.
 - **owner address**: controller's address.
 
 This method change the controller who sets the coefficient for calculating resource token.
+
 ## View methods
 
 ### **GetTokenInfo**
@@ -498,9 +502,11 @@ message TokenInfo {
 This view method returns a **TokenInfo** object that describes information about a token.
 
 Input:
+
 - **symbol** the token for which you want the information.
 
 Output:
+
 - **symbol** the symbol of the token.
 - **token_name** the full name of the token.
 - **supply** the current supply of the token.
@@ -557,11 +563,13 @@ message GetBalanceOutput {
 
 This view method returns the balance of an address.
 
-Input: 
+Input:
+
 - **symbol** the token for which to get the balance.
 - **owner** the address for which to get the balance.
 
 Output:
+
 - **symbol** the token for which to get the balance.
 - **owner** the address for which to get the balance.
 - **balance** the current balance.
@@ -587,12 +595,14 @@ message GetAllowanceOutput {
 
 This view method returns the allowance of one address to another.
 
-Input: 
+Input:
+
 - **symbol** the token for which to get the allowance.
 - **owner** the address for which to get the allowance (that approved tokens).
 - **spender** the address of the spender.
 
 Output:
+
 - **symbol** the token for which to get the allowance.
 - **owner** the address for which to get the allowance (that approved tokens).
 - **spender** the address of the spender.
@@ -636,11 +646,13 @@ message GetLockedAmountOutput {
 This view method returns the amount of tokens currently locked by an address.
 
 Input:
+
 - **address** the address.
 - **symbol** the token.
 - **lock_id** the lock id.
 
 Output:
+
 - **address** the address.
 - **symbol** the token.
 - **lock_id** the lock id.
@@ -757,8 +769,8 @@ This method returns the controller for UpdateCoefficientsForContract. The root a
 - **root_controller** root controller information.
 - **parliament_controller** parliament controller information.
 - **developer_controller** developer controller information.
- - **contract_address** in which contract the organization is created.
- - **owner_address** organization address
+- **contract_address** in which contract the organization is created.
+- **owner_address** organization address
 
 ### **GetUserFeeController**
 
@@ -783,8 +795,8 @@ This method returns the controller for UpdateCoefficientsForSender. The root add
 - **root_controller** root controller information.
 - **parliament_controller** parliament controller information.
 - **referendum_controller** referndum controller information.
- - **contract_address** in which contract the organization is created.
- - **owner_address** organization address
+- **contract_address** in which contract the organization is created.
+- **owner_address** organization address
 
 ### **GetSideChainRentalControllerCreateInfo**
 
@@ -799,6 +811,7 @@ message AuthorityInfo {
 ```
 
 **AuthorityInfo**:
+
 - **contract address**: controller type.
 - **owner address**: controller's address.
 
@@ -847,7 +860,6 @@ This method is used in side chain. It returns resouces token' unit value. (pay =
 
 - **resource_unit_value** resource token symbol => unit value.
 
-
 ### **OwningRentalUnitValue**
 
 ``` Proto
@@ -863,29 +875,7 @@ message UserFeeController{
 Get the controllers(By defalult, the contoller consist of parliament and referendum). If you change the controller, just the root controller has value.
 
 **returns**:
+
 - **root controller**: the root controller, it is a association by default.
 - **parliament controller**: parliament controller, member of the root controller.
 - **referendum controller**: referendum controller, member of the root controller.
-
-
-### **GetDeveloperFeeController**
-
-``` Proto
-rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {}
-
-message DeveloperFeeController {
-    acs1.AuthorityInfo root_controller = 1;
-    acs1.AuthorityInfo parliament_controller = 2;
-    acs1.AuthorityInfo developer_controller = 3;
-}
-```
-
-Get the controllers(By defalult, the contoller consist of parliament and developer). If you change the controller, just the root controller has value.
-
-**returns**:
-- **root controller**: the root controller, it is a association by default.
-- **parliament controller**: parliament controller, member of the root controller.
-- **developer controller**: developer controller consisiting of developers, member of the root controller.
-
-
-

@@ -1,3 +1,6 @@
+Reference
+---------
+
 .. toctree::
 
    Web API <web-api/web-api>

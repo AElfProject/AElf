@@ -23,3 +23,6 @@ using client (like **aelf-command**).
    Treasury Contract <treasury>
    Vote Contract <vote>
    Token Holder Contract <token-holder>
+   Economic Contract <economic>
+   Token Convert Contract <token-convert>
+   Configuration Contract <configuration>

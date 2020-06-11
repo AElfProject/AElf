@@ -24,12 +24,14 @@ message DonationReceived {
 ```
 
 **DonateInput**:
+
 - **symbol**: token symbol.
 - **amount**: token amount.
 
 After a successful donation a **DonationReceived** event log can be found in the transaction result.
 
 **DonationReceived**:
+
 - **from**: from address.
 - **to**: to address.
 - **symbol**: token symbol.
@@ -49,6 +51,7 @@ message DonateAllInput {
 ```
 
 **DonateAllInput**:
+
 - **symbol**: token symbol.
 
 ## **SetDistributingSymbolList**
@@ -64,6 +67,7 @@ message SymbolList {
 ```
 
 **SymbolList**:
+
 - **value**: token symbol list.
 
 ## **SetDividendPoolWeightSetting**
@@ -81,6 +85,7 @@ message DividendPoolWeightSetting {
 ```
 
 **DividendPoolWeightSetting**:
+
 - **citizen welfare weight**: citizen welfare weight.
 - **backup subsidy weight**: backup subsidy weight.
 - **miner reward weight**: miner reward weight.
@@ -100,6 +105,7 @@ message MinerRewardWeightSetting {
 ```
 
 **MinerRewardWeightSetting**:
+
 - **basic miner reward weight**: basic miner reward weight.
 - **votes weight reward weight**: votes weight reward weight.
 - **re-election reward weight**: re-election reward weight.
@@ -118,6 +124,7 @@ message AuthorityInfo {
 ```
 
 **AuthorityInfo**:
+
 - **contract address**: controller type.
 - **owner address**: controller's address.
 
@@ -139,11 +146,12 @@ message SInt64Value
 ```
 
 **returns**:
+
 - **value**: amount of native token.
 
 ### GetWelfareRewardAmountSample
 
-Test the welfare bonus gotten base on 10000 Vote Token. The input is a array of locking time, and the output is the corresponding welfare. 
+Test the welfare bonus gotten base on 10000 Vote Token. The input is a array of locking time, and the output is the corresponding welfare.
 
 ```Protobuf
 rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {}
@@ -158,9 +166,11 @@ message GetWelfareRewardAmountSampleOutput {
 ```
 
 **GetWelfareRewardAmountSampleInput**:
+
 - **value**: a array of locking time.
 
 **returns**:
+
 - **value**: a array of welfare.
 
 ### GetTreasurySchemeId
@@ -177,6 +187,7 @@ message Hash
 ```
 
 **returns**:
+
 - **value**: scheme id.
 
 ### GetDistributingSymbolList
@@ -213,11 +224,13 @@ message SchemeProportionInfo{
 ```
 
 **returns**:
+
 - **citizen welfare proportion info**: citizen welfare proportion info.
 - **backup subsidy proportion info**: backup subsidy proportion info.
 - **miner reward proportion info**: miner reward proportion info.
 
 **SchemeProportionInfo**:
+
 - **scheme id**: scheme id
 - **proportion**: the weight expressed as a percentage.
 

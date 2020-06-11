@@ -2,9 +2,9 @@
 
 The Profit contract is an abstract layer for creating scheme to share bonus. Developers can build a system to distribute bonus by call this contract.
 
-## **Scheme Creation**:
+## **Scheme Creation**
 
-This method creates a new scheme based on the **CreateSchemeInput** message. 
+This method creates a new scheme based on the **CreateSchemeInput** message.
 
 ```Protobuf
 rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash) {}
@@ -28,6 +28,7 @@ message SchemeCreated {
 ```
 
 **CreateSchemeInput**:
+
 - **manager**: the scheme manager's Address, defaults to the transaction sender.
 - **profit receiving due period_count** optional, defaults to 10.
 - **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
@@ -36,11 +37,13 @@ message SchemeCreated {
 - **token** used to indicates scheme id.
 
 **returns**:
+
 - **value**: the newly created scheme id.
 
 After a successful creation, a **SchemeCreated** event log can be found in the transaction result.
 
 **SchemeCreated**:
+
 - **virtual address**: transfer from scheme id.
 - **manager**: manager address.
 - **scheme id**: scheme id.
@@ -63,7 +66,7 @@ message AddSubSchemeInput {
 - **sub scheme id**: the child scheme ID.
 - **sub scheme shares**: number of shares of the sub-scheme.
 
-## **Remove sub-scheme**:
+## **Remove sub-scheme**
 
 Removes a sub-scheme from a scheme. Note that only the manager of the parent scheme can remove a sub-scheme from it.
 
@@ -77,6 +80,7 @@ message RemoveSubSchemeInput {
 ```
 
 **RemoveSubSchemeInput**:
+
 - **scheme id**: scheme id
 - **sub scheme id**: sub-scheme id
 
@@ -100,11 +104,13 @@ message BeneficiaryShare {
 ```
 
 **AddBeneficiaryInput**:
+
 - **scheme id**: scheme id.
 - **beneficiary share**: share information to beneficiary.
 - **end period**: end time.
 
 **BeneficiaryShare**:
+
 - **beneficiary**: beneficiary address
 - **shares**: shares attributed to this beneficiary.
 
@@ -122,6 +128,7 @@ message RemoveBeneficiaryInput {
 ```
 
 **RemoveBeneficiaryInput**:
+
 - **beneficiary** beneficiary address to be removed
 - **scheme id** scheme id
 
@@ -146,11 +153,13 @@ message BeneficiaryShare {
 ```
 
 **AddBeneficiariesInput**:
+
 - **scheme id**: scheme id.
 - **beneficiary shares**: share information to beneficiaries.
 - **end period**: end time.
 
-**BeneficiaryShare**
+**BeneficiaryShare**:
+
 - **beneficiary**: beneficiary address.
 - **shares**: shares to beneficiary.
 
@@ -167,10 +176,10 @@ message RemoveBeneficiariesInput {
 }
 ```
 
-RemoveBeneficiariesInput
+**RemoveBeneficiariesInput**:
+
 - **beneficiaries** beneficiaries' addresses to be removed.
 - **scheme id** scheme id.
-   
 
 ## **Profit contribution**
 
@@ -188,6 +197,7 @@ message ContributeProfitsInput {
 ```
 
 **ContributeProfitsInput**:
+
 - **scheme id**: scheme id.
 - **amount**: amount token contributed to the scheme.
 - **period**: in which term the amount is added.
@@ -208,6 +218,7 @@ message ClaimProfitsInput {
 ```
 
 **ContributeProfitsInput**:
+
 - **scheme id**: scheme id.
 - **symbol**: token symbol.
 - **beneficiary**: optional, claiming profits for another address, transaction fees apply to the caller.
@@ -230,6 +241,7 @@ message DistributeProfitsInput {
 ```
 
 **DistributeProfitsInput**:
+
 - **scheme id**: scheme id.
 - **period**: term， here should be the current term.
 - **amount**: number.
@@ -249,6 +261,7 @@ message ResetManagerInput {
 ```
 
 **ResetManagerInput**:
+
 - **scheme id**: scheme id.
 - **new manager**: new manager's address.
 
@@ -273,9 +286,11 @@ message CreatedSchemeIds {
 ```
 
 **GetManagingSchemeIdsInput**:
+
 - **manager**: manager's address.
 
 **returns**:
+
 - **scheme ids**: list of scheme ids.
 
 ### GetScheme
@@ -287,9 +302,11 @@ rpc GetScheme (aelf.Hash) returns (Scheme) {}
 ```
 
 **Hash**:
+
 - **value**: scheme id.
 
 **SchemeBeneficiaryShare**:
+
 - **scheme id**: sub scheme's id.
 - **shares**: sub scheme shares.
 
@@ -307,10 +324,12 @@ message SchemePeriod {
 ```
 
 **SchemePeriod**:
+
 - **scheme id**: scheme id.
 - **period**: period number.
 
 **returns**:
+
 - **value**: scheme's virtual address.
 
 ### GetDistributedProfitsInfo
@@ -333,10 +352,12 @@ message DistributedProfitsInfo {
 ```
 
 **SchemePeriod**:
+
 - **scheme_id**: scheme id.
 - **period**:  term number.
 
 **returns**:
+
 - **total shares**: total shares, -1 indicates failed to get the information.
 - **profits amount**: token symbol => reside amount.
 - **is released**: is released.
@@ -367,13 +388,16 @@ message ProfitDetail {
 ```
 
 **GetProfitDetailsInput**:
+
 - **scheme id** scheme id.
 - **beneficiary**  beneficiary.
 
 **returns**:
+
 - **details** profit details.
 
 **ProfitDetail**:
+
 - **start period**: start period.
 - **end period**: end period.
 - **shares**: shares indicating the weight used to calculate the profit in the future.
@@ -399,8 +423,10 @@ message SInt64Value
 ```
 
 **ClaimProfitsInput**:
+
 - **scheme_id**: scheme id.
 - **symbol**: token symbol.
 
 **returns**:
+
 - **value**: amount of tokens.

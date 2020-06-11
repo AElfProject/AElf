@@ -1,5 +1,7 @@
 # Token Holder Contract
 
+The TokenHolder contract is essentially used for building a bouns model for distributing bonus' to whom hold the token.
+
 ## **CreateScheme**
 
 ```Protobuf
@@ -13,6 +15,7 @@ message CreateTokenHolderProfitSchemeInput {
 ```
 
 **CreateTokenHolderProfitSchemeInput**:
+
 - **symbol**: the token that will be used for locking and distributing profits.
 - **minimum** lock time: minimum lock time before withdrawing.
 - **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
@@ -29,6 +32,7 @@ message AddTokenHolderBeneficiaryInput {
 ```
 
 **AddTokenHolderBeneficiaryInput**:
+
 - **beneficiary**: the new beneficiary.
 - **shares**: the shares to attribute to this beneficiary. 
 
@@ -46,6 +50,7 @@ message RemoveTokenHolderBeneficiaryInput {
 Note: this method can be used to remove a beneficiary or update its shares.
 
 **RemoveTokenHolderBeneficiaryInput**:
+
 - **beneficiary**: the beneficiary to remove or update.
 - **amount**: 0 to remove the beneficiary. A positive integer, smaller than the current shares. 
 
@@ -62,6 +67,7 @@ message ContributeProfitsInput {
 ```
 
 **ContributeProfitsInput**:
+
 - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
 - **amount**: the amount of tokens to contribute. 
 - **symbol**: the token to contribute. 
@@ -78,8 +84,9 @@ message DistributeProfitsInput {
 ```
 
 **DistributeProfitsInput**:
+
 - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- **symbol**: the token to contribute. 
+- **symbol**: the token to contribute.
 
 ## **RegisterForProfits**
 
@@ -93,8 +100,9 @@ message RegisterForProfitsInput {
 ```
 
 **RegisterForProfitsInput**:
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- **amount**: the amount of tokens to lock (and will correspond to the amount of shares). 
+
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+- **amount**: the amount of tokens to lock (and will correspond to the amount of shares).
 
 ## **Withdraw**
 
@@ -117,8 +125,9 @@ message ClaimProfitsInput {
 ```
 
 **ClaimProfitsInput**:
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- **beneficiary**: the beneficiary, defaults to the Sender. 
+
+- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+- **beneficiary**: the beneficiary, defaults to the Sender.
 - **symbol**: the symbol to claim.
 
 ## View methods
@@ -138,6 +147,7 @@ message TokenHolderProfitScheme {
 ```
 
 Returns a description of the scheme, wrapped in a **TokenHolderProfitScheme** object:
+
 - **symbol**: the scheme's token.
 - **scheme id**: the id of the scheme.
 - **period**: the current period of the scheme.
