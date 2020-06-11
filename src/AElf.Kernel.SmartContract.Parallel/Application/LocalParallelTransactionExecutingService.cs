@@ -144,7 +144,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Status = TransactionResultStatus.Failed,
                     Error = "Invalid contract address."
                 };
-                Logger.LogError(result.Error);
+                Logger.LogDebug(result.Error);
 
                 var returnSet = new ExecutionReturnSet
                 {

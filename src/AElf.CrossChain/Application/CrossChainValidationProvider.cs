@@ -74,7 +74,7 @@ namespace AElf.CrossChain.Application
                 }
 
                 if (!validationResult)
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"Invalid cross chain extra data, block height {block.Header.Height}, hash {block.GetHash()}.");
                 return validationResult;
             }

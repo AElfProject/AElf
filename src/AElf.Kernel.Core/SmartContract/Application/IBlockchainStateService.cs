@@ -181,7 +181,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 try
                 {
-                    Logger.LogTrace($"Merging state {chainStateInfo} for block {blockIndex}");
+                    Logger.LogDebug($"Merging state {chainStateInfo} for block {blockIndex}");
                     await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, blockIndex.BlockHash);
                 }
                 catch (Exception e)

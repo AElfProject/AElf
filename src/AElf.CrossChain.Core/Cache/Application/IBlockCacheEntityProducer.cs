@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Cache.Application
 
             var res = chainCacheEntity.TryAdd(crossChainBlockEntity);
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Cached height {crossChainBlockEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(crossChainBlockEntity.ChainId)}, {res}");
             return res;
         }
