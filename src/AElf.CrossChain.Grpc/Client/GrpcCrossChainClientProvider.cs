@@ -38,7 +38,7 @@ namespace AElf.CrossChain.Grpc.Client
 
             client = CreateClient(crossChainClientCreationContext);
             _grpcCrossChainClients.TryAdd(chainId, client);
-            Logger.LogDebug("Create client finished.");
+            Logger.LogTrace("Create client finished.");
             return client;
         }
 

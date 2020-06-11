@@ -81,7 +81,7 @@ namespace AElf.Kernel.Proposal.Application
                 if (!_proposalProvider.TryGetProposalCreatedHeight(proposalId, out var h) ||
                     h > blockHeight)
                     continue;
-                Logger.LogTrace($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
+                Logger.LogDebug($"Clear proposal {proposalId} by LIB hash {blockHash}, height {blockHeight}");
                 _proposalProvider.RemoveProposalById(proposalId);
             }
         }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Application
 {
     public class TransactionExecutingDto
     {

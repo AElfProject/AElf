@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract.Domain
 {
     public class TieredStateCache : IStateCache
     {

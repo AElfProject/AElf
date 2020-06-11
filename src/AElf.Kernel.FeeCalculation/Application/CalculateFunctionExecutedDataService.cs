@@ -28,7 +28,7 @@ namespace AElf.Kernel.FeeCalculation.Application
         {
             var allCalculateFeeCoefficients = new AllCalculateFeeCoefficients();
             allCalculateFeeCoefficients.MergeFrom(byteString);
-            Logger.LogInformation($"Deserialize AllCalculateFeeCoefficients: {allCalculateFeeCoefficients}");
+            Logger.LogDebug($"Deserialize AllCalculateFeeCoefficients: {allCalculateFeeCoefficients}");
             return allCalculateFeeCoefficients.Value.ToDictionary(
                 c => ((FeeTypeEnum) c.FeeTokenType).ToString().ToUpper(),
                 c => c.ToCalculateFunction());
@@ -46,7 +46,7 @@ namespace AElf.Kernel.FeeCalculation.Application
                 });
             }
 
-            Logger.LogInformation($"Serialize AllCalculateFeeCoefficients: {allCalculateFeeCoefficients}");
+            Logger.LogDebug($"Serialize AllCalculateFeeCoefficients: {allCalculateFeeCoefficients}");
             return allCalculateFeeCoefficients.ToByteString();
         }
     }

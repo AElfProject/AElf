@@ -4,10 +4,11 @@ using System.Threading;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
-    public class DescriptorAccessValidator : IValidator<MethodDefinition>
+    public class DescriptorAccessValidator : IValidator<MethodDefinition>, ITransientDependency
     {
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {

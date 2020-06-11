@@ -86,7 +86,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
                     toBeIndexedCount = CrossChainConstants.DefaultBlockCacheEntityCount;
-                    Logger.LogTrace(
+                    Logger.LogDebug(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
                 }
@@ -99,7 +99,7 @@ namespace AElf.CrossChain.Indexing.Application
                 {
                     toBeIndexedCount = 1;
                     targetHeight = AElfConstants.GenesisBlockHeight;
-                    Logger.LogTrace(
+                    Logger.LogDebug(
                         $"Target height {targetHeight} of side chain " +
                         $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
                 }
@@ -125,7 +125,7 @@ namespace AElf.CrossChain.Indexing.Application
 
                 if (sideChainBlockDataFromCache.Count > 0)
                 {
-                    Logger.LogTrace(
+                    Logger.LogDebug(
                         $"Got height [{sideChainBlockDataFromCache.First().Height} - {sideChainBlockDataFromCache.Last().Height} ]" +
                         $" from side chain {ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
                     sideChainBlockDataList.AddRange(sideChainBlockDataFromCache);
@@ -159,7 +159,6 @@ namespace AElf.CrossChain.Indexing.Application
             var parentChainId = returnValue?.Value ?? 0;
             if (parentChainId == 0)
             {
-                //Logger.LogTrace("No configured parent chain");
                 // no configured parent chain
                 return parentChainBlockDataList;
             }
@@ -175,7 +174,7 @@ namespace AElf.CrossChain.Indexing.Application
                 .CallAsync(new Empty())).Value;
 
             var targetHeight = heightInState + 1;
-            Logger.LogTrace($"Target height {targetHeight}");
+            Logger.LogDebug($"Target height {targetHeight}");
 
             var i = 0;
             while (i < length)
@@ -194,7 +193,7 @@ namespace AElf.CrossChain.Indexing.Application
             }
 
             if (parentChainBlockDataList.Count > 0)
-                Logger.LogTrace(
+                Logger.LogDebug(
                     $"Got height [{parentChainBlockDataList.First().Height} - {parentChainBlockDataList.Last().Height} ]" +
                     $" from parent chain {ChainHelper.ConvertChainIdToBase58(parentChainId)}.");
             return parentChainBlockDataList;
@@ -287,7 +286,7 @@ namespace AElf.CrossChain.Indexing.Application
                         nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing),
                     Value = pendingProposal.ProposalId.ToByteString()
                 });
-            Logger.LogInformation("Cross chain extra data generated.");
+            Logger.LogTrace("Cross chain extra data generated.");
             return pendingProposal.ProposedCrossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
         }
 
