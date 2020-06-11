@@ -36,9 +36,6 @@ for c# contract and provide your contract dll bytes.
 `ContractDeploymentAuthorityRequired` is always true when it comes to public networks(Mainnet/Testnet). 
 And contract pipelines are distinguished for different chain types. But for sure, no one can directly deploy.
 
-
-### Main chain
-
 For public network, no matter it is mainnet or testnet, things are going more complex. No one can directly deploy on 
 the chain but few authorities have the permission to propose.
 
