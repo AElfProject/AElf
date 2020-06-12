@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AElf.Contracts.TestContract.Events</RootNamespace>
-        <IsContract>true</IsContract>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

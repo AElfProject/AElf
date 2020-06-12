@@ -333,10 +333,6 @@ namespace AElf.Contracts.CrossChain.Tests
             var creator = sideChainCreatedEvent.Creator;
             Assert.True(creator == organizationAddress);
 
-            var chainLockedBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {Symbol = "ELF", Owner = CrossChainContractAddress});
-            Assert.True(chainLockedBalance.Balance == lockedTokenAmount);
-
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
             Assert.True(chainStatus.Status == SideChainStatus.Active);
         }
@@ -573,18 +569,12 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
             var chainId = await InitAndCreateSideChainAsync(withException: true);
 
-            var balanceAfterCreate = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = CrossChainContractAddress,
-                Symbol = "ELF"
-            });
-            Assert.True(balanceAfterCreate.Balance == lockedTokenAmount);
-
             var proposalId = await DisposeSideChainProposalAsync(new Int32Value
             {
                 Value = chainId
             });
             await ApproveWithMinersAsync(proposalId);
+            var balanceBeforeDisposal = await GetBalance(DefaultSender);
             var transactionResult = await ReleaseProposalAsync(proposalId);
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
@@ -592,12 +582,8 @@ namespace AElf.Contracts.CrossChain.Tests
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
             Assert.True(chainStatus.Status == SideChainStatus.Terminated);
 
-            var balanceAfterDisposal = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = CrossChainContractAddress,
-                Symbol = "ELF"
-            });
-            Assert.True(balanceAfterDisposal.Balance == 0);
+            var balanceAfterDisposal = await GetBalance(DefaultSender);
+            balanceAfterDisposal.ShouldBe(balanceBeforeDisposal + lockedTokenAmount);
 
             // try to adjust indexing fee after disposal
             var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
@@ -1005,7 +991,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
+        public async Task AdjustCrossChainIndexingFeePriceTest_IndexingFeeDebt_Dispose()
         {
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
@@ -1048,6 +1034,9 @@ namespace AElf.Contracts.CrossChain.Tests
                     await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new Int32Value()
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
+                
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
             }
 
             {
@@ -1074,9 +1063,8 @@ namespace AElf.Contracts.CrossChain.Tests
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
 
-                var sideChainStatus =
-                    await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = sideChainId});
-                sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
 
                 var disposalProposalId = await DisposeSideChainProposalAsync(new Int32Value
                 {

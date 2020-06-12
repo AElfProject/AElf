@@ -134,7 +134,7 @@ namespace AElf.OS.Network.Application
             {
                 // no peer has a LIB to sync to, stop the sync.
                 await SetSyncAsFinishedAsync();
-                Logger.LogDebug($"Finishing sync, not enough peers have a sufficiently high LIB (peer count: {_peerPool.PeerCount}).");
+                Logger.LogInformation($"Finishing sync, not enough peers have a sufficiently high LIB (peer count: {_peerPool.PeerCount}).");
             }
             else
             {
