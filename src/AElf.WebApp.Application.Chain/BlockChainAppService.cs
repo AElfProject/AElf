@@ -9,7 +9,9 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool.Application;
+using AutoMapper;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -34,6 +36,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionPoolService _transactionPoolService;
         private readonly IBlockStateSetManger _blockStateSetManger;
+        private readonly IMapper _mapper;
 
         public ILogger<BlockChainAppService> Logger { get; set; }
 
@@ -41,11 +44,12 @@ namespace AElf.WebApp.Application.Chain
 
         public BlockChainAppService(IBlockchainService blockchainService,
             IBlockStateSetManger blockStateSetManger, 
-            ITransactionPoolService transactionPoolService)
+            ITransactionPoolService transactionPoolService, IMapper mapper)
         {
             _blockchainService = blockchainService;
             _blockStateSetManger = blockStateSetManger;
             _transactionPoolService = transactionPoolService;
+            _mapper = mapper;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -110,11 +114,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
         {
             var transactionPoolStatus = await _transactionPoolService.GetTransactionPoolStatusAsync();
-            return new GetTransactionPoolStatusOutput
-            {
-                Queued = transactionPoolStatus.AllTransactionCount,
-                Validated = transactionPoolStatus.ValidatedTransactionCount
-            };
+            return _mapper.Map<TransactionPoolStatus, GetTransactionPoolStatusOutput>(transactionPoolStatus);
         }
 
         /// <summary>
@@ -127,8 +127,8 @@ namespace AElf.WebApp.Application.Chain
             var blockState = await _blockStateSetManger.GetBlockStateSetAsync(Hash.LoadFromHex(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            
-            return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
+
+            return _mapper.Map<BlockStateSet, BlockStateDto>(blockState);
         }
 
         private async Task<Block> GetBlockAsync(Hash blockHash)
@@ -148,41 +148,8 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
-            var bloom = block.Header.Bloom;
-            var blockDto = new BlockDto
-            {
-                BlockHash = block.GetHash().ToHex(),
-                Header = new BlockHeaderDto
-                {
-                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
-                    MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
-                    MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    MerkleTreeRootOfTransactionState = block.Header.MerkleTreeRootOfTransactionStatus.ToHex(),
-                    Extra = block.Header.ExtraData.ToString(),
-                    Height = block.Header.Height,
-                    Time = block.Header.Time.ToDateTime(),
-                    ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64(): bloom.ToBase64(),
-                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
-                },
-                Body = new BlockBodyDto
-                {
-                    TransactionsCount = block.Body.TransactionsCount,
-                    Transactions = new List<string>()
-                },
-                BlockSize = block.CalculateSize()
-            };
-
-            if (!includeTransactions) return blockDto;
-            var transactions = block.Body.TransactionIds;
-            var txs = new List<string>();
-            foreach (var transactionId in transactions)
-            {
-                txs.Add(transactionId.ToHex());
-            }
-            blockDto.Body.Transactions = txs;
-
-            return blockDto;
+            return _mapper.Map<Block, BlockDto>(block,
+                opt => opt.Items[BlockProfile.IncludeTransactions] = includeTransactions);
         }
     }
 }

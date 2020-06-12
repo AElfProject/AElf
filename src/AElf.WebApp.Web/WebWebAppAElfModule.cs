@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Application.Net;
+using AutoMapper;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -61,6 +62,11 @@ namespace AElf.WebApp.Web
                 };
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
+            
+            // We need to register the type in one place and cannot register in the respective project.
+            // Because the AutoMapper.Extensions.Microsoft.DependencyInjection limits us to only register once.
+            context.Services.AddAutoMapper(typeof(ChainApplicationWebAppAElfModule),
+                typeof(NetApplicationWebAppAElfModule));
         }
 
         private void ConfigureAutoApiControllers()

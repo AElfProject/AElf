@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <PackageReference Include="Volo.Abp.Ddd.Application" Version="2.9.0" />
+        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>

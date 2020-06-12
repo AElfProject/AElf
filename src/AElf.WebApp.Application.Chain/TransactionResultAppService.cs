@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AutoMapper;
 using Google.Protobuf.Reflection;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -35,16 +36,18 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly IMapper _mapper;
 
         public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IMapper mapper)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -68,15 +71,14 @@ namespace AElf.WebApp.Application.Chain
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
-            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            var output = _mapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
 
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
-                output.Status = transactionResult.Status.ToString();
                 return output;
             }
 
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            output.Transaction = _mapper.Map<Transaction, TransactionDto>(transaction);
             output.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
@@ -99,18 +101,6 @@ namespace AElf.WebApp.Application.Chain
             }
             var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
             output.BlockHash = block.GetHash().ToHex();
-
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                output.ReturnValue = transactionResult.ReturnValue.ToHex();
-                var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-            {
-                output.Error = transactionResult.Error;
-            }
 
             return output;
         }
@@ -199,14 +189,7 @@ namespace AElf.WebApp.Application.Chain
 
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
             var path = binaryMerkleTree.GenerateMerklePath(index);
-            var merklePath = new MerklePathDto {MerklePathNodes = new List<MerklePathNodeDto>()};
-            foreach (var node in path.MerklePathNodes)
-            {
-                merklePath.MerklePathNodes.Add(new MerklePathNodeDto
-                {
-                    Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode
-                });
-            }
+            var merklePath = _mapper.Map<MerklePath, MerklePathDto>(path);
 
             return merklePath;
         }
@@ -256,17 +239,13 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
         {
             var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
-            var transactionResultDto =
-                JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            var transactionResultDto = _mapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
+            
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
             transactionResultDto.BlockHash = blockHash.ToHex();
             transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
 
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-                transactionResultDto.Error = transactionResult.Error;
-
-            transactionResultDto.Transaction =
-                JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            transactionResultDto.Transaction = _mapper.Map<Transaction, TransactionDto>(transaction);
             transactionResultDto.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =

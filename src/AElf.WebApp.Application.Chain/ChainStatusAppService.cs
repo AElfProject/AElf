@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
+using AutoMapper;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
@@ -21,11 +22,14 @@ namespace AElf.WebApp.Application.Chain
 
         private readonly IBlockchainService _blockchainService;
 
+        private readonly IMapper _mapper;
+
         public ChainStatusAppService(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, IMapper mapper)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -38,24 +42,10 @@ namespace AElf.WebApp.Application.Chain
 
             var chain = await _blockchainService.GetChainAsync();
 
-            var branches = chain.Branches.ToDictionary(b => Hash.LoadFromBase64(b.Key).ToHex(), b => b.Value);
-            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadFromBase64(b.Key).ToHex(),
-                b => Hash.LoadFromBase64(b.Value).ToHex());
+            var result = _mapper.Map<Kernel.Chain, ChainStatusDto>(chain);
+            result.GenesisContractAddress = basicContractZero?.ToBase58();
 
-            return new ChainStatusDto
-            {
-                ChainId = ChainHelper.ConvertChainIdToBase58(chain.Id),
-                GenesisContractAddress = basicContractZero?.ToBase58(),
-                Branches = branches,
-                NotLinkedBlocks = notLinkedBlocks,
-                LongestChainHeight = chain.LongestChainHeight,
-                LongestChainHash = chain.LongestChainHash?.ToHex(),
-                GenesisBlockHash = chain.GenesisBlockHash.ToHex(),
-                LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash?.ToHex(),
-                LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
-                BestChainHash = chain.BestChainHash?.ToHex(),
-                BestChainHeight = chain.BestChainHeight
-            };
+            return result;
         }
     }
 }

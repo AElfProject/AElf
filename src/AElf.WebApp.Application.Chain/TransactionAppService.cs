@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -41,16 +42,18 @@ namespace AElf.WebApp.Application.Chain
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainService _blockchainService;
+        private readonly IMapper _mapper;
 
         public ILocalEventBus LocalEventBus { get; set; }
         
         public ILogger<TransactionAppService> Logger { get; set; }
 
         public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, IMapper mapper)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
+            _mapper = mapper;
 
             LocalEventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<TransactionAppService>.Instance;
@@ -194,7 +197,7 @@ namespace AElf.WebApp.Application.Chain
 
             if (!input.ReturnTransaction) return output;
 
-            var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            var transactionDto = _mapper.Map<Transaction, TransactionDto>(transaction);
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
             if (contractMethodDescriptor == null)
