@@ -1,5 +1,7 @@
 using AElf.Types;
 using AElf.Kernel.SmartContract;
+using Google.Protobuf;
+
 namespace AElf.Sdk.CSharp.State
 {
     public class StateBase
@@ -43,6 +45,17 @@ namespace AElf.Sdk.CSharp.State
         internal virtual TransactionExecutingStateSet GetChanges()
         {
             return new TransactionExecutingStateSet();
+        }
+
+        internal ByteString CheckAndReturnSerializedValue(string key, object value)
+        {
+            var serializedValue = SerializationHelper.Serialize(value);
+            if (serializedValue.Length > SmartContractConstants.AElfStateSizeLimitInContract)
+            {
+                throw new StateSizeExceededException($"The size of new value of {key} is exceeded.");
+            }
+
+            return ByteString.CopyFrom(serializedValue);
         }
     }
 }

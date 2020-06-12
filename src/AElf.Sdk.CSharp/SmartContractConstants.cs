@@ -40,6 +40,7 @@ namespace AElf.Sdk.CSharp
         
 
         public static readonly int AElfStringLengthLimitInContract = 20000;
+        public static readonly int AElfStateSizeLimitInContract = 128 * 1024;
 
         private static string GetStringName(Hash hash)
         {

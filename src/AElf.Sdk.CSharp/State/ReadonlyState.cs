@@ -53,9 +53,9 @@ namespace AElf.Sdk.CSharp.State
             var key = Path.ToStateKey(Context.Self);
             if (!NotSetBefore)
             {
-                stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
+                stateSet.Writes[key] = CheckAndReturnSerializedValue(key, _value);
             }
-            
+
             return stateSet;
         }
 

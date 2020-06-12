@@ -65,7 +65,7 @@ namespace AElf.Sdk.CSharp.State
 
             valuePair.IsDeleted = true;
         }
-        
+
         public void Set(TKey key, TEntity value)
         {
             var valuePair = new ValuePair
@@ -94,7 +94,7 @@ namespace AElf.Sdk.CSharp.State
                 }
                 else if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
                 {
-                    stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(kv.Value.Value));
+                    stateSet.Writes[key] = CheckAndReturnSerializedValue(key, kv.Value.Value);
                 }
 
                 stateSet.Reads[key] = true;
@@ -165,7 +165,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;
                 }
-                
+
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
@@ -227,7 +227,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;
                 }
-                
+
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
@@ -289,7 +289,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;
                 }
-                
+
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
