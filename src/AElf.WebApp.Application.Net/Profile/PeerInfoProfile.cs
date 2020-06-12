@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Types;
+using AElf.WebApp.Application.Net.Dto;
 using AutoMapper;
 
 namespace AElf.WebApp.Application.Net
