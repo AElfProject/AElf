@@ -20,6 +20,7 @@ using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
+using AElf.WebApp.Application.Chain.Infrastructure;
 using Google.Protobuf;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
@@ -46,9 +47,11 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
+        private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
+            _transactionResultStatusCacheProvider = GetRequiredService<ITransactionResultStatusCacheProvider>();;
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
@@ -1452,6 +1455,15 @@ namespace AElf.WebApp.Application.Chain.Tests
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return HashHelper.ComputeFrom(rawBytes);
+        }
+
+        [Fact]
+        public async Task TransactionResultStatusCacheProviderTest()
+        {
+            var txId = HashHelper.ComputeFrom("Test");
+            _transactionResultStatusCacheProvider.AddTransactionResultStatus(txId);
+            var result = _transactionResultStatusCacheProvider.GetTransactionResultStatus(txId);
+            result.ShouldBeNull();
         }
     }
 }
