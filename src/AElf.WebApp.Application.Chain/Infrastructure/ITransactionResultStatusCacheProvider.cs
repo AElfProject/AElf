@@ -76,7 +76,7 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
 
         private bool IsExpired(Timestamp timestamp)
         {
-            return (TimestampHelper.GetUtcNow() - timestamp).Seconds >
+            return (TimestampHelper.GetUtcNow() - timestamp).Seconds >=
                    _webAppOptions.TransactionResultStatusCacheSeconds;
         }
 
