@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using AElf.Kernel;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -17,17 +19,19 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
     {
         private readonly WebAppOptions _webAppOptions;
 
+        // TODO: Refactor via System.Runtime.Caching/MemoryCache
         private readonly ConcurrentDictionary<Hash, TransactionValidateStatus> _transactionValidateResults =
             new ConcurrentDictionary<Hash, TransactionValidateStatus>();
 
-        private readonly ConcurrentQueue<Hash> _transactionIds = new ConcurrentQueue<Hash>();
+        private readonly ConcurrentQueue<TransactionIdWithTimestamp> _transactionIds =
+            new ConcurrentQueue<TransactionIdWithTimestamp>();
 
         public ILogger<TransactionResultStatusCacheProvider> Logger { get; set; }
 
         public TransactionResultStatusCacheProvider(IOptionsSnapshot<WebAppOptions> webAppOptions)
         {
             _webAppOptions = webAppOptions.Value;
-            
+
             Logger = NullLogger<TransactionResultStatusCacheProvider>.Instance;
         }
 
@@ -38,8 +42,12 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
                 TransactionResultStatus = TransactionResultStatus.PendingValidation
             })) return;
 
-            Logger.LogTrace($"Tx {transactionId} entered tx result status cache provider.");
-            _transactionIds.Enqueue(transactionId);
+            Logger.LogDebug($"Tx {transactionId} entered tx result status cache provider.");
+            _transactionIds.Enqueue(new TransactionIdWithTimestamp
+            {
+                TransactionId = transactionId,
+                Timestamp = TimestampHelper.GetUtcNow()
+            });
             ClearOldTransactionResultStatus();
         }
 
@@ -50,19 +58,26 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
             // Only update status when current status is PendingValidation.
             if (currentStatus.TransactionResultStatus == TransactionResultStatus.PendingValidation)
             {
-                Logger.LogTrace($"Tx {transactionId} result status tunes to {status}.");
+                Logger.LogDebug($"Tx {transactionId} result status tunes to {status}.");
                 _transactionValidateResults.TryUpdate(transactionId, status, currentStatus);
             }
         }
 
         private void ClearOldTransactionResultStatus()
         {
-            if (_transactionIds.Count < _webAppOptions.TransactionResultStatusCacheSize) return;
-
-            if (_transactionIds.TryDequeue(out var firstTransactionId))
+            while (_transactionIds.TryPeek(out var firstTransactionIdWithTimestamp) &&
+                IsExpired(firstTransactionIdWithTimestamp.Timestamp) &&
+                _transactionIds.TryDequeue(out var dequeueTransactionIdWithTimestamp))
             {
-                _transactionValidateResults.TryRemove(firstTransactionId, out _);
+                Logger.LogDebug($"Remove tx {dequeueTransactionIdWithTimestamp.TransactionId}");
+                _transactionValidateResults.TryRemove(dequeueTransactionIdWithTimestamp.TransactionId, out _);
             }
+        }
+
+        private bool IsExpired(Timestamp timestamp)
+        {
+            return (TimestampHelper.GetUtcNow() - timestamp).Seconds >
+                   _webAppOptions.TransactionResultStatusCacheSeconds;
         }
 
         public TransactionValidateStatus GetTransactionResultStatus(Hash transactionId)
@@ -76,5 +91,11 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
     {
         public TransactionResultStatus TransactionResultStatus { get; set; }
         public string Error { get; set; }
+    }
+
+    public class TransactionIdWithTimestamp
+    {
+        public Hash TransactionId { get; set; }
+        public Timestamp Timestamp { get; set; }
     }
 }

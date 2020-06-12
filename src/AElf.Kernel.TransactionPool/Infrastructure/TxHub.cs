@@ -84,7 +84,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             return output;
         }
-        
+
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
             if (_bestChainHash == Hash.Empty)
@@ -100,24 +100,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
                 var sendResult = await _processTransactionJobs.SendAsync(queuedTransaction);
-                if (sendResult)
+                if (sendResult) continue;
+                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
                 {
-                    await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                    {
-                        TransactionId = transactionId,
-                        TransactionResultStatus = TransactionResultStatus.PendingValidation
-                    });
-                }
-                else
-                {
-                    await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                    {
-                        TransactionId = transactionId,
-                        TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                        Error = "Failed to enter tx hub."
-                    });
-                    Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
-                }
+                    TransactionId = transactionId,
+                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                    Error = "Failed to enter tx hub."
+                });
+                Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
