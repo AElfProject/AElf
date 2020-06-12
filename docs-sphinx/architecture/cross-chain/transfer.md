@@ -1,6 +1,6 @@
 # Cross chain transfer
 
-This article will explain how to transfer tokens across chains. It assumes a side chain is already deployed and been indexed by the main-chain.
+Cross chain transfer is one of mostly used cases when it comes to cross chain verification. AElf already supports cross chain transfer functionalities in contract. This section will explain how to transfer tokens across chains. It assumes a side chain is already deployed and been indexed by the main-chain.
 
 The transfer will always use the same contract methods and the following two steps:
 - initiate the transfer
@@ -8,7 +8,8 @@ The transfer will always use the same contract methods and the following two ste
 
 ## Prepare
 Few preparing steps are required before cross chain transfer, which is to be done only once for one chain. Just ignore this preparing part if already completed.
-Let's say that you want to transfer token `FOO` from chain `A` to chain `B`. Note that make sure you are clear about how cross chain transaction verification works before you start.
+
+Let's say that you want to transfer token FOO from chain A to chain B. Note that please make sure you are already clear about how cross chain transaction verification works before you start. Any input contains`MerklePath` in the following steps means the cross chain verification processing is needed. See [cross chain verification](../crosschain-verification.md)  for more details.
 
 - Validate **Token Contract** address on chain `A`. 
 
@@ -26,8 +27,7 @@ Let's say that you want to transfer token `FOO` from chain `A` to chain `B`. Not
 
 - Register token contract address of chain `A` on chain `B`. 
     
-    You need create a proposal on chain `B` which is proposed to **RegisterCrossChainTokenContractAddress**. Apart from cross chain verification context needed, 
-    you should also provide the origin data of `tx_1` and **Token Contract** address on chain `A`.
+   Create a proposal, which is proposed to **RegisterCrossChainTokenContractAddress**, for the default parliament organization (check [Parliament contract](../../reference/smart-contract-api/parliament.md) for more details) on chain `B`. Apart from cross chain verification context, you should also provide the origin data of `tx_1` and **Token Contract** address on chain `A`.
     
   ```protobuf
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {}
@@ -43,7 +43,7 @@ Let's say that you want to transfer token `FOO` from chain `A` to chain `B`. Not
 
 - Validate **TokenInfo** of `FOO` on chain `A`. 
 
-    Send transaction `tx_2` to **Token Contract** with method ValidateTokenInfoExists. You should provide **TokenInfo** of `FOO`. `tx_2` would be packed in block successfully.
+    Send transaction `tx_2` to **Token Contract** with method **ValidateTokenInfoExists** on chain `A`. You should provide **TokenInfo** of `FOO`. `tx_2` would be packed in block successfully.
     
   ```protobuf
     rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){}
@@ -74,60 +74,62 @@ Let's say that you want to transfer token `FOO` from chain `A` to chain `B`. Not
     }
     ```
 
-You can launch cross chain transfer now.
-
 ## Initiate the transfer
 
-On the token contract, it's the **CrossChainTransfer** method that is used to trigger the transfer:
+On the token contract of source chain, it's the **CrossChainTransfer** method that is used to trigger the transfer:
 
 ```protobuf
-rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) { }
+    rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) { }
 
-message CrossChainTransferInput {
-    aelf.Address to = 1; 
-    string symbol = 2;
-    sint64 amount = 3;
-    string memo = 4;
-    int32 to_chain_id = 5; 
-    int32 issue_chain_id = 6;
-}
+    message CrossChainTransferInput {
+        aelf.Address to = 1; 
+        string symbol = 2;
+        sint64 amount = 3;
+        string memo = 4;
+        int32 to_chain_id = 5; 
+        int32 issue_chain_id = 6;
+    }
 ```
 
-Let's review the fields of the input:
-- **to**: this is the address on the destination chain that will receive the tokens.
-- **symbol** and **amount**: the token and amount to be transferred.
-- **issue_chain_id** and **to_chain_id**: respectively the source (the chain on which the token was issued) and destination chain id (destination is the chain on which the tokens will be received).
+The fields of the input:
+- to : the target address to receive token 
+- symbol : symbol of token to be transferred
+- amount :  amount of token to be transferred
+- memo: memo field in this transfer
+- to_chain_id : destination chain id  on which the tokens will be received
+- issue_chain_id : the chain on which the token was issued
+
 
 ## Receive on the destination chain
 
 On the destination chain tokens need to be received, it's the **CrossChainReceiveToken** method that is used to trigger the reception:
 
 ```protobuf
-rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) { }
+    rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) { }
 
-message CrossChainReceiveTokenInput {
-    int32 from_chain_id = 1;
-    int64 parent_chain_height = 2;
-    bytes transfer_transaction_bytes = 3;
-    aelf.MerklePath merkle_path = 4;
-}
+    message CrossChainReceiveTokenInput {
+        int32 from_chain_id = 1;
+        int64 parent_chain_height = 2;
+        bytes transfer_transaction_bytes = 3;
+        aelf.MerklePath merkle_path = 4;
+    }
 
-rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
-    option (aelf.is_view) = true;
-}
+    rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
+        option (aelf.is_view) = true;
+    }
 
-message CrossChainMerkleProofContext {
-    int64 bound_parent_chain_height = 1;
-    aelf.MerklePath merkle_path_from_parent_chain = 2;
-}
+    message CrossChainMerkleProofContext {
+        int64 bound_parent_chain_height = 1;
+        aelf.MerklePath merkle_path_from_parent_chain = 2;
+    }
 ```
 
 Let's review the fields of the input:
-- **from_chain_id**: the source chain id (the chain that issued the tokens).
+- **from_chain_id**: the source chain id on which cross chain transfer launched
 - **parent_chain_height**: 
-  - main-chain to side-chain: the height of the block on the source chain that includes the **CrossChainTransfer** transaction (or more precisely, the block that indexed the transaction).
-  - side-chain to side-chain or side-chain to main-chain: this height is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*) - accessible in the **bound_parent_chain_height** field.
+  - for the case of transfer from main-chain to side-chain: this parent_chain_height is the height of the block on the main chain that contains the **CrossChainTransfer** transaction.
+  - for the case of transfer from side-chain to side-chain or side-chain to main-chain: this **parent_chain_height** is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*, see [cross chain verification](../crosschain-verification.md)) - accessible in the **bound_parent_chain_height** field.
 - **transfer_transaction_bytes**: the serialized form of the **CrossChainTransfer** transaction.
 - **merkle_path**: the cross-chain merkle path. For this, two cases to consider:
-  - main-chain to side-chain transfer: for this you just need the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input).
-  - side-chain to side-chain or side-chain to main-chain: for this you also need to get the merkle path from the source node (side-chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the cross-chain *CrossChainTransfer* transaction's block height (concat the merkle path nodes). The nodes are in the **merkle_path_from_parent_chain** field of the **CrossChainMerkleProofContext** object.
+  - for the case of transfer from main-chain to side-chain: for this you just need the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input).
+  - for the case of transfer from side-chain to side-chain or side-chain to main-chain: for this you also need to get the merkle path from the source node (side-chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the cross-chain **CrossChainTransfer** transaction's block height (concat the merkle path nodes). The nodes are in the **merkle_path_from_parent_chain** field of the **CrossChainMerkleProofContext** object.

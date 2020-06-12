@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -69,6 +70,8 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false)
         {
+            ConcurrentQueue<Hash> queue = new ConcurrentQueue<Hash>();
+            queue.
             Hash realBlockHash;
             try
             {

@@ -1,16 +1,79 @@
-# Requesting the creation of a side-chain
+# Requesting the creation of a side chain
 
-When a user (usually a developer) feels the need to create a new side-chain on AElf he must call the cross-chain contract and request a side-chain creation. After requested, BPs will either approve this creation or reject it. If the request is approved, the developer must then release the proposal.
+Side chains can be created in the AELF ecosystem to enable scalability.  This part is going to introduce these periods in detail.
 
-Throughout this tutorial we'll give step-by-step code snippets that use the [aelf-js-sdk](https://github.com/AElfProject/aelf-sdk.js/tree/master) to create a new side-chain, the full script will be given at the end of the tutorial. 
+#### Side chain creation api
 
-This creation of a side-chain (logical, on-chain creation) is done in four steps:
+ Anyone can request the side chain creation in the AELF ecosystem. The proposer/creator of a new side chain will need to request the creation of the side chain through the cross-chain contract on the main-chain. The request contains different fields that will determine the type of side chain that will be created. 
+
+This section show the API to use in order to propose the creation of a side chain. The fields that are in the **SideChainCreationRequest** will determine the type of side chain that is created. For more api details, you can follow the [request side chain creation](../../reference/smart-contract-api/cross-chain.md).
+
+
+```Proto
+rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }
+message SideChainCreationRequest {
+    int64 indexing_price = 1;
+    int64 locked_token_amount = 2;
+    bool is_privilege_preserved = 3;
+    string side_chain_token_symbol = 4;
+    string side_chain_token_name = 5;
+    int64 side_chain_token_total_supply = 6;
+    int32 side_chain_token_decimals = 7;
+    bool is_side_chain_token_burnable = 8;
+    bool is_side_chain_token_profitable = 9;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
+    map<string, int32> initial_resource_amount = 11;
+}
+
+message SideChainTokenInitialIssue{
+    aelf.Address address = 1;
+    int64 amount = 2;
+}
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+```
+
+A new proposal about the side chain creation would be created and the event `ProposalCreated` containing proposal id would be fired. A parliament organization which is specified since the chain launched is going to approve this proposal in 24 hours(refer to [Parliament contract](../../reference/smart-contract-api/parliament.md) for detail). Proposer is able to release the side chain creation request with proposal id once the proposal can be released.
+
+```Proto
+rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {}
+
+message SideChainCreatedEvent {
+    option (aelf.is_event) = true;
+    aelf.Address creator = 1;
+    int32 chainId = 2;
+}
+
+```
+
+New side chain would be created and the event `SideChainCreatedEvent` containing chain id would be fired.
+
+Side chain node can be launched since it is already created on main chain. Side chain id from the creation result should be configured correctly before launching the side chain node. Please make sure cross chain communication context is correctly set, because side chain node is going to request main chain node for chain initialization data. For more details, check [side chain node running](../running-side-chain.md) tutorial.
+
+
+#### Side chain types
+
+Two types of side-chain's currently exist: **exclusive** or **shared**. An **exclusive** side-chain is a type of dedicated side-chain (as opposed to shared) that allows developers to choose the transaction fee model and set the transaction fee price. The developer has exclusive use of this side-chain.  Developers of an exclusive side-chain pay the producers for running it by paying CPU, RAM, DISK, NET resource tokens: this model is called *charge-by-time*. The amount side chain creator must share with the producers is set after creation of the chain. The **exclusive** side-chain is priced according to the time used. The unit price of the fee is determined through negotiation between the production node and the developer. 
+
+See [Economic whitepaper - 4.3 Sidechain Developer Charging Model](https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf?time=1) for more information.
+
+
+#### Simple demo for side chain creation request
+
+When a user (usually a developer) feels the need to create a new side chain on AElf he must call the cross-chain contract and request a side chain creation. After requested, parliament organization members will either approve this creation or reject it. If the request is approved, the developer must then release the proposal.
+
+Throughout this tutorial we'll give step-by-step code snippets that use the [aelf-js-sdk](https://github.com/AElfProject/aelf-sdk.js/tree/master) to create a new side chain, the full script will be given at the end of the tutorial. 
+
+This creation of a side chain (logical, on-chain creation) is done in four steps:
 - the developer must *allow/approve* some tokens to the cross-chain contract of the main chain.
 - the developer calls the cross-chain contract of the main chain, to *request* the creation.
-- the BPs must *approve* this request.
+- the parliament organization members must *approve* this request.
 - finally the developer must *release* the request to finalize the creation.
 
-Keep in mind that this is just the logical on-chain creation of the side-chain. After the side-chain is released there's extra steps needed for it to be a fully functional blockchain, including the producers running the side-chain's nodes.
+Keep in mind that this is just the logical on-chain creation of the side chain. After the side chain is released there's extra steps needed for it to be a fully functional blockchain, including the producers running the side chain's nodes.
 
 Note: for more information about the meaning of the different fields, refer to the document in the [cross-chain section](../../../architecture/cross-chain/setup.md).
 
@@ -73,7 +136,7 @@ const createSideChain = async () => {
 
 ```
 
-When running the script, the **createSideChain** will be executed and automatically will run through the full process of creating the side-chain.
+When running the script, the **createSideChain** will be executed and automatically will run through the full process of creating the side chain.
 
 ## Creation of the side chain
 
@@ -139,7 +202,7 @@ In order for the creation request to succeed, some assertions must pass:
 
 
 ```javascript
-    console.log('\n>>>> Requesting the side-chain creation.');
+    console.log('\n>>>> Requesting the side chain creation.');
     const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
         indexingPrice: 1,
         lockedTokenAmount: '20000',
@@ -163,14 +226,14 @@ In order for the creation request to succeed, some assertions must pass:
 
     // deserialize the log to get the proposal's ID.
     let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
-    console.log(`>> side-chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
+    console.log(`>> side chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
 ```
 
 The last line will print the proposal ID and this is what will be used for approving by the producers.
 
 ### Approval from producers
 
-This is where the BPs approve the proposal:
+This is where the parliament organization members approve the proposal:
 
 ```javascript
     console.log('\n>>>> Approving the proposal.');
@@ -179,7 +242,7 @@ This is where the BPs approve the proposal:
     await pollMining(proposalApproveTx.TransactionId);
 ```
 
-Note: when calling **Approve** it will be the *Sender* of the transaction that approves. Here the script is set to use the key of a BP, see full script at the end.
+Note: when calling **Approve** it will be the *Sender* of the transaction that approves. Here the script is set to use the key of one parliament organization member, see full script at the end.
 
 ### Release
 
@@ -200,7 +263,7 @@ This part of the script releases the proposal:
     console.log(sideChainCreationEvent);
 ```
 
-This is the last step involved in creating a side-chain, after this the chain id of the new side-chain is accessible in the **SideChainCreatedEvent** event log.
+This is the last step involved in creating a side chain, after this the chain id of the new side chain is accessible in the **SideChainCreatedEvent** event log.
 
 ## Full script
 
@@ -320,8 +383,8 @@ const createSideChain = async () => {
     await setAllowance(tokenContract, crossChainContractAddress);
     await checkAllowance(tokenContract, defaultPrivateKeyAddress, crossChainContractAddress);
 
-    // 2. request the creation of the side-chain with the cross=chain contract
-    console.log('\n>>>> Requesting the side-chain creation.');
+    // 2. request the creation of the side chain with the cross=chain contract
+    console.log('\n>>>> Requesting the side chain creation.');
     const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
         indexingPrice: 1,
         lockedTokenAmount: '20000',
@@ -345,7 +408,7 @@ const createSideChain = async () => {
 
     // deserialize the log to get the proposal's ID.
     let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
-    console.log('>> side-chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}');
+    console.log('>> side chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}');
 
     // 3. Approve the proposal 
     console.log('\n>>>> Approving the proposal.');
