@@ -24,6 +24,7 @@ namespace AElf.Kernel
         {
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
+            services.AddTransient<SystemTransactionValidationProvider>();
             services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
