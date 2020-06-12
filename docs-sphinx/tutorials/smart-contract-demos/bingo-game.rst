@@ -308,7 +308,7 @@ increase) :
        await stub.Bingo.SendWithExceptionAsync(playId);
    }
 
-Last check the award, and it is greater than 0 indicates you win.
+Last check the award, and that the award amount is greater than 0 indicates you win.
 
 .. code:: c#
 

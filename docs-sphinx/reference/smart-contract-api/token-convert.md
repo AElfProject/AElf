@@ -396,4 +396,3 @@ message Int64Value {
 **returns**:
 
 - **value**: indicates for this token how much the base token have been deposited.
-
