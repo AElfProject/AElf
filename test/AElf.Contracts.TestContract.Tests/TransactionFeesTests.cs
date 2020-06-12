@@ -20,6 +20,7 @@ using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contract.TestContract
 {
+    // TODO: Need to be refactored by new framework.
     public class TransactionFeesTests : TestFeesContractTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
@@ -31,7 +32,7 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(PrepareResourcesToContract);
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task Acs8_Mined_Test()
         {
             var acs8Before = await GetContractResourceBalance(Acs8ContractAddress);
@@ -55,7 +56,7 @@ namespace AElf.Contract.TestContract
             acs8After["STORAGE"].ShouldBeLessThan(acs8Before["STORAGE"]);
         }
         
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task TransactionFee_Mined_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);
@@ -81,7 +82,7 @@ namespace AElf.Contract.TestContract
             feesAfter["STORAGE"].ShouldBeLessThan(feesBefore["STORAGE"]);
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task TransactionFee_Failed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);
@@ -103,7 +104,7 @@ namespace AElf.Contract.TestContract
             feesAfter["STORAGE"].ShouldBeLessThan(feesBefore["STORAGE"]);
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task TransactionFee_InlineFailed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);

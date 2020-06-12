@@ -37,7 +37,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
         private static List<string> Symbols => new List<string> {"CPU", "RAM", "DISK", "NET"};
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task ChargeRentalTest()
         {
             await InitialTokenContract();
@@ -72,7 +72,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task OwnResourceTest()
         {
             await InitialTokenContract(false);
@@ -101,7 +101,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             owningRental.ResourceAmount["NET"].ShouldBe(NetAmount * Rental);
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task PayDebtTest()
         {
             await OwnResourceTest();
@@ -141,7 +141,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Need to be refactored in new framework.")]
         public async Task PayDebtTest_NotEnough()
         {
             await OwnResourceTest();
@@ -266,9 +266,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 InitialAcs3Stubs();
             }
 
-            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput
-            {
-            });
+            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput());
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
             var tokenSymbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
