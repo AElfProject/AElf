@@ -243,7 +243,6 @@ namespace AElf.WebApp.Application.Chain
             
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
             transactionResultDto.BlockHash = blockHash.ToHex();
-            transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
 
             transactionResultDto.Transaction = _mapper.Map<Transaction, TransactionDto>(transaction);
             transactionResultDto.TransactionSize = transaction.CalculateSize();
@@ -261,9 +260,7 @@ namespace AElf.WebApp.Application.Chain
 
                 transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
             }
-
-            transactionResultDto.Status = transactionResult.Status.ToString();
-
+            
             return transactionResultDto;
         }
 
