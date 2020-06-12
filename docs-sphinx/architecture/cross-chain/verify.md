@@ -27,7 +27,6 @@ message VerifyTransactionInput {
 ```
 
 **VerifyTransaction** is the view method of the cross-chain contract and that will be used to perform the verification. It returns whether the transaction was mined and indexed by the destination chain. This method will be used in both scenarios, what differs is the input:
-You can get transaction `MerklePath`  from the block which packed it by chain's web api with the **GetMerklePathByTransactionIdAsync** (See [web apt reference](../../reference/web-api/web-api.rst)).
 
 ### Verify transaction from main-chain on the side-chain
 
@@ -37,6 +36,7 @@ Verifying a transaction sent on the main-chain on a side chain, you can call **V
   - path - the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** with the ID of the transaction.
   - verified_chain_id - the source chainId, here the main chain's.
 
+You can get the `MerklePath`  of  transaction in one block which packed it by chain's web api with the **GetMerklePathByTransactionIdAsync** (See [web apt reference](../../reference/web-api/web-api.rst)).
 
 ### Verify transaction from side-chain on the main-chain or another side-chain
 
