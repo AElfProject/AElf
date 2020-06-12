@@ -1,10 +1,12 @@
-# Overview
+# Blocks
+
+## Overview
 
 Blocks are produced by the miners aka block producers
 
-## Genesis Block
+### Genesis Block
 
-# Block Instance
+## Block Instance
 
 The following message definitions show the structure of a Block and its constituents:
 
@@ -37,27 +39,27 @@ message BlockBody {
 
 A block is the aggregation of a BlockHeader and a BlockBody. The header contains metadata about the block itself. It also contains the the merkle roots of both the transactions and the world state. The block body is used to contain the transaction ids that where included in this block by the miner.
 
-## Block Header
+### Block Header
 
-## Block Header Extra Data
+### Block Header Extra Data
 
-## Block Body
+### Block Body
 
-## Signature
+### Signature
 
 The **signature** field is destined to host the signature of the producer of that block, to confirm that he created this block. It is the hash of the header that is signed, not the entire block.
 
-## Merkel tree
+### Merkel tree
 
 The header contains the merkle tree of the transactions that where included in the block. It also contains the merkle tree of the state which is the merkle tree formed by the hash of the transaction ID and the status of its transaction result.
 
-## Block Hash
+### Block Hash
 
 A blockchain is also a data structure of cryptographically linked blocks. Inside the header there's the hash of the previous block. The hash of a block uniquely represents a block and become its identifier (sometimes called block id). This hash is based on multiple values, including the **chain id**, the **height** of the block in the chain, the previous **blocks hash** and **merkle roots** (but not only).
 
-# Block Generation
+## Block Generation
 
-# Block Validation
+## Block Validation
 
 
 
