@@ -1,19 +1,20 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class BlockParallelExecutingService : BlockExecutingService
     {
         public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
-            IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService) : base(
-            transactionExecutingService, blockchainStateService, transactionResultService)
+            IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService,
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider) : base(
+            transactionExecutingService, blockchainStateService, transactionResultService,
+            systemTransactionExtraDataProvider)
         {
         }
 
