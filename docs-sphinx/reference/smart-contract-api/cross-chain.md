@@ -625,7 +625,7 @@ enum SideChainStatus
 {
     FATAL = 0;
     ACTIVE = 1;
-    INSUFFICIENT_BALANCE = 2;
+    INDEXING_FEE_DEBT = 2;
     TERMINATED = 3;
 }
 ```
@@ -641,7 +641,7 @@ Gets the current status of the specified side chain.
 Current status of side chain.
 - fatal: currently no meaning.
 - active: the side-chain is being indexed.
-- insufficient balance: not enough balance for indexing.
+- insufficient fee debt: debt for indexing fee to be payed off.
 - terminated: the side chain cannot be indexed anymore.
 
 ### function GetSideChainHeight
@@ -688,7 +688,7 @@ rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value
 }
 ```
 
-Get id of the parent chain which can't be zero
+Get id of the parent chain. This interface is only for side chain.
 
 **Parameters:**
 
@@ -697,6 +697,44 @@ Get id of the parent chain which can't be zero
 **Returns:**
 
 Parent chain id.
+
+
+### function GetSideChainBalance
+
+```protobuf
+rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+    option (aelf.is_view) = true;
+}
+```
+Get the balance for side chain indexing.
+
+**Parameters:**
+
+- **Int32Value** - id of side chain
+
+**Returns:**
+
+Balance for side chain indexing.
+
+
+### function GetSideChainIndexingFeeDebt
+
+```protobuf
+rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+    option (aelf.is_view) = true;
+}
+```
+
+Get indexing debt for side chain. 
+
+**Parameters:**
+
+- **Int32Value** - id of side chain
+
+**Returns:**
+
+Side chain indexing debt. Returns zero if no debt.
+
 
 ### function GetSideChainIdAndHeight
 
@@ -767,7 +805,7 @@ Get id and recorded height of all chains.
 
 **Parameters:**
 
-- **Empty** - empty input
+- **google.protobuf.Empty**
 
 **Returns:**
 

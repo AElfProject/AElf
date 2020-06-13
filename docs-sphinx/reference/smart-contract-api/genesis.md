@@ -140,7 +140,7 @@ Registration object of the smart contract.
 #### function GetSmartContractRegistrationByAddress
 
 ```protobuf
-rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
+rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
 }
 
