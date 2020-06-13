@@ -127,13 +127,13 @@ This method creates a proposal for which organization members can vote. When the
   - **token**: the token is for proposal id generation and with this token, proposal id can be calculated before proposing. 
 
 **Returns** 
-- **Address**: the id of the newly created proposal.
+- **Hash**: id of the newly created proposal.
 
 After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
 
 **Events**
 - **ProposalCreated**
-  - **proposal_id**: the id of the created proposal.
+  - **proposal_id**: id of the created proposal.
 
 
 ### **Approve**
@@ -151,7 +151,7 @@ After a successful execution, a **ProposalCreated** event log can be found in th
 ```
 This method is called to approve the specified proposal.
 
-- **Hash**: the id of the proposal.
+- **Hash**: id of the proposal.
 
 After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
 
@@ -179,7 +179,7 @@ After a successful execution, a **ReceiptCreated** event log can be found in the
 
 This method is called to reject the specified proposal.
 
-- **Hash**: the id of the proposal.
+- **Hash**: id of the proposal.
 
 After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
 
@@ -227,7 +227,7 @@ After a successful execution, a **ReceiptCreated** event log can be found in the
 
 This method is called to release the specified proposal.
 
--**Hash**: the id of the proposal.
+-**Hash**: id of the proposal.
 
 After a successful execution, a **ProposalReleased** event log can be found in the transaction result.
 
@@ -329,13 +329,13 @@ Used by system contracts to create proposals.
   - **origin proposer**: the actor that trigger the call.
 
 **Returns** 
-- **Address**: the id of the newly created proposal.
+- **Address**: id of the newly created proposal.
 
 After a successful execution, an **OrganizationWhiteListChanged** event log can be found in the transaction result.
 
 **Events**
 - **ProposalCreated**:
-  - **proposal_id**: the id of the created proposal.
+  - **proposal_id**: id of the created proposal.
 
 ### **ClearProposal**
 
