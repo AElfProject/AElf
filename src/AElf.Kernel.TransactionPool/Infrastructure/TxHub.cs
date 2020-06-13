@@ -316,7 +316,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
             {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId, "Transaction expired.");
+                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
                 return false;
             }
 

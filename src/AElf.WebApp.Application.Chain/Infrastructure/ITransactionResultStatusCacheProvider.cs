@@ -58,7 +58,7 @@ namespace AElf.WebApp.Application.Chain.Infrastructure
             // Only update status when current status is PendingValidation.
             if (currentStatus.TransactionResultStatus == TransactionResultStatus.PendingValidation)
             {
-                Logger.LogDebug($"Tx {transactionId} result status tunes to {status}.");
+                Logger.LogDebug($"Tx {transactionId} result status tunes to {status.TransactionResultStatus}.");
                 _transactionValidateResults.TryUpdate(transactionId, status, currentStatus);
             }
         }
