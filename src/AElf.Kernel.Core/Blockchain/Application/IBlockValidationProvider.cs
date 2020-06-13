@@ -99,38 +99,38 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (block?.Header == null || block.Body == null)
             {
-                Logger.LogWarning("Block header or body is null.");
+                Logger.LogDebug("Block header or body is null.");
                 return Task.FromResult(false);
             }
 
             if (block.Body.TransactionsCount == 0)
             {
-                Logger.LogWarning("Block transactions is empty");
+                Logger.LogDebug("Block transactions is empty");
                 return Task.FromResult(false);
             }
 
             var hashSet = new HashSet<Hash>();
             if (block.Body.TransactionIds.Select(item => hashSet.Add(item)).Any(addResult => !addResult))
             {
-                Logger.LogWarning("Block contains duplicates transaction");
+                Logger.LogDebug("Block contains duplicates transaction");
                 return Task.FromResult(false);
             }
 
             if (_blockchainService.GetChainId() != block.Header.ChainId)
             {
-                Logger.LogWarning($"Block chain id mismatch {block.Header.ChainId}");
+                Logger.LogDebug($"Block chain id mismatch {block.Header.ChainId}");
                 return Task.FromResult(false);
             }
 
             if (block.Header.Height != AElfConstants.GenesisBlockHeight && !block.VerifySignature())
             {
-                Logger.LogWarning("Block verify signature failed.");
+                Logger.LogDebug("Block verify signature failed.");
                 return Task.FromResult(false);
             }
 
             if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
-                Logger.LogWarning("Block merkle tree root mismatch.");
+                Logger.LogDebug("Block merkle tree root mismatch.");
                 return Task.FromResult(false);
             }
 
@@ -138,7 +138,7 @@ namespace AElf.Kernel.Blockchain.Application
                 block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() >
                 KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
-                Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
+                Logger.LogDebug($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return Task.FromResult(false);
             }
 
@@ -161,7 +161,7 @@ namespace AElf.Kernel.Blockchain.Application
                         block.Header.PreviousBlockHash);
                 if (!blockIndexExists) 
                     continue;
-                Logger.LogWarning($"Transaction: {transactionId} repackaged.");
+                Logger.LogDebug($"Transaction: {transactionId} repackaged.");
                 return false;
             }
 

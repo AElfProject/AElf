@@ -35,7 +35,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 if (!await provider.ValidateBeforeAttachAsync(block))
                 {
-                    Logger.LogError($"Validate block before attach failed: {provider.GetType().Name}");
+                    Logger.LogDebug($"Validate block before attach failed: {provider.GetType().Name}");
                     return false;
                 }
             }
@@ -49,7 +49,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 if (!await provider.ValidateBlockBeforeExecuteAsync(block))
                 {
-                    Logger.LogError($"Validate block before execution failed: {provider.GetType().Name}");
+                    Logger.LogDebug($"Validate block before execution failed: {provider.GetType().Name}");
                     return false;
                 }
             }
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 if (!await provider.ValidateBlockAfterExecuteAsync(block))
                 {
-                    Logger.LogError($"Validate block after execution failed: {provider.GetType().Name}");
+                    Logger.LogDebug($"Validate block after execution failed: {provider.GetType().Name}");
                     return false;
                 }
             }

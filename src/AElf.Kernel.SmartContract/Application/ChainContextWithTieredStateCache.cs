@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application

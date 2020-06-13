@@ -220,7 +220,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 _resourceCache.TryRemove(transactionId, out _);
             }
 
-            Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
+            Logger.LogDebug($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
 
         #endregion

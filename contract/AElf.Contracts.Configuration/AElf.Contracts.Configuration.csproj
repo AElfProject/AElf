@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Configuration</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Configuration is a contract used for changing configurable aspects of the chain, like for example 
             the maximum amount of packable transactions.</Description>
     </PropertyGroup>
@@ -37,6 +36,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf/Proto/configuration_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

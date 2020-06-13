@@ -9,5 +9,7 @@ namespace AElf.Kernel.SmartContract
 
         public int TransactionExecutionTimePeriodLimitInMilliSeconds { get; set; } =
             SmartContractConstants.TransactionExecutionTimePeriodLimitInMilliSeconds;
+
+        public bool LoggingTransactionError = false;
     }
 }
