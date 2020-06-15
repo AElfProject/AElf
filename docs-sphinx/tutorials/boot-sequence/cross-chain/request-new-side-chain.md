@@ -6,7 +6,7 @@ Side chains can be created in the AELF ecosystem to enable scalability.  This pa
 
  Anyone can request the side chain creation in the AELF ecosystem. The proposer/creator of a new side chain will need to request the creation of the side chain through the cross-chain contract on the main-chain. The request contains different fields that will determine the type of side chain that will be created. 
 
-This section show the API to use in order to propose the creation of a side chain. The fields that are in the **SideChainCreationRequest** will determine the type of side chain that is created. For more api details, you can follow the [request side chain creation](../../reference/smart-contract-api/cross-chain.md).
+This section show the API to use in order to propose the creation of a side chain. The fields that are in the **SideChainCreationRequest** will determine the type of side chain that is created. For more api details, you can follow the [request side chain creation](../../../reference/smart-contract-api/cross-chain.md).
 
 
 ```Proto
@@ -36,7 +36,7 @@ message ProposalCreated{
 
 ```
 
-A new proposal about the side chain creation would be created and the event `ProposalCreated` containing proposal id would be fired. A parliament organization which is specified since the chain launched is going to approve this proposal in 24 hours(refer to [Parliament contract](../../reference/smart-contract-api/parliament.md) for detail). Proposer is able to release the side chain creation request with proposal id once the proposal can be released.
+A new proposal about the side chain creation would be created and the event `ProposalCreated` containing proposal id would be fired. A parliament organization which is specified since the chain launched is going to approve this proposal in 24 hours(refer to [Parliament contract](../../../reference/smart-contract-api/parliament.md) for detail). Proposer is able to release the side chain creation request with proposal id once the proposal can be released.
 
 ```Proto
 rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {}
@@ -51,7 +51,7 @@ message SideChainCreatedEvent {
 
 New side chain would be created and the event `SideChainCreatedEvent` containing chain id would be fired.
 
-Side chain node can be launched since it is already created on main chain. Side chain id from the creation result should be configured correctly before launching the side chain node. Please make sure cross chain communication context is correctly set, because side chain node is going to request main chain node for chain initialization data. For more details, check [side chain node running](../running-side-chain.md) tutorial.
+Side chain node can be launched since it is already created on main chain. Side chain id from the creation result should be configured correctly before launching the side chain node. Please make sure cross chain communication context is correctly set, because side chain node is going to request main chain node for chain initialization data. For more details, check [side chain node running](./running-side-chain.md) tutorial.
 
 
 #### Side chain types
@@ -75,7 +75,7 @@ This creation of a side chain (logical, on-chain creation) is done in four steps
 
 Keep in mind that this is just the logical on-chain creation of the side chain. After the side chain is released there's extra steps needed for it to be a fully functional blockchain, including the producers running the side chain's nodes.
 
-Note: for more information about the meaning of the different fields, refer to the document in the [cross-chain section](../../../architecture/cross-chain/setup.md).
+Note: for more information about the meaning of the different fields, refer to the document in the [side chain section](../../../reference/smart-contract-api/cross-chain.md).
 
 ## Set-up 
 

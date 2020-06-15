@@ -36,7 +36,7 @@ Verifying a transaction sent on the main-chain on a side chain, you can call **V
   - path - the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** with the ID of the transaction.
   - verified_chain_id - the source chainId, here the main chain's.
 
-You can get the `MerklePath`  of  transaction in one block which packed it by chain's web api with the **GetMerklePathByTransactionIdAsync** (See [web apt reference](../../reference/web-api/web-api.rst)).
+You can get the `MerklePath`  of  transaction in one block which packed it by chain's web api with the **GetMerklePathByTransactionIdAsync** (See [web api reference](../../reference/web-api/web-api)).
 
 ### Verify transaction from side-chain on the main-chain or another side-chain
 

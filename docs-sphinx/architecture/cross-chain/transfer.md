@@ -9,7 +9,7 @@ The transfer will always use the same contract methods and the following two ste
 ## Prepare
 Few preparing steps are required before cross chain transfer, which is to be done only once for one chain. Just ignore this preparing part if already completed.
 
-Let's say that you want to transfer token FOO from chain A to chain B. Note that please make sure you are already clear about how cross chain transaction verification works before you start. Any input contains`MerklePath` in the following steps means the cross chain verification processing is needed. See [cross chain verification](../crosschain-verification.md)  for more details.
+Let's say that you want to transfer token FOO from chain A to chain B. Note that please make sure you are already clear about how cross chain transaction verification works before you start. Any input contains`MerklePath` in the following steps means the cross chain verification processing is needed. See [cross chain verification](./crosschain-verification.md)  for more details.
 
 - Validate **Token Contract** address on chain `A`. 
 
@@ -128,7 +128,7 @@ Let's review the fields of the input:
 - **from_chain_id**: the source chain id on which cross chain transfer launched
 - **parent_chain_height**: 
   - for the case of transfer from main-chain to side-chain: this parent_chain_height is the height of the block on the main chain that contains the **CrossChainTransfer** transaction.
-  - for the case of transfer from side-chain to side-chain or side-chain to main-chain: this **parent_chain_height** is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*, see [cross chain verification](../crosschain-verification.md)) - accessible in the **bound_parent_chain_height** field.
+  - for the case of transfer from side-chain to side-chain or side-chain to main-chain: this **parent_chain_height** is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*, see [cross chain verification](./crosschain-verification.md)) - accessible in the **bound_parent_chain_height** field.
 - **transfer_transaction_bytes**: the serialized form of the **CrossChainTransfer** transaction.
 - **merkle_path**: the cross-chain merkle path. For this, two cases to consider:
   - for the case of transfer from main-chain to side-chain: for this you just need the merkle path from the main-chain's web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input).

@@ -10,7 +10,7 @@ Note: this tutorial assumes the following:
 
 It's also **important** to know that the key-pair (account) used for mining on the side chain must be the **same** as the one you use for on the main-chain node. Said in another way both production nodes need to be launched with the **same** key-pair.
 
-Note: for more information about the side chain creation, refer to the document in the [cross-chain section](../request-new-side-chain.md).
+Note: for more information about the side chain creation, refer to the document in the [request-side-chain section](./request-new-side-chain.md).
 
 ### Side chain configuration:
 
