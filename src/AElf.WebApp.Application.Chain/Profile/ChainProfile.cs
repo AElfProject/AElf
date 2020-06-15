@@ -1,6 +1,7 @@
 using System.Linq;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
+using Volo.Abp.AutoMapper;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -16,7 +17,8 @@ namespace AElf.WebApp.Application.Chain
                 .ForMember(d => d.NotLinkedBlocks,
                     opt => opt.MapFrom(s =>
                         s.NotLinkedBlocks.ToDictionary(b => Hash.LoadFromBase64(b.Key).ToHex(),
-                            b => Hash.LoadFromBase64(b.Value).ToHex())));
+                            b => Hash.LoadFromBase64(b.Value).ToHex())))
+                .Ignore(d=>d.GenesisContractAddress);
         }
     }
 }

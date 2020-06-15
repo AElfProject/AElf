@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
-using AutoMapper;
 using Volo.Abp.Application.Services;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -22,14 +22,15 @@ namespace AElf.WebApp.Application.Chain
 
         private readonly IBlockchainService _blockchainService;
 
-        private readonly IMapper _mapper;
+        private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
 
         public ChainStatusAppService(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService, IMapper mapper)
+            IBlockchainService blockchainService, 
+            IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
-            _mapper = mapper;
+            _objectMapper = objectMapper;
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace AElf.WebApp.Application.Chain
 
             var chain = await _blockchainService.GetChainAsync();
 
-            var result = _mapper.Map<Kernel.Chain, ChainStatusDto>(chain);
+            var result = _objectMapper.Map<Kernel.Chain, ChainStatusDto>(chain);
             result.GenesisContractAddress = basicContractZero?.ToBase58();
 
             return result;

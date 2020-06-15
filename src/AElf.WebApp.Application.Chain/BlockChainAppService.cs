@@ -9,12 +9,12 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool.Application;
-using AutoMapper;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -36,20 +36,21 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionPoolService _transactionPoolService;
         private readonly IBlockStateSetManger _blockStateSetManger;
-        private readonly IMapper _mapper;
+        private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
 
         public ILogger<BlockChainAppService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
-            IBlockStateSetManger blockStateSetManger, 
-            ITransactionPoolService transactionPoolService, IMapper mapper)
+            IBlockStateSetManger blockStateSetManger,
+            ITransactionPoolService transactionPoolService,
+            IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper)
         {
             _blockchainService = blockchainService;
             _blockStateSetManger = blockStateSetManger;
             _transactionPoolService = transactionPoolService;
-            _mapper = mapper;
+            _objectMapper = objectMapper;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -114,7 +115,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
         {
             var transactionPoolStatus = await _transactionPoolService.GetTransactionPoolStatusAsync();
-            return _mapper.Map<TransactionPoolStatus, GetTransactionPoolStatusOutput>(transactionPoolStatus);
+            return _objectMapper.Map<TransactionPoolStatus, GetTransactionPoolStatusOutput>(transactionPoolStatus);
         }
 
         /// <summary>
@@ -128,7 +129,7 @@ namespace AElf.WebApp.Application.Chain
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
 
-            return _mapper.Map<BlockStateSet, BlockStateDto>(blockState);
+            return _objectMapper.Map<BlockStateSet, BlockStateDto>(blockState);
         }
 
         private async Task<Block> GetBlockAsync(Hash blockHash)
@@ -148,7 +149,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
-            return _mapper.Map<Block, BlockDto>(block,
+            return _objectMapper.GetMapper().Map<Block, BlockDto>(block,
                 opt => opt.Items[BlockProfile.IncludeTransactions] = includeTransactions);
         }
     }

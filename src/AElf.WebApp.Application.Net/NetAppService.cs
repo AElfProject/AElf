@@ -6,8 +6,8 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Types;
 using AElf.WebApp.Application.Net.Dto;
-using AutoMapper;
 using Volo.Abp.Application.Services;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Net
 {
@@ -26,17 +26,18 @@ namespace AElf.WebApp.Application.Net
     {
         private readonly INetworkService _networkService;
         private readonly IReconnectionService _reconnectionService;
-        private readonly IMapper _mapper;
+        private readonly IObjectMapper<NetApplicationWebAppAElfModule> _objectMapper;
 
         private static readonly string Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
 
-        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService, IMapper mapper)
+        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService,
+            IObjectMapper<NetApplicationWebAppAElfModule> objectMapper)
         {
             _networkService = networkService;
             _reconnectionService = reconnectionService;
-            _mapper = mapper;
+            _objectMapper = objectMapper;
         }
-        
+
         /// <summary>
         /// Attempts to add a node to the connected network nodes
         /// </summary>
@@ -65,7 +66,7 @@ namespace AElf.WebApp.Application.Net
         {
             var peerList = _networkService.GetPeers();
 
-            return _mapper.Map<List<PeerInfo>, List<PeerDto>>(peerList,
+            return _objectMapper.GetMapper().Map<List<PeerInfo>, List<PeerDto>>(peerList,
                 opt => opt.Items[PeerInfoProfile.WithMetrics] = withMetrics);
         }
 

@@ -2,6 +2,7 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AutoMapper;
 using Google.Protobuf;
+using Volo.Abp.AutoMapper;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -16,7 +17,9 @@ namespace AElf.WebApp.Application.Chain
                 .ForMember(d => d.Bloom,
                     opt => opt.MapFrom(s =>
                         s.Bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : s.Bloom.ToBase64()))
-                .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString().ToUpper()));
+                .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString().ToUpper()))
+                .Ignore(d => d.Transaction)
+                .Ignore(d => d.TransactionSize);
 
             CreateMap<LogEvent, LogEventDto>();
         }
