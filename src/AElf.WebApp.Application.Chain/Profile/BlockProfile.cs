@@ -33,11 +33,11 @@ namespace AElf.WebApp.Application.Chain
                     opt => opt.MapFrom(s => s.SignerPubkey.ToByteArray().ToHex(false)));
 
             CreateMap<BlockBody, BlockBodyDto>()
-                .ForMember(d => d.Transactions, opt => opt.MapFrom<PeerInfoResolver>());
+                .ForMember(d => d.Transactions, opt => opt.MapFrom<BlockBodyResolver>());
         }
     }
     
-    public class PeerInfoResolver : IValueResolver<BlockBody, BlockBodyDto, List<string>>
+    public class BlockBodyResolver : IValueResolver<BlockBody, BlockBodyDto, List<string>>
     {
         public List<string> Resolve(BlockBody source, BlockBodyDto destination, List<string> destMember, ResolutionContext context)
         {
