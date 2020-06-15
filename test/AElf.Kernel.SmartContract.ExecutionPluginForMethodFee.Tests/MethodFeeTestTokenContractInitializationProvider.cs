@@ -11,9 +11,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
     public class MethodFeeTestTokenContractInitializationProvider : TokenContractInitializationProvider,
         IContractInitializationProvider
     {
-        public MethodFeeTestTokenContractInitializationProvider(
-            ITokenContractInitializationDataProvider tokenContractInitializationDataProvider) : base(
-            tokenContractInitializationDataProvider)
+        public MethodFeeTestTokenContractInitializationProvider() : base(null)
         {
         }
 
