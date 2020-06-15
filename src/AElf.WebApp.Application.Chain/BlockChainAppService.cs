@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool.Application;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;

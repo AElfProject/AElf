@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AutoMapper;
 using Google.Protobuf.Reflection;
 using Volo.Abp;
 using Volo.Abp.Application.Services;

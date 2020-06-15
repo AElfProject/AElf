@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Application.Net;
-using AutoMapper;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
