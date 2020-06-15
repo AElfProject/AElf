@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.MultiToken</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>MultiToken is a contract that implements token functionality like creation, issuance and 
             transfer.</Description>
     </PropertyGroup>
@@ -42,6 +41,9 @@
         <ContractReference Include="..\..\protobuf\referendum_contract.proto">
             <Link>Protobuf\Proto\reference\referendum_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -62,6 +64,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

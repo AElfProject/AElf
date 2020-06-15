@@ -83,13 +83,13 @@ namespace AElf.OS.Network.Protocol
             var chainId = _blockchainService.GetChainId();
             if (handshake.HandshakeData.ChainId != chainId)
             {
-                Logger.LogWarning($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
+                Logger.LogDebug($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
                 return HandshakeValidationResult.InvalidChainId;
             }
 
             if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
             {
-                Logger.LogWarning($"Version is is incorrect: {handshake.HandshakeData.Version}.");
+                Logger.LogDebug($"Version is is incorrect: {handshake.HandshakeData.Version}.");
                 return HandshakeValidationResult.InvalidVersion;
             }
 
@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Protocol
             if (now > handshake.HandshakeData.Time +
                 TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
             {
-                Logger.LogWarning($"Handshake is expired: {handshake.HandshakeData.Time}, reference now: {now}.");
+                Logger.LogDebug($"Handshake is expired: {handshake.HandshakeData.Time}, reference now: {now}.");
                 return HandshakeValidationResult.HandshakeTimeout;
             }
 
@@ -108,14 +108,14 @@ namespace AElf.OS.Network.Protocol
 
             if (!validData)
             {
-                Logger.LogWarning("Handshake signature is incorrect.");
+                Logger.LogDebug("Handshake signature is incorrect.");
                 return HandshakeValidationResult.InvalidSignature;
             }
 
             var nodePubKey = await _accountService.GetPublicKeyAsync();
             if (handshakePubkey.BytesEqual(nodePubKey))
             {
-                Logger.LogWarning("Self connection detected.");
+                Logger.LogDebug("Self connection detected.");
                 return HandshakeValidationResult.SelfConnection;
             }
 

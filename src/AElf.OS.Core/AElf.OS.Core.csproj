@@ -8,7 +8,6 @@
         <Description>Core module for the OS layer.</Description>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
@@ -16,5 +15,17 @@
         <CommonMessage Include="..\..\protobuf\network_types.proto">
             <Link>Protobuf/Proto/network_types.proto</Link>
         </CommonMessage>
+
+        <ContractMessage Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractMessage>
+        
+        <ContractBase Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractBase>
+        
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>

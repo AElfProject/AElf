@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using Shouldly;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
@@ -33,7 +34,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 0
                 //          AllTransaction: 0
                 //   ExecutableTransaction: 0
-                ExecutableTransactionShouldBe(Hash.Empty, 0);
+                await TxHubBestChainShouldBeAsync(Hash.Empty, 0);
 
                 TransactionPoolSizeShouldBe(0);
             }
@@ -50,12 +51,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
 
                 // Receive the transaction first time
-                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {transactionHeight100}
-                });
+                await _txHub.AddTransactionsAsync(new List<Transaction> {transactionHeight100});
 
-                ExecutableTransactionShouldBe(Hash.Empty, 0);
+                await TxHubBestChainShouldBeAsync(Hash.Empty, 0);
 
                 TransactionPoolSizeShouldBe(0); //_bestChainHash = Hash.Empty
             }
@@ -72,10 +70,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var transactionValid =
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
-                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {transactionValid}
-                });
+                await _txHub.AddTransactionsAsync(new List<Transaction> {transactionValid});
 
                 TransactionPoolSizeShouldBe(0);
 
@@ -95,10 +90,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     transactionNotInPool
                 });
 
-                await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
-                {
-                    BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
-                });
+                await _txHub.CleanByTransactionIdsAsync(newBlock.TransactionIds);
 
                 TransactionPoolSizeShouldBe(0);
             }
@@ -113,13 +105,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
 
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                });
+                await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
 
-                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                await TxHubBestChainShouldBeAsync(chain.BestChainHash, chain.BestChainHeight);
 
                 TransactionPoolSizeShouldBe(0);
             }
@@ -137,27 +125,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
                 var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
-                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
+                await _txHub.AddTransactionsAsync(new List<Transaction>
                 {
-                    Transactions = new List<Transaction>
-                    {
-                        transactionValid,
-                        transactionInvalid
-                    }
+                    transactionValid,
+                    transactionInvalid
                 });
 
-                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                await TxHubBestChainShouldBeAsync(chain.BestChainHash, chain.BestChainHeight);
                 await Task.Delay(200);
                 TransactionPoolSizeShouldBe(2);
                 TransactionShouldInPool(transactionValid);
 
                 // Receive the same transaction again
-                await _txHub.AddTransactionsAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {transactionValid, transactionInvalid}
-                });
+                await _txHub.AddTransactionsAsync(new List<Transaction> {transactionValid, transactionInvalid});
 
-                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                await TxHubBestChainShouldBeAsync(chain.BestChainHash, chain.BestChainHeight);
                 TransactionPoolSizeShouldBe(2);
 
                 {
@@ -176,19 +158,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         transactionNotInPool
                     });
 
-                    await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
-                    {
-                        BlockExecutedSet = new BlockExecutedSet() {Block = newBlock}
-                    });
+                    await _txHub.CleanByTransactionIdsAsync(newBlock.TransactionIds);
 
                     chain = await _blockchainService.GetChainAsync();
 
                     //handle best chain found
-                    await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                    {
-                        BlockHash = chain.BestChainHash,
-                        BlockHeight = chain.BestChainHeight
-                    });
+                    await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
 
                     TransactionPoolSizeShouldBe(1);
                     TransactionShouldInPool(transactionInvalid);
@@ -201,12 +176,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 13
                 //          AllTransaction: 0
                 //   ExecutableTransaction: 0
-                await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                });
-
+                await _txHub.CleanByHeightAsync(chain.BestChainHeight);
                 TransactionPoolSizeShouldBe(0);
             }
 
@@ -225,22 +195,43 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     var transaction = _kernelTestHelper.GenerateTransaction(bestChainHeight + i);
                     await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction> {transaction});
                     chain = await _blockchainService.GetChainAsync();
-                    await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                    {
-                        BlockHash = chain.BestChainHash,
-                        BlockHeight = chain.BestChainHeight
-                    });
-                    await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
-                    {
-                        BlockHash = chain.BestChainHash,
-                        BlockHeight = chain.BestChainHeight
-                    });
+                    await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
+                    await _txHub.CleanByHeightAsync(chain.BestChainHeight);
                 }
 
-                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                await TxHubBestChainShouldBeAsync(chain.BestChainHash, chain.BestChainHeight);
 
                 TransactionPoolSizeShouldBe(0);
             }
+        }
+
+        [Fact]
+        public async Task GetExecutableTransactionSet_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+
+            await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
+            
+            var transaction =
+                _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+            await _txHub.AddTransactionsAsync(new List<Transaction>
+            {
+                transaction
+            });
+
+            await Task.Delay(200);
+            await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
+
+            var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            executableTransactionSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
+            executableTransactionSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
+            executableTransactionSet.Transactions[0].ShouldBe(transaction);
+
+            var wrongBlockHash = HashHelper.ComputeFrom("WrongBlockHash");
+            executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(wrongBlockHash);
+            executableTransactionSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
+            executableTransactionSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
+            executableTransactionSet.Transactions.Count.ShouldBe(0);
         }
 
         #region check methods
@@ -253,29 +244,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void TransactionPoolSizeShouldBe(int size)
         {
-            var transactionPoolSize = _txHub.GetAllTransactionCountAsync().Result;
+            var transactionPoolSize = AsyncHelper.RunSync(_txHub.GetTransactionPoolStatusAsync).AllTransactionCount;
             transactionPoolSize.ShouldBe(size);
         }
 
-        private void ExecutableTransactionShouldBe(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions = null)
+        private async Task TxHubBestChainShouldBeAsync(Hash blockHash, long blockHeight)
         {
-            var executableTxSet = _txHub.GetExecutableTransactionSetAsync().Result;
-            executableTxSet.PreviousBlockHash.ShouldBe(previousBlockHash);
-            executableTxSet.PreviousBlockHeight.ShouldBe(previousBlockHeight);
-            if (transactions != null)
-            {
-                executableTxSet.Transactions.Count.ShouldBe(transactions.Count);
-
-                foreach (var tx in transactions)
-                {
-                    executableTxSet.Transactions.ShouldContain(tx);
-                }
-            }
-            else
-            {
-                executableTxSet.Transactions.Count.ShouldBe(0);
-            }
+            var executableTxSet = await _txHub.GetExecutableTransactionSetAsync(blockHash);
+            executableTxSet.PreviousBlockHash.ShouldBe(blockHash);
+            executableTxSet.PreviousBlockHeight.ShouldBe(blockHeight);
         }
 
         #endregion

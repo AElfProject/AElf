@@ -10,7 +10,6 @@ using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractInitialization;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -21,9 +21,9 @@ namespace AElf.Kernel.Token
             _tokenContractInitializationDataProvider = tokenContractInitializationDataProvider;
         }
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            var methodList = new List<InitializeMethod>();
+            var methodList = new List<ContractInitializationMethodCall>();
             var initializationData = _tokenContractInitializationDataProvider.GetContractInitializationData();
             
             // For the main chain, we use the economic contract to initialize the token contract.
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Token
                     TokenInfoList.Parser.ParseFrom(initializationData.ResourceTokenListData);
 
                 // native token
-                methodList.Add(new InitializeMethod
+                methodList.Add(new ContractInitializationMethodCall
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
                     Params = GenerateTokenCreateInput(nativeTokenInfo).ToByteString()
@@ -45,14 +45,14 @@ namespace AElf.Kernel.Token
                 // resource token
                 foreach (var resourceTokenInfo in resourceTokenList.Value)
                 {
-                    methodList.Add(new InitializeMethod
+                    methodList.Add(new ContractInitializationMethodCall
                     {
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
                         Params = GenerateTokenCreateInput(resourceTokenInfo).ToByteString()
                     });
                 }
 
-                methodList.Add(new InitializeMethod
+                methodList.Add(new ContractInitializationMethodCall
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
                     Params = new Empty().ToByteString()
@@ -64,15 +64,16 @@ namespace AElf.Kernel.Token
                     var chainPrimaryTokenInfo =
                         TokenInfo.Parser.ParseFrom(initializationData.PrimaryTokenInfoData);
 
-                    methodList.Add(new InitializeMethod
+                    methodList.Add(new ContractInitializationMethodCall
                     {
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
-                        Params = GenerateTokenCreateInput(chainPrimaryTokenInfo).ToByteString()
+                        Params = GenerateTokenCreateInput(chainPrimaryTokenInfo, initializationData.Creator)
+                            .ToByteString()
                     });
 
                     foreach (var issueStuff in initializationData.TokenInitialIssueList)
                     {
-                        methodList.Add(new InitializeMethod
+                        methodList.Add(new ContractInitializationMethodCall
                         {
                             MethodName = nameof(TokenContractContainer.TokenContractStub.Issue),
                             Params = new IssueInput
@@ -85,7 +86,7 @@ namespace AElf.Kernel.Token
                         });
                     }
 
-                    methodList.Add(new InitializeMethod
+                    methodList.Add(new ContractInitializationMethodCall
                     {
                         MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
                         Params = new SetPrimaryTokenSymbolInput
@@ -97,7 +98,7 @@ namespace AElf.Kernel.Token
                 else
                 {
                     // set primary token with native token 
-                    methodList.Add(new InitializeMethod
+                    methodList.Add(new ContractInitializationMethodCall
                     {
                         MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
                         Params = new SetPrimaryTokenSymbolInput
@@ -107,7 +108,7 @@ namespace AElf.Kernel.Token
                     });
                 }
                 
-                methodList.Add(new InitializeMethod
+                methodList.Add(new ContractInitializationMethodCall
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
                     Params = new InitializeFromParentChainInput
@@ -121,7 +122,7 @@ namespace AElf.Kernel.Token
                     }.ToByteString()
                 });
 
-                methodList.Add(new InitializeMethod
+                methodList.Add(new ContractInitializationMethodCall
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeAuthorizedController),
                     Params = ByteString.Empty
@@ -131,13 +132,13 @@ namespace AElf.Kernel.Token
             return methodList;
         }
 
-        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)
+        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo, Address issuer = null)
         {
             return new CreateInput
             {
                 Decimals = tokenInfo.Decimals,
                 IssueChainId = tokenInfo.IssueChainId,
-                Issuer = tokenInfo.Issuer,
+                Issuer = issuer ?? tokenInfo.Issuer,
                 IsBurnable = tokenInfo.IsBurnable,
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,

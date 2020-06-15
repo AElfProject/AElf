@@ -18,6 +18,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -61,6 +62,7 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
+        typeof(TokenKernelAElfModule),
         typeof(CSharpRuntimeAElfModule))]
     public class ContractTestModule : AbpModule
     {
@@ -122,6 +124,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
             context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());

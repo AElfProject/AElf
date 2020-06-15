@@ -59,7 +59,7 @@ namespace AElf.OS.Worker
                 if (!AElfPeerEndpointHelper.TryParse(peerEndpoint, out var parsed))
                 {
                     if (!_reconnectionService.CancelReconnection(peerEndpoint))
-                        Logger.LogWarning($"Invalid {peerEndpoint}.");
+                        Logger.LogDebug($"Invalid {peerEndpoint}.");
 
                     continue;
                 }
@@ -87,7 +87,7 @@ namespace AElf.OS.Worker
                 {
                     // down the stack the AddPeerAsync rethrows any exception,
                     // in order to continue this job, Exception has to be catched for now.
-                    Logger.LogInformation(ex, $"Could not re-connect to {peerEndpoint}.");
+                    Logger.LogDebug(ex, $"Could not re-connect to {peerEndpoint}.");
                 }
 
                 if (connected)

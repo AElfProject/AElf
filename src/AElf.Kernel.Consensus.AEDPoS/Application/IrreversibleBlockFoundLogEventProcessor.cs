@@ -12,23 +12,21 @@ using AElf.CSharp.Core.Extension;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
+    public class IrreversibleBlockFoundLogEventProcessor : LogEventProcessorBase,
+        IBlocksExecutionSucceededLogEventProcessor
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly TransactionPackingOptions _transactionPackingOptions;
 
         public ILogger<IrreversibleBlockFoundLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager,
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions)
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
             _taskQueueManager = taskQueueManager;
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
 
             Logger = NullLogger<IrreversibleBlockFoundLogEventProcessor>.Instance;
         }
@@ -39,11 +37,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
                 chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
-            
+
             var interestedEvent =
                 GetInterestedEvent<IrreversibleBlockFound>(smartContractAddressDto.SmartContractAddress.Address);
             if (!smartContractAddressDto.Irreversible) return interestedEvent;
-            
+
             InterestedEvent = interestedEvent;
             return InterestedEvent;
         }
@@ -68,8 +66,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 if (libBlockHash == null) return;
 
-                // enable transaction packing
-                _transactionPackingOptions.IsTransactionPackable = true;
                 if (chain.LastIrreversibleBlockHeight == irreversibleBlockFound.IrreversibleBlockHeight) return;
 
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);

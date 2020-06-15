@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m =>
-                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         var block = new Block
@@ -112,7 +112,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m =>
-                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;

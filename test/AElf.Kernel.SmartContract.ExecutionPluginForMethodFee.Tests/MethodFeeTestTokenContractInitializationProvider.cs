@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -15,11 +15,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
         }
 
-        public new List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public new List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
-            var methodList = new List<InitializeMethod>();
+            var methodList = new List<ContractInitializationMethodCall>();
             // native token
-            methodList.Add(new InitializeMethod
+            methodList.Add(new ContractInitializationMethodCall
             {
                 MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
                 Params = new CreateInput
@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 }.ToByteString()
             });
 
-            methodList.Add(new InitializeMethod
+            methodList.Add(new ContractInitializationMethodCall
             {
                 MethodName = nameof(TokenContractContainer.TokenContractStub.Issue),
                 Params = new IssueInput

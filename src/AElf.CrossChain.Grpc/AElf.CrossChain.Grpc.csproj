@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <NoWarn>1701;1702;0436</NoWarn>
+      <NoWarn>1701;1702</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,8 +23,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Grpc" Version="2.28.1" />
-        <PackageReference Include="Grpc.Tools" Version="2.28.1" />
+        <PackageReference Include="Grpc" Version="2.29.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.29.0" />
     </ItemGroup>
 
     <ItemGroup>

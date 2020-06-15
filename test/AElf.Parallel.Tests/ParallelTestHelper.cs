@@ -15,7 +15,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -47,16 +47,16 @@ namespace AElf.Parallel.Tests
             IAccountService accountService,
             IMinerService minerService,
             IBlockchainService blockchainService,
-            ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
             ITransactionResultService transactionResultService,
             IOptionsSnapshot<ChainOptions> chainOptions,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService
-            ) : base(osBlockchainNodeContextService, accountService,
-            minerService, blockchainService, txHub, smartContractAddressService, blockAttachService,
-            staticChainInformationProvider, transactionResultService, chainOptions)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            ITransactionPoolService transactionPoolService
+        ) : base(osBlockchainNodeContextService, accountService,
+            minerService, blockchainService, smartContractAddressService, blockAttachService,
+            staticChainInformationProvider, transactionResultService, chainOptions,transactionPoolService)
         {
             _accountService = accountService;
             _staticChainInformationProvider = staticChainInformationProvider;

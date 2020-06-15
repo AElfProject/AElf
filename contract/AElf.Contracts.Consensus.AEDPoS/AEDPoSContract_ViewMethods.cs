@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Pubkeys =
                     {
-                        round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
+                        round.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString)
                     }
                 }
                 : new MinerList();
@@ -183,7 +183,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!TryToGetCurrentRoundInformation(out var currentRound)) return false;
 
-            if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
+            if (!currentRound.IsMinerListJustChanged)
+            {
+                if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
+            }
+            else if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
+            }
 
             Context.LogDebug(() =>
                 $"Extra block producer of previous round: {currentRound.ExtraBlockProducerOfPreviousRound}");
@@ -248,7 +255,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Miners of new round are same with current round.
                 var miners = new MinerList();
-                miners.Pubkeys.AddRange(currentRound.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+                miners.Pubkeys.AddRange(currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
                 newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
                     Context.CurrentBlockTime, currentRound);
             }

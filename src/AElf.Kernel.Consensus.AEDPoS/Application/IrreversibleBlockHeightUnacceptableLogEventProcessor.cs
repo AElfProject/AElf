@@ -11,18 +11,18 @@ using AElf.CSharp.Core.Extension;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
-        IBlocksExecutionSucceededLogEventProcessor
+        IBlockAcceptedLogEventProcessor
     {
-        private readonly TransactionPackingOptions _transactionPackingOptions;
+        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
-            IOptionsMonitor<TransactionPackingOptions> transactionPackingOptions,
+            ITransactionPackingOptionProvider transactionPackingOptionProvider,
             ISmartContractAddressService smartContractAddressService)
         {
-            _transactionPackingOptions = transactionPackingOptions.CurrentValue;
+            _transactionPackingOptionProvider = transactionPackingOptionProvider;
             _smartContractAddressService = smartContractAddressService;
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
@@ -50,14 +50,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var distanceToLib = new IrreversibleBlockHeightUnacceptable();
             distanceToLib.MergeFrom(logEvent);
 
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            };
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionPackingOptions.IsTransactionPackable = false;
+                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, false);
             }
             else
             {
-                _transactionPackingOptions.IsTransactionPackable = true;
+                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, true);
             }
 
             return Task.CompletedTask;

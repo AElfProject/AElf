@@ -5,6 +5,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -14,7 +15,7 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Node.Application;
 using AElf.TestBase;
 using AElf.Types;
@@ -50,15 +51,15 @@ namespace AElf.Benchmark
         private readonly IAccountService _accountService;
         protected readonly IBlockchainService BlockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        protected readonly ITxHub TxHub;
+        protected readonly ITransactionPoolService TransactionPoolService;
 
         public MiningWithTransactionsBenchmarkBase()
         {
+            TransactionPoolService = GetRequiredService<ITransactionPoolService>();;
             _osBlockchainNodeContextService = GetRequiredService<IOsBlockchainNodeContextService>();
             _accountService = GetRequiredService<IAccountService>();
             BlockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
-            TxHub = GetRequiredService<ITxHub>();
         }
 
         private IReadOnlyDictionary<string, byte[]> _codes;
@@ -78,11 +79,8 @@ namespace AElf.Benchmark
                 await BlockchainService.SetIrreversibleBlockAsync(chain, genesisBlock.Height, genesisBlock.GetHash());
             }
 
-            await TxHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            });
+            await TransactionPoolService.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash,
+                chain.BestChainHeight);
         }
 
         public readonly long TokenTotalSupply = 100_000_000_000_000_000L;
@@ -91,7 +89,7 @@ namespace AElf.Benchmark
         private async Task StartNodeAsync()
         {
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            List<ContractInitializationMethodCall> callList = new List<ContractInitializationMethodCall> ();
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = _nativeSymbol,
@@ -116,10 +114,15 @@ namespace AElf.Benchmark
             {
                 ZeroSmartContract = typeof(BasicContractZero),
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
-                SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory
+                SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory,
             };
-            dto.InitializationSmartContracts.AddGenesisSmartContract(tokenContractCode,
-                TokenSmartContractAddressNameProvider.Name, callList);
+            var genesisSmartContractDto = new GenesisSmartContractDto
+            {
+                Code = tokenContractCode,
+                SystemSmartContractName = TokenSmartContractAddressNameProvider.Name,
+            };
+            genesisSmartContractDto.AddGenesisTransactionMethodCall(callList.ToArray());
+            dto.InitializationSmartContracts.Add(genesisSmartContractDto);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
         }

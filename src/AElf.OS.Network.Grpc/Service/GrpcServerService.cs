@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
@@ -93,30 +92,12 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> BlockBroadcastStream(
             IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
                 var peerPubkey = context.GetPublicKey();
-                var peer = _connectionService.GetPeerByPubkey(peerPubkey);
-
-                if (peer.SyncState != SyncState.Finished)
-                {
-                    peer.SyncState = SyncState.Finished;
-                }
-
-                await requestStream.ForEachAsync(block =>
-                {
-                    Logger.LogInformation(
-                        $"Received full block announce, block: {block} from {context.GetPeerInfo()}.");
-
-                    if (!peer.TryAddKnownBlock(block.GetHash()))
-                        return Task.CompletedTask;
-                        
-                    _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
-
-                    return Task.CompletedTask;
-                });
+                await requestStream.ForEachAsync(async block => await ProcessBlockAsync(block, peerPubkey));
             }
             catch (Exception e)
             {
@@ -124,19 +105,36 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
+        }
+        
+        private Task ProcessBlockAsync(BlockWithTransactions block, string peerPubkey)
+        {
+            var peer = TryGetPeerByPubkey(peerPubkey);
+
+            if (peer.SyncState != SyncState.Finished)
+            {
+                peer.SyncState = SyncState.Finished;
+            }
+            
+            if (!peer.TryAddKnownBlock(block.GetHash()))
+                return Task.CompletedTask;
+                        
+            _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
+            return Task.CompletedTask;
         }
 
         public override async Task<VoidReply> AnnouncementBroadcastStream(
             IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
-                await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+                var peerPubkey = context.GetPublicKey();
+                await requestStream.ForEachAsync(async r => await ProcessAnnouncementAsync(r, peerPubkey));
             }
             catch (Exception e)
             {
@@ -144,28 +142,20 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
 
-        public Task ProcessAnnouncement(BlockAnnouncement announcement, ServerCallContext context)
+        private Task ProcessAnnouncementAsync(BlockAnnouncement announcement, string peerPubkey)
         {
             if (announcement?.BlockHash == null)
             {
-                Logger.LogWarning($"Received null announcement or header from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null announcement or header from {peerPubkey}.");
                 return Task.CompletedTask;
             }
 
-            Logger.LogDebug(
-                $"Received announce, block hash: {announcement.BlockHash}, block height: {announcement.BlockHeight} from {context.GetPeerInfo()}.");
-
-            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            if (peer == null)
-            {
-                // if peer already removed, drop.
-                return Task.CompletedTask;
-            }
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             if (!peer.TryAddKnownBlock(announcement.BlockHash))
                 return Task.CompletedTask;
@@ -175,7 +165,7 @@ namespace AElf.OS.Network.Grpc
                 peer.SyncState = SyncState.Finished;
             }
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, peerPubkey));
 
             return Task.CompletedTask;
         }
@@ -183,11 +173,12 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream,
             ServerCallContext context)
         {
-            Logger.LogTrace($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
-                await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+                var peerPubkey = context.GetPublicKey();
+                await requestStream.ForEachAsync(async tx => await ProcessTransactionAsync(tx, peerPubkey));
             }
             catch (Exception e)
             {
@@ -195,11 +186,11 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
-
+        
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
@@ -207,7 +198,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await ProcessTransaction(tx, context);
+                await ProcessTransactionAsync(tx, context.GetPublicKey());
             }
             catch (Exception e)
             {
@@ -218,7 +209,7 @@ namespace AElf.OS.Network.Grpc
             return new VoidReply();
         }
 
-        private async Task ProcessTransaction(Transaction tx, ServerCallContext context)
+        private async Task ProcessTransactionAsync(Transaction tx, string peerPubkey)
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -227,13 +218,7 @@ namespace AElf.OS.Network.Grpc
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return;
 
-            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-
-            if (peer == null)
-            {
-                // if peer already removed, drop.
-                return;
-            }
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             if (!peer.TryAddKnownTransaction(tx.GetHash()))
                 return;
@@ -244,11 +229,12 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> LibAnnouncementBroadcastStream(
             IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
         {
-            Logger.LogTrace($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
             try
             {
-                await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
+                var peerPubkey = context.GetPublicKey();
+                await requestStream.ForEachAsync(async r => await ProcessLibAnnouncementAsync(r, peerPubkey));
             }
             catch (Exception e)
             {
@@ -256,29 +242,23 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            Logger.LogTrace($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
 
-        public Task ProcessLibAnnouncement(LibAnnouncement announcement, ServerCallContext context)
+        public Task ProcessLibAnnouncementAsync(LibAnnouncement announcement, string peerPubkey)
         {
             if (announcement?.LibHash == null)
             {
-                Logger.LogWarning($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                Logger.LogWarning($"Received null or empty announcement from {peerPubkey}.");
                 return Task.CompletedTask;
             }
 
             Logger.LogDebug(
-                $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+                $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {peerPubkey}.");
 
-            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            
-            if (peer == null)
-            {
-                // if peer already removed, drop.
-                return Task.CompletedTask;
-            }
+            var peer = TryGetPeerByPubkey(peerPubkey);
 
             peer.UpdateLastKnownLib(announcement);
 
@@ -297,7 +277,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await ProcessAnnouncement(an, context);
+                await ProcessAnnouncementAsync(an, context.GetPublicKey());
             }
             catch (Exception e)
             {
@@ -374,7 +354,7 @@ namespace AElf.OS.Network.Grpc
                     await context.WriteResponseHeadersAsync(headers);
                 }
 
-                Logger.LogTrace(
+                Logger.LogDebug(
                     $"Replied to {context.GetPeerInfo()} with {blockList.Blocks.Count}, request was {request}");
             }
             catch (Exception e)
@@ -414,6 +394,11 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new PongReply());
         }
 
+        public override Task<HealthCheckReply> CheckHealth(HealthCheckRequest request, ServerCallContext context)
+        {
+            return Task.FromResult(new HealthCheckReply());
+        }
+
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
@@ -432,6 +417,28 @@ namespace AElf.OS.Network.Grpc
             }
 
             return Task.FromResult(new VoidReply());
+        }
+
+        /// <summary>
+        /// Try to get the peer based on pubkey.
+        /// </summary>
+        /// <param name="peerPubkey"></param>
+        /// <returns></returns>
+        /// <exception cref="RpcException">
+        /// If the peer does not exist, a cancelled RPC exception is thrown to tell the client.
+        /// Need to verify the existence of the peer here,
+        /// because when we start transferring data using the streaming RPC,
+        /// the request no longer goes through the <see cref="AuthInterceptor"/>. 
+        /// </exception>
+        private GrpcPeer TryGetPeerByPubkey(string peerPubkey)
+        {
+            var peer = _connectionService.GetPeerByPubkey(peerPubkey);
+
+            if (peer != null)
+                return peer;
+            
+            Logger.LogDebug($"Peer: {peerPubkey} already removed.");
+            throw new RpcException(Status.DefaultCancelled);
         }
     }
 }
