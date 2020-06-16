@@ -303,12 +303,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
-            if (_allTransactions.Count >= _transactionOptions.PoolLimit)
-            {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId, "Transaction Pool is full.");
-                return false;
-            }
-
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
             {
                 return false;
@@ -318,6 +312,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
                     $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+                return false;
+            }
+
+            if (_allTransactions.Count >= _transactionOptions.PoolLimit)
+            {
+                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                    "Transaction Pool is full.");
                 return false;
             }
 
