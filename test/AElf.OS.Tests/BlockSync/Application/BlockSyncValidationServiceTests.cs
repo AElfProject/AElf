@@ -17,7 +17,6 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IAccountService _accountService;
         private readonly OSTestHelper _osTestHelper;
 
@@ -25,7 +24,6 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockSyncValidationService = GetRequiredService<IBlockSyncValidationService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
             _accountService = GetRequiredService<IAccountService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
@@ -122,7 +120,7 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
 
             var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("SyncBlockHash"),
-                chain.LastIrreversibleBlockHeight - 1);
+                chain.LastIrreversibleBlockHeight + 1);
 
             var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
 
@@ -136,16 +134,6 @@ namespace AElf.OS.BlockSync.Application
             return address.ToBase58();
         }
 
-        [Fact]
-        public void TryAddAnnouncementCache_MultipleTimes()
-        {
-            for (var i = 0; i < 120; i++)
-            {
-                var blockHash = HashHelper.ComputeFrom(Guid.NewGuid().ToString());
-                var blockHeight = i;
-                var result = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, GetEncodedPubKeyString());
-                result.ShouldBeTrue();
-            }
-        }
+        
     }
 }

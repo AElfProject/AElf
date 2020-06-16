@@ -105,6 +105,9 @@ namespace AElf.OS.BlockSync.Worker
             jobInfo.CurrentTargetBlockHeight = jobInfo.TargetBlockHeight;
             jobInfo.Deadline = TimestampHelper.GetUtcNow().AddSeconds(4);
             _blockSyncStateProvider.SetDownloadJobTargetState(jobInfo.TargetBlockHash, false);
+            
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName, null);
+            _blockSyncStateProvider.SetEnqueueTime(KernelConstants.UpdateChainQueueName, null);
 
             await _blockDownloadWorker.ProcessDownloadJobAsync();
             chain = await _blockchainService.GetChainAsync();
