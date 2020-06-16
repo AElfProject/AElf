@@ -25,7 +25,7 @@ rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
 }
 ```
 
-# Transaction Instance
+## Transaction Instance
 
 Here's the defination of the Transaction.
 
@@ -52,25 +52,25 @@ var rawTxn = proto.getTransaction('65dDNxzcd35jESiidFXN5JV8Z7pCwaFnepuYQToNefSgq
 
 This will build the transaction to the contract at address "65dDNxzcd35jESiidFXN5JV8Z7pCwaFnepuYQToNefSgqk9" that will call **SomeMethod** with encoded params.
 
-## From
+### From
 
 The address of the sender of a transaction.
 
 Note that the **From** is not currently useful because we derive it from the signature.
 
-## To
+### To
 
 The address of the contract when calling a contract.
 
-## MethodName
+### MethodName
 
 The name of a method in the smart contract at the **To** address.
 
-## Params
+### Params
 
 The parameters to pass to the aforementioned method.
 
-## Signature
+### Signature
 
 When signing a transaction it's actually a subset of the fields: from/to and the target method as well as the parameter that were given. It also contains the reference block number and prefix. 
 
@@ -81,26 +81,26 @@ import Aelf from 'aelf-sdk';
 var txn = Aelf.wallet.signTransaction(rawTxn, wallet.keyPair);
 ```
 
-## RefBlockNumber & RefBlockPrefix
+### RefBlockNumber & RefBlockPrefix
 
 These are security measures, to know when the transaction broadcasted and whether this transaction has expired.
 
-## Transaction Id
+### Transaction Id
 
 The unique identity of a transaction.
 
 Note that if the sender broadcasted several transaction with same parameters at the same time, the Transaction Id of these transactions will be the same, thus these transactions will be regarded as one transaction but broadcasted several times.
 
-# Transaction Execution
+## Transaction Execution
 
-## (Origin) Transaction
+### (Origin) Transaction
 
-## Inline Transaction
+### Inline Transaction
 
-## Plugin Transaction
+### Plugin Transaction
 
-### Pre-plugin Transaction
+#### Pre-plugin Transaction
 
-### Post-plugin Transaction
+#### Post-plugin Transaction
 
-# Transaction Validation
+## Transaction Validation
