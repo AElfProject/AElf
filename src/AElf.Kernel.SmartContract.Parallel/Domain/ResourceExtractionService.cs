@@ -249,12 +249,6 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
     }
 
-    public class TransactionWithResourceInfo
-    {
-        public Transaction Transaction { get; set; }
-        public TransactionResourceInfo TransactionResourceInfo { get; set; }
-    }
-
     internal class TransactionResourceCache
     {
         public long ResourceUsedBlockHeight { get; set; }

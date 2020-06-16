@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var tri = new TransactionResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     expectedKeys.Select(GetPath)
                 }
