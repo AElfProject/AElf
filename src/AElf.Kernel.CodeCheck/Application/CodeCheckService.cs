@@ -26,7 +26,7 @@ namespace AElf.Kernel.CodeCheck.Application
             _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
         }
 
-        public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category)
+        public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category, bool isSystemContract)
         {
             if (!_codeCheckOptions.CodeCheckEnabled)
                 return false;
@@ -43,7 +43,7 @@ namespace AElf.Kernel.CodeCheck.Application
                     return false;
                 }
                 
-                contractAuditor.Audit(code, requiredAcs);
+                contractAuditor.Audit(code, requiredAcs, isSystemContract);
                 Logger.LogTrace("Finish code check.");
                 return true;
             }

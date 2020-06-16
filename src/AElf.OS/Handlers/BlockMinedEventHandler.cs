@@ -39,7 +39,6 @@ namespace AElf.OS.Handlers
 
                 if (eventData?.BlockHeader == null)
                 {
-                    Logger.LogWarning("Block header is null, cannot broadcast.");
                     return;
                 }
 

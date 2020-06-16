@@ -52,7 +52,7 @@ namespace AElf.Kernel.CodeCheck
                         eventData.MergeFrom(logEvent);
                         var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
                             eventData.Code.ToByteArray(),
-                            transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category);
+                            transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category, eventData.IsSystemContract);
                         if (!codeCheckResult)
                             return;
 

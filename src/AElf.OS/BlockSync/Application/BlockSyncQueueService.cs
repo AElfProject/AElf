@@ -52,7 +52,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 try
                 {
-                    Logger.LogTrace($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
+                    Logger.LogDebug($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
 
                     _blockSyncStateProvider.SetEnqueueTime(queueName, enqueueTime);
                     await task();
@@ -69,7 +69,7 @@ namespace AElf.OS.BlockSync.Application
             if (enqueueTime != null && TimestampHelper.GetUtcNow() >
                 enqueueTime + TimestampHelper.DurationFromMilliseconds(ageLimit))
             {
-                Logger.LogTrace($"Enqueue time is more then limit : {enqueueTime}");
+                Logger.LogDebug($"Enqueue time is more than limit : {enqueueTime}");
                 return false;
             }
 

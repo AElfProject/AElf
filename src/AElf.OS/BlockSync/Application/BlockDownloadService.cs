@@ -226,14 +226,14 @@ namespace AElf.OS.BlockSync.Application
                 var blocksWithTransactions = getBlocksResult.Payload;
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"No blocks returned from peer: {peerPubkey}, Previous block height: {lastDownloadBlockHeight}, hash: {lastDownloadBlockHash}.");
                     break;
                 }
 
                 foreach (var blockWithTransactions in blocksWithTransactions)
                 {
-                    Logger.LogTrace($"Processing block {blockWithTransactions}.");
+                    Logger.LogDebug($"Processing block {blockWithTransactions}.");
 
                     if (blockWithTransactions.Height != lastDownloadBlockHeight + 1 ||
                         blockWithTransactions.Header.PreviousBlockHash != lastDownloadBlockHash)

@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Vote</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Vote is a contract used for voting.</Description>
     </PropertyGroup>
 
@@ -36,6 +35,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf\Proto\vote_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 

@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using AElf.CSharp.CodeOps;
+using AElf.Kernel.CodeCheck.Infrastructure;
 using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 
 namespace AElf.Contracts.Deployer
 {
@@ -15,6 +18,9 @@ namespace AElf.Contracts.Deployer
             
             [Option('w', "overwrite", Default = false, HelpText = "Overwrite contract's DLL instead of saving with .patched extension.")]
             public bool Overwrite { get; set; }
+            
+            [Option('t', "treatsystem", Default = false, HelpText = "Treat as system contract when patching.")]
+            public bool IsSystemContract { get; set; }
             
             [Option('p', "path", Required = true, HelpText = "The path of the contract's DLL.")]
             public string ContractDllPath { get; set; }
@@ -53,14 +59,17 @@ namespace AElf.Contracts.Deployer
                 Console.WriteLine($"[CONTRACT-PATCHER] Saving as {saveAsPath}");
             }
             
-            var patchedCode = ContractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath));
+            using var application = AbpApplicationFactory.Create<ContractDeployerModule>();
+            application.Initialize();
+            var contractPatcher = application.ServiceProvider.GetRequiredService<IContractPatcher>();
+            var patchedCode = contractPatcher.Patch(File.ReadAllBytes(o.ContractDllPath), o.IsSystemContract);
 
             if (!o.SkipAudit)
             {
                 try
                 {
-                    var auditor = new CSharpContractAuditor();
-                    auditor.Audit(patchedCode, null);
+                    var auditor = application.ServiceProvider.GetRequiredService<IContractAuditor>();
+                    auditor.Audit(patchedCode, null, o.IsSystemContract);
                 }
                 catch (CSharpCodeCheckException ex)
                 {

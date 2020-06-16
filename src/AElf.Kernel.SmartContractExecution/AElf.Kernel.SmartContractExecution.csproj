@@ -24,8 +24,8 @@
         </ContractStub>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\execution.proto">
+        <CommenMessage Include="..\..\protobuf\execution.proto">
             <Link>Protobuf\Proto\execution.proto</Link>
-        </ContractCode>
+        </CommenMessage>
     </ItemGroup>
 </Project>

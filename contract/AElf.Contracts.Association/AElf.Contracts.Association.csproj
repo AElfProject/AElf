@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Association</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Association is a contract that enables the creation of organizations and approvals. 
             The created proposals can be voted for and eventually released.</Description>
     </PropertyGroup>
@@ -40,6 +39,7 @@
         </ContractBase>
         <ContractCode Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\association_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>
