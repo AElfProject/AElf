@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
 using AElf.Kernel;

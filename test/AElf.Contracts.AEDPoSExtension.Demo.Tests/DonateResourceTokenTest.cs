@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.GovernmentSystem;
 using AElf.Kernel;

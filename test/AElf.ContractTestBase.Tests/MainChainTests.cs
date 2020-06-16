@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
