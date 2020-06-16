@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <PackageId>AElf.Contracts.TestKit</PackageId>
+        <PackageId>AElf.ContractTestKit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Contract testing kit.</Description>
     </PropertyGroup>
