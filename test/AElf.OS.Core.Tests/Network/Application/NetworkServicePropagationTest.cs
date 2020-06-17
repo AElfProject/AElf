@@ -73,6 +73,20 @@ namespace AElf.OS.Network.Application
         }
 
         [Fact]
+        public async Task BroadcastLibAnnouncementTest()
+        {
+            var libHash = HashHelper.ComputeFrom("LibHash");
+            var libHeight = 2;
+
+            await _networkService.BroadcastLibAnnounceAsync(libHash, libHeight);
+
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueLibAnnouncement(
+                    It.Is<LibAnnouncement>(a => a.LibHash == libHash && a.LibHeight == libHeight),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+        }
+
+        [Fact]
         public async Task BroadcastBlock_OnePeerKnowsBlock_Test()
         {
             var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(1, 2);

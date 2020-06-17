@@ -23,7 +23,11 @@ namespace AElf.OS.Network
             var utcNow = TimestampHelper.GetUtcNow();
 
             _reconnectionProvider.AddReconnectingPeer(endpoint, new ReconnectingPeer { Endpoint = endpoint, NextAttempt = utcNow });
-
+            
+            var reconnectingPeer = _reconnectionProvider.GetReconnectingPeer(endpoint);
+            reconnectingPeer.Endpoint.ShouldBe(endpoint);
+            reconnectingPeer.NextAttempt.ShouldBe(utcNow);
+            
             _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(-1)).Count.ShouldBe(0);
             _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(1)).Count.ShouldBe(1);
         }
@@ -37,6 +41,7 @@ namespace AElf.OS.Network
             _reconnectionProvider.AddReconnectingPeer(endpoint, new ReconnectingPeer { Endpoint = endpoint, NextAttempt = utcNow });
             _reconnectionProvider.RemoveReconnectionPeer(endpoint);
 
+            _reconnectionProvider.GetReconnectingPeer(endpoint).ShouldBeNull();
             _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(1)).Count.ShouldBe(0);
         }
     }

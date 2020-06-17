@@ -32,7 +32,7 @@ namespace AElf.OS.Network
             _blackListProvider.AddHostToBlackList(host,NetworkConstants.DefaultPeerRemovalSeconds);
             _peerPool.AddHandshakingPeer(host, "somePubKey").ShouldBeFalse();
         }
-        
+
         [Fact]
         public void GetPeersByHost_ShouldReturnAllPeers_WithSameHost()
         {
@@ -63,7 +63,7 @@ namespace AElf.OS.Network
             peers.Values.Count.ShouldBe(2);
             peers.Values.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
         }
-        
+
         [Fact]
         public void RemoveHandshakingPeer_Last_ShouldRemoveEndpoint()
         {
@@ -150,6 +150,20 @@ namespace AElf.OS.Network
             _peerPool.IsFull().ShouldBeTrue();
         }
         
+        [Fact]
+        public void AddHandshakingPeer_PeerPoolIsFull_ShouldReturnFalse()
+        {
+            var peer1 = CreatePeer("127.0.0.1:8801");
+            _peerPool.TryAddPeer(peer1);
+            var peer2 = CreatePeer("127.0.0.1:8802");
+            _peerPool.TryAddPeer(peer2);
+
+            var handshakingPeerHost = "127.0.0.1:8803";
+            var addResult = _peerPool.AddHandshakingPeer(handshakingPeerHost, "pubkey");
+            addResult.ShouldBeFalse();
+            _peerPool.GetHandshakingPeers().ShouldNotContainKey(handshakingPeerHost);
+        }
+
         private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint, string pubKey = null)
         {
             var peerMock = new Mock<IPeer>();
