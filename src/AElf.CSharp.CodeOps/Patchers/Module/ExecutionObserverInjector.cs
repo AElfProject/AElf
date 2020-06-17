@@ -142,22 +142,31 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef, MethodReference callCountRef)
         {
-            if (!method.HasBody)
-                return;
-
-            var il = method.Body.GetILProcessor();
-
-            // Insert before every branching instruction
-            var branchingInstructions = method.Body.Instructions.Where(i => 
-                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
-
-            il.Body.SimplifyMacros();
-            il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
-            foreach (var instruction in branchingInstructions)
+            try
             {
-                il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
+                if (!method.HasBody)
+                    return;
+
+                var il = method.Body.GetILProcessor();
+
+                // Insert before every branching instruction
+                var branchingInstructions = method.Body.Instructions.Where(i => 
+                    Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
+
+                il.Body.SimplifyMacros();
+                il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
+                foreach (var instruction in branchingInstructions)
+                {
+                    il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
+                }
+                
+                il.Body.OptimizeMacros();
             }
-            il.Body.OptimizeMacros();
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }

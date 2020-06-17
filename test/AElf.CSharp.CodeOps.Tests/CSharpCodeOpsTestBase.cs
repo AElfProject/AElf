@@ -15,12 +15,18 @@ namespace AElf.CSharp.CodeOps
             var location = Path.Combine(ContractDllDir, Assembly.GetAssembly(contractType).ManifestModule.Name);
             return ReadCode( location);
         }
+        
+        protected byte[] ReadContractCode(string moduleName)
+        {
+            var location = Path.Combine(ContractDllDir, moduleName);
+            return ReadCode(location);
+        }
 
         protected byte[] ReadPatchedContractCode(Type contractType)
         {
             return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
         }
-
+        
         private byte[] ReadCode(string path)
         {
             return File.Exists(path)
