@@ -101,12 +101,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 };
                 var sendResult = await _processTransactionJobs.SendAsync(queuedTransaction);
                 if (sendResult) continue;
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Failed to enter tx hub."
-                });
+                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                // {
+                //     TransactionId = transactionId,
+                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                //     Error = "Failed to enter tx hub."
+                // });
                 Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
@@ -302,15 +302,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
             {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+                // await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                //     $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
                 return false;
             }
 
             if (_allTransactions.Count >= _transactionOptions.PoolLimit)
             {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                    "Transaction Pool is full.");
+                // await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                //     "Transaction Pool is full.");
                 return false;
             }
 
@@ -358,15 +358,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return null;
         }
 
-        private async Task PublishTransactionNodeValidationFailedEventAsync(Hash transactionId, string error)
-        {
-            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-            {
-                TransactionId = transactionId,
-                TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                Error = error
-            });
-        }
+        // private async Task PublishTransactionNodeValidationFailedEventAsync(Hash transactionId, string error)
+        // {
+        //     await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+        //     {
+        //         TransactionId = transactionId,
+        //         TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+        //         Error = error
+        //     });
+        // }
 
         private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(
             QueuedTransaction queuedTransaction)

@@ -54,12 +54,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     TransactionId = transactionId
                 });
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = executionReturnSets.FirstOrDefault()?.TransactionResult?.Error ?? string.Empty
-                });
+                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                // {
+                //     TransactionId = transactionId,
+                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                //     Error = executionReturnSets.FirstOrDefault()?.TransactionResult?.Error ?? string.Empty
+                // });
             }
 
             return executionValidationResult;

@@ -20,23 +20,23 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var transactionId = transaction.GetHash();
             if (!transaction.VerifySignature())
             {
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Incorrect transaction signature."
-                });
+                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                // {
+                //     TransactionId = transactionId,
+                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                //     Error = "Incorrect transaction signature."
+                // });
                 return false;
             }
 
             if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
             {
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Transaction size exceeded."
-                });
+                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                // {
+                //     TransactionId = transactionId,
+                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                //     Error = "Transaction size exceeded."
+                // });
                 return false;
             }
 
