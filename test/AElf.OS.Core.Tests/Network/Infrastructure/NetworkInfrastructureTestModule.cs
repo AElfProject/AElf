@@ -39,4 +39,17 @@ namespace AElf.OS.Network
             });
         }
     }
+
+    [DependsOn(typeof(NetworkInfrastructureTestModule))]
+    public class NetworkMaxPeersPerIpAddressTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<NetworkOptions>(o =>
+            {
+                o.MaxPeers = 2;
+                o.MaxPeersPerIpAddress = 2;
+            });
+        }
+    }
 }

@@ -158,7 +158,7 @@ namespace AElf.OS.Network
             var peer2 = CreatePeer("127.0.0.1:8802");
             _peerPool.TryAddPeer(peer2);
 
-            var handshakingPeerHost = "127.0.0.1:8803";
+            var handshakingPeerHost = "192.168.100.100";
             var addResult = _peerPool.AddHandshakingPeer(handshakingPeerHost, "pubkey");
             addResult.ShouldBeFalse();
             _peerPool.GetHandshakingPeers().ShouldNotContainKey(handshakingPeerHost);
