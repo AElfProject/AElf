@@ -1,12 +1,17 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
+using AElf.Cryptography;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
@@ -42,7 +47,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
-            context.Services.AddSingleton<ISystemTransactionGenerator,MockTransactionGenerator>();
+            context.Services.AddSingleton<ISystemTransactionGenerator, MockTransactionGenerator>();
+            context.Services.RemoveAll<IAccountService>();
+            var initializeMiner = SampleAccount.Accounts[0].KeyPair;
+            context.Services.AddTransient(o =>
+            {
+                var mockService = new Mock<IAccountService>();
+                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
+                    Task.FromResult(CryptoHelper.SignWithPrivateKey(initializeMiner.PrivateKey, data)));
+            
+                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(initializeMiner.PublicKey);
+            
+                return mockService.Object;
+            });
         }
     }
 }
