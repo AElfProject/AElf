@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -22,22 +23,30 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
-            ITransactionResultService transactionResultService)
+            ITransactionResultService transactionResultService, 
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             _transactionResultService = transactionResultService;
+            _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
             EventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
-            IEnumerable<Transaction> nonCancellableTransactions)
+            List<Transaction> nonCancellableTransactions)
         {
+            if (_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
+                out var systemTransactionCount))
+                return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
+                    nonCancellableTransactions.Skip(systemTransactionCount),
+                    CancellationToken.None);
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }

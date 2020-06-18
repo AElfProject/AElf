@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
@@ -24,6 +25,7 @@ namespace AElf.Kernel.Miner.Application
         private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
 
         public ILocalEventBus EventBus { get; set; }
 
@@ -31,7 +33,8 @@ namespace AElf.Kernel.Miner.Application
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockExecutingService blockExecutingService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, 
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
         {
             Logger = NullLogger<MiningService>.Instance;
             _blockGenerationService = blockGenerationService;
@@ -39,6 +42,7 @@ namespace AElf.Kernel.Miner.Application
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
             _blockchainService = blockchainService;
+            _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
 
             EventBus = NullLocalEventBus.Instance;
         }
@@ -113,6 +117,8 @@ namespace AElf.Kernel.Miner.Application
                         requestMiningDto.PreviousBlockHeight, blockTime);
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
+                    _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
+                        block.Header);
                     var pending = transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);

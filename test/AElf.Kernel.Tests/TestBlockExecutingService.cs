@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,7 +12,7 @@ namespace AElf.Kernel
     public class TestBlockExecutingService : IBlockExecutingService
     {
         public Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
-            IEnumerable<Transaction> nonCancellableTransactions)
+            List<Transaction> nonCancellableTransactions)
         {
             var block = GenerateBlock(blockHeader, nonCancellableTransactions.Select(p => p.GetHash()));
 
