@@ -286,10 +286,10 @@ namespace AElf.WebApp.Application.Chain
                 txIds[i] = transaction.GetHash().ToHex();
             }
 
-            foreach (var transaction in transactions)
-            {
-                _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
-            }
+            // foreach (var transaction in transactions)
+            // {
+            //     _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
+            // }
 
             await LocalEventBus.PublishAsync(new TransactionsReceivedEvent
             {
