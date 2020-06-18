@@ -60,7 +60,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
                     instructionInjector.IdentifyInstruction(moduleDefinition, instruction)).ToList())
                 {
-                    instructionInjector.InjectInstruction(ilProcessor, instruction, methodDefinitionToInject);
+                    instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition,
+                        methodDefinitionToInject);
                 }
             }
         }

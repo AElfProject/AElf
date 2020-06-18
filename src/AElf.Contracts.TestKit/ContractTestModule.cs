@@ -77,7 +77,6 @@ namespace AElf.Contracts.TestKit
                 options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
             });
 
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             Configure<ChainOptions>(options => options.ChainId = ChainId);
 
             #region Infra

@@ -13,7 +13,6 @@ namespace AElf.WebApp.Application
         {
             services.AddSingleton<ITxHub, MockTxHub>();
             services.AddApplication<WebAppTestAElfModule>();
-            services.Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             services.Configure<WebAppOptions>(options => { options.TransactionResultStatusCacheSeconds = 0; });
         }
 

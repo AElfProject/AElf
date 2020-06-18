@@ -313,5 +313,10 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
+
+        public void LimitStateSize(object obj)
+        {
+            _smartContractBridgeContextImplementation.LimitStateSize(obj);
+        }
     }
 }

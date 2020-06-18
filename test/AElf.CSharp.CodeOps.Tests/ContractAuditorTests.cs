@@ -121,7 +121,7 @@ namespace AElf.CSharp.CodeOps
 //         }
 //         
          [Theory]
-         [InlineData("AElf.Contracts.Referendum.dll")]
+         [InlineData("Consensus.AEDPoS")]
          // [InlineData(typeof(ConfigurationContract))]
          // [InlineData(typeof(AEDPoSContract))]
          // [InlineData(typeof(CrossChainContract))]
@@ -134,19 +134,20 @@ namespace AElf.CSharp.CodeOps
          // [InlineData(typeof(ReferendumContract))]
          // [InlineData(typeof(TokenConverterContract))]
          // [InlineData(typeof(TreasuryContract))]
-         public async Task CheckSystemContracts_StateSizeLimitPatch(string moduleName)
+         public async Task CheckSystemContracts_StateSizeLimitPatch(string contractName)
          {
+             var moduleName = $"AElf.Contracts.{contractName}.dll";
              var codeToPatch = ReadContractCode(moduleName);
              var codePatched = _patcher.Patch(codeToPatch, false);
              var modDef = ModuleDefinition.ReadModule(new MemoryStream(codePatched));
              var base64 = Convert.ToBase64String(codePatched);
              
-             await using var outputFile = new StreamWriter(Path.Combine("./", "contracts/Referendum.txt"));
+             await using var outputFile = new StreamWriter(Path.Combine("./", $"contracts/{contractName}.txt"));
              await outputFile.WriteAsync(base64);
          }
 
          [Theory]
-         [InlineData("StateProxy")]
+         [InlineData("Consensus.AEDPoS")]
          public async Task WriteCSharpFile(string filename)
          {
              using var inputFile = new StreamReader(Path.Combine("./", $"contracts/{filename}.encoded"));
@@ -155,6 +156,19 @@ namespace AElf.CSharp.CodeOps
              await using var fs = new FileStream(Path.Combine("./", $"contracts/{filename}.cs"), FileMode.Create);
              await fs.WriteAsync(bytes, 0, bytes.Length);
          }
+
+         [Fact]
+         public void TestTypeCast()
+         {
+             object o = "asdfasdf";
+             GetType(o).ShouldBe("System.String");
+         }
+
+         public string GetType(object o)
+         {
+             return o.GetType().FullName;
+         }
+         
 //
 //         [Fact]
 //         public void ContractAudit_SystemPolicy_Test()
