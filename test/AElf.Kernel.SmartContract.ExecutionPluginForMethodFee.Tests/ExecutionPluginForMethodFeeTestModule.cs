@@ -4,11 +4,12 @@ using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.FeeCalculation;
-using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -16,7 +17,8 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    [DependsOn(typeof(ContractTestModule),
+    [DependsOn(
+        typeof(ContractTestModule),
         typeof(ExecutionPluginForMethodFeeModule),
         typeof(FeeCalculationModule))]
     public class ExecutionPluginForMethodFeeTestModule : ContractTestModule
@@ -25,13 +27,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
-            context.Services.AddSingleton<IChargeFeeStrategy, TestContractChargeFeeStrategy>();
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
             context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.RemoveAll(s => s.ImplementationType == typeof(TransactionFeeChargedLogEventProcessor));
             context.Services.AddTransient<IBlockAcceptedLogEventProcessor, TransactionFeeChargedLogEventProcessor>();
+            context.Services.RemoveAll<IContractInitializationProvider>();
+            context.Services
+                .AddTransient<IContractInitializationProvider, MethodFeeTestTokenContractInitializationProvider>();
+            context.Services
+                .AddTransient<IContractInitializationProvider, AEDPoSContractInitializationProvider>();
+            context.Services
+                .AddTransient<IAEDPoSContractInitializationDataProvider, AEDPoSContractInitializationDataProvider>();
+            context.Services
+                .AddTransient<IGenesisSmartContractDtoProvider, MethodFeeTestGenesisSmartContractDtoProvider>();
         }
     }
 
@@ -44,8 +52,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.AddSingleton<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
             context.Services.AddSingleton<ISystemTransactionGenerator, MockTransactionGenerator>();
             context.Services.RemoveAll<IAccountService>();
