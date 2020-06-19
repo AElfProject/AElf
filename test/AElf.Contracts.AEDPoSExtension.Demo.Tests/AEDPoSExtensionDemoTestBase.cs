@@ -6,8 +6,6 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Association;
-using AElf.Contracts.TestContract.CommitmentScheme;
-using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus;

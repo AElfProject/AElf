@@ -112,15 +112,19 @@ namespace AElf.Contracts.CrossChain
                 Spender = Context.Self,
                 Symbol = Context.Variables.NativeSymbol
             }).Allowance;
-            Assert(allowance >= sideChainCreationRequest.LockedTokenAmount, "Allowance not enough.");
+            
+            Assert(
+                allowance >= sideChainCreationRequest.LockedTokenAmount,
+                "Allowance not enough.");
+            
+            Assert(
+                sideChainCreationRequest.IndexingPrice >= 0 &&
+                sideChainCreationRequest.LockedTokenAmount >= sideChainCreationRequest.IndexingPrice,
+                "Invalid chain creation request.");
+            
             if (!sideChainCreationRequest.IsPrivilegePreserved) 
                 return; // there is no restriction for non-exclusive side chain creation
             
-            Assert(
-                sideChainCreationRequest.LockedTokenAmount > 0 &&
-                sideChainCreationRequest.IndexingPrice >= 0 &&
-                sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
-                "Invalid chain creation request.");
             AssertValidResourceTokenAmount(sideChainCreationRequest);
 
             if (!IsPrimaryTokenNeeded(sideChainCreationRequest)) 

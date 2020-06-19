@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
