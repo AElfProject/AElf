@@ -70,7 +70,7 @@ Welcome to first doc's documentation!
 .. toctree::
    :hidden:
    
-   tutorials/boot-sequence/cross-chain/running-side-chain
+   tutorials/cross-chain/running-side-chain
    tutorials/__run-node
    reference/cli/cli
    getting-started/smart-contract-development/developing-smart-contracts/index
