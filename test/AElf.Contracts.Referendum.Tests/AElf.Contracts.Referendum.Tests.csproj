@@ -21,7 +21,7 @@
         <!-- TODO Remove reference to contract projects -->
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />

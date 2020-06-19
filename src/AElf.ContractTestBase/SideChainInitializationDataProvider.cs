@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.Kernel;

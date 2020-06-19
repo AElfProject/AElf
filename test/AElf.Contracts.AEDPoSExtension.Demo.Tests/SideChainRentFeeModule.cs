@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;

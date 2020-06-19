@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.TestBase;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
