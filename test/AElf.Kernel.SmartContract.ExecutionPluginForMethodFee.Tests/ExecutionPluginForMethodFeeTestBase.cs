@@ -5,12 +5,11 @@ using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -18,7 +17,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPluginForMethodFeeTestModule>
+    public class ExecutionPluginForMethodFeeTestBase : ContractTestKit.ContractTestBase<ExecutionPluginForMethodFeeTestModule>
     {
     }
 

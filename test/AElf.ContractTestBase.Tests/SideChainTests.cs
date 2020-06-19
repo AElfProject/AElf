@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;

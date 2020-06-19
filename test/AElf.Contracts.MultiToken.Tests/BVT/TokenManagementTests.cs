@@ -4,7 +4,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.BasicFunction;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.EconomicSystem;

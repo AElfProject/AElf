@@ -1,4 +1,4 @@
-using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;

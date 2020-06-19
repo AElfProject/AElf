@@ -172,8 +172,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private string ConvertAddressToPubkey(Address address)
         {
             if (!TryToGetCurrentRoundInformation(out var currentRound)) return null;
+            var possibleKeys = currentRound.RealTimeMinersInformation.Keys.ToList();
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                possibleKeys.AddRange(previousRound.RealTimeMinersInformation.Keys);
+            }
 
-            return currentRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+            return possibleKeys.FirstOrDefault(k =>
                 Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k)) == address);
         }
 
@@ -186,10 +191,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsMinerListJustChanged)
             {
                 if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
-            }
-            else if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
             }
 
             Context.LogDebug(() =>
@@ -229,7 +230,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Check saving extra block time slot.
             var arrangedMiningTime =
                 currentRound.ArrangeAbnormalMiningTime(pubkey, currentRound.GetExtraBlockMiningTime(), true);
-            if (arrangedMiningTime <= Context.CurrentBlockTime && Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            if (arrangedMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
             {
                 Context.LogDebug(() => "[CURRENT MINER]SAVING");
                 return true;
@@ -255,7 +257,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Miners of new round are same with current round.
                 var miners = new MinerList();
-                miners.Pubkeys.AddRange(currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
+                miners.Pubkeys.AddRange(
+                    currentRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
                 newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
                     Context.CurrentBlockTime, currentRound);
             }

@@ -342,7 +342,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(TotalTransactionFeesMap input)
         {
-            //TODO: Add current miner authority check
+            AssertSenderIsCurrentMiner();
             var claimTransactionExecuteHeight = State.ClaimTransactionFeeExecuteHeight.Value;
 
             Assert(claimTransactionExecuteHeight < Context.CurrentHeight,
@@ -363,6 +363,17 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        private void AssertSenderIsCurrentMiner()
+        {
+            if (State.ConsensusContract.Value == null)
+            {
+                State.ConsensusContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+            
+            Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "No permission.");
+        }
+
         public override Hash GetLatestTotalTransactionFeesMapHash(Empty input)
         {
             return State.LatestTotalTransactionFeesMapHash.Value;
@@ -370,7 +381,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(TotalResourceTokensMaps input)
         {
-            //TODO: Add current miner authority check
+            AssertSenderIsCurrentMiner();
             var donateResourceTokenExecuteHeight = State.DonateResourceTokenExecuteHeight.Value;
             if (donateResourceTokenExecuteHeight == 0)
             {

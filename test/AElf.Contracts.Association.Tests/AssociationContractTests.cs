@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
