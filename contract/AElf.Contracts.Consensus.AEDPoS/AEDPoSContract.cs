@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Contracts.TokenHolder;
@@ -255,30 +256,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
-        }
-
-        #endregion
-
-        #region SetMaximumMinersCount
-
-        public override Empty SetMaximumMinersCount(Int32Value input)
-        {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
-            var currentLegalMinersCount = AEDPoSContractConstants.SupposedMinersCount.Add(
-                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(State.MinerIncreaseInterval.Value).Mul(2));
-            // TODO: Add this judgement because this can cause consensus header information getting problem after changing term. Consider remove this limitation.
-            Assert(input.Value >= currentLegalMinersCount,
-                $"Maximum miners count cannot less than {currentLegalMinersCount}");
-            State.MaximumMinersCount.Value = input.Value;
-            return new Empty();
         }
 
         #endregion

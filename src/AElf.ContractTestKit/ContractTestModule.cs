@@ -128,7 +128,6 @@ namespace AElf.ContractTestKit
             context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
-            context.Services.AddSingleton<IChargeFeeStrategy, ZeroContractChargeFeeStrategy>();
             context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();

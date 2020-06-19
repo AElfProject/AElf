@@ -1,42 +1,39 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Kernel.Proposal;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
-using CreateOrganizationInput = AElf.Contracts.Association.CreateOrganizationInput;
 
 namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 {
-    public class DonateResourceTokenTest : AEDPoSExtensionDemoTestBase
+    public class SideChainSideChainRentFeeTest : SideChainRentFeeTestBase<SideChainRentFeeModule>
     {
         private const int CpuAmount = 4;
         private const int RamAmount = 8;
         private const int DiskAmount = 512;
         private const int NetAmount = 1000;
-
-        private const long Rental = 100;
-
+        
         private const long ResourceSupply = 1_0000_0000_00000000;
 
         private Address Creator => Accounts[0].Address;
-
+        
         private static List<string> Symbols => new List<string> {"CPU", "RAM", "DISK", "NET"};
 
+        private const long Rental = 100;
+
+        public SideChainSideChainRentFeeTest()
+        {
+            DeployContracts();
+        }
+        
         [Fact]
         public async Task ChargeRentalTest()
         {
@@ -53,11 +50,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var netBalance = await GetCreatorBalanceOf("NET");
                 netBalance.ShouldBe(ResourceSupply);
             }
-
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
+            
+            // charge every 1 minute
+            await DelayOneMinute();
 
             // Check balance before mining
             {
@@ -88,13 +83,10 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var netBalance = await GetCreatorBalanceOf("NET");
                 netBalance.ShouldBe(0);
             }
+            
+            await DelayOneMinute();
 
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-
-            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+            var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental);
             owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental);
             owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental);
@@ -109,20 +101,17 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Charge
             foreach (var symbol in Symbols)
             {
-                await TokenStub.Issue.SendAsync(new IssueInput
+                await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = symbol,
                     To = Creator,
                     Amount = ResourceSupply
                 });
             }
+            
+            await DelayOneMinute();
 
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-
-            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+            var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(0);
             owningRental.ResourceAmount["RAM"].ShouldBe(0);
             owningRental.ResourceAmount["DISK"].ShouldBe(0);
@@ -149,20 +138,17 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Charge
             foreach (var symbol in Symbols)
             {
-                await TokenStub.Issue.SendAsync(new IssueInput
+                await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = symbol,
                     To = Creator,
                     Amount = 1
                 });
             }
-
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-            await BlockMiningService.MineBlockToNextRoundAsync();
-
-            var owningRental = await TokenStub.GetOwningRental.CallAsync(new Empty());
+           
+            await DelayOneMinute();
+            
+            var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental * 2 - 1);
             owningRental.ResourceAmount["RAM"].ShouldBe(RamAmount * Rental * 2 - 1);
             owningRental.ResourceAmount["DISK"].ShouldBe(DiskAmount * Rental * 2 - 1);
@@ -177,21 +163,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var diskBalance = await GetCreatorBalanceOf("DISK");
                 diskBalance.ShouldBe(0);
                 var netBalance = await GetCreatorBalanceOf("NET");
-                diskBalance.ShouldBe(0);
+                netBalance.ShouldBe(0);
             }
         }
-
+        
         [Fact]
         public async Task Authorization_Transfer_Success()
         {
             await InitialTokenContract();
             var defaultOrganizationAddress =
-                await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var member = Accounts[0].Address;
             var proposers = new List<Address> {member};
-            var newOrganizationCreationInput = new Association.CreateOrganizationInput
+            var newOrganizationCreationInput = new CreateOrganizationInput
             {
-                OrganizationMemberList = new Association.OrganizationMemberList
+                OrganizationMemberList = new OrganizationMemberList
                 {
                     OrganizationMembers = {proposers}
                 },
@@ -207,96 +193,84 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     Proposers = {proposers}
                 }
             };
-            var createNewAssociationOrganization = await AssociationStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
+            var createNewAssociationOrganization = await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
             var newControllerAddress = new Address();
             newControllerAddress.MergeFrom(createNewAssociationOrganization.TransactionResult.ReturnValue);
             var authority = new Acs1.AuthorityInfo
             {
-                ContractAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                ContractAddress = AssociationContractAddress,
                 OwnerAddress = newControllerAddress
             };
             var parliamentOrgAddress = defaultOrganizationAddress;
-            var currentController = await TokenStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
+            var currentController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
             var toAssociationProposal = new CreateProposalInput
             {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                // ContractMethodName = nameof(TokenContractContainer.TokenContractStub.ChangeSideChainParliamentController),
+                ToAddress = TokenContractAddress,
                 ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController),
                 Params = authority.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = currentController.OwnerAddress
             };
-            var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            var associationProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
             var associationProposalId = new Hash();
             associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
-            
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
-                Params = associationProposalId.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = parliamentOrgAddress
-            });
-            await AssociationStub.Approve.SendAsync(associationProposalId);
-            await AssociationStub.Release.SendAsync(associationProposalId);
+            await ParliamentReachAnAgreementAsync(AssociationContractAddress, parliamentOrgAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
+            await AssociationContractStub.Approve.SendAsync(associationProposalId);
+            await AssociationContractStub.Release.SendAsync(associationProposalId);
             var updateParam = new UpdateRentedResourcesInput();
             var symbolDic = new Dictionary<string, int> {["CPU"] = 101};
             updateParam.ResourceAmount.Add(symbolDic);
             var updateProposal = new CreateProposalInput
             {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ToAddress = TokenContractAddress,
                 ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRentedResources),
                 Params = updateParam.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = newControllerAddress
             };
-            var updateProposalRet = (await AssociationStub.CreateProposal.SendAsync(updateProposal)).TransactionResult;
+            var updateProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(updateProposal)).TransactionResult;
             var updateProposalId = new Hash();
             updateProposalId.MergeFrom(updateProposalRet.ReturnValue);
-            await AssociationStub.Approve.SendAsync(updateProposalId);
-            await AssociationStub.Release.SendAsync(updateProposalId);
-            var resourceUsage = await TokenStub.GetResourceUsage.CallAsync(new Empty());
+            await AssociationContractStub.Approve.SendAsync(updateProposalId);
+            await AssociationContractStub.Release.SendAsync(updateProposalId);
+            var resourceUsage = await TokenContractStub.GetResourceUsage.CallAsync(new Empty());
             resourceUsage.Value["CPU"].ShouldBe(101);
         }
+        private async Task DelayOneMinute()
+        {
+            var times = 6;
+            while (times-- > 0)
+            {
+                await TokenContractStub.GetBalance.SendAsync(new GetBalanceInput   // each tx set 10 seconds
+                {
+                    Owner = Creator,
+                    Symbol = "CPU"
+                });
+            }
+        }
+        
         private async Task InitialTokenContract(bool issueToken = true)
         {
-            if (!ParliamentStubs.Any())
-            {
-                InitialAcs3Stubs();
-            }
-
-            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput
-            {
-            });
-            var defaultOrganizationAddress =
-                await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var tokenSymbol = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value
-                .ContextVariables[ContextVariableDictionary.NativeSymbolName];
-            await CreateToken(tokenSymbol, ResourceSupply, true);
             await CreateToken("CPU", ResourceSupply, issueToken);
             await CreateToken("RAM", ResourceSupply, issueToken);
             await CreateToken("DISK", ResourceSupply, issueToken);
             await CreateToken("NET", ResourceSupply, issueToken);
-            
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            var defaultParliamentOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var setSideChainCreatorProposalInput = new InitializeFromParentChainInput
             {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain),
-                Params = new InitializeFromParentChainInput()
+                ResourceAmount =
                 {
-                    ResourceAmount =
-                    {
-                        {"CPU", CpuAmount},
-                        {"RAM", RamAmount},
-                        {"DISK", DiskAmount},
-                        {"NET", NetAmount}
-                    },
-                    Creator = Creator
-                }.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = defaultOrganizationAddress
-            });
+                    {"CPU", CpuAmount},
+                    {"RAM", RamAmount},
+                    {"DISK", DiskAmount},
+                    {"NET", NetAmount}
+                },
+                Creator = Creator
+            };
+            await ParliamentReachAnAgreementAsync(TokenContractAddress, defaultParliamentOrganization,
+                nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain),
+                setSideChainCreatorProposalInput);
             
             var updateRentalInput = new UpdateRentalInput
             {
@@ -308,39 +282,29 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     {"NET", Rental},
                 }
             };
-            await TokenStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput{Symbol = tokenSymbol});
-            await TokenStub.InitializeAuthorizedController.SendAsync(new Empty());
-            var parliamentOrgAddress = defaultOrganizationAddress;
-            var rentalController = await TokenStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());       
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput{Symbol = NativeTokenSymbol});
+            await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+            var rentalController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());       
             var associationAddress = rentalController.OwnerAddress;       
             var toAssociationProposal = new CreateProposalInput
             {
-                ToAddress = ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                ToAddress = TokenContractAddress,
                 ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental),
                 Params = updateRentalInput.ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = associationAddress
             };
-            var associationProposalRet = (await AssociationStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
+            var associationProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
             var associationProposalId = new Hash();
             associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
-            
-            await ParliamentReachAnAgreementAsync(new CreateProposalInput
-            {
-                ToAddress = ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
-                Params = associationProposalId.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = parliamentOrgAddress
-            });
-            await AssociationStub.Approve.SendAsync(associationProposalId);
-            await AssociationStub.Release.SendAsync(associationProposalId);
-
+            await ParliamentReachAnAgreementAsync(AssociationContractAddress, defaultParliamentOrganization,
+                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
+            await AssociationContractStub.Approve.SendAsync(associationProposalId);
+            await AssociationContractStub.Release.SendAsync(associationProposalId);
         }
-
         private async Task CreateToken(string symbol, long supply, bool issueToken)
         {
-            await TokenStub.Create.SendAsync(new CreateInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Decimals = 8,
                 Issuer = Creator,
@@ -355,7 +319,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 return;
             }
 
-            await TokenStub.Issue.SendAsync(new IssueInput
+            await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Symbol = symbol,
                 To = Creator,
@@ -365,11 +329,64 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
         private async Task<long> GetCreatorBalanceOf(string symbol)
         {
-            return (await TokenStub.GetBalance.CallAsync(new GetBalanceInput
+            return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Creator,
                 Symbol = symbol
             })).Balance;
+        }
+        
+        public async Task InitializeTokenContract()
+        {
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalId = await CreateFeeProposalAsync(TokenContractAddress,
+                defaultOrganization, "InitializeFromParentChain", new InitializeFromParentChainInput
+                {
+                    ResourceAmount =
+                    {
+                        {"CPU", 100},
+                        {"RAM", 100},
+                        {"DISK", 100},
+                        {"NET", 100}
+                    },
+                    Creator = DefaultSender
+                });
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+            await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+        }
+        private async Task ParliamentReachAnAgreementAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var proposalId = await CreateFeeProposalAsync(contractAddress, organizationAddress, methodName, input);
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+        }
+        private async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = organizationAddress,
+                ContractMethodName = methodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contractAddress
+            };
+
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            var proposalId = createResult.Output;
+            return proposalId;
+        }
+
+        private async Task ApproveWithMinersAsync(Hash proposalId)
+        {
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalId);
+                approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            }
         }
     }
 }
