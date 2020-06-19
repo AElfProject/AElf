@@ -3,13 +3,13 @@ AElf Blockchain Boot Sequence
 
 This section mainly explains how the AElf Blockchain starts from the initial nodes, and gradually replaces the initial nodes with true production nodes through elections, thus completing the complete process of AElf Blockchain startup.
 
-## Start boot nodes
+## 1. Start boot nodes
 
-We need to start at least one or more initial nodes to start the AElf Blockchain, and 1-5 boot nodes are recommended.
+We need to start at least one or more initial nodes to start the AElf Blockchain, and 1-5 initial nodes are recommended.
 
-In the Getting Started section, we described the steps to start multiple nodes, you can follow the doc [Running multi-nodes with Docker](../getting-started/development-environment/docker-multi-node.md)  to complete the initial node startup (this section also takes the example of starting three boot nodes).
+In the Getting Started section, we described the steps to start multiple nodes, you can follow the doc [Running multi-nodes with Docker](../getting-started/development-environment/docker-multi-node.md)  to complete the initial nodes startup (this section also takes the example of starting three initial nodes).
 
-Since the default period of election time is 604800 seconds(7 days), if you want to see the result of the election more quickly, modify the configuration file AppSettings.json before starting the boot nodes to set the PeriodSeconds to smaller:
+Since the default period of election time is 604800 seconds(7 days), if you want to see the result of the election more quickly, modify the configuration file appsettings.json before starting the boot nodes to set the PeriodSeconds to smaller:
 
 ```json
 {
@@ -19,7 +19,7 @@ Since the default period of election time is 604800 seconds(7 days), if you want
 }
 ```
 
-## Run full node
+## 2. Run full node
 
 ### Create an account for the full node:
 
@@ -47,7 +47,7 @@ The startup steps for the full node are similar to the initial node startup, but
 ```
 
 ### Full node started successfully:
-By checking the current node state, it can be seen that the whole node is synchronizing the block, and the block height and Lib are growing all the time. After catching up with the height of the initial node, the subsequent steps can be carried out.
+By checking the current node state, it can be seen that the full node is synchronizing, and the BestChainHeight and the LastIrreversibleBlockHeight are growing up. After catching up with the height of the initial node, the subsequent steps can be carried out.
 
 ```bash
 aelf-command get-chain-status
@@ -69,7 +69,7 @@ aelf-command get-chain-status
 }
 ```
 
-## Be a candidate node
+## 3. Be a candidate node
 
 Full nodes need to call Election contract to become candidate nodes. The nodes need to mortgage 10W ELF to participate in the election, please make sure that the account of the nodes has enough Token.
 
@@ -79,7 +79,7 @@ To facilitate the quick demonstration, we directly transfer the token from the f
 aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC", "amount": "20000000000000"}'
 ```
 
-By checking the balance of the full node account, we can see that the full node account has enough Token, 20W ELF:
+By checking the balance of the full node account, we can see that the full node account has enough token, 20W ELF:
 
 ```bash
 aelf-command call AElf.ContractNames.Token GetBalance '{"symbol": "ELF", "owner": "Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC"}'
@@ -115,9 +115,9 @@ Result:
 } 
 ```
 
-## User vote election
+## 4. User vote election
 
-For the simulated user voting scenario, we create a virtual user:
+For the simulated user voting scenario, we create a user account:
 
 ```bash
 aelf-command create
@@ -174,7 +174,7 @@ Result:
 } 
 ```
 
-## Become production node
+## 5. Become production node
 
 At the next election, the candidate nodes with votes in the first 17 are automatically elected as production nodes, and the current production node list can be viewed through consensus contracts.
 
@@ -194,6 +194,6 @@ Result:
 } 
 ```
 
-## Add more production nodes
+## 6. Add more production nodes
 
 Repeat steps 2-4 to add more production nodes. When the number of initial nodes plus the number of candidate nodes exceeds the maximum number of production node, the replacement will replace the initial nodes step by step, and the replaced initial nodes are not allowed to run for election again. At this time, the initial node has completed its responsibility of starting AElf Blockchain.
