@@ -4,6 +4,7 @@ using AElf.Contracts.TestBase;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
@@ -33,6 +34,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             context.Services.RemoveAll<IContractInitializationProvider>();
             context.Services
                 .AddTransient<IContractInitializationProvider, MethodFeeTestTokenContractInitializationProvider>();
+            context.Services
+                .AddTransient<IContractInitializationProvider, AEDPoSContractInitializationProvider>();
+            context.Services
+                .AddTransient<IAEDPoSContractInitializationDataProvider, AEDPoSContractInitializationDataProvider>();
             context.Services
                 .AddTransient<IGenesisSmartContractDtoProvider, MethodFeeTestGenesisSmartContractDtoProvider>();
         }

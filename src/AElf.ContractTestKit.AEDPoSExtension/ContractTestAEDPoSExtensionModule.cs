@@ -2,6 +2,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.DependencyInjection;

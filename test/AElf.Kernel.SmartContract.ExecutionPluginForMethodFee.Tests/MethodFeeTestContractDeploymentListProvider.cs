@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -12,7 +13,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             return new List<Hash>
             {
-                TokenSmartContractAddressNameProvider.Name,
+                ConsensusSmartContractAddressNameProvider.Name,
+                TokenSmartContractAddressNameProvider.Name
             };
         }
     }
