@@ -18,7 +18,6 @@ using client (like **aelf-command**).
    Genesis Contract <genesis>
    Multi Token Contract <multi-token>
    Profit Contract <profit>
-   Resource Contract <resource>
    Cross chain Contract <cross-chain>
    Treasury Contract <treasury>
    Vote Contract <vote>

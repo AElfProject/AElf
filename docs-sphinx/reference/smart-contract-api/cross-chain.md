@@ -47,35 +47,30 @@ message ProposalCreated{
 
 Propose once cross chain indexing.
 
-**Parameters:**
-
-***CrossChainBlockData***
+- **CrossChainBlockData**
+  - **side_chain_block_data_list**: side chain block data list.
+  - **parent_chain_block_data_list**: parent chain block data list.
+  - **previous_block_height**: previous block height
 
 - **SideChainBlockData**
-    - height : height of side chain block
-    - block_header_hash : hash of side chain block
-    - transaction_merkle_tree_root : merkle tree root computing from transactions status in side chain block
-    - chain_id : id of side chain
+  - **height**: height of side chain block.
+  - **block_header_hash** : hash of side chain block.
+  - **transaction_merkle_tree_root** : merkle tree root computing from transactions status in side chain block.
+  - **chain_id** : id of side chain.
 
 - **ParentChainBlockData**
-  - height : height of parent chain
-  - **cross_chain_extra_data** 
-    - transaction_status_merkle_tree_root : the merkle tree root computing from side chain roots.
-  - chain_id : parent chain id
-  - transaction_status_merkle_root : merkle tree root computing from transactions status in parent chain block
-  - indexed_merkle_path : <block height, merkle path> key-value map
-  - extra_data : extra data map
-
-- **previous_block_height** previous block height
-
-After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
+  - **height** : height of parent chain.
+  - **cross_chain_extra_data**
+    - **transaction_status_merkle_tree_root** : the merkle tree root computing from side chain roots.
+  - **chain_id** : parent chain id.
+  - **transaction_status_merkle_root** : merkle tree root computing from transactions status in parent chain block.
+  - **indexed_merkle_path** : \<block height, merkle path> key-value map.
+  - **extra_data** : extra data map.
 
 ### function GetPendingCrossChainIndexingProposal
 
 ```protobuf
-rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
-        option (aelf.is_view) = true;
-}
+rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {}
 
 message GetPendingCrossChainIndexingProposalOutput{
     aelf.Hash proposal_id = 1;
@@ -110,37 +105,33 @@ message ParentChainBlockData {
 message CrossChainExtraData {
     aelf.Hash transaction_status_merkle_tree_root = 1;
 }
-
 ```
+
 Get pending cross chain indexing proposal info.
 
-**Returns:**
-
-***GetPendingCrossChainIndexingProposalOutput***
-- **proposal_id** - cross chain indexing proposal id
-- **proposer** - proposer of cross chain indexing proposal
-- **to_be_released** - true if the proposal can be released, otherwise false
-- **proposed_cross_chain_block_data** - cross chain data proposed
-- **expired_time** - proposal expiration time
-
+- **Returns**
+  - **proposal_id**: cross chain indexing proposal id.
+  - **proposer**: proposer of cross chain indexing proposal.
+  - **to_be_released**: true if the proposal can be released, otherwise false.
+  - **proposed_cross_chain_block_data**: cross chain data proposed.
+  - **expired_time**: proposal expiration time.
 
 ### function ReleaseCrossChainIndexing
 
 ```protobuf
 rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {}
-
 ```
+
 Release cross chain indexing proposal and side chain will be created.
 
-**Parameters:**
-
-***Hash*** Cross chain indexing proposal id.
+- **Hash**: Cross chain indexing proposal id.
 
 ### function Initialize
 
 ```protobuf
 rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
-message InitializeInput 
+
+message InitializeInput
 {
     int32 parent_chain_id = 1;
     int64 creation_height_on_parent_chain = 2;
@@ -150,13 +141,10 @@ message InitializeInput
 
 Initialize cross-chain-contract.
 
-**Parameters:**
-
-***InitializeInput***
-
-- **parent_chain_id** - id of parent chain
-- **creation_height_on_parent_chain** - height of side chain creation on parent chain
-- **is_privilege_preserved** - true if chain privilege needed, otherwise false 
+- **InitializeInput**
+  - **parent_chain_id** - id of parent chain
+  - **creation_height_on_parent_chain** - height of side chain creation on parent chain
+  - **is_privilege_preserved** - true if chain privilege needed, otherwise false 
 
 ### function RequestSideChainCreation
 
@@ -190,23 +178,18 @@ message ProposalCreated{
 
 Request side chain creation.
 
-**Parameters:**
-
 - **SideChainCreationRequest**
-  - **indexing_price** - indexing fee.
-  - **locked_token_amount** - initial locked balance for a new side chain.
-  - **is_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
-  - **side_chain_token_symbol** - side chain token symbol.
-  - **side_chain_token_name** - side chain token name.
-  - **side_chain_token_total_supply** -  total supply of side chain token.
-  - **side_chain_token_decimals** - sÏide chain token decimal.
-  - **is_side_chain_token_burnable** - side chain token burnable flag.
-  - **is_side_chain_token_profitable** - a flag to indicate wether the chain is profitable or not.
-  - **side_chain_token_initial_issue_list** - a list of accounts and amounts that will be issued when the chain starts.
-  - **initial_resource_amount** - the initial rent resources.
-
-After a successful execution, a **ProposalCreated** event log can be found in the transaction result.
-
+  - **indexing_price**: indexing fee.
+  - **locked_token_amount**: initial locked balance for a new side chain.
+  - **is_privilege_preserved**: creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+  - **side_chain_token_symbol**: side chain token symbol.
+  - **side_chain_token_name**: side chain token name.
+  - **side_chain_token_total_supply**:  total supply of side chain token.
+  - **side_chain_token_decimals**: sÏide chain token decimal.
+  - **is_side_chain_token_burnable**: side chain token burnable flag.
+  - **is_side_chain_token_profitable**: a flag to indicate wether the chain is profitable or not.
+  - **side_chain_token_initial_issue_list**: a list of accounts and amounts that will be issued when the chain starts.
+  - **initial_resource_amount**: the initial rent resources.
 
 ### function ReleaseSideChainCreation
 
@@ -220,11 +203,8 @@ message ReleaseSideChainCreationInput {
 
 Release side chain creation ant side chain creation proposal will be created.
 
-**Parameters:**
-
 - **ReleaseSideChainCreationInput**
   - **proposal_id** - side chain creation proposal id
-
 
 ### function CreateSideChain
 
@@ -258,25 +238,22 @@ message SideChainTokenInitialIssue {
 
 Create a new side chain, this is be triggered by an organization address. 
 
-**Parameters:**
-
 - **CreateSideChainInput**
   - **proposer** the proposer of the proposal that triggered this method.
-  - ***SideChainCreationRequest*** 
-    - **indexing_price** - indexing fee.
-    - **locked_token_amount** - initial locked balance for a new side chain.
-    - **is_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
-    - **side_chain_token_symbol** - side chain token symbol.
-    - **side_chain_token_name** - side chain token name.
-    - **side_chain_token_total_supply** -  total supply of side chain token.
-    - **side_chain_token_decimals** - sÏide chain token decimal.
-    - **is_side_chain_token_burnable** - side chain token burnable flag.
-    - **is_side_chain_token_profitable** - a flag to indicate wether the chain is profitable or not.
-    - **side_chain_token_initial_issue_list** - a list of accounts and amounts that will be issued when the chain starts.
-    - **initial_resource_amount** - the initial rent resources.
+  - **SideChainCreationRequest**
+    - **indexing_price**: indexing fee.
+    - **locked_token_amount**: initial locked balance for a new side chain.
+    - **is_privilege_preserved**: creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+    - **side_chain_token_symbol**: side chain token symbol.
+    - **side_chain_token_name**: side chain token name.
+    - **side_chain_token_total_supply**:  total supply of side chain token.
+    - **side_chain_token_decimals**: sÏide chain token decimal.
+    - **is_side_chain_token_burnable**: side chain token burnable flag.
+    - **is_side_chain_token_profitable**: a flag to indicate wether the chain is profitable or not.
+    - **side_chain_token_initial_issue_list**: a list of accounts and amounts that will be issued when the chain starts.
+    - **initial_resource_amount**: the initial rent resources.
 
-**Returns:**
-
+- **Returns**
 Id of a new side chain
 
 ### function SetInitialSideChainLifetimeControllerAddress
@@ -288,8 +265,7 @@ rpc SetInitialSideChainLifetimeControllerAddress(aelf.Address) returns (google.p
 
 Sets the initial **SideChainLifetimeController** address which should be parliament organization by default.
 
-**Parameters:**
-- **address** : the owner's address.
+- **Address** : the owner's address.
 
 ### function SetInitialIndexingControllerAddress
 
@@ -300,8 +276,7 @@ rpc SetInitialIndexingControllerAddress(aelf.Address) returns (google.protobuf.E
 
 Sets the initial **CrossChainIndexingController** address which should be parliament organization by default.
 
-**Parameters:**
-- **address** : the owner's address.
+- **Address**: the owner's address.
 
 ### function ChangeCrossChainIndexingController
 
@@ -316,10 +291,9 @@ message acs1.AuthorityInfo {
 
 Changes the cross chain indexing controller.
 
-**Parameters:**
-- **acs1.AuthorityInfo** : 
-  - **contract_address** - the address of the contract that generated the controller.
-  - **owner_address** - the address of the controller.
+- **acs1.AuthorityInfo**
+  - **contract_address**: the address of the contract that generated the controller.
+  - **owner_address**: the address of the controller.
 
 ### function GetCrossChainIndexingController
 
@@ -336,12 +310,9 @@ message acs1.AuthorityInfo {
 
 Get indexing fee adjustment controller for specific side chain.
 
-**Returns:**
-- **acs1.AuthorityInfo** : 
-  - **contract_address** - the address of the contract that generated the controller.
-  - **owner_address** - the address of the controller.
-
-
+- **Returns**
+  - **contract_address**: the address of the contract that generated the controller.
+  - **owner_address**: the address of the controller.
 
 ### function ChangeSideChainLifetimeController
 
@@ -356,10 +327,9 @@ message acs1.AuthorityInfo {
 
 Changes the side chain's lifetime controller.
 
-**Parameters:**
-- **acs1.AuthorityInfo** : 
-  - **contract_address** - the address of the contract that generated the controller.
-  - **owner_address** - the address of the controller.
+- **acs1.AuthorityInfo**
+  - **contract_address**: the address of the contract that generated the controller.
+  - **owner_address**: the address of the controller.
 
 ### function GetSideChainLifetimeController
 
@@ -376,10 +346,9 @@ message acs1.AuthorityInfo {
 
 Get the side chain's lifetime controller.
 
-**Returns:**
-- **acs1.AuthorityInfo** : 
-  - **contract_address** - the address of the contract that generated the controller.
-  - **owner_address** - the address of the controller.
+- **Returns**
+  - **contract_address**: the address of the contract that generated the controller.
+  - **owner_address**: the address of the controller.
 
 ### function GetSideChainIndexingFeeController
 
@@ -396,13 +365,11 @@ message acs1.AuthorityInfo {
 
 Get side chain indexing fee.
 
-**Parameters:**
-- **Int32Value** : side chain id
+- **Int32Value**: side chain id
 
-**Returns:**
-- **acs1.AuthorityInfo** : 
-  - **contract_address** - the address of the contract that generated the controller.
-  - **owner_address** - the address of the controller.
+- **Returns**
+  - **contract_address**: the address of the contract that generated the controller.
+  - **owner_address**: the address of the controller.
 
 ### function ChangeSideChainIndexingFeeController
 
@@ -422,12 +389,11 @@ message acs1.AuthorityInfo {
 
 Changes indexing fee adjustment controller for specific side chain.
 
-**Parameters:**
-- **ChangeSideChainIndexingFeeControllerInput** : 
-  - **chain_id** - side chain id.
-  - **authority_info** : 
-    - **contract_address** - the address of the contract that generated the controller.
-    - **owner_address** - the address of the controller.
+- **ChangeSideChainIndexingFeeControllerInput**
+  - **chain_id**: side chain id.
+  - **authority_info**
+    - **contract_address**: the address of the contract that generated the controller.
+    - **owner_address**: the address of the controller.
 
 ### function GetSideChainIndexingFeePrice
 
@@ -440,11 +406,10 @@ rpc GetSideChainIndexingFeePrice(google.protobuf.Int32Value) returns (google.pro
 
 Get side chain indexing fee.
 
-**Parameters:**
-- **Int32Value** : side chain id
+- **Int32Value**: side chain id
 
-**Returns:**
-- **Int64Value** : indexing fee price
+- **Returns**
+  - **value**: indexing fee price
 
 
 ### function Recharge
@@ -459,12 +424,9 @@ message RechargeInput {
 
 Recharge for specified side chain.
 
-**Parameters:**
-
-***RechargeInput*** 
-
-- **chain_id** - id of the side chain
-- **amount** - the token amount to recharge
+- **RechargeInput**
+  - **chain_id**: id of the side chain
+  - **amount**: the token amount to recharge
 
 ### function RecordCrossChainData
 
@@ -505,25 +467,22 @@ message CrossChainExtraData {
 
 Index block data of parent chain and side chain. Only **CrossChainIndexingController** is permitted to invoke this method.
 
-**Parameters:**
-
-***RecordCrossChainDataInput***
-- **CrossChainBlockData**
-
-  - **SideChainBlockData**
-    - height : height of side chain block
-    - block_header_hash : hash of side chain block
-    - transaction_merkle_tree_root : merkle tree root computing from transactions status in side chain block
-    - chain_id : id of side chain
+- **RecordCrossChainDataInput**
+  - **CrossChainBlockData**
+    - **SideChainBlockData**
+      - **height**: height of side chain block.
+      - **block_header_hash**: hash of side chain block.
+      - **transaction_merkle_tree_root**: merkle tree root computing from transactions status in side chain block.
+      - **chain_id**: id of side chain.
 
   - **ParentChainBlockData**
-    - height : height of parent chain
-    - **cross_chain_extra_data** 
-      - transaction_status_merkle_tree_root : the merkle tree root computing from side chain roots.
-    - chain_id : parent chain id
-    - transaction_status_merkle_root : merkle tree root computing from transactions status in parent chain block
-    - indexed_merkle_path : <block height, merkle path> key-value map
-    - extra_data : extra data map
+    - **height**: height of parent chain.
+    - **cross_chain_extra_data**
+      - **transaction_status_merkle_tree_root**: the merkle tree root computing from side chain roots.
+    - **chain_id**: parent chain id
+    - **transaction_status_merkle_root**: merkle tree root computing from transactions status in parent chain block.
+    - **indexed_merkle_path**: \<block height, merkle path> key-value map.
+    - **extra_data**: extra data map.
 
 ### function AdjustIndexingFeePrice
 
@@ -538,11 +497,9 @@ message AdjustIndexingFeeInput{
 
 Adjust side chain indexing fee. Only **IndexingFeeController** is permitted to invoke this method.
 
-**Parameters:**
-
-***AdjustIndexingFeeInput***
-- **side_chain_id** : side chain id
-- **indexing_fee** : indexing fee to be set
+- **AdjustIndexingFeeInput**
+- **side_chain_id**: side chain id
+- **indexing_fee**: indexing fee to be set
 
 ### function DisposeSideChain
 
@@ -553,21 +510,16 @@ rpc DisposeSideChain (google.protobuf.Int32Value) returns (google.protobuf.Int32
 
 Dispose the specified side chain. Only **SideChainLifetimeController** is permitted to invoke this method.
 
-**Parameters:**
+- **Int32Value**: the id of side chain to be disposed
 
-- **Int32Value** - the id of side chain to be disposed
-
-**Returns:**
-
-the id of disposed chain
+- **Returns**
+  - **value**: the id of disposed chain
 
 ### function VerifyTransaction
 
 ```protobuf
-rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) 
-{
-    option (aelf.is_view) = true;    
-}
+rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue){}
+
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
     aelf.MerklePath path = 2;
@@ -578,37 +530,27 @@ message VerifyTransactionInput {
 
 Transaction cross chain verification.
 
-**Parameters:**
+- **VerifyTransactionInput**
+  - **transaction_id**: transaction id
+  - **path**: merkle path for the transaction
+  - **parent_chain_height**: height of parent chain indexing this transaction
+  - **verified_chain_id**: id of the chain to be verified
 
-***VerifyTransactionInput*** 
-
-- **transaction_id** - transaction id
-- **path** - merkle path for the transaction
-- **parent_chain_height** - height of parent chain indexing this transaction
-- **verified_chain_id** - id of the chain to be verified
-
-**Returns:**
-
-True if verification succeeded, otherwise false.
-
+- **Returns**
+  - **value**: true if verification succeeded, otherwise false.
 
 ### function LockedAddress
 
 ```protobuf
-rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-}
+rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {}
 ```
 
 Get side chain creator address.
 
-**Parameters:**
+- **Int32Value**: id of side chain
 
-- **Int32Value** - id of side chain
-
-**Returns:**
-
-Address of side chain creator.
+- **Returns**
+  - **value**: address of side chain creator.
 
 ### function GetChainStatus
 
@@ -632,35 +574,27 @@ enum SideChainStatus
 
 Gets the current status of the specified side chain.
 
-**Parameters:**
+- **Int32Value**: id of side chain.
 
-- **Int32Value** - id of side chain.
-
-**Returns:**
-
+- **Returns**
 Current status of side chain.
-- fatal: currently no meaning.
-- active: the side-chain is being indexed.
-- insufficient fee debt: debt for indexing fee to be payed off.
-- terminated: the side chain cannot be indexed anymore.
+  - **fatal**: currently no meaning.
+  - **active**: the side-chain is being indexed.
+  - **insufficient fee debt**: debt for indexing fee to be payed off.
+  - **terminated**: the side chain cannot be indexed anymore.
 
 ### function GetSideChainHeight
 
 ```protobuf
-rpc GetSideChainHeight (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-}
+rpc GetSideChainHeight (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
 ```
 
 Get current height of the specified side chain.
 
-**Parameters:**
+- **Int32Value**: id of side chain
 
-- **Int32Value** - id of side chain
-
-**Returns:**
-
-Current height of the side chain.
+- **Returns**
+  - **value**: current height of the side chain.
 
 ### function GetParentChainHeight
 
@@ -672,78 +606,52 @@ rpc GetParentChainHeight (google.protobuf.Empty) returns (google.protobuf.Int64V
 
 Get recorded height of parent chain
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-Height of parent chain.
+- **Returns**
+  - **value**: height of parent chain.
 
 ### function GetParentChainId
 
 ```protobuf
-rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
-        option (aelf.is_view) = true;
-}
+rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value){}
 ```
 
 Get id of the parent chain. This interface is only for side chain.
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-Parent chain id.
-
+- **Returns**
+  - **value**: parent chain id.
 
 ### function GetSideChainBalance
 
 ```protobuf
-rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
-    option (aelf.is_view) = true;
-}
+rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
 ```
+
 Get the balance for side chain indexing.
 
-**Parameters:**
+- **Int32Value**: id of side chain
 
-- **Int32Value** - id of side chain
-
-**Returns:**
-
-Balance for side chain indexing.
-
+- **Returns**
+  - **value**: balance for side chain indexing.
 
 ### function GetSideChainIndexingFeeDebt
 
 ```protobuf
-rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
-    option (aelf.is_view) = true;
-}
+rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
 ```
 
 Get indexing debt for side chain. 
 
-**Parameters:**
+- **Int32Value**: id of side chain
 
-- **Int32Value** - id of side chain
-
-**Returns:**
-
-Side chain indexing debt. Returns zero if no debt.
-
+- **Returns**
+  - **value**: side chain indexing debt. Returns zero if no debt.
 
 ### function GetSideChainIdAndHeight
 
 ```protobuf
-rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
-{
-    option (aelf.is_view) = true;
-}
-message SideChainIdAndHeightDict 
+rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict){}
+
+message SideChainIdAndHeightDict
 {
     map<int32, int64> id_height_dict = 1;
 }
@@ -751,25 +659,19 @@ message SideChainIdAndHeightDict
 
 Get id and recorded height of side chains.
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-***SideChainIdAndHeightDict*** : A map contains id and height of side chains
+- **Returns**
+  - **SideChainIdAndHeightDict**: A map contains id and height of side chains
 
 ### function GetSideChainIndexingInformationList
 
 ```protobuf
-rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) 
-{
-    option (aelf.is_view) = true;
-}
+rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList){}
+
 message SideChainIndexingInformationList
 {
     repeated SideChainIndexingInformation indexing_information_list = 1;
 }
+
 message SideChainIndexingInformation
 {
     int32 chain_id = 1;
@@ -779,23 +681,16 @@ message SideChainIndexingInformation
 
 Get indexing information of side chains.
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-***SideChainIndexingInformationList*** : A list contains indexing information of side chains
+- **Returns**
+  - **SideChainIndexingInformationList**: A list contains indexing information of side chains
 
 
 ### function GetAllChainsIdAndHeight
 
 ```protobuf
-rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) 
-{
-    option (aelf.is_view) = true;
-}
-message SideChainIdAndHeightDict 
+rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict){}
+
+message SideChainIdAndHeightDict
 {
     map<int32, int64> id_height_dict = 1;
 }
@@ -803,22 +698,13 @@ message SideChainIdAndHeightDict
 
 Get id and recorded height of all chains.
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-***SideChainIdAndHeightDict*** : A map contains id and height of all chains
-
-
+- **Returns**
+  -**SideChainIdAndHeightDict**: A map contains id and height of all chains
 
 ### function GetIndexedCrossChainBlockDataByHeight
 
 ```protobuf
-rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData) {
-        option (aelf.is_view) = true;
-}
+rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData){}
 
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data_list = 1;
@@ -845,28 +731,21 @@ message ParentChainBlockData {
 message CrossChainExtraData {
     aelf.Hash transaction_status_merkle_tree_root = 1;
 }
-
 ```
 
 Get indexed cross chain data by height.
 
-**Parameters:**
-
 - **Int64Value** - block height
 
-**Returns:**
-
-***CrossChainBlockData***
-
-- **side_chain_block_data** - cross chain block data of side chain
-- **parent_chain_block_data** - cross chain block data of parent chain
+- **Returns**
+  - **side_chain_block_data**: cross chain block data of side chain.
+  - **parent_chain_block_data**: cross chain block data of parent chain.
 
 ### function GetIndexedSideChainBlockDataByHeight
 
 ```protobuf
-rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {
-        option (aelf.is_view) = true;
-}
+rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData){}
+
 message IndexedSideChainBlockData
 {
     repeated acs7.SideChainBlockData side_chain_block_data = 1;
@@ -882,22 +761,16 @@ message SideChainBlockData
 
 Get block data of indexed side chain by height
 
-**Parameters:**
+- **Int64Value**: height of side chain
 
-- **Int64Value** - height of side chain
-
-**Returns:**
-
-***IndexedSideChainBlockData***
-
-- **side_chain_block_data** - block data of side chain
+- **Returns**
+  - **side_chain_block_data**: block data of side chain.
 
 ### function GetBoundParentChainHeightAndMerklePathByHeight
 
 ```protobuf
-rpc GetBoundParentChainHeightAndMerklePathByHeight (google.protobuf.Int64Value) returns (CrossChainMerkleProofContext) {
-        option (aelf.is_view) = true;
-}
+rpc GetBoundParentChainHeightAndMerklePathByHeight (google.protobuf.Int64Value) returns (CrossChainMerkleProofContext){}
+
 message CrossChainMerkleProofContext
 {
     int64 bound_parent_chain_height = 1;
@@ -916,23 +789,17 @@ message MerklePathNode
 
 Get merkle path bound up with side chain
 
-**Parameters:**
+- **Int64Value**: height of side chain.
 
-- **Int64Value** - height of side chain
-
-**Returns:**
-
-***CrossChainMerkleProofContext***
-
-- **bound_parent_chain_height** - height of parent chain bound up with side chain
-- **merkle_path_from_parent_chain** - merkle path generated from parent chain
+- **Returns**
+  - **bound_parent_chain_height**: height of parent chain bound up with side chain.
+  - **merkle_path_from_parent_chain**: merkle path generated from parent chain.
 
 ### function GetChainInitializationData
 
 ```protobuf
-rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData) {
-        option (aelf.is_view) = true;
-}
+rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData){}
+
 message ChainInitializationData 
 {
     int32 chain_id = 1;
@@ -970,26 +837,21 @@ message SideChainTokenInitialIssue{
 
 Get initialization data for specified side chain.
 
-**Parameters:**
+- **Int32Value**: id of side chain.
 
-- **Int32Value** - id of side chain
-
-**Returns:**
-
-***ChainInitializationData***
-
-- **chain_id** - id of side chain
-- **creator** - side chain creator
-- **creation_timestamp** - timestamp for side chain creation
-- **creation_height_on_parent_chain** - height of side chain creation on parent chain
-- **chain_creator_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
-- **parent_chain_token_contract_address** - parent chain token contract address
-- **chain_initialization_consensus_info**
-  - **initial_miner_list_data** consensus miner list data
-- **native_token_info_data** - native token info
-- **resource_token_info**
-  - **resource_token_list_data** resource token list data
-  - **initial_resource_amount** initial resource token amount
-- **chain_primary_token_info**
-  - **chain_primary_token_data** side chain primary token data
-  - **side_chain_token_initial_issue_list** side chain primary token initial issue list
+- **Returns**
+  - **chain_id**: id of side chain.
+  - **creator**: side chain creator.
+  - **creation_timestamp**: timestamp for side chain creation.
+  - **creation_height_on_parent_chain**: height of side chain creation on parent chain.
+  - **chain_creator_privilege_preserved**: creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+  - **parent_chain_token_contract_address**: parent chain token contract address.
+  - **chain_initialization_consensus_info**
+    - **initial_miner_list_data**: consensus miner list data.
+  - **native_token_info_data**: native token info.
+  - **resource_token_info**
+    - **resource_token_list_data**: resource token list data.
+    - **initial_resource_amount**: initial resource token amount.
+  - **chain_primary_token_info**
+    - **chain_primary_token_data**: side chain primary token data.
+    - **side_chain_token_initial_issue_list**: side chain primary token initial issue list.

@@ -4,10 +4,8 @@ The Treasury contract is essentially used for distributing bonus' to voters and 
 
 ## **Donate**
 
-Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, they will be first converted to the native token.
-
 ```Protobuf
-rpc Donate (DonateInput) returns (google.protobuf.Empty) {}
+rpc Donate (DonateInput) returns (google.protobuf.Empty){}
 
 message DonateInput {
     string symbol = 1;
@@ -23,56 +21,51 @@ message DonationReceived {
 }
 ```
 
-**DonateInput**:
+Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, they will be first converted to the native token.
 
-- **symbol**: token symbol.
-- **amount**: token amount.
+- **DonateInput**
+  - **symbol**: token symbol.
+  - **amount**: token amount.
 
-After a successful donation a **DonationReceived** event log can be found in the transaction result.
-
-**DonationReceived**:
-
-- **from**: from address.
-- **to**: to address.
-- **symbol**: token symbol.
-- **amount**: amount of token.
-- **memo**: memo.
+- **Event**
+  - **DonationReceived**
+    - **from**: from address.
+    - **to**: to address.
+    - **symbol**: token symbol.
+    - **amount**: amount of token.
+    - **memo**: memo.
 
 ## **Donate all tokens**
 
-Donate all token (transfer to native token) from caller to the treasury (by calling **Donate** described above).
-
 ```Protobuf
-rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {}
+rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty){}
 
 message DonateAllInput {
     string symbol = 1;
 }
 ```
 
-**DonateAllInput**:
+Donate all token (transfer to native token) from caller to the treasury (by calling **Donate** described above).
 
-- **symbol**: token symbol.
+- **DonateAllInput**
+  - **symbol**: token symbol.
 
 ## **SetDistributingSymbolList**
 
-Set a token list that can be used to distribute.
-
 ```Protobuf
-rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty) {}
+rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty){}
 
 message SymbolList {
     repeated string value = 1;
 }
 ```
 
-**SymbolList**:
+Set a token list that can be used to distribute.
 
-- **value**: token symbol list.
+- **SymbolList**
+  - **value**: token symbol list.
 
 ## **SetDividendPoolWeightSetting**
-
-Set weight for the three activities.
 
 ```Protobuf
 rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){}
@@ -84,15 +77,14 @@ message DividendPoolWeightSetting {
 }
 ```
 
-**DividendPoolWeightSetting**:
+Set weight for the three activities.
 
-- **citizen welfare weight**: citizen welfare weight.
-- **backup subsidy weight**: backup subsidy weight.
-- **miner reward weight**: miner reward weight.
+- **DividendPoolWeightSetting**
+  - **citizen welfare weight**: citizen welfare weight.
+  - **backup subsidy weight**: backup subsidy weight.
+  - **miner reward weight**: miner reward weight.
 
 ## **SetMinerRewardWeightSetting**
-
-Set weight for the three activities composing of miner reward activity.
 
 ```Protobuf
 rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){}
@@ -104,15 +96,14 @@ message MinerRewardWeightSetting {
 }
 ```
 
-**MinerRewardWeightSetting**:
+Set weight for the three activities composing of miner reward activity.
 
-- **basic miner reward weight**: basic miner reward weight.
-- **votes weight reward weight**: votes weight reward weight.
-- **re-election reward weight**: re-election reward weight.
+- **MinerRewardWeightSetting**
+  - **basic miner reward weight**: basic miner reward weight.
+  - **votes weight reward weight**: votes weight reward weight.
+  - **re-election reward weight**: re-election reward weight.
 
 ## **ChangeTreasuryController**
-
-Change the controller who is able to update symbol list and activities' weight above.
 
 ```Protobuf
 rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
@@ -123,18 +114,17 @@ message AuthorityInfo {
 }
 ```
 
-**AuthorityInfo**:
+Change the controller who is able to update symbol list and activities' weight above.
 
-- **contract address**: controller type.
-- **owner address**: controller's address.
+- **AuthorityInfo**
+  - **contract address**: controller type.
+  - **owner address**: controller's address.
 
 ## view methods
 
 For reference, you can find here the available view methods.
 
 ### GetCurrentTreasuryBalance
-
-Get the Treasury's total balance of the native token from the Treasury.
 
 ```Protobuf
 rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value){}
@@ -145,16 +135,15 @@ message SInt64Value
 }
 ```
 
-**returns**:
+Get the Treasury's total balance of the native token from the Treasury.
 
-- **value**: amount of native token.
+- **Returns**
+  - **value**: amount of native token.
 
 ### GetWelfareRewardAmountSample
 
-Test the welfare bonus gotten base on 10000 Vote Token. The input is a array of locking time, and the output is the corresponding welfare.
-
 ```Protobuf
-rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {}
+rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput){}
 
 message GetWelfareRewardAmountSampleInput {
     repeated sint64 value = 1;
@@ -165,17 +154,15 @@ message GetWelfareRewardAmountSampleOutput {
 }
 ```
 
-**GetWelfareRewardAmountSampleInput**:
+Test the welfare bonus gotten base on 10000 Vote Token. The input is a array of locking time, and the output is the corresponding welfare.
 
-- **value**: a array of locking time.
+- **GetWelfareRewardAmountSampleInput**
+  - **value**: a array of locking time.
 
-**returns**:
-
-- **value**: a array of welfare.
+- **Returns**
+  - **value**: a array of welfare.
 
 ### GetTreasurySchemeId
-
-Get treasury scheme id. If it does not exist, it will return hash.empty.
 
 ```Protobuf
 rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {}
@@ -186,27 +173,26 @@ message Hash
 }
 ```
 
-**returns**:
+Get treasury scheme id. If it does not exist, it will return hash.empty.
 
-- **value**: scheme id.
+- **Returns**
+  - **value**: scheme id.
 
 ### GetDistributingSymbolList
 
-Get the symbol list that can be used to distribute.
-
 ```Protobuf
-rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList) {}
+rpc GetDistributingSymbolList (google.protobuf.Empty) returns (SymbolList){}
 
 message SymbolList {
     repeated string value = 1;
 }
 ```
 
+Get the symbol list that can be used to distribute.
+
 note: *for SymbolList see SetDistributingSymbolList*
 
 ### GetDividendPoolWeightProportion
-
-Get activities's weight expressed as a percentage
 
 ```Protobuf
 rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion){}
@@ -223,20 +209,18 @@ message SchemeProportionInfo{
 }
 ```
 
-**returns**:
+Get activities's weight expressed as a percentage
 
-- **citizen welfare proportion info**: citizen welfare proportion info.
-- **backup subsidy proportion info**: backup subsidy proportion info.
-- **miner reward proportion info**: miner reward proportion info.
+- **Returns**
+  - **citizen welfare proportion info**: citizen welfare proportion info.
+  - **backup subsidy proportion info**: backup subsidy proportion info.
+  - **miner reward proportion info**: miner reward proportion info.
 
-**SchemeProportionInfo**:
-
-- **scheme id**: scheme id
-- **proportion**: the weight expressed as a percentage.
+- **SchemeProportionInfo**
+  - **scheme id**: scheme id
+  - **proportion**: the weight expressed as a percentage.
 
 ### GetMinerRewardWeightProportion
-
-Get the weight expressed as a percentage of the activities composing of miner reward.
 
 ```Protobuf
 rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion){}
@@ -248,19 +232,21 @@ message MinerRewardWeightProportion {
 }
 ```
 
+Get the weight expressed as a percentage of the activities composing of miner reward.
+
 note: *for MinerRewardWeightProportion see GetDividendPoolWeightProportion*
 
 ### GetTreasuryController
 
-Get this contract's controller.
-
 ```Protobuf
-rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {}
+rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;
 }
 ```
+
+Get this contract's controller.
 
 note: *for AuthorityInfo see ChangeTreasuryController*
