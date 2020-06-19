@@ -220,14 +220,15 @@ namespace AElf.Contracts.TokenHolder
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var lockId = State.LockIds[input][Context.Sender];
+            Assert(lockId != null, "Sender didn't register for profits.");
             var amount = State.TokenContract.GetLockedAmount.Call(new GetLockedAmountInput
             {
                 Address = Context.Sender,
-                LockId = State.LockIds[input][Context.Sender],
+                LockId = lockId,
                 Symbol = scheme.Symbol
             }).Amount;
 
-            var lockId = State.LockIds[input][Context.Sender];
             Assert(State.LockTimestamp[lockId].AddMinutes(scheme.MinimumLockMinutes) < Context.CurrentBlockTime,
                 "Cannot withdraw.");
 
