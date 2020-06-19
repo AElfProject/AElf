@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.ContractDeployer;
@@ -9,6 +10,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Vote;
 using AElf.Cryptography;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -18,10 +20,12 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Runtime.CSharp;
+using AElf.TestBase;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Google.Protobuf;
+using Microsoft.Extensions.Internal;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
@@ -1457,13 +1461,36 @@ namespace AElf.WebApp.Application.Chain.Tests
             return HashHelper.ComputeFrom(rawBytes);
         }
 
-        [Fact]
+        [IgnoreOnCIFact]
         public async Task TransactionResultStatusCacheProviderTest()
         {
             var txId = HashHelper.ComputeFrom("Test");
             _transactionResultStatusCacheProvider.AddTransactionResultStatus(txId);
-            var result = _transactionResultStatusCacheProvider.GetTransactionResultStatus(txId);
-            result.ShouldBeNull();
+            
+            {
+                var result = _transactionResultStatusCacheProvider.GetTransactionResultStatus(txId);
+                result.ShouldNotBeNull();
+            }
+            
+            _transactionResultStatusCacheProvider.ChangeTransactionResultStatus(txId,
+                new TransactionValidateStatus
+                {
+                    TransactionResultStatus = TransactionResultStatus.PendingValidation
+                });
+            
+            Thread.Sleep(1500);
+            
+            {
+                var result = _transactionResultStatusCacheProvider.GetTransactionResultStatus(txId);
+                result.TransactionResultStatus.ShouldBe(TransactionResultStatus.PendingValidation);
+            }
+
+            Thread.Sleep(700);
+            
+            {
+                var result = _transactionResultStatusCacheProvider.GetTransactionResultStatus(txId);
+                result.ShouldBeNull();
+            }
         }
     }
 }
