@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Options;

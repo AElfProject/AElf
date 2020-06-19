@@ -6,7 +6,7 @@ using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Referendum;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Token;

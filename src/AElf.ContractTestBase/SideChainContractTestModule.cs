@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.EconomicSystem;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs0;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Node.Application;
 using Volo.Abp.DependencyInjection;

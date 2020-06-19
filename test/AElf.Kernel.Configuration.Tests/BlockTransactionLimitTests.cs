@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using AElf.Contracts.Configuration;

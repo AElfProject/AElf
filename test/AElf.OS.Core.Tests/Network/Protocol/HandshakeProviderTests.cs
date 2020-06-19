@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
