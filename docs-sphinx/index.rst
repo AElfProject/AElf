@@ -20,7 +20,10 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Tutorials
 
-   AElf Blockchain Boot Sequence <tutorials/boot-sequence/index>
+   AElf Blockchain Boot Sequence <tutorials/boot-sequence>
+   Joining AElf's MainNet/TestNet <tutorials/testnet>
+   Running a side chain <tutorials/cross-chain/index>
+   Running AElf on the cloud <tutorials/cloud/index>
    Smart Contract Developing Demos <tutorials/smart-contract-demos/index>
 
 
