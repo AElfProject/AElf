@@ -193,6 +193,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound);
 
+            nextRound.ExtraBlockProducerOfPreviousRound = pubkey;
+
             if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {
                 return new AElfConsensusHeaderInformation
@@ -208,8 +210,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks =
                 nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
-            nextRound.ExtraBlockProducerOfPreviousRound = pubkey;
-
             nextRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = 1;
             nextRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
