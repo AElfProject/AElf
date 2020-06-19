@@ -1,4 +1,4 @@
-using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
