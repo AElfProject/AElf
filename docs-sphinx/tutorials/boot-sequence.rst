@@ -13,8 +13,8 @@ We need to start at least one or more initial nodes to start the AElf
 Blockchain, and 1-5 initial nodes are recommended.
 
 In the Getting Started section, we described the steps to start multiple
-nodes, you can follow the doc `Running multi-nodes with
-Docker <../getting-started/development-environment/docker-multi-node.md>`__
+nodes, you can follow the :doc:`Running multi-nodes with
+Docker <../getting-started/development-environment/docker-multi-node>` 
 to complete the initial nodes startup (this section also takes the
 example of starting three initial nodes).
 
@@ -97,7 +97,7 @@ height of the initial node, the subsequent steps can be carried out.
 
 Full nodes need to call Election contract to become candidate nodes. The
 nodes need to mortgage 10W ELF to participate in the election, please
-make sure that the account of the nodes has enough Token.
+make sure that the account of the nodes has enough tokens.
 
 To facilitate the quick demonstration, we directly transfer the token
 from the first initial node account to the full node account:
@@ -107,7 +107,7 @@ from the first initial node account to the full node account:
    aelf-command send AElf.ContractNames.Token Transfer '{"symbol": "ELF", "to": "Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC", "amount": "20000000000000"}'
 
 By checking the balance of the full node account, we can see that the
-full node account has enough token, 20W ELF:
+full node account has enough tokens, 20W ELF:
 
 .. code:: bash
 

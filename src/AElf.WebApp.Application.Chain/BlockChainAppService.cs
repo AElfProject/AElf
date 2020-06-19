@@ -70,8 +70,6 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false)
         {
-            ConcurrentQueue<Hash> queue = new ConcurrentQueue<Hash>();
-            queue.
             Hash realBlockHash;
             try
             {
