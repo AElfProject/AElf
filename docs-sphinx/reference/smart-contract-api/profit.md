@@ -4,10 +4,8 @@ The Profit contract is an abstract layer for creating scheme to share bonus. Dev
 
 ## **Scheme Creation**
 
-This method creates a new scheme based on the **CreateSchemeInput** message.
-
 ```Protobuf
-rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash) {}
+rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash){}
 
 message CreateSchemeInput {
     sint64 profit_receiving_due_period_count = 1;
@@ -27,33 +25,29 @@ message SchemeCreated {
 }
 ```
 
-**CreateSchemeInput**:
+This method creates a new scheme based on the **CreateSchemeInput** message.
 
-- **manager**: the scheme manager's Address, defaults to the transaction sender.
-- **profit receiving due period_count** optional, defaults to 10.
-- **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
-- **delay distribute period count** distribute bonus after terms.
-- **can remove beneficiary directly** indicates whether the beneficiary can be removed without considering its EndPeriod and IsWeightRemoved.
-- **token** used to indicates scheme id.
+- **CreateSchemeInput**
+  - **manager**: the scheme manager's Address, defaults to the transaction sender.
+  - **profit receiving due period_count** optional, defaults to 10.
+  - **is release all balance every time by default** if true, all the schemes balance will be distributed during distribution if the input amount is 0.
+  - **delay distribute period count** distribute bonus after terms.
+  - **can remove beneficiary directly** indicates whether the beneficiary can be removed without considering its EndPeriod and IsWeightRemoved.
+  - **token** used to indicates scheme id.
 
-**returns**:
+- **Returns**
+  - **value**: the newly created scheme id.
 
-- **value**: the newly created scheme id.
-
-After a successful creation, a **SchemeCreated** event log can be found in the transaction result.
-
-**SchemeCreated**:
-
-- **virtual address**: transfer from scheme id.
-- **manager**: manager address.
-- **scheme id**: scheme id.
+- **Event**
+  - **SchemeCreated**
+    - **virtual address**: transfer from scheme id.
+    - **manager**: manager address.
+    - **scheme id**: scheme id.
 
 ## **Add sub-scheme**
 
-Two previously created schemes can be put in a scheme/sub-scheme relation. This will effectively add the specified sub-scheme as a **beneficiary** of the parent scheme.
-
 ```Protobuf
-rpc AddSubScheme (AddSubSchemeInput) returns (google.protobuf.Empty) {}
+rpc AddSubScheme (AddSubSchemeInput) returns (google.protobuf.Empty){}
 
 message AddSubSchemeInput {
     aelf.Hash scheme_id = 1;
@@ -62,13 +56,14 @@ message AddSubSchemeInput {
 }
 ```
 
-- **scheme id**: the parent scheme ID.
-- **sub scheme id**: the child scheme ID.
-- **sub scheme shares**: number of shares of the sub-scheme.
+Two previously created schemes can be put in a scheme/sub-scheme relation. This will effectively add the specified sub-scheme as a **beneficiary** of the parent scheme.
+
+- **AddSubSchemeInput**:
+  - **scheme id**: the parent scheme ID.
+  - **sub scheme id**: the child scheme ID.
+  - **sub scheme shares**: number of shares of the sub-scheme.
 
 ## **Remove sub-scheme**
-
-Removes a sub-scheme from a scheme. Note that only the manager of the parent scheme can remove a sub-scheme from it.
 
 ```Protobuf
 rpc RemoveSubScheme (RemoveSubSchemeInput) returns (google.protobuf.Empty) {}
@@ -79,17 +74,16 @@ message RemoveSubSchemeInput {
 }
 ```
 
-**RemoveSubSchemeInput**:
+Removes a sub-scheme from a scheme. Note that only the manager of the parent scheme can remove a sub-scheme from it.
 
-- **scheme id**: scheme id
-- **sub scheme id**: sub-scheme id
+- **RemoveSubSchemeInput**
+  - **scheme id**: scheme id
+  - **sub scheme id**: sub-scheme id
 
 ## **Add beneficiary**
 
-Adds a beneficiary to a scheme. This beneficiary is either a scheme or another entity that can be represented by an AElf address.
-
 ```Protobuf
-rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty) {}
+rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty){}
 
 message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
@@ -103,23 +97,21 @@ message BeneficiaryShare {
 }
 ```
 
-**AddBeneficiaryInput**:
+Adds a beneficiary to a scheme. This beneficiary is either a scheme or another entity that can be represented by an AElf address.
 
-- **scheme id**: scheme id.
-- **beneficiary share**: share information to beneficiary.
-- **end period**: end time.
+- **AddBeneficiaryInput**
+  - **scheme id**: scheme id.
+  - **beneficiary share**: share information to beneficiary.
+  - **end period**: end time.
 
-**BeneficiaryShare**:
-
-- **beneficiary**: beneficiary address
-- **shares**: shares attributed to this beneficiary.
+- **BeneficiaryShare**
+  - **beneficiary**: beneficiary address
+  - **shares**: shares attributed to this beneficiary.
 
 ## **Remove beneficiary**
 
-Removes a beneficiary from a scheme.
-
 ```Protobuf
-rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty) {}
+rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty){}
 
 message RemoveBeneficiaryInput {
     aelf.Address beneficiary = 1;
@@ -127,18 +119,16 @@ message RemoveBeneficiaryInput {
 }
 ```
 
-**RemoveBeneficiaryInput**:
+Removes a beneficiary from a scheme.
 
-- **beneficiary** beneficiary address to be removed
-- **scheme id** scheme id
-
+- **RemoveBeneficiaryInput**
+  - **beneficiary** beneficiary address to be removed
+  - **scheme id** scheme id
 
 ## **Add beneficiaries**
 
-Adds multiple beneficiaries to a scheme until the given end period.
-
 ```Protobuf
-rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty) {}
+rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty){}
 
 message AddBeneficiariesInput {
     aelf.Hash scheme_id = 1;
@@ -152,20 +142,18 @@ message BeneficiaryShare {
 }
 ```
 
-**AddBeneficiariesInput**:
+Adds multiple beneficiaries to a scheme until the given end period.
 
-- **scheme id**: scheme id.
-- **beneficiary shares**: share information to beneficiaries.
-- **end period**: end time.
+- **AddBeneficiariesInput**
+  - **scheme id**: scheme id.
+  - **beneficiary shares**: share information to beneficiaries.
+  - **end period**: end time.
 
-**BeneficiaryShare**:
-
-- **beneficiary**: beneficiary address.
-- **shares**: shares to beneficiary.
+- **BeneficiaryShare**
+  - **beneficiary**: beneficiary address.
+  - **shares**: shares to beneficiary.
 
 ## **Remove beneficiaries**
-
-Remove beneficiaries from a scheme.
 
 ```Protobuf
  rpc RemoveBeneficiaries (RemoveBeneficiariesInput) returns (google.protobuf.Empty){}
@@ -176,17 +164,16 @@ message RemoveBeneficiariesInput {
 }
 ```
 
-**RemoveBeneficiariesInput**:
+Remove beneficiaries from a scheme.
 
-- **beneficiaries** beneficiaries' addresses to be removed.
-- **scheme id** scheme id.
+- **RemoveBeneficiariesInput**
+  - **beneficiaries**: beneficiaries' addresses to be removed.
+  - **scheme id**: scheme id.
 
 ## **Profit contribution**
 
-Contribute profit to a scheme.
-
 ```Protobuf
-rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) {}
+rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
 
 message ContributeProfitsInput {
     aelf.Hash scheme_id = 1;
@@ -196,19 +183,18 @@ message ContributeProfitsInput {
 }
 ```
 
-**ContributeProfitsInput**:
+Contribute profit to a scheme.
 
-- **scheme id**: scheme id.
-- **amount**: amount token contributed to the scheme.
-- **period**: in which term the amount is added.
-- **symbol**: token symbol.
+- **ContributeProfitsInput**
+  - **scheme id**: scheme id.
+  - **amount**: amount token contributed to the scheme.
+  - **period**: in which term the amount is added.
+  - **symbol**: token symbol.
 
 ## **Claim profits**
 
-Used to claim the profits of a given symbol. The beneficiary is identified as the sender of the transaction.
-
 ```Protobuf
-rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {}
+rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty){}
 
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
@@ -217,20 +203,18 @@ message ClaimProfitsInput {
 }
 ```
 
-**ContributeProfitsInput**:
+Used to claim the profits of a given symbol. The beneficiary is identified as the sender of the transaction.
 
-- **scheme id**: scheme id.
-- **symbol**: token symbol.
-- **beneficiary**: optional, claiming profits for another address, transaction fees apply to the caller.
+- **ContributeProfitsInput**
+  - **scheme id**: scheme id.
+  - **symbol**: token symbol.
+  - **beneficiary**: optional, claiming profits for another address, transaction fees apply to the caller.
 
 ## **Distribute profits**
 
-Distribute profits to scheme (address) including its sub scheme according to term and symbol,
-should be called by the manager.
-
 ```Protobuf
 
-rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) {}
+rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty){}
 
 message DistributeProfitsInput {
     aelf.Hash scheme_id = 1;
@@ -240,19 +224,19 @@ message DistributeProfitsInput {
 }
 ```
 
-**DistributeProfitsInput**:
+Distribute profits to scheme (address) including its sub scheme according to term and symbol,
+should be called by the manager.
 
-- **scheme id**: scheme id.
-- **period**: term， here should be the current term.
-- **amount**: number.
-- **symbol**: token symbol.
+- **DistributeProfitsInput**
+  - **scheme id**: scheme id.
+  - **period**: term， here should be the current term.
+  - **amount**: number.
+  - **symbol**: token symbol.
 
 ## **Reset manager**
 
-Reset the manager of a scheme.
-
 ```Protobuf
-rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty) {}
+rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty){}
 
 message ResetManagerInput {
     aelf.Hash scheme_id = 1;
@@ -260,10 +244,11 @@ message ResetManagerInput {
 }
 ```
 
-**ResetManagerInput**:
+Reset the manager of a scheme.
 
-- **scheme id**: scheme id.
-- **new manager**: new manager's address.
+- **ResetManagerInput**
+  - **scheme id**: scheme id.
+  - **new manager**: new manager's address.
 
 ## view methods
 
@@ -271,10 +256,8 @@ For reference, you can find here the available view methods.
 
 ### GetManagingSchemeIds
 
-Get all schemes created by the specified manager.
-
 ```Protobuf
-rpc GetManagingSchemeIds (GetManagingSchemeIdsInput) returns (CreatedSchemeIds) {}
+rpc GetManagingSchemeIds (GetManagingSchemeIdsInput) returns (CreatedSchemeIds){}
 
 message GetManagingSchemeIdsInput {
     aelf.Address manager = 1;
@@ -285,37 +268,33 @@ message CreatedSchemeIds {
 }
 ```
 
-**GetManagingSchemeIdsInput**:
+Get all schemes created by the specified manager.
 
-- **manager**: manager's address.
+- **GetManagingSchemeIdsInput**
+  - **manager**: manager's address.
 
-**returns**:
-
-- **scheme ids**: list of scheme ids.
+- **Returns**
+  - **scheme ids**: list of scheme ids.
 
 ### GetScheme
 
-Returns the scheme with the given hash (scheme ID).
-
 ```Protobuf
-rpc GetScheme (aelf.Hash) returns (Scheme) {}
+rpc GetScheme (aelf.Hash) returns (Scheme){}
 ```
 
-**Hash**:
+Returns the scheme with the given hash (scheme ID).
 
-- **value**: scheme id.
+- **Hash**
+  - **value**: scheme id.
 
-**SchemeBeneficiaryShare**:
-
-- **scheme id**: sub scheme's id.
-- **shares**: sub scheme shares.
+- **SchemeBeneficiaryShare**
+  - **scheme id**: sub scheme's id.
+  - **shares**: sub scheme shares.
 
 ### GetSchemeAddress
 
-Returns the schemes virtual address if the input period is 0 or will give the distributed profit address for the given period.
-
 ```Protobuf
-rpc GetSchemeAddress (SchemePeriod) returns (aelf.Address) {}
+rpc GetSchemeAddress (SchemePeriod) returns (aelf.Address){}
 
 message SchemePeriod {
     aelf.Hash scheme_id = 1;
@@ -323,21 +302,19 @@ message SchemePeriod {
 }
 ```
 
-**SchemePeriod**:
+Returns the schemes virtual address if the input period is 0 or will give the distributed profit address for the given period.
 
-- **scheme id**: scheme id.
-- **period**: period number.
+- **SchemePeriod**
+  - **scheme id**: scheme id.
+  - **period**: period number.
 
-**returns**:
-
-- **value**: scheme's virtual address.
+- **Returns**
+  - **value**: scheme's virtual address.
 
 ### GetDistributedProfitsInfo
 
-Get distributed profits Info for a given period.
-
 ```Protobuf
-rpc GetDistributedProfitsInfo (SchemePeriod) returns (DistributedProfitsInfo) {}
+rpc GetDistributedProfitsInfo (SchemePeriod) returns (DistributedProfitsInfo){}
 
 message SchemePeriod {
     aelf.Hash scheme_id = 1;
@@ -351,23 +328,21 @@ message DistributedProfitsInfo {
 }
 ```
 
-**SchemePeriod**:
+Get distributed profits Info for a given period.
 
-- **scheme_id**: scheme id.
-- **period**:  term number.
+- **SchemePeriod**
+  - **scheme_id**: scheme id.
+  - **period**:  term number.
 
-**returns**:
-
-- **total shares**: total shares, -1 indicates failed to get the information.
-- **profits amount**: token symbol => reside amount.
-- **is released**: is released.
+- **Returns**
+  - **total shares**: total shares, -1 indicates failed to get the information.
+  - **profits amount**: token symbol => reside amount.
+  - **is released**: is released.
 
 ### GetProfitDetails
 
-Gets a beneficiaries profit details for a given scheme.
-
 ```Protobuf
-rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {}
+rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails){}
 
 message GetProfitDetailsInput {
     aelf.Hash scheme_id = 1;
@@ -387,29 +362,26 @@ message ProfitDetail {
 }
 ```
 
-**GetProfitDetailsInput**:
+Gets a beneficiaries profit details for a given scheme.
 
-- **scheme id** scheme id.
-- **beneficiary**  beneficiary.
+- **GetProfitDetailsInput**
+  - **scheme id** scheme id.
+  - **beneficiary**  beneficiary.
 
-**returns**:
+- **Returns**
+  - **details** profit details.
 
-- **details** profit details.
-
-**ProfitDetail**:
-
-- **start period**: start period.
-- **end period**: end period.
-- **shares**: shares indicating the weight used to calculate the profit in the future.
-- **last profit period**: last period the scheme distribute.
-- **is weight removed**: is it expired.
+- **ProfitDetail**
+  - **start period**: start period.
+  - **end period**: end period.
+  - **shares**: shares indicating the weight used to calculate the profit in the future.
+  - **last profit period**: last period the scheme distribute.
+  - **is weight removed**: is it expired.
 
 ### GetProfitAmount
 
-Calculate profits (have not yet received) before current term(at most 10 term).
-
 ```Protobuf
-rpc GetProfitAmount (ClaimProfitsInput) returns (aelf.SInt64Value) {}
+rpc GetProfitAmount (ClaimProfitsInput) returns (aelf.SInt64Value){}
 
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
@@ -422,11 +394,11 @@ message SInt64Value
 }
 ```
 
-**ClaimProfitsInput**:
+Calculate profits (have not yet received) before current term(at most 10 term).
 
-- **scheme_id**: scheme id.
-- **symbol**: token symbol.
+- **ClaimProfitsInput**
+  - **scheme_id**: scheme id.
+  - **symbol**: token symbol.
 
-**returns**:
-
-- **value**: amount of tokens.
+- **Returns**
+  - **value**: amount of tokens.

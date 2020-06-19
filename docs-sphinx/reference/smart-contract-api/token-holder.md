@@ -5,7 +5,7 @@ The TokenHolder contract is essentially used for building a bouns model for dist
 ## **CreateScheme**
 
 ```Protobuf
-rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty) { }
+rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty){}
 
 message CreateTokenHolderProfitSchemeInput {
     string symbol = 1;
@@ -14,16 +14,17 @@ message CreateTokenHolderProfitSchemeInput {
 }
 ```
 
-**CreateTokenHolderProfitSchemeInput**:
+It creates a scheme which stores relevant information about dividend in profit contract.
 
-- **symbol**: the token that will be used for locking and distributing profits.
-- **minimum** lock time: minimum lock time before withdrawing.
-- **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
+- **CreateTokenHolderProfitSchemeInput**
+  - **symbol**: the token that will be used for locking and distributing profits.
+  - **minimum** lock time: minimum lock time before withdrawing.
+  - **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
 
 ## **AddBeneficiary**
 
 ```Protobuf
-rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) { }
+rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Empty){}
 
 message AddTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
@@ -31,15 +32,16 @@ message AddTokenHolderBeneficiaryInput {
 }
 ```
 
-**AddTokenHolderBeneficiaryInput**:
+Add a Beneficiary to a scheme.
 
-- **beneficiary**: the new beneficiary.
-- **shares**: the shares to attribute to this beneficiary. 
+- **AddTokenHolderBeneficiaryInput**
+  - **beneficiary**: the new beneficiary.
+  - **shares**: the shares to attribute to this beneficiary.
 
 ## **RemoveBeneficiary**
 
 ```Protobuf
-rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) { }
+rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protobuf.Empty){}
 
 message RemoveTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
@@ -47,17 +49,17 @@ message RemoveTokenHolderBeneficiaryInput {
 }
 ```
 
+Remove a Beneficiary from a scheme.
 Note: this method can be used to remove a beneficiary or update its shares.
 
-**RemoveTokenHolderBeneficiaryInput**:
-
-- **beneficiary**: the beneficiary to remove or update.
-- **amount**: 0 to remove the beneficiary. A positive integer, smaller than the current shares. 
+- **RemoveTokenHolderBeneficiaryInput**
+  - **beneficiary**: the beneficiary to remove or update.
+  - **amount**: 0 to remove the beneficiary. A positive integer, smaller than the current shares.
 
 ## **ContributeProfits**
 
 ```Protobuf
-rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) { }
+rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
 
 message ContributeProfitsInput {
     aelf.Address scheme_manager = 1;
@@ -66,16 +68,17 @@ message ContributeProfitsInput {
 }
 ```
 
-**ContributeProfitsInput**:
+Contribute some token to a scheme.
 
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- **amount**: the amount of tokens to contribute. 
-- **symbol**: the token to contribute. 
+- **ContributeProfitsInput**
+  - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+  - **amount**: the amount of tokens to contribute.
+  - **symbol**: the token to contribute.
 
 ## **DistributeProfits**
 
 ```Protobuf
-rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) { }
+rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty){}
 
 message DistributeProfitsInput {
     aelf.Address scheme_manager = 1;
@@ -83,15 +86,16 @@ message DistributeProfitsInput {
 }
 ```
 
-**DistributeProfitsInput**:
+Distribute a profit plan, which means its beneficiaries are going to get the shares.
 
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
-- **symbol**: the token to contribute.
+- **DistributeProfitsInput**
+  - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
+  - **symbol**: the token to contribute.
 
 ## **RegisterForProfits**
 
 ```Protobuf
-rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty) { }
+rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty){}
 
 message RegisterForProfitsInput {
     aelf.Address scheme_manager = 1;
@@ -99,15 +103,14 @@ message RegisterForProfitsInput {
 }
 ```
 
-**RegisterForProfitsInput**:
-
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
-- **amount**: the amount of tokens to lock (and will correspond to the amount of shares).
+- **RegisterForProfitsInput**
+  - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+  - **amount**: the amount of tokens to lock (and will correspond to the amount of shares).
 
 ## **Withdraw**
 
 ```Protobuf
-rpc Withdraw (aelf.Address) returns (google.protobuf.Empty) { }
+rpc Withdraw (aelf.Address) returns (google.protobuf.Empty){}
 ```
 
 This method will withdraw the given address for the Token Holder contract, this will also unlock the previously locked tokens.
@@ -115,7 +118,7 @@ This method will withdraw the given address for the Token Holder contract, this 
 ## **ClaimProfits**
 
 ```Protobuf
-rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) { }
+rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty){}
 
 message ClaimProfitsInput {
     aelf.Address scheme_manager = 1;
@@ -124,11 +127,12 @@ message ClaimProfitsInput {
 }
 ```
 
-**ClaimProfitsInput**:
+The sender withdraws his/her token from the scheme.
 
-- **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
-- **beneficiary**: the beneficiary, defaults to the Sender.
-- **symbol**: the symbol to claim.
+- **ClaimProfitsInput**
+  - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+  - **beneficiary**: the beneficiary, defaults to the Sender.
+  - **symbol**: the symbol to claim.
 
 ## View methods
 
@@ -148,10 +152,9 @@ message TokenHolderProfitScheme {
 
 Returns a description of the scheme, wrapped in a **TokenHolderProfitScheme** object:
 
-- **symbol**: the scheme's token.
-- **scheme id**: the id of the scheme.
-- **period**: the current period of the scheme.
-- **minimum lock minutes**: minimum lock time.
-- **automatic distribution threshold**: distribution info.
-
-
+- **Returns**
+  - **symbol**: the scheme's token.
+  - **scheme id**: the id of the scheme.
+  - **period**: the current period of the scheme.
+  - **minimum lock minutes**: minimum lock time.
+  - **automatic distribution threshold**: distribution info.

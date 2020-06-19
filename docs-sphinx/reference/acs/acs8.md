@@ -1,4 +1,4 @@
-# ACS8 - Resource Transaction Fee Standard
+# ACS8 - Transaction Resource Token Fee Standard
 
 ACS8 has some similarities to ACS1, both of them are charge transaction fee standard.
 
