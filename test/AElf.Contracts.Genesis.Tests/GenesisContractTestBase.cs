@@ -22,7 +22,7 @@ using Volo.Abp.Threading;
 namespace AElf.Contracts.Genesis
 {
     public class
-        AuthorityNotRequiredBasicContractZeroTestBase : TestKit.ContractTestBase<
+        AuthorityNotRequiredBasicContractZeroTestBase : ContractTestKit.ContractTestBase<
             AuthorityNotRequiredBasicContractZeroTestModule>
     {
         protected new ISmartContractAddressService ContractAddressService =>

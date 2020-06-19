@@ -3,5 +3,5 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-    <Import Project="..\AElf.Contract.Tools.targets" />
+    <Import Project="..\AElf.ContractTools.targets" />
 </Project>

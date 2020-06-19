@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.FeeCalculation.Extensions;
