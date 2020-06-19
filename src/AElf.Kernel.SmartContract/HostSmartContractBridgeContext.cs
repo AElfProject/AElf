@@ -138,11 +138,12 @@ namespace AElf.Kernel.SmartContract
             return HashHelper.ComputeFrom(contactedBytes.ToArray());
         }
 
-        public void LimitStateSize(object obj)
+        public object ValidateStateSize(object obj)
         {
             var stateSizeLimit = _smartContractBridgeService.GetStateSizeLimit();
             if (SerializationHelper.Serialize(obj).Length > stateSizeLimit)
                 throw new StateOverSizeException("State size limited.");
+            return obj;
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();

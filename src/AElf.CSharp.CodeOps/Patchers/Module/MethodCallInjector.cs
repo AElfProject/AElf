@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.CSharp.CodeOps.Instructions;
 using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module
@@ -15,38 +16,29 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         public void Patch(ModuleDefinition module)
         {
-            var patchedMethods = new Dictionary<IInstructionInjector, MethodDefinition>();
-            foreach (var instructionInjector in _instructionInjectors)
-            {
-                var methodDefinitionToInject = instructionInjector.PatchMethodReference(module);
-                patchedMethods.Add(instructionInjector, methodDefinitionToInject);
-            }
-
             // Patch the types
             foreach (var typ in module.Types)
             {
-                PatchType(typ, module, patchedMethods);
+                PatchType(typ, module);
             }
         }
 
-        private void PatchType(TypeDefinition typ, ModuleDefinition moduleDefinition,
-            Dictionary<IInstructionInjector, MethodDefinition> patchedMethods)
+        private void PatchType(TypeDefinition typ, ModuleDefinition moduleDefinition)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                PatchMethod(moduleDefinition, method, patchedMethods);
+                PatchMethod(moduleDefinition, method);
             }
 
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                PatchType(nestedType, moduleDefinition, patchedMethods);
+                PatchType(nestedType, moduleDefinition);
             }
         }
 
-        private void PatchMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
-            Dictionary<IInstructionInjector, MethodDefinition> patchedMethods)
+        private void PatchMethod(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
         {
             if (!methodDefinition.HasBody)
                 return;
@@ -55,13 +47,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             foreach (var instructionInjector in _instructionInjectors)
             {
-                var methodDefinitionToInject = patchedMethods[instructionInjector];
-                
                 foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
-                    instructionInjector.IdentifyInstruction(moduleDefinition, instruction)).ToList())
+                    instructionInjector.IdentifyInstruction(instruction)).ToList())
                 {
-                    instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition,
-                        methodDefinitionToInject);
+                    instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition);
                 }
             }
         }

@@ -77,7 +77,7 @@ namespace AElf.Kernel.SmartContract
 
         Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
 
-        void LimitStateSize(object obj);
+        object ValidateStateSize(object obj);
     }
 
     [Serializable]
