@@ -16,7 +16,7 @@ if [[ ${osn} == "macosx" ]]; then
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-osx-x86_64.zip
     unzip protoc-3.11.4-osx-x86_64.zip -d protoc3
     sudo mv protoc3/bin/* /usr/local/bin/
-    sudo mv protoc3/include/ /usr/local/include/
+    sudo mv protoc3/include/* /usr/local/include
     sudo chown ${USER} /usr/local/bin/protoc
     sudo chown -R ${USER} /usr/local/include/google
 elif [[ ${osn} == "linux" ]]; then
