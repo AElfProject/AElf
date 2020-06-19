@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.Consensus.AEDPoS;
 using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
