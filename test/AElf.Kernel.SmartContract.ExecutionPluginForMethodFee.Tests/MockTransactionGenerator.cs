@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -13,10 +14,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
     public class MockTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly Address _addressWithoutToken;
 
         public MockTransactionGenerator(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
+            _addressWithoutToken = SampleAccount.Accounts[5].Address;
         }
         
         public async Task<List<Transaction>> GenerateTransactionsAsync(Address @from, long preBlockHeight, Hash preBlockHash)
@@ -24,7 +27,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var transactions = new List<Transaction>();
             var transaction = new Transaction
             {
-                From = from,
+                From = _addressWithoutToken,
                 To = await _smartContractAddressService.GetAddressByContractNameAsync(new ChainContext
                 {
                     BlockHash = preBlockHash,

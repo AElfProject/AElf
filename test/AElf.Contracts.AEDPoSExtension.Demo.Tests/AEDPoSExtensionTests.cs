@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
-using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
