@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
@@ -10,7 +9,6 @@ using Mono.Cecil.Rocks;
 using Volo.Abp.DependencyInjection;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using ParameterAttributes = Mono.Cecil.ParameterAttributes;
-using TypeAttributes = Mono.Cecil.TypeAttributes;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module
 {
@@ -20,7 +18,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         MethodDefinition PatchMethodReference(ModuleDefinition moduleDefinition);
 
-        void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction, ModuleDefinition moduleDefinition,
+        void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
+            ModuleDefinition moduleDefinition,
             MethodDefinition methodDefinition);
     }
 
@@ -50,10 +49,15 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
         public MethodDefinition PatchMethodReference(ModuleDefinition moduleDefinition)
         {
-            return ConstructStateSizeLimitMethod(moduleDefinition);
+            var typeDefinition =
+                moduleDefinition.Types.Single(m => m.BaseType is TypeDefinition);
+            var methodDefinition = ConstructStateSizeLimitMethod(moduleDefinition);
+            typeDefinition.Methods.Add(methodDefinition);
+            return methodDefinition;
         }
 
-        public void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction, ModuleDefinition moduleDefinition,
+        public void InjectInstruction(ILProcessor ilProcessor, Instruction originInstruction,
+            ModuleDefinition moduleDefinition,
             MethodDefinition methodDefinition)
         {
             ilProcessor.Body.SimplifyMacros();
@@ -62,27 +66,31 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             var localValCount = ilProcessor.Body.Variables.Count;
             ilProcessor.Body.Variables.Add(new VariableDefinition(moduleDefinition.ImportReference(typeof(object))));
-            
-            var stocInstruction = ilProcessor.Create(OpCodes.Stloc_S, ilProcessor.Body.Variables[localValCount]); // pop to local val 
+
+            var stocInstruction =
+                ilProcessor.Create(OpCodes.Stloc_S, ilProcessor.Body.Variables[localValCount]); // pop to local val 
             ilProcessor.InsertBefore(originInstruction, stocInstruction);
-            
+
             var ldThisInstruction = ilProcessor.Create(OpCodes.Ldarg_0); // this
             ilProcessor.InsertAfter(stocInstruction, ldThisInstruction);
-            
-            var ldlocInstruction = ilProcessor.Create(OpCodes.Ldloc_S, ilProcessor.Body.Variables[localValCount]); // load local val
+
+            var ldlocInstruction =
+                ilProcessor.Create(OpCodes.Ldloc_S, ilProcessor.Body.Variables[localValCount]); // load local val
             ilProcessor.InsertAfter(ldThisInstruction, ldlocInstruction);
-            
+
             var callInstruction = ilProcessor.Create(OpCodes.Call, methodDefinition); // call 
             ilProcessor.InsertAfter(ldlocInstruction, callInstruction);
-            
+
+            var lastLdlocInstruction =
+                ilProcessor.Create(OpCodes.Ldloc_S, ilProcessor.Body.Variables[localValCount]); // load local val
+            ilProcessor.InsertAfter(callInstruction, lastLdlocInstruction);
+
             // ilProcessor.InsertBefore(originInstruction, instruction); // load the value
             ilProcessor.Body.OptimizeMacros();
         }
 
         private MethodDefinition ConstructStateSizeLimitMethod(ModuleDefinition moduleDefinition)
         {
-            var typeDefinition =
-                moduleDefinition.Types.Single(m => m.BaseType is TypeDefinition);
             // var nmspace = typeDefinition.Namespace;
 
             // var stateSizeLimitType = new TypeDefinition(
@@ -94,41 +102,40 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var stateSizeLimitMethod = new MethodDefinition(
                 nameof(StateRestrictionProxy.LimitStateSize),
                 MethodAttributes.Private | MethodAttributes.HideBySig,
-                moduleDefinition.ImportReference(typeof(object))
+                moduleDefinition.ImportReference(typeof(void))
             );
-            
+
             // parameter 
             stateSizeLimitMethod.Parameters.Add(new ParameterDefinition("obj",
                 ParameterAttributes.In, moduleDefinition.ImportReference(typeof(object))));
-            
+
             // return value
-            stateSizeLimitMethod.Body.Variables.Add(
-                new VariableDefinition(moduleDefinition.ImportReference(typeof(object))));
-            
+            // stateSizeLimitMethod.Body.Variables.Add(
+            //     new VariableDefinition(moduleDefinition.ImportReference(typeof(object))));
+
             var il = stateSizeLimitMethod.Body.GetILProcessor();
-            
+
             il.Emit(OpCodes.Ldarg_0); // this
-            
+
             // Context
             il.Emit(OpCodes.Call,
                 moduleDefinition.ImportReference(typeof(CSharpSmartContract<>).GetProperty("Context").GetMethod));
             // parameter
             il.Emit(OpCodes.Ldarg_1);
-            
+
             // Context.LimitStateSize
             il.Emit(OpCodes.Callvirt, moduleDefinition.ImportReference(
                 typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.LimitStateSize))));
-            
-            il.Emit(OpCodes.Ldarg_1);
-            il.Emit(OpCodes.Stloc_0); // pop from the top to localVal_0 
 
-            var loadReturnValueInstruction = il.Create(OpCodes.Ldloc_0);
-            il.Emit(OpCodes.Br_S, loadReturnValueInstruction); // return
+            // il.Emit(OpCodes.Ldarg_1);
+            // il.Emit(OpCodes.Stloc_0); // pop from the top to localVal_0 
 
-            il.Append(loadReturnValueInstruction);
+            // var loadReturnValueInstruction = il.Create(OpCodes.Ldloc_0);
+            // il.Emit(OpCodes.Br_S, loadReturnValueInstruction); // return
+            //
+            // il.Append(loadReturnValueInstruction);
             il.Emit(OpCodes.Ret);
-            
-            typeDefinition.Methods.Add(stateSizeLimitMethod);
+
 
             // stateSizeLimitMethod.Parameters.Add(new ParameterDefinition("obj",
             //     ParameterAttributes.In, moduleDefinition.ImportReference(typeof(object))));
@@ -177,6 +184,26 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             // moduleDefinition.Types.Add(stateSizeLimitType);
 
             return stateSizeLimitMethod;
+        }
+
+        private List<Instruction> GenerateOpCodes(ILProcessor il, ModuleDefinition moduleDefinition)
+        {
+            return new List<Instruction>
+            {
+                il.Create(OpCodes.Ldarg_0), // this
+
+                // Context
+                il.Create(OpCodes.Call,
+                    moduleDefinition.ImportReference(typeof(CSharpSmartContract<>).GetProperty("Context").GetMethod)),
+                // parameter
+                il.Create(OpCodes.Ldarg_1),
+
+                // Context.LimitStateSize
+                il.Create(OpCodes.Callvirt, moduleDefinition.ImportReference(
+                    typeof(CSharpSmartContractContext).GetMethod(nameof(CSharpSmartContractContext.LimitStateSize)))),
+
+                il.Create(OpCodes.Ret)
+            };
         }
     }
 }
