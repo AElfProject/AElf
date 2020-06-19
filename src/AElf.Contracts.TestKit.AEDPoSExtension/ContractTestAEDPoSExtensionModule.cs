@@ -49,6 +49,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ITransactionExecutingService, UnitTestPlainTransactionExecutingService>();
             context.Services.AddSingleton<IPlainTransactionExecutingService, UnitTestPlainTransactionExecutingService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
+            context.Services.RemoveAll<ISystemTransactionGenerator>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }

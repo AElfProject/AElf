@@ -85,7 +85,6 @@ namespace AElf.WebApp.Application
             });
             
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
-            context.Services.AddTransient<ITransactionFeeExemptionService, TransactionFeeExemptionService>();
             context.Services.AddTransient<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
             context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
         }
