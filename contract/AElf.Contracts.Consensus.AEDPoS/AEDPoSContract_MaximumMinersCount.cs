@@ -20,7 +20,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(input.Value > 0, "Invalid max miners count.");
 
             RequiredMaximumMinersCountControllerSet();
-            Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress, "No permission to set max miners count.");
+            Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
+                "No permission to set max miners count.");
             State.MaximumMinersCount.Value = input.Value;
             State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
             {
@@ -71,15 +72,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new Int64Value {Value = AEDPoSContractConstants.SupposedMinersCount};
             }
 
-            if (!TryToGetCurrentRoundInformation(out var currentRound)) return new Int64Value();
             return new Int64Value
             {
-                Value = Math.Min(currentRound.RealTimeMinersInformation.Count <
-                                 AEDPoSContractConstants.SupposedMinersCount
-                    ? AEDPoSContractConstants.SupposedMinersCount
-                    : AEDPoSContractConstants.SupposedMinersCount.Add(
-                        (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                        .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value)
+                Value = Math.Min(AEDPoSContractConstants.SupposedMinersCount.Add(
+                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                    .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value)
             };
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         /// CpuConsumingMethod vs FewConsumingMethod
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Need to be refactored in new framework.")]
+        [Fact]
         public async Task CompareCpuTokenConsumption()
         {
             await AdvanceResourceToken();
@@ -132,7 +132,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         /// StoConsumingMethod vs FewConsumingMethod
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Need to be refactored in new framework.")]
+        [Fact]
         public async Task CompareStoTokenConsumption()
         {
             await AdvanceResourceToken();
@@ -174,7 +174,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         /// TrafficConsumingMethod vs FewConsumingMethod
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Need to be refactored in new framework.")]
+        [Fact]
         public async Task CompareTrafficTokenConsumption()
         {
             await AdvanceResourceToken();
@@ -248,7 +248,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact(Skip = "Need to be refactored in new framework.")]
+        [Fact]
         public async Task CompareConsumptions()
         {
             await AdvanceResourceToken();
@@ -352,7 +352,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 beforeStorage - afterStorage, txResult);
         }
 
-        [Fact(Skip = "Need to be refactored in new framework.")]
+        [Fact]
         public async Task Donate_Resource_Token_Send_By_User_False()
         {
             var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
