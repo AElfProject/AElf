@@ -65,14 +65,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return State.MaximumMinersCountController.Value;
         }
 
-        public override Int64Value GetMaximumMinersCount(Empty input)
+        public override Int32Value GetMaximumMinersCount(Empty input)
         {
             if (State.BlockchainStartTimestamp.Value == null)
             {
-                return new Int64Value {Value = AEDPoSContractConstants.SupposedMinersCount};
+                return new Int32Value {Value = AEDPoSContractConstants.SupposedMinersCount};
             }
 
-            return new Int64Value
+            return new Int32Value
             {
                 Value = Math.Min(AEDPoSContractConstants.SupposedMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
