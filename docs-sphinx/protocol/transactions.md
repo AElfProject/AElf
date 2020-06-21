@@ -93,14 +93,4 @@ Note that if the sender broadcasted several transaction with same parameters at 
 
 ## Transaction Execution
 
-### (Origin) Transaction
-
-### Inline Transaction
-
-### Plugin Transaction
-
-#### Pre-plugin Transaction
-
-#### Post-plugin Transaction
-
-## Transaction Validation
+todo
