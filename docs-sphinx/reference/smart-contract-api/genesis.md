@@ -9,29 +9,18 @@ This page describes available methods on the Genesis Contract.
 #### function CurrentContractSerialNumber
 
 ```protobuf
-rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) 
-{
-    option (aelf.is_view) = true;
-}
+rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value){}
 ```
 
 Gets the current serial number of genesis contract (corresponds to the serial number that will be given to the next deployed contract).
 
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-Serial number of the genesis contract.
+- **Returns**
+  - **value**: serial number of the genesis contract.
 
 #### function GetContractInfo
 
 ```protobuf
-rpc GetContractInfo (aelf.Address) returns (ContractInfo) 
-{
-    option (aelf.is_view) = true;
-}
+rpc GetContractInfo (aelf.Address) returns (ContractInfo){}
 
 message ContractInfo {
     uint64 serial_number = 1;
@@ -45,78 +34,54 @@ message ContractInfo {
 
 Gets detailed information about the specified contract.
 
-**Parameters:**
+- **Address**: address the contract
 
-- **Address** - address the contract
-
-**Returns:**
-
+**Returns**
 A **ContractInfo** object that represents detailed information about the specified contract.
 
 #### function GetContractAuthor
 
 ```protobuf
-rpc GetContractAuthor (aelf.Address) returns (aelf.Address)
-{
-    option (aelf.is_view) = true;
-}
+rpc GetContractAuthor (aelf.Address) returns (aelf.Address){}
 ```
 
 Get author of the specified contract.
 
-**Parameters:**
+- **Address**: address of specified contract
 
-- **Address** - address of specified contract
-
-**Returns:**
-
-Author of the specified contract.
+- **Returns**
+  - **value**: author of the specified contract.
 
 #### function GetContractHash
 
 ```protobuf
-rpc GetContractHash (aelf.Address) returns (aelf.Hash) 
-{
-    option (aelf.is_view) = true;
-}
+rpc GetContractHash (aelf.Address) returns (aelf.Hash){}
 ```
 
 Gets the code hash of the contract at the specified address.
 
-**Parameters:**
+- **Address**: address of a contract
 
-- **Address** - address of a contract
-
-**Returns:**
-
-The code hash of the contract.
+- **Returns**
+  - **value**: the code hash of the contract.
 
 #### function GetContractAddressByName
 
 ```protobuf
-rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address)
-{
-    option (aelf.is_view) = true;
-}
+rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address){}
 ```
 
-Gets the address of a system contract by its name. 
+Gets the address of a system contract by its name.
 
-**Parameters:**
+- **Hash**: name hash of the contract
 
-- **Hash** - name hash of the contract
-
-**Returns:**
-
-Address of the specified contract.
+- **Returns**
+  - **value**: Address of the specified contract.
 
 #### function GetSmartContractRegistrationByAddress
 
 ```protobuf
-rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) 
-{
-    option (aelf.is_view) = true;
-}
+rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration){}
 
 message SmartContractRegistration {
     int32 category = 1;
@@ -129,20 +94,15 @@ message SmartContractRegistration {
 
 Gets the registration of a smart contract by its address.
 
-**Parameters:**
-
 - **Address** - address of a smart contract
 
-**Returns:**
+- **Returns**
+  - **value**: Registration object of the smart contract.
 
-Registration object of the smart contract.
-
-#### function GetSmartContractRegistrationByAddress
+#### function GetSmartContractRegistrationByCodeHash
 
 ```protobuf
-rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
-        option (aelf.is_view) = true;
-}
+rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration){}
 
 message SmartContractRegistration {
     int32 category = 1;
@@ -155,21 +115,15 @@ message SmartContractRegistration {
 
 Gets the registration of a smart contract by code hash.
 
-**Parameters:**
-
 - **Hash** - contract code hash
 
-**Returns:**
-
-Registration object of the smart contract.
+- **Returns**
+  - **value**: registration object of the smart contract.
 
 #### function ValidateSystemContractAddress
 
 ```protobuf
-rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty)
-{
-    option (aelf.is_view) = true;
-}
+rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){}
 
 message ValidateSystemContractAddressInput {
     aelf.Hash system_contract_hash_name = 1;
@@ -179,32 +133,25 @@ message ValidateSystemContractAddressInput {
 
 Validates whether the input system contract exists.
 
-**Parameters:**
-
-***ValidateSystemContractAddressInput*** 
-
-- **Hash** - name hash of the contract
-- **Address** - address of the contract
-
-**Returns:**
-
-**google.protobuf.Empty**
+- **ValidateSystemContractAddressInput**
+  - **Hash** - name hash of the contract
+  - **Address** - address of the contract
 
 ### Actions
 
 #### function DeploySystemSmartContract
 
 ```protobuf
-rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {}
+rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address){}
 
-message SystemContractDeploymentInput 
+message SystemContractDeploymentInput
 {
-    message SystemTransactionMethodCall 
+    message SystemTransactionMethodCall
     {
         string method_name = 1;
         bytes params = 2;
     }
-    message SystemTransactionMethodCallList 
+    message SystemTransactionMethodCallList
     {
         repeated SystemTransactionMethodCall value = 1;
     }
@@ -217,23 +164,19 @@ message SystemContractDeploymentInput
 
 Deploys a system smart contract on chain.
 
-**Parameters:**
+- **SystemContractDeploymentInput**
+  - **category**: contract type.
+  - **code**: byte array of system contract code.
+  - **name**: name hash of system contract.
+  - **transaction_method_call_list**: list of methods called by system transaction.
 
-***SystemContractDeploymentInput*** 
-
-- **category** - contract type
-- **code** - byte array of system contract code
-- **name** - name hash of system contract
-- **transaction_method_call_list** - list of methods called by system transaction
-
-**Returns:**
-
-Address of the deployed contract.
+- **Returns**
+  - **value**: address of the deployed contract.
 
 ### function ProposeNewContract
 
 ```protobuf
-rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {}
+rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash){}
 
 message ContractDeploymentInput {
     sint32 category = 1;
@@ -243,21 +186,17 @@ message ContractDeploymentInput {
 
 Propose new contract deployment.
 
-**Parameters:**
+- **ContractDeploymentInput**
+  - **category**: contract type (usually 0 for now)
+  - **code**: byte array that represents the contract code
 
-***ContractDeploymentInput*** 
-
-- **category** - contract type (usually 0 for now)
-- **code** - byte array that represents the contract code
-
-**Returns:**
-
-Hash of the **ContractDeploymentInput** object.
+- **Returns**
+  - **value:**: Hash of the **ContractDeploymentInput** object.
 
 ### function ProposeUpdateContract
 
 ```protobuf
-rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {}
+rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash){}
 
 message ContractUpdateInput {
     aelf.Address address = 1;
@@ -267,16 +206,12 @@ message ContractUpdateInput {
 
 Creates a proposal to update the specified contract.
 
-**Parameters:**
+- **ContractUpdateInput**
+  - **address**: address of the contract to be updated
+  - **code**: byte array of the contract's new code
 
-***ContractUpdateInput*** 
-
-- **address** - address of the contract to be updated
-- **code** - byte array of the contract's new code
-
-**Returns:**
-
-Hash of the **ContractUpdateInput** object.
+- **Returns**
+  - **value**: Hash of the **ContractUpdateInput** object.
 
 ### function ProposeContractCodeCheck
 
@@ -294,24 +229,20 @@ message ContractCodeCheckInput{
 
 Propose to check the code of a contract.
 
-**Parameters:**
+- **ContractCodeCheckInput**
+  - **contract_input**: byte array of the contract code to be checked
+  - **is_contract_deployment**: whether the input contract is to be deployed or updated
+  - **code_check_release_method**: method to call after code check complete (DeploySmartContract or UpdateSmartContract)
+  - **proposed_contract_input_hash**: id of the proposed contract
+  - **category**: contract category (always 0 for now)
 
-***ContractCodeCheckInput***
-
-- **contract_input** - byte array of the contract code to be checked
-- **is_contract_deployment** - whether the input contract is to be deployed or updated
-- **code_check_release_method** - method to call after code check complete (DeploySmartContract or UpdateSmartContract)
-- **proposed_contract_input_hash** - id of the proposed contract
-- **category** - contract category (always 0 for now)
-
-**Returns:**
-
-Hash of the proposed contract.
+- **Returns**
+  - **value**: Hash of the proposed contract.
 
 ### function ReleaseApprovedContract
 
 ```protobuf
-rpc ReleaseApprovedContract (ReleaseContractInput) returns (google.protobuf.Empty) {}
+rpc ReleaseApprovedContract (ReleaseContractInput) returns (google.protobuf.Empty){}
 
 message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
@@ -321,17 +252,14 @@ message ReleaseContractInput {
 
 Releases a contract proposal which has been approved.
 
-**Parameters:**
-
-***ReleaseContractInput***
-
-- **proposal_id** - hash of the proposal
-- **proposed_contract_input_hash** - id of the proposed contract
+- **ReleaseContractInput**
+  - **proposal_id**: hash of the proposal.
+  - **proposed_contract_input_hash**: id of the proposed contract
 
 ### function ReleaseCodeCheckedContract
 
 ```protobuf
-rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {}
+rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty){}
 
 message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
@@ -341,17 +269,14 @@ message ReleaseContractInput {
 
 Release the proposal which has passed the code check.
 
-**Parameters:**
-
-***ReleaseContractInput*** 
-
-- **proposal_id** - hash of the proposal
-- **proposed_contract_input_hash** - id of the proposed contract
+- **ReleaseContractInput**
+  - **proposal_id**: hash of the proposal
+  - **proposed_contract_input_hash**: id of the proposed contract
 
 ### function DeploySmartContract
 
 ```protobuf
-rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) {}
+rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address){}
 
 message ContractDeploymentInput {
     sint32 category = 1;
@@ -361,21 +286,17 @@ message ContractDeploymentInput {
 
 Deploys a smart contract on chain.
 
-**Parameters:**
+- **ContractDeploymentInput**
+  - **category**: contract type (usually 0)
+  - **code**: byte array of the contract code
 
-***ContractDeploymentInput*** 
-
-- **category** - contract type (usually 0)
-- **code** - byte array of the contract code
-
-**Returns:**
-
-Address of the deployed smart contract.
+- **Returns**
+  - **value**: address of the deployed smart contract.
 
 ### function UpdateSmartContract
 
 ```protobuf
-rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {}
+rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address){}
 
 message ContractUpdateInput {
     aelf.Address address = 1;
@@ -385,21 +306,17 @@ message ContractUpdateInput {
 
 Updates a smart contract on chain.
 
-**Parameters:**
+- **ContractUpdateInput**
+  - **address**: address of the smart contract to be updated
+  - **code**: byte array of the updated contract code
 
-***ContractUpdateInput***
-
-- **address** - address of the smart contract to be updated
-- **code** - byte array of the updated contract code
-
-**Returns:**
-
-Address of the updated smart contract.
+- **Returns**
+  - **value**: address of the updated smart contract.
 
 ### function Initialize
 
 ```protobuf
-rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
+rpc Initialize (InitializeInput) returns (google.protobuf.Empty){}
 
 message InitializeInput{
     bool contract_deployment_authority_required = 1;
@@ -408,40 +325,33 @@ message InitializeInput{
 
 Initializes the genesis contract.
 
-**Parameters:**
-
-***InitializeInput*** 
-
-- **contract_deployment_authority_required** - whether contract deployment/update requires authority
+- **InitializeInput**
+  - **contract_deployment_authority_required**: whether contract deployment/update requires authority.
 
 ### function ChangeGenesisOwner
 
 ```protobuf
-rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {}
+rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty){}
 ```
 
 Change the owner of the genesis contract.
 
-**Parameters:**
-
-- **Address** - address of new genesis owner
+- **Address**: address of new genesis owner
 
 ### function SetContractProposerRequiredState
 
 ```protobuf
-rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty){}
 ```
 
 Set authority of contract deployment.
 
-**Parameters:**
-
-- **google.protobuf.BoolValue** - whether contract deployment/update requires contract proposer authority
+- **google.protobuf.BoolValue**: whether contract deployment/update requires contract proposer authority
 
 ### function ChangeContractDeploymentController
 
 ```protobuf
-rpc ChangeContractDeploymentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
+rpc ChangeContractDeploymentController (acs1.AuthorityInfo) returns (google.protobuf.Empty){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -451,9 +361,7 @@ message AuthorityInfo {
 
 Modify the contract deployment controller authority. Note: Only old controller has permission to do this.
 
-**Parameters:**
-
-- **AuthorityInfo** - new controller authority info containing organization address and contract address that the organization belongings to
+- **AuthorityInfo**: new controller authority info containing organization address and contract address that the organization belongings to
 
 ### function ChangeCodeCheckController
 
@@ -468,9 +376,7 @@ message AuthorityInfo {
 
 Modifies the contract code check controller authority. Note: Only old controller has permission to do this.
 
-**Parameters:**
-
-- **AuthorityInfo** - new controller authority info containing organization address and contract address that the organization belongings to
+- **AuthorityInfo**: new controller authority info containing organization address and contract address that the organization belongings to
 
 ### function SetInitialControllerAddress
 
@@ -480,9 +386,7 @@ rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
 
 Sets initial controller address for **CodeCheckController** and **ContractDeploymentController**
 
-**Parameters:**
-
-- **Address** - initial controller (which should be parliament organization as default)
+- **Address**: initial controller (which should be parliament organization as default)
 
 ### function GetContractDeploymentController
 
@@ -498,12 +402,9 @@ message AuthorityInfo {
 
 Returns **ContractDeploymentController** authority info.
 
-**Returns:**
+- **Returns**: **ContractDeploymentController** authority info.
 
-- **AuthorityInfo** - **ContractDeploymentController** authority info. 
-
-
-### function GetContractDeploymentController
+### function GetCodeCheckController
 
 ```protobuf
 rpc GetCodeCheckController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
@@ -517,6 +418,4 @@ message AuthorityInfo {
 
 Returns **CodeCheckController** authority info.
 
-**Returns:**
-
-- **AuthorityInfo** - **CodeCheckController** authority info. 
+- **Returns**: **CodeCheckController** authority info.

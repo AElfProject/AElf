@@ -194,7 +194,7 @@ dotnet AElf.Launcher.dll
 
 The next step is the same, but with a second container.
 
-### Start docker - node one 
+### Start docker - node two 
 
 ```bash
 docker run -it -p 8001:8001 -p 6801:6801 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner2/appsettings.json>:/app/appsettings.json aelf/node:latest /bin/bash
@@ -210,7 +210,7 @@ dotnet AElf.Launcher.dll
 
 The next step is the same, but with a third container.
 
-### Start docker - node one 
+### Start docker - node three 
 
 ```bash
 docker run -it -p 8002:8002 -p 6802:6802 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner3/appsettings.json>:/app/appsettings.json aelf/node:latest /bin/bash

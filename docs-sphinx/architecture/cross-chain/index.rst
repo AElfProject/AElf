@@ -6,6 +6,5 @@ Cross Chain
    Introduction <introduction>
    Architecture <architecture>
    Crosschain verification <crosschain-verification>
-   Creation <setup>
    Verify <verify>
-   Transfer <transfer>
+   Cross chain transfer <transfer>

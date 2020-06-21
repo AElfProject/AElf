@@ -127,7 +127,8 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(DeploySmartContract),
                         ProposedContractInputHash = proposedContractInputHash,
-                        Category = input.Category
+                        Category = input.Category,
+                        IsSystemContract = false
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -169,7 +170,8 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(UpdateSmartContract),
                         ProposedContractInputHash = proposedContractInputHash,
-                        Category = info.Category
+                        Category = info.Category,
+                        IsSystemContract = info.IsSystemContract
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod),
@@ -224,7 +226,8 @@ namespace AElf.Contracts.Genesis
             {
                 Code = ExtractCodeFromContractCodeCheckInput(input),
                 ProposedContractInputHash = proposedContractInputHash,
-                Category = input.Category
+                Category = input.Category,
+                IsSystemContract = input.IsSystemContract
             });
 
             return proposedContractInputHash;

@@ -83,7 +83,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 });
             if (totalTransactionFeesMapFromProvider == null)
             {
-                Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
+                Logger.LogDebug("totalTransactionFeesMapFromProvider == null");
                 return hashFromState.Value.IsEmpty;
             }
 
@@ -91,7 +91,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             var result = hashFromProvider == hashFromState;
             if (!result)
             {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+                Logger.LogDebug($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
             }
 
             return result;

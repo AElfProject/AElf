@@ -64,5 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MappedState<long, Dividends> SideChainReceivedDividends { get; set; }
 
         public SingletonState<Hash> SideChainDividendPoolSchemeId { get; set; }
+
+        public BoolState IsPreviousBlockInSevereStatus { get; set; }
     }
 }

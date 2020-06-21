@@ -1,4 +1,4 @@
-# ACS10 -  dividend pool standard
+# ACS10 -  Dividend Pool Standard
 
 ACS10 is used to construct a dividend pool in the contract.
 

@@ -52,8 +52,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 var newInValue = _inValueCache.GetInValue(hint.RoundId);
                 var previousInValue = _inValueCache.GetInValue(hint.PreviousRoundId);
-                Logger.LogTrace($"New in value {newInValue} for round of id {hint.RoundId}");
-                Logger.LogTrace($"Previous in value {previousInValue} for round of id {hint.PreviousRoundId}");
+                Logger.LogDebug($"New in value {newInValue} for round of id {hint.RoundId}");
+                Logger.LogDebug($"Previous in value {previousInValue} for round of id {hint.PreviousRoundId}");
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,

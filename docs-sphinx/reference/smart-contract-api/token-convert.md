@@ -4,11 +4,8 @@ Using this contract can build a connection between the base token(the default is
 
 ## **InitializeInput**
 
-This method is used to initialize this contract (add base token, connections, etc.).
-
 ```Protobuf
-rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
-}
+rpc Initialize (InitializeInput) returns (google.protobuf.Empty){}
 
 message InitializeInput {
     string base_token_symbol = 1;
@@ -27,31 +24,28 @@ message Connector {
 }
 ```
 
-**InitializeInput**:
+This method is used to initialize this contract (add base token, connections, etc.).
 
-- **base token symbol**: base token, default is the native token.
-- **fee rate**: buy/sell token need pay the fee( = cost * feeRate).
-- **connectors**: the default added connectors.
-
-**Connector**:
+- **InitializeInput**
+  - **base token symbol**: base token, default is the native token.
+  - **fee rate**: buy/sell token need pay the fee( = cost * feeRate).
+  - **connectors**: the default added connectors.
 
 We use Bancor model to build the connection between base token and other tokens. Each pair connectors include the coefficients used by calculating the token price based on the base token, and it consists of the base token connector and the new token connector.
 
-- **symbol**: the connector symbol.
-- **related symbol**: indicates its related connector, the pair connector includes a new created token connector and the base token connector.
-- **virtual balance**: used in bancor model.
-- **weight**: the weight is linked to the related connector's weight.
-- **is virtual balance enabled**: true indicates that the virtual balance is used in price calculation.
-- **is purchase enabled**: after build a pair connector, you can not buy/sell the token immediately, the default is false.
-- **is deposit account**: indicates if the connector is base token connector.
+- **Connector**
+  - **symbol**: the connector symbol.
+  - **related symbol**: indicates its related connector, the pair connector includes a new created token connector and the base token connector.
+  - **virtual balance**: used in bancor model.
+  - **weight**: the weight is linked to the related connector's weight.
+  - **is virtual balance enabled**: true indicates that the virtual balance is used in price calculation.
+  - **is purchase enabled**: after build a pair connector, you can not buy/sell the token immediately, the default is false.
+  - **is deposit account**: indicates if the connector is base token connector.
 
 ## **AddPairConnector**
 
-With Bancor model, each new token need a pair connectors to calculate its price. Only the connector contoller(the default is parliament) is allowed to call this API.
-
 ```Protobuf
-rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
-}
+rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){}
 
 message PairConnectorParam {
     string resource_connector_symbol = 1;
@@ -61,20 +55,18 @@ message PairConnectorParam {
 }
 ```
 
-**PairConnectorParam**:
+With Bancor model, each new token need a pair connectors to calculate its price. Only the connector contoller(the default is parliament) is allowed to call this API.
 
-- **resource connector symbol**: the new token connector's symbol.
-- **resource weight**: the new token connector's weight.
-- **native virtual balance**: the related base token connector's virtual balance. 
-- **native weight**: base token's weight.
+- **PairConnectorParam**
+  - **resource connector symbol**: the new token connector's symbol.
+  - **resource weight**: the new token connector's weight.
+  - **native virtual balance**: the related base token connector's virtual balance.
+  - **native weight**: base token's weight.
 
 ## **EnableConnector**
 
-To make the connection work, the connector contoller need send this transaction.
-
 ```Protobuf
-rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
-}
+rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty){}
 
 message ToBeConnectedTokenInfo{
     string token_symbol = 1;
@@ -82,29 +74,26 @@ message ToBeConnectedTokenInfo{
 }
 ```
 
-**ToBeConnectedTokenInfo**:
+To make the connection work, the connector contoller need send this transaction.
 
-- **token symbol**: the token symbol.
-- **amount to token convert**: to make the token trade, maybe you need deposit some base token.
+- **ToBeConnectedTokenInfo**
+  - **token symbol**: the token symbol.
+  - **amount to token convert**: to make the token trade, maybe you need deposit some base token.
 
 ## **UpdateConnector**
 
-Before calling the EnableConnector, the connector contoller update the pair connctors' information.
-
 ```Protobuf
-rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
-}
+rpc UpdateConnector(Connector) returns (google.protobuf.Empty){}
 ```
+
+Before calling the EnableConnector, the connector contoller update the pair connctors' information.
 
 note: *for Connector see Initialize*
 
 ## **Buy**
 
-After building the connection and enabling it, you can buy the new token with the base token.
-
 ```Protobuf
-rpc Buy (BuyInput) returns (google.protobuf.Empty) {
-}
+rpc Buy (BuyInput) returns (google.protobuf.Empty){}
 
 message BuyInput {
     string symbol = 1;
@@ -113,19 +102,17 @@ message BuyInput {
 }
 ```
 
-**BuyInput**:
+After building the connection and enabling it, you can buy the new token with the base token.
 
-- **symbol**: the token symbol.
-- **amount**: the amount you want to buy.
-- **pay limit**: no buy if paying more than this, 0 if no limit.
+- **BuyInput**
+  - **symbol**: the token symbol.
+  - **amount**: the amount you want to buy.
+  - **pay limit**: no buy if paying more than this, 0 if no limit.
 
 ## **Sell**
 
-After building the connection and enabling it, you can sell the new token.
-
 ```Protobuf
-rpc Sell (SellInput) returns (google.protobuf.Empty) {
-}
+rpc Sell (SellInput) returns (google.protobuf.Empty){}
 
 message SellInput {
     string symbol = 1;
@@ -134,19 +121,17 @@ message SellInput {
 }
 ```
 
-**SellInput**:
+After building the connection and enabling it, you can sell the new token.
 
-- **symbol**: the token symbol.
-- **amount**: the amount you want to sell.
-- **receive limit**: no sell if receiving less than this, 0 if no limit.
+- **SellInput**
+  - **symbol**: the token symbol.
+  - **amount**: the amount you want to sell.
+  - **receive limit**: no sell if receiving less than this, 0 if no limit.
 
 ## **ChangeConnectorController**
 
-The controller can be transfer to others.
-
 ```Protobuf
-rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-}
+rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -154,10 +139,11 @@ message AuthorityInfo {
 }
 ```
 
-**AuthorityInfo**:
+The controller can be transferred to others.
 
-- **contract address**: new controller's contract address.
-- **owner address**: new controller's address.
+- **AuthorityInfo**
+  - **contract address**: new controller's contract address.
+  - **owner address**: new controller's address.
 
 ## ACS1 Implementation
 
@@ -165,11 +151,8 @@ For reference, you can find here the methods implementing acs1.
 
 ### SetMethodFee
 
-It sets method fee.
-
 ```Protobuf
-rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty){
-}
+rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty){}
 
 message MethodFees {
     string method_name = 1;
@@ -182,23 +165,20 @@ message MethodFee {
 }
 ```
 
-**MethodFees**:
+It sets method fee.
 
-- **method name** the method name in this contract.
-- **fees** fee list.
+- **MethodFees**
+  - **method name**: the method name in this contract.
+  - **fees**: fee list.
 
-**MethodFee**:
-
-- **symbol** token symbol.
-- **basic fee** fee.
+- **MethodFee**
+  - **symbol** token symbol.
+  - **basic fee** fee.
 
 ### ChangeMethodFeeController
 
-Change the method fee controller, the default is Parliament.
-
 ```Protobuf
-rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
-}
+rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -206,18 +186,16 @@ message AuthorityInfo {
 }
 ```
 
-**AuthorityInfo**:
+Change the method fee controller, the default is Parliament.
 
-- **contract address**: new controller's contract address.
-- **owner address**: new controller's address.
+- **AuthorityInfo**
+  - **contract address**: new controller's contract address.
+  - **owner address**: new controller's address.
 
 ### GetMethodFee
 
-This mehtod is used to query the method fee information.
-
 ```Protobuf
-rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) {
-}
+rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees){}
 
 message MethodFees {
     string method_name = 1;
@@ -225,21 +203,22 @@ message MethodFees {
 }
 ```
 
+This mehtod is used to query the method fee information.
+
 note: *for MethodFees see SetMethodFee*
 
 ### GetMethodFeeController
 
-This mehtod is used to query the method fee information.
-
 ```Protobuf
-rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityInfo) { 
-}
+rpc GetMethodFeeController (google.protobuf.Empty) returns (acs1.AuthorityInfo){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
     aelf.Address owner_address = 2;
 }
 ```
+
+This mehtod is used to query the controller of the method fee.
 
 note: *for AuthorityInfo see ChangeMethodFeeController*
 
@@ -249,28 +228,23 @@ For reference, you can find here the available view methods.
 
 ### GetFeeReceiverAddress
 
-This method is used to query a the fee receiver.
-
 ```Protobuf
-rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
-}
+rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address){}
 
 message Address{
     bytes value = 1;
 }
 ```
 
-**returns**:
+This method is used to query the fee receiver.
 
-- **value** the receiver's address, the half fee is burned and the other half is transferred to receiver.
+- **Returns**
+  - **value** the receiver's address, the half fee is burned and the other half is transferred to receiver.
 
 ### GetControllerForManageConnector
 
-This method is used to query the controller.
-
 ```Protobuf
-rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
-}
+rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo){}
 
 message AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -278,15 +252,14 @@ message AuthorityInfo {
 }
 ```
 
+his method is used to query the controller of the connector.
+
 note: *for AuthorityInfo see ChangeConnectorController*
 
 ### GetPairConnector
 
-This method is used to get the connection information between the base token and other token, which inlcudes a pair connctors.
-
 ```Protobuf
-rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
-}
+rpc GetPairConnector (TokenSymbol) returns (PairConnector){}
 
 message TokenSymbol {
     string symbol = 1;
@@ -298,58 +271,51 @@ message PairConnector{
 }
 ```
 
-**TokenSymbol**:
+This method is used to get the connection information between the base token and other token, which inlcudes a pair connctors.
 
-- **symbol**: the token symbol.
+- **TokenSymbol**
+  - **symbol**: the token symbol.
 
-**returns**:
-
-- **resource connector**: the new add token connector.
-- **deposit connector**: the corresponding base token connector.
+- **Returns**
+  - **resource connector**: the new add token connector.
+  - **deposit connector**: the corresponding base token connector.
 
 note: *for Connector see Initialize*
 
 ### GetFeeRate
 
-This method is used to query the fee rate.
-
 ```Protobuf
-rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
-}
+rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue){}
 
 message StringValue {
   string value = 1;
 }
 ```
 
-**returns**:
+This method is used to query the fee rate.
 
-- **value**: the fee rate.
+- **Returns**
+  - **value**: the fee rate.
 
 ### GetBaseTokenSymbol
 
-This method is used to query the base token symbol.
-
 ```Protobuf
-rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
-}
+rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol){}
 
 message TokenSymbol {
   string symbol = 1;
 }
 ```
 
-**returns**:
+This method is used to query the base token symbol.
 
-- **symbol**: the token symbol.
+- **Returns**:
+  - **symbol**: the token symbol.
 
 ### GetBaseGetNeededDeposit
 
-This method is used to query how much the base token need be deposited before enabling the connectors.
-
 ```Protobuf
-rpc GetNeededDeposit(ToBeConnectedTokenInfo) returns (DepositInfo) {
-}
+rpc GetNeededDeposit(ToBeConnectedTokenInfo) returns (DepositInfo){}
 
 message ToBeConnectedTokenInfo{
     string token_symbol = 1;
@@ -362,23 +328,20 @@ message DepositInfo{
 }
 ```
 
-**ToBeConnectedTokenInfo**:
+This method is used to query how much the base token need be deposited before enabling the connectors.
 
-- **token symbol**: the token symbol.
-- **amount to token convert**: the added token amount you decide to transfer to TokenConvert.
+- **ToBeConnectedTokenInfo**
+  - **token symbol**: the token symbol.
+  - **amount to token convert**: the added token amount you decide to transfer to TokenConvert.
 
-**returns**:
-
-- **need amount**: besides the amount you transfer to TokenConvert, how much base token you need deposit.
-- **amount out of token convert**: how much the added token have not transferred to TokenConvert.
+- **Returns**
+  - **need amount**: besides the amount you transfer to TokenConvert, how much base token you need deposit.
+  - **amount out of token convert**: how much the added token have not transferred to TokenConvert.
 
 ### GetDepositConnectorBalance
 
-This method is used to query how much the base token have been deposited.
-
 ```Protobuf
-rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
-}
+rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){}
 
 message StringValue {
   string value = 1;
@@ -389,10 +352,10 @@ message Int64Value {
 }
 ```
 
-**StringValue**:
+This method is used to query how much the base token have been deposited.
 
-- **value**: the token symbol.
+- **StringValue**:
+  - **value**: the token symbol.
 
-**returns**:
-
-- **value**: indicates for this token how much the base token have been deposited.
+- **Returns**:
+  - **value**: indicates for this token how much the base token have been deposited.

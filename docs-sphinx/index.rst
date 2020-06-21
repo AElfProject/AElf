@@ -13,43 +13,64 @@ Welcome to first doc's documentation!
 .. toctree::
    :caption: Getting Started
 
-   getting-started/index
+   Development Environment <getting-started/development-environment/index>
+   Smart Contract Development <getting-started/smart-contract-development/index>
 
 
 .. toctree::
    :caption: Tutorials
 
-   tutorials/index
+   AElf Blockchain Boot Sequence <tutorials/boot-sequence>
+   Joining AElf's MainNet/TestNet <tutorials/testnet>
+   Running a side chain <tutorials/cross-chain/index>
+   Running AElf on the cloud <tutorials/cloud/index>
+   Smart Contract Developing Demos <tutorials/smart-contract-demos/index>
 
 
 .. toctree::
    :caption: Protocol
 
-   protocol/index
+   Consensus <protocol/consensus>
+   Network <protocol/network>
+   Addresses <protocol/addresses>
+   Transactions <protocol/transactions>
+   Blocks <protocol/blocks>
+   AElf Contract Standards(ACS) <protocol/acs>
 
 
 .. toctree::
    :caption: Architecture
 
-   architecture/index
+   Core <architecture/core/index>
+   Cross-chain <architecture/cross-chain/index>
+   Smart contract <architecture/smart-contract/index>
 
 
 .. toctree::
    :caption: Reference
 
-   reference/index
+   Web API <reference/web-api/web-api>
+   Chain SDK <reference/chain-sdk/index>
+   Contract SDK <reference/contract-sdk/index>
+   Smart Contract API <reference/smart-contract-api/index>
+   Acs Introduction <reference/acs/index>
+   Command-line Interface <reference/cli/index>
 
 
 .. toctree::
    :caption: Resources
 
-   resources/index
+   Wallet and Block Explorer <resources/wallet-and-explorer/index>
+   Browser Extension <resources/browser-extension>
+   DevOps <resources/devops/devops>
+   AElf White Paper <https://aelf.io/gridcn/aelf_whitepaper_EN.pdf>
+   AElf Economic System White Paper <https://aelf.io/gridcn/aelf_economic_system_whitepaper_en_v1.0.pdf>
 
 
 .. toctree::
    :hidden:
    
-   tutorials/boot-sequence/cross-chain/running-side-chain
+   tutorials/cross-chain/running-side-chain
    tutorials/__run-node
    reference/cli/cli
    getting-started/smart-contract-development/developing-smart-contracts/index
