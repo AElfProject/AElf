@@ -154,7 +154,7 @@ message CandidateInformation {
 
 Gets a candidate's information. If the candidate does not exist, it will return a candidate without any information.
 
-- **StringValue**:
+- **StringValue**
   - **value**: public key (hexadecimal string) of the candidate.
 
 - **Returns**
@@ -332,7 +332,7 @@ Gets the information about a voter including the votes (excluding withdrawal inf
   - **withdrawn votes records**: no records in this api.
   - **pubkey**: voter public key (byte string).
 
-- **ElectionVotingRecord**:
+- **ElectionVotingRecord**
   - **voter**: voter address.
   - **candidate**: public key.
   - **amount**: vote amount.

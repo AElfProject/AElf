@@ -79,9 +79,7 @@ message AuthorityInfo {
 
 Change the method fee controller, the default is Parliament.
 
-- **AuthorityInfo**
-  - **contract address**: new controller's contract address.
-  - **owner address**: new controller's address.
+note: *for AuthorityInfo see ChangeConfigurationController*
 
 ### GetMethodFee
 

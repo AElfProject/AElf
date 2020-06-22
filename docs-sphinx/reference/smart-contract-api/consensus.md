@@ -163,36 +163,7 @@ Gets the current round's information.
  rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round){}
 ```
 
-- **Returns**
-  - **round number**: round number.
-  - **real time miners information**: public key => miner information.
-  - **main chain miners round number**: is not used.
-  - **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second.
-  - **extra block producer of previous round**: the public key (hexadecimal string) of the first miner, who comes from the last term, in the current term.
-  - **term number**: the current term number.
-  - **confirmed irreversible block height**: irreversible block height.
-  - **confirmed irreversible block round number**: irreversible block round number.
-  - **is miner list just changed**: is miner list different from the the miner list in the previous round.
-  - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
-
-- **MinerInRound**
-  - **order**: the order of miners producing block.
-  - **is extra block producer**: The miner who is the first miner in the first round of each term.
-  - **in value**: the previous miner's public key.
-  - **out value**: the post miner's public key.
-  - **signature**: self signature.
-  - **expected mining time**: expected mining time.
-  - **produced blocks**: produced blocks.
-  - **missed time slots**: missed time slots.
-  - **pubkey**: public key string.
-  - **previous in value**: previous miner's previous miner's public key.
-  - **supposed order of next round**: evaluated order in next round.
-  - **final order of next round**: the real order in the next round.
-  - **actual mining times**: the real mining time.
-  - **encrypted pieces**: public key (miners in the current round) =>  message encrypted by shares information and public key(represented by hexadecimal string).
-  - **decrypted pieces**: the message of miners in the previous round.
-  - **produced tiny blocks**: produced tiny blocks.
-  - **implied irreversible block height**: miner records a irreversible block height.
+note: *for Round see GetRoundInformation*
 
 ### GetPreviousRoundInformation
 
@@ -202,36 +173,7 @@ Gets the previous round information.
 rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round){}
 ```
 
-- **Returns**
-  - **round number**: round number.
-  - **real time miners information**: public key => miner information.
-  - **main chain miners round number**: is not used.
-  - **blockchain age**: current time minus block chain start time stamp (if the round number is 1, the block chain age is 1), represented by second. 
-  - **extra block producer of previous round**: the public key(hexadecimal string) of the first miner, who comes from the last term, in the current term.
-  - **term number**: the current term number.
-  - **confirmed irreversible block height**: irreversible block height.
-  - **confirmed irreversible block round number**: irreversible block round number.
-  - **is miner list just changed**: is miner list different from the the miner list in the previous round.
-  - **round id for validation**: round id, calculated by summing block producers' expecting time(second).
-
-- **MinerInRound**
-  - **order**: the order of miners producing block.
-  - **is extra block producer**: The miner who is the first miner in the first round of each term.
-  - **in value**: the previous miner's public key.
-  - **out value**: the post miner's public key.
-  - **signature**: self signature.
-  - **expected mining time**: expected mining time.
-  - **produced blocks**: produced blocks.
-  - **missed time slots**: missed time slots.
-  - **pubkey**: public key string.
-  - **previous in value**: previous miner's previous miner's public key.
-  - **supposed order of next round**: evaluated order in next round.
-  - **final order of next round**: the real order in the next round.
-  - **actual mining times**: the real mining time.
-  - **encrypted pieces**: public key (miners in the current round) =>  message encrypted by shares information and public key(represented by hexadecimal string).
-  - **decrypted pieces**: the message of miners in the previous round.
-  - **produced tiny blocks**: produced tiny blocks.
-  - **implied irreversible block height**: miner records a irreversible block height.
+note: *for Round see GetRoundInformation*
 
 ### GetCurrentTermNumber
 
