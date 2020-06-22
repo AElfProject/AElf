@@ -2,7 +2,9 @@
 
 This contract's controller(the default is parliament) is able to save data(configuration) on the block chain.
 
-## **SetConfiguration**
+## **Actions**
+
+### **SetConfiguration**
 
 ```Protobuf
 rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty){}
@@ -19,7 +21,7 @@ This method is used to add or reset configurations.
   - **key**: the configuration's key.
   - **value**: the configuration's value(bianry data).
 
-## **ChangeConfigurationController**
+### **ChangeConfigurationController**
 
 ```Protobuf
 rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty){}
@@ -36,7 +38,7 @@ The controller can be transfer to others.
   - **contract address**: new controller's contract address.
   - **owner address**: new controller's address.
 
-## ACS1 Implementation
+## **Acs1 specific methods**
 
 For reference, you can find here the methods implementing acs1.
 
@@ -111,7 +113,7 @@ This mehtod is used to query the method fee information.
 
 note: *for AuthorityInfo see ChangeMethodFeeController*
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 

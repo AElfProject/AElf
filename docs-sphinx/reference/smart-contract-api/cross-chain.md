@@ -1,14 +1,10 @@
 # Cross Chain Contract
 
-## Functions
-
-### Detailed Description
-
 Defines C# API functions for cross chain contract.
 
-## Functions Documentation
+## **Actions**
 
-### function ProposeCrossChainIndexing
+### ProposeCrossChainIndexing
 
 ```protobuf
 rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {}
@@ -69,7 +65,7 @@ Propose once cross chain indexing.
 - **CrossChainExtraData**
   - **transaction_status_merkle_tree_root**: the hash value of merkle tree root.
 
-### function GetPendingCrossChainIndexingProposal
+### GetPendingCrossChainIndexingProposal
 
 ```protobuf
 rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {}
@@ -120,7 +116,7 @@ Get pending cross chain indexing proposal info.
 
 note: *for CrossChainBlockData see ProposeCrossChainIndexing*
 
-### function ReleaseCrossChainIndexing
+### ReleaseCrossChainIndexing
 
 ```protobuf
 rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {}
@@ -130,7 +126,7 @@ Release cross chain indexing proposal and side chain will be created.
 
 - **Hash**: Cross chain indexing proposal id.
 
-### function Initialize
+### Initialize
 
 ```protobuf
 rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
@@ -150,7 +146,7 @@ Initialize cross-chain-contract.
   - **creation_height_on_parent_chain**: height of side chain creation on parent chain
   - **is_privilege_preserved**: true if chain privilege needed, otherwise false 
 
-### function RequestSideChainCreation
+### RequestSideChainCreation
 
 ```protobuf
 rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){}
@@ -190,7 +186,7 @@ Request side chain creation.
   - **side_chain_token_initial_issue_list**: a list of accounts and amounts that will be issued when the chain starts.
   - **initial_resource_amount**: the initial rent resources.
 
-### function ReleaseSideChainCreation
+### ReleaseSideChainCreation
 
 ```protobuf
 rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){}
@@ -205,7 +201,7 @@ Release side chain creation ant side chain creation proposal will be created.
 - **ReleaseSideChainCreationInput**
   - **proposal_id**: side chain creation proposal id
 
-### function CreateSideChain
+### CreateSideChain
 
 ```protobuf
 rpc CreateSideChain (CreateSideChainInput) returns (google.protobuf.Int32Value) {}
@@ -246,7 +242,7 @@ note: *for SideChainCreationRequest see RequestSideChainCreation*
 - **Returns**
 Id of a new side chain
 
-### function SetInitialSideChainLifetimeControllerAddress
+### SetInitialSideChainLifetimeControllerAddress
 
 ```protobuf
 rpc SetInitialSideChainLifetimeControllerAddress(aelf.Address) returns (google.protobuf.Empty){}
@@ -257,7 +253,7 @@ Sets the initial **SideChainLifetimeController** address which should be parliam
 
 - **Address** : the owner's address.
 
-### function SetInitialIndexingControllerAddress
+### SetInitialIndexingControllerAddress
 
 ```protobuf
 rpc SetInitialIndexingControllerAddress(aelf.Address) returns (google.protobuf.Empty){}
@@ -268,7 +264,7 @@ Sets the initial **CrossChainIndexingController** address which should be parlia
 
 - **Address**: the owner's address.
 
-### function ChangeCrossChainIndexingController
+### ChangeCrossChainIndexingController
 
 ```protobuf
 rpc ChangeCrossChainIndexingController(acs1.AuthorityInfo) returns (google.protobuf.Empty) { }
@@ -285,12 +281,12 @@ Changes the cross chain indexing controller.
   - **contract_address**: the address of the contract that generated the controller.
   - **owner_address**: the address of the controller.
 
-### function GetCrossChainIndexingController
+## **View methods**
+
+### GetCrossChainIndexingController
 
 ```protobuf
-rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
-        option (aelf.is_view) = true;
-}
+rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (acs1.AuthorityInfo){}
 
 message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -302,10 +298,10 @@ Get indexing fee adjustment controller for specific side chain.
 
 note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
-### function ChangeSideChainLifetimeController
+### ChangeSideChainLifetimeController
 
 ```protobuf
-rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty) { }
+rpc ChangeSideChainLifetimeController(acs1.AuthorityInfo) returns (google.protobuf.Empty){}
 
 message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -317,12 +313,10 @@ Changes the side chain's lifetime controller.
 
 note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
-### function GetSideChainLifetimeController
+### GetSideChainLifetimeController
 
 ```protobuf
-rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
-        option (aelf.is_view) = true;
-}
+rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (acs1.AuthorityInfo){}
 
 message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -334,12 +328,10 @@ Get the side chain's lifetime controller.
 
 note: *for AuthorityInfo see ChangeCrossChainIndexingController*.
 
-### function GetSideChainIndexingFeeController
+### GetSideChainIndexingFeeController
 
 ```protobuf
-rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (acs1.AuthorityInfo){
-        option (aelf.is_view) = true;
-}
+rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (acs1.AuthorityInfo){}
 
 message acs1.AuthorityInfo {
     aelf.Address contract_address = 1;
@@ -353,7 +345,7 @@ Get side chain indexing fee.
 
 note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
-### function ChangeSideChainIndexingFeeController
+### ChangeSideChainIndexingFeeController
 
 ```protobuf
 rpc ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput) returns (google.protobuf.Empty){}
@@ -377,12 +369,10 @@ Changes indexing fee adjustment controller for specific side chain.
     - **contract_address**: the address of the contract that generated the controller.
     - **owner_address**: the address of the controller.
 
-### function GetSideChainIndexingFeePrice
+### GetSideChainIndexingFeePrice
 
 ```protobuf
-rpc GetSideChainIndexingFeePrice(google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-}
+rpc GetSideChainIndexingFeePrice(google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
 
 ```
 
@@ -393,8 +383,7 @@ Get side chain indexing fee.
 - **Returns**
   - **value**: indexing fee price
 
-
-### function Recharge
+### Recharge
 
 ```protobuf
 rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {}
@@ -410,10 +399,10 @@ Recharge for specified side chain.
   - **chain_id**: id of the side chain
   - **amount**: the token amount to recharge
 
-### function RecordCrossChainData
+### RecordCrossChainData
 
 ```protobuf
-rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {}
+rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty){}
 
 message RecordCrossChainDataInput{
     CrossChainBlockData proposed_cross_chain_data = 1;
@@ -455,7 +444,7 @@ Index block data of parent chain and side chain. Only **CrossChainIndexingContro
 
 note: *for CrossChainBlockData see ProposeCrossChainIndexing*
 
-### function AdjustIndexingFeePrice
+### AdjustIndexingFeePrice
 
 ```protobuf
 rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){}
@@ -472,11 +461,10 @@ Adjust side chain indexing fee. Only **IndexingFeeController** is permitted to i
 - **side_chain_id**: side chain id
 - **indexing_fee**: indexing fee to be set
 
-### function DisposeSideChain
+### DisposeSideChain
 
 ```protobuf
-rpc DisposeSideChain (google.protobuf.Int32Value) returns (google.protobuf.Int32Value) {}
-
+rpc DisposeSideChain (google.protobuf.Int32Value) returns (google.protobuf.Int32Value){}
 ```
 
 Dispose the specified side chain. Only **SideChainLifetimeController** is permitted to invoke this method.
@@ -486,7 +474,7 @@ Dispose the specified side chain. Only **SideChainLifetimeController** is permit
 - **Returns**
   - **value**: the id of disposed chain
 
-### function VerifyTransaction
+### VerifyTransaction
 
 ```protobuf
 rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue){}
@@ -510,10 +498,10 @@ Transaction cross chain verification.
 - **Returns**
   - **value**: true if verification succeeded, otherwise false.
 
-### function LockedAddress
+### LockedAddress
 
 ```protobuf
-rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {}
+rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address){}
 ```
 
 Get side chain creator address.
@@ -523,12 +511,10 @@ Get side chain creator address.
 - **Returns**
   - **value**: address of side chain creator.
 
-### function GetChainStatus
+### GetChainStatus
 
 ```protobuf
-rpc GetChainStatus (google.protobuf.Int32Value) returns (GetChainStatusOutput) {
-        option (aelf.is_view) = true;
-}
+rpc GetChainStatus (google.protobuf.Int32Value) returns (GetChainStatusOutput){}
 
 message GetChainStatusOutput{
     SideChainStatus status = 1;
@@ -554,7 +540,7 @@ Current status of side chain.
   - **insufficient fee debt**: debt for indexing fee to be payed off.
   - **terminated**: the side chain cannot be indexed anymore.
 
-### function GetSideChainHeight
+### GetSideChainHeight
 
 ```protobuf
 rpc GetSideChainHeight (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
@@ -567,12 +553,10 @@ Get current height of the specified side chain.
 - **Returns**
   - **value**: current height of the side chain.
 
-### function GetParentChainHeight
+### GetParentChainHeight
 
 ```protobuf
-rpc GetParentChainHeight (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-}
+rpc GetParentChainHeight (google.protobuf.Empty) returns (google.protobuf.Int64Value){}
 ```
 
 Get recorded height of parent chain
@@ -580,7 +564,7 @@ Get recorded height of parent chain
 - **Returns**
   - **value**: height of parent chain.
 
-### function GetParentChainId
+### GetParentChainId
 
 ```protobuf
 rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value){}
@@ -591,7 +575,7 @@ Get id of the parent chain. This interface is only for side chain.
 - **Returns**
   - **value**: parent chain id.
 
-### function GetSideChainBalance
+### GetSideChainBalance
 
 ```protobuf
 rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
@@ -604,7 +588,7 @@ Get the balance for side chain indexing.
 - **Returns**
   - **value**: balance for side chain indexing.
 
-### function GetSideChainIndexingFeeDebt
+### GetSideChainIndexingFeeDebt
 
 ```protobuf
 rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
@@ -617,7 +601,7 @@ Get indexing debt for side chain.
 - **Returns**
   - **value**: side chain indexing debt. Returns zero if no debt.
 
-### function GetSideChainIdAndHeight
+### GetSideChainIdAndHeight
 
 ```protobuf
 rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict){}
@@ -633,7 +617,7 @@ Get id and recorded height of side chains.
 - **Returns**
   - **SideChainIdAndHeightDict**: A map contains id and height of side chains
 
-### function GetSideChainIndexingInformationList
+### GetSideChainIndexingInformationList
 
 ```protobuf
 rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList){}
@@ -655,8 +639,7 @@ Get indexing information of side chains.
 - **Returns**
   - **SideChainIndexingInformationList**: A list contains indexing information of side chains
 
-
-### function GetAllChainsIdAndHeight
+### GetAllChainsIdAndHeight
 
 ```protobuf
 rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict){}
@@ -672,7 +655,7 @@ Get id and recorded height of all chains.
 - **Returns**
   -**SideChainIdAndHeightDict**: A map contains id and height of all chains
 
-### function GetIndexedCrossChainBlockDataByHeight
+### GetIndexedCrossChainBlockDataByHeight
 
 ```protobuf
 rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData){}
@@ -710,7 +693,7 @@ Get indexed cross chain data by height.
 
 note: *for CrossChainBlockData see ProposeCrossChainIndexing*
 
-### function GetIndexedSideChainBlockDataByHeight
+### GetIndexedSideChainBlockDataByHeight
 
 ```protobuf
 rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData){}
@@ -735,7 +718,7 @@ Get block data of indexed side chain by height
 - **Returns**
   - **side_chain_block_data**: block data of side chain.
 
-### function GetBoundParentChainHeightAndMerklePathByHeight
+### GetBoundParentChainHeightAndMerklePathByHeight
 
 ```protobuf
 rpc GetBoundParentChainHeightAndMerklePathByHeight (google.protobuf.Int64Value) returns (CrossChainMerkleProofContext){}
@@ -764,12 +747,12 @@ Get merkle path bound up with side chain
   - **bound_parent_chain_height**: height of parent chain bound up with side chain.
   - **merkle_path_from_parent_chain**: merkle path generated from parent chain.
 
-### function GetChainInitializationData
+### GetChainInitializationData
 
 ```protobuf
 rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData){}
 
-message ChainInitializationData 
+message ChainInitializationData
 {
     int32 chain_id = 1;
     aelf.Address creator = 2;
@@ -801,7 +784,6 @@ message SideChainTokenInitialIssue{
     aelf.Address address = 1;
     int64 amount = 2;
 }
-
 ```
 
 Get initialization data for specified side chain.

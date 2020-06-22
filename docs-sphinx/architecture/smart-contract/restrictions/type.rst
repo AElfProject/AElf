@@ -44,6 +44,10 @@ Type                            Member (Field / Method)        Allowed
 ``ArgumentOutOfRangeException`` ALL                            Allowed
 ``DateTime``                    Partially                      Allowed
 ``DateTime``                    ``Now``, ``UtcNow``, ``Today`` Denied
+``Uri``                         ``TryCreate``					 Allowed
+``Uri``                         ``Scheme``						 Allowed
+``Uri``                         ``UriSchemeHttp`` 			 Allowed
+``Uri``                         ``UriSchemeHttps`` 			 Allowed
 ``void``                        ALL                            Allowed
 ``object``                      ALL                            Allowed
 ``Type``                        ALL                            Allowed
@@ -86,31 +90,23 @@ Types and Members Whitelist in System.Reflection Namespace
 Other Whitelisted Namespaces
 ----------------------------
 
-+------------------+------------------+------------------+---------+
-| Namespace        | Type             | Member           | Allowed |
-+==================+==================+==================+=========+
-| ``System.Linq``  | ALL              | ALL              | Allowed |
-+------------------+------------------+------------------+---------+
-| ``Syst           | ALL              | ALL              | Allowed |
-| em.Collections`` |                  |                  |         |
-+------------------+------------------+------------------+---------+
-| ``System.Colle   | ALL              | ALL              | Allowed |
-| ctions.Generic`` |                  |                  |         |
-+------------------+------------------+------------------+---------+
-| ``               | ALL              | ALL              | Allowed |
-| System.Collectio |                  |                  |         |
-| ns.ObjectModel`` |                  |                  |         |
-+------------------+------------------+------------------+---------+
-| ``System         | ``CultureInfo``  | ``In             | Allowed |
-| .Globalization`` |                  | variantCulture`` |         |
-+------------------+------------------+------------------+---------+
-| ``S              | ``               | ``I              | Allowed |
-| ystem.Runtime.Co | RuntimeHelpers`` | nitializeArray`` |         |
-| mpilerServices`` |                  |                  |         |
-+------------------+------------------+------------------+---------+
-| ``System.Text``  | ``Encoding``     | ``UTF8``,        | Allowed |
-|                  |                  | ``GetByteCount`` |         |
-+------------------+------------------+------------------+---------+
++------------------------------------+-------------------+----------------------+---------+
+| Namespace                          | Type              | Member               | Allowed |
++====================================+===================+======================+=========+
+| ``System.Linq``                    | ALL               | ALL                  | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Collections``             | ALL               | ALL                  | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Collections.Generic``     | ALL               | ALL                  | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Collections.ObjectModel`` | ALL               | ALL                  | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Globalization``           | ``CultureInfo``   | ``InvariantCulture`` | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Runtime.CompilerServices``| ``RuntimeHelpers``| ``InitializeArray``  | Allowed |
++------------------------------------+-------------------+----------------------+---------+
+| ``System.Text``                    | ``Encoding``      | ``UTF8,GetByteCount``| Allowed |
++------------------------------------+-------------------+----------------------+---------+
 
 Allowed Types for Arrays
 ------------------------

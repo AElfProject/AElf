@@ -2,7 +2,9 @@
 
 The Economic contract establishes the economic system of the AElf. When the block chain starts to work, this contract will initialize other contracts related to economic activities.
 
-## **InitialEconomicSystem**
+## **Actions**
+
+### **InitialEconomicSystem**
 
 ```Protobuf
 rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty){}
@@ -29,7 +31,7 @@ It will initialize other contracts related to economic activities (For instance,
   - **mining reward total amount**: It determines how much native token is used to reward the miners.
   - **transaction size fee unit price**: the transaction fee = transaction size * unit fee.
 
-## **IssueNativeToken**
+### **IssueNativeToken**
 
 ```Protobuf
 rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {}
@@ -48,7 +50,7 @@ Only ZeroContract is able to issue the native token.
   - **memo**: memo.
   - **to**: the recipient of the token.
 
-## ACS1 Implementation
+## **Acs1 specific methods**
 
 For reference, you can find here the methods implementing acs1.
 

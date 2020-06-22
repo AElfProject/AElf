@@ -1,5 +1,7 @@
 # Association Contract
 
+## **Actions**
+
 ### **CreateOrganization**
 
 ```Protobuf
@@ -97,7 +99,8 @@ note: *for CreateOrganizationInput see CreateOrganization*
 
 - **Events**
   - **OrganizationCreated**
-    - **organization address**: the address of newly created organization.
+
+note: *for OrganizationCreated see CreateOrganization*
 
 ### **ChangeOrganizationMember**
 
@@ -207,14 +210,10 @@ This method is called to reject the specified proposal.
 
 - **Hash**: id of the proposal.
 
-After a successful execution, a **ReceiptCreated** event log can be found in the transaction result.
-
 - **Events**
   - **ReceiptCreated**
-    - **proposal id**: id of the proposal.
-    - **address**: send address.
-    - **receipt type**: Reject.
-    - **time**: timestamp of this method call.
+
+note: *for ReceiptCreated see Approve*
 
 ### **Abstain**
 
@@ -236,10 +235,8 @@ This method is called to abstain from the specified proposal.
 
 - **Events**
   - **ReceiptCreated**
-    - **proposal id**: id of the proposal.
-    - **address**: send address.
-    - **receipt type**: Abstain.
-    - **time**: timestamp of this method call.
+
+note: *for ReceiptCreated see Approve*
 
 ### **Release**
 
@@ -253,10 +250,8 @@ This method is called to release the specified proposal.
 
 - **Events**
   - **ReceiptCreated**
-    - **proposal id**: id of the proposal.
-    - **address**: send address who votes for abstention.
-    - **receipt type**: Abstain.
-    - **time**: timestamp of this method call.
+
+note: *for ReceiptCreated see Approve*
 
 ### **ChangeOrganizationThreshold**
 
@@ -365,7 +360,7 @@ Checks the existence of an organization.
 - **Returns**
   - **value**: indicates whether the organization exists.
 
-## View methods
+## **View methods**
 
 ### **GetOrganization**
 

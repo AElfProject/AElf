@@ -1,4 +1,4 @@
-# explorer-api
+# Explorer-api
 
 [To get more informantion by code](https://github.com/AElfProject/aelf-block-api)
 

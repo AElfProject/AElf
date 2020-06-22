@@ -2,7 +2,9 @@
 
 The Treasury contract is essentially used for distributing bonus' to voters and candidates during the election process.
 
-## **Donate**
+## **Actions**
+
+### **Donate**
 
 ```Protobuf
 rpc Donate (DonateInput) returns (google.protobuf.Empty){}
@@ -35,7 +37,7 @@ Donates tokens from the caller to the treasury. If the tokens are not native tok
     - **amount**: amount of token.
     - **memo**: memo.
 
-## **Donate all tokens**
+### **Donate all tokens**
 
 ```Protobuf
 rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty){}
@@ -50,7 +52,7 @@ Donate all token (transfer to native token) from caller to the treasury (by call
 - **DonateAllInput**
   - **symbol**: token symbol.
 
-## **SetDistributingSymbolList**
+### **SetDistributingSymbolList**
 
 ```Protobuf
 rpc SetDistributingSymbolList (SymbolList) returns (google.protobuf.Empty){}
@@ -65,7 +67,7 @@ Set a token list that can be used to distribute.
 - **SymbolList**
   - **value**: token symbol list.
 
-## **SetDividendPoolWeightSetting**
+### **SetDividendPoolWeightSetting**
 
 ```Protobuf
 rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){}
@@ -84,7 +86,7 @@ Set weight for the three activities.
   - **backup subsidy weight**: backup subsidy weight.
   - **miner reward weight**: miner reward weight.
 
-## **SetMinerRewardWeightSetting**
+### **SetMinerRewardWeightSetting**
 
 ```Protobuf
 rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){}
@@ -103,7 +105,7 @@ Set weight for the three activities composing of miner reward activity.
   - **votes weight reward weight**: votes weight reward weight.
   - **re-election reward weight**: re-election reward weight.
 
-## **ChangeTreasuryController**
+### **ChangeTreasuryController**
 
 ```Protobuf
 rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {}
@@ -120,7 +122,7 @@ Change the controller who is able to update symbol list and activities' weight a
   - **contract address**: controller type.
   - **owner address**: controller's address.
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 

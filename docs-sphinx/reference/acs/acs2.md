@@ -35,7 +35,7 @@ AElf uses the key-value database to store data. For the data generated during th
 
 For example Token contract‘s State file defines a property MappedState < Address, string, long >Balances, it can be used to access, modify balance.
 
-Assuming that the address of the Token contract is Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE. If you want to know the balance of the address 2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz, you can directly use this key to access redis / ssdb to get its value.
+Assuming that the address of the Token contract is **Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE**. If you want to know the balance of the address **2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz**, you can directly use this key to access redis / ssdb to get its value.
 
 ``` text
 Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE/Balances/2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz/ELF

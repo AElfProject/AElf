@@ -1,14 +1,19 @@
 # Contract Project Requirements
 
 ## Project Properties
-- It is required to add `IsContract` property in your contract project, so that the contract's DLL will be post processed by AElf's contract patcher to perform necessary injections that are required by code checks during deployment. Otherwise, deployment will fail.
+- It is required to add `ContractCode` property in your contract project, so that the contract's DLL will be post processed by AElf's contract patcher to perform necessary injections that are required by code checks during deployment. Otherwise, deployment will fail.
 
 ```xml
 <PropertyGroup>
   <TargetFramework>netstandard2.0</TargetFramework>
   <RootNamespace>AElf.Contracts.MyContract</RootNamespace>
   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  <IsContract>true</IsContract>
+</PropertyGroup>
+
+<PropertyGroup>
+	<ContractCode Include="..\..\protobuf\my_contract.proto">
+            <Link>Protobuf\Proto\my_contract.proto</Link>
+        </ContractCode>
 </PropertyGroup>
 ```
 

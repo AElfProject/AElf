@@ -2,7 +2,9 @@
 
 Using this contract can build a connection between the base token(the default is native token) and other tokens created on the chain. After building the connection, users can trade tokens with the Bancor model. You can find the detail information about Bancor in AElf Economic System White Paper.
 
-## **InitializeInput**
+## **Actions**
+
+### **InitializeInput**
 
 ```Protobuf
 rpc Initialize (InitializeInput) returns (google.protobuf.Empty){}
@@ -42,7 +44,7 @@ We use Bancor model to build the connection between base token and other tokens.
   - **is purchase enabled**: after build a pair connector, you can not buy/sell the token immediately, the default is false.
   - **is deposit account**: indicates if the connector is base token connector.
 
-## **AddPairConnector**
+### **AddPairConnector**
 
 ```Protobuf
 rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){}
@@ -63,7 +65,7 @@ With Bancor model, each new token need a pair connectors to calculate its price.
   - **native virtual balance**: the related base token connector's virtual balance.
   - **native weight**: base token's weight.
 
-## **EnableConnector**
+### **EnableConnector**
 
 ```Protobuf
 rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty){}
@@ -80,7 +82,7 @@ To make the connection work, the connector contoller need send this transaction.
   - **token symbol**: the token symbol.
   - **amount to token convert**: to make the token trade, maybe you need deposit some base token.
 
-## **UpdateConnector**
+### **UpdateConnector**
 
 ```Protobuf
 rpc UpdateConnector(Connector) returns (google.protobuf.Empty){}
@@ -90,7 +92,7 @@ Before calling the EnableConnector, the connector contoller update the pair conn
 
 note: *for Connector see Initialize*
 
-## **Buy**
+### **Buy**
 
 ```Protobuf
 rpc Buy (BuyInput) returns (google.protobuf.Empty){}
@@ -109,7 +111,7 @@ After building the connection and enabling it, you can buy the new token with th
   - **amount**: the amount you want to buy.
   - **pay limit**: no buy if paying more than this, 0 if no limit.
 
-## **Sell**
+### **Sell**
 
 ```Protobuf
 rpc Sell (SellInput) returns (google.protobuf.Empty){}
@@ -128,7 +130,7 @@ After building the connection and enabling it, you can sell the new token.
   - **amount**: the amount you want to sell.
   - **receive limit**: no sell if receiving less than this, 0 if no limit.
 
-## **ChangeConnectorController**
+### **ChangeConnectorController**
 
 ```Protobuf
 rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty){}
@@ -143,7 +145,7 @@ The controller can be transferred to others.
 
 note: *for AuthorityInfo see ChangeMethodFeeController*
 
-## ACS1 Implementation
+## **Acs1 specific methods**
 
 For reference, you can find here the methods implementing acs1.
 
@@ -220,7 +222,7 @@ This mehtod is used to query the controller of the method fee.
 
 note: *for AuthorityInfo see ChangeMethodFeeController*
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 
