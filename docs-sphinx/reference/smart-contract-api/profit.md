@@ -2,7 +2,9 @@
 
 The Profit contract is an abstract layer for creating scheme to share bonus. Developers can build a system to distribute bonus by call this contract.
 
-## **Scheme Creation**
+## **Actions**
+
+### **Scheme Creation**
 
 ```Protobuf
 rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash){}
@@ -44,7 +46,7 @@ This method creates a new scheme based on the **CreateSchemeInput** message.
     - **manager**: manager address.
     - **scheme id**: scheme id.
 
-## **Add sub-scheme**
+### **Add sub-scheme**
 
 ```Protobuf
 rpc AddSubScheme (AddSubSchemeInput) returns (google.protobuf.Empty){}
@@ -63,7 +65,7 @@ Two previously created schemes can be put in a scheme/sub-scheme relation. This 
   - **sub scheme id**: the child scheme ID.
   - **sub scheme shares**: number of shares of the sub-scheme.
 
-## **Remove sub-scheme**
+### **Remove sub-scheme**
 
 ```Protobuf
 rpc RemoveSubScheme (RemoveSubSchemeInput) returns (google.protobuf.Empty) {}
@@ -80,7 +82,7 @@ Removes a sub-scheme from a scheme. Note that only the manager of the parent sch
   - **scheme id**: scheme id
   - **sub scheme id**: sub-scheme id
 
-## **Add beneficiary**
+### **Add beneficiary**
 
 ```Protobuf
 rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty){}
@@ -108,7 +110,7 @@ Adds a beneficiary to a scheme. This beneficiary is either a scheme or another e
   - **beneficiary**: beneficiary address
   - **shares**: shares attributed to this beneficiary.
 
-## **Remove beneficiary**
+### **Remove beneficiary**
 
 ```Protobuf
 rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty){}
@@ -125,7 +127,7 @@ Removes a beneficiary from a scheme.
   - **beneficiary** beneficiary address to be removed
   - **scheme id** scheme id
 
-## **Add beneficiaries**
+### **Add beneficiaries**
 
 ```Protobuf
 rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty){}
@@ -153,7 +155,7 @@ Adds multiple beneficiaries to a scheme until the given end period.
   - **beneficiary**: beneficiary address.
   - **shares**: shares to beneficiary.
 
-## **Remove beneficiaries**
+### **Remove beneficiaries**
 
 ```Protobuf
  rpc RemoveBeneficiaries (RemoveBeneficiariesInput) returns (google.protobuf.Empty){}
@@ -170,7 +172,7 @@ Remove beneficiaries from a scheme.
   - **beneficiaries**: beneficiaries' addresses to be removed.
   - **scheme id**: scheme id.
 
-## **Profit contribution**
+### **Profit contribution**
 
 ```Protobuf
 rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
@@ -191,7 +193,7 @@ Contribute profit to a scheme.
   - **period**: in which term the amount is added.
   - **symbol**: token symbol.
 
-## **Claim profits**
+### **Claim profits**
 
 ```Protobuf
 rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty){}
@@ -210,7 +212,7 @@ Used to claim the profits of a given symbol. The beneficiary is identified as th
   - **symbol**: token symbol.
   - **beneficiary**: optional, claiming profits for another address, transaction fees apply to the caller.
 
-## **Distribute profits**
+### **Distribute profits**
 
 ```Protobuf
 
@@ -233,7 +235,7 @@ should be called by the manager.
   - **amount**: number.
   - **symbol**: token symbol.
 
-## **Reset manager**
+### **Reset manager**
 
 ```Protobuf
 rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty){}
@@ -250,7 +252,7 @@ Reset the manager of a scheme.
   - **scheme id**: scheme id.
   - **new manager**: new manager's address.
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 

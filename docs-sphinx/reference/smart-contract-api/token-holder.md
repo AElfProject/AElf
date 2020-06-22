@@ -2,7 +2,9 @@
 
 The TokenHolder contract is essentially used for building a bouns model for distributing bonus' to whom hold the token.
 
-## **CreateScheme**
+## **Actions**
+
+### **CreateScheme**
 
 ```Protobuf
 rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty){}
@@ -21,7 +23,7 @@ It creates a scheme which stores relevant information about dividend in profit c
   - **minimum** lock time: minimum lock time before withdrawing.
   - **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
 
-## **AddBeneficiary**
+### **AddBeneficiary**
 
 ```Protobuf
 rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Empty){}
@@ -38,7 +40,7 @@ Add a Beneficiary to a scheme.
   - **beneficiary**: the new beneficiary.
   - **shares**: the shares to attribute to this beneficiary.
 
-## **RemoveBeneficiary**
+### **RemoveBeneficiary**
 
 ```Protobuf
 rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protobuf.Empty){}
@@ -56,7 +58,7 @@ Note: this method can be used to remove a beneficiary or update its shares.
   - **beneficiary**: the beneficiary to remove or update.
   - **amount**: 0 to remove the beneficiary. A positive integer, smaller than the current shares.
 
-## **ContributeProfits**
+### **ContributeProfits**
 
 ```Protobuf
 rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
@@ -75,7 +77,7 @@ Contribute some token to a scheme.
   - **amount**: the amount of tokens to contribute.
   - **symbol**: the token to contribute.
 
-## **DistributeProfits**
+### **DistributeProfits**
 
 ```Protobuf
 rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty){}
@@ -92,7 +94,7 @@ Distribute a profit plan, which means its beneficiaries are going to get the sha
   - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager. 
   - **symbol**: the token to contribute.
 
-## **RegisterForProfits**
+### **RegisterForProfits**
 
 ```Protobuf
 rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty){}
@@ -107,7 +109,7 @@ message RegisterForProfitsInput {
   - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
   - **amount**: the amount of tokens to lock (and will correspond to the amount of shares).
 
-## **Withdraw**
+### **Withdraw**
 
 ```Protobuf
 rpc Withdraw (aelf.Address) returns (google.protobuf.Empty){}
@@ -115,7 +117,7 @@ rpc Withdraw (aelf.Address) returns (google.protobuf.Empty){}
 
 This method will withdraw the given address for the Token Holder contract, this will also unlock the previously locked tokens.
 
-## **ClaimProfits**
+### **ClaimProfits**
 
 ```Protobuf
 rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty){}
@@ -134,9 +136,9 @@ The sender withdraws his/her token from the scheme.
   - **beneficiary**: the beneficiary, defaults to the Sender.
   - **symbol**: the symbol to claim.
 
-## View methods
+## **View methods**
 
-## **GetScheme**
+### **GetScheme**
 
 ```Protobuf
 rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) { }

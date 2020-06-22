@@ -2,7 +2,9 @@
 
 The Election contract is essentially used for voting for Block Producers.
 
-## **AnnounceElection**
+## **Actions**
+
+### **AnnounceElection**
 
 ```Protobuf
 rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty){}
@@ -10,7 +12,7 @@ rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty){}
 
 To be a block producer, a user should first register to be a candidate and lock some token as a deposit. If the data center is not full, the user will be added in automatically and get one weight (10 weight limited) for sharing bonus in the future.
 
-## **QuitElection**
+### **QuitElection**
 
 ```Protobuf
 rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty){}
@@ -18,7 +20,7 @@ rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty){}
 
 A candidate is able to quit the election provided he is not currently elected. If you quit successfully, the candidate will get his locked tokens back and will not receive anymore bonus.
 
-## **Vote**
+### **Vote**
 
 ```Protobuf
 rpc Vote (VoteMinerInput) returns (aelf.Hash){}
@@ -45,7 +47,7 @@ Used for voting for a candidate to be elected. The tokens you vote with will be 
 - **Returns**
   - **value**: vote id.
 
-## **ChangeVotingOption**
+### **ChangeVotingOption**
 
 ```Protobuf
 rpc ChangeVotingOption (ChangeVotingOptionInput) returns google.protobuf.Empty){}
@@ -62,7 +64,7 @@ Before the end time, you are able to change your vote target to other candidates
   - **voting vote id**: transaction id.
   - **candidate pubkey**: new candidate public key.
 
-## **Withdraw**
+### **Withdraw**
 
 ```Protobuf
 rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty){}
@@ -78,7 +80,7 @@ After the lock time, your locked tokens will be unlocked and you can withdraw th
 - **Hash**
   - **value**: transaction id.
 
-## **SetVoteWeightProportion**
+### **SetVoteWeightProportion**
 
 ```Protobuf
 rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty){
@@ -96,7 +98,7 @@ Vote weight calcualtion takes in consideration the amount you vote and the lock 
   - **time proportion**: time's weight.
   - **amount proportion**: amount's weight.
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 

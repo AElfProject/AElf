@@ -2,7 +2,7 @@
 
 The Consensus contract is essentially used for managing block producers and synchronizing data.
 
-## view methods
+## **view methods**
 
 For reference, you can find here the available view methods.
 

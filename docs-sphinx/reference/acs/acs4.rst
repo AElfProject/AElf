@@ -187,7 +187,7 @@ project:
 ..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the GetConsensusCommand method of the consensus contract to obtain block information(ConsensusCommand), and use it to update the local consensus scheduler (see IConsensusScheduler implementation).
 ..      - 1. When the node is started;
 
-example
+Example
 -------
 
 You can refer to the implementation of the AEDPoS contract.

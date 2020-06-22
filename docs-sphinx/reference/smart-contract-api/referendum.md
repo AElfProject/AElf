@@ -1,5 +1,7 @@
 # Referendum Contract
 
+## **Actions**
+
 ### **CreateOrganization**
 
 ```Protobuf
@@ -86,7 +88,6 @@ rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty){}
 Used to unlock the tokens that where used for voting.
 
 - **Hash**: proposal id.
-
 
 ## **ACS3 specific methods**
 
@@ -329,7 +330,7 @@ Checks the existence of an organization.
 - **Returns**
   - **BoolValue**: indicates whether the organization exists.
 
-## View methods
+## **View methods**
 
 ### **GetOrganization**
 
@@ -351,10 +352,6 @@ Returns the organization with the provided organization address.
 
 - **Returns**
   - **ProposalReleaseThreshold**: the proposal releash threshold.
-    - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-    - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-    - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-    - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
   - **token**: token used for proposal operations.
   - **organization address**: organization address.
   - **organization hash**: organization id.
