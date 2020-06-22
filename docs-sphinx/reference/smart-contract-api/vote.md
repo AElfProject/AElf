@@ -2,7 +2,9 @@
 
 The Vote contract is an abstract layer for voting. Developers implement concrete voting activities by calling this contract.
 
-## **Voting for Block Producers**
+## **Actions**
+
+### **Voting for Block Producers**
 
 ```Protobuf
 rpc Register (VotingRegisterInput) returns (google.protobuf.Empty){}
@@ -27,7 +29,7 @@ To build a voting activity, the developer should register first.
   - **total snapshot number**: number of terms.
   - **options**: default candidate.
 
-## **Vote**
+### **Vote**
 
 ```Protobuf
 rpc Vote (VoteInput) returns (google.protobuf.Empty){}
@@ -73,7 +75,7 @@ After building successfully a voting activity, others are able to vote.
     - **option**: the candidate's public key.
     - **vote id**: transaction id.
 
-## **Withdraw**
+### **Withdraw**
 
 ```Protobuf
 rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty){
@@ -97,7 +99,7 @@ A voter can withdraw the token after the lock time.
   - **Withdrawn**
     - **vote id**: transaction id.
 
-## **TakeSnapshot**
+### **TakeSnapshot**
 
 ```Protobuf
 rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty){}
@@ -114,7 +116,7 @@ Distributes profits and saves the state every round.
   - **voting item id**: voting activity id.
   - **snapshot number**: the round number.
 
-## **AddOption**
+### **AddOption**
 
 ```Protobuf
 rpc AddOption (AddOptionInput) returns (google.protobuf.Empty){
@@ -132,7 +134,7 @@ Adds an option (a choice) to a voting activity.
   - **voting item id**: vote activity id.
   - **option**: the new option.
 
-## **AddOptions**
+### **AddOptions**
 
 ```Protobuf
 rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty){
@@ -150,7 +152,7 @@ Adds multiple options (choices) to a voting activity.
   - **voting item id**: voting activity id.
   - **option**: the list of new options.
 
-## **RemoveOption**
+### **RemoveOption**
 
 ```Protobuf
 rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty){  
@@ -168,7 +170,7 @@ Removes an option from a voting activity.
   - **voting item id**: voting activity id.
   - **option**: the option to remove.
 
-## **RemoveOptions**
+### **RemoveOptions**
 
 ```Protobuf
 rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty){}
@@ -185,7 +187,7 @@ Removes multiple options from a voting activity.
   - **voting item id**: voting activity id.
   - **option**: the options to remove.
 
-## view methods
+## **View methods**
 
 For reference, you can find here the available view methods.
 

@@ -1,5 +1,7 @@
 # Parliament Contract
 
+## **Actions**
+
 ### **Initialize**
 
 ```Protobuf
@@ -327,7 +329,7 @@ Checks the existence of an organization.
 - **Returns**
   - **BoolValue**: indicates whether the organization exists.
 
-## View methods
+## **View methods**
 
 ### **GetOrganization**
 

@@ -2,7 +2,7 @@
 
 The multi-token contract is most essentially used for managing balances.
 
-## Token life-cycle: creation, issuance and transfer.
+## Token life-cycle: creation, issuance and transfer
 
 These methods constitute the basic functionality needed to maintain balances for tokens. For a full listing of the contracts methods you can check the [Token Contract definition](https://github.com/AElfProject/AElf/blob/master/protobuf/token_contract.proto) on GitHub.
 
