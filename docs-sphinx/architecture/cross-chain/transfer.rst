@@ -3,7 +3,7 @@ Cross chain transfer
 
 Cross chain transfer is one of mostly used cases when it comes to cross
 chain verification. AElf already supports cross chain transfer
-functionalities in contract. This section will explain how to transfer
+functionality in contract. This section will explain how to transfer
 tokens across chains. It assumes a side chain is already deployed and
 been indexed by the main chain.
 
