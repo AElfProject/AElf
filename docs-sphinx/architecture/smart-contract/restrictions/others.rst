@@ -8,6 +8,7 @@
 - AElf's contract patcher will patch method call count observer for your contract. This is used to prevent infinitely method call like recursion. The number of method called in your contract will be counted during transaction execution. The observer will pause transaction execution if the number exceeds 15,000.
 
 - AElf's contract patcher will patch method branch count observer for your contract. This is used to prevent infinitely loop case. The number of code control transfer in your contract will be counted during transaction execution. The observer will pause transaction execution if the number exceeds 15,000. The control transfer opcodes in C# contract are shown as below.
+
 +---------------------------------+
 | Opcode                            |
 +=================================+
