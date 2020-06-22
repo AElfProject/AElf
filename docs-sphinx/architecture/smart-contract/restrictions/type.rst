@@ -44,6 +44,10 @@ Type                            Member (Field / Method)        Allowed
 ``ArgumentOutOfRangeException`` ALL                            Allowed
 ``DateTime``                    Partially                      Allowed
 ``DateTime``                    ``Now``, ``UtcNow``, ``Today`` Denied
+``Uri``                         ``TryCreate``					 Allowed
+``Uri``                         ``Scheme``						 Allowed
+``Uri``                         ``UriSchemeHttp`` 			 Allowed
+``Uri``                         ``UriSchemeHttps`` 			 Allowed
 ``void``                        ALL                            Allowed
 ``object``                      ALL                            Allowed
 ``Type``                        ALL                            Allowed

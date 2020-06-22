@@ -10,8 +10,7 @@ provide the official link with full instructions.
 
 This page is divided into two sections: the first concerns the common
 dependencies that are needed for running a node. The second shows the
-extra dependencies needed for building the sources and/or smart contract
-development.
+extra dependencies needed for building the sources and development tools.
 
 Common dependencies
 -------------------
@@ -135,9 +134,9 @@ sudo make install
 Building sources and development tools
 --------------------------------------
 
-{% hint style="info" %} You only need to follow this section if you
+You only need to follow this section if you
 intend to build aelf from the sources available on Github or if you plan
-on doing smart contract development. {% endhint %}
+on doing smart contract development. 
 
 ### Windows build tools
 

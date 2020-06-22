@@ -14,9 +14,7 @@ The following content will walk you through the basics of writing a smart contra
 
 The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` method that simply logs to the console and returns a "Hello World" message and a more sophisticated ```GreetTo``` method that records every greeting it receives and returns the greeting message as well as the time of the greeting.
 
-{% hint style="info" %} 
 This tutorial shows you how to develop a smart contract with the C# contract SDK; you can find you more [here](../../../reference/contract-sdk/csharp/contract-sdk.md). Boilerplate will automatically add the reference to the SDK. 
-{% endhint %} 
 
 ### Defining the contract
 
@@ -53,9 +51,7 @@ Boilerplate
             └── ...
 ```
 
-{% hint style="info" %} 
 The "protobuf" folder already contains a certain amount of contract definitions, including tutorial examples, system contracts. You'll also notice it contains AElf Contract Standard definitions that are also defined the same way as contracts. Lastly, it also contains **options.proto** and **core.proto** that contain fundamental types for developing smart contracts, more on this later. 
-{% endhint %} 
 
 **Best practices:**
 - place your contract definition in Boilerplate's **protobuf** folder.
