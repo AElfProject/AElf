@@ -84,9 +84,9 @@ Not Allowed:
 +---------------------------------+
 | ``MapField<T, T>``              |
 +---------------------------------+
-| ``ReadonlyCollection<T>`` \*    |
+| ``ReadonlyCollection<T>``       |
 +---------------------------------+
-| ``ReadonlyDictionary<T, T>`` \* |
+| ``ReadonlyDictionary<T, T>``    |
 +---------------------------------+
 
 \* T can only be primitive type
@@ -189,9 +189,9 @@ constructor only.
 +---------------------------------+
 | ``MapField<T, T>``              |
 +---------------------------------+
-| ``ReadonlyCollection<T>`` \*    |
+| ``ReadonlyCollection<T>``       |
 +---------------------------------+
-| ``ReadonlyDictionary<T, T>`` \* |
+| ``ReadonlyDictionary<T, T>``    |
 +---------------------------------+
 
 \* T can only be primitive type
