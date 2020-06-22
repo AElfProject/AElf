@@ -54,18 +54,20 @@ Propose once cross chain indexing.
 
 - **SideChainBlockData**
   - **height**: height of side chain block.
-  - **block_header_hash** : hash of side chain block.
-  - **transaction_merkle_tree_root** : merkle tree root computing from transactions status in side chain block.
-  - **chain_id** : id of side chain.
+  - **block_header_hash**: hash of side chain block.
+  - **transaction_merkle_tree_root**: merkle tree root computing from transactions status in side chain block.
+  - **chain_id**: id of side chain.
 
 - **ParentChainBlockData**
-  - **height** : height of parent chain.
-  - **cross_chain_extra_data**
-    - **transaction_status_merkle_tree_root** : the merkle tree root computing from side chain roots.
-  - **chain_id** : parent chain id.
-  - **transaction_status_merkle_root** : merkle tree root computing from transactions status in parent chain block.
-  - **indexed_merkle_path** : \<block height, merkle path> key-value map.
-  - **extra_data** : extra data map.
+  - **height**: height of parent chain.
+  - **cross_chain_extra_data**: the merkle tree root computing from side chain roots.
+  - **chain_id**: parent chain id.
+  - **transaction_status_merkle_root**: merkle tree root computing from transactions status in parent chain block.
+  - **indexed_merkle_path**: \<block height, merkle path> key-value map.
+  - **extra_data**: extra data map.
+
+- **CrossChainExtraData**
+  - **transaction_status_merkle_tree_root**: the hash value of merkle tree root.
 
 ### function GetPendingCrossChainIndexingProposal
 
@@ -116,6 +118,8 @@ Get pending cross chain indexing proposal info.
   - **proposed_cross_chain_block_data**: cross chain data proposed.
   - **expired_time**: proposal expiration time.
 
+note: *for CrossChainBlockData see ProposeCrossChainIndexing*
+
 ### function ReleaseCrossChainIndexing
 
 ```protobuf
@@ -142,9 +146,9 @@ message InitializeInput
 Initialize cross-chain-contract.
 
 - **InitializeInput**
-  - **parent_chain_id** - id of parent chain
-  - **creation_height_on_parent_chain** - height of side chain creation on parent chain
-  - **is_privilege_preserved** - true if chain privilege needed, otherwise false 
+  - **parent_chain_id**: id of parent chain
+  - **creation_height_on_parent_chain**: height of side chain creation on parent chain
+  - **is_privilege_preserved**: true if chain privilege needed, otherwise false 
 
 ### function RequestSideChainCreation
 
@@ -168,11 +172,6 @@ message SideChainCreationRequest {
 message SideChainTokenInitialIssue{
     aelf.Address address = 1;
     int64 amount = 2;
-}
-
-message ProposalCreated{
-    option (aelf.is_event) = true;
-    aelf.Hash proposal_id = 1;
 }
 ```
 
@@ -204,7 +203,7 @@ message ReleaseSideChainCreationInput {
 Release side chain creation ant side chain creation proposal will be created.
 
 - **ReleaseSideChainCreationInput**
-  - **proposal_id** - side chain creation proposal id
+  - **proposal_id**: side chain creation proposal id
 
 ### function CreateSideChain
 
@@ -239,19 +238,10 @@ message SideChainTokenInitialIssue {
 Create a new side chain, this is be triggered by an organization address. 
 
 - **CreateSideChainInput**
-  - **proposer** the proposer of the proposal that triggered this method.
-  - **SideChainCreationRequest**
-    - **indexing_price**: indexing fee.
-    - **locked_token_amount**: initial locked balance for a new side chain.
-    - **is_privilege_preserved**: creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
-    - **side_chain_token_symbol**: side chain token symbol.
-    - **side_chain_token_name**: side chain token name.
-    - **side_chain_token_total_supply**:  total supply of side chain token.
-    - **side_chain_token_decimals**: sÏide chain token decimal.
-    - **is_side_chain_token_burnable**: side chain token burnable flag.
-    - **is_side_chain_token_profitable**: a flag to indicate wether the chain is profitable or not.
-    - **side_chain_token_initial_issue_list**: a list of accounts and amounts that will be issued when the chain starts.
-    - **initial_resource_amount**: the initial rent resources.
+  - **proposer**: the proposer of the proposal that triggered this method.
+  - **SideChainCreationRequest**: the parameters of creating side chain.
+
+note: *for SideChainCreationRequest see RequestSideChainCreation*
 
 - **Returns**
 Id of a new side chain
@@ -310,9 +300,7 @@ message acs1.AuthorityInfo {
 
 Get indexing fee adjustment controller for specific side chain.
 
-- **Returns**
-  - **contract_address**: the address of the contract that generated the controller.
-  - **owner_address**: the address of the controller.
+note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
 ### function ChangeSideChainLifetimeController
 
@@ -327,9 +315,7 @@ message acs1.AuthorityInfo {
 
 Changes the side chain's lifetime controller.
 
-- **acs1.AuthorityInfo**
-  - **contract_address**: the address of the contract that generated the controller.
-  - **owner_address**: the address of the controller.
+note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
 ### function GetSideChainLifetimeController
 
@@ -346,9 +332,7 @@ message acs1.AuthorityInfo {
 
 Get the side chain's lifetime controller.
 
-- **Returns**
-  - **contract_address**: the address of the contract that generated the controller.
-  - **owner_address**: the address of the controller.
+note: *for AuthorityInfo see ChangeCrossChainIndexingController*.
 
 ### function GetSideChainIndexingFeeController
 
@@ -367,9 +351,7 @@ Get side chain indexing fee.
 
 - **Int32Value**: side chain id
 
-- **Returns**
-  - **contract_address**: the address of the contract that generated the controller.
-  - **owner_address**: the address of the controller.
+note: *for AuthorityInfo see ChangeCrossChainIndexingController*
 
 ### function ChangeSideChainIndexingFeeController
 
@@ -468,21 +450,10 @@ message CrossChainExtraData {
 Index block data of parent chain and side chain. Only **CrossChainIndexingController** is permitted to invoke this method.
 
 - **RecordCrossChainDataInput**
-  - **CrossChainBlockData**
-    - **SideChainBlockData**
-      - **height**: height of side chain block.
-      - **block_header_hash**: hash of side chain block.
-      - **transaction_merkle_tree_root**: merkle tree root computing from transactions status in side chain block.
-      - **chain_id**: id of side chain.
+  - **CrossChainBlockData**: cross chain block data.
+  - **proposer**: the proposal's address.
 
-  - **ParentChainBlockData**
-    - **height**: height of parent chain.
-    - **cross_chain_extra_data**
-      - **transaction_status_merkle_tree_root**: the merkle tree root computing from side chain roots.
-    - **chain_id**: parent chain id
-    - **transaction_status_merkle_root**: merkle tree root computing from transactions status in parent chain block.
-    - **indexed_merkle_path**: \<block height, merkle path> key-value map.
-    - **extra_data**: extra data map.
+note: *for CrossChainBlockData see ProposeCrossChainIndexing*
 
 ### function AdjustIndexingFeePrice
 
@@ -639,7 +610,7 @@ Get the balance for side chain indexing.
 rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value){}
 ```
 
-Get indexing debt for side chain. 
+Get indexing debt for side chain.
 
 - **Int32Value**: id of side chain
 
@@ -735,11 +706,9 @@ message CrossChainExtraData {
 
 Get indexed cross chain data by height.
 
-- **Int64Value** - block height
+- **Int64Value**: block height.
 
-- **Returns**
-  - **side_chain_block_data**: cross chain block data of side chain.
-  - **parent_chain_block_data**: cross chain block data of parent chain.
+note: *for CrossChainBlockData see ProposeCrossChainIndexing*
 
 ### function GetIndexedSideChainBlockDataByHeight
 
@@ -846,12 +815,18 @@ Get initialization data for specified side chain.
   - **creation_height_on_parent_chain**: height of side chain creation on parent chain.
   - **chain_creator_privilege_preserved**: creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
   - **parent_chain_token_contract_address**: parent chain token contract address.
-  - **chain_initialization_consensus_info**
-    - **initial_miner_list_data**: consensus miner list data.
+  - **chain_initialization_consensus_info**: initial miner list information.
   - **native_token_info_data**: native token info.
-  - **resource_token_info**
-    - **resource_token_list_data**: resource token list data.
-    - **initial_resource_amount**: initial resource token amount.
-  - **chain_primary_token_info**
-    - **chain_primary_token_data**: side chain primary token data.
-    - **side_chain_token_initial_issue_list**: side chain primary token initial issue list.
+  - **resource_token_info**: resource token information.
+  - **chain_primary_token_info**: chain priamry token information.
+
+- **ChainInitializationConsensusInfo**
+  - **initial_miner_list_data**: consensus miner list data.
+
+- **ChainInitializationConsensusInfo**
+  - **resource_token_list_data**: resource token list data.
+  - **initial_resource_amount**: initial resource token amount.
+
+- **ChainPrimaryTokenInfo**
+  - **chain_primary_token_data**: side chain primary token data.
+  - **side_chain_token_initial_issue_list**: side chain primary token initial issue list.

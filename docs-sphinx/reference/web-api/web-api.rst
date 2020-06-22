@@ -1,16 +1,6 @@
 AELF API 1.0
 ============
 
-Overview
---------
-
-Version information
-~~~~~~~~~~~~~~~~~~~
-
-*Version* : 1.0
-
-
-
 Chain API
 ---------
 

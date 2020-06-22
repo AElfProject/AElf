@@ -10,8 +10,20 @@ message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
     acs3.ProposerWhiteList proposer_white_list = 3;
 }
+
 message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
+}
+
+message ProposalReleaseThreshold {
+    int64 minimal_approval_threshold = 1;
+    int64 maximal_rejection_threshold = 2;
+    int64 maximal_abstention_threshold = 3;
+    int64 minimal_vote_threshold = 4;
+}
+
+message ProposerWhiteList {
+    repeated aelf.Address proposers = 1;
 }
 
 message OrganizationCreated{
@@ -23,15 +35,21 @@ message OrganizationCreated{
 Creates an organization and returns its address.
 
 - **CreateOrganizationInput**
-  - **organizer member list**
-    - **organization_members**: initial organization members.
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the value for the minimum approval threshold.
-    - **maximal rejection threshold**: the value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the value for the maximal abstention threshold.
-    - **minimal vote threshold**: the value for the minimal vote threshold.
-  - **ProposerWhiteList**
-    - **proposers**: proposer whitelist.
+  - **organizer member list**: initial organization members.
+  - **proposal release threshold**: the threshold for releasing the proposal.
+  - **proposer white list**: proposer whitelist.
+
+- **OrganizationMemberList**
+  - **organization members**: addresses of the initial organization members.
+
+- **ProposalReleaseThreshold**
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+
+- **ProposerWhiteList**
+  - **proposers**: address of the proposers.
 
 - **Returns**
   - **value**: the address of newly created organization.
@@ -69,17 +87,10 @@ message OrganizationCreated{
 Creates an organization by system contract and returns its address.
 
 - **CreateOrganizationBySystemContractInput**
-  - **CreateOrganizationInput**
-    - **OrganizationMemberList**
-      - **organization_members**: initial organization members.
-    - **ProposalReleaseThreshold**
-      - **minimal approval threshold**: the value for the minimum approval threshold.
-      - **maximal rejection threshold**: the value for the maximal rejection threshold.
-      - **maximal abstention threshold**: the value for the maximal abstention threshold.
-      - **minimal vote threshold**: the value for the minimal vote threshold.
-    - **ProposerWhiteList**:
-      - **proposers**: proposer whitelist.
+  - **CreateOrganizationInput**: paramenters of creating organization.
   - **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
+
+note: *for CreateOrganizationInput see CreateOrganization*
 
 - **Returns**
   - **value**: the address of newly created organization.
@@ -108,8 +119,6 @@ Changes the members of the organization. Note that this will override the curren
 
 - **OrganizationMemberList**
   - **organization_members**: the new members.
-
-After a successful execution, an **OrganizationMemberChanged** event log can be found in the transaction result.
 
 - **OrganizationMemberChanged**
   - **organization_address**: the organization address.
@@ -270,11 +279,7 @@ message OrganizationThresholdChanged{
 
 This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will affect all current proposals of the organization. Note: only the organization can execute this through a proposal.
 
-- **ProposalReleaseThreshold**
-  - **minimal approval threshold**: the new value for the minimum approval threshold.
-  - **maximal rejection threshold**: the new value for the maximal rejection threshold.
-  - **maximal abstention threshold**: the new value for the maximal abstention threshold.
-  - **minimal vote threshold**: the new value for the minimal vote threshold.
+note: *for ProposalReleaseThreshold see CreateOrganization*
 
 - **Events**
   - **OrganizationThresholdChanged**
@@ -299,8 +304,7 @@ message OrganizationWhiteListChanged{
 
 This method overrides the list of whitelisted proposers.
 
-- **ProposerWhiteList**:
-  - **proposers**: the new value for the proposer whitelist.
+note: *for ProposerWhiteList see CreateOrganization*
 
 - **Events**
   - **OrganizationWhiteListChanged**
@@ -326,14 +330,10 @@ message ProposalCreated{
 Used by system contracts to create proposals.
 
 - **CreateProposalBySystemContractInput**
-  - **CreateProposalInput**
-    - **contract method name**: the name of the method to call after release.
-    - **to address**: the address of the contract to call after release.
-    - **expiration**: the date at which this proposal will expire.
-    - **organization address**: the address of the organization.
-    - **proposal_description_url**: the url is used for proposal describing.
-    - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
+  - **CreateProposalInput**: the parameters of creating proposal.
   - **origin proposer**: the actor that trigger the call.
+
+note: *for CreateProposalInput see CreateProposal*
 
 - **Returns**
   - **value**: newly created organization address.
@@ -387,15 +387,12 @@ Returns the organization with the specified address.
 
 - **Returns**
   - **member list**: original members of this organization.
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the value for the minimum approval threshold.
-    - **maximal rejection threshold**: the value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the value for the maximal abstention threshold.
-    - **minimal vote threshold**: the value for the minimal vote threshold.
-  - **ProposerWhiteList**
-    - **proposers**: proposer list.
+  - **ProposalReleaseThreshold**: the threshold of release the proposal.
+  - **ProposerWhiteList**: the proposals in the whitelist.
   - **address**: the organizations address.
   - **hash**: the organizations id.
+
+  note: *for ProposalReleaseThreshold and ProposerWhiteList see CreateOrganization*
 
 ### **CalculateOrganizationAddress**
 
@@ -411,16 +408,7 @@ message CreateOrganizationInput {
 
 Calculates with input and returns the organization address.
 
-- **CreateOrganizationInput**
-  - **organizer member list**
-    - **organization_members**: initial organization members.
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the value for the minimum approval threshold.
-    - **maximal rejection threshold**: the value for the maximal rejection threshold.
-    - **maximal abstention threshold**: the value for the maximal abstention threshold.
-    - **minimal vote threshold**: the value for the minimal vote threshold.
-  - **ProposerWhiteList**
-    - **proposers**: proposer whitelist.
+note: *for CreateOrganizationInput and ProposerWhiteList see CreateOrganization*
 
 - **Returns**
   - **value**: organization address.
