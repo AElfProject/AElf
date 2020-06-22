@@ -7,7 +7,7 @@ production nodes through elections, thus completing the complete process
 of AElf Blockchain startup.
 
 1. Start initial nodes
--------------------
+----------------------------------------------------------------------------
 
 We need to start at least one or more initial nodes to start the AElf
 Blockchain, and 1-5 initial nodes are recommended.
@@ -32,7 +32,7 @@ set the PeriodSeconds to smaller:
    }
 
 2. Run full node
-----------------
+--------------------------------------------------------------------------------------------
 
 Create an account for the full node:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,7 +93,7 @@ height of the initial node, the subsequent steps can be carried out.
    }
 
 3. Be a candidate node
-----------------------
+-------------------------------------------------------------------------------
 
 Full nodes need to call Election contract to become candidate nodes. The
 nodes need to mortgage 10W ELF to participate in the election, please
@@ -145,7 +145,7 @@ candidates:
    } 
 
 4. User vote election
----------------------
+------------------------------------------------------------------------------
 
 For the simulated user voting scenario, we create a user account:
 
@@ -207,7 +207,7 @@ successfully obtained 20 votes.
    } 
 
 5. Become production node
--------------------------
+----------------------------------------------------------------------------------
 
 At the next election, the candidate nodes with votes in the first 17 are
 automatically elected as production nodes, and the current production
@@ -232,7 +232,7 @@ Contract API for details.
    } 
 
 6. Add more production nodes
-----------------------------
+-------------------------------------------------------------------------------------
 
 Repeat steps 2-4 to add more production nodes. When the number of
 initial nodes plus the number of candidate nodes exceeds the maximum
