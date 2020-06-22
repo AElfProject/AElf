@@ -5,5 +5,5 @@ Greeter Contract
    
    Implement <implement>
    Test <test>
-   Deploy <deploy>
+   Run <run>
    Front End <front>
