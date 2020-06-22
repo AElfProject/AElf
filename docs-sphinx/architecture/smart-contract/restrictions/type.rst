@@ -46,7 +46,8 @@ Type                            Member (Field / Method)        Allowed
 ``DateTime``                    ``Now``, ``UtcNow``, ``Today`` Denied
 ``Uri``                         ``TryCreate``					 Allowed
 ``Uri``                         ``Scheme``						 Allowed
-``Uri``                         ``UriSchemeHttp``, ``UriSchemeHttps`` Allowed
+``Uri``                         ``UriSchemeHttp`` 			 Allowed
+``Uri``                         ``UriSchemeHttps`` 			 Allowed
 ``void``                        ALL                            Allowed
 ``object``                      ALL                            Allowed
 ``Type``                        ALL                            Allowed
