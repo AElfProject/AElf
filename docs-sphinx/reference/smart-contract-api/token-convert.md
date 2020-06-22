@@ -141,9 +141,7 @@ message AuthorityInfo {
 
 The controller can be transferred to others.
 
-- **AuthorityInfo**
-  - **contract address**: new controller's contract address.
-  - **owner address**: new controller's address.
+note: *for AuthorityInfo see ChangeMethodFeeController*
 
 ## ACS1 Implementation
 
