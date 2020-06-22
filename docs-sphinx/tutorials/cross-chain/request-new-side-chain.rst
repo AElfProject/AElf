@@ -106,11 +106,12 @@ to create a new side chain, the full script will be given at the end of
 the tutorial.
 
 This creation of a side chain (logical, on-chain creation) is done in
-four steps: - the developer must *allow/approve* some tokens to the
-cross-chain contract of the main chain. - the developer calls the
-cross-chain contract of the main chain, to *request* the creation. - the
-parliament organization members must *approve* this request. - finally
-the developer must *release* the request to finalize the creation.
+four steps: 
+
+- the developer must *allow/approve* some tokens to the cross-chain contract of the main chain. 
+- the developer calls the cross-chain contract of the main chain, to *request* the creation. 
+- the parliament organization members must *approve* this request. 
+- finally the developer must *release* the request to finalize the creation.
 
 Keep in mind that this is just the logical on-chain creation of the side
 chain. After the side chain is released there’s extra steps needed for
@@ -124,11 +125,10 @@ Set-up
 ------
 
 If you want to test the creation process you will need a producer node
-running and the following: - you need a key-pair (account) created, this
-will be your Producer (in this tutorial we also use the producer to
-create the creation request). - the node needs to be configured with an
-API endpoint, account and miner list that correspond to what is in the
-script.
+running and the following: 
+
+- you need a key-pair (account) created, this will be your Producer (in this tutorial we also use the producer to create the creation request).
+- the node needs to be configured with an API endpoint, account and miner list that correspond to what is in the script.
 
 The following snippet shows constants and initialization code used in
 the script:
@@ -251,17 +251,13 @@ it.
    }
 
 In order for the creation request to succeed, some assertions must pass:
-- the Sender can only have one pending request at any time. - the locked
-token amount must be greater than 0 and higher than the indexing price.
-- the token initial issue list must contain at least one token and all
-with an **amount** greater than 0. - the initial resource amount list
-must contain all resource tokens of the chain and the value must be
-greater than 0. - the cross chain contract must have a larger allowance
-from the proposer (Sender of the transaction) than the locked token
-amount: (allowance(Sender to Cross chain contract > locked token
-amount)). - no need to provide data about side chain token if
-**is_privilege_preserved** is false, and side chain token won’t be
-created even you provide token info.
+
+- the Sender can only have one pending request at any time. 
+- the locked token amount must be greater than 0 and higher than the indexing price.
+- the token initial issue list must contain at least one token and all with an **amount** greater than 0. 
+- the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0. 
+- the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)). 
+- no need to provide data about side chain token if **is_privilege_preserved** is false, and side chain token won’t be created even you provide token info.
 
 .. code:: javascript
 
