@@ -15,7 +15,7 @@ The ```Greeter``` contract is a very simple contract that exposes a ``Greet`` me
 This tutorial shows you how to develop a smart contract with the C# contract SDK; you can find you more [here](../../../reference/contract-sdk/csharp/contract-sdk.md). Boilerplate will automatically add the reference to the SDK. 
 
 ## Create the project
-With **AElf Boilerplate**'s code generator, you can easily and quickly set up A contract project.  See [here](https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/index.html) for details.
+With **AElf Boilerplate**'s code generator, you can easily and quickly set up a contract project.  See [here](https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/index.html) for details.
 
 ## Defining the contract
 
