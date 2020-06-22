@@ -21,13 +21,17 @@ Creates an organization and returns its address.
 
 - **CreateOrganizationInput**
   - **token symbol**: the token used during proposal operations.
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-    - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-    - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-    - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
-  - **ProposerWhiteList**
-    - **proposers**: proposer white list.
+  - **proposal release threshold**: the threshold for releasing the proposal.
+  - **proposer white list**: proposer whitelist.
+
+- **ProposalReleaseThreshold**
+  - **minimal approval threshold**: the value for the minimum approval threshold.
+  - **maximal rejection threshold**: the value for the maximal rejection threshold.
+  - **maximal abstention threshold**: the value for the maximal abstention threshold.
+  - **minimal vote threshold**: the value for the minimal vote threshold.
+
+- **ProposerWhiteList**
+  - **proposers**: address of the proposers.
 
 - **Returns**
   - **Address**: newly created organization address.
@@ -61,16 +65,10 @@ message OrganizationCreated{
 Creates an organization by system contract and returns its address. Event **OrganizationCreated** will be fired.
 
 - **CreateOrganizationBySystemContractInput**
-  - **CreateOrganizationInput**
-    - **token symbol**: the token used during proposal operations.
-    - **ProposalReleaseThreshold**
-      - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-      - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-      - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-      - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
-    - **ProposerWhiteList**
-      - **proposers**: proposer white list.
-    - **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
+  - **CreateOrganizationInput**: the parameters of creating a organization.
+  - **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
+
+note: *for CreateOrganizationInput see CreateOrganization*
 
 - **Returns**
   - **Address**: newly created organization address.
@@ -181,12 +179,8 @@ This method is called to reject the specified proposal. The amount of token allo
 
 - **Events**
   - **ReferendumReceiptCreated**
-    - **proposal id**: id of the proposal.
-    - **address**: voter address.
-    - **token symbol** symbol of token locked.
-    - **token amount** amount of token locked.
-    - **receipt type**: Reject.
-    - **time**: timestamp of this method call.
+
+note: *for ReferendumReceiptCreated see Approve*
 
 ### **Abstain**
 
@@ -210,12 +204,8 @@ This method is called to abstain from the specified proposal. The amount of toke
 
 - **Events**
   - **ReferendumReceiptCreated**
-    - **proposal id**: id of the proposal.
-    - **address**: voter address.
-    - **token symbol** symbol of token locked.
-    - **token amount** amount of token locked.
-    - **receipt type**: Abstain.
-    - **time**: timestamp of this method call.
+
+note: *for ReferendumReceiptCreated see Approve*
 
 ### **Release**
 
@@ -252,11 +242,7 @@ message OrganizationThresholdChanged{
 
 This method changes the thresholds associated with proposals. All fields will be overwritten by the input value and this will affect all current proposals of the organization. Note: only the organization can execute this through a proposal.
 
-- **ProposalReleaseThreshold**
-  - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-  - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-  - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-  - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
+note: *for ProposalReleaseThreshold see CreateOrganization*
 
 - **Events**
   - **OrganizationThresholdChanged**
@@ -308,14 +294,10 @@ message ProposalCreated{
 Used by system contracts to create proposals.
 
 - **CreateProposalBySystemContractInput**
-  - **CreateProposalInput**
-    - **contract method name**: the name of the method to call after release.
-    - **to address**: the address of the contract to call after release.
-    - **expiration**: the date at which this proposal will expire.
-    - **organization address**: the address of the organization.
-    - **proposal_description_url**: the url is used for proposal describing.
-    - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
+  - **CreateProposalInput**: the parameters of creating a proposal.
   - **origin proposer**: the actor that trigger the call.
+
+note: *for CreateProposalInput see CreateProposal*
 
 - **Returns**
   - **Address**: newly created organization address.
@@ -368,7 +350,7 @@ Returns the organization with the provided organization address.
 - **Address**: organization address.
 
 - **Returns**
-  - **ProposalReleaseThreshold**
+  - **ProposalReleaseThreshold**: the proposal releash threshold.
     - **minimal approval threshold**: the minimum locked token amount threshold for approval.
     - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
     - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
@@ -376,8 +358,9 @@ Returns the organization with the provided organization address.
   - **token**: token used for proposal operations.
   - **organization address**: organization address.
   - **organization hash**: organization id.
-  - **ProposerWhiteList**:
-    - **proposers**: proposer white list.
+  - **ProposerWhiteList**: proposals in whitelist.
+
+note: *for ProposalReleaseThreshold and ProposerWhiteList see CreateOrganization*
 
 ### **CalculateOrganizationAddress**
 
@@ -393,15 +376,7 @@ message CreateOrganizationInput {
 
 Calculates with input and returns the organization address.
 
-- **CreateOrganizationInput**
-  - **token symbol**: the token used during proposal operations.
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the minimum locked token amount threshold for approval.
-    - **maximal rejection threshold**: the maximal locked token amount threshold for rejection.
-    - **maximal abstention threshold**: the maximal locked token amount threshold for approval.
-    - **minimal vote threshold**: the minimum locked token amount threshold for all votes.
-  - **ProposerWhiteList**:
-    - **proposers**: proposer white list.
+note: *for CreateOrganizationInput see CreateOrganization*
 
 - **Returns**
   - **Address**: organization address.

@@ -37,13 +37,15 @@ message OrganizationCreated{
 Creates parliament organization with input data.
 
 - **CreateOrganizationInput**
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the value to be divided by ``10000`` for the minimum approval threshold in fraction.
-    - **maximal rejection threshold**: the value to be divided by ``10000`` for the maximal rejection threshold in fraction.
-    - **maximal abstention threshold**: the value to be divided by ``10000`` for the maximal abstention threshold in fraction.
-    - **minimal vote threshold**: the value to be divided by ``10000`` for the minimal vote threshold in fraction.
+  - **ProposalReleaseThreshold**: the threshold for releasing the proposal.
   - **proposer authority required**: setting this to true can allow anyone to create proposals.
   - **parliament member proposing allowed**: setting this to true can allow parliament member to create proposals.
+
+- **ProposalReleaseThreshold**
+  - **minimal approval threshold**: the value to be divided by ``10000`` for the minimum approval threshold in fraction.
+  - **maximal rejection threshold**: the value to be divided by ``10000`` for the maximal rejection threshold in fraction.
+  - **maximal abstention threshold**: the value to be divided by ``10000`` for the maximal abstention threshold in fraction.
+  - **minimal vote threshold**: the value to be divided by ``10000`` for the minimal vote threshold in fraction.
 
 - **Returns**
   - **Address**: the address of newly created organization.
@@ -71,15 +73,10 @@ message OrganizationCreated{
 Creates parliament organization when called by system contract.
 
 - **CreateOrganizationBySystemContractInput**
-  - **CreateOrganizationInput**
-    - **ProposalReleaseThreshold**
-      - **minimal approval threshold**: the value to be divided by ``10000`` for the minimum approval threshold in fraction.
-      - **maximal rejection threshold**: the value to be divided by ``10000`` for the maximal rejection threshold in fraction.
-      - **maximal abstention threshold**: the value to be divided by ``10000`` for the maximal abstention threshold in fraction.
-      - **minimal vote threshold**: the value to be divided by ``10000`` for the minimal vote threshold in fraction.
-    - **proposer authority required**: setting this to true can allow anyone to create proposals.
-    - **parliament member proposing allowed**: setting this to true can allow parliament member to create proposals.
+  - **CreateOrganizationInput**: the parameters of creating the organization.
   - **organization address feedback method**: organization address callback method which replies the organization address to caller contract.
+
+note: *for CreateOrganizationInput see CreateOrganization*
 
 - **Returns**
   - **Address**: the address of newly created organization.
@@ -127,7 +124,6 @@ This method creates a proposal for which organization members can vote. When the
 - **Events**
   - **ProposalCreated**
     - **proposal_id**: id of the created proposal.
-
 
 ### **Approve**
 
@@ -296,14 +292,10 @@ message ProposalCreated{
 Used by system contracts to create proposals.
 
 - **CreateProposalBySystemContractInput**
-  - **CreateProposalInput**
-    - **contract method name**: the name of the method to call after release.
-    - **to address**: the address of the contract to call after release.
-    - **expiration**: the date at which this proposal will expire.
-    - **organization address**: the address of the organization.
-    - **proposal_description_url**: the url is used for proposal describing.
-    - **token**: the token is for proposal id generation and proposal id can be calculated before proposing. 
+  - **CreateProposalInput**: the parameters of creating a proposal.
   - **origin proposer**: the actor that trigger the call.
+
+note: *for CreateProposalInput see CreateProposal*
 
 - **Returns**
   - **Address**: id of the newly created proposal.
@@ -335,7 +327,6 @@ Checks the existence of an organization.
 - **Returns**
   - **BoolValue**: indicates whether the organization exists.
 
-
 ## View methods
 
 ### **GetOrganization**
@@ -361,12 +352,10 @@ Returns the organization with the provided organization address.
     - **proposer authority required**: indicates if proposals need authority to be created.
     - **organization_address**: organization address.
     - **organization hash**: organization id.
-    - **ProposalReleaseThreshold**
-      - **minimal approval threshold**: the value to be divided by ``10000`` for the minimum approval threshold in fraction.
-      - **maximal rejection threshold**: the value to be divided by ``10000`` for the maximal rejection threshold in fraction.
-      - **maximal abstention threshold**: the value to be divided by ``10000`` for the maximal abstention threshold in fraction.
-      - **minimal vote threshold**: the value to be divided by ``10000`` for the minimal vote threshold in fraction.
+    - **ProposalReleaseThreshold**: the threshold.
     - **parliament member proposing allowed**: indicates if parliament member can propose to this organization.
+
+note: *for ProposalReleaseThreshold see CreateOrganization*
 
 ### **GetDefaultOrganizationAddress**
 
@@ -456,13 +445,11 @@ message CreateOrganizationInput {
 Calculates with input and returns the organization address.
 
 - **CreateOrganizationInput**
-  - **ProposalReleaseThreshold**
-    - **minimal approval threshold**: the value to be divided by ``10000`` for the minimum approval threshold in fraction.
-    - **maximal rejection threshold**: the value to be divided by ``10000`` for the maximal rejection threshold in fraction.
-    - **maximal abstention threshold**: the value to be divided by ``10000`` for the maximal abstention threshold in fraction.
-    - **minimal vote threshold**: the value to be divided by ``10000`` for the minimal vote threshold in fraction.
+  - **ProposalReleaseThreshold**: the threshold.
   - **proposer authority required**: setting this to true can allow anyone to create proposals.
   - **parliament member proposing allowed**: setting this to true can allow parliament member to create proposals.
+
+note: *for ProposalReleaseThreshold see CreateOrganization*
 
 - **Returns**
   - **Address**: organization address.

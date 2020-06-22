@@ -862,4 +862,3 @@ This method is used in side chain. It returns resouces token' unit value. (pay =
 
 - **Returns**
   - **resource_unit_value**: resource token symbol => unit value.
-

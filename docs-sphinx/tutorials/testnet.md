@@ -7,7 +7,7 @@ jump into the guides and tutorials you'll need to install the following
 tools and frameworks. For most of these dependencies we provide
 ready-to-use command line instructions. In case of problems or if you
 have more complex needs, we provide more information in the [Environment
-setup](../../getting-started/development-environment/environment-setup.md) section of this GitBook.
+setup](../../getting-started/development-environment/environment-setup.md) section.
 
 Summary of the steps to set up a node:
 
@@ -107,14 +107,13 @@ the commands output will show you the path to the newly created key. The
 aelf directory is the data directory (datadir) and this is where the
 node will read the keys from.
 
-Note that a more detailed section about the CLI can be found
-`here <../../reference/cli/introduction>`{.interpreted-text role="doc"}
+Note that a more detailed section about the cli can be found [command line interface](../../reference/cli/introduction.md).
 
 ### Prepare node configuration
 
 ``` bash
 ## download the settings template and docker script
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-mainchain.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview3/aelf-testnet-mainchain.zip
 >> unzip aelf-testnet-mainchain.zip
 >> mv aelf-testnet-mainchain /opt/aelf-node
 ```
@@ -146,9 +145,9 @@ number):
 }
 ```
 
-{% hint style="info" %} If you use docker to run the node and it is on
+If you use docker to run the node and it is on
 the same server as the database, please do not use 127.0.0.1 as the
-database monitoring ip. {% endhint %}
+database monitoring ip. 
 
 Next add the testnet mainchain nodes as peer (bootnode peers):
 
@@ -189,9 +188,9 @@ To run the node with Docker, enter the following commands:
 
 ``` bash
 ## pull AElf’s image and navigate to the template folder to execute the start script
->> docker pull aelf/node:testnet-v1.0.0-preview2
+>> docker pull aelf/node:testnet-v1.0.0-preview3
 >> cd /opt/aelf-node
->> sh aelf-node.sh start aelf/node:testnet-v1.0.0-preview2
+>> sh aelf-node.sh start aelf/node:testnet-v1.0.0-preview3
 ```
 
 to stop the node you can run:
@@ -213,16 +212,16 @@ download for your platform, and install it.
 Get the latest release with the following commands:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-v1.0.0-preview2.zip
->> unzip aelf-v1.0.0-preview2.zip
->> mv aelf-v1.0.0-preview2 /opt/aelf-node/
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview3/aelf-v1.0.0-preview3.zip
+>> unzip aelf-v1.0.0-preview3.zip
+>> mv aelf-v1.0.0-preview3 /opt/aelf-node/
 ```
 
 Enter the configuration folder and run the node:
 
 ``` bash
 >> cd /opt/aelf-node
->> dotnet aelf-v1.0.0-preview2/AElf.Launcher.dll
+>> dotnet aelf-v1.0.0-preview3/AElf.Launcher.dll
 ```
 
 Running a full node with the source
@@ -231,7 +230,7 @@ Running a full node with the source
 The most convenient way is to directly use docker or the binary
 packages, but if you want you can compile from source code. First make
 sure the code version is consistent (current is release AELF
-v1.0.0-preview2), and secondly make sure to compile on a Ubuntu Linux
+v1.0.0-preview3), and secondly make sure to compile on a Ubuntu Linux
 machine (we recommend Ubuntu 18.04.2 LTS) and have dotnet core SDK
 version 3.1 installed. This is because different platforms or compilers
 will cause the dll hashes to be inconsistent with the current chain.
@@ -262,7 +261,7 @@ configuration will change. Here you can find the instructions for
 sidechain1:
 
 ``` bash
->> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-sidechain1.zip
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview3/aelf-testnet-sidechain1.zip
 >> unzip aelf-testnet-sidechain1.zip
 >> mv aelf-testnet-sidechain1 /opt/aelf-node
 ```
@@ -294,7 +293,7 @@ the latest:
 Here you can find the list of templates folders (appsettings and docker
 run script) for the side-chain:
 
-    wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview2/aelf-testnet-sidechain1.zip
+    wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-preview3/aelf-testnet-sidechain1.zip
 
 Each side chain has its own P2P network, you can find here some
 bootnodes that are available:
