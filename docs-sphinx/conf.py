@@ -65,8 +65,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'AElf'
-copyright = u'todo'
-author = u'todo'
+copyright = u'2020'
+author = u'aelf core team'
 
 github_doc_root = 'https://github.com/AElfProject/AElf/docs'
 
