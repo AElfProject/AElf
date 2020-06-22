@@ -330,83 +330,83 @@ namespace AElf.Contracts.MultiToken
             });
         }
 
-        [Fact(DisplayName = "[MultiToken] Token lock and unlock test")]
-        public async Task MultiTokenContract_LockAndUnLock_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = Address,
-                Symbol = SymbolForTest
-            })).Balance;
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
-            {
-                Address = Address,
-                Amount = Amount,
-                Symbol = SymbolForTest,
-                LockId = lockId,
-                Usage = "Testing."
-            })).TransactionResult;
-            lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Check balance of user after locking.
-            {
-                var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = Address,
-                    Symbol = SymbolForTest
-                });
-                result.Balance.ShouldBe(beforeBalance - Amount);
-            }
-
-            // Check locked amount
-            {
-                var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
-                {
-                    Symbol = SymbolForTest,
-                    Address = Address,
-                    LockId = lockId,
-                });
-                amount.Amount.ShouldBe(Amount);
-            }
-
-            // Unlock.
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput
-            {
-                Address = Address,
-                Amount = Amount,
-                Symbol = SymbolForTest,
-                LockId = lockId,
-                Usage = "Testing."
-            })).TransactionResult;
-            unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Check balance of user after unlocking.
-            {
-                var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = Address,
-                    Symbol = SymbolForTest
-                });
-                result.Balance.ShouldBe(beforeBalance);
-            }
-
-            //Check amount of lock address after unlocking
-            {
-                var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
-                {
-                    Symbol = SymbolForTest,
-                    Address = Address,
-                    LockId = lockId,
-                });
-                amount.Amount.ShouldBe(0);
-            }
-        }
+        // [Fact(DisplayName = "[MultiToken] Token lock and unlock test")]
+        // public async Task MultiTokenContract_LockAndUnLock_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //     {
+        //         Owner = Address,
+        //         Symbol = SymbolForTest
+        //     })).Balance;
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
+        //     {
+        //         Address = Address,
+        //         Amount = Amount,
+        //         Symbol = SymbolForTest,
+        //         LockId = lockId,
+        //         Usage = "Testing."
+        //     })).TransactionResult;
+        //     lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     // Check balance of user after locking.
+        //     {
+        //         var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //         {
+        //             Owner = Address,
+        //             Symbol = SymbolForTest
+        //         });
+        //         result.Balance.ShouldBe(beforeBalance - Amount);
+        //     }
+        //
+        //     // Check locked amount
+        //     {
+        //         var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
+        //         {
+        //             Symbol = SymbolForTest,
+        //             Address = Address,
+        //             LockId = lockId,
+        //         });
+        //         amount.Amount.ShouldBe(Amount);
+        //     }
+        //
+        //     // Unlock.
+        //     var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput
+        //     {
+        //         Address = Address,
+        //         Amount = Amount,
+        //         Symbol = SymbolForTest,
+        //         LockId = lockId,
+        //         Usage = "Testing."
+        //     })).TransactionResult;
+        //     unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     // Check balance of user after unlocking.
+        //     {
+        //         var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //         {
+        //             Owner = Address,
+        //             Symbol = SymbolForTest
+        //         });
+        //         result.Balance.ShouldBe(beforeBalance);
+        //     }
+        //
+        //     //Check amount of lock address after unlocking
+        //     {
+        //         var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
+        //         {
+        //             Symbol = SymbolForTest,
+        //             Address = Address,
+        //             LockId = lockId,
+        //         });
+        //         amount.Amount.ShouldBe(0);
+        //     }
+        // }
 
         [Fact(DisplayName = "[MultiToken] Token lock through address not in whitelist")]
         public async Task MultiTokenContract_Lock_AddressNotInWhiteList_Test()
@@ -431,310 +431,310 @@ namespace AElf.Contracts.MultiToken
             lockResult.Error.ShouldContain("No Permission.");
         }
 
-        [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]
-        public async Task MultiTokenContract_Lock_WithInsufficientBalance_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = Address,
-                Symbol = SymbolForTest
-            })).Balance;
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = beforeBalance + 1,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-
-            lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            lockResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        /// <summary>
-        /// It's okay to unlock one locked token to get total amount via several times.
-        /// </summary>
-        /// <returns></returns>
-        [Fact(DisplayName = "[MultiToken] Token unlock until no balance left")]
-        public async Task MultiTokenContract_Unlock_repeatedly_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Unlock half of the amount at first.
-            {
-                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
-                {
-                    Address = Address,
-                    Amount = Amount / 2,
-                    Symbol = SymbolForTest,
-                    LockId = lockId,
-                    Usage = "Testing."
-                })).TransactionResult;
-
-                unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            // Unlock another half of the amount.
-            {
-                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
-                {
-                    Address = Address,
-                    Amount = Amount / 2,
-                    Symbol = SymbolForTest,
-                    LockId = lockId,
-                    Usage = "Testing."
-                })).TransactionResult;
-
-                unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            // Cannot keep on unlocking.
-            {
-                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
-                    new UnlockTokenInput()
-                    {
-                        Address = Address,
-                        Amount = 1,
-                        Symbol = SymbolForTest,
-                        LockId = lockId,
-                        Usage = "Testing."
-                    })).TransactionResult;
-
-                unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                unlockResult.Error.ShouldContain("Insufficient balance");
-            }
-        }
-
-        [Fact(DisplayName = "[MultiToken] Token unlock excess the total amount of lock")]
-        public async Task MultiTokenContract_Unlock_ExcessAmount_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
-                new UnlockTokenInput()
-                {
-                    Address = Address,
-                    Amount = Amount + 1,
-                    Symbol = SymbolForTest,
-                    LockId = lockId,
-                    Usage = "Testing."
-                })).TransactionResult;
-            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            unlockResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact(DisplayName = "[MultiToken] A locked his tokens, B want to unlock with A's lock id'.")]
-        public async Task MultiTokenContract_Unlock_NotLocker_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = Address,
-                Symbol = SymbolForTest
-            })).Balance;
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Check balance after locking.
-            {
-                var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = Address,
-                    Symbol = SymbolForTest
-                });
-                result.Balance.ShouldBe(beforeBalance - Amount);
-            }
-
-            var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
-                new UnlockTokenInput()
-                {
-                    Address = Address,
-                    Amount = Amount,
-                    Symbol = SymbolForTest,
-                    LockId = lockId,
-                    Usage = "Testing."
-                })).TransactionResult;
-            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            unlockResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact(DisplayName =
-            "[MultiToken] Unlock the token through strange lockId which is different from locking lockId")]
-        public async Task MultiTokenContract_Unlock_StrangeLockId_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
-                new UnlockTokenInput()
-                {
-                    Address = Address,
-                    Amount = Amount,
-                    Symbol = SymbolForTest,
-                    LockId = HashHelper.ComputeFrom("lockId1"),
-                    Usage = "Testing."
-                })).TransactionResult;
-            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            unlockResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact(DisplayName = "[MultiToken] Unlock the token to another address that isn't the address locked")]
-        public async Task MultiTokenContract_Unlock_ToOtherAddress_Test()
-        {
-            await Create_BasicFunctionContract_Issue();
-
-            var lockId = HashHelper.ComputeFrom("lockId");
-
-            // Lock.
-            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
-            {
-                Address = Address,
-                Symbol = SymbolForTest,
-                Amount = Amount,
-                LockId = lockId,
-                Usage = "Testing"
-            })).TransactionResult;
-            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
-                new UnlockTokenInput
-                {
-                    Address = User2Address,
-                    Amount = Amount,
-                    Symbol = SymbolForTest,
-                    LockId = lockId,
-                    Usage = "Testing."
-                })).TransactionResult;
-            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            unlockResult.Error.ShouldContain("Unlock behaviour should be initialed by origin address.");
-        }
-
-        [Fact(DisplayName = "[MultiToken] Token Burn Test")]
-        public async Task MultiTokenContract_Burn_Test()
-        {
-            await CreateAndIssueMultiTokensAsync();
-            await TokenContractStub.Burn.SendAsync(new BurnInput
-            {
-                Amount = 3000L,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            balance.Balance.ShouldBe(AliceCoinTotalAmount - 3000L);
-        }
-
-        [Fact(DisplayName = "[MultiToken] Token Burn the amount greater than it's amount")]
-        public async Task MultiTokenContract_Burn_BeyondBalance_Test()
-        {
-            await CreateAndIssueMultiTokensAsync();
-            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
-            var result = (await user1Stub.Burn.SendWithExceptionAsync(new BurnInput
-            {
-                Symbol = AliceCoinTokenInfo.Symbol,
-                Amount = 3000L
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
-        public async Task MultiTokenContract_TransferToContract_Test()
-        {
-            await MultiTokenContract_Approve_Test();
-
-            var result = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
-                new TransferTokenToContractInput
-                {
-                    Amount = 1000L,
-                    Symbol = AliceCoinTokenInfo.Symbol,
-                    Memo = "TransferToContract test"
-                })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var originAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
-            {
-                Symbol = AliceCoinTokenInfo.Symbol,
-                Spender = BasicFunctionContractAddress,
-                Owner = DefaultAddress
-            });
-            originAllowanceOutput.Allowance.ShouldBe(1000L);
-
-            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = BasicFunctionContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            balanceOutput.Balance.ShouldBe(1000L);
-
-            //allowance not enough
-            var result1 = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
-                new TransferTokenToContractInput
-                {
-                    Amount = 2000L,
-                    Symbol = AliceCoinTokenInfo.Symbol,
-                    Memo = "TransferToContract test"
-                })).TransactionResult;
-            result1.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+        // [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]
+        // public async Task MultiTokenContract_Lock_WithInsufficientBalance_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //     {
+        //         Owner = Address,
+        //         Symbol = SymbolForTest
+        //     })).Balance;
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = beforeBalance + 1,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     lockResult.Error.ShouldContain("Insufficient balance");
+        // }
+        //
+        // /// <summary>
+        // /// It's okay to unlock one locked token to get total amount via several times.
+        // /// </summary>
+        // /// <returns></returns>
+        // [Fact(DisplayName = "[MultiToken] Token unlock until no balance left")]
+        // public async Task MultiTokenContract_Unlock_repeatedly_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = Amount,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     // Unlock half of the amount at first.
+        //     {
+        //         var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+        //         {
+        //             Address = Address,
+        //             Amount = Amount / 2,
+        //             Symbol = SymbolForTest,
+        //             LockId = lockId,
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //
+        //         unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //     }
+        //
+        //     // Unlock another half of the amount.
+        //     {
+        //         var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+        //         {
+        //             Address = Address,
+        //             Amount = Amount / 2,
+        //             Symbol = SymbolForTest,
+        //             LockId = lockId,
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //
+        //         unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //     }
+        //
+        //     // Cannot keep on unlocking.
+        //     {
+        //         var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
+        //             new UnlockTokenInput()
+        //             {
+        //                 Address = Address,
+        //                 Amount = 1,
+        //                 Symbol = SymbolForTest,
+        //                 LockId = lockId,
+        //                 Usage = "Testing."
+        //             })).TransactionResult;
+        //
+        //         unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //         unlockResult.Error.ShouldContain("Insufficient balance");
+        //     }
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] Token unlock excess the total amount of lock")]
+        // public async Task MultiTokenContract_Unlock_ExcessAmount_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = Amount,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
+        //         new UnlockTokenInput()
+        //         {
+        //             Address = Address,
+        //             Amount = Amount + 1,
+        //             Symbol = SymbolForTest,
+        //             LockId = lockId,
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //     unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     unlockResult.Error.ShouldContain("Insufficient balance");
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] A locked his tokens, B want to unlock with A's lock id'.")]
+        // public async Task MultiTokenContract_Unlock_NotLocker_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //     {
+        //         Owner = Address,
+        //         Symbol = SymbolForTest
+        //     })).Balance;
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = Amount,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     // Check balance after locking.
+        //     {
+        //         var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+        //         {
+        //             Owner = Address,
+        //             Symbol = SymbolForTest
+        //         });
+        //         result.Balance.ShouldBe(beforeBalance - Amount);
+        //     }
+        //
+        //     var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
+        //         new UnlockTokenInput()
+        //         {
+        //             Address = Address,
+        //             Amount = Amount,
+        //             Symbol = SymbolForTest,
+        //             LockId = lockId,
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //     unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     unlockResult.Error.ShouldContain("Insufficient balance");
+        // }
+        //
+        // [Fact(DisplayName =
+        //     "[MultiToken] Unlock the token through strange lockId which is different from locking lockId")]
+        // public async Task MultiTokenContract_Unlock_StrangeLockId_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = Amount,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
+        //         new UnlockTokenInput()
+        //         {
+        //             Address = Address,
+        //             Amount = Amount,
+        //             Symbol = SymbolForTest,
+        //             LockId = HashHelper.ComputeFrom("lockId1"),
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //     unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     unlockResult.Error.ShouldContain("Insufficient balance");
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] Unlock the token to another address that isn't the address locked")]
+        // public async Task MultiTokenContract_Unlock_ToOtherAddress_Test()
+        // {
+        //     await Create_BasicFunctionContract_Issue();
+        //
+        //     var lockId = HashHelper.ComputeFrom("lockId");
+        //
+        //     // Lock.
+        //     var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+        //     {
+        //         Address = Address,
+        //         Symbol = SymbolForTest,
+        //         Amount = Amount,
+        //         LockId = lockId,
+        //         Usage = "Testing"
+        //     })).TransactionResult;
+        //     lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendWithExceptionAsync(
+        //         new UnlockTokenInput
+        //         {
+        //             Address = User2Address,
+        //             Amount = Amount,
+        //             Symbol = SymbolForTest,
+        //             LockId = lockId,
+        //             Usage = "Testing."
+        //         })).TransactionResult;
+        //     unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     unlockResult.Error.ShouldContain("Unlock behaviour should be initialed by origin address.");
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] Token Burn Test")]
+        // public async Task MultiTokenContract_Burn_Test()
+        // {
+        //     await CreateAndIssueMultiTokensAsync();
+        //     await TokenContractStub.Burn.SendAsync(new BurnInput
+        //     {
+        //         Amount = 3000L,
+        //         Symbol = AliceCoinTokenInfo.Symbol
+        //     });
+        //     var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        //     {
+        //         Owner = DefaultAddress,
+        //         Symbol = AliceCoinTokenInfo.Symbol
+        //     });
+        //     balance.Balance.ShouldBe(AliceCoinTotalAmount - 3000L);
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] Token Burn the amount greater than it's amount")]
+        // public async Task MultiTokenContract_Burn_BeyondBalance_Test()
+        // {
+        //     await CreateAndIssueMultiTokensAsync();
+        //     var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+        //     var result = (await user1Stub.Burn.SendWithExceptionAsync(new BurnInput
+        //     {
+        //         Symbol = AliceCoinTokenInfo.Symbol,
+        //         Amount = 3000L
+        //     })).TransactionResult;
+        //     result.Status.ShouldBe(TransactionResultStatus.Failed);
+        //     result.Error.ShouldContain("Insufficient balance");
+        // }
+        //
+        // [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
+        // public async Task MultiTokenContract_TransferToContract_Test()
+        // {
+        //     await MultiTokenContract_Approve_Test();
+        //
+        //     var result = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
+        //         new TransferTokenToContractInput
+        //         {
+        //             Amount = 1000L,
+        //             Symbol = AliceCoinTokenInfo.Symbol,
+        //             Memo = "TransferToContract test"
+        //         })).TransactionResult;
+        //     result.Status.ShouldBe(TransactionResultStatus.Mined);
+        //
+        //     var originAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+        //     {
+        //         Symbol = AliceCoinTokenInfo.Symbol,
+        //         Spender = BasicFunctionContractAddress,
+        //         Owner = DefaultAddress
+        //     });
+        //     originAllowanceOutput.Allowance.ShouldBe(1000L);
+        //
+        //     var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+        //     {
+        //         Owner = BasicFunctionContractAddress,
+        //         Symbol = AliceCoinTokenInfo.Symbol
+        //     });
+        //     balanceOutput.Balance.ShouldBe(1000L);
+        //
+        //     //allowance not enough
+        //     var result1 = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
+        //         new TransferTokenToContractInput
+        //         {
+        //             Amount = 2000L,
+        //             Symbol = AliceCoinTokenInfo.Symbol,
+        //             Memo = "TransferToContract test"
+        //         })).TransactionResult;
+        //     result1.Status.ShouldBe(TransactionResultStatus.Mined);
+        // }
         
         [Fact(DisplayName = "[MultiToken] ChangeTokenIssuer test")]
         public async Task MultiTokenContract_ChangeTokenIssuer_Test()

@@ -60,7 +60,7 @@ namespace AElf.CSharp.CodeOps.Instructions
             ilProcessor.InsertAfter(stocInstruction, ldThisInstruction);
 
             var getContextInstruction = ilProcessor.Create(OpCodes.Call,
-                moduleDefinition.ImportReference(typeof(CSharpSmartContract<>).GetProperty("Context").GetMethod)); // get_Context
+                moduleDefinition.ImportReference(typeof(CSharpSmartContractAbstract).GetProperty("Context").GetMethod)); // get_Context
             ilProcessor.InsertAfter(ldThisInstruction, getContextInstruction);
 
             var ldlocInstruction =

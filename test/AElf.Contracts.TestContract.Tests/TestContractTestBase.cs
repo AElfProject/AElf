@@ -153,15 +153,15 @@ namespace AElf.Contract.TestContract
         
         private async Task InitialBasicFunctionContract()
         {
-            await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
-                new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput()
-                {
-                    ContractName = "Test Contract1",
-                    MinValue = 10L,
-                    MaxValue = 1000L,
-                    MortgageValue = 1000_000_000L,
-                    Manager = Accounts[1].Address
-                });
+            await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(Hash.Empty);
+            // new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput()
+            // {
+            //     ContractName = "Test Contract1",
+            //     MinValue = 10L,
+            //     MaxValue = 1000L,
+            //     MortgageValue = 1000_000_000L,
+            //     Manager = Accounts[1].Address
+            // });
         }
 
         private async Task InitializeSecurityContract()

@@ -50,7 +50,10 @@ namespace AElf.Contracts.Association
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
-        private byte[] AssociationContractCode => Codes.Single(kv => kv.Key.Contains("Association")).Value;
+        
+        private const string ContractPatchedDllDir = "../../../../patched/";
+
+        private byte[] AssociationContractCode => GetPatchedCodes(ContractPatchedDllDir).Single(kv => kv.Key.Contains("Association")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private byte[] ParliamentContractCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;

@@ -15,7 +15,7 @@ namespace AElf.ContractDeployer
                 throw new NoContractDllFoundInManifestException();
             }
 
-            return contractNames.Select(n => (n, GetCode(n, contractDir, isPatched))).ToDictionary(x => x.Item1, x => x.Item2);
+            return contractNames.Select(n => (n, GetCode(n, contractDir, true))).ToDictionary(x => x.Item1, x => x.Item2);
         }
 
         private static byte[] GetCode(string dllName, string contractDir, bool isPatched)
