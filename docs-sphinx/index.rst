@@ -34,8 +34,6 @@ Welcome to first doc's documentation!
    Network <protocol/network>
    Addresses <protocol/addresses>
    Transactions <protocol/transactions>
-   Blocks <protocol/blocks>
-   AElf Contract Standards(ACS) <protocol/acs>
 
 
 .. toctree::

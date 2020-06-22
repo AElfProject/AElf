@@ -8,25 +8,9 @@ At the top-level Boilerplate contains two folders:
 
 The **web** folder already contains some projects that can serve as examples. This tutorial presents a front-end for the Greeter contract shown in the previous tutorials.
 
-## Run the node
-
-The first thing to do is run Boilerplate (and it's an internal node). This will automatically deploy the Greeter contract. Open a terminal in the root Boilerplate directory and navigate to the launcher project:
-
-```bash
-cd chain/src/AElf.Boilerplate.Launcher
-```
-
-Next, run the node:
-
-```bash
-dotnet run bin/Debug/netcoreapp3.1/AElf.Launcher.dll
-```
-
-From here, you should see the build and eventually the nodes logs.
-
 ## Run the front-end
 
-Open another terminal at the repo's root and navigate to the `greeter' project:
+After you run Boilerplate, open another terminal at the repo's root and navigate to the **greeter** project:
 
 ```bash
 cd web/greeter
@@ -70,7 +54,7 @@ aelf.chain.getChainStatus()
     });
 ```
 
-For more information about the chain status API : [GET /api/blockChain/chainStatus](https://docs.aelf.io/v/docs-csharp-sdk/reference#get-the-current-status-of-the-block-chain).
+For more information about the chain status API : [GET /api/blockChain/chainStatus](../../../reference/web-api/web-api.md).
 
 As we will see next, the chain status is very useful for retrieving the genesis contract.
 
