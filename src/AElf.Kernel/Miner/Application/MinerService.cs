@@ -46,11 +46,13 @@ namespace AElf.Kernel.Miner.Application
                 BlockHeight = previousBlockHeight
             };
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
+            // var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+            //     previousBlockHash,
+            //     _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
+            //         ? limit
+            //         : -1);
             var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
-                previousBlockHash,
-                _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
-                    ? limit
-                    : -1);
+                previousBlockHash, limit);
 
             Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
