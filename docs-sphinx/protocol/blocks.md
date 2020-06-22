@@ -77,7 +77,7 @@ A blockchain is also a data structure of cryptographically linked blocks. Inside
 
 Check following code in `BlockGenerationService.cs`:
 
-```C#
+```
 public async Task<Block> GenerateBlockBeforeExecutionAsync(GenerateBlockDto generateBlockDto)
 {
     var block = new Block
@@ -100,7 +100,7 @@ public async Task<Block> GenerateBlockBeforeExecutionAsync(GenerateBlockDto gene
 
 And the usage of above method:
 
-```C#
+```
 /// <summary>
 /// Generate block
 /// </summary>
@@ -124,7 +124,7 @@ Every node in the AElf blockchain has to maintain a Transaction Pool to cache al
 
 Check the code in `MinerService.cs`:
 
-```C#
+```
 public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
     Duration blockExecutionTime)
 {
@@ -154,7 +154,7 @@ public async Task<BlockExecutedSet> MineAsync(Hash previousBlockHash, long previ
 
 By iterating all the implementations of `ISystemTransactionGenerator`, the Core Data Center can generate several system transactions.
 
-```C#
+```
 public class SystemTransactionGenerationService : ISystemTransactionGenerationService
 {
     private readonly IEnumerable<ISystemTransactionGenerator> _systemTransactionGenerators;
@@ -184,7 +184,7 @@ The execution result set and a signing will finally finished a block generation.
 
 The total process can be very simply explained by following code:
 
-```C#
+```
 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
     requestMiningDto.PreviousBlockHeight, blockTime);
 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
