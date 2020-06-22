@@ -1,15 +1,15 @@
-# Running the node
+# Run the node
 
-The first thing to do is run Boilerplate (and it's an internal node). This will automatically deploy the Greeter contract. Open a terminal in the root Boilerplate directory and navigate to the launcher project:
+Next you can run Boilerplate (and it's an internal node). This will automatically deploy the Greeter contract. Open a terminal in the root Boilerplate directory and navigate to the launcher project:
 
 ```bash
-cd chain/src/AElf.Boilerplate.Launcher
+cd chain/src/AElf.Boilerplate.GreeterContract.Launcher
 ```
 
 Next, run the node:
 
 ```bash
-dotnet run bin/Debug/netcoreapp3.1/AElf.Launcher.dll
+dotnet run AElf.Boilerplate.GreeterContract.Launcher.csproj
 ```
 
 From here, you should see the build and eventually the nodes logs.
