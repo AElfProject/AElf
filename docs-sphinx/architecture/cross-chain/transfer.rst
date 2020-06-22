@@ -165,6 +165,6 @@ Let’s review the fields of the input:
 
 - **merkle_path**
   
-  - for the case of transfer from main chain to side chain: for this you just need the merkle path from the main chain’s web api withthe **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer**transaction ID as input). 
+  - for the case of transfer from main chain to side chain: for this you just need the merkle path from the main chain’s web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input). 
   
   - for the case of transfer from side chain to side chain or from side chain to main chain: for this you also need to get the merkle path from the source node (side chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the **CrossChainTransfer** transaction’s block height (concat the merkle path nodes). The nodes are in the **merkle_path_from_parent_chain** field of the **CrossChainMerkleProofContext** object.
