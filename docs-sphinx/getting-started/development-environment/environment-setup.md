@@ -1,7 +1,7 @@
 Dependencies
 ============
 
-Before you jump in to the guides and tutorials you'll need to install
+Before you jump in to the getting started and tutorials you'll need to install
 the following tools and frameworks.
 
 For most of these dependencies we provide ready-to-use command line
@@ -258,6 +258,6 @@ sudo chown -R ${USER} /usr/local/include/google
 on macOS:
 
 ``` bash
-brew install protobuf@3.11
-brew link --force --overwrite protobuf@3.11
+brew install protobuf
+brew link --force --overwrite protobuf
 ```
