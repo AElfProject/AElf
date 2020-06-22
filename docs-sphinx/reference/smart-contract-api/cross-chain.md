@@ -673,7 +673,7 @@ message SideChainBlockData {
     int32 chain_id = 4;
 }
 
-message ParentChainBlockData {Defines C# API functions for cross chain contract.
+message ParentChainBlockData {
     int64 height = 1;
     CrossChainExtraData cross_chain_extra_data = 2;
     int32 chain_id = 3;
@@ -752,7 +752,7 @@ Get merkle path bound up with side chain
 ```protobuf
 rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData){}
 
-message ChainInitializationData 
+message ChainInitializationData
 {
     int32 chain_id = 1;
     aelf.Address creator = 2;
