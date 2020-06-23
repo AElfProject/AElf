@@ -1,8 +1,10 @@
-# ACS7 - Contract CrossChain Standard
+ACS7 - Contract CrossChain Standard
+===================================
 
 ACS7 is for cross chain related contract implementation.
 
-## Interface
+Interface
+---------
 
 This involves methods for chain creation and indexing:
 
@@ -13,7 +15,7 @@ This involves methods for chain creation and indexing:
 -  RecordCrossChainData
     - The method to record cross chain data and complete indexing.
 -  RequestSideChainCreation
-    - Request to create a new side chain and wait for approvals from authorized organizations;.
+    - Request to create a new side chain e wait for approvals from authorized organizations;.
 -  ReleaseSideChainCreation
     - Release the side chain creation request if already approved and it will call the method CreateSideChain. 
 -  CreateSideChain
@@ -29,7 +31,8 @@ This involves methods for chain creation and indexing:
 -  GetChainInitializationData
     - Get side chain initialization data which is needed during the first time startup of side chain node. 
 
-## Usage
+Usage
+-----
 
 ACS7 declares methods for the scenes about cross chain. AElf provides the implementation for ACS7, CrossChainContract. 
-Please refer [api docs](../smart-contract-api/cross-chain) of this contract for more details.
+Please refer :doc:`api docs <../smart-contract-api/cross-chain>` of this contract for more details.
