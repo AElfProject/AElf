@@ -20,7 +20,6 @@ namespace AElf.CrossChain
             context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
             context.Services.AddTransient<ISystemTransactionGenerator, CrossChainTransactionGenerator>();
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
-            context.Services.AddSingleton<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
             context.Services.AddSingleton<IChainInitializationDataPlugin, CrossChainPlugin>();
             context.Services.AddSingleton<INodePlugin, CrossChainPlugin>();
         }

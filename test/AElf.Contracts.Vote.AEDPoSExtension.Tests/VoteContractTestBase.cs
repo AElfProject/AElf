@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKet.AEDPoSExtension;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;

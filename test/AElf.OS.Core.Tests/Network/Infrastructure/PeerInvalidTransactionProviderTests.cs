@@ -6,10 +6,10 @@ using Xunit;
 
 namespace AElf.OS.Network
 {
-    public class PeerInvalidTransactionProviderTests: NetworkInfrastructureTestBase
+    public class PeerInvalidTransactionProviderTests : NetworkInfrastructureTestBase
     {
         private readonly IPeerInvalidTransactionProvider _peerInvalidTransactionProvider;
-        
+
         public PeerInvalidTransactionProviderTests()
         {
             _peerInvalidTransactionProvider = GetRequiredService<IPeerInvalidTransactionProvider>();
@@ -22,22 +22,27 @@ namespace AElf.OS.Network
             bool markResult;
             for (var i = 0; i < 5; i++)
             {
-                markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+                var txId = HashHelper.ComputeFrom(i.ToString());
+                markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, txId);
                 markResult.ShouldBeTrue();
             }
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("0"));
+            markResult.ShouldBeTrue();
+
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("5"));
             markResult.ShouldBeFalse();
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction("192.168.1.1");
+
+            markResult =
+                _peerInvalidTransactionProvider.TryMarkInvalidTransaction("192.168.1.1", HashHelper.ComputeFrom("0"));
             markResult.ShouldBeTrue();
 
             _peerInvalidTransactionProvider.TryRemoveInvalidRecord(host);
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("0"));
             markResult.ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task MarkInvalidTransaction_Timeout_Test()
         {
@@ -45,19 +50,17 @@ namespace AElf.OS.Network
             bool markResult;
             for (var i = 0; i < 5; i++)
             {
-                markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+                var txId = HashHelper.ComputeFrom(i.ToString());
+                markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, txId);
                 markResult.ShouldBeTrue();
             }
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("5"));
             markResult.ShouldBeFalse();
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction("192.168.1.1");
-            markResult.ShouldBeTrue();
 
             await Task.Delay(1500);
-            
-            markResult =_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host);
+
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("5"));
             markResult.ShouldBeTrue();
         }
     }

@@ -16,11 +16,11 @@ As you can see, tests are placed in the **test** folder. Each test folder usuall
 ## protobuf
 ## src
 ## test
-### AElf.Contracts.GreeterContract.Test
-#### AElf.Contracts.GreeterContract.Test.csproj
+### AElf.Contracts.GreeterContract.Tests
+#### AElf.Contracts.GreeterContract.Tests.csproj
 #### GreeterContractTestBase.cs
 #### GreeterContractTestModule.cs
-#### GreeterContractTest.cs
+#### GreeterContractTests.cs
 #### GreeterContractInitializationProvider.cs
 ### ...
 -->
@@ -32,11 +32,11 @@ As you can see, tests are placed in the **test** folder. Each test folder usuall
     ├── protobuf
     ├── src
     └── test
-        ├── AElf.Contracts.GreeterContract.Test
-        │   ├── AElf.Contracts.GreeterContract.Test.csproj // xUnit test project
+        ├── AElf.Contracts.GreeterContract.Tests
+        │   ├── AElf.Contracts.GreeterContract.Tests.csproj // xUnit test project
         │   ├── GreeterContractTestBase.cs
         │   ├── GreeterContractTestModule.cs
-        │   └── GreeterContractTest.cs
+        │   └── GreeterContractTests.cs
         │   └── GreeterContractInitializationProvider.cs
         └── ...
 ```
@@ -47,7 +47,7 @@ Now for the easy part, the test class only needs to inherit from the test base. 
 
 **GreeterContractTest.cs**
 ```csharp
-public class GreeterContractTest : GreeterContractTestBase
+public class GreeterContractTests : GreeterContractTestBase
 {
     // declare the method as a xUnit test method
     [Fact]
@@ -55,7 +55,7 @@ public class GreeterContractTest : GreeterContractTestBase
     {
         // Use the contracts stub to call the 'Greet' method and get a reference to 
         // the transaction result.
-        var txResult = await GreeterContractStub.Greet.SendAsync(new Empty());
+        var txResult = await GetGreeterContractStub(_defaultKeyPair).Greet.SendAsync(new Empty());
             
         // check that the transaction was mined
         txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

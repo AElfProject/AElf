@@ -5,5 +5,5 @@ Smart Contract Development
 
    Greeter Contract <greeter-contract/index>
    Contract Deployment <deployment>
-   AElf Boilerplate <https://boilerplate-doc.readthedocs.io/en/latest/> 
+   AElf Boilerplate <https://aelf-boilerplate-docs.readthedocs.io/en/latest/> 
 

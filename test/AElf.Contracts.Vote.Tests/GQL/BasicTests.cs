@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;

@@ -1,5 +1,5 @@
 using AElf.Contracts.TestBase;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.CodeCheck;
 using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.DependencyInjection;
