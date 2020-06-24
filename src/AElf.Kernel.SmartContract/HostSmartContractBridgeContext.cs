@@ -25,17 +25,17 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
-        private readonly ContractOptions _contractOptions;
+        private readonly SmartContractStateOptions _smartContractStateOptions;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
-            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options,
-            IOptionsSnapshot<ContractOptions> contractOptions)
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options, 
+            IOptionsSnapshot<SmartContractStateOptions> smartContractStateOptions)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
-            _contractOptions = contractOptions.Value;
+            _smartContractStateOptions = smartContractStateOptions.Value;
 
             Variables = new ContextVariableDictionary(options.Value.ContextVariables);
 
@@ -140,9 +140,10 @@ namespace AElf.Kernel.SmartContract
 
         public object ValidateStateSize(object obj)
         {
-            var stateSizeLimit = _smartContractBridgeService.GetStateSizeLimit();
-            if (SerializationHelper.Serialize(obj).Length > stateSizeLimit)
-                throw new StateOverSizeException("State size limited.");
+            var stateSizeLimit = _smartContractStateOptions.StateLimitSize;
+            var size = SerializationHelper.Serialize(obj).Length;
+            if (size > stateSizeLimit)
+                throw new StateOverSizeException($"State size {size} exceeds limit of {stateSizeLimit}.");
             return obj;
         }
 

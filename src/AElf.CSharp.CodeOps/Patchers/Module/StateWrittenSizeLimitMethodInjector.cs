@@ -1,18 +1,19 @@
-using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.CodeOps.Instructions;
 using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps.Patchers.Module
 {
-    public class MethodCallInjector : IPatcher<ModuleDefinition>
+    public class StateWrittenSizeLimitMethodInjector : IPatcher<ModuleDefinition>
     {
-        private readonly List<IInstructionInjector> _instructionInjectors;
+        private readonly IStateWrittenInstructionInjector _instructionInjector;
 
-        public MethodCallInjector(IEnumerable<IInstructionInjector> instructionInjectors)
+        public StateWrittenSizeLimitMethodInjector(IStateWrittenInstructionInjector instructionInjector)
         {
-            _instructionInjectors = instructionInjectors.ToList();
+            _instructionInjector = instructionInjector;
         }
+        
+        public bool SystemContactIgnored => true;
 
         public void Patch(ModuleDefinition module)
         {
@@ -45,13 +46,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 
             var ilProcessor = methodDefinition.Body.GetILProcessor();
 
-            foreach (var instructionInjector in _instructionInjectors)
+            foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
+                _instructionInjector.IdentifyInstruction(instruction)).ToList())
             {
-                foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
-                    instructionInjector.IdentifyInstruction(instruction)).ToList())
-                {
-                    instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition);
-                }
+                _instructionInjector.InjectInstruction(ilProcessor, instruction, moduleDefinition);
             }
         }
     }

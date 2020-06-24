@@ -307,7 +307,7 @@ namespace AElf.CSharp.CodeOps
                     () => _auditor.Audit(contractCode, false))
                 .Findings;
 
-            findings.Count(f => f is MethodCallInjectionValidationResult).ShouldBe(5);
+            findings.Count(f => f is MethodCallInjectionValidationResult).ShouldBe(3);
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));

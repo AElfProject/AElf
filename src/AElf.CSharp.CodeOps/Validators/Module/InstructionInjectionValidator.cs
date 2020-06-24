@@ -9,12 +9,14 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class InstructionInjectionValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
-        private readonly List<IInstructionInjector> _instructionInjectors;
+        private readonly IStateWrittenInstructionInjector _instructionInjector;
 
-        public InstructionInjectionValidator(IEnumerable<IInstructionInjector> instructionInjectors)
+        public InstructionInjectionValidator(IStateWrittenInstructionInjector instructionInjector)
         {
-            _instructionInjectors = instructionInjectors.ToList();
+            _instructionInjector = instructionInjector;
         }
+
+        public bool SystemContactIgnored => true;
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition moduleDefinition, CancellationToken ct)
         {
@@ -54,16 +56,13 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             if (!methodDefinition.HasBody)
                 return result;
 
-            foreach (var instructionInjector in _instructionInjectors)
+            foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
+                _instructionInjector.IdentifyInstruction(instruction)).ToList())
             {
-                foreach (var instruction in methodDefinition.Body.Instructions.Where(instruction =>
-                    instructionInjector.IdentifyInstruction(instruction)).ToList())
-                {
-                    if (instructionInjector.ValidateInstruction(moduleDefinition, instruction))
-                        continue;
-                    result.Add(new MethodCallInjectionValidationResult(
-                        $"{instructionInjector.GetType()} validation failed."));
-                }
+                if (_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
+                    continue;
+                result.Add(new MethodCallInjectionValidationResult(
+                    $"{_instructionInjector.GetType()} validation failed."));
             }
 
             return result;

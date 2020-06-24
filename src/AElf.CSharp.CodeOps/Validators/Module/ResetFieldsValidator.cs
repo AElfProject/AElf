@@ -11,6 +11,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 {
     public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
+        public bool SystemContactIgnored => false;
+        
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var errors = module.Types
