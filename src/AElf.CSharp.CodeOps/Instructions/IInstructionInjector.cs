@@ -23,16 +23,21 @@ namespace AElf.CSharp.CodeOps.Instructions
 
     public class ContractStateInstructionInjector : IInstructionInjector, ITransientDependency
     {
-        private static readonly ReadOnlyDictionary<string, List<string>> MethodCallsIdentifications =
-            new ReadOnlyDictionary<string, List<string>>(
-                new Dictionary<string, List<string>>
+        private static readonly ReadOnlyDictionary<string, HashSet<string>> MethodCallsIdentifications =
+            new ReadOnlyDictionary<string, HashSet<string>>(
+                new Dictionary<string, HashSet<string>>
                 {
-                    {typeof(SingletonState).FullName, new List<string> {"set_Value"}},
-                    {typeof(ReadonlyState).FullName, new List<string> {"set_Value"}},
-                    {typeof(MappedState).FullName, new List<string> {"set_Item", "Set"}}
+                    {typeof(SingletonState).FullName, new HashSet<string> {"set_Value"}},
+                    {typeof(ReadonlyState).FullName, new HashSet<string> {"set_Value"}},
+                    {typeof(MappedState).FullName, new HashSet<string> {"set_Item", "Set"}}
                 });
 
-        // private static readonly List<Type> _types= new List<Type>{typeof(int), typeof(uint), typeof(int), typeof(Int16)}
+        private static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
+        {
+            typeof(int).FullName, typeof(uint).FullName,
+            typeof(long).FullName, typeof(ulong).FullName,
+            typeof(bool).FullName,
+        };
 
         public bool IdentifyInstruction(Instruction instruction)
         {
@@ -44,12 +49,15 @@ namespace AElf.CSharp.CodeOps.Instructions
                 return false;
 
             // var type = declaringType.GenericParameters.Last().DeclaringType;
-            
+
             var baseTypeFullName = declaringType.BaseType?.FullName;
             if (baseTypeFullName == null ||
-                !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames))
+                !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames) || 
+                !(methodReference.DeclaringType is GenericInstanceType genericType))
                 return false;
-            return methodNames.Contains(methodReference.Name);
+            var argumentType = genericType.GenericArguments.Last();
+            var contains = PrimitiveTypes.Contains(argumentType.FullName);
+            return !contains && methodNames.Contains(methodReference.Name);
         }
 
 
@@ -69,7 +77,8 @@ namespace AElf.CSharp.CodeOps.Instructions
             ilProcessor.InsertAfter(stocInstruction, ldThisInstruction);
 
             var getContextInstruction = ilProcessor.Create(OpCodes.Call,
-                moduleDefinition.ImportReference(typeof(CSharpSmartContractAbstract).GetProperty("Context").GetMethod)); // get_Context
+                moduleDefinition.ImportReference(typeof(CSharpSmartContractAbstract).GetProperty("Context")
+                    .GetMethod)); // get_Context
             ilProcessor.InsertAfter(ldThisInstruction, getContextInstruction);
 
             var ldlocInstruction =
