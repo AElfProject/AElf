@@ -20,7 +20,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IPrimaryTokenSymbolService _primaryTokenSymbolService;
         private readonly IPrimaryTokenFeeService _txFeeService;
-        private readonly ITransactionFeeExemptionService _transactionFeeExemptionService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
         private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
             _contractReaderFactory;
@@ -29,7 +28,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 
         public FeeChargePreExecutionPlugin(ISmartContractAddressService smartContractAddressService,
             IPrimaryTokenSymbolService primaryTokenSymbolService,
-            ITransactionFeeExemptionService transactionFeeExemptionService,
             IPrimaryTokenFeeService txFeeService,
             ITransactionSizeFeeSymbolsProvider transactionSizeFeeSymbolsProvider,
             IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub> contractReaderFactory) :
@@ -40,7 +38,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             _txFeeService = txFeeService;
             _transactionSizeFeeSymbolsProvider = transactionSizeFeeSymbolsProvider;
             _contractReaderFactory = contractReaderFactory;
-            _transactionFeeExemptionService = transactionFeeExemptionService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -54,10 +51,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHash = transactionContext.PreviousBlockHash,
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
-                if (_transactionFeeExemptionService.IsFree(chainContext, transactionContext.Transaction))
-                {
-                    return new List<Transaction>();
-                }
 
                 var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
                     TokenSmartContractAddressNameProvider.StringName);

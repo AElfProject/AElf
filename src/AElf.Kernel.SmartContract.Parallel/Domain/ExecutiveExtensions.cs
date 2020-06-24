@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -28,10 +27,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return new TransactionResourceInfo
                 {
                     TransactionId = txId,
-                    Paths =
+                    WritePaths =
                     {
-                        resourceInfo.Paths
+                        resourceInfo.WritePaths
                     },
+                    ReadPaths = {resourceInfo.ReadPaths},
                     ParallelType = resourceInfo.NonParallelizable
                         ? ParallelType.NonParallelizable
                         : ParallelType.Parallelizable,

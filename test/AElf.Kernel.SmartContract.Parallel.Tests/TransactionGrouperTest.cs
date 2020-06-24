@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 MethodName = methodName,
                 Params = new TransactionResourceInfo
                 {
-                    Paths =
+                    WritePaths =
                     {
                         GetPath(from), GetPath(to)
                     }
