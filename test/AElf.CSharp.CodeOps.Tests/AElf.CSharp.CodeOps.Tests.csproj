@@ -41,6 +41,8 @@
 <!--        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj" />-->
 <!--        <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />-->
         <ProjectReference Include="..\..\src\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.PatchTestContract\AElf.Contracts.TestContract.PatchTestContract.csproj"/>
+
     </ItemGroup>
 
 </Project>

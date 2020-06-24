@@ -9,6 +9,7 @@ using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestContract.BasicUpdate;
+using AElf.Contracts.TestContract.PatchTestContract;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
@@ -25,6 +26,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using Xunit;
+using BetLimitInput = AElf.Contracts.TestContract.BasicFunction.BetLimitInput;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Contract.TestContract
@@ -51,6 +53,7 @@ namespace AElf.Contract.TestContract
         internal Acs0.ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
+        internal PatchTestContractContainer.PatchTestContractStub PatchTestContractStub { get; set; }
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
 
@@ -116,6 +119,23 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
         }
 
+        protected void InitializePatchContracts()
+        {
+            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
+
+            //deploy test contract1
+            BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    PatchedCodes.Single(kv => kv.Key.EndsWith("PatchTestContract")).Value,
+                    null,
+                    DefaultSenderKeyPair));
+            PatchTestContractStub =
+                GetTester<PatchTestContractContainer.PatchTestContractStub>(BasicFunctionContractAddress,
+                    DefaultSenderKeyPair);
+            AsyncHelper.RunSync(async () => await InitialPatchTestContract());
+        }
+
         protected void InitializePatchedContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
@@ -153,7 +173,7 @@ namespace AElf.Contract.TestContract
         
         private async Task InitialBasicFunctionContract()
         {
-            await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(Hash.Empty);
+            await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(new Hash());
             // new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput()
             // {
             //     ContractName = "Test Contract1",
@@ -163,7 +183,19 @@ namespace AElf.Contract.TestContract
             //     Manager = Accounts[1].Address
             // });
         }
-
+        
+        private async Task InitialPatchTestContract()
+        {
+            await PatchTestContractStub.Initialize.SendAsync(new Hash());
+            // new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput()
+            // {
+            //     ContractName = "Test Contract1",
+            //     MinValue = 10L,
+            //     MaxValue = 1000L,
+            //     MortgageValue = 1000_000_000L,
+            //     Manager = Accounts[1].Address
+            // });
+        }
         private async Task InitializeSecurityContract()
         {
             await TestBasicSecurityContractStub.InitialBasicSecurityContract.SendAsync(BasicFunctionContractAddress);

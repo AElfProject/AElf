@@ -12,6 +12,8 @@ service AssociationContract {
     option (aelf.base) = "acs1.proto";
     
     // Actions    
+    rpc Initialize(aelf.Hash) returns(google.protobuf.Empty){
+    }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Empty){

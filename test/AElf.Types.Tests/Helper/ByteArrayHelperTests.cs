@@ -58,5 +58,12 @@ namespace AElf.Types.Tests.Helper
             result1.ShouldBe(expectBytes);
             result2.ShouldBe(bytes);
         }
+
+        [Fact]
+        public void TestSerialization()
+        {
+            object o = 1;
+            SerializationHelper.Serialize(o);
+        }
     }
 }

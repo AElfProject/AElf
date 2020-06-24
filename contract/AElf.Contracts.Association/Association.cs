@@ -1,4 +1,5 @@
 using System.Linq;
+using Acs1;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -67,6 +68,12 @@ namespace AElf.Contracts.Association
         #endregion view
 
         #region Actions
+
+        public override Empty Initialize(Hash input)
+        {
+            State.Int32State.Value = "test";
+            return new Empty();
+        }
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {

@@ -1,6 +1,7 @@
 // using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -27,21 +28,24 @@ namespace AElf.Contracts.TestContract.BasicFunction
             // object obj = input.MortgageValue;
             // mortgageBalance.Value = (long) Context.ValidateStateSize(input.MortgageValue);
             
-            State.MortgageBalance.Value = 1;
+            State.MortgageBalance.Value = 1L;
+            // Int64State mortgageBalance = base.State.MortgageBalance;
+            // object obj = 1L;
+            // mortgageBalance.Value = (long) Context.ValidateStateSize(obj);
             return new Empty();
         }
 
-        public override Empty UpdateBetLimit(BetLimitInput input)
-        {
-            // Assert(Context.Sender == State.ContractManager.Value, "Only manager can perform this action.");
-            // Assert(input.MinValue > 0 && input.MaxValue > 0 && input.MaxValue >= input.MinValue,
-            //     "Invalid min/max value input setting.");
-            //
-            // State.MinBet.Value = input.MinValue;
-            // State.MaxBet.Value = input.MaxValue;
-        
-            return new Empty();
-        }
+        // public override Empty UpdateBetLimit(BetLimitInput input)
+        // {
+        //     // Assert(Context.Sender == State.ContractManager.Value, "Only manager can perform this action.");
+        //     // Assert(input.MinValue > 0 && input.MaxValue > 0 && input.MaxValue >= input.MinValue,
+        //     //     "Invalid min/max value input setting.");
+        //     //
+        //     // State.MinBet.Value = input.MinValue;
+        //     // State.MaxBet.Value = input.MaxValue;
+        //
+        //     return new Empty();
+        // }
         
         // public override Empty UserPlayBet(BetInput input)
         // {

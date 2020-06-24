@@ -482,6 +482,11 @@ namespace AElf.Contracts.Association
             //not found
             {
                 var transactionResult =
+                    await AssociationContractStub.Initialize.SendAsync(HashHelper.ComputeFrom("Test"));
+            }
+            
+            {
+                var transactionResult =
                     await AssociationContractStub.Approve.SendWithExceptionAsync(HashHelper.ComputeFrom("Test"));
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }

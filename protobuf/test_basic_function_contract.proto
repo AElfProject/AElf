@@ -15,8 +15,8 @@ service BasicFunctionContract {
     //Actions
     rpc InitialBasicFunctionContract(aelf.Hash) returns (google.protobuf.Empty){
     }
-    rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
-    }
+//    rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
+//    }
 //    rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
 //    }
 //    rpc LockToken(LockTokenInput) returns (google.protobuf.Empty) {

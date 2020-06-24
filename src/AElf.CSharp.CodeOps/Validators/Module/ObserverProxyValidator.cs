@@ -8,7 +8,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDependency
+    public class ObserverProxyValidator : IValidator<ModuleDefinition>
     {
         private readonly TypeDefinition _counterProxyTypeRef;
         private TypeDefinition _injProxyType;

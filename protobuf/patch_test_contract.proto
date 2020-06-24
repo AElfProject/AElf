@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.PatchTestContract";
+
+
+service PatchTestContract{
+    option (aelf.csharp_state) = "AElf.TestContracts.PatchTestContract.PatchTestContractState";
+
+    rpc Initialize(aelf.Hash) returns (google.protobuf.Empty){
+    }
+}
+
+

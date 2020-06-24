@@ -12,7 +12,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
         // public Int64State MinBet { get; set; }
         // public Int64State MaxBet { get; set; }
 
-        public Int64State MortgageBalance { get; set; }
+        public SingletonState<long> MortgageBalance { get; set; }
         // public Int64State TotalBetBalance { get; set; }
         // public Int64State RewardBalance { get; set; }
         //

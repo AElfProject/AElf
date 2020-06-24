@@ -100,7 +100,7 @@ namespace AElf.CSharp.CodeOps
         // }
         
         [Theory]
-        [InlineData("TestContract.BasicFunction")]
+        [InlineData("TestContract.PatchTestContract")]
         // [InlineData(typeof(ConfigurationContract))]
         // [InlineData(typeof(AEDPoSContract))]
         // [InlineData(typeof(CrossChainContract))]
@@ -120,16 +120,16 @@ namespace AElf.CSharp.CodeOps
             var codePatched = _patcher.Patch(codeToPatch, false);
             // _auditor.Audit(codePatched, false);
             var base64 = Convert.ToBase64String(codePatched);
-            var module = ModuleDefinition.ReadModule(new MemoryStream(codePatched));
-            var contractType = module.Types.Select(t => Type.GetType(t.FullName + ", " + t.Module.Assembly.FullName))
-                .SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
-            var contractInstance = Activator.CreateInstance(contractType);
-            var contractBaseType = module.Types.Select(t => Type.GetType(t.FullName + ", " + t.Module.Assembly.FullName))
-                .SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
-            var bindServiceMethodInfo = contractType.GetMethod("BindService", new[] {contractBaseType});
-            var serviceDefinition =
-                bindServiceMethodInfo.Invoke(null, new[] {contractInstance}) as ServerServiceDefinition;
-            ;
+            // var module = ModuleDefinition.ReadModule(new MemoryStream(codePatched));
+            // var contractType = module.Types.Select(t => Type.GetType(t.FullName + ", " + t.Module.Assembly.FullName))
+            //     .SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
+            // var contractInstance = Activator.CreateInstance(contractType);
+            // var contractBaseType = module.Types.Select(t => Type.GetType(t.FullName + ", " + t.Module.Assembly.FullName))
+            //     .SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
+            // var bindServiceMethodInfo = contractType.GetMethod("BindService", new[] {contractBaseType});
+            // var serviceDefinition =
+            //     bindServiceMethodInfo.Invoke(null, new[] {contractInstance}) as ServerServiceDefinition;
+            // ;
 
             
             await using var outputFile = new StreamWriter(Path.Combine("./", $"contracts/{contractName}.txt"));

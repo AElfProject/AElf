@@ -27,7 +27,7 @@ namespace AElf.CSharp.CodeOps
 
             context.Services.AddTransient<IPatcher, MethodCallInjector>();
             context.Services.AddTransient<IPatcher, ResetFieldsMethodInjector>();
-            context.Services.AddTransient<IPatcher, ExecutionObserverInjector>();
+            // context.Services.AddTransient<IPatcher, ExecutionObserverInjector>();
             context.Services.AddTransient<IPatcher, MethodCallReplacer>();
         }
     }
