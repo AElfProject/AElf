@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     var args = QueryTwoUserWinMoneyInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(BasicFunctionWithParallelContractState.WinnerHistory),args.Second.ToString())
                         }
@@ -27,7 +27,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     var args = IncreaseWinMoneyInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(BasicFunctionWithParallelContractState.WinnerHistory), args.Second.ToString())
                         }
@@ -39,7 +39,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     var args = SetValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(BasicFunctionWithParallelContractState.LongValueMap),args.Key),
                             GetPath(nameof(BasicFunctionWithParallelContractState.StringValueMap),args.Key),
@@ -53,7 +53,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     var args = RemoveValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(BasicFunctionWithParallelContractState.LongValueMap),args.Key),
                             GetPath(nameof(BasicFunctionWithParallelContractState.StringValueMap),args.Key),
@@ -71,7 +71,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                     var args = IncreaseValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
                     {
-                        Paths =
+                        WritePaths =
                         {
                             GetPath(nameof(BasicFunctionWithParallelContractState.LongValueMap),args.Key),
                             GetPath(nameof(BasicFunctionWithParallelContractState.StringValueMap),args.Key),

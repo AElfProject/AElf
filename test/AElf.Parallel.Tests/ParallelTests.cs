@@ -70,7 +70,7 @@ namespace AElf.Parallel.Tests
             var chain = await _blockchainService.GetChainAsync();
             var tokenAmount = _transactionCount / _groupCount;
             var (prepareTransactions, keyPairs) =
-                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, tokenAmount);
+                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, 1000000000);
             await _parallelTestHelper.BroadcastTransactions(prepareTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 prepareTransactions);

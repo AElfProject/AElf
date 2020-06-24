@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
@@ -154,7 +154,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-            transactionResult.Error.Contains("This method already executed in height").ShouldBeTrue();
+            transactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
 
         private async Task<List<Block>> GenerateEmptyBlocksAsync(int count, Hash previousBlockHash,

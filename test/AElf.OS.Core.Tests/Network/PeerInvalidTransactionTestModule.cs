@@ -39,13 +39,14 @@ namespace AElf.OS
         {
             AElfPeerEndpointHelper.TryParse(address, out var endpoint);
             var peer = new Mock<IPeer>();
+            var knowsTransactions = new HashSet<Hash>();
+            for (var i = 0; i < 10; i++)
+            {
+                knowsTransactions.Add(HashHelper.ComputeFrom("Tx" + i + pubkey));
+            }
+
             peer.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
-                .Returns<Hash>(hash =>
-                {
-                    if (hash == HashHelper.ComputeFrom("Tx"+pubkey))
-                        return true;
-                    return false;
-                });
+                .Returns<Hash>(hash => knowsTransactions.Contains(hash));
             peer.Setup(p => p.RemoteEndpoint).Returns(endpoint);
             peer.Setup(p => p.Info).Returns(new PeerConnectionInfo {Pubkey = pubkey});
 
