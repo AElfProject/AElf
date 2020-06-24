@@ -84,7 +84,6 @@ namespace AElf.Contracts.Association
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organizations[organizationAddress] == null)
             {
-                SerializationHelper.Serialize(organization);
                 State.Organizations[organizationAddress] = organization;
                 Context.Fire(new OrganizationCreated
                 {

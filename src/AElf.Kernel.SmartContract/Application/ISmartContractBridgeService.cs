@@ -31,8 +31,6 @@ namespace AElf.Kernel.SmartContract.Application
         Address GetZeroSmartContractAddress(int chainId);
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
-
-        int GetStateSizeLimit();
     }
 
     public class SmartContractBridgeService : ISmartContractBridgeService
@@ -112,11 +110,6 @@ namespace AElf.Kernel.SmartContract.Application
             
             return _blockchainStateManager.GetStateAsync(key, blockHeight,
                 blockHash);
-        }
-
-        public int GetStateSizeLimit()
-        {
-            return SmartContractConstants.StateSizeLimit;
         }
     }
 }
