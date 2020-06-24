@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
@@ -30,13 +32,20 @@ namespace AElf.CSharp.CodeOps.Instructions
                     {typeof(MappedState).FullName, new List<string> {"set_Item", "Set"}}
                 });
 
+        // private static readonly List<Type> _types= new List<Type>{typeof(int), typeof(uint), typeof(int), typeof(Int16)}
 
         public bool IdentifyInstruction(Instruction instruction)
         {
             if (instruction.OpCode != OpCodes.Callvirt)
                 return false;
             var methodReference = (MethodReference) instruction.Operand;
-            var baseTypeFullName = methodReference.DeclaringType.Resolve()?.BaseType?.FullName;
+            var declaringType = methodReference.DeclaringType.Resolve();
+            if (declaringType == null || !declaringType.HasGenericParameters)
+                return false;
+
+            // var type = declaringType.GenericParameters.Last().DeclaringType;
+            
+            var baseTypeFullName = declaringType.BaseType?.FullName;
             if (baseTypeFullName == null ||
                 !MethodCallsIdentifications.TryGetValue(baseTypeFullName, out var methodNames))
                 return false;

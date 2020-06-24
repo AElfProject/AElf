@@ -28,10 +28,8 @@ namespace AElf.Contracts.TestContract.BasicFunction
             // object obj = input.MortgageValue;
             // mortgageBalance.Value = (long) Context.ValidateStateSize(input.MortgageValue);
             
-            State.MortgageBalance.Value = 1L;
-            // Int64State mortgageBalance = base.State.MortgageBalance;
-            // object obj = 1L;
-            // mortgageBalance.Value = (long) Context.ValidateStateSize(obj);
+            State.MortgageBalance.Value = "hello";
+            State.TotalBetBalance.Value = 1;
             return new Empty();
         }
 

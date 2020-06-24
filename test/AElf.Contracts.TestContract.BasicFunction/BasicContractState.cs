@@ -12,8 +12,8 @@ namespace AElf.Contracts.TestContract.BasicFunction
         // public Int64State MinBet { get; set; }
         // public Int64State MaxBet { get; set; }
 
-        public SingletonState<long> MortgageBalance { get; set; }
-        // public Int64State TotalBetBalance { get; set; }
+        public SingletonState<string> MortgageBalance { get; set; }
+        public UInt64State TotalBetBalance { get; set; }
         // public Int64State RewardBalance { get; set; }
         //
         // public MappedState<Address, long> WinerHistory { get; set; }

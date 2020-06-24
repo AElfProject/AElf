@@ -69,12 +69,6 @@ namespace AElf.Contracts.Association
 
         #region Actions
 
-        public override Empty Initialize(Hash input)
-        {
-            State.Int32State.Value = "test";
-            return new Empty();
-        }
-
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             var organizationHashAddressPair = CalculateOrganizationHashAddressPair(input);
