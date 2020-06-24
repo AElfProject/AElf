@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;

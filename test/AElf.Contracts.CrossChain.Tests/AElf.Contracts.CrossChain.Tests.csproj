@@ -14,9 +14,6 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
-    </ItemGroup>
     <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
@@ -59,5 +56,9 @@
         <ContractStub Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf\Proto\configuration_contract.proto</Link>
         </ContractStub>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
     </ItemGroup>
 </Project>

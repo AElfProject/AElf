@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Cryptography;

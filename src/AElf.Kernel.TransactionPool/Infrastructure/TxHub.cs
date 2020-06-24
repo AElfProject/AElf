@@ -92,17 +92,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             foreach (var transaction in transactions)
             {
+                var transactionId = transaction.GetHash();
                 var queuedTransaction = new QueuedTransaction
                 {
-                    TransactionId = transaction.GetHash(),
+                    TransactionId = transactionId,
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
                 var sendResult = await _processTransactionJobs.SendAsync(queuedTransaction);
-                if (!sendResult)
+                if (sendResult) continue;
+                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
                 {
-                    Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
-                }
+                    TransactionId = transactionId,
+                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                    Error = "Failed to enter tx hub."
+                });
+                Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
@@ -290,16 +295,39 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
-            return _allTransactions.Count < _transactionOptions.PoolLimit &&
-                   !_allTransactions.ContainsKey(queuedTransaction.TransactionId) &&
-                   queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight) &&
-                   !await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+            if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
+            {
+                return false;
+            }
+
+            if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
+            {
+                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+                return false;
+            }
+
+            if (_allTransactions.Count >= _transactionOptions.PoolLimit)
+            {
+                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                    "Transaction Pool is full.");
+                return false;
+            }
+
+            if (await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
             if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
+            {
                 return null;
+            }
 
             var validationResult =
                 await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
@@ -328,6 +356,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             Logger.LogWarning($"Transaction {queuedTransaction.TransactionId} insert failed.");
             return null;
+        }
+
+        private async Task PublishTransactionNodeValidationFailedEventAsync(Hash transactionId, string error)
+        {
+            await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+            {
+                TransactionId = transactionId,
+                TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                Error = error
+            });
         }
 
         private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(

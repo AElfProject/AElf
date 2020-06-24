@@ -21,6 +21,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
+using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,6 +104,7 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
             });
+            Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

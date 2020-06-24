@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Acs1;
 using Acs3;
 using AElf.Sdk.CSharp;

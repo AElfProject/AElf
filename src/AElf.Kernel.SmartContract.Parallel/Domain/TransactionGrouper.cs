@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -66,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         continue;
                     }
 
-                    if (twr.TransactionResourceInfo.Paths.Count == 0)
+                    if (twr.TransactionResourceInfo.WritePaths.Count == 0 && twr.TransactionResourceInfo.ReadPaths.Count == 0)
                     {
                         // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);
@@ -113,7 +114,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var transactionResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
-
+            var readOnlyPaths = txsWithResources.GetReadOnlyPaths();
             foreach (var txWithResource in txsWithResources)
             {
                 UnionFindNode first = null;
@@ -121,7 +122,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 var transactionResourceInfo = txWithResource.TransactionResourceInfo;
 
                 // Add resources to disjoint-set, later each resource will be connected to a node id, which will be our group id
-                foreach (var resource in transactionResourceInfo.Paths.Select(p => p.GetHashCode()))
+                foreach (var resource in transactionResourceInfo.WritePaths.Concat(transactionResourceInfo.ReadPaths)
+                    .Where(p => !readOnlyPaths.Contains(p))
+                    .Select(p => p.GetHashCode()))
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {

@@ -1,4 +1,4 @@
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TestBase;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
