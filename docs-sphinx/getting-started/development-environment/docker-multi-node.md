@@ -36,7 +36,7 @@ Create three folders in the workspace folder, one for each miner (lets say **min
 mkdir miner1 miner2 miner3
 ```
 
-Next in each of these folders place an **appsettings.json** file. An example can be found [**here**](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.json).
+Next in each of these folders place **appsettings.json** and **appsettings.MainChain.MainNet.json** files. An example of **appsettings.json** can be found [**here**](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.json). And an example of **appsettings.MainChain.MainNet.json** can be found [**here**](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.MainChain.MainNet.json)
 
 We'll modify these later in the next steps.
 
@@ -94,8 +94,8 @@ Only two options need to be changed for this tutorial, **BootNodes** and **Liste
 ```json
 {
   "Network": {
-    "BootNodes": ["192.168.1.70:6802","192.168.1.70:6803"],
-    "ListeningPort": 6801
+    "BootNodes": ["192.168.1.70:6801","192.168.1.70:6802"],
+    "ListeningPort": 6800
   },
 }
 ```
@@ -104,8 +104,8 @@ Only two options need to be changed for this tutorial, **BootNodes** and **Liste
 ```json
 {
   "Network": {
-    "BootNodes": ["192.168.1.70:6801","192.168.1.70:6803"],
-    "ListeningPort": 6802
+    "BootNodes": ["192.168.1.70:6800","192.168.1.70:6802"],
+    "ListeningPort": 6801
   },
 }
 ```
@@ -114,8 +114,8 @@ Only two options need to be changed for this tutorial, **BootNodes** and **Liste
 ```json
 {
   "Network": {
-    "BootNodes": ["192.168.1.70:6801","192.168.1.70:6802"],
-    "ListeningPort": 6803
+    "BootNodes": ["192.168.1.70:6800","192.168.1.70:6801"],
+    "ListeningPort": 6802
   },
 }
 ```
@@ -179,50 +179,36 @@ The example shows that the port is 8000, for miner1 you can keep this value but 
 ### Start docker - node one 
 
 ```bash
-docker run -it -p 8000:8000 -p 6800:6800 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner1/appsettings.json>:/app/appsettings.json aelf/node:latest /bin/bash
+docker run -it -p 8000:8000 -p 6800:6800 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner1>:/opt/aelf-node -w /opt/aelf-node aelf/node:latest dotnet /app/AElf.Launcher.dll
 ```
 
 Here 8000 will be the API endpoint port and 6800 the listening port and both are mapped in docker. You will need to replace "your/local/keystore/path" to the location of you key store (aelf-command create will show you where your keys are currently stored).
 
-You also need to map the configuration files we created, in the miner1, miner2 and miner3 directories, so replace "path/to/MultiNodeTutorial/miner1/appsettings.json" with your local path.
-
-Next you can launch the node:
-
-```bash
-dotnet AElf.Launcher.dll
-```
+You also need to map the configuration files we created, in the miner1, miner2 and miner3 directories, so replace "path/to/MultiNodeTutorial/miner1" with your local path.
 
 The next step is the same, but with a second container.
 
 ### Start docker - node two 
 
 ```bash
-docker run -it -p 8001:8001 -p 6801:6801 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner2/appsettings.json>:/app/appsettings.json aelf/node:latest /bin/bash
+docker run -it -p 8001:8001 -p 6801:6801 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner2>:/opt/aelf-node -w /opt/aelf-node aelf/node:latest dotnet 
 ```
 
 Here 8001 will be the API endpoint port and 6801 the listening port and both are mapped in docker. Like for the previous node,you will need to replace "your/local/keystore/path" to the location of you key store.
 
-You also need to map the configuration files we created for miner2, in the miner2 directory, so replace "path/to/MultiNodeTutorial/miner2/appsettings.json" with your local path.
-
-```bash
-dotnet AElf.Launcher.dll
-```
+You also need to map the configuration files we created for miner2, in the miner2 directory, so replace "path/to/MultiNodeTutorial/miner2" with your local path.
 
 The next step is the same, but with a third container.
 
 ### Start docker - node three 
 
 ```bash
-docker run -it -p 8002:8002 -p 6802:6802 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner3/appsettings.json>:/app/appsettings.json aelf/node:latest /bin/bash
+docker run -it -p 8002:8002 -p 6802:6802 -v <your/local/keystore/path>:/root/.local/share/aelf/keys -v <path/to/MultiNodeTutorial/miner3>:/opt/aelf-node -w /opt/aelf-node aelf/node:latest dotnet 
 ```
 
 Here 8002 will be the API endpoint port and 6802 the listening port and both are mapped in docker. Like for the previous node,you will need to replace "your/local/keystore/path" to the location of you key store.
 
-You also need to map the configuration files we created for miner3, in the miner3 directory, so replace "path/to/MultiNodeTutorial/miner3/appsettings.json" with your local path.
-
-```bash
-dotnet AElf.Launcher.dll
-```
+You also need to map the configuration files we created for miner3, in the miner3 directory, so replace "path/to/MultiNodeTutorial/miner3" with your local path.
 
 ## Access the node's Swagger
 
