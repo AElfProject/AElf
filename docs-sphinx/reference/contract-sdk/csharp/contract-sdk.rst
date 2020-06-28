@@ -330,8 +330,10 @@ Parameters
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash:
 
-ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ConvertVirtualAddressToContractAddressWithContractHashName(
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+virtualAddress) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -356,8 +358,10 @@ Parameters
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash-AElf-Types-Address:
 
-ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress,contractAddress) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ConvertVirtualAddressToContractAddressWithContractHashName(
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+virtualAddress,contractAddress) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -435,15 +439,15 @@ Parameters
 +-------------------+-----------------------+-----------------------+
 | Name              | Type                  | Description           |
 +===================+=======================+=======================+
-| receiverPublicKey | `Syst                 | The receivers public  |
-|                   | em.Byte[] <http://msd | key.                  |
-|                   | n.microsoft.com/query |                       |
+| receiverPublicKey | `System.              | The receivers public  |
+|                   | Byte[] <http://msdn   | key.                  |
+|                   | .microsoft.com/query  |                       |
 |                   | /dev14.query?appId=De |                       |
 |                   | v14IDEF1&l=EN-US&k=k: |                       |
 |                   | System.Byte>`__       |                       |
 +-------------------+-----------------------+-----------------------+
-| plainMessage      | `Syst                 | The non encrypted     |
-|                   | em.Byte[] <http://msd | message.              |
+| plainMessage      | `System.              | The non encrypted     |
+|                   | Byte[] <http://msd    | message.              |
 |                   | n.microsoft.com/query |                       |
 |                   | /dev14.query?appId=De |                       |
 |                   | v14IDEF1&l=EN-US&k=k: |                       |
@@ -747,8 +751,10 @@ Parameters
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString:
 
-SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args)  ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+methodName,args)  ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -1202,8 +1208,10 @@ Parameters
 
 .. _AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Kernel-SmartContract-ISmartContractBridgeContext-AElf-Types-Hash:
 
-ConvertVirtualAddressToContractAddressWithContractHashName(this,virtualAddress) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ConvertVirtualAddressToContractAddressWithContractHashName(this,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+virtualAddress) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -1473,8 +1481,10 @@ Parameters
 
 .. _AElf-Sdk-CSharp-SmartContractBridgeContextExtensions-SendVirtualInline-AElf-Kernel-SmartContract-ISmartContractBridgeContext-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-IMessage:
 
-SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+message) ``method``
+>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
@@ -1506,8 +1516,10 @@ Parameters
 
 .. _BoolState:
 
-SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,message) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+SendVirtualInline(context,fromVirtualAddress,toAddress,methodName,
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+message) ``method``
+>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
