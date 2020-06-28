@@ -38,12 +38,13 @@ the same physical location.
 
 ### Side chain lifetime
 
-| Side chain lifetime involves the following steps. 1. Request side
-  chain creation.
-| 2. Wait for accept on main chain.
-| 3. Start and initialize side chain and it will be indexed by main
+Side chain lifetime involves the following steps. 
+
+- Request side chain creation.
+- Wait for accept on main chain.
+- Start and initialize side chain and it will be indexed by main
   chain automatically.
-| 4. It is allowed to do cross chain verification iff side chain is
+- It is allowed to do cross chain verification iff side chain is
   indexed correctly.
 
 The next section describes what happens once the side chain node has
@@ -52,16 +53,23 @@ been started.
 ### Communication
 
 When the side chain node starts it will initiate a number of different
-communications, here are the main points of the protocol: 1. when the
-side chain node is started for the first time it will request the main
-chain node for a chain initialization context. 2. after initialization
-the side chain is launched and will perform a handshake with main chain
-node to signal that it is ready to be indexed. 3. during the indexing
-process, the information of irreversible blocks will be exchanged
+communications, here are the main points of the protocol: 
+- When the side chain node is started for the first time it will request the main
+chain node for a chain initialization context. 
+- After initialization the side chain is launched and will perform a handshake with main chain
+node to signal that it is ready to be indexed. 
+- During the indexing process, the information of irreversible blocks will be exchanged
 between side chain and main chain. The main chain will write the final
 result in block which is calculated with the cross chain data from all
 side chains. Side chain is also recording the data in contract from main
-chain.
+chain. 
+
+AElf provides the cross chain communication implementation with grpc.
+ 
+``` Protobuf
+    rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
+    rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+```
 
 #### Cache
 
