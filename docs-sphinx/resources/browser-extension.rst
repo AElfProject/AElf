@@ -38,15 +38,15 @@ How to use
 ~~~~~~~~~~
 
 If you need complete data structure. you can `click
-here <#dataformat>`__
+here <#data-format>`__
 
--  `0. Check Extension Demo <#check-extension-demo>`__
+-  `0. Check Extension Demo <#demo-of-checking-the-extension>`__
 -  `1. GET_CHAIN_STATUS <#get-chain-status>`__
 -  `2. CALL_AELF_CHAIN <#call-aelf-chain>`__
 -  `3. LOGIN <#login>`__
 -  `4. INIT_AELF_CONTRACT <#init-aelf-contract>`__
 -  `5. CALL_AELF_CONTRACT /
-   CALL_AELF_CONTRACT_READONLY <#call-aelf-contract>`__
+   CALL_AELF_CONTRACT_READONLY <#call-aelf-contract-call-aelf-contract-readonly>`__
 -  `6. CHECK_PERMISSION <#check-permission>`__
 -  `7. SET_CONTRACT_PERMISSION <#set-contract-permission>`__
 -  `8. REMOVE_CONTRACT_PERMISSION <#remove-contract-permission>`__
