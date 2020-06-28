@@ -744,10 +744,10 @@ HTTP Code Description Schema
 **200**   Success     `TransactionResultDto <#transactionresultdto>`__
 ========= =========== ================================================
 
-{% hint style=“info” %} The transaction result DTO object returned
+The transaction result DTO object returned
 contains the transaction that contains the parameter values used for the
 call. The node will return the byte array as a base64 encoded string if
-it can’t decode it. {% endhint %}
+it can’t decode it. 
 
 .. _produces-15:
 

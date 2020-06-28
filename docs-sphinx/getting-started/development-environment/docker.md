@@ -12,21 +12,18 @@ docker pull aelf/node
 
 While downloading you can make sure your Redis database instance is ready.
 
-## Starting the container
+## Create configuration
 
-Once you have finished downloading the latest version of the AElf image, you can start the container and edit the configuration:
-
-```bash
-docker run -it -p 8000:8000 aelf/node:latest /bin/bash
-```
-
-This command will run the container and a shell within it. From here you can modify the configuration: use you favorite editor to modify the **appsettings.json**, here we use vim:
+First, choose a location for the configuration, for this tutorial we’ll create a directory called **singleNode**.
 
 ```bash
-vim appsettings.json
+mkdir singleNode
+cd singleNode
 ```
 
-This will open the file (press i for insert mode in vim). The only fields you have to change are the IP and port of your Redis instance :
+Next in the directory place **appsettings.json** and **appsettings.MainChain.MainNet.json** files. An example of **appsettings.json** can be found [**here**](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.json). And an example of **appsettings.MainChain.MainNet.json** can be found [**here**](https://github.com/AElfProject/AElf/blob/dev/src/AElf.Launcher/appsettings.MainChain.MainNet.json)
+
+Then you can modify **appsettings.json** file. And the only fields you have to change are the IP and port of your Redis instance :
 
 ```json
 {
@@ -39,14 +36,12 @@ This will open the file (press i for insert mode in vim). The only fields you ha
 
 Replace "192.168.1.70" and 6379 with whatever host your Redis server is on.
 
-Note: with vim, press ESC then ":wq" to save and exit.
+## Starting the container
 
-## Run the program
-
-At this point you are still *inside* Docker, the next step is to run the AElf node:
+Once you have finished downloading the latest version of the AElf image, you can start the container:
 
 ```bash
-dotnet AElf.Launcher.dll
+docker run -it -p 8000:8000 -v <path/to/singleNode>:/opt/aelf-node -w /opt/aelf-node aelf/node:latest dotnet /app/AElf.Launcher.dll
 ```
 
 ## Access the node's Swagger

@@ -237,7 +237,7 @@ choco upgrade unzip -y
 On Linux:
 
 ``` bash
-# Make sure you grab the latest version
+# Make sure you grab 3.11.4 for protoc
 curl -OL https://github.com/google/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
 
 # Unzip
@@ -257,6 +257,19 @@ sudo chown -R ${USER} /usr/local/include/google
 on macOS:
 
 ``` bash
-brew install protobuf
-brew link --force --overwrite protobuf
+# Make sure you grab 3.11.4 for protoc
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-osx-x86_64.zip
+
+# Unzip
+unzip protoc-3.11.4-osx-x86_64.zip -d protoc3
+
+# Move protoc to /usr/local/bin/
+sudo mv protoc3/bin/* /usr/local/bin/
+
+# Move protoc3/include to /usr/local/include/
+sudo mv protoc3/include/* /usr/local/include
+
+# Optional: change owner
+sudo chown ${USER} /usr/local/bin/protoc
+sudo chown -R ${USER} /usr/local/include/google
 ```
