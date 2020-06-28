@@ -165,7 +165,7 @@ Contract Implementation
 Here only talk about the general idea of the Action method, specifically
 need to turn the code:
 
-https://github.com/AElfProject/aelf-boilerplate/blob/preview-3/chain/contract/AElf.Contracts.BingoGameContract/BingoGameContract.cs
+https://github.com/AElfProject/aelf-boilerplate/blob/dev/chain/contract/AElf.Contracts.BingoGameContract/BingoGameContract.cs
 
 Register & Quit
 ^^^^^^^^^^^^^^^

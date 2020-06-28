@@ -18,7 +18,7 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 
 For more information you can follow these links:
 * [Official website](https://aelf.io)
-* [Documentation](https://docs.aelf.io/v/dev/)
+* [Documentation](https://docs.aelf.io/en/latest/)
     * [Environment setup](https://docs.aelf.io/en/latest/getting-started/development-environment/environment-setup.html)
     * [Running a node](https://docs.aelf.io/en/latest/getting-started/development-environment/docker.html)
     * [Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
