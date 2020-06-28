@@ -2,7 +2,6 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicSecurity;
-using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -137,9 +136,9 @@ namespace AElf.Contract.TestContract
                 var queryResult = await TestBasicSecurityContractStub.QueryStringState.CallAsync(new Empty());
                 queryResult.StringValue.ShouldBe(str1);
                 
-                txResult = await TestBasicSecurityContractStub.TestStringState.SendWithExceptionAsync(new StringInput()
+                txResult = await TestBasicSecurityContractStub.TestStringState.SendWithExceptionAsync(new StringInput
                 {
-                    StringValue = str1
+                    StringValue = str
                 });
                 txResult.TransactionResult.Error.ShouldContain($"exceeds limit of {stateSizeLimit}");
             }

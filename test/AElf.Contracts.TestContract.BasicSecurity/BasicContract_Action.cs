@@ -74,11 +74,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Empty TestStringState(StringInput input)
         {
-            if (string.IsNullOrEmpty(State.StringInfo.Value))
-                State.StringInfo.Value = string.Empty;
-
-            State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
-
+            State.StringInfo.Value = input.StringValue;
             return new Empty();
         }
 
