@@ -762,9 +762,9 @@ Parameters
 +--------------------+------------------+----------------------------------------+
 | Name               | Type             | Description                            |
 +====================+==================+========================================+
-| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction     |
-|                    |                  | to another contract. This method is    |
-|                    |                  |only available to system smart contract.|
+| fromVirtualAddress | AElf.Types.Hash  | Sends a virtual inline transaction to  |
+|                    |                  | another contract. This method is only  |
+|                    |                  | available to system smart contract.    |
 +--------------------+------------------+----------------------------------------+
 | toAddress          | AElf.Types.      | The address of the contract you’re     |
 |                    | Address          | seeking to interact with.              |
