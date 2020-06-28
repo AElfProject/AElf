@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -47,10 +48,19 @@ namespace AElf.Contracts.MultiToken
                 Amount = AliceCoinTotalAmount + 1,
                 Memo = "transfer test",
                 Symbol = AliceCoinTokenInfo.Symbol,
+                To = DefaultAddress
+            })).TransactionResult;
+            result.Error.ShouldContain("Can't do transfer to sender itself");
+
+            result = (await TokenContractStub.Transfer.SendWithExceptionAsync(new TransferInput
+            {
+                Amount = AliceCoinTotalAmount + 1,
+                Memo = "transfer test",
+                Symbol = AliceCoinTokenInfo.Symbol,
                 To = User2Address
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains($"Insufficient balance").ShouldBeTrue();
+            result.Error.ShouldContain("Insufficient balance");
         }
 
         private async Task MultiTokenContract_Approve_Test()
@@ -762,6 +772,68 @@ namespace AElf.Contracts.MultiToken
                 Symbol = tokenSymbol
             });
             tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
+        }
+
+        [Fact(DisplayName = "[MultiToken] Token initialize from parent chain test")]
+        public async Task InitializeFromParent_Test()
+        {
+            var netSymbol = "NET";
+            var initializedFromParentRet =
+                await TokenContractStub.InitializeFromParentChain.SendWithExceptionAsync(
+                    new InitializeFromParentChainInput());
+            initializedFromParentRet.TransactionResult.Error.ShouldContain("creator should not be null");
+            initializedFromParentRet =
+                await TokenContractStub.InitializeFromParentChain.SendWithExceptionAsync(
+                    new InitializeFromParentChainInput
+                    {
+                        Creator = DefaultAddress
+                    });
+            initializedFromParentRet.TransactionResult.Error.ShouldContain("No permission");
+            var defaultParliament = (await ParliamentContractStub.GetDefaultOrganizationAddress.SendAsync(new Empty()))
+                .Output;
+            var proposalId = await CreateProposalAsync(TokenContractAddress,
+                defaultParliament, nameof(TokenContractStub.InitializeFromParentChain),
+                new InitializeFromParentChainInput
+                {
+                    Creator = DefaultAddress,
+                    ResourceAmount = {{netSymbol, 100}}
+                });
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+            var resourceAmountDic = (await TokenContractStub.GetResourceUsage.SendAsync(new Empty())).Output;
+            resourceAmountDic.Value[netSymbol].ShouldBe(100);
+            initializedFromParentRet =
+                await TokenContractStub.InitializeFromParentChain.SendWithExceptionAsync(
+                    new InitializeFromParentChainInput
+                    {
+                        Creator = DefaultAddress
+                    });
+            initializedFromParentRet.TransactionResult.Error.ShouldContain("MultiToken has been initialized");
+        }
+        
+        [Fact(DisplayName = "[MultiToken] Side chain send create token")]
+        public async Task Side_Chain_Creat_Token_Test()
+        {
+            var defaultParliament = (await ParliamentContractStub.GetDefaultOrganizationAddress.SendAsync(new Empty()))
+                .Output;
+            var proposalId = await CreateProposalAsync(TokenContractAddress,
+                defaultParliament, nameof(TokenContractStub.InitializeFromParentChain),
+                new InitializeFromParentChainInput
+                {
+                    Creator = DefaultAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+            var createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(new CreateInput
+            {
+                Symbol = "ALI",
+                TokenName = "Ali",
+                Decimals = 4,
+                TotalSupply = 100_000,
+                Issuer = DefaultAddress,
+            });
+            createTokenRet.TransactionResult.Error.ShouldContain(
+                "Failed to create token if side chain creator already set.");
         }
     }
 }
