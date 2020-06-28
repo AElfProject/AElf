@@ -125,7 +125,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -299,7 +299,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
@@ -519,6 +519,17 @@ namespace AElf.Contracts.MultiToken
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
 
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
+            return new Empty();
+        }
+
+        public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            tokenInfo.Issuer = input.NewTokenIssuer;
+            State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }
     }

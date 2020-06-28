@@ -31,13 +31,12 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
 
         public void CancelCurrentEvent()
         {
-            Logger.LogInformation("Disposed previous consensus event.");
             _observables?.Dispose();
         }
 
         public IDisposable Subscribe(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
-            Logger.LogInformation($"Will produce block after {countingMilliseconds} ms - " +
+            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
                             $"{TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime():yyyy-MM-dd HH.mm.ss,fff}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
@@ -55,7 +54,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         // This is the callback.
         public void OnNext(ConsensusRequestMiningEventData value)
         {
-            Logger.LogInformation($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
+            Logger.LogDebug($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
             LocalEventBus.PublishAsync(value);
         }
     }

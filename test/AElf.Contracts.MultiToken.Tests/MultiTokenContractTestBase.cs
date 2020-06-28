@@ -35,7 +35,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.MultiToken
 {
-    public class MultiTokenContractTestBase : TestKit.ContractTestBase<MultiTokenContractTestAElfModule>
+    public class MultiTokenContractTestBase : ContractTestKit.ContractTestBase<MultiTokenContractTestAElfModule>
     {
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;

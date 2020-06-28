@@ -220,7 +220,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 _resourceCache.TryRemove(transactionId, out _);
             }
 
-            Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
+            Logger.LogDebug($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
 
         #endregion
@@ -247,12 +247,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             public bool IsNonparallelContractCode { get; set; }
         }
-    }
-
-    public class TransactionWithResourceInfo
-    {
-        public Transaction Transaction { get; set; }
-        public TransactionResourceInfo TransactionResourceInfo { get; set; }
     }
 
     internal class TransactionResourceCache

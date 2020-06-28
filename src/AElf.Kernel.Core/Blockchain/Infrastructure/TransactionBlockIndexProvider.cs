@@ -40,7 +40,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
                 _transactionBlockIndices.TryRemove(txId, out _);
             }
 
-            Logger.LogInformation($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
+            Logger.LogDebug($"Transaction block index count {_transactionBlockIndices.Count} in provider.");
         }
     }
 }

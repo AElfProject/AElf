@@ -123,23 +123,6 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
 
             {
-                var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
-                    GetValidResourceAmount(), new[]
-                    {
-                        new SideChainTokenInitialIssue
-                        {
-                            Address = DefaultSender,
-                            Amount = 100
-                        }
-                    }, true);
-                var requestSideChainCreation =
-                    await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
-
-                requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                requestSideChainCreation.TransactionResult.Error.ShouldContain("Invalid chain creation request.");
-            }
-
-            {
                 var createProposalInput = CreateSideChainCreationRequest(10, 0, GetValidResourceAmount(),
                     new[]
                     {
@@ -202,6 +185,20 @@ namespace AElf.Contracts.CrossChain.Tests
                     requestSideChainCreation.TransactionResult.Error.ShouldContain(
                         "Invalid side chain resource token request.");
                 }
+            }
+            
+            {
+                var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
+                    GetValidResourceAmount(), new[]
+                    {
+                        new SideChainTokenInitialIssue
+                        {
+                            Address = DefaultSender,
+                            Amount = 100
+                        }
+                    }, true);
+                var requestSideChainCreation =
+                    await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
             }
         }
 

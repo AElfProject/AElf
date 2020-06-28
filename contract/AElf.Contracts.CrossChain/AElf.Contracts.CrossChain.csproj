@@ -4,7 +4,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>CrossChain is a contract that implements cross-chain related features, especially 
             indexing.</Description>
     </PropertyGroup>
@@ -42,6 +41,7 @@
         </ContractBase>
         <ContractCode Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>

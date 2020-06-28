@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.TestBase;
 using AElf.Contracts.Treasury;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

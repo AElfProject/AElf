@@ -67,7 +67,8 @@ namespace AElf.Kernel.Token
                     methodList.Add(new ContractInitializationMethodCall
                     {
                         MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
-                        Params = GenerateTokenCreateInput(chainPrimaryTokenInfo).ToByteString()
+                        Params = GenerateTokenCreateInput(chainPrimaryTokenInfo, initializationData.Creator)
+                            .ToByteString()
                     });
 
                     foreach (var issueStuff in initializationData.TokenInitialIssueList)
@@ -131,13 +132,13 @@ namespace AElf.Kernel.Token
             return methodList;
         }
 
-        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo)
+        private CreateInput GenerateTokenCreateInput(TokenInfo tokenInfo, Address issuer = null)
         {
             return new CreateInput
             {
                 Decimals = tokenInfo.Decimals,
                 IssueChainId = tokenInfo.IssueChainId,
-                Issuer = tokenInfo.Issuer,
+                Issuer = issuer ?? tokenInfo.Issuer,
                 IsBurnable = tokenInfo.IsBurnable,
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,

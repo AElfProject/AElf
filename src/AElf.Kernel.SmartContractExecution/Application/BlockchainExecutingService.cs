@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     throw;
                 }
 
-                Logger.LogWarning(
+                Logger.LogDebug(
                     $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
             }
 
@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
             if (blockState != null)
             {
-                Logger.LogInformation($"Block already executed. block hash: {blockHash}");
+                Logger.LogDebug($"Block already executed. block hash: {blockHash}");
                 return await GetExecuteBlockSetAsync(block, blockHash);
             }
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
             if (blockHashWithoutCache == blockHash) 
                 return blockExecutedSet;
-            Logger.LogWarning(
+            Logger.LogDebug(
                 $"Block execution failed. Expected: {block}, actual: {executedBlock}");
             return null;
         }
@@ -117,7 +117,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     == null)
                 {
                     Logger.LogWarning(
-                        $"fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
+                        $"Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
 
                     return null;
                 }
@@ -137,7 +137,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // Set the other blocks as bad block if found the first bad block
             if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
             {
-                Logger.LogWarning($"Block validate fails before execution. block hash : {blockHash}");
+                Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
                 return null;
             }
 
@@ -145,13 +145,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (blockExecutedSet == null)
             {
-                Logger.LogWarning($"Block execution failed. block hash : {blockHash}");
+                Logger.LogDebug($"Block execution failed. block hash : {blockHash}");
                 return null;
             }
 
             if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
             {
-                Logger.LogWarning($"Block validate fails after execution. block hash : {blockHash}");
+                Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
                 return null;
             }
 

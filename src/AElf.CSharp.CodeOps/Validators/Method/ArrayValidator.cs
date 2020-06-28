@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using AElf.Sdk.CSharp;
 using AElf.CSharp.Core;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
-    public class ArrayValidator : IValidator<MethodDefinition>
+    public class ArrayValidator : IValidator<MethodDefinition>, ITransientDependency
     {
         private const long AllowedTotalSize = 40 * 1024; // Byte per array when limiting by total array size
 
