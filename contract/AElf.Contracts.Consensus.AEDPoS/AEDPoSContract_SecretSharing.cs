@@ -23,6 +23,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Skip himself.
                 if (pair.Key == publicKey) continue;
 
+                if (!currentRound.RealTimeMinersInformation.Keys.Contains(pair.Key)) continue;
+
                 var publicKeyOfAnotherMiner = pair.Key;
                 var anotherMinerInPreviousRound = pair.Value;
 

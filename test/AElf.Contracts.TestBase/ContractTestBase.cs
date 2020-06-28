@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.TestBase;
 
 namespace AElf.Contracts.TestBase

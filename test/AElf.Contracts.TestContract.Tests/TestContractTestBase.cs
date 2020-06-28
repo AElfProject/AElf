@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -9,21 +10,19 @@ using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestContract.BasicUpdate;
 using AElf.Contracts.TestContract.TransactionFees;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
-using AElf.CSharp.CodeOps;
-using AElf.CSharp.CodeOps.Validators.Assembly;
-using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Mono.Cecil.Cil;
 using Volo.Abp.Threading;
 using Xunit;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
@@ -179,9 +178,9 @@ namespace AElf.Contract.TestContract
         protected const long VirtualResourceToken = 100_000;
         protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         protected Address DefaultSender => Accounts[0].Address;
-        protected ECKeyPair OtherTesterKeyPair => Accounts[1].KeyPair;
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(1).Select(a => a.KeyPair).ToList();
         protected Address OtherTester => Accounts[1].Address;
-        protected ECKeyPair ManagerKeyPair => Accounts[10].KeyPair;
         protected Address ManagerTester => Accounts[10].Address;
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address Acs8ContractAddress { get; set; }
@@ -199,6 +198,8 @@ namespace AElf.Contract.TestContract
             Acs8ContractStub { get; set; }
 
         internal TransactionFeesContractContainer.TransactionFeesContractStub TransactionFeesContractStub { get; set; }
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
+        
         internal static readonly List<string> ResourceTokenSymbols = new List<string> {"WRITE", "READ", "TRAFFIC", "STORAGE"};
         internal static readonly List<string> NativTokenToSourceSymbols = new List<string> {"NTWRITE", "NTREAD", "NTTRAFFIC", "NTSTORAGE"};
 
@@ -268,6 +269,16 @@ namespace AElf.Contract.TestContract
             TransactionFeesContractStub =
                 GetTester<TransactionFeesContractContainer.TransactionFeesContractStub>(TransactionFeesContractAddress,
                     DefaultSenderKeyPair);
+            
+            //Consensus
+            {
+                var consensusCode = Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
+                var consensusContractAddress = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, consensusCode,
+                    HashHelper.ComputeFrom("AElf.ContractNames.Consensus"), DefaultSenderKeyPair);
+                AEDPoSContractStub =
+                    GetTester<AEDPoSContractContainer.AEDPoSContractStub>(consensusContractAddress,
+                        DefaultSenderKeyPair);
+            }
         }
 
         protected async Task InitializeTestContracts()
@@ -324,15 +335,6 @@ namespace AElf.Contract.TestContract
                         Memo = $"Set for {resourceRelatedNativeToken} token converter."
                     });
                     CheckResult(issueResult.TransactionResult);
-//
-//                    issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
-//                    {
-//                        Symbol = resourceRelatedNativeToken,
-//                        Amount = Supply / 2,
-//                        To = OtherTester,
-//                        Memo = $"Set for {resourceRelatedNativeToken} token converter."
-//                    });
-//                    CheckResult(issueResult.TransactionResult);
                 }
                 foreach (var symbol in ResourceTokenSymbols)
                 {
@@ -421,6 +423,11 @@ namespace AElf.Contract.TestContract
                 await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
                 await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
             }
+            
+            // initialize AEDPos
+            {
+                await InitializeAElfConsensus();
+            }
         }
 
         protected void CheckResult(TransactionResult result)
@@ -429,6 +436,55 @@ namespace AElf.Contract.TestContract
             {
                 Assert.True(false, $"Status: {result.Status}, Message: {result.Error}");
             }
+        }
+        private async Task InitializeAElfConsensus()
+        {
+            {
+                await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        PeriodSeconds = 604800L,
+                        MinerIncreaseInterval = 31536000
+                    });
+            }
+            {
+                await AEDPoSContractStub.FirstRound.SendAsync(
+                    GenerateFirstRoundOfNewTerm(
+                        new MinerList
+                            {Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}},
+                        4000, TimestampHelper.GetUtcNow()));
+            }
+        }
+        private Round GenerateFirstRoundOfNewTerm(MinerList minerList, int miningInterval,
+            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+        {
+            var sortedMiners = minerList.Pubkeys.Select(x => x.ToHex()).ToList();
+            var round = new Round();
+        
+            for (var i = 0; i < sortedMiners.Count; i++)
+            {
+                var minerInRound = new MinerInRound();
+        
+                // The third miner will be the extra block producer of first round of each term.
+                if (i == 0)
+                {
+                    minerInRound.IsExtraBlockProducer = true;
+                }
+        
+                minerInRound.Pubkey = sortedMiners[i];
+                minerInRound.Order = i + 1;
+                minerInRound.ExpectedMiningTime = currentBlockTime.AddMilliseconds(i * miningInterval + miningInterval);
+                // Should be careful during validation.
+                minerInRound.PreviousInValue = Hash.Empty;
+                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
+            }
+        
+            round.RoundNumber = currentRoundNumber + 1;
+            round.TermNumber = currentTermNumber + 1;
+            round.IsMinerListJustChanged = true;
+            round.ExtraBlockProducerOfPreviousRound = sortedMiners[0];
+        
+            return round;
         }
     }
 }

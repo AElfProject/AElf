@@ -13,6 +13,9 @@ using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf.Reflection;
+using AElf.WebApp.Application.Chain.Infrastructure;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.ObjectMapping;
@@ -37,18 +40,25 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+        private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
+
+        public ILogger<TransactionResultAppService> Logger { get; set; }
 
         public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper)
+            IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
+            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _objectMapper = objectMapper;
+            _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
+            
+            Logger = NullLogger<TransactionResultAppService>.Instance;
         }
 
         /// <summary>
@@ -76,6 +86,15 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
+                var validationStatus =
+                    _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
+                if (validationStatus != null)
+                {
+                    Logger.LogTrace($"Status of tx {transactionIdHash}: {validationStatus.TransactionResultStatus}");
+                    output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
+                    output.Error = validationStatus.Error;
+                }
+
                 return output;
             }
 

@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
+using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.AutoMapper;
@@ -17,6 +18,9 @@ namespace AElf.WebApp.Application.Chain
             {
                 options.AddMaps<ChainApplicationWebAppAElfModule>(true);
             });
+            
+            context.Services
+                .AddSingleton<ITransactionResultStatusCacheProvider, TransactionResultStatusCacheProvider>();
         }
     }
 }

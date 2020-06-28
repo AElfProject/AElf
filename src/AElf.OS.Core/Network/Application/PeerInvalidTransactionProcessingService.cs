@@ -7,7 +7,8 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
-    public class PeerInvalidTransactionProcessingService : IPeerInvalidTransactionProcessingService, ITransientDependency
+    public class PeerInvalidTransactionProcessingService : IPeerInvalidTransactionProcessingService,
+        ITransientDependency
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
@@ -29,7 +30,7 @@ namespace AElf.OS.Network.Application
             foreach (var knowsTransactionPeer in knowsTransactionPeers)
             {
                 var host = knowsTransactionPeer.RemoteEndpoint.Host;
-                if (_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host))
+                if (_peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, transactionId))
                     continue;
 
                 var peers = _peerPool.GetPeersByHost(host);

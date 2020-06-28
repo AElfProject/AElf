@@ -1,17 +1,19 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.EconomicSystem;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
@@ -110,18 +112,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         internal Address TokenContractAddress { get; set; }
         internal Address TokenConverterAddress { get; set; }
         internal Address TreasuryContractAddress { get; set; }
-        internal ExecutionPluginForResourceFee.Tests.TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
+        internal TestContract.ContractContainer.ContractStub TestContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
 
         internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(1).Select(a => a.KeyPair).ToList();
         internal ECKeyPair OtherTester => Accounts[1].KeyPair;
         internal Address DefaultSender => Accounts[0].Address;
-        protected ECKeyPair FeeReceiverKeyPair => Accounts[10].KeyPair;
         protected Address FeeReceiverAddress => Accounts[10].Address;
-        protected ECKeyPair ManagerKeyPair => Accounts[11].KeyPair;
         protected Address ManagerAddress => Accounts[11].Address;
 
         protected async Task InitializeContracts()
@@ -129,6 +132,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             await DeployContractsAsync();
             await InitializeTokenAsync();
             await InitializeParliament();
+            await InitializeAElfConsensus();
             await InitializeTreasuryContractAsync();
             await InitializeTokenConverterAsync();
         }
@@ -189,6 +193,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                 ParliamentContractStub =
                     GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
                         DefaultSenderKeyPair);
+            }
+            
+            //Consensus
+            {
+                 var code = Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
+                 var consensusContractAddress = await DeploySystemSmartContract(category, code,
+                     HashHelper.ComputeFrom("AElf.ContractNames.Consensus"), DefaultSenderKeyPair);
+                 AEDPoSContractStub =
+                     GetTester<AEDPoSContractContainer.AEDPoSContractStub>(consensusContractAddress,
+                         DefaultSenderKeyPair);
             }
         }
 
@@ -368,6 +382,56 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         private async Task InitializeParliament()
         {
             await ParliamentContractStub.Initialize.SendAsync(new Contracts.Parliament.InitializeInput());
+        }
+        
+        private async Task InitializeAElfConsensus()
+        {
+            {
+                await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        PeriodSeconds = 604800L,
+                        MinerIncreaseInterval = 31536000
+                    });
+            }
+            {
+                await AEDPoSContractStub.FirstRound.SendAsync(
+                    GenerateFirstRoundOfNewTerm(
+                        new MinerList
+                            {Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}},
+                        4000, TimestampHelper.GetUtcNow()));
+            }
+        }
+        private Round GenerateFirstRoundOfNewTerm(MinerList minerList, int miningInterval,
+            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+        {
+            var sortedMiners = minerList.Pubkeys.Select(x => x.ToHex()).ToList();
+            var round = new Round();
+        
+            for (var i = 0; i < sortedMiners.Count; i++)
+            {
+                var minerInRound = new MinerInRound();
+        
+                // The third miner will be the extra block producer of first round of each term.
+                if (i == 0)
+                {
+                    minerInRound.IsExtraBlockProducer = true;
+                }
+        
+                minerInRound.Pubkey = sortedMiners[i];
+                minerInRound.Order = i + 1;
+                minerInRound.ExpectedMiningTime = currentBlockTime.AddMilliseconds(i * miningInterval + miningInterval);
+                // Should be careful during validation.
+                minerInRound.PreviousInValue = Hash.Empty;
+                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
+            }
+        
+            round.RoundNumber = currentRoundNumber + 1;
+            round.TermNumber = currentTermNumber + 1;
+            round.IsMinerListJustChanged = true;
+            round.ExtraBlockProducerOfPreviousRound = sortedMiners[0];
+        
+            return round;
         }
     }
 }

@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool;
+using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -43,17 +43,20 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainService _blockchainService;
         private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
+        private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
         public ILocalEventBus LocalEventBus { get; set; }
         
         public ILogger<TransactionAppService> Logger { get; set; }
 
         public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper)
+            IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper, 
+            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
             _objectMapper = objectMapper;
+            _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
 
             LocalEventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<TransactionAppService>.Instance;
@@ -287,10 +290,16 @@ namespace AElf.WebApp.Application.Chain
                 txIds[i] = transaction.GetHash().ToHex();
             }
 
-            await LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
+            foreach (var transaction in transactions)
+            {
+                _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
+            }
+
+            await LocalEventBus.PublishAsync(new TransactionsReceivedEvent
             {
                 Transactions = transactions
             });
+            
             return txIds;
         }
 
