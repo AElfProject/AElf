@@ -440,6 +440,27 @@ namespace AElf.Contracts.MultiToken
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             lockResult.Error.ShouldContain("No Permission.");
         }
+        
+        [Fact(DisplayName = "[MultiToken] Token lock origin sender != input.Address")]
+        public async Task MultiTokenContract_Lock_Invalid_Sender_Test()
+        {
+            await Create_BasicFunctionContract_Issue();
+
+            var lockId = HashHelper.ComputeFrom("lockId");
+
+            // Lock.
+            var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendWithExceptionAsync(new LockTokenInput
+            {
+                Address = User2Address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
+                LockId = lockId,
+                Usage = "Testing."
+            })).TransactionResult;
+
+            lockTokenResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            lockTokenResult.Error.ShouldContain("Lock behaviour should be initialed by origin address");
+        }
 
         [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]
         public async Task MultiTokenContract_Lock_WithInsufficientBalance_Test()
@@ -691,6 +712,28 @@ namespace AElf.Contracts.MultiToken
             });
             balance.Balance.ShouldBe(AliceCoinTotalAmount - 3000L);
         }
+        
+        [Fact(DisplayName = "[MultiToken] Token Burn invalid token")]
+        public async Task MultiTokenContract_Burn_Invalid_Token_Test()
+        {
+            await CreateAndIssueMultiTokensAsync();
+            var unburnedTokenSymbol = "UNBURNED";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = unburnedTokenSymbol,
+                TokenName = "Name",
+                TotalSupply = 100_000_000_000L,
+                Decimals = 10,
+                IsBurnable = false,
+                Issuer = DefaultAddress
+            });
+            var burnRet = await TokenContractStub.Burn.SendWithExceptionAsync(new BurnInput
+            {
+                Amount = 3000L,
+                Symbol = unburnedTokenSymbol
+            });
+            burnRet.TransactionResult.Error.ShouldContain("The token is not burnable");
+        }
 
         [Fact(DisplayName = "[MultiToken] Token Burn the amount greater than it's amount")]
         public async Task MultiTokenContract_Burn_BeyondBalance_Test()
@@ -834,6 +877,237 @@ namespace AElf.Contracts.MultiToken
             });
             createTokenRet.TransactionResult.Error.ShouldContain(
                 "Failed to create token if side chain creator already set.");
+        }
+
+        [Fact(DisplayName = "[MultiToken] check only one token thresh hold")]
+        public async Task CheckThreshold_With_One_Token_Test()
+        {
+            await CreateNativeTokenAsync();
+            var tokenA = "AITA";
+            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, 10000, 1000);
+            // success
+            var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            {
+                IsCheckAllowance = false,
+                Sender = DefaultAddress,
+                SymbolToThreshold = {{tokenA, 999}}
+            });
+            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //insufficient balance
+            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
+            {
+                IsCheckAllowance = false,
+                Sender = DefaultAddress,
+                SymbolToThreshold = {{tokenA, 1001}}
+            });
+            checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+            
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Amount = 600,
+                Spender = DefaultAddress,
+                Symbol = tokenA
+            });
+            
+            //sufficient allowance
+            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            {
+                IsCheckAllowance = true,
+                Sender = DefaultAddress,
+                SymbolToThreshold = {{tokenA, 599}}
+            });
+            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //insufficient allowance
+            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
+            {
+                IsCheckAllowance = true,
+                Sender = DefaultAddress,
+                SymbolToThreshold = {{tokenA, 601}}
+            });
+            checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+        }
+
+        [Fact(DisplayName = "[MultiToken] check multiple token threshold")]
+        public async Task CheckThreshold_With_Multiple_Token_Test()
+        {
+            await CreateNativeTokenAsync();
+            var tokenA = "AITA";
+            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, 10000, 1000);
+            var tokenB = "AITB";
+            await CreateAndIssueCustomizeToken(DefaultAddress, tokenB, 10000, 1000);
+
+            var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            {
+                IsCheckAllowance = false,
+                Sender = DefaultAddress,
+                SymbolToThreshold = {{tokenA, 999}, {tokenB, 1001}}
+            });
+            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            {
+                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+                {
+                    IsCheckAllowance = false,
+                    Sender = DefaultAddress,
+                    SymbolToThreshold = {{tokenA, 1001}, {tokenB, 999}}
+                });
+                checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            {
+                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = false,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, 1001}, {tokenB, 1001}}
+                    });
+                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+            }
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Amount = 600,
+                Spender = DefaultAddress,
+                Symbol = tokenA
+            });
+            
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Amount = 600,
+                Spender = DefaultAddress,
+                Symbol = tokenB
+            });
+            {
+                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = true,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, 1001}, {tokenB, 1001}}
+                    });
+                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+            }
+            
+            {
+                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = true,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, 601}, {tokenB, 601}}
+                    });
+                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+            }
+            
+            {
+                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = true,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, 601}, {tokenB, 599}}
+                    });
+                checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+
+        [Fact(DisplayName = "[MultiToken] advance token not exist in resource token")]
+        public async Task AdvancedResourceToken_Test()
+        {
+            await CreateNativeTokenAsync();
+            long advanceAmount = 1000;
+            {
+                var tokenNotResrouce = "NORESOURCE";
+                await CreateAndIssueCustomizeToken(DefaultAddress, tokenNotResrouce, 10000, 10000);
+                var advanceRet = await TokenContractStub.AdvanceResourceToken.SendWithExceptionAsync(
+                    new AdvanceResourceTokenInput
+                    {
+                        ContractAddress = BasicFunctionContractAddress,
+                        Amount = advanceAmount,
+                        ResourceTokenSymbol = tokenNotResrouce
+                    });
+                advanceRet.TransactionResult.Error.ShouldContain("invalid resource token symbol");
+            }
+
+            {
+                var trafficToken = "TRAFFIC";
+                await CreateAndIssueCustomizeToken(DefaultAddress, trafficToken, 10000, 10000);
+                var advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
+                    new AdvanceResourceTokenInput
+                    {
+                        ContractAddress = BasicFunctionContractAddress,
+                        Amount = advanceAmount,
+                        ResourceTokenSymbol = trafficToken
+                    });
+                advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Symbol = trafficToken,
+                    Owner = BasicFunctionContractAddress
+                });
+                balance.Balance.ShouldBe(advanceAmount);
+            }
+        }
+
+        [Fact(DisplayName = "[MultiToken] take more token than that of the contract address's balance")]
+        public async Task TakeResourceTokenBack_Test()
+        {
+            await CreateNativeTokenAsync();
+            var trafficToken = "TRAFFIC";
+            var advanceAmount = 1000;
+            await CreateAndIssueCustomizeToken(DefaultAddress, trafficToken, 10000, 10000);
+            var advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
+                new AdvanceResourceTokenInput
+                {
+                    ContractAddress = BasicFunctionContractAddress,
+                    Amount = advanceAmount,
+                    ResourceTokenSymbol = trafficToken
+                });
+            advanceRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var takeMoreToken = await TokenContractStub.TakeResourceTokenBack.SendWithExceptionAsync(
+                new TakeResourceTokenBackInput
+                {
+                    Amount = 99999,
+                    ContractAddress = BasicFunctionContractAddress,
+                    ResourceTokenSymbol = trafficToken
+                });
+            takeMoreToken.TransactionResult.Error.ShouldContain("Can't take back that more");
+            await TokenContractStub.TakeResourceTokenBack.SendAsync(
+                new TakeResourceTokenBackInput
+                {
+                    Amount = advanceAmount,
+                    ContractAddress = BasicFunctionContractAddress,
+                    ResourceTokenSymbol = trafficToken
+                });
+
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = trafficToken,
+                Owner = BasicFunctionContractAddress
+            });
+            balance.Balance.ShouldBe(0);
+        }
+
+        private async Task CreateAndIssueCustomizeToken(Address creator, string symbol, long totalSupply, long issueAmount,
+            Address to = null, params string[] otherParameters)
+        {
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = symbol,
+                Issuer = creator,
+                TokenName = symbol + "name",
+                TotalSupply = totalSupply,
+                Decimals = 4
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = symbol,
+                Amount = issueAmount,
+                To = to == null? creator: to
+            });
         }
     }
 }
