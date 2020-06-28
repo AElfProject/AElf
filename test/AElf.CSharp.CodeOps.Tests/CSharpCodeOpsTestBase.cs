@@ -7,7 +7,7 @@ namespace AElf.CSharp.CodeOps
 {
     public class CSharpCodeOpsTestBase : AElfIntegratedTest<TestCSharpCodeOpsAElfModule>
     {
-        private const string ContractDllDir = ".";
+        private const string ContractDllDir = "../../../../../src/AElf.Launcher/contracts/";
         protected const string ContractPatchedDllDir = "../../../../patched/";
         
         protected byte[] ReadContractCode(Type contractType)
