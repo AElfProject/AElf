@@ -169,6 +169,24 @@ namespace AElf.Contracts.MultiToken
         #region cross chain create token test
 
         [Fact]
+        public async Task CrossChainCreateToken_With_Invalid_Input_Test()
+        {
+            //invalid chainId
+            {
+                int chainId = 102;
+                var crossCreateTokenTx = await GenerateTransactionAsync(TokenContractAddress,
+                    nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainCreateToken), null,
+                    new CrossChainCreateTokenInput
+                    {
+                        FromChainId = chainId
+                    }, true);
+                await MainChainTester.MineAsync(new List<Transaction> {crossCreateTokenTx});
+                var createResult = await MainChainTester.GetTransactionResultAsync(crossCreateTokenTx.GetHash());
+                createResult.Error.ShouldContain(
+                    $"Token contract address of chain {ChainHelper.ConvertChainIdToBase58(chainId)} not registered.");
+            }
+        }
+        [Fact]
         public async Task MainChain_CrossChainCreateToken_Test()
         {
             var sideChainId = await GenerateSideChainAsync();
