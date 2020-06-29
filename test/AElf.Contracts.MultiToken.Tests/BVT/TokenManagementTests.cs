@@ -500,28 +500,12 @@ namespace AElf.Contracts.MultiToken
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = NativeTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
         }
         
         [Fact]
         public async Task AddChainPrimaryTokenWhiteList_Test()
         {
             await CreatePrimaryTokenAsync();
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = PrimaryTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
             {
                 var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
                 {
@@ -550,6 +534,14 @@ namespace AElf.Contracts.MultiToken
                     Address = TokenContractAddress
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = "NOTEXIST",
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid input.");
             }
         }
 

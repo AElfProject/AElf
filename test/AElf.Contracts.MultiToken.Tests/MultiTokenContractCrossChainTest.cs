@@ -839,12 +839,6 @@ namespace AElf.Contracts.MultiToken
             Assert.Contains("Unable to claim cross chain token.", transferResult.Error);
         }
 
-        [Fact]
-        public async Task ValidateToken_Test()
-        {
-            
-        }
-
         #endregion
 
         #region private method

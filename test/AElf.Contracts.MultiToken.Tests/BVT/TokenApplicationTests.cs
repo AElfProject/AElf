@@ -790,7 +790,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact(DisplayName = "[MultiToken] ChangeTokenIssuer test")]
-        public async Task MultiTokenContract_ChangeTokenIssuer_Test()
+        public async Task ChangeTokenIssuer_Test()
         {
             const string tokenSymbol = "PO";
             await CreateAndIssueMultiTokensAsync();
@@ -805,16 +805,50 @@ namespace AElf.Contracts.MultiToken
             });
             var tokenIssuerStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[1].KeyPair);
-            await tokenIssuerStub.ChangeTokenIssuer.SendAsync(new ChangeTokenIssuerInput
+
+            {
+                var issueNotExistTokenRet = await tokenIssuerStub.ChangeTokenIssuer.SendWithExceptionAsync(new ChangeTokenIssuerInput
+                {
+                    Symbol = "NOTEXIST",
+                    NewTokenIssuer = Accounts[2].Address
+                });
+                issueNotExistTokenRet.TransactionResult.Error.ShouldContain("invalid token symbol");
+            }
+            {
+                await tokenIssuerStub.ChangeTokenIssuer.SendAsync(new ChangeTokenIssuerInput
+                {
+                    Symbol = tokenSymbol,
+                    NewTokenIssuer = Accounts[2].Address
+                });
+                var tokenInfo = await tokenIssuerStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+                {
+                    Symbol = tokenSymbol
+                });
+                tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
+            }
+        }
+        
+        [Fact(DisplayName = "[MultiToken] sender is not the token issuer")]
+        public async Task ChangeTokenIssuer_Without_Authorization_Test()
+        {
+            const string tokenSymbol = "PO";
+            await CreateAndIssueMultiTokensAsync();
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = tokenSymbol,
-                NewTokenIssuer = Accounts[2].Address
+                TokenName = "Name",
+                TotalSupply = 100_000_000_000L,
+                Decimals = 10,
+                IsBurnable = true,
+                Issuer = Accounts[1].Address
             });
-            var tokenInfo = await tokenIssuerStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
-            {
-                Symbol = tokenSymbol
-            });
-            tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
+            var changeIssuerRet = await TokenContractStub.ChangeTokenIssuer.SendWithExceptionAsync(
+                new ChangeTokenIssuerInput
+                {
+                    Symbol = tokenSymbol,
+                    NewTokenIssuer = Accounts[2].Address
+                });
+            changeIssuerRet.TransactionResult.Error.ShouldContain("permission denied");
         }
 
         [Fact(DisplayName = "[MultiToken] Token initialize from parent chain test")]
