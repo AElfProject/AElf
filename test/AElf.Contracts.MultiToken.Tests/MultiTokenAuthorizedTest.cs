@@ -124,269 +124,132 @@ namespace AElf.Contracts.MultiToken
             updatedSymbolList.SymbolsToPayTxSizeFee.Count.ShouldBe(1);
         }
 
-        [Fact]
-        public async Task Update_Coefficient_For_Sender()
+        //fee type : read = 0, storage = 1, write =2, traffic = 3
+        //pieceNumber.Length should be equal to newPieceFunctions.Length
+        [Theory]
+        [InlineData(false, 3, new []{1}, new [] {1000000, 4, 3, 2})]
+        [InlineData(false, 0, new []{2}, new []{999999, 1, 4, 2, 5, 250, 40})]
+        [InlineData(false, 0, new []{3}, new []{int.MaxValue, 2, 8, 2, 6, 300, 50})]
+        [InlineData(false, 2, new []{2,3}, new []{100, 1, 4, 10000},new []{1000000, 1, 4, 2, 2, 250, 50})]
+        [InlineData(true, 0, new []{2}, new []{int.MaxValue, 4, 3, 2})]
+        [InlineData(true, 0, new []{3}, new []{int.MaxValue, 2, 8, 2, 6, 300})]
+        [InlineData(true, 0, new []{3,2}, new []{1000, 4, 3, 2}, new []{int.MaxValue, 4, 3, 2})]
+        [InlineData(true, 0, new []{2,3}, new []{100, 4, 3, 2})]
+        public async Task Update_Coefficient_For_Contract_Test(bool isFail, int feeType, int[] pieceNumber, 
+            params int[][] newPieceFunctions)
         {
-            var primaryTokenSymbol = await CreateAndIssueToken();
-            
-            const int pieceUpperBound = 1000000;
+            var originalCoefficients = await GetCalculateFeeCoefficientsByFeeType(feeType);
+            var newPieceCoefficientList = newPieceFunctions.Select(x => new CalculateFeePieceCoefficients
+            {
+                Value = {x}
+            }).ToList();
             var updateInput = new UpdateCoefficientsInput
             {
-                PieceNumbers = {1},
+                PieceNumbers = {pieceNumber},
                 Coefficients = new CalculateFeeCoefficients
                 {
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, 4, 3, 2}
-                        }
-                    }
+                    FeeTokenType = feeType,
                 }
             };
+            updateInput.Coefficients.PieceCoefficientsList.AddRange(newPieceCoefficientList);
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
+            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
+            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
+            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
+            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
+            var updatedCoefficients = await GetCalculateFeeCoefficientsByFeeType(feeType);
+            if (!isFail)
+            {
+                foreach (var newPieceFunction in newPieceFunctions)
+                {
+                    var hasModified =
+                        GetCalculateFeePieceCoefficients(updatedCoefficients.PieceCoefficientsList, newPieceFunction[0]);
+                    var newCoefficient = newPieceFunction.Skip(1).ToArray();
+                    hasModified.Value.Skip(1).ShouldBe(newCoefficient);
+                }
+            }
+            else
+            {
+                var pieceCount = originalCoefficients.PieceCoefficientsList.Count;
+                updatedCoefficients.PieceCoefficientsList.Count.ShouldBe(pieceCount);
+                for (var i = 0; i < pieceCount; i++)
+                {
+                    originalCoefficients.PieceCoefficientsList[i]
+                        .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
+                }
+            }
+        }
+        
+                //fee type : read = 0, storage = 1, write =2, traffic = 3
+        //pieceNumber.Length should be equal to newPieceFunctions.Length
+        [Theory]
+        [InlineData(false, new []{1}, new [] {100, 4, 3, 2})]
+        [InlineData(false, new []{2,3}, new []{5000001, 1, 4, 10000},new []{5000002, 1, 4, 2, 2, 250, 50})]
+        [InlineData(true, new []{2}, new []{int.MaxValue, 4, 3, 2})]
+        [InlineData(true, new []{1}, new [] {100, 4, 3})]
+        [InlineData(true, new []{2,3}, new []{5000001, 1, 4, 10000},new []{5000001, 1, 4, 2, 2, 250, 50})]
+        [InlineData(true, new []{3,2}, new []{5000001, 1, 4, 10000},new []{5000002, 1, 4, 2, 2, 250, 50})]
+        [InlineData(true, new []{2,3}, new []{5000002, 4, 3, 2})]
+        public async Task Update_Coefficient_For_Sender_Test(bool isFail, int[] pieceNumber, 
+            params int[][] newPieceFunctions)
+        {
+            var feeType = (int) FeeTypeEnum.Tx;
+            var primaryTokenSymbol = await CreateAndIssueToken();
+            var originalCoefficients = await GetCalculateFeeCoefficientsByFeeType(feeType);
+            var newPieceCoefficientList = newPieceFunctions.Select(x => new CalculateFeePieceCoefficients
+            {
+                Value = {x}
+            }).ToList();
+            var updateInput = new UpdateCoefficientsInput
+            {
+                PieceNumbers = {pieceNumber},
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = feeType,
+                }
+            };
+            updateInput.Coefficients.PieceCoefficientsList.AddRange(newPieceCoefficientList);
+            
             var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput);
             await ApproveToRootForUserFeeByTwoLayer(proposalId);
             await VoteToReferendum(proposalId, primaryTokenSymbol);
             await ReleaseToRootForUserFeeByTwoLayer(proposalId);
-
-            var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForSender),
-                new Empty());
-            userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
-            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
-            hasModified.Value.Skip(1).ShouldBe(new[] {4, 3, 2});
-        }
-
-        [Fact]
-        public async Task Update_Coefficient_For_Contract_Should_Success()
-        {
-            const int pieceUpperBound = 1000000;
-            const FeeTypeEnum feeType = FeeTypeEnum.Traffic;
-            var updateInput = new UpdateCoefficientsInput
+            
+            var updatedCoefficients = await GetCalculateFeeCoefficientsByFeeType(feeType);
+            if (!isFail)
             {
-                PieceNumbers = {1},
-                Coefficients = new CalculateFeeCoefficients
+                foreach (var newPieceFunction in newPieceFunctions)
                 {
-                    FeeTokenType = (int) feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, 4, 3, 2}
-                        }
-                    }
+                    var hasModified =
+                        GetCalculateFeePieceCoefficients(updatedCoefficients.PieceCoefficientsList, newPieceFunction[0]);
+                    var newCoefficient = newPieceFunction.Skip(1).ToArray();
+                    hasModified.Value.Skip(1).ShouldBe(newCoefficient);
                 }
-            };
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
-            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-
-            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new Int32Value
-                {
-                    Value = (int) feeType
-                });
-            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
-            hasModified.Value.Skip(1).ShouldBe(new[] {4, 3, 2});
-        }
-
-        [Fact]
-        public async Task Update_Coefficient_PieceUpperBound_Test()
-        {
-            const int newPieceUpperBound = 999999;
-            const FeeTypeEnum feeType = FeeTypeEnum.Read;
-            var updateInput = new UpdateCoefficientsInput
+            }
+            else
             {
-                PieceNumbers = {2},
-                Coefficients = new CalculateFeeCoefficients
+                var pieceCount = originalCoefficients.PieceCoefficientsList.Count;
+                updatedCoefficients.PieceCoefficientsList.Count.ShouldBe(pieceCount);
+                for (var i = 0; i < pieceCount; i++)
                 {
-                    FeeTokenType = (int) feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {newPieceUpperBound, 1, 4, 2, 5, 250, 40}
-                        }
-                    }
+                    originalCoefficients.PieceCoefficientsList[i]
+                        .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
                 }
-            };
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
-            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-
-            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new Int32Value
-                {
-                    Value = (int) feeType
-                });
-            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified =
-                GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, newPieceUpperBound);
-            hasModified.ShouldNotBeNull();
+            }
         }
-
-        [Fact]
-        public async Task Update_Coefficient_PowerAlgorithm_Test()
+        
+        private async Task<CalculateFeeCoefficients> GetCalculateFeeCoefficientsByFeeType(int feeType)
         {
-            const int pieceUpperBound = int.MaxValue;
-            const FeeTypeEnum feeType = FeeTypeEnum.Read;
-            var updateInput = new UpdateCoefficientsInput
+            if (feeType == (int) FeeTypeEnum.Tx)
             {
-                PieceNumbers = {3},
-                Coefficients = new CalculateFeeCoefficients
-                {
-                    FeeTokenType = (int) feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, 2, 8, 2, 6, 300, 50}
-                        }
-                    }
-                }
-            };
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
-            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-
-            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new Int32Value
-                {
-                    Value = (int) feeType
-                });
-            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
-            hasModified.Value.Skip(1).ShouldBe(new[] {2, 8, 2, 6, 300, 50});
-        }
-
-        [Fact]
-        public async Task Update_Coefficient_Multiple_Algorithm_Test()
-        {
-            const int pieceUpperBound = int.MaxValue;
-            const FeeTypeEnum feeType = FeeTypeEnum.Write;
-            var updateInput = new UpdateCoefficientsInput
-            {
-                PieceNumbers = {2, 3},
-                Coefficients = new CalculateFeeCoefficients
-                {
-                    FeeTokenType = (int) feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {100, 1, 4, 10000}
-                        },
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {1000000, 1, 4, 2, 2, 250, 50}
-                        }
-                    }
-                }
-            };
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
-            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
-                new Int32Value
-                {
-                    Value = (int) feeType
-                });
-            developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, 100);
-            hasModified.Value.Skip(1).ShouldBe(new[] {1, 4, 10000});
-        }
-
-        [Fact]
-        public async Task Update_Coefficient_PowerAlgorithm_Should_Fail_Test()
-        {
-            const int pieceUpperBound = int.MaxValue;
-            const int feeType = (int) FeeTypeEnum.Read;
-            const int checkValue = 1000;
-            var updateInvalidPieceKeyInput = new UpdateCoefficientsInput
-            {
-                PieceNumbers = {2},
-                Coefficients = new CalculateFeeCoefficients
-                {
-                    FeeTokenType = feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
-                        }
-                    }
-                }
-            };
-            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType, pieceUpperBound, checkValue);
-            updateInvalidPieceKeyInput = new UpdateCoefficientsInput
-            {
-                PieceNumbers = {3, 2},
-                Coefficients = new CalculateFeeCoefficients
-                {
-                    FeeTokenType = feeType,
-                    PieceCoefficientsList =
-                    {
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
-                        },
-                        new CalculateFeePieceCoefficients
-                        {
-                            Value = {pieceUpperBound, checkValue, checkValue, checkValue}
-                        }
-                    }
-                }
-            };
-            await InvalidUpdateCoefficient(updateInvalidPieceKeyInput, feeType, pieceUpperBound, checkValue);
-        }
-
-        private CalculateFeePieceCoefficients GetCalculateFeePieceCoefficients(
-            IEnumerable<CalculateFeePieceCoefficients> calculateFeePieceCoefficients, int pieceUpperBound)
-        {
-            return calculateFeePieceCoefficients.SingleOrDefault(c => c.Value[0] == pieceUpperBound);
-        }
-
-        private async Task InvalidUpdateCoefficient(UpdateCoefficientsInput input, int feeType, int pieceUpperBound,
-            int checkValue)
-        {
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(input);
-            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
-
-            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
-            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
-
-            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
-
+                var userCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                    nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForSender),
+                    new Empty());
+                userCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                var userCoefficient = new CalculateFeeCoefficients();
+                userCoefficient.MergeFrom(userCoefficientRet.ReturnValue);
+                return userCoefficient;
+            }
             var developerCoefficientRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetCalculateFeeCoefficientsForContract),
                 new Int32Value
@@ -394,12 +257,15 @@ namespace AElf.Contracts.MultiToken
                     Value = feeType
                 });
             developerCoefficientRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var userCoefficient = new CalculateFeeCoefficients();
-            userCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
-            var hasModified = GetCalculateFeePieceCoefficients(userCoefficient.PieceCoefficientsList, pieceUpperBound);
-            hasModified.Value[2].ShouldNotBe(checkValue);
-            hasModified.Value[3].ShouldNotBe(checkValue);
-            hasModified.Value[4].ShouldNotBe(checkValue);
+            var developerCoefficient = new CalculateFeeCoefficients();
+            developerCoefficient.MergeFrom(developerCoefficientRet.ReturnValue);
+            return developerCoefficient;
+        }
+
+        private CalculateFeePieceCoefficients GetCalculateFeePieceCoefficients(
+            IEnumerable<CalculateFeePieceCoefficients> calculateFeePieceCoefficients, int pieceUpperBound)
+        {
+            return calculateFeePieceCoefficients.SingleOrDefault(c => c.Value[0] == pieceUpperBound);
         }
 
         [Fact]
