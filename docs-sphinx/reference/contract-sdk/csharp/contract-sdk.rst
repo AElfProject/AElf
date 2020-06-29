@@ -532,7 +532,7 @@ Parameters
 ==== ======================================== =====================
 Name Type                                     Description
 ==== ======================================== =====================
-hash `AElf.Types.Hash <AElf-Types-Hash>`__    The hash of the name.
+hash AElf.Types.Hash                          The hash of the name.
 ==== ======================================== =====================
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-GetPreviousBlockTransactions:
@@ -646,12 +646,12 @@ Parameters
 +==============+=================+========================================+
 | func         | `System.Func    | The logic that will be executed for    |
 |              | {System.String} | logging purposes.                      |
-|              | <http://msdn.mi |                                        |
-|              | crosoft.com/que |                                        |
-|              | ry/dev14.query? |                                        |
-|              | appId=Dev14IDEF |                                        |
-|              | 1&l=EN-US&k=k:S |                                        |
-|              | ystem.Func>`__  |                                        |
+|              | <https://docs.m |                                        |
+|              | icrosoft.com/en |                                        |
+|              | -us/dotnet/api/ |                                        |
+|              | system.func-1?v |                                        |
+|              | iew=netcore     |                                        |
+|              | -3.1>`__        |                                        |
 +--------------+-----------------+----------------------------------------+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-RecoverPublicKey:
@@ -701,10 +701,9 @@ Parameters
 |              | 1&l=EN-US&k=k:S  |                                        |
 |              | ystem.String>`__ |                                        |
 +--------------+------------------+----------------------------------------+
-| args         | `Google.Protobuf | The input arguments for calling that   |
-|              | .ByteString <Goo | method. This is usually generated from |
-|              | gle-Protobuf-Byt | the protobuf                           |
-|              | eString>`__      |                                        |
+| args         | Google.Protobuf  | The input arguments for calling that   |
+|              | .ByteString      | method. This is usually generated from |
+|              |                  | the protobuf                           |
 +--------------+------------------+----------------------------------------+
 | definition   |                  |                                        |
 | of the input |                  |                                        |
@@ -740,10 +739,9 @@ Parameters
 |                    | EN-US&k=k:System |                                        |
 |                    | .String>`__      |                                        |
 +--------------------+------------------+----------------------------------------+
-| args               | `Google.Protobuf | The input arguments for calling that   |
-|                    | .ByteString <Goo | method. This is usually generated from |
-|                    | gle-Protobuf-Byt | the protobuf                           |
-|                    | eString>`__      |                                        |
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf                           |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
@@ -783,10 +781,9 @@ Parameters
 |                    | EN-US&k=k:System |                                        |
 |                    | .String>`__      |                                        |
 +--------------------+------------------+----------------------------------------+
-| args               | `Google.Protobuf | The input arguments for calling that   |
-|                    | .ByteString <Goo | method. This is usually generated from |
-|                    | gle-Protobuf-Byt | the protobuf                           |
-|                    | eString>`__      |                                        |
+| args               | Google.Protobuf  | The input arguments for calling that   |
+|                    | .ByteString      | method. This is usually generated from |
+|                    |                  | the protobuf                           |
 +--------------------+------------------+----------------------------------------+
 | definition of the  |                  |                                        |
 | input type.        |                  |                                        |
@@ -1040,8 +1037,10 @@ Parameters
 +--------------------+-----------------------------+----------------------------------------+
 | Name               | Type                        | Description                            |
 +====================+=============================+========================================+
-| context            | AElf.Sdk.CSharp.            | An instance of                         |
-|                    | CSharpSmartContractContext  | ISmartContractBridgeContext            |
+| context            | :ref:`AElf.Sdk.CSharp.CShar\| An instance of                         |
+|                    | pSmartContractContext <AElf\| ISmartContractBridgeContext            |
+|                    | -Sdk-CSharp-CSharpSmartCont\|                                        |
+|                    | ractContext>`               |                                        |
 +--------------------+-----------------------------+----------------------------------------+
 | address            | AElf.Types.                 | The address of the contract you’re     |
 |                    | Address                     | seeking to interact with.              |
@@ -1085,8 +1084,10 @@ Parameters
 +--------------------+-----------------------------+----------------------------------------+
 | Name               | Type                        | Description                            |
 +====================+=============================+========================================+
-| context            | AElf.Sdk.CSharp.            | An instance of                         |
-|                    | CSharpSmartContractContext  | ISmartContractBridgeContext            |
+| context            | :ref:`AElf.Sdk.CSharp.CShar\| An instance of                         |
+|                    | pSmartContractContext <AElf\| ISmartContractBridgeContext            |
+|                    | -Sdk-CSharp-CSharpSmartCont\|                                        |
+|                    | ractContext>`               |                                        |
 +--------------------+-----------------------------+----------------------------------------+
 | fromAddress        | AElf.Types.                 | The address to use as sender.          |
 |                    | Address                     |                                        |
@@ -1133,8 +1134,10 @@ Parameters
 +--------------------+-----------------------------+----------------------------------------+
 | Name               | Type                        | Description                            |
 +====================+=============================+========================================+
-| context            | AElf.Sdk.CSharp.            | An instance of                         |
-|                    | CSharpSmartContractContext  | ISmartContractBridgeContext            |
+| context            | :ref:`AElf.Sdk.CSharp.CShar\| An instance of                         |
+|                    | pSmartContractContext <AElf\| ISmartContractBridgeContext            |
+|                    | -Sdk-CSharp-CSharpSmartCont\|                                        |
+|                    | ractContext>`               |                                        |
 +--------------------+-----------------------------+----------------------------------------+
 | address            | AElf.Types.                 | The address to use as sender.          |
 |                    | Address                     |                                        |
@@ -1253,8 +1256,10 @@ Parameters
 +--------------------+-----------------------------+----------------------------------------+
 | Name               | Type                        | Description                            |
 +====================+=============================+========================================+
-| context            | AElf.Sdk.CSharp.            | An instance of                         |
-|                    | CSharpSmartContractContext  | ISmartContractBridgeContext            |
+| context            | :ref:`AElf.Sdk.CSharp.CShar\| An instance of                         |
+|                    | pSmartContractContext <AElf\| ISmartContractBridgeContext            |
+|                    | -Sdk-CSharp-CSharpSmartCont\|                                        |
+|                    | ractContext>`               |                                        |
 +--------------------+-----------------------------+----------------------------------------+
 | eventData          |                             | The event to log.                      |
 +--------------------+-----------------------------+----------------------------------------+

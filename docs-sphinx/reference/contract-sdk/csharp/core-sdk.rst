@@ -89,7 +89,7 @@ AElf.CSharp.Core.ServerServiceDefinition
 Summary
 '''''''
 
-Builder class for `ServerServiceDefinition <AElf-CSharp-Core-ServerServiceDefinition>`__.
+Builder class for :ref:`ServerServiceDefinition <AElf-CSharp-Core-ServerServiceDefinition>`.
 
 .. _AElf-CSharp-Core-ServerServiceDefinition-Builder-ctor:
 
@@ -127,9 +127,12 @@ Parameters
 +---------+------------------------------------+---------------------+
 | Name    | Type                               | Description         |
 +=========+====================================+=====================+
-| method  | AElf.CSharp.Core.Method            | The method.         |
+| method  | :ref:`AElf.CSharp.Core.Method <AEl\| The method.         |
+|         | f-CSharp-Core-Method>`             |                     |
 +---------+------------------------------------+---------------------+
-| handler | AElf.CSharp.Core.UnaryServerMethod | The method handler. |
+| handler | :ref:`AElf.CSharp.Core.UnaryServer\| The method handler. |
+|         | Method <AElf-CSharp-Core-UnaryServ\|                     |
+|         | erMethod>`                         |                     |
 +---------+------------------------------------+---------------------+
 
 Generic Types
@@ -288,12 +291,12 @@ functions.
 Parameters
 ''''''''''
 
-=========== ========================================================================================================= ===================================
+=========== ================================================================================================ ===================================
 Name                                                    Type                                                                     Description
-=========== ========================================================================================================= ===================================
-serializer    `System.Func <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Func>`__    Function that will be used to
+=========== ================================================================================================ ===================================
+serializer    `System.Func <https://docs.microsoft.com/en-us/dotnet/api/system.func-1?view=netcore-3.1>`__              Function that will be used to
                                                                                                                         deserialize messages.
-=========== ========================================================================================================= ===================================
+=========== ================================================================================================ ===================================
 
 .. _AElf-CSharp-Core-Marshaller-Deserializer:
 
@@ -426,9 +429,10 @@ Parameters
 +--------------+----------------+----------------------------------------+
 | Name         | Type           | Description                            |
 +==============+================+========================================+
-| type         | AElf.CSharp    | Type of method.                        |
-|              | .Core          |                                        |
-|              | .MethodType    |                                        |
+| type         | :ref:`AElf.CSh\| Type of method.                        |
+|              | arp.Core.Metho\|                                        |
+|              | d <AElf-CSharp\|                                        |
+|              | -Core-Method>` |                                        |
 +--------------+----------------+----------------------------------------+
 | serviceName  | `System.String | Name of service this method belongs    |
 |              | <http:/        | to.                                    |
@@ -450,13 +454,17 @@ Parameters
 |              | US&k=k:Syste   |                                        |
 |              | m.String>`__   |                                        |
 +--------------+----------------+----------------------------------------+
-| request      | AElf.          | Marshaller used for request messages.  |
-| Marshaller   | CSharp.Core.   |                                        |
-|              | Marshaller     |                                        |
+| request      | :ref:`AElf.CSh\| Marshaller used for request messages.  |
+| Marshaller   | arp.Core.Marsh\|                                        |
+|              | aller <AElf-CS\|                                        |
+|              | harp-Core-Mars\|                                        |
+|              | haller>`       |                                        |
 +--------------+----------------+----------------------------------------+
-| response     | AElf.          | Marshaller used for response messages. |
-| Marshaller   | CSharp.Core.   |                                        |
-|              | Marshaller{    |                                        |
+| response     | :ref:`AElf.CSh\| Marshaller used for response messages. |
+| Marshaller   | arp.Core.Marsh\|                                        |
+|              | aller <AElf-CS\|                                        |
+|              | harp-Core-Mars\|                                        |
+|              | haller>`       |                                        |
 +--------------+----------------+----------------------------------------+
 
 .. _AElf-CSharp-Core-Method-FullName:
@@ -554,7 +562,7 @@ Summary
 '''''''
 
 Throws
-`ArgumentNullException <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.ArgumentNullException>`__
+`ArgumentNullException <https://docs.microsoft.com/en-us/dotnet/api/system.argumentnullexception?redirectedfrom=MSDN&view=netframework-4.7.2>`__
 if reference is null.
 
 Parameters
@@ -575,7 +583,7 @@ Summary
 '''''''
 
 Throws
-`ArgumentNullException <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.ArgumentNullException>`__
+`ArgumentNullException <https://docs.microsoft.com/en-us/dotnet/api/system.argumentnullexception?redirectedfrom=MSDN&view=netframework-4.7.2>`__
 if reference is null.
 
 Parameters
@@ -696,9 +704,12 @@ Parameters
 +---------+------------------------------------+---------------------+
 | Name    | Type                               | Description         |
 +=========+====================================+=====================+
-| method  | AElf.CSharp.Core.Method            | The method.         |
+| method  | :ref:`AElf.CSharp.Core.Method <AEl\| The method.         |
+|         | f-CSharp-Core-Method>`             |                     |
 +---------+------------------------------------+---------------------+
-| handler | AElf.CSharp.Core.UnaryServerMethod | The method handler. |
+| handler | :ref:`AElf.CSharp.Core.UnaryServer\| The method handler. |
+|         | Method <AElf-CSharp-Core-UnaryServ\|                     |
+|         | erMethod>`                         |                     |
 +---------+------------------------------------+---------------------+
 
 Generic Types
