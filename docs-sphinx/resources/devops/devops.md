@@ -6,7 +6,7 @@ We want to stay as open as possible during AElf's development. For this we follo
 
 AElf is a collaborative project and welcomes outside opinion and requests/discussion for modifications of the code, but since we work in an open environment all collaborator need to respect a certain standard. We clarify this in the following standard:
 
-  - [collaborative standard](https://github.com/AElfProject/AElf/blob/dev/CODE_OF_CONDUCT.md)
+- <p> <a href="https://github.com/AElfProject/AElf/blob/dev/CODE_OF_CONDUCT.md">collaborative standard</a> </p>
 
 We encourage collaborators that want to participate to first read the white paper and the documentations to understand the ideas surrounding AElf. Also a look at our code and architecture and the way current functionality has been implemented. After this if any questions remain, you can open an issues on GitHub stating as clearly as possible what you need to clarify.
 
@@ -39,10 +39,7 @@ To ensure the quality of our system and avoid regression, as well as permit safe
 The performance testing is crucial to AElf since a strong point of our system is speed.
 
 ## Monitoring
-  - Server monitoring: Zabbix monitors instances of aelf metrics like cpu, db...
-  - Chain monitoring: project on github with Grafana dashboard from Influxdb
-  - Akka monitoring: monitor actors.
 
-
-
-
+- Server monitoring: Zabbix monitors instances of aelf metrics like cpu, db...
+- Chain monitoring: project on github with Grafana dashboard from Influxdb
+- Akka monitoring: monitor actors.
