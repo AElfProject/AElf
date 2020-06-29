@@ -53,10 +53,6 @@ service TokenContract {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
     }
-    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
-    }
-    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
-    }
 
     // ACS5 - Contract Method Call Threshold
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
@@ -70,6 +66,10 @@ service TokenContract {
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
     rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
