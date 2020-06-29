@@ -10,10 +10,11 @@ using Google.Protobuf.Collections;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ContractStructureValidator : IValidator<ModuleDefinition>
+    public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
         public ContractStructureValidator()
         {

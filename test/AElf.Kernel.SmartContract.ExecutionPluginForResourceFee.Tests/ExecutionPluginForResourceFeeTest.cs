@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -350,6 +350,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 
             return (beforeRead - afterRead, beforeWrite - afterWrite, beforeTraffic - afterTraffic,
                 beforeStorage - afterStorage, txResult);
+        }
+
+        [Fact]
+        public async Task Donate_Resource_Token_Send_By_User_False()
+        {
+            var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
+            result.Error.Contains("This method already executed in height").ShouldBeTrue();
         }
     }
 }

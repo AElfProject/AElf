@@ -103,5 +103,26 @@ namespace AElf.Contracts.MultiToken
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
         }
+
+        [Fact]
+        public async Task SendInvalidTransactionsTest()
+        {
+            const string assertionMessage = "This method can only be executed in plugin tx.";
+
+            var txResult =
+                (await TokenContractStub.ChargeTransactionFees.SendWithExceptionAsync(new ChargeTransactionFeesInput()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
+
+            txResult =
+                (await TokenContractStub.ChargeResourceToken.SendWithExceptionAsync(new ChargeResourceTokenInput()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
+
+            txResult =
+                (await TokenContractStub.CheckResourceToken.SendWithExceptionAsync(new Empty()))
+                .TransactionResult;
+            txResult.Error.ShouldContain(assertionMessage);
+        }
     }
 }

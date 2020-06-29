@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.ContractTestBase;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;

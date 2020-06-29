@@ -99,7 +99,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Update_Coefficient_For_Sender()
         {
-            await CreateAndIssueVoteToken();
+            var primaryTokenSymbol = await CreateAndIssueToken();
+            
             const int pieceUpperBound = 1000000;
             var updateInput = new UpdateCoefficientsInput
             {
@@ -117,7 +118,7 @@ namespace AElf.Contracts.MultiToken
             };
             var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput);
             await ApproveToRootForUserFeeByTwoLayer(proposalId);
-            await VoteToReferendum(proposalId);
+            await VoteToReferendum(proposalId, primaryTokenSymbol);
             await ReleaseToRootForUserFeeByTwoLayer(proposalId);
 
             var userCoefficient = await TokenContractStub.GetCalculateFeeCoefficientsForSender.CallAsync(new Empty());
@@ -625,7 +626,7 @@ namespace AElf.Contracts.MultiToken
             await ReleaseProposalAsync(parliamentProposalId);
         }
         
-        private async Task VoteToReferendum(Hash input)
+        private async Task VoteToReferendum(Hash input, string primaryTokenSymbol)
         {
             var organizations = await GetControllerForUserFee();
         
@@ -637,6 +638,7 @@ namespace AElf.Contracts.MultiToken
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
+            
             var parliamentProposal = new CreateProposalInput
             {
                 ToAddress = ReferendumContractAddress,
@@ -649,15 +651,22 @@ namespace AElf.Contracts.MultiToken
             var parliamentProposalId = parliamentCreateProposalResult.Output;
             await ApproveWithMinersAsync(parliamentProposalId);
             var ret = await ReleaseProposalAsync(parliamentProposalId);
-            var id = ProposalCreated.Parser
+            var referendumProposalId = ProposalCreated.Parser
                 .ParseFrom(ret.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
                     .NonIndexed).ProposalId;
-            await ReferendumContractStub.Approve.SendAsync(id);
+            var proposalVirtualAddress = await ReferendumContractStub.GetProposalVirtualAddress.CallAsync(referendumProposalId);
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Spender = proposalVirtualAddress,
+                Symbol = primaryTokenSymbol,
+                Amount = 100000
+            });
+            await ReferendumContractStub.Approve.SendAsync(referendumProposalId);
         
             parliamentProposal = new CreateProposalInput
             {
                 ToAddress = ReferendumContractAddress,
-                Params = id.ToByteString(),
+                Params = referendumProposalId.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
                 ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
@@ -695,24 +704,20 @@ namespace AElf.Contracts.MultiToken
             return await TokenContractStub.GetDeveloperFeeController.CallAsync(new Empty());
         }
         
-        private async Task CreateAndIssueVoteToken()
+        private async Task<string> CreateAndIssueToken()
         {
             var callOwner = Address.FromPublicKey(DefaultAccount.KeyPair.PublicKey);
             var symbol = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
 
-            await TokenContractStub.Issue.SendAsync(new IssueInput
+            var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Amount = 100000,
                 To = callOwner,
                 Symbol = symbol.Value
             });
 
-            await TokenContractStub.Approve.SendAsync(new ApproveInput
-            {
-                Spender = ReferendumContractAddress,
-                Symbol = symbol.Value,
-                Amount = 100000
-            });
+            issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            return symbol.Value;
         }
     }
 }

@@ -2,6 +2,7 @@ using AElf.Kernel.SmartContract;
 using Microsoft.AspNetCore.Builder;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using AElf.WebApp.Application.Chain;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.WebApp.Application
@@ -13,6 +14,7 @@ namespace AElf.WebApp.Application
             services.AddSingleton<ITxHub, MockTxHub>();
             services.AddApplication<WebAppTestAElfModule>();
             services.Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+            services.Configure<WebAppOptions>(options => { options.TransactionResultStatusCacheSeconds = 2; });
         }
 
         public void Configure(IApplicationBuilder app)

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Contracts.TokenHolder;
@@ -22,7 +23,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            if (State.Initialized.Value) return new Empty();
+            Assert(State.CurrentRoundNumber.Value == 0 && !State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
 
             State.PeriodSeconds.Value = input.IsTermStayOne
                 ? int.MaxValue
@@ -79,10 +81,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty FirstRound(Round input)
         {
             /* Basic checks. */
-
-            // Ensure the execution of the current method only happened
-            // at the very beginning of the consensus process.
-            if (State.CurrentRoundNumber.Value != 0) return new Empty();
+            Assert(State.CurrentRoundNumber.Value == 0, "Already initialized.");
 
             /* Initial settings. */
             State.CurrentTermNumber.Value = 1;
@@ -193,10 +192,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
-            {
-                return new Empty();
-            }
+            Assert(
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                "Only Cross Chain Contract can call this method.");
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
 
@@ -258,30 +256,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
-        }
-
-        #endregion
-
-        #region SetMaximumMinersCount
-
-        public override Empty SetMaximumMinersCount(Int32Value input)
-        {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
-            var genesisOwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-            Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
-            var currentLegalMinersCount = AEDPoSContractConstants.SupposedMinersCount.Add(
-                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(State.MinerIncreaseInterval.Value).Mul(2));
-            // TODO: Add this judgement because this can cause consensus header information getting problem after changing term. Consider remove this limitation.
-            Assert(input.Value >= currentLegalMinersCount,
-                $"Maximum miners count cannot less than {currentLegalMinersCount}");
-            State.MaximumMinersCount.Value = input.Value;
-            return new Empty();
         }
 
         #endregion

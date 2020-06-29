@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Types;
 using Google.Protobuf;
@@ -124,6 +124,37 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 var feesMap = TotalTransactionFeesMap.Parser.ParseFrom(transaction.Params);
                 feesMap.Value.First().Value.ShouldBe(targetFee);
             }
+        }
+        
+        [Fact]
+        public async Task Claim_Fee_Send_By_User_Fail_Test()
+        {
+            var amount = 100000;
+            await SetMethodFeeWithProposalAsync(new MethodFees
+            {
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = amount
+                    }
+                }
+            }.ToByteString());
+            
+            await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
+                {
+                    Amount = amount,
+                    Symbol = "ELF",
+                    Memo = Guid.NewGuid().ToString(),
+                    To = SampleAddress.AddressList[0]
+                });
+            var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
+            var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
+            transactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
 
         private async Task<List<Block>> GenerateEmptyBlocksAsync(int count, Hash previousBlockHash,

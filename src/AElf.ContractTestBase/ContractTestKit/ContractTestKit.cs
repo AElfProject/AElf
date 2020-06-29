@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;

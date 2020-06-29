@@ -1,4 +1,4 @@
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -17,6 +17,7 @@ namespace AElf.Contracts.TokenHolder
             context.Services.RemoveAll<IPostExecutionPlugin>();
             context.Services.RemoveAll<ISystemTransactionGenerator>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
         }
     }
 }

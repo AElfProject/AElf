@@ -30,14 +30,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
         public Task<TotalResourceTokensMaps> GetTotalResourceTokensMapsAsync(IChainContext chainContext)
         {
             var totalTxFeesMap = GetBlockExecutedData(chainContext);
-            Logger.LogTrace($"Get TotalResourceTokensMaps: {totalTxFeesMap}");
+            Logger.LogDebug($"Get TotalResourceTokensMaps: {totalTxFeesMap}");
             return Task.FromResult(totalTxFeesMap);
         }
 
         public async Task SetTotalResourceTokensMapsAsync(IBlockIndex blockIndex,
             TotalResourceTokensMaps totalResourceTokensMaps)
         {
-            Logger.LogTrace($"Add TotalResourceTokensMaps: {totalResourceTokensMaps}");
+            Logger.LogDebug($"Add TotalResourceTokensMaps: {totalResourceTokensMaps}");
             await AddBlockExecutedDataAsync(blockIndex, totalResourceTokensMaps);
         }
 

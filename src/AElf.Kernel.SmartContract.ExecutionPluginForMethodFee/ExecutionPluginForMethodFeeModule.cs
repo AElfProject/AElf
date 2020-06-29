@@ -1,5 +1,4 @@
 using AElf.Kernel.FeeCalculation;
-using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -17,8 +16,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
-            context.Services.AddTransient<ITransactionValidationProvider, TxHubEntryPermissionValidationProvider>();
-            context.Services.AddTransient<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, SymbolListToPayTxFeeUpdatedLogEventProcessor>();
             context.Services

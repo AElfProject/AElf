@@ -74,6 +74,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 BlockHeight = block.Header.Height,
                 ContractAddress = tokenContractAddress
             }).GetLatestTotalTransactionFeesMapHash.CallAsync(new Empty());
+            
             var totalTransactionFeesMapFromProvider =
                 await _totalTransactionFeesMapProvider.GetTotalTransactionFeesMapAsync(new ChainContext
                 {
@@ -82,15 +83,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 });
             if (totalTransactionFeesMapFromProvider == null)
             {
-                Logger.LogInformation("totalTransactionFeesMapFromProvider == null");
+                Logger.LogDebug("totalTransactionFeesMapFromProvider == null");
                 return hashFromState.Value.IsEmpty;
             }
 
             var hashFromProvider = HashHelper.ComputeFrom(totalTransactionFeesMapFromProvider);
-            var result = hashFromProvider.Value.Equals(hashFromState.Value);
+            var result = hashFromProvider == hashFromState;
             if (!result)
             {
-                Logger.LogError($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
+                Logger.LogDebug($"Hash from provider: {hashFromProvider}\nHash from state: {hashFromState}");
             }
 
             return result;

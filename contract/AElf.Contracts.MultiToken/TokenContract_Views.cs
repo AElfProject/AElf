@@ -68,6 +68,7 @@ namespace AElf.Contracts.MultiToken
 
         public override GetLockedAmountOutput GetLockedAmount(GetLockedAmountInput input)
         {
+            Assert(input.LockId != null, "Lock id cannot be null.");
             var virtualAddress = GetVirtualAddressForLocking(new GetVirtualAddressForLockingInput
             {
                 Address = input.Address,
@@ -105,7 +106,7 @@ namespace AElf.Contracts.MultiToken
 
             return new StringValue
             {
-                Value = _primaryTokenSymbol ?? string.Empty
+                Value = _primaryTokenSymbol ?? Context.Variables.NativeSymbol
             };
         }
 

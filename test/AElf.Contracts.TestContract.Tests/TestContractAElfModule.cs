@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
+using AElf.CSharp.CodeOps;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
@@ -13,6 +14,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Contract.TestContract
 {
     [DependsOn(typeof(ContractTestModule))]
+    [DependsOn(typeof(CSharpCodeOpsAElfModule))]
     public class TestContractAElfModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -30,8 +32,7 @@ namespace AElf.Contract.TestContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
             context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             //TODO Fix never claim transaction fee

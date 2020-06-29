@@ -44,13 +44,16 @@ namespace AElf.Runtime.CSharp
 
             ContractVersion = assembly.GetName().Version?.ToString();
 
-            var executive = new Executive(assembly, loadContext)
+            var executive = new Executive(assembly)
             {
                 ContractHash = reg.CodeHash,
                 IsSystemContract = reg.IsSystemContract,
                 ContractVersion = ContractVersion
             };
-
+            
+            // AssemblyLoadContext needs to be called after initializing the Executive
+            // to ensure that it is not unloaded early in release mode.
+            loadContext.Unload();
 
             return await Task.FromResult(executive);
         }

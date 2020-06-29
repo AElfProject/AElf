@@ -5,11 +5,12 @@ import "aelf/core.proto";
 option csharp_namespace = "AElf.Kernel.SmartContract";
 
 message TransactionResourceInfo {
-    repeated aelf.ScopedStatePath paths = 1;
-    ParallelType parallel_type = 2;
-    aelf.Hash transaction_id = 3;
-    aelf.Hash contract_hash = 4;
-    bool is_nonparallel_contract_code = 5;
+    repeated aelf.ScopedStatePath write_paths = 1;
+    repeated aelf.ScopedStatePath read_paths = 2;
+    ParallelType parallel_type = 3;
+    aelf.Hash transaction_id = 4;
+    aelf.Hash contract_hash = 5;
+    bool is_nonparallel_contract_code = 6;
 }
 
 enum ParallelType {

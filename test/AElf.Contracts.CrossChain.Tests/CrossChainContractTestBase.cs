@@ -8,8 +8,8 @@ using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKet.AEDPoSExtension;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.GovernmentSystem;
@@ -385,7 +385,16 @@ namespace AElf.Contracts.CrossChain.Tests
             }
         }
 
-        internal async Task<bool> DoIndexAsync(CrossChainBlockData crossChainBlockData)
+        protected async Task<long> GetBalance(Address address, string symbol = "ELF")
+        {
+            return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = address,
+                Symbol = "ELF"
+            })).Balance;
+        }
+        
+        internal async Task DoIndexAsync(CrossChainBlockData crossChainBlockData)
         {
             var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
             var proposalId = ProposalCreated.Parser
@@ -394,7 +403,6 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
 
             await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
-            return true;
         }
 
         internal async Task<Hash> DisposeSideChainProposalAsync(Int32Value chainId)
@@ -413,6 +421,16 @@ namespace AElf.Contracts.CrossChain.Tests
             return proposal;
         }
 
+        internal async Task<long> GetSideChainBalanceAsync(int chainId)
+        {
+            return (await CrossChainContractStub.GetSideChainBalance.CallAsync(new Int32Value {Value = chainId})).Value;
+        }
+        
+        internal async Task<SideChainStatus> GetSideChainStatusAsync(int chainId)
+        {
+            return (await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId})).Status;
+        }
+        
         private void CheckResult(TransactionResult result)
         {
             if (!string.IsNullOrEmpty(result.Error))

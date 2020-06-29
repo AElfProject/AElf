@@ -7,7 +7,7 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
-namespace AElf.ContractTestBase.ContractTestKit
+namespace AElf.ContractTestBase.ContractTestKit 
 {
     public class MockTxHub : ITxHub
     {
@@ -24,7 +24,7 @@ namespace AElf.ContractTestBase.ContractTestKit
             _blockchainService = blockchainService;
         }
 
-        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
+        public Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
         {
             return Task.FromResult(new ExecutableTransactionSet
             {
