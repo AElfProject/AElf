@@ -1090,6 +1090,53 @@ namespace AElf.Contracts.MultiToken
             balance.Balance.ShouldBe(0);
         }
 
+        [Fact(DisplayName = "[MultiToken] illegal controller try to update the coefficientForContract")]
+        public async Task UpdateCoefficientForContract_Without_Authorization_Test()
+        {
+            var updateInfo = new UpdateCoefficientsInput
+            {
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = (int) FeeTypeEnum.Read
+                }
+            };
+            var updateRet =
+                await TokenContractStub.UpdateCoefficientsForContract.SendWithExceptionAsync(updateInfo);
+            updateRet.TransactionResult.Error.ShouldContain(
+                "controller does not initialize, call InitializeAuthorizedController first");
+            var initializeControllerRet = await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+            initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            updateRet = await TokenContractStub.UpdateCoefficientsForContract.SendWithExceptionAsync(updateInfo);
+            updateRet.TransactionResult.Error.ShouldContain("no permission");
+        }
+        
+        [Fact(DisplayName = "[MultiToken] Invalid fee type for Update controller")]
+        public async Task UpdateCoefficientForContract_With_Invalid_FeeType_Test()
+        {
+            var updateInfo = new UpdateCoefficientsInput
+            {
+                Coefficients = new CalculateFeeCoefficients
+                {
+                    FeeTokenType = (int) FeeTypeEnum.Tx
+                }
+            };
+            var initializeControllerRet = await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+            initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var updateRet = await TokenContractStub.UpdateCoefficientsForContract.SendWithExceptionAsync(updateInfo);
+            updateRet.TransactionResult.Error.ShouldContain("Invalid fee type");
+        }
+        
+        [Fact(DisplayName = "[MultiToken] illegal controller try to update the coefficientForSender")]
+        public async Task UpdateCoefficientForSender_Without_Authorization_Test()
+        {
+            var initializeControllerRet = await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+            initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var updateRet =
+                await TokenContractStub.UpdateCoefficientsForSender.SendWithExceptionAsync(
+                    new UpdateCoefficientsInput());
+            updateRet.TransactionResult.Error.ShouldContain("no permission");
+        }
+
         private async Task CreateAndIssueCustomizeToken(Address creator, string symbol, long totalSupply, long issueAmount,
             Address to = null, params string[] otherParameters)
         {
