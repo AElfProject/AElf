@@ -879,136 +879,101 @@ namespace AElf.Contracts.MultiToken
                 "Failed to create token if side chain creator already set.");
         }
 
-        [Fact(DisplayName = "[MultiToken] check only one token thresh hold")]
-        public async Task CheckThreshold_With_One_Token_Test()
+        [Theory]
+        [InlineData(10000, 1000, 0,999, false, false)]
+        [InlineData(10000, 1000, 0,1001, false, true)]
+        [InlineData(10000, 1000, 600,599, true, false)]
+        [InlineData(10000, 1000, 600,601, true, true)]
+        public async Task CheckThreshold_With_One_Token_Test(long totalSupply, long issueAmount, long ApproveAmount,
+            long checkAmount, bool isCheckAllowance, bool isThrowException)
         {
             await CreateNativeTokenAsync();
             var tokenA = "AITA";
-            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, 10000, 1000);
-            // success
-            var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, totalSupply, issueAmount);
+            if (ApproveAmount > 0)
             {
-                IsCheckAllowance = false,
-                Sender = DefaultAddress,
-                SymbolToThreshold = {{tokenA, 999}}
-            });
-            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            //insufficient balance
-            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
-            {
-                IsCheckAllowance = false,
-                Sender = DefaultAddress,
-                SymbolToThreshold = {{tokenA, 1001}}
-            });
-            checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
-            
-            await TokenContractStub.Approve.SendAsync(new ApproveInput
-            {
-                Amount = 600,
-                Spender = DefaultAddress,
-                Symbol = tokenA
-            });
-            
-            //sufficient allowance
-            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
-            {
-                IsCheckAllowance = true,
-                Sender = DefaultAddress,
-                SymbolToThreshold = {{tokenA, 599}}
-            });
-            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            //insufficient allowance
-            checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
-            {
-                IsCheckAllowance = true,
-                Sender = DefaultAddress,
-                SymbolToThreshold = {{tokenA, 601}}
-            });
-            checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
-        }
+                await TokenContractStub.Approve.SendAsync(new ApproveInput
+                {
+                    Amount = ApproveAmount,
+                    Spender = DefaultAddress,
+                    Symbol = tokenA
+                });
+            }
 
-        [Fact(DisplayName = "[MultiToken] check multiple token threshold")]
-        public async Task CheckThreshold_With_Multiple_Token_Test()
+            if (isThrowException)
+            {
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
+                {
+                    IsCheckAllowance = isCheckAllowance,
+                    Sender = DefaultAddress,
+                    SymbolToThreshold = {{tokenA, checkAmount}}
+                });
+                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
+            }
+            else
+            {
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+                {
+                    IsCheckAllowance = isCheckAllowance,
+                    Sender = DefaultAddress,
+                    SymbolToThreshold = {{tokenA, checkAmount}}
+                });
+                checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+                
+        }
+        
+        [Theory]
+        [InlineData(999, 0, 1000, 0, false, false)]
+        [InlineData(1001, 0, 999, 0, false, false)]
+        [InlineData(1001, 0, 1001, 0, false, true)]
+        [InlineData(1001, 600, 1001, 600, true, true)]
+        [InlineData(601, 600, 601, 600, true, true)]
+        [InlineData(601, 600, 599, 600, true, false)]
+        public async Task CheckThreshold_With_Multiple_Token_Test(long tokenACheckAmount, long tokenAApporveAmount,
+            long tokenBCheckAmount, long tokenBApporveAmount, bool isCheckAllowance, bool isThrowException)
         {
             await CreateNativeTokenAsync();
             var tokenA = "AITA";
             await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, 10000, 1000);
             var tokenB = "AITB";
             await CreateAndIssueCustomizeToken(DefaultAddress, tokenB, 10000, 1000);
-
-            var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            if (tokenAApporveAmount > 0)
             {
-                IsCheckAllowance = false,
-                Sender = DefaultAddress,
-                SymbolToThreshold = {{tokenA, 999}, {tokenB, 1001}}
-            });
-            checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            {
-                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+                await TokenContractStub.Approve.SendAsync(new ApproveInput
                 {
-                    IsCheckAllowance = false,
-                    Sender = DefaultAddress,
-                    SymbolToThreshold = {{tokenA, 1001}, {tokenB, 999}}
+                    Amount = tokenAApporveAmount,
+                    Spender = DefaultAddress,
+                    Symbol = tokenA
                 });
-                checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-
+            if (tokenBApporveAmount > 0)
             {
-                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
-                    new CheckThresholdInput
-                    {
-                        IsCheckAllowance = false,
-                        Sender = DefaultAddress,
-                        SymbolToThreshold = {{tokenA, 1001}, {tokenB, 1001}}
-                    });
+                await TokenContractStub.Approve.SendAsync(new ApproveInput
+                {
+                    Amount = tokenBApporveAmount,
+                    Spender = DefaultAddress,
+                    Symbol = tokenB
+                });
+            }
+            if (isThrowException)
+            {
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
+                {
+                    IsCheckAllowance = isCheckAllowance,
+                    Sender = DefaultAddress,
+                    SymbolToThreshold = {{tokenA, tokenACheckAmount}, {tokenB, tokenBCheckAmount}}
+                });
                 checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
             }
-            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            else
             {
-                Amount = 600,
-                Spender = DefaultAddress,
-                Symbol = tokenA
-            });
-            
-            await TokenContractStub.Approve.SendAsync(new ApproveInput
-            {
-                Amount = 600,
-                Spender = DefaultAddress,
-                Symbol = tokenB
-            });
-            {
-                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
-                    new CheckThresholdInput
-                    {
-                        IsCheckAllowance = true,
-                        Sender = DefaultAddress,
-                        SymbolToThreshold = {{tokenA, 1001}, {tokenB, 1001}}
-                    });
-                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
-            }
-            
-            {
-                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
-                    new CheckThresholdInput
-                    {
-                        IsCheckAllowance = true,
-                        Sender = DefaultAddress,
-                        SymbolToThreshold = {{tokenA, 601}, {tokenB, 601}}
-                    });
-                checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
-            }
-            
-            {
-                checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(
-                    new CheckThresholdInput
-                    {
-                        IsCheckAllowance = true,
-                        Sender = DefaultAddress,
-                        SymbolToThreshold = {{tokenA, 601}, {tokenB, 599}}
-                    });
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendAsync(new CheckThresholdInput
+                {
+                    IsCheckAllowance = isCheckAllowance,
+                    Sender = DefaultAddress,
+                    SymbolToThreshold = {{tokenA, tokenACheckAmount}, {tokenB, tokenBCheckAmount}}
+                });
                 checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
