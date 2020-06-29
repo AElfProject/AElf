@@ -31,6 +31,8 @@ using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 using SampleAddress = AElf.Kernel.SampleAddress;
+using Volo.Abp.EventBus;
+
 
 namespace AElf.WebApp.Application.Chain.Tests
 {
@@ -52,7 +54,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
-
+        private readonly  ILocalEventHandler<TransactionValidationStatusChangedEvent> _handler;
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _transactionResultStatusCacheProvider = GetRequiredService<ITransactionResultStatusCacheProvider>();;
@@ -63,6 +65,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _handler = GetRequiredService<ILocalEventHandler<TransactionValidationStatusChangedEvent>>();
         }
 
         [Fact]
@@ -1499,6 +1502,36 @@ namespace AElf.WebApp.Application.Chain.Tests
             var block = await GetResponseAsObjectAsync<BlockDto>(
                 "/api/blockChain/blockByHeight?blockHeight=12&includeTransactions=false");
             block.Body.Transactions.ShouldBeEmpty();
+        }
+
+        [Fact]
+
+        public async Task TransactionValidationStatusChangedEventHandler_Test()
+        {
+
+            // Generate a transaction
+          //  var transaction = await _osTestHelper.GenerateTransferTransaction();
+           // var transactionId = transaction.GetHash();
+            var transactionId = HashHelper.ComputeFrom("Test");
+            _transactionResultStatusCacheProvider.AddTransactionResultStatus(transactionId);
+            {
+                var originalStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId);
+                originalStatus.TransactionResultStatus.ShouldNotBeNull();
+            }
+            _handler.HandleEventAsync(new TransactionValidationStatusChangedEvent
+            {
+                
+                    TransactionId = transactionId,
+                    TransactionResultStatus = TransactionResultStatus.PendingValidation,
+                    Error = "error"
+            });
+            
+            var result=   _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId); 
+            result.TransactionResultStatus.ShouldBe(TransactionResultStatus.PendingValidation);
+               
+             
+
+
         }
 
 
