@@ -698,6 +698,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString().ToUpper());
+            response.Bloom.ShouldBeNull();
         }
 
         [Fact]

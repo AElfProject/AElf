@@ -16,7 +16,11 @@ namespace AElf.WebApp.Application.Chain
                 .ForMember(d => d.ReturnValue, opt => opt.MapFrom(s => s.ReturnValue.ToHex(false)))
                 .ForMember(d => d.Bloom,
                     opt => opt.MapFrom(s =>
-                        s.Bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : s.Bloom.ToBase64()))
+                        s.Status == TransactionResultStatus.NotExisted
+                            ? null
+                            : s.Bloom.Length == 0
+                                ? ByteString.CopyFrom(new byte[256]).ToBase64()
+                                : s.Bloom.ToBase64()))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString().ToUpper()))
                 .Ignore(d => d.Transaction)
                 .Ignore(d => d.TransactionSize);
