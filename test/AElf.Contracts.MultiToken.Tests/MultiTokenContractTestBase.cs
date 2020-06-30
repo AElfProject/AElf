@@ -360,13 +360,13 @@ namespace AElf.Contracts.MultiToken
         {
             var approveTransaction1 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[1], proposalId);
+                tester.InitialMinerList[0], proposalId);
             var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[2], proposalId);
+                tester.InitialMinerList[1], proposalId);
             var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
                 nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[0], proposalId);
+                tester.InitialMinerList[2], proposalId);
             await tester.MineAsync(
                 new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
         }
