@@ -16,8 +16,13 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.TestContract.RandomNumberProvider\AElf.Contracts.TestContract.RandomNumberProvider.csproj">
-          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
     </ItemGroup>
     <Import Project="..\AllContracts.props" />
@@ -41,9 +46,9 @@
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\acs6.proto">
+        <ContractBase Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
-        </ContractMessage>
+        </ContractBase>
         <ContractMessage Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractMessage>

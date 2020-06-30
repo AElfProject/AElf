@@ -1,13 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using Acs3;
+using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.Association;
+using AElf.Contracts.Genesis;
+using AElf.Contracts.TestContract.RandomNumberProvider;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.GovernmentSystem;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
@@ -20,6 +24,10 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
     {
+        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub =>
+            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(
+                ContractZeroAddress, Accounts[0].KeyPair);
+
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
@@ -29,18 +37,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             GetTester<TokenContractImplContainer.TokenContractImplStub>(
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
-        
-        internal AssociationContractContainer.AssociationContractStub AssociationStub =>
-            GetTester<AssociationContractContainer.AssociationContractStub>(
-                ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
-                Accounts[0].KeyPair);
-
 
         internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
             new List<ParliamentContractContainer.ParliamentContractStub>();
-
-        internal readonly Hash CommitmentSchemeSmartContractAddressName =
-            HashHelper.ComputeFrom("AElf.Contracts.TestContract.RandomNumberProvider");
 
         public AEDPoSExtensionDemoTestBase()
         {
@@ -62,6 +61,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ParliamentStubs.Add(GetTester<ParliamentContractContainer.ParliamentContractStub>(
                     ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
             }
+        }
+
+        internal async Task<RandomNumberProviderContractContainer.RandomNumberProviderContractStub>
+            DeployRandomNumberProviderContract()
+        {
+            var address = (await BasicContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.CopyFrom(ContractsDeployer.GetContractCodes<AEDPoSExtensionDemoModule>()
+                    .Single(kv => kv.Key.EndsWith("RandomNumberProvider"))
+                    .Value)
+            })).Output;
+
+            return GetTester<RandomNumberProviderContractContainer.RandomNumberProviderContractStub>(address,
+                Accounts[0].KeyPair);
         }
 
         internal async Task ParliamentReachAnAgreementAsync(CreateProposalInput createProposalInput)
