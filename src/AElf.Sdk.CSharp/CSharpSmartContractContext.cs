@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -312,6 +313,21 @@ namespace AElf.Sdk.CSharp
         public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
         {
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
+        }
+
+        public Hash GetRandomHash(Address contractAddress, string methodName, ByteString args)
+        {
+            return _smartContractBridgeContextImplementation.GetRandomHash(contractAddress, methodName, args);
+        }
+
+        public Hash GetRandomHash(Hash fromHash)
+        {
+            return _smartContractBridgeContextImplementation.GetRandomHash(fromHash);
+        }
+
+        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int number = 1)
+        {
+            return _smartContractBridgeContextImplementation.ConvertHashToInt64(hash, start, end);
         }
     }
 }

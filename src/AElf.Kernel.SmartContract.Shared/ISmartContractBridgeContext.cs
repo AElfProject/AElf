@@ -76,6 +76,12 @@ namespace AElf.Kernel.SmartContract
         byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
 
         Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
+
+        Hash GetRandomHash(Address contractAddress, string methodName, ByteString args);
+
+        Hash GetRandomHash(Hash fromHash);
+
+        long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int generateNumber = 1);
     }
 
     [Serializable]

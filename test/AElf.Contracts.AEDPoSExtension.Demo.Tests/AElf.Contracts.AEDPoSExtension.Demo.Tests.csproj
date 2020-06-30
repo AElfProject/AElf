@@ -16,16 +16,11 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-    </ItemGroup>
-    <Import Project="..\AllContracts.props" />
-
-    <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.RandomNumberProvider\AElf.Contracts.TestContract.RandomNumberProvider.csproj">
+          <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
         </ProjectReference>
     </ItemGroup>
+    <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
@@ -70,8 +65,8 @@
         <ContractStub Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\association.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\commitment_scheme_contract.proto">
-            <Link>Protobuf\Proto\commitment_scheme_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\random_number_provider_contract.proto">
+            <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 
