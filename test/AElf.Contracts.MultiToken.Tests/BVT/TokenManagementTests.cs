@@ -4,13 +4,11 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.BasicFunction;
-using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
@@ -312,7 +310,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private async Task TokenConverter_Converter()
+        private async Task TokenConverterConverterAsync()
         {
             await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
 

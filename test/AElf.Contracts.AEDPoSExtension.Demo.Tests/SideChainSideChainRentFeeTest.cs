@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
@@ -8,6 +7,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
+using CommandLine;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -38,32 +38,32 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [Fact]
         public async Task ChargeRentalTest()
         {
-            await InitialTokenContract();
+            await InitialTokenContractAsync();
 
             // Check balance before mining
             {
-                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
                 cpuBalance.ShouldBe(ResourceSupply);
-                var ramBalance = await GetCreatorBalanceOf("RAM");
+                var ramBalance = await GetCreatorBalanceOfAsync("RAM");
                 ramBalance.ShouldBe(ResourceSupply);
-                var diskBalance = await GetCreatorBalanceOf("DISK");
+                var diskBalance = await GetCreatorBalanceOfAsync("DISK");
                 diskBalance.ShouldBe(ResourceSupply);
-                var netBalance = await GetCreatorBalanceOf("NET");
+                var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(ResourceSupply);
             }
             
             // charge every 1 minute
-            await DelayOneMinute();
+            await DelayOneMinuteAsync();
 
             // Check balance before mining
             {
-                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
                 cpuBalance.ShouldBe(ResourceSupply - CpuAmount * Rental);
-                var ramBalance = await GetCreatorBalanceOf("RAM");
+                var ramBalance = await GetCreatorBalanceOfAsync("RAM");
                 ramBalance.ShouldBe(ResourceSupply - RamAmount * Rental);
-                var diskBalance = await GetCreatorBalanceOf("DISK");
+                var diskBalance = await GetCreatorBalanceOfAsync("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental);
-                var netBalance = await GetCreatorBalanceOf("NET");
+                var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(ResourceSupply - NetAmount * Rental);
             }
         }
@@ -71,21 +71,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [Fact]
         public async Task OwnResourceTest()
         {
-            await InitialTokenContract(false);
+            await InitialTokenContractAsync(false);
 
             // Check balance before mining
             {
-                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
                 cpuBalance.ShouldBe(0);
-                var ramBalance = await GetCreatorBalanceOf("RAM");
+                var ramBalance = await GetCreatorBalanceOfAsync("RAM");
                 ramBalance.ShouldBe(0);
-                var diskBalance = await GetCreatorBalanceOf("DISK");
+                var diskBalance = await GetCreatorBalanceOfAsync("DISK");
                 diskBalance.ShouldBe(0);
-                var netBalance = await GetCreatorBalanceOf("NET");
+                var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(0);
             }
             
-            await DelayOneMinute();
+            await DelayOneMinuteAsync();
 
             var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental);
@@ -110,7 +110,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 });
             }
             
-            await DelayOneMinute();
+            await DelayOneMinuteAsync();
 
             var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(0);
@@ -120,13 +120,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             // Check balance before mining
             {
-                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
                 cpuBalance.ShouldBe(ResourceSupply - CpuAmount * Rental * 2);
-                var ramBalance = await GetCreatorBalanceOf("RAM");
+                var ramBalance = await GetCreatorBalanceOfAsync("RAM");
                 ramBalance.ShouldBe(ResourceSupply - RamAmount * Rental * 2);
-                var diskBalance = await GetCreatorBalanceOf("DISK");
+                var diskBalance = await GetCreatorBalanceOfAsync("DISK");
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental * 2);
-                var netBalance = await GetCreatorBalanceOf("NET");
+                var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(ResourceSupply - NetAmount * Rental * 2);
             }
         }
@@ -147,7 +147,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 });
             }
            
-            await DelayOneMinute();
+            await DelayOneMinuteAsync();
             
             var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
             owningRental.ResourceAmount["CPU"].ShouldBe(CpuAmount * Rental * 2 - 1);
@@ -157,31 +157,40 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             // Check balance before mining
             {
-                var cpuBalance = await GetCreatorBalanceOf("CPU");
+                var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
                 cpuBalance.ShouldBe(0);
-                var ramBalance = await GetCreatorBalanceOf("RAM");
+                var ramBalance = await GetCreatorBalanceOfAsync("RAM");
                 ramBalance.ShouldBe(0);
-                var diskBalance = await GetCreatorBalanceOf("DISK");
+                var diskBalance = await GetCreatorBalanceOfAsync("DISK");
                 diskBalance.ShouldBe(0);
-                var netBalance = await GetCreatorBalanceOf("NET");
+                var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(0);
             }
         }
 
         [Fact]
-        public async Task SIdeChainRental_Transfer_Fail()
+        public async Task ChangeSIdeChainRentalController_Fail()
         {
-            await InitialTokenContract();
+            await InitialTokenContractAsync();
             var updateRet =
                 await TokenContractStub.ChangeSideChainRentalController.SendWithExceptionAsync(new AuthorityInfo());
             updateRet.TransactionResult.Error.ShouldContain("no permission");
+            
+            var authority = new AuthorityInfo
+            {
+                ContractAddress = AssociationContractAddress,
+                OwnerAddress = ConsensusContractAddress
+            };
+
+            var invalidInputRet = await UpdateSideChainRentalDefaultProposalWithExceptionAsync(
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController), authority);
+            invalidInputRet.Error.ShouldContain("new controller does not exist");
         }
         
-
         [Fact]
-        public async Task SIdeChainRental_Transfer_Success()
+        public async Task ChangeSIdeChainRentalController_Success()
         {
-            await InitialTokenContract();
+            await InitialTokenContractAsync();
             var member = Accounts[0].Address;
             var proposers = new List<Address> {member};
             var newOrganizationCreationInput = new CreateOrganizationInput
@@ -212,7 +221,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 OwnerAddress = newControllerAddress
             };
 
-            await CreateApproveAndReleaseToSideChainRentalDefaultProposal(
+            await UpdateSideChainRentalDefaultProposalAsync(
                 nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController), authority);
             var updateParam = new UpdateRentedResourcesInput();
             var symbolDic = new Dictionary<string, int> {["CPU"] = 101};
@@ -234,7 +243,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var resourceUsage = await TokenContractStub.GetResourceUsage.CallAsync(new Empty());
             resourceUsage.Value["CPU"].ShouldBe(101);
         }
-        private async Task DelayOneMinute()
+        private async Task DelayOneMinuteAsync()
         {
             var times = 6;
             while (times-- > 0)
@@ -247,12 +256,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
         }
         
-        private async Task InitialTokenContract(bool issueToken = true)
+        private async Task InitialTokenContractAsync(bool issueToken = true)
         {
-            await CreateToken("CPU", ResourceSupply, issueToken);
-            await CreateToken("RAM", ResourceSupply, issueToken);
-            await CreateToken("DISK", ResourceSupply, issueToken);
-            await CreateToken("NET", ResourceSupply, issueToken);
+            await CreateTokenAsync("CPU", ResourceSupply, issueToken);
+            await CreateTokenAsync("RAM", ResourceSupply, issueToken);
+            await CreateTokenAsync("DISK", ResourceSupply, issueToken);
+            await CreateTokenAsync("NET", ResourceSupply, issueToken);
             var defaultParliamentOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var setSideChainCreatorProposalInput = new InitializeFromParentChainInput
             {
@@ -281,10 +290,10 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             };
             await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput{Symbol = NativeTokenSymbol});
             await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
-            await CreateApproveAndReleaseToSideChainRentalDefaultProposal(
+            await UpdateSideChainRentalDefaultProposalAsync(
                 nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental), updateRentalInput);
         }
-        private async Task CreateToken(string symbol, long supply, bool issueToken)
+        private async Task CreateTokenAsync(string symbol, long supply, bool issueToken)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -309,33 +318,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             });
         }
 
-        private async Task<long> GetCreatorBalanceOf(string symbol)
+        private async Task<long> GetCreatorBalanceOfAsync(string symbol)
         {
             return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Creator,
                 Symbol = symbol
             })).Balance;
-        }
-        
-        public async Task InitializeTokenContract()
-        {
-            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalId = await CreateFeeProposalAsync(TokenContractAddress,
-                defaultOrganization, "InitializeFromParentChain", new InitializeFromParentChainInput
-                {
-                    ResourceAmount =
-                    {
-                        {"CPU", 100},
-                        {"RAM", 100},
-                        {"DISK", 100},
-                        {"NET", 100}
-                    },
-                    Creator = DefaultSender
-                });
-            await ApproveWithMinersAsync(proposalId);
-            await ParliamentContractStub.Release.SendAsync(proposalId);
-            await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
         }
         private async Task ParliamentReachAnAgreementAsync(Address contractAddress, Address organizationAddress,
             string methodName, IMessage input)
@@ -370,9 +359,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
         }
-        private async Task CreateApproveAndReleaseToSideChainRentalDefaultProposal(string methodName, IMessage message)
+        
+        private async Task<Hash> CreateApproveAndToSideChainRentalDefaultProposalAsync(string methodName,
+            IMessage message)
         {
-            var defaultController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
+            var defaultController =
+                await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());
             var defaultParliamentAddress =
                 await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var toAssociationProposal = new CreateProposalInput
@@ -389,8 +381,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
             await ParliamentReachAnAgreementAsync(AssociationContractAddress, defaultParliamentAddress,
                 nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
-            await AssociationContractStub.Approve.SendAsync(associationProposalId); 
+            await AssociationContractStub.Approve.SendAsync(associationProposalId);
+            return associationProposalId;
+        }
+
+        private async Task UpdateSideChainRentalDefaultProposalAsync(string methodName,
+            IMessage message)
+        {
+            var associationProposalId = await CreateApproveAndToSideChainRentalDefaultProposalAsync(methodName, message);
             await AssociationContractStub.Release.SendAsync(associationProposalId);
+        }
+        private async Task<TransactionResult> UpdateSideChainRentalDefaultProposalWithExceptionAsync(string methodName,
+            IMessage message)
+        {
+            var associationProposalId = await CreateApproveAndToSideChainRentalDefaultProposalAsync(methodName, message);
+            return (await AssociationContractStub.Release.SendWithExceptionAsync(associationProposalId)).TransactionResult;
         }
     }
 }

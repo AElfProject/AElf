@@ -76,14 +76,14 @@ namespace AElf.Contracts.MultiToken
             result.ShouldBe(new ResourceInfo {NonParallelizable = true});
         }
         
-                [Fact(DisplayName = "[MultiToken] advance token not exist in resource token")]
+        [Fact(DisplayName = "[MultiToken] advance token not exist in resource token")]
         public async Task AdvancedResourceToken_Test()
         {
             await CreateNativeTokenAsync();
             long advanceAmount = 1000;
             {
                 var tokenNotResrouce = "NORESOURCE";
-                await CreateAndIssueCustomizeToken(DefaultAddress, tokenNotResrouce, 10000, 10000);
+                await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenNotResrouce, 10000, 10000);
                 var advanceRet = await TokenContractStub.AdvanceResourceToken.SendWithExceptionAsync(
                     new AdvanceResourceTokenInput
                     {
@@ -96,7 +96,7 @@ namespace AElf.Contracts.MultiToken
 
             {
                 var trafficToken = "TRAFFIC";
-                await CreateAndIssueCustomizeToken(DefaultAddress, trafficToken, 10000, 10000);
+                await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);
                 var advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
                     new AdvanceResourceTokenInput
                     {
@@ -120,7 +120,7 @@ namespace AElf.Contracts.MultiToken
             await CreateNativeTokenAsync();
             var trafficToken = "TRAFFIC";
             var advanceAmount = 1000;
-            await CreateAndIssueCustomizeToken(DefaultAddress, trafficToken, 10000, 10000);
+            await CreateAndIssueCustomizeTokenAsync(DefaultAddress, trafficToken, 10000, 10000);
             var advanceRet = await TokenContractStub.AdvanceResourceToken.SendAsync(
                 new AdvanceResourceTokenInput
                 {

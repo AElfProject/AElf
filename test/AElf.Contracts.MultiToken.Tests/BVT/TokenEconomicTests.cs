@@ -12,7 +12,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests
     {
-        private async Task InitialEconomic()
+        private async Task InitialEconomicAsync()
         {
             {
                 const long totalSupply = 100_000_00000000;

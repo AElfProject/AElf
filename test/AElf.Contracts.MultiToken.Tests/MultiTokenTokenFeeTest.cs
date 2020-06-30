@@ -15,8 +15,8 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] validate the input")]
         public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Input_Test()
         {
-            var theDefaultController = await GetDefaultParliamentAddress();
-            var primaryTokenSymbol = await GetThePrimaryToken();
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
             var FeeToken = "FEETOKEN";
             MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.Create), new CreateInput
@@ -103,7 +103,7 @@ namespace AElf.Contracts.MultiToken
                     .SetSymbolsToPayTxSizeFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
-            await MainChainTesterCreatApproveAndReleaseProposalForParliament(createProposalInput);
+            await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             var byteResult = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetSymbolsToPayTxSizeFee),
                 new Empty());

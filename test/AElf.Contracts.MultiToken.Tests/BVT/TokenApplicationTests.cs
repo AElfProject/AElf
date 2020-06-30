@@ -923,7 +923,7 @@ namespace AElf.Contracts.MultiToken
         {
             await CreateNativeTokenAsync();
             var tokenA = "AITA";
-            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, totalSupply, issueAmount);
+            await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenA, totalSupply, issueAmount);
             if (ApproveAmount > 0)
             {
                 await TokenContractStub.Approve.SendAsync(new ApproveInput
@@ -969,9 +969,9 @@ namespace AElf.Contracts.MultiToken
         {
             await CreateNativeTokenAsync();
             var tokenA = "AITA";
-            await CreateAndIssueCustomizeToken(DefaultAddress, tokenA, 10000, 1000);
+            await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenA, 10000, 1000);
             var tokenB = "AITB";
-            await CreateAndIssueCustomizeToken(DefaultAddress, tokenB, 10000, 1000);
+            await CreateAndIssueCustomizeTokenAsync(DefaultAddress, tokenB, 10000, 1000);
             if (tokenAApporveAmount > 0)
             {
                 await TokenContractStub.Approve.SendAsync(new ApproveInput
@@ -1012,7 +1012,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private async Task CreateAndIssueCustomizeToken(Address creator, string symbol, long totalSupply, long issueAmount,
+        private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,
             Address to = null, params string[] otherParameters)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
