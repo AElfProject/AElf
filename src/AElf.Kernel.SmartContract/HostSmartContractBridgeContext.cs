@@ -147,8 +147,9 @@ namespace AElf.Kernel.SmartContract
 
         public Hash GetRandomHash(Hash fromHash)
         {
-            // TODO: Implement.
-            return Hash.Empty;
+            var currentBlockTimeHash = HashHelper.ComputeFrom(CurrentBlockTime);
+            return HashHelper.XorAndCompute(currentBlockTimeHash,
+                HashHelper.XorAndCompute(fromHash, PreviousBlockHash));
         }
 
         public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int number = 1)
@@ -161,7 +162,7 @@ namespace AElf.Kernel.SmartContract
             var range = end.Sub(start);
             var bigInteger = new BigInteger(hash.Value.ToByteArray());
             // This is safe because range is long type.
-            var index = (long) (bigInteger % range);
+            var index = Math.Abs((long) (bigInteger % range));
             return index.Add(start);
         }
 
