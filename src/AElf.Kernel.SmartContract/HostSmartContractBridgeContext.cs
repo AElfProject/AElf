@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -136,6 +138,31 @@ namespace AElf.Kernel.SmartContract
             if (enumerable != null)
                 contactedBytes = contactedBytes.Concat(enumerable);
             return HashHelper.ComputeFrom(contactedBytes.ToArray());
+        }
+
+        public Hash GetRandomHash(Address contractAddress, string methodName, ByteString args)
+        {
+            return Call<Hash>(Self, contractAddress, methodName, args);
+        }
+
+        public Hash GetRandomHash(Hash fromHash)
+        {
+            // TODO: Implement.
+            return Hash.Empty;
+        }
+
+        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int number = 1)
+        {
+            if (start < 0 || start > end)
+            {
+                throw new ArgumentException("Incorrect arguments.");
+            }
+
+            var range = end.Sub(start);
+            var bigInteger = new BigInteger(hash.Value.ToByteArray());
+            // This is safe because range is long type.
+            var index = (long) (bigInteger % range);
+            return index.Add(start);
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();
