@@ -19,7 +19,7 @@ using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInpu
 
 namespace AElf.Contracts.MultiToken
 {
-    public class MultiTokenAuthorizedTest : MultiTokenContractCrossChainTestBase
+    public partial class MultiTokenAuthorizedTest : MultiTokenContractCrossChainTestBase
     {
         public MultiTokenAuthorizedTest()
         {
@@ -31,105 +31,6 @@ namespace AElf.Contracts.MultiToken
             var initControllerResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.InitializeAuthorizedController), new Empty());
             initControllerResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-
-        [Fact(DisplayName = "[MultiToken] validate the input")]
-        public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Input_Test()
-        {
-            var theDefaultController = await GetDefaultParliamentAddress();
-            var primaryTokenSymbol = await GetThePrimaryToken();
-            var FeeToken = "FEETOKEN";
-            MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.Create), new CreateInput
-                {
-                    Symbol = FeeToken,
-                    TokenName = "name",
-                    Issuer = TokenContractAddress,
-                    TotalSupply = 100_000
-                });
-            //primary token weights both should be set to 1
-            {
-                var newSymbolList = new SymbolListToPayTxSizeFee();
-                newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = primaryTokenSymbol,
-                    AddedTokenWeight = 2,
-                    BaseTokenWeight = 1
-                });
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
-            }
-
-            // include the repeated token.
-            {
-                var newSymbolList = new SymbolListToPayTxSizeFee
-                {
-                    SymbolsToPayTxSizeFee =
-                    {
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = primaryTokenSymbol,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        },
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = FeeToken,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        },
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = FeeToken,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        }
-                    }
-                };
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
-            }
-            
-            // include invalid weright
-            {
-                {
-                    var newSymbolList = new SymbolListToPayTxSizeFee
-                    {
-                        SymbolsToPayTxSizeFee =
-                        {
-                            new SymbolToPayTxSizeFee
-                            {
-                                TokenSymbol = primaryTokenSymbol,
-                                AddedTokenWeight = 1,
-                                BaseTokenWeight = 1
-                            },
-                            new SymbolToPayTxSizeFee
-                            {
-                                TokenSymbol = FeeToken,
-                                AddedTokenWeight = 1,
-                                BaseTokenWeight = 0
-                            }
-                        }
-                    };
-                    await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
-                }
-            }
-        }
-        private async Task VerifyTheInvalidSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
-        {
-            var createProposalInput = new CreateProposalInput
-            {
-                ToAddress = TokenContractAddress,
-                Params = newSymbolList.ToByteString(),
-                OrganizationAddress = defaultController,
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
-                    .SetSymbolsToPayTxSizeFee),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
-            };
-            await MainChainTesterCreatApproveAndReleaseProposalForParliament(createProposalInput);
-            var byteResult = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetSymbolsToPayTxSizeFee),
-                new Empty());
-            var symbolListToPayTxSizeFee = SymbolListToPayTxSizeFee.Parser.ParseFrom(byteResult);
-            symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count.ShouldBe(0);
         }
 
         [Fact]
@@ -206,7 +107,6 @@ namespace AElf.Contracts.MultiToken
         }
 
         //fee type : read = 0, storage = 1, write =2, traffic = 3
-        //pieceNumber.Length should be equal to newPieceFunctions.Length
         [Theory]
         [InlineData(false, 3, new []{1}, new [] {1000000, 4, 3, 2})]
         [InlineData(false, 0, new []{2}, new []{999999, 1, 4, 2, 5, 250, 40})]
@@ -262,7 +162,6 @@ namespace AElf.Contracts.MultiToken
         }
         
                 //fee type : read = 0, storage = 1, write =2, traffic = 3
-        //pieceNumber.Length should be equal to newPieceFunctions.Length
         [Theory]
         [InlineData(false, new []{1}, new [] {100, 4, 3, 2})]
         [InlineData(false, new []{2,3}, new []{5000001, 1, 4, 10000},new []{5000002, 1, 4, 2, 2, 250, 50})]
@@ -399,7 +298,7 @@ namespace AElf.Contracts.MultiToken
         {
             var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
-                new Parliament.CreateOrganizationInput
+                new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
                     {
@@ -476,7 +375,7 @@ namespace AElf.Contracts.MultiToken
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("No permission.").ShouldBeTrue();
         }
-        
+
         private async Task<TransactionResult> MainChainTesterCreatApproveAndReleaseProposalForParliament(CreateProposalInput proposalInput)
         {
             var parliamentCreateProposal = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,

@@ -208,6 +208,24 @@ namespace AElf.Contracts.MultiToken
                 await TokenContractStub.SetSymbolsToPayTxSizeFee.SendWithExceptionAsync(new SymbolListToPayTxSizeFee());
             setSymbolRet.TransactionResult.Error.ShouldBe("no permission");
         }
+        
+        [Fact(DisplayName = "[MultiToken] Reference Token Fee Controller")]
+        public async Task InitializeAuthorizedController_Test()
+        {
+            var tryToGetControllerInfoRet =
+                await TokenContractStub.GetDeveloperFeeController.SendWithExceptionAsync(new Empty());
+            tryToGetControllerInfoRet.TransactionResult.Error.ShouldContain(
+                "controller does not initialize, call InitializeAuthorizedController first");
+
+            var initializeControllerRet = await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
+            initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var afterInitializedDeveloperFeeController =
+                await TokenContractStub.GetDeveloperFeeController.CallAsync(new Empty());
+            afterInitializedDeveloperFeeController.DeveloperController.ShouldNotBeNull();
+            afterInitializedDeveloperFeeController.ParliamentController.ShouldNotBeNull();
+            afterInitializedDeveloperFeeController.RootController.ShouldNotBeNull();
+        }
 
         private Transaction GenerateTokenTransaction(Address from, string method, IMessage input)
         {

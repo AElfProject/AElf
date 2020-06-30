@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
@@ -165,13 +167,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 netBalance.ShouldBe(0);
             }
         }
-        
+
         [Fact]
-        public async Task Authorization_Transfer_Success()
+        public async Task SIdeChainRental_Transfer_Fail()
         {
             await InitialTokenContract();
-            var defaultOrganizationAddress =
-                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var updateRet =
+                await TokenContractStub.ChangeSideChainRentalController.SendWithExceptionAsync(new AuthorityInfo());
+            updateRet.TransactionResult.Error.ShouldContain("no permission");
+        }
+        
+
+        [Fact]
+        public async Task SIdeChainRental_Transfer_Success()
+        {
+            await InitialTokenContract();
             var member = Accounts[0].Address;
             var proposers = new List<Address> {member};
             var newOrganizationCreationInput = new CreateOrganizationInput
@@ -192,31 +202,18 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     Proposers = {proposers}
                 }
             };
-            var createNewAssociationOrganization = await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
+            var createNewAssociationOrganization =
+                await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput);
             var newControllerAddress = new Address();
             newControllerAddress.MergeFrom(createNewAssociationOrganization.TransactionResult.ReturnValue);
-            var authority = new Acs1.AuthorityInfo
+            var authority = new AuthorityInfo
             {
                 ContractAddress = AssociationContractAddress,
                 OwnerAddress = newControllerAddress
             };
-            var parliamentOrgAddress = defaultOrganizationAddress;
-            var currentController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
-            var toAssociationProposal = new CreateProposalInput
-            {
-                ToAddress = TokenContractAddress,
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController),
-                Params = authority.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = currentController.OwnerAddress
-            };
-            var associationProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
-            var associationProposalId = new Hash();
-            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
-            await ParliamentReachAnAgreementAsync(AssociationContractAddress, parliamentOrgAddress,
-                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
-            await AssociationContractStub.Approve.SendAsync(associationProposalId);
-            await AssociationContractStub.Release.SendAsync(associationProposalId);
+
+            await CreateApproveAndReleaseToSideChainRentalDefaultProposal(
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController), authority);
             var updateParam = new UpdateRentedResourcesInput();
             var symbolDic = new Dictionary<string, int> {["CPU"] = 101};
             updateParam.ResourceAmount.Add(symbolDic);
@@ -228,7 +225,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = newControllerAddress
             };
-            var updateProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(updateProposal)).TransactionResult;
+            var updateProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(updateProposal))
+                .TransactionResult;
             var updateProposalId = new Hash();
             updateProposalId.MergeFrom(updateProposalRet.ReturnValue);
             await AssociationContractStub.Approve.SendAsync(updateProposalId);
@@ -283,23 +281,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             };
             await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput{Symbol = NativeTokenSymbol});
             await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
-            var rentalController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());       
-            var associationAddress = rentalController.OwnerAddress;       
-            var toAssociationProposal = new CreateProposalInput
-            {
-                ToAddress = TokenContractAddress,
-                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental),
-                Params = updateRentalInput.ToByteString(),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = associationAddress
-            };
-            var associationProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(toAssociationProposal)).TransactionResult;
-            var associationProposalId = new Hash();
-            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
-            await ParliamentReachAnAgreementAsync(AssociationContractAddress, defaultParliamentOrganization,
-                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
-            await AssociationContractStub.Approve.SendAsync(associationProposalId);
-            await AssociationContractStub.Release.SendAsync(associationProposalId);
+            await CreateApproveAndReleaseToSideChainRentalDefaultProposal(
+                nameof(TokenContractImplContainer.TokenContractImplStub.UpdateRental), updateRentalInput);
         }
         private async Task CreateToken(string symbol, long supply, bool issueToken)
         {
@@ -386,6 +369,28 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var approveResult = await tester.Approve.SendAsync(proposalId);
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
+        }
+        private async Task CreateApproveAndReleaseToSideChainRentalDefaultProposal(string methodName, IMessage message)
+        {
+            var defaultController = await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty()); 
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var toAssociationProposal = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                ContractMethodName = methodName,
+                Params = message.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = defaultController.OwnerAddress
+            };
+            var associationProposalRet = (await AssociationContractStub.CreateProposal.SendAsync(toAssociationProposal))
+                .TransactionResult;
+            var associationProposalId = new Hash();
+            associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
+            await ParliamentReachAnAgreementAsync(AssociationContractAddress, defaultParliamentAddress,
+                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
+            await AssociationContractStub.Approve.SendAsync(associationProposalId); 
+            await AssociationContractStub.Release.SendAsync(associationProposalId);
         }
     }
 }
