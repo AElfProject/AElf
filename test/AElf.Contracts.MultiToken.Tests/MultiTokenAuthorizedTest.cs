@@ -34,7 +34,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task hangeSymbolsToPayTXSizeFeeController_Fail_Test()
+        public async Task ChangeSymbolsToPayTXSizeFeeController_Fail_Test()
         {
             // no authority
             var newAuthority = await CreateNewParliamentAddressAsync();
@@ -374,7 +374,33 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task MethodFeeController_Test()
+        public async Task MethodFeeController_Test_Fail()
+        {
+            var updateMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.ChangeMethodFeeController);
+            // no authority
+            var newAuthority = await CreateNewParliamentAddressAsync();
+            //invalid new organization
+            var defaultParliamentAddress = await GetDefaultParliamentAddressAsync();
+            var invalidAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newAuthority.OwnerAddress,
+                ContractAddress = AssociationAddress
+            };
+            var createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = invalidAuthority.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = updateMethodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
+            ret.Error.ShouldContain("Invalid authority input");
+        }
+        
+
+        [Fact]
+        public async Task MethodFeeController_Test_Success()
         {
             var byteResult = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroBase.GetMethodFeeController),
