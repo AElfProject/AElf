@@ -105,22 +105,12 @@ namespace AElf.ContractTestBase.ContractTestKit
             services.AddSingleton(o => Mock.Of<INetworkService>());
 
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-            
-            // context.Services.AddTransient(o =>
-            // {
-            //     var mockService = new Mock<IGenesisSmartContractDtoProvider>();
-            //     mockService.Setup(s =>
-            //             s.GetGenesisSmartContractDtos())
-            //         .Returns(new List<GenesisSmartContractDto>());
-            //     return mockService.Object;
-            // });
 
             #endregion
 
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>

@@ -125,7 +125,6 @@ namespace AElf.ContractTestKit
             context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
