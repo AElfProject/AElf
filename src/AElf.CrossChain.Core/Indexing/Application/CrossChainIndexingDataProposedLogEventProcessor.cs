@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
@@ -50,6 +52,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             foreach (var events in logEventsMap)
             {
+                var transactionResult = events.Key;
                 foreach (var logEvent in events.Value)
                 {
                     if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
@@ -67,12 +70,16 @@ namespace AElf.CrossChain.Indexing.Application
                         await _crossChainIndexingDataValidationService.ValidateCrossChainIndexingDataAsync(
                             crossChainBlockData,
                             block.GetHash(), block.Height);
-                    if (!validationResult) 
-                        continue;
-                    Logger.LogDebug(
-                        $"Valid cross chain indexing proposal found, block height {block.Height}, block hash {block.GetHash()} ");
-                    _proposalService.AddNotApprovedProposal(crossChainIndexingDataProposedEvent.ProposalId,
-                        block.Height);
+                    if (validationResult)
+                    {
+                        Logger.LogDebug(
+                            $"Valid cross chain indexing proposal found, block height {block.Height}, block hash {block.GetHash()} ");
+                        var proposalId = crossChainIndexingDataProposedEvent.ProposalId ?? ProposalCreated.Parser
+                            .ParseFrom(transactionResult.Logs
+                                .First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                            .ProposalId;
+                        _proposalService.AddNotApprovedProposal(proposalId, block.Height);
+                    }
                 }
             }
         }

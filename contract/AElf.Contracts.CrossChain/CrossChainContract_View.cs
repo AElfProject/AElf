@@ -211,11 +211,11 @@ namespace AElf.Contracts.CrossChain
             return res;
         }
 
-        public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
-        {
-            // Deprecated
-            return new GetPendingCrossChainIndexingProposalOutput();
-        }
+        // public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
+        // {
+        //     // Deprecated
+        //     return new GetPendingCrossChainIndexingProposalOutput();
+        // }
         
         public override GetIndexingProposalStatusOutput GetIndexingProposalStatus(Empty input)
         {

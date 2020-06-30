@@ -310,8 +310,7 @@ namespace AElf.Contracts.CrossChain
                 var pendingProposalExists = TryGetIndexingProposalWithStatus(chainId, CrossChainIndexingProposalStatus.Pending,
                     out var pendingCrossChainIndexingProposal);
                 Assert(pendingProposalExists, "Chain indexing not proposed.");
-                HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId,
-                    pendingCrossChainIndexingProposal);
+                HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId);
             }
         }
         
@@ -457,7 +456,7 @@ namespace AElf.Contracts.CrossChain
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal), proposalId);
         }
 
-        private bool HandleIndexingProposal(Hash proposalId, ChainIndexingProposal crossChainIndexingProposal)
+        private void HandleIndexingProposal(Hash proposalId)
         {
             var crossChainIndexingController = GetCrossChainIndexingController();
             var proposal = GetCrossChainProposal(crossChainIndexingController, proposalId);
@@ -465,7 +464,6 @@ namespace AElf.Contracts.CrossChain
             Context.SendInline(crossChainIndexingController.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
                 proposal.ProposalId); // release if ready
-            return true;
         }
 
         private CrossChainDataDto ValidateCrossChainDataBeforeIndexing(CrossChainBlockData crossChainBlockData)

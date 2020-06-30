@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Indexing.Application
 
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash,
-            long blockHeight, List<int> excludeChainIdList)
+            long blockHeight, HashSet<int> excludeChainIdList)
         {
             var crossChainContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
             {
@@ -138,7 +138,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         private async Task<List<ParentChainBlockData>> GetNonIndexedParentChainBlockDataAsync(Hash blockHash,
-            long blockHeight, List<int> excludeChainIdList)
+            long blockHeight, HashSet<int> excludeChainIdList)
         {
             var parentChainBlockDataList = new List<ParentChainBlockData>();
             var libExists = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
@@ -260,7 +260,9 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
-
+            if (indexingProposalStatusList == null)
+                return ByteString.Empty;
+            
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
             if (toBeReleasedChainIdList.Count > 0)
@@ -283,8 +285,10 @@ namespace AElf.CrossChain.Indexing.Application
             }
                 
             var pendingChainIdList = FindPendingStatusChainIdList(indexingProposalStatusList, utcNow);
+
+            var crossChainBlockData =
+                await GetCrossChainBlockDataForNextMining(blockHash, blockHeight, new HashSet<int>(pendingChainIdList));
             
-            var crossChainBlockData = await GetCrossChainBlockDataForNextMining(blockHash, blockHeight, pendingChainIdList);
             if (!crossChainBlockData.IsNullOrEmpty())
                 _transactionInputForBlockMiningDataProvider.AddTransactionInputForBlockMining(blockHash,
                     new CrossChainTransactionInput
@@ -349,7 +353,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         private async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMining(Hash blockHash,
-            long blockHeight, List<int> excludeChainIdList)
+            long blockHeight, HashSet<int> excludeChainIdList)
         {
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight, excludeChainIdList);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight, excludeChainIdList);
