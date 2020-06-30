@@ -34,7 +34,41 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Controller_Transfer_For_Symbol_To_Pay_Tx_Fee()
+        public async Task hangeSymbolsToPayTXSizeFeeController_Fail_Test()
+        {
+            // no authority
+            var newAuthority = await CreateNewParliamentAddress();
+            await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContractImplContainer
+                .TokenContractImplStub
+                .ChangeSymbolsToPayTXSizeFeeController), newAuthority);
+            var afterUpdateControllerByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer
+                    .TokenContractImplStub.GetSymbolsToPayTXSizeFeeController), new Empty());
+            var afterUpdateController = AuthorityInfo.Parser.ParseFrom(afterUpdateControllerByteString);
+            afterUpdateController.OwnerAddress.ShouldNotBe(newAuthority.OwnerAddress);
+            
+            //invalid new organization
+            var defaultParliamentAddress = await GetDefaultParliamentAddress();
+            var invalidAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newAuthority.OwnerAddress,
+                ContractAddress = AssociationAddress
+            };
+            var createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = invalidAuthority.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
+                    .ChangeSymbolsToPayTXSizeFeeController),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliament(createProposalInput);
+            ret.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
+        public async Task ChangeSymbolsToPayTXSizeFeeController_Success_Test()
         {
             var primaryTokenRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.GetPrimaryTokenSymbol), new Empty());
@@ -49,28 +83,8 @@ namespace AElf.Contracts.MultiToken
             });
             
             // create a new organization to be replace the controller of SetSymbolsToPayTxSizeFee
-            var newParliament = new CreateOrganizationInput
-            {
-                ProposerAuthorityRequired = false,
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MaximalAbstentionThreshold = 1,
-                    MaximalRejectionThreshold = 1,
-                    MinimalApprovalThreshold = 1,
-                    MinimalVoteThreshold = 1
-                },
-                ParliamentMemberProposingAllowed = false
-            };
-            var parliamentCreateRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization), newParliament);
-            var newParliamentAddress = new Address();
-            newParliamentAddress.MergeFrom(parliamentCreateRet.ReturnValue);
-            var newAuthority = new AuthorityInfo
-            {
-                ContractAddress = ParliamentAddress,
-                OwnerAddress = newParliamentAddress
-            };
-            
+            var newAuthority = await CreateNewParliamentAddress();
+
             // get the default parliament that is the controller of SetSymbolsToPayTxSizeFee
             var defaultParliamentAddress = await GetDefaultParliamentAddress();
             
@@ -91,7 +105,7 @@ namespace AElf.Contracts.MultiToken
             {
                 ToAddress = TokenContractAddress,
                 Params = newSymbolList.ToByteString(),
-                OrganizationAddress = newParliamentAddress,
+                OrganizationAddress = newAuthority.OwnerAddress,
                 ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
@@ -104,6 +118,31 @@ namespace AElf.Contracts.MultiToken
             var updatedSymbolList = new SymbolListToPayTxSizeFee();
             updatedSymbolList.MergeFrom(symbolSetRet.ReturnValue);
             updatedSymbolList.SymbolsToPayTxSizeFee.Count.ShouldBe(1);
+        }
+        
+        private async Task<AuthorityInfo> CreateNewParliamentAddress()
+        {
+            var newParliament = new CreateOrganizationInput
+            {
+                ProposerAuthorityRequired = false,
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MaximalAbstentionThreshold = 1,
+                    MaximalRejectionThreshold = 1,
+                    MinimalApprovalThreshold = 1,
+                    MinimalVoteThreshold = 1
+                },
+                ParliamentMemberProposingAllowed = false
+            };
+            var parliamentCreateRet = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization), newParliament);
+            var newParliamentAddress = new Address();
+            newParliamentAddress.MergeFrom(parliamentCreateRet.ReturnValue);
+            return new AuthorityInfo
+            {
+                ContractAddress = ParliamentAddress,
+                OwnerAddress = newParliamentAddress
+            };
         }
 
         //fee type : read = 0, storage = 1, write =2, traffic = 3
@@ -133,7 +172,8 @@ namespace AElf.Contracts.MultiToken
                 }
             };
             updateInput.Coefficients.PieceCoefficientsList.AddRange(newPieceCoefficientList);
-            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput);
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(updateInput,
+                nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForContract));
             await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
             var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
             await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
@@ -161,7 +201,47 @@ namespace AElf.Contracts.MultiToken
             }
         }
         
-                //fee type : read = 0, storage = 1, write =2, traffic = 3
+        [Fact]
+        public async Task ChangeDeveloperController_Success_Test()
+        {
+            var newAuthority = await CreateNewParliamentAddress();
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(newAuthority,
+                nameof(TokenContractImplContainer.TokenContractImplStub.ChangeDeveloperController));
+            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
+            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
+            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
+            await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
+            var afterUpdateControllerByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetDeveloperFeeController), new Empty());
+            var developerController = DeveloperFeeController.Parser.ParseFrom(afterUpdateControllerByteString);
+            developerController.RootController.ContractAddress.ShouldBe(newAuthority.ContractAddress);
+            developerController.RootController.OwnerAddress.ShouldBe(newAuthority.OwnerAddress);
+        }
+        
+        [Fact]
+        public async Task ChangeDeveloperController_Fail_Test()
+        {
+            var updateMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeDeveloperController);
+            var newAuthority = await CreateNewParliamentAddress();
+            var updateRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress, updateMethodName, newAuthority);
+            updateRet.Error.ShouldContain("no permission");
+            
+            var invalidAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newAuthority.OwnerAddress,
+                ContractAddress = AssociationAddress
+            };
+
+            var proposalId = await CreateToRootForDeveloperFeeByTwoLayer(invalidAuthority, updateMethodName);
+            await ApproveToRootForDeveloperFeeByTwoLayer(proposalId);
+            var middleApproveProposalId = await ApproveToRootForDeveloperFeeByMiddleLayer(proposalId);
+            await ApproveThenReleaseMiddleProposalForDeveloper(middleApproveProposalId);
+            var invalidRet = await ReleaseToRootForDeveloperFeeByTwoLayer(proposalId);
+            invalidRet.Error.ShouldContain("Invalid authority input");
+        }
+        
+
+        //fee type : read = 0, storage = 1, write =2, traffic = 3
         [Theory]
         [InlineData(false, new []{1}, new [] {100, 4, 3, 2})]
         [InlineData(false, new []{2,3}, new []{5000001, 1, 4, 10000},new []{5000002, 1, 4, 2, 2, 250, 50})]
@@ -190,8 +270,9 @@ namespace AElf.Contracts.MultiToken
                 }
             };
             updateInput.Coefficients.PieceCoefficientsList.AddRange(newPieceCoefficientList);
-            
-            var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput);
+
+            var proposalId = await CreateToRootForUserFeeByTwoLayer(updateInput,
+                nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForSender));
             await ApproveToRootForUserFeeByTwoLayer(proposalId);
             await VoteToReferendum(proposalId, primaryTokenSymbol);
             await ReleaseToRootForUserFeeByTwoLayer(proposalId);
@@ -217,6 +298,49 @@ namespace AElf.Contracts.MultiToken
                         .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
                 }
             }
+        }
+        
+        [Fact]
+        public async Task ChangeUserFeeController_Success_Test()
+        {
+            var primaryTokenSymbol = await GetThePrimaryToken();
+            await IssuePrimaryTokenToMainChainTester();
+            var updateMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeUserFeeController);
+            var newAuthority = await CreateNewParliamentAddress();
+            
+            var proposalId = await CreateToRootForUserFeeByTwoLayer(newAuthority,updateMethodName);
+            await ApproveToRootForUserFeeByTwoLayer(proposalId);
+            await VoteToReferendum(proposalId, primaryTokenSymbol);
+            await ReleaseToRootForUserFeeByTwoLayer(proposalId);
+            var afterUpdateControllerByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetUserFeeController), new Empty());
+            var userFeeController = DeveloperFeeController.Parser.ParseFrom(afterUpdateControllerByteString);
+            userFeeController.RootController.ContractAddress.ShouldBe(newAuthority.ContractAddress);
+            userFeeController.RootController.OwnerAddress.ShouldBe(newAuthority.OwnerAddress);
+        }
+        
+        [Fact]
+        public async Task ChangeUserFeeController_Fail_Test()
+        {
+            var primaryTokenSymbol = await GetThePrimaryToken();
+            await IssuePrimaryTokenToMainChainTester();
+            var updateMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.ChangeUserFeeController);
+            var newAuthority = await CreateNewParliamentAddress();
+            var updateRet =
+                await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress, updateMethodName,
+                    newAuthority);
+            updateRet.Error.ShouldContain("no permission");
+            
+            var invalidAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newAuthority.OwnerAddress,
+                ContractAddress = AssociationAddress
+            };
+            var proposalId = await CreateToRootForUserFeeByTwoLayer(invalidAuthority,updateMethodName);
+            await ApproveToRootForUserFeeByTwoLayer(proposalId);
+            await VoteToReferendum(proposalId, primaryTokenSymbol);
+            var invalidRet = await ReleaseToRootForUserFeeByTwoLayer(proposalId);
+            invalidRet.Error.ShouldContain("Invalid authority input");
         }
         
         private async Task<CalculateFeeCoefficients> GetCalculateFeeCoefficientsByFeeType(int feeType)
@@ -294,43 +418,20 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Change_CrossChainTokenContract_RegistrationController_Test()
+        public async Task ChangeCrossChainTokenContractRegistrationController_Success_Test()
         {
-            var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
-                new CreateOrganizationInput
-                {
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
-                    {
-                        MaximalAbstentionThreshold = 1,
-                        MaximalRejectionThreshold = 1,
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1
-                    }
-                });
-
-            var newOrganization = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
-
             var transactionResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub
                     .GetCrossChainTokenContractRegistrationController),
                 new Empty());
             var defaultController = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
-            var transactionResult2 = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
-                new Empty());
-            var defaultOrganization = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
-            defaultController.OwnerAddress.ShouldBe(defaultOrganization);
-
-            const string proposalCreationMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
-                .ChangeCrossChainTokenContractRegistrationController);
-            var newAuthority = new AuthorityInfo
-            {
-                ContractAddress = ParliamentAddress,
-                OwnerAddress = newOrganization
-            };
+            var defaultParliamentAddress = await GetDefaultParliamentAddress();
+            defaultController.OwnerAddress.ShouldBe(defaultParliamentAddress);
+            
+            var newAuthority = await CreateNewParliamentAddress();
             var proposalId = await CreateProposalAsync(MainChainTester, ParliamentAddress,
-                proposalCreationMethodName, newAuthority.ToByteString(),
+                nameof(TokenContractImplContainer.TokenContractImplStub
+                    .ChangeCrossChainTokenContractRegistrationController), newAuthority.ToByteString(),
                 TokenContractAddress);
 
             await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
@@ -343,37 +444,33 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
             ;
             var newController = AuthorityInfo.Parser.ParseFrom(txResult2.ReturnValue);
-            Assert.True(newController.OwnerAddress == newOrganization);
+            Assert.True(newController.OwnerAddress == newAuthority.OwnerAddress);
         }
 
         [Fact]
-        public async Task Change_CrossChainTokenContract_RegistrationController_WithoutAuth_Test()
+        public async Task ChangeCrossChainTokenContractRegistrationController_Fail_Test()
         {
-            var createOrganizationResult = await MainChainTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
-                new CreateOrganizationInput
-                {
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
-                    {
-                        MaximalAbstentionThreshold = 1,
-                        MaximalRejectionThreshold = 1,
-                        MinimalApprovalThreshold = 1,
-                        MinimalVoteThreshold = 1
-                    }
-                });
-
-            var newOrganization = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
-            var newAuthority = new AuthorityInfo
-            {
-                ContractAddress = ParliamentAddress,
-                OwnerAddress = newOrganization
-            };
+            var newAuthority = await CreateNewParliamentAddress();
             var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub
                     .ChangeCrossChainTokenContractRegistrationController),
                 newAuthority);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("No permission.").ShouldBeTrue();
+            
+            var invalidAuthority = new AuthorityInfo
+            {
+                OwnerAddress = newAuthority.OwnerAddress,
+                ContractAddress = AssociationAddress
+            };
+            var proposalId = await CreateProposalAsync(MainChainTester, ParliamentAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub
+                    .ChangeCrossChainTokenContractRegistrationController), invalidAuthority.ToByteString(),
+                TokenContractAddress);
+
+            await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
+            var txResult = await ReleaseProposalAsync(proposalId, ParliamentAddress, MainChainTester);
+            txResult.Error.ShouldContain("Invalid authority input");
         }
 
         private async Task<TransactionResult> MainChainTesterCreatApproveAndReleaseProposalForParliament(CreateProposalInput proposalInput)
@@ -390,7 +487,7 @@ namespace AElf.Contracts.MultiToken
             return releaseRet;
         }
 
-        private async Task<Hash> CreateToRootForDeveloperFeeByTwoLayer(UpdateCoefficientsInput input)
+        private async Task<Hash> CreateToRootForDeveloperFeeByTwoLayer(IMessage input, string methodName)
         {
             var organizations = await GetControllerForDeveloperFee();
             var createNestProposalInput = new CreateProposalInput
@@ -398,8 +495,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName =
-                    nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForContract),
+                ContractMethodName = methodName,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var createProposalInput = new CreateProposalInput
@@ -432,7 +528,7 @@ namespace AElf.Contracts.MultiToken
             await MainChainTesterCreatApproveAndReleaseProposalForParliament(approveProposalInput);
         }
 
-        private async Task ReleaseToRootForDeveloperFeeByTwoLayer(Hash input)
+        private async Task<TransactionResult> ReleaseToRootForDeveloperFeeByTwoLayer(Hash input)
         {
             var organizations = await GetControllerForDeveloperFee();
             var releaseProposalInput = new CreateProposalInput
@@ -443,7 +539,7 @@ namespace AElf.Contracts.MultiToken
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
-            await MainChainTesterCreatApproveAndReleaseProposalForParliament(releaseProposalInput);
+            return await MainChainTesterCreatApproveAndReleaseProposalForParliament(releaseProposalInput);
         }
 
         private async Task<Hash> ApproveToRootForDeveloperFeeByMiddleLayer(Hash input)
@@ -497,7 +593,7 @@ namespace AElf.Contracts.MultiToken
             await MainChainTesterCreatApproveAndReleaseProposalForParliament(approveLeafProposalInput);
         }
 
-        private async Task<Hash> CreateToRootForUserFeeByTwoLayer(UpdateCoefficientsInput input)
+        private async Task<Hash> CreateToRootForUserFeeByTwoLayer(IMessage input, string methodName)
         {
             var organizations = await GetControllerForUserFee();
             var createNestProposalInput = new CreateProposalInput
@@ -505,8 +601,7 @@ namespace AElf.Contracts.MultiToken
                 ToAddress = TokenContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.RootController.OwnerAddress,
-                ContractMethodName =
-                    nameof(TokenContractImplContainer.TokenContractImplStub.UpdateCoefficientsForSender),
+                ContractMethodName = methodName,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
 
@@ -590,7 +685,7 @@ namespace AElf.Contracts.MultiToken
             await MainChainTesterCreatApproveAndReleaseProposalForParliament(parliamentProposal);
         }
 
-        private async Task ReleaseToRootForUserFeeByTwoLayer(Hash input)
+        private async Task<TransactionResult> ReleaseToRootForUserFeeByTwoLayer(Hash input)
         {
             var organizations = await GetControllerForUserFee();
             var parliamentProposal = new CreateProposalInput
@@ -601,7 +696,7 @@ namespace AElf.Contracts.MultiToken
                 ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
-            await MainChainTesterCreatApproveAndReleaseProposalForParliament(parliamentProposal);
+            return await MainChainTesterCreatApproveAndReleaseProposalForParliament(parliamentProposal);
         }
 
         private async Task<UserFeeController> GetControllerForUserFee()
