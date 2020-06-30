@@ -140,11 +140,6 @@ namespace AElf.Kernel.SmartContract
             return HashHelper.ComputeFrom(contactedBytes.ToArray());
         }
 
-        public Hash GetRandomHash(Address contractAddress, string methodName, ByteString args)
-        {
-            return Call<Hash>(Self, contractAddress, methodName, args);
-        }
-
         public Hash GetRandomHash(Hash fromHash)
         {
             var currentBlockTimeHash = HashHelper.ComputeFrom(CurrentBlockTime);

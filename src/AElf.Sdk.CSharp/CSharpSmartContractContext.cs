@@ -315,11 +315,6 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
 
-        public Hash GetRandomHash(Address contractAddress, string methodName, ByteString args)
-        {
-            return _smartContractBridgeContextImplementation.GetRandomHash(contractAddress, methodName, args);
-        }
-
         public Hash GetRandomHash(Hash fromHash)
         {
             return _smartContractBridgeContextImplementation.GetRandomHash(fromHash);
