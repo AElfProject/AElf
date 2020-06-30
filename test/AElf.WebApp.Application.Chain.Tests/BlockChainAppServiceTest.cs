@@ -22,6 +22,7 @@ using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
 using AElf.Types;
+using AElf.WebApp.Application.Chain.Application;
 using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Google.Protobuf;
@@ -32,6 +33,7 @@ using Xunit;
 using Xunit.Abstractions;
 using SampleAddress = AElf.Kernel.SampleAddress;
 using Volo.Abp.EventBus;
+using Xunit.Sdk;
 
 
 namespace AElf.WebApp.Application.Chain.Tests
@@ -54,7 +56,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
-        private readonly  ILocalEventHandler<TransactionValidationStatusChangedEvent> _handler;
+        private readonly TransactionValidationStatusChangedEventHandler _transactionValidationStatusChangedEventHandler;
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _transactionResultStatusCacheProvider = GetRequiredService<ITransactionResultStatusCacheProvider>();;
@@ -65,7 +67,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
-            _handler = GetRequiredService<ILocalEventHandler<TransactionValidationStatusChangedEvent>>();
+           _transactionValidationStatusChangedEventHandler = GetRequiredService<TransactionValidationStatusChangedEventHandler>();
         }
 
         [Fact]
@@ -1139,6 +1141,31 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
+        public async Task CreateRawTransaction_InvalidParams_Test()
+        {
+            const string methodName = "GetBalance";
+            var contractAddress =
+                await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName);
+            var chain = await _blockchainService.GetChainAsync();
+            var accountAddress = await _accountService.GetAccountAsync();
+
+            
+            var parameters = new Dictionary<string, string>
+            {
+                {"From", accountAddress.ToBase58()},
+                {"To", contractAddress.ToBase58()},
+                {"RefBlockNumber", chain.BestChainHeight.ToString()},
+                {"RefBlockHash", chain.BestChainHash.ToHex()},
+                {"MethodName", methodName},
+                {"Params", "{\"owner\":{ \"value\": \""  + "\" },\"symbol\":\"ELF\"}"}
+            };
+            var createTransactionResponse =
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/rawTransaction",
+                    parameters,expectedStatusCode: HttpStatusCode.Forbidden);
+            createTransactionResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
+            createTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
+            }
+        [Fact]
         public async Task CreateRawTransaction_Success_Test()
         {
             var transferToAddress =
@@ -1508,20 +1535,15 @@ namespace AElf.WebApp.Application.Chain.Tests
 
         public async Task TransactionValidationStatusChangedEventHandler_Test()
         {
-
-            // Generate a transaction
-          //  var transaction = await _osTestHelper.GenerateTransferTransaction();
-           // var transactionId = transaction.GetHash();
             var transactionId = HashHelper.ComputeFrom("Test");
             _transactionResultStatusCacheProvider.AddTransactionResultStatus(transactionId);
             {
                 var originalStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId);
                 originalStatus.TransactionResultStatus.ShouldNotBeNull();
             }
-            _handler.HandleEventAsync(new TransactionValidationStatusChangedEvent
+            _transactionValidationStatusChangedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
             {
-                
-                    TransactionId = transactionId,
+                TransactionId = transactionId,
                     TransactionResultStatus = TransactionResultStatus.PendingValidation,
                     Error = "error"
             });
@@ -1533,7 +1555,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
 
         }
-
+        
 
         private async Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
