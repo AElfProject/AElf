@@ -38,16 +38,12 @@ namespace AElf.Contracts.MultiToken
     {
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;
-        protected long BobCoinTotalAmount => 1_000_000_000_0000L;
         protected Address TokenContractAddress { get; set; }
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
         protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
         protected Address DefaultAddress => Accounts[0].Address;
         protected ECKeyPair User1KeyPair => Accounts[10].KeyPair;
         protected Address User1Address => Accounts[10].Address;
-        protected ECKeyPair User2KeyPair => Accounts[11].KeyPair;
-        protected ECKeyPair ManagerKeyPair => Accounts[12].KeyPair;
-        protected Address ManagerAddress => Accounts[12].Address;
         protected Address User2Address => Accounts[11].Address;
         protected const string DefaultSymbol = "ELF";
         public byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
