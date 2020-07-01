@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    public class BlockDownloadServiceRetryTests : BlockSyncRetryTestTestBase
+    public class BlockDownloadServiceRetryTests : BlockSyncRetryTestBase
     {
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly BlockSyncRetryTestContext _blockSyncRetryTestContext;

@@ -38,7 +38,7 @@ namespace AElf.OS
     {
     }
     
-    public class BlockSyncRetryTestTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
+    public class BlockSyncRetryTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
     {
     }
 }
