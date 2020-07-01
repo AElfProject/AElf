@@ -1532,7 +1532,6 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-
         public async Task TransactionValidationStatusChangedEventHandler_Test()
         {
             var transactionId = HashHelper.ComputeFrom("Test");
@@ -1541,19 +1540,15 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var originalStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId);
                 originalStatus.TransactionResultStatus.ShouldNotBeNull();
             }
-            _transactionValidationStatusChangedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
+            await _transactionValidationStatusChangedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
             {
                 TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.PendingValidation,
-                    Error = "error"
+                TransactionResultStatus = TransactionResultStatus.PendingValidation,
+                Error = "error"
             });
-            
-            var result=   _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId); 
+            var result=  _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId);
             result.TransactionResultStatus.ShouldBe(TransactionResultStatus.PendingValidation);
-               
-             
-
-
+            result.Error.ShouldBe("error");
         }
         
 
