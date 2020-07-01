@@ -38,15 +38,12 @@ namespace AElf.Contracts.MultiToken
         {
             // no authority
             var newAuthority = await CreateNewParliamentAddressAsync();
-            await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContractImplContainer
-                .TokenContractImplStub
-                .ChangeSymbolsToPayTXSizeFeeController), newAuthority);
-            var afterUpdateControllerByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+            var updateWithOutAuthorityRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer
-                    .TokenContractImplStub.GetSymbolsToPayTXSizeFeeController), new Empty());
-            var afterUpdateController = AuthorityInfo.Parser.ParseFrom(afterUpdateControllerByteString);
-            afterUpdateController.OwnerAddress.ShouldNotBe(newAuthority.OwnerAddress);
-            
+                    .TokenContractImplStub
+                    .ChangeSymbolsToPayTXSizeFeeController), newAuthority);
+            updateWithOutAuthorityRet.Error.ShouldContain("no permission");
+
             //invalid new organization
             var defaultParliamentAddress = await GetDefaultParliamentAddressAsync();
             var invalidAuthority = new AuthorityInfo
@@ -64,7 +61,7 @@ namespace AElf.Contracts.MultiToken
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
-            ret.Error.ShouldContain("Invalid authority input");
+            ret.Error.ShouldContain("new controller does not exist");
         }
 
         [Fact]
