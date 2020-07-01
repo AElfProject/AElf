@@ -253,6 +253,7 @@ namespace AElf.Contracts.CrossChain
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
+            AssertAddressIsCurrentMiner(Context.Sender);
             ClearCrossChainIndexingProposalIfExpired();
             var crossChainDataDto = ValidateCrossChainDataBeforeIndexing(input);
             ProposeCrossChainBlockData(crossChainDataDto, Context.Sender);
