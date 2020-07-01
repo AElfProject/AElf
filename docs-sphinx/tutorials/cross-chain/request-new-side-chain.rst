@@ -53,8 +53,12 @@ with proposal id once the proposal can be released.
 
 .. code:: proto
 
-   rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {}
-
+   rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){}
+   
+   message ReleaseSideChainCreationInput {
+       aelf.Hash proposal_id = 1;
+   }
+   
    message SideChainCreatedEvent {
        option (aelf.is_event) = true;
        aelf.Address creator = 1;
@@ -118,8 +122,6 @@ chain. After the side chain is released there’s extra steps needed for
 it to be a fully functional blockchain, including the producers running
 the side chain’s nodes.
 
-Note: for more information about the meaning of the different fields,
-refer to the document in the :doc:`side chain section <../../../reference/smart-contract-api/cross-chain>`.
 
 Set-up
 ------
@@ -253,10 +255,10 @@ it.
 In order for the creation request to succeed, some assertions must pass:
 
 - the Sender can only have one pending request at any time. 
-- the locked token amount must be greater than 0 and higher than the indexing price.
-- the token initial issue list must contain at least one token and all with an **amount** greater than 0. 
-- the initial resource amount list must contain all resource tokens of the chain and the value must be greater than 0. 
-- the cross chain contract must have a larger allowance from the proposer (Sender of the transaction) than the locked token amount: (allowance(Sender to Cross chain contract > locked token amount)). 
+- the locked_token_amount cannot be lower than the indexing price.
+- if **is_privilege_preserved** is true, which means it requests **exclusive** side chain, the token initial issue list cannot be empty and all with an **amount** greater than 0. 
+- if **is_privilege_preserved** is true, which means it requests **exclusive** side chain, the **initial_resource_amount** must contain all resource tokens of the chain and the value must be greater than 0. 
+- the allowance approved to cross chain contract from the proposer (Sender of the transaction) cannot be lower than the **locked_token_amount**.
 - no need to provide data about side chain token if **is_privilege_preserved** is false, and side chain token won’t be created even you provide token info.
 
 .. code:: javascript
