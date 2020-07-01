@@ -155,6 +155,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 }
             }
         }
+        
+        [Fact]
+        public async Task ClaimTransactionFee_With_Invalid_Height_Test()
+        {
+
+        }
 
         private async Task<List<long>> GetDefaultBalancesAsync(string[] tokenSymbolList)
         {

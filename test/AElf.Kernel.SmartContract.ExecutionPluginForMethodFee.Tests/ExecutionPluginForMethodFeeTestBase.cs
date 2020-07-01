@@ -7,6 +7,7 @@ using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal;
@@ -14,6 +15,7 @@ using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 
@@ -121,18 +123,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
-
         internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             Accounts.Take(1).Select(a => a.KeyPair).ToList();
         internal Address DefaultSender => Accounts[0].Address;
-
         protected ExecutePluginTransactionDirectlyForMethodFeeTestBase()
         {
             AsyncHelper.RunSync(InitializeContracts);
         }
-
-        protected async Task InitializeContracts()
+        private async Task InitializeContracts()
         {
             await DeployContractsAsync();
             await InitializeAElfConsensus();
@@ -182,7 +181,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             }
         }
 
-        protected async Task CreateNativeTokenAsync()
+        private async Task CreateNativeTokenAsync()
         {
             const long totalSupply = 1_000_000_000_00000000;
             //init elf token

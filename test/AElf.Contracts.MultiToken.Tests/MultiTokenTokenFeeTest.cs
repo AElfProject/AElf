@@ -92,6 +92,16 @@ namespace AElf.Contracts.MultiToken
                 }
             }
         }
+
+        [Fact]
+        public async Task ClaimTransactionFee_Without_Authorized_Test()
+        {
+            var input = new TotalTransactionFeesMap();
+            var claimRet = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.ClaimTransactionFees), input);
+            claimRet.Error.ShouldContain("No permission");
+        }
+
         private async Task VerifyTheInvalidSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
         {
             var createProposalInput = new CreateProposalInput
