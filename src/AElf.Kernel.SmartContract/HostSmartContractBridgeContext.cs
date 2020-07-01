@@ -143,8 +143,8 @@ namespace AElf.Kernel.SmartContract
         public Hash GetRandomHash(Hash fromHash)
         {
             var currentBlockTimeHash = HashHelper.ComputeFrom(CurrentBlockTime);
-            return HashHelper.XorAndCompute(currentBlockTimeHash,
-                HashHelper.XorAndCompute(fromHash, PreviousBlockHash));
+            return HashHelper.XorAndCompute(TransactionId, HashHelper.XorAndCompute(currentBlockTimeHash,
+                HashHelper.XorAndCompute(fromHash, PreviousBlockHash)));
         }
 
         public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int number = 1)
