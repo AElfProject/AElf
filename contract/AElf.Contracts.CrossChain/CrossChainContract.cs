@@ -256,19 +256,6 @@ namespace AElf.Contracts.CrossChain
             return new Empty();
         }
 
-        // /// <summary>
-        // /// Release cross chain block data proposed before and trigger the proposal to release.
-        // /// </summary>
-        // /// <param name="input"></param>
-        // /// <returns></returns>
-        // public override Empty ReleaseCrossChainIndexing(Hash input)
-        // {
-        //     // Deprecated
-        //     EnsureTransactionOnlyExecutedOnceInOneBlock();
-        //     AssertAddressIsCurrentMiner(Context.Sender);
-        //     return new Empty();
-        // }
-
         public override Empty ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput input)
         {
             EnsureTransactionOnlyExecutedOnceInOneBlock();
