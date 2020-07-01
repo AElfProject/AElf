@@ -215,6 +215,9 @@ namespace AElf.Contracts.CrossChain
         {
             var res = new GetIndexingProposalStatusOutput();
             var pendingCrossChainIndexingProposal = State.IndexingPendingProposal.Value;
+            if (pendingCrossChainIndexingProposal == null)
+                return res;
+            
             var crossChainIndexingController = GetCrossChainIndexingController();
             foreach (var chainIndexingProposal in pendingCrossChainIndexingProposal.ChainIndexingProposalCollections.Values)
             {

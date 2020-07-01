@@ -93,12 +93,6 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-message CrossChainIndexingDataProposedEvent{
-    option (aelf.is_event) = true;
-    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
-    aelf.Hash proposal_id = 2;
-}
-
 message ProposedCrossChainIndexing{
     map<int32, ChainIndexingProposal> ChainIndexingProposalCollections = 1;
 }
@@ -133,9 +127,8 @@ message GetPendingCrossChainIndexingProposalOutput{
 
 enum CrossChainIndexingProposalStatus{
     NON_PROPOSED = 0;
-    PROPOSED = 1;
-    PENDING = 2;
-    ACCEPTED = 3;
+    PENDING = 1;
+    ACCEPTED = 2;
 }
 
 message GetSideChainIndexingFeeControllerOutput {

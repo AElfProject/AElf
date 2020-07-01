@@ -216,6 +216,12 @@ message SideChainBlockDataIndexed{
     option (aelf.is_event) = true;
 }
 
+message CrossChainIndexingDataProposedEvent{
+    option (aelf.is_event) = true;
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+    aelf.Hash proposal_id = 2;
+}
+
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
     aelf.MerklePath path = 2;

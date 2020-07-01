@@ -933,31 +933,46 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 SideChainBlockDataList = {sideChainBlockData1, sideChainBlockData2}
             };
-            var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
-            txRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var proposalId = ProposalCreated.Parser
-                .ParseFrom(txRes.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
-                .ProposalId;
-            Assert.NotNull(proposalId);
-            await ApproveWithMinersAsync(proposalId);
-
+            
             {
-                var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value
-                {
-                    Value = sideChainId
-                });
-                chainStatus.Status.ShouldBe(SideChainStatus.Active);
+                var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
+                txRes.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(txRes.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                        .NonIndexed)
+                    .ProposalId;
+                proposalId.ShouldNotBeNull();
+                await ApproveWithMinersAsync(proposalId);
             }
             
-            var releaseResult = await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
-            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var disposeSideChainProposalId = await DisposeSideChainProposalAsync(new Int32Value {Value = sideChainId});
+            await ApproveWithMinersAsync(disposeSideChainProposalId);
+            await ReleaseProposalAsync(disposeSideChainProposalId);
 
             {
                 var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value
                 {
                     Value = sideChainId
                 });
-                chainStatus.Status.ShouldBe(SideChainStatus.Active);
+                chainStatus.Status.ShouldBe(SideChainStatus.Terminated);
+            }
+
+            var releaseResult = await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendWithExceptionAsync(
+                new ReleaseCrossChainIndexingProposalInput
+                {
+                    ChainIdList = {sideChainId}
+                });
+            releaseResult.TransactionResult.Error.ShouldContain("Chain indexing not proposed.");
+            
+            {
+                var sideChainBlockData3 =
+                    CreateSideChainBlockData(fakeSideChainBlockHash, 3, sideChainId, fakeTxMerkleTreeRoot);
+                var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendWithExceptionAsync(
+                    new CrossChainBlockData
+                    {
+                        SideChainBlockDataList = {sideChainBlockData3}
+                    });
+                txRes.TransactionResult.Error.ShouldContain("Invalid cross chain data to be indexed");
             }
         }
 

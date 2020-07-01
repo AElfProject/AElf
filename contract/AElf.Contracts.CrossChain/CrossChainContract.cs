@@ -198,6 +198,9 @@ namespace AElf.Contracts.CrossChain
             Assert(info != null, "Side chain not found.");
             Assert(info.SideChainStatus != SideChainStatus.Terminated, "Incorrect chain status.");
 
+            if (TryGetIndexingProposal(chainId, out _))
+                ResetChainIndexingProposal(chainId);
+            
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
             State.SideChainInfo[chainId] = info;

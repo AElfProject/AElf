@@ -472,10 +472,14 @@ namespace AElf.Contracts.CrossChain
                 crossChainBlockData.ParentChainBlockDataList.Count > 0 ||
                 crossChainBlockData.SideChainBlockDataList.Count > 0,
                 "Empty cross chain data proposed.");
-            var crossChainDataDto = new CrossChainDataDto();
-            Assert(ValidateSideChainBlockData(crossChainBlockData.SideChainBlockDataList, crossChainDataDto) &&
-                   ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList, crossChainDataDto),
-                "Invalid cross chain data to be indexed.");
+            var validatedParentChainBlockData = new Dictionary<int, List<ParentChainBlockData>>();
+            var validationResult = ValidateSideChainBlockData(crossChainBlockData.SideChainBlockDataList,
+                                       out var validatedSideChainBlockData) &&
+                                   ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockDataList,
+                                       out validatedParentChainBlockData);
+            Assert(validationResult, "Invalid cross chain data to be indexed.");
+            var crossChainDataDto = new CrossChainDataDto(validatedSideChainBlockData, validatedParentChainBlockData);
+
             Assert(crossChainDataDto.GetChainIdList().Count > 0, "Empty cross chain data not allowed.");
             return crossChainDataDto;
         }
@@ -652,14 +656,15 @@ namespace AElf.Contracts.CrossChain
         }
 
         private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData,
-            CrossChainDataDto crossChainDataDto)
+            out Dictionary<int, List<SideChainBlockData>> validatedSideChainBlockData)
         {
             var groupResult = sideChainBlockData.GroupBy(data => data.ChainId, data => data);
 
+            validatedSideChainBlockData = new Dictionary<int, List<SideChainBlockData>>();
             foreach (var group in groupResult)
             {
                 var chainId = group.Key;
-                crossChainDataDto.SideChainToBeIndexedData[chainId] = group.ToList();
+                validatedSideChainBlockData[chainId] = group.ToList();
                 var info = State.SideChainInfo[chainId];
                 if (info == null || info.SideChainStatus == SideChainStatus.Terminated)
                     return false;
@@ -667,9 +672,7 @@ namespace AElf.Contracts.CrossChain
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : AElfConstants.GenesisBlockHeight;
-                // indexing fee
-                // var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
-                // var lockedToken = State.IndexingBalance[chainId];
+                
                 foreach (var blockData in group)
                 {
                     var sideChainHeight = blockData.Height;
@@ -683,10 +686,11 @@ namespace AElf.Contracts.CrossChain
         }
 
         private bool ValidateParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData,
-            CrossChainDataDto crossChainDataDto)
+            out Dictionary<int, List<ParentChainBlockData>> validatedParentChainBlockData)
         {
             var parentChainId = State.ParentChainId.Value;
             var currentHeight = State.CurrentParentChainHeight.Value;
+            validatedParentChainBlockData = new Dictionary<int, List<ParentChainBlockData>>();
             foreach (var blockData in parentChainBlockData)
             {
                 if (parentChainId != blockData.ChainId || currentHeight + 1 != blockData.Height ||
@@ -701,7 +705,7 @@ namespace AElf.Contracts.CrossChain
             }
 
             if (parentChainBlockData.Count > 0)
-                crossChainDataDto.ParentChainToBeIndexedData[parentChainId] = parentChainBlockData.ToList();
+                validatedParentChainBlockData[parentChainId] = parentChainBlockData.ToList();
 
             return true;
         }
@@ -864,11 +868,16 @@ namespace AElf.Contracts.CrossChain
 
     internal class CrossChainDataDto
     {
-        public Dictionary<int, List<SideChainBlockData>> SideChainToBeIndexedData { get; } =
-            new Dictionary<int, List<SideChainBlockData>>();
+        public Dictionary<int, List<SideChainBlockData>> SideChainToBeIndexedData { get; } 
 
-        public Dictionary<int, List<ParentChainBlockData>> ParentChainToBeIndexedData { get; } =
-            new Dictionary<int, List<ParentChainBlockData>>();
+        public Dictionary<int, List<ParentChainBlockData>> ParentChainToBeIndexedData { get; }
+
+        public CrossChainDataDto(Dictionary<int, List<SideChainBlockData>> sideChainToBeIndexedData, 
+            Dictionary<int, List<ParentChainBlockData>> parentChainToBeIndexedData)
+        {
+            SideChainToBeIndexedData = sideChainToBeIndexedData;
+            ParentChainToBeIndexedData = parentChainToBeIndexedData;
+        }
 
         public List<int> GetChainIdList()
         {
