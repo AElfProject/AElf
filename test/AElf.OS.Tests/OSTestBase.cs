@@ -37,4 +37,8 @@ namespace AElf.OS
     public class BlockSyncAttachBlockAbnormalPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockAbnormalPeerTestAElfModule>
     {
     }
+    
+    public class BlockSyncRetryTestTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
+    {
+    }
 }
