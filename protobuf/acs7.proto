@@ -14,8 +14,6 @@ service ACS7 {
     
     rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
-    }
     rpc ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput) returns (google.protobuf.Empty) {
     }
     rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
