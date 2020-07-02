@@ -94,7 +94,7 @@ service AEDPoSContract {
     rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+    rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {

@@ -78,15 +78,6 @@ namespace AElf.Types
         {
             return Value.ToHex();
         }
-
-        /// <summary>
-        /// Converts hash into int32 value.
-        /// </summary>
-        /// <returns></returns>
-        public Int64 ToInt32()
-        {
-            return ToByteArray().ToInt64(true);
-        }
         
         /// <summary>
         /// Converts hash into int64 value.
