@@ -101,7 +101,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     }
                 }
             };
-            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+            await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.SetMethodFee), methodFee);
             var tokenSymbolList = new [] {NativeTokenSymbol, "CWJ", "YPA"};
             var tokenCount = 3;
@@ -128,7 +128,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 });
             }
 
-            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+            await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), sizeFeeSymbolList);
 
             var beforeBalanceList = await GetDefaultBalancesAsync(orderedSymbolList);
@@ -156,6 +156,57 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     balanceDiff.ShouldBe(0);
                 }
             }
+        }
+        
+        [Theory]
+        [InlineData(new[] {100L, 100, 100}, new[] {100L, 100, 100}, new[] {0L, 0, 0}, true, true)]
+        public async Task DonateResourceToken_Test(long[] issueAmounts, long[] tokenFee, long[] lastBalances,
+            bool isMainChain, bool isSuccess)
+        {
+            var symbolList = new [] {"WEO", "CWJ", "YPA"};
+            var feeMap = new TotalResourceTokensMaps();
+            for (var i = 0; i < symbolList.Length; i++)
+            {
+                await CreateTokenAsync(DefaultSender, symbolList[i]);
+                await IssueTokenAsync(symbolList[i], issueAmounts[i]);
+                feeMap.Value.Add(new ContractTotalResourceTokens
+                {
+                    ContractAddress = DefaultSender,
+                    TokensMap = new TotalResourceTokensMap
+                    {
+                        Value = { {symbolList[i], tokenFee[i]}}
+                    }
+                });
+            }
+
+            if (!isMainChain)
+            {
+                var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+                await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+                    new InitializeFromParentChainInput
+                    {
+                        Creator = defaultParliament
+                    });
+            }
+            await TokenContractStub.DonateResourceToken.SendAsync(feeMap);
+
+            for (var i = 0; i < symbolList.Length; i++)
+            {
+                var balance = await GetBalanceAsync(DefaultSender,symbolList[i]);
+                balance.ShouldBe(lastBalances[i]);
+                if (isMainChain)
+                {
+                    var treasuryBalance = await GetBalanceAsync()
+                }
+            }
+            
+            if (isSuccess)
+            {
+                
+                
+            }
+            
         }
 
         [Fact]
@@ -188,9 +239,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 Creator = receiver
             };
-            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+            await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain), input);
-            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+            await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.SetFeeReceiver), receiver);
             var beforeBurned = await GetBurnedTokenAmount(tokenSymbol);
             var beforeBalance = await GetBalanceAsync(receiver, tokenSymbol);
@@ -252,7 +303,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         }
 
         // single node
-        private async Task SendTransactionPassedByDefaultParliamentAsync(Address contractAddress, string methodName, IMessage input)
+        private async Task SubmitAndPassProposalOfDefaultParliamentAsync(Address contractAddress, string methodName, IMessage input)
         {
             var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput

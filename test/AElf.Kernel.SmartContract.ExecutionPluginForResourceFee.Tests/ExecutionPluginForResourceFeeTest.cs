@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -364,13 +363,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
             var checkResourceTokenRet = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
             checkResourceTokenRet.TransactionResult.Error.ShouldContain("token is not enough. Owning");
-        }
-        
-        [Theory]
-        [InlineData(new []{100L,100,100,100}, new []{100L,100,100,100}, true, true)]
-        public async Task DonateResourceToken_Fail_Test(long[] balances, long[] tokenFee, bool isMainChain, bool isSuccess)
-        {
-            await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps());
         }
     }
 }
