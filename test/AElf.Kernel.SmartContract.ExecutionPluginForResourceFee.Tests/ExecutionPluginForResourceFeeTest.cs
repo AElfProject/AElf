@@ -364,5 +364,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             var checkResourceTokenRet = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
             checkResourceTokenRet.TransactionResult.Error.ShouldContain("token is not enough. Owning");
         }
+        
+        [Fact]
+        public async Task GetResourceTokenInfo_Test()
+        {
+            var resourceToken = await TokenContractStub.GetResourceTokenInfo.CallAsync(new Empty());
+            resourceToken.Value.Count.ShouldBe(4);
+        }
     }
 }

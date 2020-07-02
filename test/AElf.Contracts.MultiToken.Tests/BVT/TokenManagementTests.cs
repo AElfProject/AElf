@@ -727,5 +727,12 @@ namespace AElf.Contracts.MultiToken
             });
             setPrimaryTokenRet.TransactionResult.Error.ShouldContain("Failed to set primary token symbol");
         }
+        [Fact]
+        public async Task GetNativeToken_Test()
+        {
+            await CreateNativeTokenAsync();
+            var tokenInfo = await TokenContractStub.GetNativeTokenInfo.CallAsync(new Empty());
+            tokenInfo.Symbol.ShouldBe(NativeTokenInfo.Symbol);
+        }
     }
 }
