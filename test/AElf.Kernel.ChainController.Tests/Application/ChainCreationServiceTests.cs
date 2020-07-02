@@ -34,5 +34,21 @@ namespace AElf.Kernel.ChainController.Application
             block.Header.PreviousBlockHash.ShouldBe(Hash.Empty);
             block.Header.ChainId.ShouldBe(chain.Id);
         }
+        [Fact]
+        public async Task Create_NewChain_Failed_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            chain.ShouldBeNull();
+            var transactions= new List<Transaction>();
+            transactions.Add(new Transaction());
+            try
+            { 
+                await _chainCreationService.CreateNewChainAsync(transactions);
+            }
+            catch (Exception e)
+            {
+                e.Message.ShouldBe("Invalid transaction: { }");
+            }
+        }
     }
 }
