@@ -8,6 +8,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 {
     public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
     {
+        public bool SystemContactIgnored => true;
+        
         public void Patch(ModuleDefinition module)
         {
             // Check if already injected, do not double inject

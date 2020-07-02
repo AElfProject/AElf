@@ -22,7 +22,6 @@ using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
-using AElf.Kernel.CodeCheck;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Runtime.CSharp.Tests.BadContract;
@@ -98,7 +97,7 @@ namespace AElf.CSharp.CodeOps
             _auditor.Audit(ReadPatchedContractCode(contractType), true);
             Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(ReadPatchedContractCode(contractType), false));
         }
-
+        
         [Fact]
         public void AuditTimeout()
         {
@@ -324,6 +323,21 @@ namespace AElf.CSharp.CodeOps
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));
         }
+        
+        [Fact]
+        public void CheckPatchAudit_ForMethodCallInjection()
+        {
+            var contractCode = ReadContractCode(typeof(TransactionFeesContract));
+
+            var findings = Should.Throw<CSharpCodeCheckException>(
+                    () => _auditor.Audit(contractCode, false))
+                .Findings;
+
+            findings.Count(f => f is MethodCallInjectionValidationResult).ShouldBe(3);
+
+            // After patching, all unchecked arithmetic OpCodes should be cleared.
+            Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));
+        } 
 
         [Fact]
         public void ContractAuditor_AcsRequired_Test()
