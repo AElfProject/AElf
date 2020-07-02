@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -27,7 +28,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             // Patch the types
             foreach (var typ in module.Types)
             {
-                PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod);
+                PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod, module);
             }
 
             module.Types.Add(counterProxy);
@@ -127,43 +128,51 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return setObserverMethod;
         }
 
-        private void PatchType(TypeDefinition typ, MethodReference branchCountRef, MethodReference callCountRef)
+        private void PatchType(TypeDefinition typ, MethodReference branchCountRef, MethodReference callCountRef,
+            ModuleDefinition module)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                PatchMethodsWithCounter(method, branchCountRef, callCountRef);
+                PatchMethodsWithCounter(method, branchCountRef, callCountRef, module);
             }
 
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                PatchType(nestedType, branchCountRef, callCountRef);
+                PatchType(nestedType, branchCountRef, callCountRef, module);
             }
         }
 
-        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef, MethodReference callCountRef)
+        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef,
+            MethodReference callCountRef, ModuleDefinition module)
         {
             if (!method.HasBody)
                 return;
 
             var il = method.Body.GetILProcessor();
 
+            foreach (var instruction in method.Body.Instructions)
+            {
+                if (instruction.Operand is MethodReference methodRef &&
+                    methodRef == module.ImportReference(typeof(IEnumerator).GetMethod("MoveNext")))
+                    il.InsertAfter(instruction, il.Create(OpCodes.Call, branchCountRef));
+            }
+            
             // Insert before every branching instruction
             var conditionalBranchingInstructions = method.Body.Instructions.Where(i => 
                 Constants.ConditionalJumpingOpCodes.Contains(i.OpCode)).ToList();
-            // var unConditionalBranchingInstructions = method.Body.Instructions.Where(i => 
-            //     Constants.UnConditionalJumpingOpCodes.Contains(i.OpCode)).ToList();
+
+            
             
             il.Body.SimplifyMacros();
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
             foreach (var instruction in conditionalBranchingInstructions)
             {
                 // il.InsertAfter(instruction, il.Create(OpCodes.Call, branchCountRef));
-                
-                var operand = (Instruction) instruction.Operand;
-                if (operand.OpCode == OpCodes.Nop)
-                    il.InsertAfter(operand, il.Create(OpCodes.Call, branchCountRef));
+                if (instruction.Operand is Instruction i && i.OpCode == OpCodes.Nop)
+                    il.InsertAfter(i, il.Create(OpCodes.Call, branchCountRef));
+
             }
             
             // foreach (var instruction in unConditionalBranchingInstructions)
