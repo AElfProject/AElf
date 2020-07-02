@@ -110,6 +110,10 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 });
             }
             
+            var beforeConsensusCpuBalance = await GetBalanceOfConsensusAsync("CPU");
+            var beforeConsensusRamBalance = await GetBalanceOfConsensusAsync("RAM");
+            var beforeConsensusDiskBalance = await GetBalanceOfConsensusAsync("DISK");
+            var beforeConsensusNetBalance = await GetBalanceOfConsensusAsync("NET");
             await DelayOneMinuteAsync();
 
             var owningRental = await TokenContractStub.GetOwningRental.CallAsync(new Empty());
@@ -117,7 +121,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             owningRental.ResourceAmount["RAM"].ShouldBe(0);
             owningRental.ResourceAmount["DISK"].ShouldBe(0);
             owningRental.ResourceAmount["NET"].ShouldBe(0);
-
+            
             // Check balance before mining
             {
                 var cpuBalance = await GetCreatorBalanceOfAsync("CPU");
@@ -128,6 +132,18 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 diskBalance.ShouldBe(ResourceSupply - DiskAmount * Rental * 2);
                 var netBalance = await GetCreatorBalanceOfAsync("NET");
                 netBalance.ShouldBe(ResourceSupply - NetAmount * Rental * 2);
+            }
+
+            {
+                var afterConsensusCpuBalance = await GetBalanceOfConsensusAsync("CPU");
+                var afterConsensusRamBalance = await GetBalanceOfConsensusAsync("RAM");
+                var afterConsensusDiskBalance = await GetBalanceOfConsensusAsync("DISK");
+                var afterConsensusNetBalance = await GetBalanceOfConsensusAsync("NET");
+                
+                (afterConsensusCpuBalance - beforeConsensusCpuBalance).ShouldBe(CpuAmount * Rental * 2);
+                (afterConsensusRamBalance - beforeConsensusRamBalance).ShouldBe(RamAmount * Rental * 2);
+                (afterConsensusDiskBalance - beforeConsensusDiskBalance).ShouldBe(DiskAmount * Rental * 2);
+                (afterConsensusNetBalance - beforeConsensusNetBalance).ShouldBe(NetAmount * Rental * 2);
             }
         }
 
@@ -323,6 +339,15 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Creator,
+                Symbol = symbol
+            })).Balance;
+        }
+        
+        private async Task<long> GetBalanceOfConsensusAsync(string symbol)
+        {
+            return (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = ConsensusContractAddress,
                 Symbol = symbol
             })).Balance;
         }

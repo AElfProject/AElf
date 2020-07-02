@@ -118,6 +118,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
     {
         protected string NativeTokenSymbol = "ELF";
         internal Address TokenContractAddress { get; set; }
+        internal Address TreasuryContractAddress { get; set; }
+        internal Address ConsensusContractAddress { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
@@ -171,11 +173,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             //Consensus
             {
                  var code = Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
-                 var consensusContractAddress = await DeploySystemSmartContract(category, code,
+                 ConsensusContractAddress = await DeploySystemSmartContract(category, code,
                      HashHelper.ComputeFrom("AElf.ContractNames.Consensus"), DefaultSenderKeyPair);
                  AEDPoSContractStub =
-                     GetTester<AEDPoSContractContainer.AEDPoSContractStub>(consensusContractAddress,
+                     GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress,
                          DefaultSenderKeyPair);
+            }
+            
+            // Treasury
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+                TreasuryContractAddress = await DeploySystemSmartContract(category, code,
+                    HashHelper.ComputeFrom("Treasury"), DefaultSenderKeyPair);
             }
         }
 

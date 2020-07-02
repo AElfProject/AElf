@@ -27,17 +27,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     });
                 ret.TransactionResult.Error.ShouldContain("Invalid charge transaction fees input");
             }
-
-            // contract address should not be null
-            {
-                var ret =
-                    await TokenContractStub.ChargeTransactionFees.SendWithExceptionAsync(new ChargeTransactionFeesInput
-                    {
-                        MethodName = null,
-                        ContractAddress = TokenContractAddress
-                    });
-                ret.TransactionResult.Error.ShouldContain("Invalid charge transaction fees input");
-            }
         }
         
         [Fact]
@@ -159,16 +148,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         }
         
         [Theory]
-        [InlineData(new[] {100L, 100, 100}, new[] {100L, 100, 100}, new[] {0L, 0, 0}, true, true)]
-        public async Task DonateResourceToken_Test(long[] issueAmounts, long[] tokenFee, long[] lastBalances,
-            bool isMainChain, bool isSuccess)
+        [InlineData(new[] {100L, 100, 100}, new[] {100L, 100, 100}, new[] {0L, 0, 0}, true)]
+        [InlineData(new[] {100L, 100, 100}, new[] {20L, 30, 40}, new[] {80L, 70, 60}, true)]
+        [InlineData(new[] {100L, 100, 100}, new[] {120L, 130, 140}, new[] {0L, 0, 0}, true)]
+        [InlineData(new[] {100L, 100, 100}, new[] {100L, 100, 100}, new[] {0L, 0, 0}, false)]
+        [InlineData(new[] {100L, 100, 100}, new[] {20L, 30, 40}, new[] {80L, 70, 60}, false)]
+        [InlineData(new[] {100L, 100, 100}, new[] {120L, 130, 140}, new[] {0L, 0, 0}, false)]
+        public async Task DonateResourceToken_Test(long[] initialBalances, long[] tokenFee, long[] lastBalances,
+            bool isMainChain)
         {
             var symbolList = new [] {"WEO", "CWJ", "YPA"};
             var feeMap = new TotalResourceTokensMaps();
             for (var i = 0; i < symbolList.Length; i++)
             {
                 await CreateTokenAsync(DefaultSender, symbolList[i]);
-                await IssueTokenAsync(symbolList[i], issueAmounts[i]);
+                await IssueTokenAsync(symbolList[i], initialBalances[i]);
                 feeMap.Value.Add(new ContractTotalResourceTokens
                 {
                     ContractAddress = DefaultSender,
@@ -195,18 +189,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 var balance = await GetBalanceAsync(DefaultSender,symbolList[i]);
                 balance.ShouldBe(lastBalances[i]);
-                if (isMainChain)
+                if (!isMainChain)
                 {
-                    var treasuryBalance = await GetBalanceAsync()
+                    var consensusBalance = await GetBalanceAsync(ConsensusContractAddress, symbolList[i]);
+                    consensusBalance.ShouldBe(initialBalances[i] - lastBalances[i]);
                 }
             }
-            
-            if (isSuccess)
-            {
-                
-                
-            }
-            
         }
 
         [Fact]
