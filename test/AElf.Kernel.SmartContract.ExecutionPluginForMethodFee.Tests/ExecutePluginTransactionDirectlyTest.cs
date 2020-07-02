@@ -8,7 +8,6 @@ using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Nito.AsyncEx;
 using Shouldly;
 using Xunit;
 

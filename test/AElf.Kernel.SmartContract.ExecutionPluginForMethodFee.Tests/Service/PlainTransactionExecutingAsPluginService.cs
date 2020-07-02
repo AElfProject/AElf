@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Contracts.TestBase;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
