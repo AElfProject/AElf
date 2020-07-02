@@ -3,10 +3,12 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Nito.AsyncEx;
 using Shouldly;
 using Xunit;
 
@@ -32,6 +34,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 var ret =
                     await TokenContractStub.ChargeTransactionFees.SendWithExceptionAsync(new ChargeTransactionFeesInput
                     {
+                        MethodName = null,
                         ContractAddress = TokenContractAddress
                     });
                 ret.TransactionResult.Error.ShouldContain("Invalid charge transaction fees input");
@@ -155,11 +158,65 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 }
             }
         }
+
+        [Fact]
+        public async Task ClaimTransactionFee_Balance_WithOut_Receiver_Test()
+        {
+            var tokenSymbol = "JAN";
+            var feeAmount = 10000;
+            await CreateTokenAsync(DefaultSender, tokenSymbol);
+            var beforeBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var claimFeeInput = new TotalTransactionFeesMap
+            {
+                Value =
+                {
+                    {tokenSymbol, feeAmount}
+                }
+            };
+            await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+            var afterBurned = await GetBurnedTokenAmount(tokenSymbol);
+            (afterBurned - beforeBurned).ShouldBe(feeAmount);
+        }
         
         [Fact]
-        public async Task ClaimTransactionFee_With_Invalid_Height_Test()
+        public async Task ClaimTransactionFee_Balance_With_Receiver_Test()
         {
+            var tokenSymbol = "JAN";
+            var feeAmount = 10000;
+            await CreateTokenAsync(DefaultSender, tokenSymbol);
+            var receiver = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var input = new InitializeFromParentChainInput
+            {
+                Creator = receiver
+            };
+            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain), input);
+            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.SetFeeReceiver), receiver);
+            var beforeBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var beforeBalance = await GetBalanceAsync(receiver, tokenSymbol);
+            var claimFeeInput = new TotalTransactionFeesMap
+            {
+                Value =
+                {
+                    {tokenSymbol, feeAmount}
+                }
+            };
+            await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
+            var afterBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var afterBalance = await GetBalanceAsync(receiver, tokenSymbol);
+            var shouldBurned = feeAmount.Div(10);
+            (afterBurned - beforeBurned).ShouldBe(shouldBurned);
+            (afterBalance - beforeBalance).ShouldBe(feeAmount - shouldBurned);
+        }
 
+        private async Task<long> GetBurnedTokenAmount(string tokenSymbol)
+        {
+            var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = tokenSymbol
+            });
+            return tokenInfo.Burned;
         }
 
         private async Task<List<long>> GetDefaultBalancesAsync(string[] tokenSymbolList)
@@ -169,17 +226,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 balances.Add(await GetBalanceAsync(DefaultSender,symbol));
             return balances;
         }
-        
-        private async Task CreateTokenAsync(Address creator, string tokenSymbol)
+
+        private async Task CreateTokenAsync(Address creator, string tokenSymbol, bool isBurned = true,
+            bool isProfitable = true)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = tokenSymbol,
                 TokenName = tokenSymbol + " name",
                 TotalSupply = 1000_00000000,
-                IsBurnable = true,
+                IsBurnable = isBurned,
                 Issuer = creator,
-                IsProfitable = true
+                IsProfitable = isProfitable
             });
         }
 
@@ -192,11 +250,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 To = DefaultSender,
             });
             issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-        private async Task SetSizeFeeSymbolListAsync(SymbolListToPayTxSizeFee newSizeFeeToken)
-        {
-            await SendTransactionPassedByDefaultParliamentAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.SetSymbolsToPayTxSizeFee), newSizeFeeToken);
         }
 
         // single node
