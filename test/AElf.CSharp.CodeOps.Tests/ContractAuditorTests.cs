@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -116,6 +117,30 @@ namespace AElf.CSharp.CodeOps
             code.ShouldNotBe(updateCode);
             var exception = Record.Exception(() => _auditor.Audit(updateCode, true));
             exception.ShouldBeNull();
+        }
+        
+        [Theory]
+        [InlineData("Association")]
+        public async Task CheckSystemContracts_StateSizeLimitPatch(string contractName)
+        {
+            var moduleName = $"AElf.Contracts.{contractName}.dll";
+            var codeToPatch = ReadContractCode(moduleName);
+            var codePatched = _patcher.Patch(codeToPatch, false);
+            var base64 = Convert.ToBase64String(codePatched);
+            
+            await using var outputFile = new StreamWriter(Path.Combine("./", $"contracts/{contractName}.txt"));
+            await outputFile.WriteAsync(base64);
+        }
+
+        [Theory]
+        [InlineData("Association")]
+        public async Task WriteCSharpFile(string filename)
+        {
+            using var inputFile = new StreamReader(Path.Combine("./", $"contracts/{filename}.encoded"));
+            var base64 = await inputFile.ReadToEndAsync();
+            var bytes = Convert.FromBase64String(base64);
+            await using var fs = new FileStream(Path.Combine("./", $"contracts/{filename}.cs"), FileMode.Create);
+            await fs.WriteAsync(bytes, 0, bytes.Length);
         }
 
         [Fact]

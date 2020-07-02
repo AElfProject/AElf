@@ -148,15 +148,29 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             var il = method.Body.GetILProcessor();
 
             // Insert before every branching instruction
-            var branchingInstructions = method.Body.Instructions.Where(i => 
-                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
-
+            var conditionalBranchingInstructions = method.Body.Instructions.Where(i => 
+                Constants.ConditionalJumpingOpCodes.Contains(i.OpCode)).ToList();
+            // var unConditionalBranchingInstructions = method.Body.Instructions.Where(i => 
+            //     Constants.UnConditionalJumpingOpCodes.Contains(i.OpCode)).ToList();
+            
             il.Body.SimplifyMacros();
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
-            foreach (var instruction in branchingInstructions)
+            foreach (var instruction in conditionalBranchingInstructions)
             {
-                il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
+                // il.InsertAfter(instruction, il.Create(OpCodes.Call, branchCountRef));
+                
+                var operand = (Instruction) instruction.Operand;
+                if (operand.OpCode == OpCodes.Nop)
+                    il.InsertAfter(operand, il.Create(OpCodes.Call, branchCountRef));
             }
+            
+            // foreach (var instruction in unConditionalBranchingInstructions)
+            // {
+            //     var operand = (Instruction) instruction.Operand;
+            //     if (operand.OpCode == OpCodes.Nop)
+            //         il.InsertAfter(operand, il.Create(OpCodes.Call, branchCountRef));
+            // }
+            
             il.Body.OptimizeMacros();
         }
     }
