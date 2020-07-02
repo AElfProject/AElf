@@ -447,6 +447,9 @@ namespace AElf.Contracts.CrossChain
                     ProposedCrossChainData = proposedCrossChainBlockData,
                     ProposalId = proposalId
                 });
+
+                Context.LogDebug(() =>
+                    $"Proposed cross chain data for chain {ChainHelper.ConvertChainIdToBase58(chainId)}");
             }
         }
 
@@ -850,6 +853,10 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfo[chainId] = sideChainInfo;
                 State.CurrentSideChainHeight[chainId] = currentSideChainHeight;
             }
+
+            if (indexedSideChainBlockData.Count > 0)
+                Context.LogDebug(() =>
+                    $"Last indexed height {indexedSideChainBlockData.Last().Height} for side chain {chainId}");
 
             return indexedSideChainBlockData;
         }

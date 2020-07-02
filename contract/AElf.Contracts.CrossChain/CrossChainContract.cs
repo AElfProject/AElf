@@ -252,6 +252,7 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
+            Context.LogDebug(() => "Proposing cross chain data..");
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
             ClearCrossChainIndexingProposalIfExpired();
@@ -262,6 +263,7 @@ namespace AElf.Contracts.CrossChain
 
         public override Empty ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput input)
         {
+            Context.LogDebug(() => "Releasing cross chain data..");
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
             ReleaseIndexingProposal(input.ChainIdList);
