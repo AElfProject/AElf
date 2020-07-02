@@ -252,6 +252,8 @@ namespace AElf.CrossChain.Indexing.Application
         public async Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp)
         {
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
+            if (indexingProposalStatusList == null)
+                return true; // cross chain contract not updated
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
             return toBeReleasedChainIdList.Count > 0;
         }
