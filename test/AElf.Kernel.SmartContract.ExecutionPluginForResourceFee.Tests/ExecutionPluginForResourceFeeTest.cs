@@ -51,9 +51,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             buyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        private async Task AdvanceResourceToken(List<string> except = null)
+        private async Task AdvanceResourceToken(List<string> except = null, long amount = 10_000_00000000)
         {
-            const long amount = 10_000_00000000;
             var resourceTokenList = new List<string> {"READ", "WRITE", "STORAGE", "TRAFFIC"};
             if (except != null && except.Any())
             {
@@ -357,6 +356,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
             result.Error.Contains("This method already executed in height").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task CheckResourceToken_Fail_Test()
+        {
+            await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            var checkResourceTokenRet = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            checkResourceTokenRet.TransactionResult.Error.ShouldContain("token is not enough. Owning");
+        }
+        
+        [Theory]
+        [InlineData(new []{100L,100,100,100}, new []{100L,100,100,100}, true, true)]
+        public async Task DonateResourceToken_Fail_Test(long[] balances, long[] tokenFee, bool isMainChain, bool isSuccess)
+        {
+            await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps());
         }
     }
 }
