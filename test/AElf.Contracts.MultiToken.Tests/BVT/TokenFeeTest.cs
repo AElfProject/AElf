@@ -168,6 +168,45 @@ namespace AElf.Contracts.MultiToken
             donate.TransactionResult.Error.ShouldContain("No permission");
         }
 
+        [Fact]
+        public async Task SetReceiver_Test()
+        {
+            
+            // without authorized
+            {
+                var setReceiverRet = await TokenContractStub.SetFeeReceiver.SendWithExceptionAsync(new Address());
+                setReceiverRet.TransactionResult.Error.ShouldContain("No permission");
+            }
+            
+            var methodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain);
+            var initialInput = new InitializeFromParentChainInput
+            {
+                Creator = DefaultAddress
+            };
+            await SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress, methodName, initialInput);
+            await TokenContractStub.SetFeeReceiver.SendAsync(DefaultAddress);
+            var feeReceiver = await TokenContractStub.GetFeeReceiver.CallAsync(new Empty());
+            feeReceiver.Value.ShouldBe(DefaultAddress.Value);
+            
+            // fee receiver is just allowed to set one time
+            
+            var repeatSetRet = await TokenContractStub.SetFeeReceiver.SendWithExceptionAsync(DefaultAddress);
+            repeatSetRet.TransactionResult.Error.ShouldContain("Fee receiver already set");
+        }
+
+        private async Task SubmitAndApproveProposalOfDefaultParliament(Address contractAddress, string methodName,
+            IMessage message)
+        {
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalId = await CreateProposalAsync(TokenContractAddress,
+                defaultParliamentAddress, methodName, message);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
         private Transaction GenerateTokenTransaction(Address from, string method, IMessage input)
         {
             return new Transaction
