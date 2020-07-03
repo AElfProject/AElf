@@ -44,6 +44,18 @@ namespace AElf.Types.Tests.Helper
 
             var result2 = ByteArrayHelper.BytesEqual(byteArray1, byteArray3);
             result2.ShouldBe(false);
+            
+            byte[] byteArray4 = new byte[10];
+            for (int i = 0; i < 10; i++)
+            {
+                byteArray4[i] = byteArray1[i];
+            }
+            var result3=   byteArray1.BytesEqual(byteArray4);
+            result3.ShouldBe(true);
+            
+            byte[] byteArray5 = null;
+            var result4 = byteArray5.BytesEqual(byteArray4);
+            result4.ShouldBe(false);
         }
 
         [Fact]

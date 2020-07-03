@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -41,6 +42,77 @@ namespace AElf.Types.Tests.Extensions
             var bytes = new byte[] {0, 0, 0};
             byteString = ByteString.CopyFrom(bytes);
             byteString.ToPlainBase58().ShouldBe("111");
+        }
+        [Fact]
+        public void ByteStringExtension_toHex_Test()
+        { 
+            var hash=HashHelper.ComputeFrom("hash");
+            var result=   hash.Value.ToHex(true);
+            result.ShouldNotBe(null);
+            result.IndexOf("0x").ShouldBe(0);
+                
+            var result1=   hash.Value.ToHex();
+            result1.ShouldNotBe(null);
+            result1.IndexOf("0x").ShouldBe(-1);
+        }
+
+        [Fact]
+        public void ByteStringExtension_IsNullOrEmpty_Test()
+        {
+            var byteString1 = ByteString.CopyFrom(new byte[] { });
+            var result=   byteString1.IsNullOrEmpty();
+            result.ShouldBe(true);
+            
+            var hash=HashHelper.ComputeFrom("hash");
+            var result1= hash.Value.IsNullOrEmpty();
+            result1.ShouldBe(false);
+        }
+
+        [Fact]
+        public void ByteExtensions_ToHex_Test()
+        {
+            var hash=HashHelper.ComputeFrom("hash");
+            var result = hash.ToByteArray().ToHex(true);
+            result.ShouldNotBe(null);
+            result.IndexOf("0x").ShouldBe(0);
+                
+            var result1 = hash.ToByteArray().ToHex(false);
+            result1.ShouldNotBe(null);
+            result1.IndexOf("0x").ShouldBe(-1);
+        }
+
+        [Fact]
+        public void ByteExtensions_Find_Test()
+        {
+            var bytes1 = new byte[] {5, 2, 1, 8,9,0,5,2,0};
+            var bytes2 = new byte[] {4, 1};
+            var bytes3 = new byte[] {5, 7};
+            var bytes4 = new byte[] {2, 3};
+            var bytes5 = new byte[] {5, 2, 0};
+            var result2 = bytes1.Find(bytes2);
+            result2.ShouldBe(-1);
+            var result3 = bytes1.Find(bytes3);
+            result3.ShouldBe(-1);
+            var result4 = bytes1.Find(bytes4);
+            result4.ShouldBe(-1);
+            var result5 = bytes1.Find(bytes5);
+            result5.ShouldBe(6);
+        }
+        [Fact]
+        public void IMessageExtensions_ToBytesValue_Test()
+        {
+             var message=new Transaction();
+             var result= message.ToBytesValue();
+             result.Value.ShouldBeEmpty();
+        }
+        [Fact]
+        public void StringExtensions_GetBytes_Test()
+        {
+            BlockHelper.GetRefBlockPrefix(Hash.Empty);
+            var string1 = "string";
+           var result= string1.GetBytes();
+           var expected = Encoding.UTF8.GetBytes(string1);
+           result.ShouldBe(expected);
         }
     }
 }
