@@ -139,7 +139,7 @@ namespace AElf.Contracts.MultiToken
         {
             var setSymbolRet =
                 await TokenContractStub.SetSymbolsToPayTxSizeFee.SendWithExceptionAsync(new SymbolListToPayTxSizeFee());
-            setSymbolRet.TransactionResult.Error.ShouldBe("no permission");
+            setSymbolRet.TransactionResult.Error.ShouldContain("no permission");
         }
         
         [Fact(DisplayName = "[MultiToken] Reference Token Fee Controller")]
