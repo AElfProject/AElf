@@ -51,6 +51,15 @@ namespace AElf.Contracts.MultiToken
                 TokenContractAddress, validateTransaction, merklePath,
                 boundParentChainHeightAndMerklePath, sideChainId);
             Assert.True(result.Status == TransactionResultStatus.Mined, result.Error);
+
+            var input = new GetCrossChainTransferTokenContractAddressInput
+            {
+                ChainId = sideChainId
+            };
+            var registerContractAddressByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCrossChainTransferTokenContractAddress),input);
+            var registerContractAddress = Address.Parser.ParseFrom(registerContractAddressByteString);
+            registerContractAddress.Equals(SideTokenContractAddress).ShouldBeTrue();
         }
 
         [Fact]
@@ -72,6 +81,15 @@ namespace AElf.Contracts.MultiToken
                 await RegisterMainChainTokenContractOnSideChainAsync(validateTransaction, merklePath,
                     _parentChainHeightOfCreation);
             Assert.True(result.Status == TransactionResultStatus.Mined, result.Error);
+            
+            var input = new GetCrossChainTransferTokenContractAddressInput
+            {
+                ChainId = MainChainId
+            };
+            var registerContractAddressByteString = await SideChainTester.CallContractMethodAsync(SideTokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetCrossChainTransferTokenContractAddress),input);
+            var registerContractAddress = Address.Parser.ParseFrom(registerContractAddressByteString);
+            registerContractAddress.Equals(TokenContractAddress).ShouldBeTrue();
         }
 
         [Fact]
@@ -230,6 +248,15 @@ namespace AElf.Contracts.MultiToken
                 nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainCreateToken),
                 crossChainCreateTokenInput);
             result.Status.ShouldBe(TransactionResultStatus.Mined, result.Error);
+
+            var tokenInput = new GetTokenInfoInput
+            {
+                Symbol = SymbolForTesting
+            };
+            var crossTokenInfoByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetTokenInfo), tokenInput);
+            var crossTokenInfo = TokenInfo.Parser.ParseFrom(crossTokenInfoByteString);
+            crossTokenInfo.ShouldNotBeNull();
         }
 
         [Fact]
