@@ -98,12 +98,9 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public override Empty TestInfiniteLoop(Empty input)
         {
-            var stop = false;
-            var list = new List<int>();
-            while (true)
+            int i = 0;
+            while (i++ < int.MaxValue)
             {
-                list.Add(int.MaxValue); // Just add any value to exhaust memory
-                if(stop) break;
             }
             return new Empty();
         }
@@ -158,10 +155,9 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public static void UseInfiniteLoopInSeparateClass()
         {
-            var list = new List<int>();
-            while (true)
+            int i = 0;
+            while (i++ < int.MaxValue)
             {
-                list.Add(int.MaxValue);
             }
         }
 

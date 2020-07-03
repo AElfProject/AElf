@@ -151,36 +151,23 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 return;
 
             var il = method.Body.GetILProcessor();
-
-            foreach (var instruction in method.Body.Instructions)
-            {
-                if (instruction.Operand is MethodReference methodRef &&
-                    methodRef == module.ImportReference(typeof(IEnumerator).GetMethod("MoveNext")))
-                    il.InsertAfter(instruction, il.Create(OpCodes.Call, branchCountRef));
-            }
-            
-            // Insert before every branching instruction
-            var conditionalBranchingInstructions = method.Body.Instructions.Where(i => 
-                Constants.ConditionalJumpingOpCodes.Contains(i.OpCode)).ToList();
-
-            
             
             il.Body.SimplifyMacros();
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
+            
+            var conditionalBranchingInstructions = method.Body.Instructions.Where(i => 
+                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
             foreach (var instruction in conditionalBranchingInstructions)
             {
-                // il.InsertAfter(instruction, il.Create(OpCodes.Call, branchCountRef));
-                if (instruction.Operand is Instruction i && i.OpCode == OpCodes.Nop)
-                    il.InsertAfter(i, il.Create(OpCodes.Call, branchCountRef));
-
+                var targetInstruction = (Instruction) instruction.Operand;
+                if (targetInstruction.OpCode == OpCodes.Nop || 
+                    instruction.Previous.Operand is MethodReference methodRef &&
+                    methodRef.DeclaringType.FullName == typeof(IEnumerator).FullName &&
+                    methodRef.Name == "MoveNext")
+                {
+                    il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
+                }
             }
-            
-            // foreach (var instruction in unConditionalBranchingInstructions)
-            // {
-            //     var operand = (Instruction) instruction.Operand;
-            //     if (operand.OpCode == OpCodes.Nop)
-            //         il.InsertAfter(operand, il.Create(OpCodes.Call, branchCountRef));
-            // }
             
             il.Body.OptimizeMacros();
         }
