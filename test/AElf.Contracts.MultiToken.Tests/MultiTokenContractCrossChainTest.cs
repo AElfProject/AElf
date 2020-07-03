@@ -185,25 +185,32 @@ namespace AElf.Contracts.MultiToken
         #endregion
 
         #region cross chain create token test
-
+        
         [Fact]
-        public async Task CrossChainCreateToken_With_Invalid_Input_Test()
+        public async Task CrossChainCreateToken_With_Invalid_Verification_Test()
         {
-            //invalid chainId
+            var sideChainId = await GenerateSideChainAsync();
+            await RegisterMainChainTokenContractAddressOnSideChainAsync(sideChainId);
+            var tokenValidationTransaction =
+                await CreateTokenInfoValidationTransactionAsync(
+                    GetTokenInfo(SymbolForTesting, SideChainTester.GetCallOwnerAddress()), ParliamentAddress,
+                    SideChainTester);
+            var crossChainCreateTokenInput = new CrossChainCreateTokenInput
             {
-                int chainId = 102;
-                var crossCreateTokenTx = await GenerateTransactionAsync(TokenContractAddress,
-                    nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainCreateToken), null,
-                    new CrossChainCreateTokenInput
-                    {
-                        FromChainId = chainId
-                    }, true);
-                await MainChainTester.MineAsync(new List<Transaction> {crossCreateTokenTx});
-                var createResult = await MainChainTester.GetTransactionResultAsync(crossCreateTokenTx.GetHash());
-                createResult.Error.ShouldContain(
-                    $"Token contract address of chain {ChainHelper.ConvertChainIdToBase58(chainId)} not registered.");
-            }
+                FromChainId = sideChainId,
+                ParentChainHeight = 0,
+                TransactionBytes = tokenValidationTransaction.ToByteString(),
+                MerklePath = new MerklePath()
+            };
+            // Main chain cross chain create
+            var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainCreateToken),
+                crossChainCreateTokenInput);
+            Assert.True(result.Status == TransactionResultStatus.Failed);
+            Assert.Contains("Invalid transaction", result.Error);
+            
         }
+
         [Fact]
         public async Task MainChain_CrossChainCreateToken_Test()
         {
@@ -493,6 +500,38 @@ namespace AElf.Contracts.MultiToken
             var tokenAddress = Address.Parser.ParseFrom(byteString);
             tokenAddress.ShouldBe(SideTokenContractAddress);
         }
+        
+        [Fact]
+        public async Task MainChain_CrossChainTransfer_Without_Burnable_Token_Test()
+        {
+            var createTransaction = await CreateTransactionForTokenCreationAsync(TokenContractAddress,
+                MainChainTester.GetCallOwnerAddress(), SymbolForTesting, true,false);
+            await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
+
+            var tokenInfoByteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetTokenInfo), new GetTokenInfoInput
+                {
+                    Symbol = SymbolForTesting
+                });
+            var tokenInfo = TokenInfo.Parser.ParseFrom(tokenInfoByteString);
+            var issueId = tokenInfo.IssueChainId;
+            var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.CrossChainTransfer), null,
+                new CrossChainTransferInput
+                {
+                    Symbol = SymbolForTesting,
+                    ToChainId = issueId,
+                    Amount = 1000,
+                    To = MainChainTester.GetCallOwnerAddress(),
+                    IssueChainId = issueId
+                }, true);
+
+            await MainChainTester.MineAsync(new List<Transaction> {crossChainTransferTransaction});
+            var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
+            Assert.True(txResult.Status == TransactionResultStatus.Failed);
+            Assert.Contains("The token is not burnable", txResult.Error);
+        }
+        
 
         [Fact]
         public async Task MainChain_CrossChainTransfer_Test()
@@ -677,7 +716,7 @@ namespace AElf.Contracts.MultiToken
         #endregion
 
         #region cross chain receive
-
+        
         [Fact]
         public async Task SideChain_CrossChainReceived_NativeToken_Test()
         {
@@ -899,9 +938,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         private async Task<Transaction> CreateTransactionForTokenCreationAsync(Address tokenContractAddress,
-            Address issuer, string symbol, bool isMainChain)
+            Address issuer, string symbol, bool isMainChain, bool isBurnable = true)
         {
-            var tokenInfo = GetTokenInfo(symbol, issuer);
+            var tokenInfo = GetTokenInfo(symbol, issuer, isBurnable);
             var createTransaction = await GenerateTransactionAsync(tokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.Create), null,
                 new CreateInput
@@ -934,14 +973,14 @@ namespace AElf.Contracts.MultiToken
             return tokenValidationTransaction;
         }
 
-        private TokenInfo GetTokenInfo(string symbol, Address issuer)
+        private TokenInfo GetTokenInfo(string symbol, Address issuer, bool isBurnable = true)
         {
             return new TokenInfo
             {
                 Symbol = symbol,
                 Decimals = 2,
                 Issuer = issuer,
-                IsBurnable = true,
+                IsBurnable = isBurnable,
                 TokenName = "Symbol for testing",
                 TotalSupply = 1000
             };

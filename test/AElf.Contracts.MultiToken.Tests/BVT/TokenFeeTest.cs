@@ -194,6 +194,17 @@ namespace AElf.Contracts.MultiToken
             repeatSetRet.TransactionResult.Error.ShouldContain("Fee receiver already set");
         }
 
+        [Fact]
+        public async Task GetFeeCoefficientController_Without_Initialize_Test()
+        {
+            var userFeeRet = await TokenContractStub.GetUserFeeController
+                .SendWithExceptionAsync(new Empty());
+            userFeeRet.TransactionResult.Error.ShouldContain("controller does not initialize, call InitializeAuthorizedController first");
+            var developerFeeRet = await TokenContractStub.GetDeveloperFeeController
+                .SendWithExceptionAsync(new Empty());
+            developerFeeRet.TransactionResult.Error.ShouldContain("controller does not initialize, call InitializeAuthorizedController first");
+        }
+
         private async Task SubmitAndApproveProposalOfDefaultParliament(Address contractAddress, string methodName,
             IMessage message)
         {

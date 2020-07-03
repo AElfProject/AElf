@@ -32,6 +32,42 @@ namespace AElf.Contracts.MultiToken
                 nameof(TokenContractImplContainer.TokenContractImplStub.InitializeAuthorizedController), new Empty());
             initControllerResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+        
+        [Fact]
+        public async Task GetDefaultUserFeeController_Test()
+        {
+            var defaultParliament = await GetDefaultParliamentAddressAsync();
+            var defaultController = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetUserFeeController), new Empty());
+            var userFeeController = DeveloperFeeController.Parser.ParseFrom(defaultController);
+            userFeeController.RootController.ContractAddress.ShouldNotBeNull();
+            userFeeController.ParliamentController.OwnerAddress.ShouldBe(defaultParliament);
+            userFeeController.ParliamentController.ContractAddress.ShouldBe(ParliamentAddress);
+        }
+        
+        [Fact]
+        public async Task GetDefaultDeveloperFeeController_Test()
+        {
+            var defaultParliament = await GetDefaultParliamentAddressAsync();
+            var defaultController = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetDeveloperFeeController), new Empty());
+            var developerFeeController = DeveloperFeeController.Parser.ParseFrom(defaultController);
+            developerFeeController.RootController.ContractAddress.ShouldNotBeNull();
+            developerFeeController.ParliamentController.OwnerAddress.ShouldBe(defaultParliament);
+            developerFeeController.ParliamentController.ContractAddress.ShouldBe(ParliamentAddress);
+        }
+        
+        [Fact]
+        public async Task GetSymbolsToPayTXSizeFeeController_Test()
+        {
+            var defaultParliament = await GetDefaultParliamentAddressAsync();
+            var defaultController = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractImplContainer.TokenContractImplStub.GetSymbolsToPayTXSizeFeeController), new Empty());
+            var controller = AuthorityInfo.Parser.ParseFrom(defaultController);
+            controller.OwnerAddress.ShouldBe(defaultParliament);
+            controller.ContractAddress.ShouldBe(ParliamentAddress);
+        }
+        
 
         [Fact]
         public async Task ChangeSymbolsToPayTXSizeFeeController_Fail_Test()

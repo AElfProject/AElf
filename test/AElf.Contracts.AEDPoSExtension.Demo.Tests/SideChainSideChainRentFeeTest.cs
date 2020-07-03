@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
@@ -34,7 +35,32 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             DeployContracts();
         }
-        
+
+        [Fact]
+        public async Task SideChainRentalController_Test()
+        {
+            var rentalControllerRet =
+                await TokenContractStub.GetSideChainRentalControllerCreateInfo.SendWithExceptionAsync(new Empty());
+            rentalControllerRet.TransactionResult.Error.ShouldContain("side chain creator dose not exist");
+            await InitialTokenContractAsync();
+            var rentalController =
+                await TokenContractStub.GetSideChainRentalControllerCreateInfo.CallAsync(new Empty());
+            rentalController.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task GetRentalInfo_Test()
+        {
+            await InitialTokenContractAsync();
+            var rentalUnitPriceInfo = await TokenContractStub.GetOwningRentalUnitValue.CallAsync(new Empty());
+            rentalUnitPriceInfo.ResourceUnitValue.All(x => x.Value == Rental).ShouldBeTrue();
+            var resourceUsageInfo = (await TokenContractStub.GetResourceUsage.CallAsync(new Empty())).Value;
+            resourceUsageInfo["CPU"].ShouldBe(CpuAmount);
+            resourceUsageInfo["RAM"].ShouldBe(RamAmount);
+            resourceUsageInfo["DISK"].ShouldBe(DiskAmount);
+            resourceUsageInfo["NET"].ShouldBe(NetAmount);
+        }
+
         [Fact]
         public async Task ChargeRentalTest()
         {
