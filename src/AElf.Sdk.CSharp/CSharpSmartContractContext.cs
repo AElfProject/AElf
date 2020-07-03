@@ -182,7 +182,7 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// Like SendVirtualInline but the virtual address us a system smart contract. 
+        /// Sends a virtual inline transaction to another contract. This method is only available to system smart contract.
         /// </summary>
         /// <param name="fromVirtualAddress">The virtual address of the system contract to use as sender.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
