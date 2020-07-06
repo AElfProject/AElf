@@ -23,7 +23,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             randomHash.MergeFrom(randomBytes.Value);
             randomHash.ShouldNotBeNull();
         }
-        
+
         [Fact]
         public async Task GetRandomBytesTest_Int64()
         {
