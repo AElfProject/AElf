@@ -697,7 +697,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
+            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString().ToUpper());
+            response.Bloom.ShouldBeNull();
         }
 
         [Fact]
@@ -823,6 +824,12 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var responseTransactions = response.Body.Transactions;
             responseTransactions.Count.ShouldBe(3);
+            
+            response =
+                await GetResponseAsObjectAsync<BlockDto>(
+                    "/api/blockChain/blockByHeight?blockHeight=12");
+            response.Body.TransactionsCount.ShouldBe(3);
+            response.Body.Transactions.Count.ShouldBe(0);
         }
 
         [Fact]
@@ -858,6 +865,12 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var responseTransactions = response.Body.Transactions;
             responseTransactions.Count.ShouldBe(3);
+            
+            response =
+                await GetResponseAsObjectAsync<BlockDto>(
+                    $"/api/blockChain/block?blockHash={block.GetHash().ToHex()}");
+            response.Body.TransactionsCount.ShouldBe(3);
+            response.Body.Transactions.Count.ShouldBe(0);
         }
 
         [Fact]
