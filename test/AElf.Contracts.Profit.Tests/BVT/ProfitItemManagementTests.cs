@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -80,6 +81,40 @@ namespace AElf.Contracts.Profit.BVT
             })).Balance;
 
             schemeBalance.ShouldBe(contributeAmount);
+        }
+        
+        [Fact]
+        public async Task ProfitContract_DistributeProfits_Burned_Profit_Test()
+        {
+            const int delayDistributePeriodCount = 3;
+            const int contributeAmountEachTime = 100_000;
+            var creator = Creators[0];
+            var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
+
+            await creator.CreateScheme.SendAsync(new CreateSchemeInput
+            {
+                IsReleaseAllBalanceEveryTimeByDefault = true,
+                ProfitReceivingDuePeriodCount = 100,
+                DelayDistributePeriodCount = delayDistributePeriodCount
+            });
+
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
+            {
+                Manager = creatorAddress
+            })).SchemeIds;
+
+            schemeId = createdSchemeIds.First();
+            var period = 1;
+            var beforeBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Burned;
+            await ContributeAndDistribute(creator, contributeAmountEachTime, period);
+            var afterBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Burned;
+            afterBurnToken.Sub(beforeBurnToken).ShouldBe(contributeAmountEachTime);
         }
 
         [Fact]

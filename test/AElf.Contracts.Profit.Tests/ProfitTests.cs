@@ -329,7 +329,7 @@ namespace AElf.Contracts.Profit
             profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
             profitDetails2.Details.First().Shares.ShouldBe(shares2);
         }
-        
+
         [Fact]
         public async Task ProfitContract_RemoveSubScheme_With_Invalid_Scheme_Id_Test()
         {
@@ -852,7 +852,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_RemoveBeneficiary_Without_Authority()
+        public async Task ProfitContract_RemoveBeneficiary_Without_Authority_Test()
         {
             var creator = Creators[0];
             var receiverAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
@@ -932,6 +932,26 @@ namespace AElf.Contracts.Profit
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             executionResult.TransactionResult.Error.ShouldContain("Insufficient balance");
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_InvalidTokenSymbol_Test()
+        {
+            const long amount = 100;
+            var creator = Creators[0];
+            var schemeId = await CreateScheme();
+            var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
+            {
+                SchemeId = schemeId,
+                AmountsMap =
+                {
+                    {"", amount}
+                },
+                Period = 2
+            });
+
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Invalid token symbol");
         }
 
         [Fact]
@@ -1575,6 +1595,134 @@ namespace AElf.Contracts.Profit
                 });
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+        }
+
+        [Fact]
+        public async Task ContributeProfits_With_Invalid_Input_Test()
+        {
+            var creator = Creators[0];
+            var schemeId = await CreateScheme();
+
+            // invalid token symbol
+            {
+                var transactionResult = await creator.ContributeProfits.SendWithExceptionAsync(
+                    new ContributeProfitsInput
+                    {
+                        SchemeId = schemeId,
+                        Symbol = "",
+                    });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.ShouldContain("Invalid token symbol");
+            }
+
+            // invalid token amount
+            {
+                var transactionResult = await creator.ContributeProfits.SendWithExceptionAsync(
+                    new ContributeProfitsInput
+                    {
+                        SchemeId = schemeId,
+                        Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                        Amount = 0,
+                    });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.ShouldContain("Amount need to greater than 0.");
+            }
+
+            //invalid scheme id
+            {
+                var transactionResult = await creator.ContributeProfits.SendWithExceptionAsync(
+                    new ContributeProfitsInput
+                    {
+                        SchemeId = new Hash(),
+                        Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                        Amount = 10,
+                    });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
+            }
+        }
+
+        [Fact]
+        public async Task ContributeProfits_Success_Test()
+        {
+            var schemeId = await CreateScheme();
+            var amount = 100;
+            await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                Amount = amount,
+                Period = 2
+            });
+            var profitInfo = await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
+            {
+                SchemeId = schemeId,
+                Period = 2
+            });
+            profitInfo.AmountsMap.ContainsKey(ProfitContractTestConstants.NativeTokenSymbol).ShouldBeTrue();
+            profitInfo.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
+        }
+
+        [Fact]
+        public async Task ResetManager_Without_Authority_Test()
+        {
+            var schemeId = await CreateScheme();
+            var sendWithoutAuthority = Creators[1];
+            var resetRet = await sendWithoutAuthority.ResetManager.SendWithExceptionAsync(new ResetManagerInput
+            {
+                NewManager = new Address(),
+                SchemeId = schemeId,
+            });
+            resetRet.TransactionResult.Error.ShouldContain("Only scheme manager can reset manager");
+        }
+        
+        [Fact]
+        public async Task ResetManager_With_Invalid_Input_Test()
+        {
+            var schemeId = await CreateScheme();
+            var creator = Creators[0];
+            var newManager = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
+            var resetRet = await creator.ResetManager.SendWithExceptionAsync(new ResetManagerInput
+            {
+                NewManager = newManager,
+                SchemeId = new Hash()
+            });
+            resetRet.TransactionResult.Error.ShouldContain("Scheme not found.");
+
+            resetRet = await creator.ResetManager.SendWithExceptionAsync(new ResetManagerInput
+            {
+                NewManager = new Address(),
+                SchemeId = schemeId
+            });
+            resetRet.TransactionResult.Error.ShouldContain("Invalid new sponsor.");
+        }
+
+        [Fact]
+        public async Task ResetManager_Success_Test()
+        {
+            var schemeId = await CreateScheme();
+            var creator = Creators[0];
+            var newManager = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
+            await creator.ResetManager.SendAsync(new ResetManagerInput
+            {
+                NewManager = newManager,
+                SchemeId = schemeId
+            });
+            var schemeIdForInitialCreator = await ProfitContractStub.GetManagingSchemeIds.CallAsync(
+                new GetManagingSchemeIdsInput
+                {
+                    Manager = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
+                });
+            schemeIdForInitialCreator.SchemeIds.Count.ShouldBe(0);
+            
+            var schemeIdForNewManager = await ProfitContractStub.GetManagingSchemeIds.CallAsync(
+                new GetManagingSchemeIdsInput
+                {
+                    Manager = newManager
+                });
+            schemeIdForNewManager.SchemeIds.Count.ShouldBe(1);
+            var schemeInfo = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+            schemeInfo.Manager.Equals(newManager).ShouldBeTrue();
         }
 
         private async Task TransferToProfitItemVirtualAddress(Hash schemeId, long amount = 100)
