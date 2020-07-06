@@ -160,7 +160,6 @@ namespace AElf.Contracts.Profit
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
             AssertValidInput(input);
-            if (input.BeneficiaryShare == null) return new Empty();
 
             if (input.EndPeriod == 0)
             {
