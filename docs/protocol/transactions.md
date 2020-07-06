@@ -39,6 +39,7 @@ This will build the transaction to the contract at address "65dDNxzcd35jESiidFXN
 When signing a transaction it's actually a subset of the fields: from/to and the target method as well as the parameter that were given. It also contains the reference block number and prefix. 
 
 You can use the js-sdk to sign the transaction with the following method:
+
 ```js
 import Aelf from 'aelf-sdk';
 var txn = Aelf.wallet.signTransaction(rawTxn, wallet.keyPair);
