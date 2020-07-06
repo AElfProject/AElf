@@ -16,6 +16,8 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
             _whitelistProvider = whitelistProvider;
         }
 
+        public bool SystemContactIgnored => false;
+        
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var whiteList = _whitelistProvider.GetWhitelist();

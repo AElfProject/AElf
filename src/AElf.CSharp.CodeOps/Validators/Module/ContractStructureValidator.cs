@@ -26,6 +26,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             }
         }
 
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)

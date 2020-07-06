@@ -111,7 +111,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
     }
 }
