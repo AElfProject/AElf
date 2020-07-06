@@ -18,7 +18,7 @@ namespace AElf.Contracts.TestContract.RandomNumberProvider
             return new BytesValue
             {
                 Value = serializedInput.Kind == 1
-                    ? new BytesValue {Value = randomHashFromContext.Value}.Value
+                    ? new BytesValue {Value = randomHashFromContext.Value}.ToByteString()
                     : new Int64Value {Value = Context.ConvertHashToInt64(randomHashFromContext, 0, 100)}.ToByteString()
             };
         }
