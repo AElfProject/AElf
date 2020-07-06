@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -96,18 +97,18 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return new Empty();
         }
 
-        public override Empty TestInfiniteLoop(Empty input)
+        public override Empty TestInfiniteLoop(Int32Value input)
         {
             int i = 0;
-            while (i++ < int.MaxValue)
+            while (i++ < input.Value)
             {
             }
             return new Empty();
         }
 
-        public override Empty TestInfiniteLoopInSeparateClass(Empty input)
+        public override Empty TestInfiniteLoopInSeparateClass(Int32Value input)
         {
-            SeparateClass.UseInfiniteLoopInSeparateClass();
+            SeparateClass.UseInfiniteLoopInSeparateClass(input.Value);
             return new Empty();
         }
 
@@ -153,10 +154,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return DateTime.Now;
         }
 
-        public static void UseInfiniteLoopInSeparateClass()
+        public static void UseInfiniteLoopInSeparateClass(int count)
         {
             int i = 0;
-            while (i++ < int.MaxValue)
+            while (i++ < count)
             {
             }
         }

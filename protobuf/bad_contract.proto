@@ -28,9 +28,9 @@ service BadContract {
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
-    rpc TestInfiniteLoop (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    rpc TestInfiniteLoop (google.protobuf.Int32Value) returns (google.protobuf.Empty) { }
 
-    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Int32Value) returns (google.protobuf.Empty) { }
     
     rpc TestInfiniteRecursiveCall (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 

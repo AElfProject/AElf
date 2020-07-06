@@ -28,7 +28,7 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             // Patch the types
             foreach (var typ in module.Types)
             {
-                PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod, module);
+                PatchType(typ, proxyBranchCountMethod, proxyCallCountMethod);
             }
 
             module.Types.Add(counterProxy);
@@ -128,24 +128,22 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             return setObserverMethod;
         }
 
-        private void PatchType(TypeDefinition typ, MethodReference branchCountRef, MethodReference callCountRef,
-            ModuleDefinition module)
+        private void PatchType(TypeDefinition typ, MethodReference branchCountRef, MethodReference callCountRef)
         {
             // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
-                PatchMethodsWithCounter(method, branchCountRef, callCountRef, module);
+                PatchMethodsWithCounter(method, branchCountRef, callCountRef);
             }
 
             // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
-                PatchType(nestedType, branchCountRef, callCountRef, module);
+                PatchType(nestedType, branchCountRef, callCountRef);
             }
         }
 
-        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef,
-            MethodReference callCountRef, ModuleDefinition module)
+        private void PatchMethodsWithCounter(MethodDefinition method, MethodReference branchCountRef, MethodReference callCountRef)
         {
             if (!method.HasBody)
                 return;

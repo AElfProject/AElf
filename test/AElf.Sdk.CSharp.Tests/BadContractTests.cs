@@ -1,11 +1,9 @@
-using System;
 using System.Linq;
 using System.Reflection;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
@@ -66,7 +64,10 @@ namespace AElf.Sdk.CSharp.Tests
         public void TestInfiniteLoop_InContractImplementation()
         {
             SetObserver();
-            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoop(new Empty()));
+            Should.NotThrow(() =>
+                Contract.TestInfiniteLoop(new Int32Value {Value = 100}));
+            Should.Throw<RuntimeBranchThresholdExceededException>(() =>
+                Contract.TestInfiniteLoop(new Int32Value {Value = 101}));
             ClearObserver();
         }
 
@@ -74,7 +75,10 @@ namespace AElf.Sdk.CSharp.Tests
         public void TestInfiniteLoop_InSeparateClass()
         {
             SetObserver();
-            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoopInSeparateClass(new Empty()));
+            Should.NotThrow(() =>
+                Contract.TestInfiniteLoopInSeparateClass(new Int32Value {Value = 100}));
+            Should.Throw<RuntimeBranchThresholdExceededException>(() =>
+                Contract.TestInfiniteLoopInSeparateClass(new Int32Value {Value = 101}));
             ClearObserver();
         }
         
