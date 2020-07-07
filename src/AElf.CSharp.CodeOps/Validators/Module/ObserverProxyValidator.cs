@@ -23,6 +23,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
         }
 
+        public bool SystemContactIgnored => true;
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var errors = new List<ValidationResult>();

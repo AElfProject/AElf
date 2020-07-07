@@ -16,6 +16,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             OpCodes.Mul
         };
         
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)
