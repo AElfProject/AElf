@@ -1,11 +1,7 @@
-using AElf.Kernel.Configuration;
-using Volo.Abp.DependencyInjection;
-
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class RequiredAcsInContractsConfigurationNameProvider : IConfigurationNameProvider, ISingletonDependency
+    public class RequiredAcsInContractsConfigurationNameProvider
     {
-        public static readonly string Name = "RequiredAcsInContracts";
-        public string ConfigurationName => Name;
+        public const string Name = "RequiredAcsInContracts";
     }
 }

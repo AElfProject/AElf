@@ -1,13 +1,10 @@
-﻿using Volo.Abp.DependencyInjection;
-
-namespace AElf.Kernel.Configuration
+﻿namespace AElf.Kernel.Configuration
 {
     /// <summary>
     /// To control the limitation of count of txs fetching from tx hub each time.
     /// </summary>
-    public class BlockTransactionLimitConfigurationNameProvider : IConfigurationNameProvider, ISingletonDependency
+    public class BlockTransactionLimitConfigurationNameProvider
     {
-        public static readonly string Name = "BlockTransactionLimit";
-        public string ConfigurationName => Name;
+        public const string Name = "BlockTransactionLimit";
     }
 }
