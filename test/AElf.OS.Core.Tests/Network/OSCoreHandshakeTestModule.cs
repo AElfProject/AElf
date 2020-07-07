@@ -2,12 +2,11 @@ using System.Collections.Generic;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Modularity;
-using AElf.OS.Network;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS
+namespace AElf.OS.Network
 {
     [DependsOn(typeof(OSCoreWithChainTestAElfModule))]
     public class OSCoreHandshakeTestModule : AElfModule

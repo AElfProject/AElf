@@ -31,7 +31,7 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public async Task RemovePeerFromBlacklist_Test()
+        public void RemovePeerFromBlacklist_Test()
         {
             var ipAddress = "127.0.0.1";
 
@@ -41,6 +41,19 @@ namespace AElf.OS.Network
             _blackListProvider.RemoveHostFromBlackList(ipAddress);
             
             _blackListProvider.IsIpBlackListed(ipAddress).ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task CleanBlackList_Test()
+        {
+            var ipAddress = "192.168.100.1";
+            _blackListProvider.AddHostToBlackList(ipAddress, 1);
+            
+            await Task.Delay(1200);
+            _blackListProvider.AddHostToBlackList("192.168.100.2", 1);
+
+            var removeResult = _blackListProvider.RemoveHostFromBlackList(ipAddress);
+            removeResult.ShouldBeFalse();
         }
     }
 }

@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
-using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -36,6 +35,19 @@ namespace AElf.OS.Network
                     )));
 
                 return mockService.Object;
+            });
+        }
+    }
+
+    [DependsOn(typeof(NetworkInfrastructureTestModule))]
+    public class NetworkMaxPeersPerIpAddressTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<NetworkOptions>(o =>
+            {
+                o.MaxPeers = 2;
+                o.MaxPeersPerIpAddress = 2;
             });
         }
     }

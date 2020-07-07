@@ -1,4 +1,5 @@
-﻿using AElf.TestBase;
+﻿using AElf.OS.Network;
+using AElf.TestBase;
 
 namespace AElf.OS
 {
