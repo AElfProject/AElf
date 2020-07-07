@@ -8,6 +8,7 @@ using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
+using AElf.Database.RedisProtocol;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
@@ -31,13 +32,15 @@ namespace AElf.Kernel.Configuration.Tests
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockStateSetManger _blockStateSetManger;
-
+        private readonly ConfigurationContractInitializationProvider _contractInitializationProvider;
+       
         public BlockTransactionLimitTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _contractInitializationProvider = GetRequiredService<ConfigurationContractInitializationProvider>();
         }
 
         private async Task DeployContractsAsync()
@@ -79,10 +82,11 @@ namespace AElf.Kernel.Configuration.Tests
             await _blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
         }
 
-        [Fact]
-        public async Task LimitCanBeSetByExecutingContract_Test()
+        [Theory]
+        [InlineData(55,55)]
+        [InlineData(-50,0)]
+        public async Task LimitCanBeSetByExecutingContract_Test(int targetLimit,int expected)
         {
-            const int targetLimit = 55;
             await DeployContractsAsync();
             var proposalId = (await _parliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
             {
@@ -134,7 +138,7 @@ namespace AElf.Kernel.Configuration.Tests
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });
-            Assert.Equal(55, limitNum);
+            Assert.Equal(expected, limitNum);
         }
 
         [Fact]
@@ -162,6 +166,68 @@ namespace AElf.Kernel.Configuration.Tests
                     BlockHeight = chain.BestChainHeight
                 });
             limit.ShouldBe(50);
+        }
+
+        [Fact]
+        public void GetInitializeMethodList_Test()
+        {
+          var result= _contractInitializationProvider.GetInitializeMethodList(_contractInitializationProvider.ContractCodeName.ToUtf8Bytes());
+          result.Count.ShouldBe(0);
+        }
+        [Fact]
+        public async Task ProcessLogEventAsync_otherConfigName_test()
+        {
+           const int targetLimit = 50;
+            await DeployContractsAsync();
+            var proposalId = (await _parliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = "SetConfiguration",
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = new SetConfigurationInput
+                {
+                    Key = "otherConfigName",
+                    Value = new Int32Value {Value = targetLimit}.ToByteString()
+                }.ToByteString(),
+                ToAddress = ConfigurationContractAddress,
+                OrganizationAddress = await _parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty())
+            })).Output;
+            await _parliamentContractStub.Approve.SendAsync(proposalId);
+            // Before
+            {
+                var result = await _configurationStub.GetConfiguration.CallAsync(new StringValue
+                {
+                    Value = BlockTransactionLimitConfigurationNameProvider.Name
+                });
+                var limit = new Int32Value();
+                limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
+                Assert.Equal(0, limit.Value);
+            }
+
+            var txResult = await _parliamentContractStub.Release.SendAsync(proposalId);
+            var configurationSet = ConfigurationSet.Parser.ParseFrom(txResult.TransactionResult.Logs
+                .First(l => l.Name == nameof(ConfigurationSet)).NonIndexed);
+            var limitFromLogEvent = new Int32Value();
+            limitFromLogEvent.MergeFrom(configurationSet.Value.ToByteArray());
+            Assert.Equal(limitFromLogEvent.Value, targetLimit);
+            // After
+            {
+                var result = await _configurationStub.GetConfiguration.CallAsync(new StringValue
+                {
+                    Value = BlockTransactionLimitConfigurationNameProvider.Name
+                });
+                var limit = new Int32Value();
+                limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
+                Assert.Equal(0, limit.Value);
+            }
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+            var limitNum = await _blockTransactionLimitProvider.GetLimitAsync(
+                new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                });
+            Assert.Equal(0, limitNum);
         }
     }
 }
