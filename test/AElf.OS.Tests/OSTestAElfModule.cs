@@ -26,7 +26,6 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).ToBase58();
