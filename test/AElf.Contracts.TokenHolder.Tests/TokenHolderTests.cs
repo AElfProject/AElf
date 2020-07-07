@@ -140,6 +140,49 @@ namespace AElf.Contracts.TokenHolder
                 originScheme.TotalShares.ShouldBe(0);
             }
         }
+        
+        [Fact]
+        public async Task RemoveBeneficiary_With_Amount_Test()
+        {
+            await TokenHolderContractStub.CreateScheme.SendAsync(new CreateTokenHolderProfitSchemeInput
+            {
+                Symbol = "ELF"
+            });
+            await TokenHolderContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+            {
+                SchemeManager = Starter,
+                Symbol = "ELF",
+                Amount = 9999
+            });
+            await TokenHolderContractStub.AddBeneficiary.SendAsync(new AddTokenHolderBeneficiaryInput
+            {
+                Beneficiary = Starter,
+                Shares = 1000
+            });
+            var schemeIds = await ProfitContractStub.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
+            {
+                Manager = Starter
+            });
+            var schemeId = schemeIds.SchemeIds[0];
+            var beforeRemoveScheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+            var amount = 10;
+            await TokenHolderContractStub.RemoveBeneficiary.SendAsync(new RemoveTokenHolderBeneficiaryInput
+            {
+                Beneficiary = Starter,
+                Amount = amount
+            });
+            var afterRemoveScheme = await ProfitContractStub.GetScheme.CallAsync(schemeIds.SchemeIds[0]);
+            afterRemoveScheme.TotalShares.ShouldBe(beforeRemoveScheme.TotalShares - amount);
+            var profitAmount = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                Beneficiary = Starter,
+                SchemeId = schemeId
+            });
+            profitAmount.Details.Count.ShouldBe(2);
+            profitAmount.Details[0].Shares.ShouldBe(beforeRemoveScheme.TotalShares);
+            profitAmount.Details[0].EndPeriod.ShouldBe(0);
+            profitAmount.Details[1].Shares.ShouldBe(beforeRemoveScheme.TotalShares - amount);
+        }
 
         [Fact]
         public async Task DistributeProfits_ClaimWithProfitContract()
@@ -276,6 +319,24 @@ namespace AElf.Contracts.TokenHolder
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
 
+        [Fact]
+        public async Task AddBeneficiary_With_Invalid_Scheme()
+        {
+            var ret = await TokenHolderContractStub.AddBeneficiary.SendWithExceptionAsync(
+                new AddTokenHolderBeneficiaryInput
+                {
+                    Beneficiary = new Address(),
+                    Shares = 100
+                });
+            ret.TransactionResult.Error.ShouldContain("token holder profit scheme not found");
+        }
+        
+        [Fact]
+        public async Task DistributeProfits_Without_Authority_Test()
+        {
+          
+        }
+        
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
             string methodName, IMessage input)
         {
