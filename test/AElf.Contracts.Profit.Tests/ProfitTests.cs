@@ -1643,27 +1643,6 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ContributeProfits_Success_Test()
-        {
-            var schemeId = await CreateScheme();
-            var amount = 100;
-            await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
-            {
-                SchemeId = schemeId,
-                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
-                Amount = amount,
-                Period = 2
-            });
-            var profitInfo = await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
-            {
-                SchemeId = schemeId,
-                Period = 2
-            });
-            profitInfo.AmountsMap.ContainsKey(ProfitContractTestConstants.NativeTokenSymbol).ShouldBeTrue();
-            profitInfo.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
-        }
-
-        [Fact]
         public async Task ResetManager_Without_Authority_Test()
         {
             var schemeId = await CreateScheme();
@@ -1723,6 +1702,111 @@ namespace AElf.Contracts.Profit
             schemeIdForNewManager.SchemeIds.Count.ShouldBe(1);
             var schemeInfo = await ProfitContractStub.GetScheme.CallAsync(schemeId);
             schemeInfo.Manager.Equals(newManager).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task GetManagingSchemeIds_Test()
+        {
+            var schemeId1 = await CreateScheme();
+            var schemeId2 = await CreateScheme(1);
+            var managerSchemes = await ProfitContractStub.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
+            {
+                Manager = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
+            });
+            managerSchemes.SchemeIds.Count.ShouldBe(2);
+            managerSchemes.SchemeIds.Contains(schemeId1).ShouldBeTrue();
+            managerSchemes.SchemeIds.Contains(schemeId2).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetProfitMapAndAmount_Test()
+        {
+            const long amount = 100;
+            var creator = Creators[0];
+            var schemeId = await CreateScheme();
+            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+            var receiver = Accounts[0].Address;
+            var tokenSymbol = ProfitContractTestConstants.NativeTokenSymbol;
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver, Shares = 100},
+                SchemeId = schemeId,
+            });
+            
+            //first time
+            {
+                await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    AmountsMap =
+                    {
+                        {tokenSymbol, amount}
+                    },
+                    Period = 1
+                });
+                var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+                {
+                    Beneficiary = receiver,
+                    Symbol = tokenSymbol,
+                    SchemeId = schemeId
+                });
+                profitAmount.Value.ShouldBe(amount);
+                var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Beneficiary = receiver
+                });
+                profitMap.Value[tokenSymbol].ShouldBe(amount);
+            }
+            
+            // after claim
+            {
+                await ProfitContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+                {
+                    SchemeId = schemeId
+                });
+                var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+                {
+                    Beneficiary = receiver,
+                    Symbol = tokenSymbol,
+                    SchemeId = schemeId
+                });
+                profitAmount.Value.ShouldBe(0);
+                var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Beneficiary = receiver
+                });
+                profitMap.Value.ContainsKey(tokenSymbol).ShouldBeFalse();
+            }
+            
+            //second time
+            {
+                await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    AmountsMap =
+                    {
+                        {tokenSymbol, amount}
+                    },
+                    Period = 2
+                });
+                var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+                {
+                    Beneficiary = receiver,
+                    Symbol = tokenSymbol,
+                    SchemeId = schemeId
+                });
+                profitAmount.Value.ShouldBe(amount);
+                var profitMap = await ProfitContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Beneficiary = receiver
+                });
+                profitMap.Value[tokenSymbol].ShouldBe(amount);
+            }
+            
+           
         }
 
         private async Task TransferToProfitItemVirtualAddress(Hash schemeId, long amount = 100)
