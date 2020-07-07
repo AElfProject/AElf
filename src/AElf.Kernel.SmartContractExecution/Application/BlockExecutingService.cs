@@ -250,6 +250,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 .Select(p =>
                 {
                     p.TransactionResult.BlockHash = blockHeader.GetHash();
+                    p.TransactionResult.BlockNumber = blockHeader.Height;
                     return p.TransactionResult;
                 }).ToList();
 

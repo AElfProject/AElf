@@ -90,7 +90,6 @@ namespace AElf.WebApp.Application.Chain
                     _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
                 if (validationStatus != null)
                 {
-                    Logger.LogTrace($"Status of tx {transactionIdHash}: {validationStatus.TransactionResultStatus}");
                     output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
                     output.Error = validationStatus.Error;
                 }
@@ -114,13 +113,6 @@ namespace AElf.WebApp.Application.Chain
 
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
             }
-
-            if (transactionResult.Status == TransactionResultStatus.Pending)
-            {
-                return output;
-            }
-            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-            output.BlockHash = block.GetHash().ToHex();
 
             return output;
         }

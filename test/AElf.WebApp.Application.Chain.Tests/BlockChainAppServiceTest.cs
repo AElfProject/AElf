@@ -655,7 +655,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Pending.ToString().ToUpper());
 
-            await _osTestHelper.MinedOneBlock();
+            var block = await _osTestHelper.MinedOneBlock();
 
             // After mined
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
@@ -664,6 +664,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
             response.TransactionSize.ShouldBe(transaction.CalculateSize());
+            response.BlockNumber.ShouldBe(block.Height);
+            response.BlockHash.ShouldBe(block.GetHash().ToHex());
         }
 
         [Fact]
