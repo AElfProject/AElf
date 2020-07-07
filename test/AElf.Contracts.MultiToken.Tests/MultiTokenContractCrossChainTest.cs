@@ -19,27 +19,37 @@ using ProposalReleased = Acs3.ProposalReleased;
 
 namespace AElf.Contracts.MultiToken
 {
-    public class MultiTokenContractCrossChainTest : MultiTokenContractCrossChainTestBase
+    public class MultiTokenContractWithInitializeSideChainTestBase : MultiTokenContractCrossChainTestBase
     {
-        private const string SymbolForTesting = "ELFTEST";
-        private const string NativeToken = "ELF";
-        private static long _totalSupply = 1000L;
-        private readonly int _parentChainHeightOfCreation = 9;
-        private readonly Hash _fakeBlockHeader = HashHelper.ComputeFrom("fakeBlockHeader");
-        private string sideChainSymbol = "STA";
-        private int sideChainId;
-
-        public MultiTokenContractCrossChainTest()
+        protected int sideChainId;
+        protected string sideChainSymbol = "STA";
+        protected readonly int _parentChainHeightOfCreation = 9;
+        public MultiTokenContractWithInitializeSideChainTestBase()
         {
             AsyncHelper.RunSync(InitializeSideChain);
         }
-
         private async Task InitializeSideChain()
         {
             sideChainId = await GenerateSideChainAsync();
         }
+        private async Task<int> GenerateSideChainAsync(bool registerParentChainTokenContractAddress = true)
+        {
+            var sideChainId =
+                await InitAndCreateSideChainAsync(sideChainSymbol, _parentChainHeightOfCreation, MainChainId, 100);
+            StartSideChain(sideChainId, _parentChainHeightOfCreation, sideChainSymbol,
+                registerParentChainTokenContractAddress);
+            return sideChainId;
+        }
+    }
+    public class MultiTokenContractCrossChainTest : MultiTokenContractWithInitializeSideChainTestBase
+    {
+        private const string SymbolForTesting = "ELFTEST";
+        private const string NativeToken = "ELF";
+        private static long _totalSupply = 1000L;
+        private readonly Hash _fakeBlockHeader = HashHelper.ComputeFrom("fakeBlockHeader");
         
         #region register test
+        
         [Fact]
         public async Task MainChain_RegisterCrossChainTokenContractAddress_Test()
         {
@@ -872,15 +882,7 @@ namespace AElf.Contracts.MultiToken
         #endregion
 
         #region private method
-
-        private async Task<int> GenerateSideChainAsync(bool registerParentChainTokenContractAddress = true)
-        {
-            var sideChainId =
-                await InitAndCreateSideChainAsync(sideChainSymbol, _parentChainHeightOfCreation, MainChainId, 100);
-            StartSideChain(sideChainId, _parentChainHeightOfCreation, sideChainSymbol,
-                registerParentChainTokenContractAddress);
-            return sideChainId;
-        }
+        
 
         private async Task GenerateSideChain2Async()
         {
