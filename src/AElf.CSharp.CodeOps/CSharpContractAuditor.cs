@@ -63,10 +63,7 @@ namespace AElf.CSharp.CodeOps
 
         private IEnumerable<ValidationResult> Validate<T>(T t, CancellationToken ct, bool isSystemContract)
         {
-            var validators = _policy.GetValidators<T>();
-            validators = isSystemContract
-                ? validators.FilterSystemContractApplicableValidators()
-                : validators;
+            var validators = _policy.GetValidators<T>().Where(v => !v.SystemContactIgnored || !isSystemContract);
             return validators.SelectMany(v => v.Validate(t, ct));
         }
         

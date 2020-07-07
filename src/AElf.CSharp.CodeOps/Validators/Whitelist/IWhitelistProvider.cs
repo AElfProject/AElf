@@ -8,7 +8,6 @@ using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist
 {
