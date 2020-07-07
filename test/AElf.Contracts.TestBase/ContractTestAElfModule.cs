@@ -43,8 +43,6 @@ namespace AElf.Contracts.TestBase
 
             context.Services.AddSingleton<ITxHub, MockTxHub>();
 
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
-
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 
             context.Services.AddTransient(o =>
