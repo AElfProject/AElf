@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Moq;
 using Shouldly;
 using Xunit;
+using Type = System.Type;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -124,29 +128,110 @@ namespace AElf.Sdk.CSharp.Tests
             changes.Writes.Count.ShouldBeGreaterThan(0);
 
             state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]] = "test";
-            state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[2]] = "test2";
+            state.MappedState[SampleAddress.AddressList[1]][SampleAddress.AddressList[2]] = "test2";
             state.MappedState[SampleAddress.AddressList[3]][SampleAddress.AddressList[4]] = "test3";
             state.MappedState[SampleAddress.AddressList[0]].Remove(SampleAddress.AddressList[1]);
             state.MappedState[SampleAddress.AddressList[3]].Remove(SampleAddress.AddressList[4]);
+            state.MappedState[SampleAddress.AddressList[0]].Remove(SampleAddress.AddressList[4]);
+            state.MappedState[SampleAddress.AddressList[1]][SampleAddress.AddressList[2]].ShouldBe("test2");
+            state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]].ShouldBeNull();
+            state.MappedState[SampleAddress.AddressList[0]].Set(SampleAddress.AddressList[5],"test5");
+            state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[5]].ShouldBe("test5");
+            var stateName = nameof(state.MappedState);
             changes = state.GetChanges();
+            changes.Deletes.Count.ShouldBe(3);
             var key = string.Join("/",
-                SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[0].ToBase58(), "dummy_address", stateName,
                 SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[1].ToString()
             );
             changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
-            key = string.Join(",", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
-                SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[2].ToString());
+            key = string.Join(",", SampleAddress.AddressList[0].ToBase58(), "dummy_address", stateName,
+                SampleAddress.AddressList[1].ToString(), SampleAddress.AddressList[2].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
-            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
+            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", stateName,
                 SampleAddress.AddressList[3].ToString(), SampleAddress.AddressList[4].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
 
-            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", "MappedState",
+            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", stateName,
                 SampleAddress.AddressList[4].ToString(), SampleAddress.AddressList[5].ToString());
             changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
+            key = string.Join("/", SampleAddress.AddressList[0].ToBase58(), "dummy_address", stateName,
+                SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[4].ToString());
+            changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
+            changes.Reads.Count.ShouldBeGreaterThanOrEqualTo(changes.Deletes.Count+ changes.Writes.Count);
+            
+            state.MappedState.OnContextSet();
+            state.MappedState.Context.ShouldBe(state.MappedState[SampleAddress.AddressList[1]].Context);
+            
+            state.MappedState[SampleAddress.AddressList[1]].Clear();
+            state.MappedState[SampleAddress.AddressList[1]][SampleAddress.AddressList[2]].ShouldBe(string.Empty);
             // Clear values
             state.Clear();
             AssertDefault(state);
+        }
+
+        [Fact]
+        public void MappedState_Test()
+        {
+            var path = new StatePath();
+            path.Parts.Add("dummy_address");
+            var mockProvider = new Mock<IStateProvider>();
+            var mockContext = new Mock<ISmartContractBridgeContext>();
+            mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
+            mockContext.SetupGet(o => o.Self).Returns(SampleAddress.AddressList[0]);
+            
+            var state = new MappedState<Address, Address, Address, string>
+            {
+                Path = path,
+                Context = new CSharpSmartContractContext(mockContext.Object)
+            };
+            
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]]
+                .ShouldBe(string.Empty);
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]] = "test";
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]]
+                .ShouldBe("test");
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]].Remove(SampleAddress.AddressList[2]);
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]].ShouldBeNull();
+
+            state[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[3]] = "test2";
+            state.OnContextSet();
+            state.Context.ShouldBe(state[SampleAddress.AddressList[0]].Context);
+
+            var changes = state.GetChanges();
+            changes.Deletes.Count.ShouldBe(1);
+            changes.Writes.Count.ShouldBe(1);
+            changes.Reads.Count.ShouldBe(changes.Deletes.Count + changes.Writes.Count);
+            
+            state.Clear();
+            state.GetChanges().ShouldBe(new TransactionExecutingStateSet());
+
+
+            var mapState = new MappedState<Address, Address, Address, Address, string>
+            {
+                Path = path,
+                Context = new CSharpSmartContractContext(mockContext.Object)
+            };
+            
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]][SampleAddress.AddressList[3]]
+                .ShouldBe(string.Empty);
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]][SampleAddress.AddressList[3]] = "test";
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]][SampleAddress.AddressList[3]]
+                .ShouldBe("test");
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]].Remove(SampleAddress.AddressList[3]);
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]][SampleAddress.AddressList[3]].ShouldBeNull();
+
+            mapState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]][SampleAddress.AddressList[2]][SampleAddress.AddressList[4]] = "test2";
+            mapState.OnContextSet();
+            mapState.Context.ShouldBe(mapState[SampleAddress.AddressList[0]].Context);
+
+            changes = mapState.GetChanges();
+            changes.Deletes.Count.ShouldBe(1);
+            changes.Writes.Count.ShouldBe(1);
+            changes.Reads.Count.ShouldBe(changes.Deletes.Count + changes.Writes.Count);
+            
+            mapState.Clear();
+            mapState.GetChanges().ShouldBe(new TransactionExecutingStateSet());
         }
 
         [Fact]
@@ -159,6 +244,8 @@ namespace AElf.Sdk.CSharp.Tests
                     Action0 = () => { },
                     Action1 = (x) => { },
                     Action2 = (x, y) => { },
+                    
+                    NotAction = 1,
 
                     Func1 = () => true,
                     Func2 = (x) => false,
@@ -191,6 +278,138 @@ namespace AElf.Sdk.CSharp.Tests
             var action2 = state.ElfToken.Action2.GetType();
             action2.IsAction().ShouldBeTrue();
             action2.IsFunc().ShouldBeFalse();
-        } 
+
+            var notAction = state.ElfToken.NotAction.GetType();
+            notAction.IsAction().ShouldBeFalse();
+        }
+
+        [Fact]
+        public void GetSubStatePath_Test()
+        {
+            var stateName = "Balances";
+            var state = new MappedStateBase();
+            state.Path = new StatePath();
+            state.Path.Parts.Add(stateName);
+            var key = "ELF";
+            var statePath = state.GetSubStatePath(key);
+            statePath.Parts.Count.ShouldBe(2);
+            statePath.Parts[0].ShouldBe(stateName);
+            statePath.Parts[1].ShouldBe(key);
+        }
+        
+
+        [Fact]
+        public void MethodReferenceExtensions_Test()
+        {
+            typeof(MethodReference<Address,Empty>).IsMethodReference().ShouldBeTrue();
+            typeof(Dictionary<string,string>).IsMethodReference().ShouldBeFalse();
+            typeof(string).IsMethodReference().ShouldBeFalse();
+        }
+
+        [Fact]
+        public void ReadOnlyState_Test()
+        {
+            var path = new StatePath();
+            path.Parts.Add("dummy_address");
+            var mockProvider = new Mock<IStateProvider>();
+            var mockContext = new Mock<ISmartContractBridgeContext>();
+            mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
+            mockContext.SetupGet(o => o.Self).Returns(SampleAddress.AddressList[0]);
+            var readOnlyState = new ReadonlyState<int>
+            {
+                Path = path,
+                Context = new CSharpSmartContractContext(mockContext.Object)
+            };
+            readOnlyState.Value.ShouldBe(default);
+            var intValue = 100;
+            var otherIntValue = 200;
+            readOnlyState.Value = intValue;
+            readOnlyState.Value.ShouldBe(intValue);
+            readOnlyState.Value = otherIntValue;
+            readOnlyState.Value.ShouldBe(intValue);
+
+            var changes = readOnlyState.GetChanges();
+            changes.Writes.Count.ShouldBe(1);
+            readOnlyState.Clear();
+            readOnlyState.Loaded.ShouldBeFalse();
+            readOnlyState.GetChanges().Writes.Count.ShouldBe(0);
+
+            var otherReadOnlyState = new ReadonlyState<int>
+            {
+                Path = path, 
+                Context = new CSharpSmartContractContext(mockContext.Object), 
+                Value = intValue
+            };
+            otherReadOnlyState.Value.ShouldBe(intValue);
+
+            var stringReadOnlyState = new ReadonlyState<string>
+            {
+                Path = path,
+                Context = new CSharpSmartContractContext(mockContext.Object)
+            };
+            var stringValue = "test";
+            stringReadOnlyState.Value = stringValue;
+            stringReadOnlyState.Value.ShouldBe(string.Empty);
+        }
+
+        [Fact]
+        public void SingletonState_Test()
+        {
+            var path = new StatePath();
+            path.Parts.Add("dummy_address");
+            var mockProvider = new Mock<IStateProvider>();
+            var mockContext = new Mock<ISmartContractBridgeContext>();
+            mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
+            mockContext.SetupGet(o => o.Self).Returns(SampleAddress.AddressList[0]);
+            var singletonState = new SingletonState<int>
+            {
+                Path = path,
+                Context = new CSharpSmartContractContext(mockContext.Object)
+            };
+            singletonState.Value.ShouldBe(default);
+            var intValue = 100;
+            singletonState.Value = intValue;
+            singletonState.Value.ShouldBe(intValue);
+
+            singletonState.Modified.ShouldBeTrue();
+            var changes = singletonState.GetChanges();
+            changes.Writes.Count.ShouldBe(1);
+            singletonState.Clear();
+            singletonState.Loaded.ShouldBeFalse();
+            singletonState.Modified.ShouldBeFalse();
+            singletonState.Value.ShouldBe(default);
+            singletonState.GetChanges().Writes.Count.ShouldBe(0);
+
+            var otherReadOnlyState = new ReadonlyState<int>
+            {
+                Path = path, 
+                Context = new CSharpSmartContractContext(mockContext.Object), 
+                Value = intValue
+            };
+            otherReadOnlyState.Value.ShouldBe(intValue);
+        }
+
+        [Fact]
+        public void StateBase_Test()
+        {
+            var part = "test";
+            var mockProvider = new Mock<IStateProvider>();
+            var mockContext = new Mock<ISmartContractBridgeContext>();
+            mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
+            mockContext.SetupGet(o => o.Self).Returns(SampleAddress.AddressList[0]);
+            var stateBase = new StateBase();
+            stateBase.Path = new StatePath
+            {
+                Parts = {part}
+            };
+            stateBase.Path.Parts.Single().ShouldBe(part);
+            var context = new CSharpSmartContractContext(mockContext.Object);
+            stateBase.Context = context;
+            stateBase.Context.ShouldBe(context);
+            stateBase.Provider.ShouldBe(mockProvider.Object);
+            stateBase.Clear();
+            var transactionExecutingStateSet = new TransactionExecutingStateSet();
+            stateBase.GetChanges().ShouldBe(transactionExecutingStateSet);
+        }
     }
 }
