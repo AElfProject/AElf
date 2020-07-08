@@ -47,7 +47,7 @@ namespace AElf.OS.Network.Application
 
         public async Task RefreshNodeAsync()
         {
-            var endpoint = await TakeFromDiscoveredNodeCache();
+            var endpoint = await TakeEndpointFromDiscoveredNodeCacheAsync();
             if (endpoint != null)
             {
                 if (await _aelfNetworkServer.CheckEndpointAvailableAsync(endpoint))
@@ -74,7 +74,7 @@ namespace AElf.OS.Network.Application
             return _nodeManager.GetRandomNodesAsync(maxCount);
         }
 
-        private async Task<string> TakeFromDiscoveredNodeCache()
+        private async Task<string> TakeEndpointFromDiscoveredNodeCacheAsync()
         {
             while (_discoveredNodeCacheProvider.TryTake(out var endpoint))
             {

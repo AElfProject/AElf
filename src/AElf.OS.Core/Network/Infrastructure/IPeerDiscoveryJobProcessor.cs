@@ -79,23 +79,23 @@ namespace AElf.OS.Network.Infrastructure
             if (nodeList?.Nodes == null)
                 return new List<NodeInfo>();
 
-            Logger.LogDebug($"Discovered nodes: {nodeList} from peer: {peer}.");
+            Logger.LogDebug($"Discover nodes: {nodeList} from peer: {peer}.");
             return nodeList.Nodes.ToList();
         }
 
         private async Task ProcessNodeAsync(NodeInfo node)
         {
-            if (!await ValidateNode(node))
+            if (!await ValidateNodeAsync(node))
                 return;
 
             if (await _nodeManager.AddNodeAsync(node))
             {
                 _discoveredNodeCacheProvider.Add(node.Endpoint);
-                Logger.LogDebug($"Discovered and add node: {node.Endpoint} successfully.");
+                Logger.LogDebug($"Discover and add node: {node.Endpoint} successfully.");
             }
             else
             {
-                var endpointLocal = await TakeFromDiscoveredNodeCache();
+                var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
                 if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
                 {
                     _discoveredNodeCacheProvider.Add(endpointLocal);
@@ -108,12 +108,12 @@ namespace AElf.OS.Network.Infrastructure
                         _discoveredNodeCacheProvider.Add(node.Endpoint);
 
                     Logger.LogDebug(
-                        $"Removed unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
+                        $"Remove unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
                 }
             }
         }
 
-        private async Task<bool> ValidateNode(NodeInfo node)
+        private async Task<bool> ValidateNodeAsync(NodeInfo node)
         {
             if ((await _accountService.GetPublicKeyAsync()).ToHex() == node.Pubkey.ToHex())
                 return false;
@@ -130,7 +130,7 @@ namespace AElf.OS.Network.Infrastructure
             return true;
         }
 
-        private async Task<string> TakeFromDiscoveredNodeCache()
+        private async Task<string> TakeEndpointFromDiscoveredNodeCacheAsync()
         {
             while (_discoveredNodeCacheProvider.TryTake(out var endpoint))
             {
