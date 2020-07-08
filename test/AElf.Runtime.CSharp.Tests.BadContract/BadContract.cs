@@ -100,7 +100,7 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public override Empty TestInfiniteLoop(Int32Value input)
         {
             int i = 0;
-            while (i++ < input.Value)
+            while (true)
             {
             }
             return new Empty();
@@ -157,8 +157,9 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public static void UseInfiniteLoopInSeparateClass(int count)
         {
             int i = 0;
-            while (i++ < count)
+            for (; true;)
             {
+                i++;
             }
         }
 

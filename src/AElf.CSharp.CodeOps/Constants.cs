@@ -12,6 +12,8 @@ namespace AElf.CSharp.CodeOps
         {
             OpCodes.Brtrue,
             OpCodes.Brtrue_S,
+            OpCodes.Br_S,
+            OpCodes.Br
         };
 
         public static readonly HashSet<string> PrimitiveTypes = new HashSet<string>

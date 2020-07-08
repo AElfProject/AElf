@@ -316,6 +316,45 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 StringValue = s
             };
         }
+        
+        public override Int32Output TestWhileInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            while (i++ < input.Int32Value)
+            {
+            }
+            return new Int32Output { Int32Value = i};
+        }
+
+        public override Int32Output TestWhileInfiniteLoopWithState(Int32Input input)
+        {
+            int i = 0;
+            while (i++ < input.Int32Value)
+            {
+                if(i%7 == 0)
+                    State.LoopInt32Value.Value = i;
+            }
+            return new Int32Output { Int32Value = State.LoopInt32Value.Value };
+        }
+
+        public override Int32Output TestForInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            for (i = 0;i < input.Int32Value;i++)
+            {
+            }
+            return new Int32Output { Int32Value = i};
+        }
+
+        public override Int32Output TestForeachInfiniteLoop(StringInput input)
+        {
+            int i = 1;
+            foreach (char a in input.StringValue)
+            {
+                i++;
+            }
+            return new Int32Output { Int32Value = i};
+        }
 
         public class InnerContractType
         {

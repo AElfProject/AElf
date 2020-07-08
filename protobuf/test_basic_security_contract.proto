@@ -62,6 +62,14 @@ service BasicSecurityContract {
     }
     rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
     }
+    rpc TestWhileInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestWhileInfiniteLoopWithState(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForeachInfiniteLoop(StringInput) returns (Int32Output) {
+    }
     
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
