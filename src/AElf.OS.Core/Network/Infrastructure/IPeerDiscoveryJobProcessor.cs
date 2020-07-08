@@ -1,0 +1,146 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
+using AElf.Kernel.Account.Application;
+using AElf.OS.Network.Domain;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
+using AElf.OS.Network.Extensions;
+
+namespace AElf.OS.Network.Infrastructure
+{
+    public interface IPeerDiscoveryJobProcessor
+    {
+        Task<bool> SendDiscoveryJobAsync(IPeer peer);
+    }
+
+    public class PeerDiscoveryJobProcessor : IPeerDiscoveryJobProcessor, ISingletonDependency
+    {
+        private readonly INodeManager _nodeManager;
+        private readonly IDiscoveredNodeCacheProvider _discoveredNodeCacheProvider;
+        private readonly IAElfNetworkServer _networkServer;
+        private readonly IAccountService _accountService;
+
+        private readonly TransformManyBlock<IPeer, NodeInfo> _discoverNodesDataflow;
+
+        private const int DiscoverNodesBoundedCapacity = 50;
+        private const int DiscoverNodesMaxDegreeOfParallelism = 5;
+        private const int ProcessNodeBoundedCapacity = 200;
+        private const int ProcessNodeMaxDegreeOfParallelism = 5;
+
+        public ILogger<PeerDiscoveryJobProcessor> Logger { get; set; }
+
+        public PeerDiscoveryJobProcessor(INodeManager nodeManager,
+            IDiscoveredNodeCacheProvider discoveredNodeCacheProvider, IAElfNetworkServer networkServer,
+            IAccountService accountService)
+        {
+            _nodeManager = nodeManager;
+            _discoveredNodeCacheProvider = discoveredNodeCacheProvider;
+            _networkServer = networkServer;
+            _accountService = accountService;
+            _discoverNodesDataflow = CreatePeerDiscoveryDataflow();
+
+            Logger = NullLogger<PeerDiscoveryJobProcessor>.Instance;
+        }
+
+        public async Task<bool> SendDiscoveryJobAsync(IPeer peer)
+        {
+            return await _discoverNodesDataflow.SendAsync(peer);
+        }
+
+        private TransformManyBlock<IPeer, NodeInfo> CreatePeerDiscoveryDataflow()
+        {
+            var discoverNodesDataflow = new TransformManyBlock<IPeer, NodeInfo>(
+                async peer => await DiscoverNodesAsync(peer),
+                new ExecutionDataflowBlockOptions
+                {
+                    BoundedCapacity = DiscoverNodesBoundedCapacity,
+                    MaxDegreeOfParallelism = DiscoverNodesMaxDegreeOfParallelism
+                });
+
+            var processNodeDataflow =
+                new ActionBlock<NodeInfo>(async node => await ProcessNodeAsync(node), new ExecutionDataflowBlockOptions
+                {
+                    BoundedCapacity = ProcessNodeBoundedCapacity,
+                    MaxDegreeOfParallelism = ProcessNodeMaxDegreeOfParallelism
+                });
+
+            discoverNodesDataflow.LinkTo(processNodeDataflow, new DataflowLinkOptions {PropagateCompletion = true});
+
+            return discoverNodesDataflow;
+        }
+
+        private async Task<List<NodeInfo>> DiscoverNodesAsync(IPeer peer)
+        {
+            var nodeList = await peer.GetNodesAsync();
+
+            if (nodeList?.Nodes == null)
+                return new List<NodeInfo>();
+
+            Logger.LogDebug($"Discovered nodes: {nodeList} from peer: {peer}.");
+            return nodeList.Nodes.ToList();
+        }
+
+        private async Task ProcessNodeAsync(NodeInfo node)
+        {
+            if (!await ValidateNode(node))
+                return;
+
+            if (await _nodeManager.AddNodeAsync(node))
+            {
+                _discoveredNodeCacheProvider.Add(node.Endpoint);
+                Logger.LogDebug($"Discovered and add node: {node.Endpoint} successfully.");
+            }
+            else
+            {
+                var endpointLocal = await TakeFromDiscoveredNodeCache();
+                if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
+                {
+                    _discoveredNodeCacheProvider.Add(endpointLocal);
+                    Logger.LogDebug($"Only refresh node: {endpointLocal}.");
+                }
+                else
+                {
+                    await _nodeManager.RemoveNodeAsync(endpointLocal);
+                    if (await _nodeManager.AddNodeAsync(node))
+                        _discoveredNodeCacheProvider.Add(node.Endpoint);
+
+                    Logger.LogDebug(
+                        $"Removed unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
+                }
+            }
+        }
+
+        private async Task<bool> ValidateNode(NodeInfo node)
+        {
+            if ((await _accountService.GetPublicKeyAsync()).ToHex() == node.Pubkey.ToHex())
+                return false;
+
+            if (await _nodeManager.GetNodeAsync(node.Endpoint) != null)
+            {
+                await _nodeManager.UpdateNodeAsync(node);
+                return false;
+            }
+
+            if (!await _networkServer.CheckEndpointAvailableAsync(node.Endpoint))
+                return false;
+
+            return true;
+        }
+
+        private async Task<string> TakeFromDiscoveredNodeCache()
+        {
+            while (_discoveredNodeCacheProvider.TryTake(out var endpoint))
+            {
+                if (await _nodeManager.GetNodeAsync(endpoint) != null)
+                    return endpoint;
+
+                await _nodeManager.RemoveNodeAsync(endpoint);
+            }
+
+            return null;
+        }
+    }
+}
