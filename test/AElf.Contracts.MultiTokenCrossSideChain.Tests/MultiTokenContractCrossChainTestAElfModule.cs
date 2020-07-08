@@ -1,0 +1,30 @@
+using AElf.Contracts.TestBase;
+using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Volo.Abp.Modularity;
+
+namespace AElf.Contracts.MultiTokenCrossSideChain
+{
+    [DependsOn(typeof(ContractTestAElfModule))]
+    public class MultiTokenContractCrossChainTestAElfModule : ContractTestAElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var instance = new TestTokenBalanceTransactionGenerator();
+            context.Services.AddSingleton(instance);
+            context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
+            context.Services.RemoveAll<IPreExecutionPlugin>();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+
+            Configure<HostSmartContractBridgeContextOptions>(options =>
+            {
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC,";
+                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
+            });
+        }
+    }
+}
