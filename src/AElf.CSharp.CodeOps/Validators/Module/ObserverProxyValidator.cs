@@ -129,10 +129,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Should be a call placed before each branching opcode
             foreach (var instruction in method.Body.Instructions)
             {
-                if (Constants.JumpingOpCodes.Contains(instruction.OpCode))
+                if (Constants.JumpingOpCodes.Contains(instruction.OpCode) && instruction.Operand is Instruction targetInstruction)
                 {
-                    var targetInstruction = (Instruction) instruction.Operand;
-
                     if (targetInstruction.OpCode == OpCodes.Nop)
                     {
                         var proxyCallInstruction = targetInstruction.Next; 
@@ -143,19 +141,6 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                                                                          $"[{method.DeclaringType.Name} > {method.Name}]"));
                         }
                     }
-                }
-
-                if (instruction.Operand is MethodReference methodRef &&
-                    methodRef.DeclaringType.FullName == typeof(IEnumerator).FullName &&
-                    methodRef.Name == "MoveNext")
-                {
-                    var jumpingInstruction = instruction.Next;
-                    if (!Constants.JumpingOpCodes.Contains(jumpingInstruction.OpCode) || 
-                        !(jumpingInstruction.Operand is Instruction targetInstruction) || 
-                        targetInstruction.Next.OpCode != OpCodes.Call ||
-                        targetInstruction.Next.Operand != _injProxyBranchCount)
-                        errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
-                                                                     $"[{method.DeclaringType.Name} > {method.Name}]"));
                 }
                 
                 // Calling SetObserver method within contract is a breach

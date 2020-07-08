@@ -149,19 +149,17 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
                 return;
 
             var il = method.Body.GetILProcessor();
-            
+
+            // Insert before every branching instruction
+            var branchingInstructions = method.Body.Instructions.Where(i => 
+                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
+
             il.Body.SimplifyMacros();
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
-            
-            var conditionalBranchingInstructions = method.Body.Instructions.Where(i => 
-                Constants.JumpingOpCodes.Contains(i.OpCode)).ToList();
-            foreach (var instruction in conditionalBranchingInstructions)
+            foreach (var instruction in branchingInstructions)
             {
                 var targetInstruction = (Instruction) instruction.Operand;
-                if (targetInstruction.OpCode == OpCodes.Nop || 
-                    instruction.Previous.Operand is MethodReference methodRef &&
-                    methodRef.DeclaringType.FullName == typeof(IEnumerator).FullName &&
-                    methodRef.Name == "MoveNext")
+                if (targetInstruction.OpCode == OpCodes.Nop)
                 {
                     il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
                 }

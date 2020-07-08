@@ -100,15 +100,16 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         public override Empty TestInfiniteLoop(Int32Value input)
         {
             int i = 0;
-            while (true)
+            while (i++ < input.Value)
             {
             }
+
             return new Empty();
         }
 
-        public override Empty TestInfiniteLoopInSeparateClass(Int32Value input)
+        public override Empty TestInfiniteLoopInSeparateClass(Empty input)
         {
-            SeparateClass.UseInfiniteLoopInSeparateClass(input.Value);
+            SeparateClass.UseInfiniteLoopInSeparateClass();
             return new Empty();
         }
 
@@ -154,7 +155,7 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return DateTime.Now;
         }
 
-        public static void UseInfiniteLoopInSeparateClass(int count)
+        public static void UseInfiniteLoopInSeparateClass()
         {
             int i = 0;
             for (; true;)

@@ -159,7 +159,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                         StringValue = input.ProtobufValue.StringValue
                     };
             }
-            
+
             return new Empty();
         }
 
@@ -199,7 +199,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                     input.ProtobufValue.StringValue];
             if (protobufMessage == null)
             {
-                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][input.ProtobufValue.StringValue] =
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
                     new ProtobufMessage
                     {
                         BoolValue = true,
@@ -209,7 +210,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             }
             else
             {
-                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][input.ProtobufValue.StringValue] =
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
                     new ProtobufMessage
                     {
                         BoolValue = true,
@@ -319,41 +321,61 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         
         public override Int32Output TestWhileInfiniteLoop(Int32Input input)
         {
-            int i = 0;
-            while (i++ < input.Int32Value)
+            int i = 1;
+            var count = input.Int32Value;
+            while (i++ < count)
             {
             }
-            return new Int32Output { Int32Value = i};
+
+            return new Int32Output{Int32Value = i};
         }
 
         public override Int32Output TestWhileInfiniteLoopWithState(Int32Input input)
         {
             int i = 0;
-            while (i++ < input.Int32Value)
+            var count = input.Int32Value;
+            while (i++ < count)
             {
-                if(i%7 == 0)
+                if (i % 7 == 0)
                     State.LoopInt32Value.Value = i;
             }
-            return new Int32Output { Int32Value = State.LoopInt32Value.Value };
+
+            return new Int32Output {Int32Value = State.LoopInt32Value.Value};
         }
 
         public override Int32Output TestForInfiniteLoop(Int32Input input)
         {
             int i = 0;
-            for (i = 0;i < input.Int32Value;i++)
+            var count = input.Int32Value;
+            for (i = 0; i < count; i++)
             {
             }
-            return new Int32Output { Int32Value = i};
+
+            return new Int32Output {Int32Value = i};
         }
 
         public override Int32Output TestForeachInfiniteLoop(StringInput input)
         {
             int i = 1;
-            foreach (char a in input.StringValue)
+            int[] arr = new int[3]; 
+            foreach (var t in arr)
             {
                 i++;
             }
-            return new Int32Output { Int32Value = i};
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Empty TestInfiniteRecursiveCall(Int32Input input)
+        {
+            RecursiveCall(input.Int32Value);
+            return new Empty();
+        }
+
+        private void RecursiveCall(int value)
+        {
+            if (value > 0)
+                RecursiveCall(value - 1);
         }
 
         public class InnerContractType

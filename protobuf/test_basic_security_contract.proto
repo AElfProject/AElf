@@ -70,7 +70,8 @@ service BasicSecurityContract {
     }
     rpc TestForeachInfiniteLoop(StringInput) returns (Int32Output) {
     }
-    
+    rpc TestInfiniteRecursiveCall (Int32Input) returns (google.protobuf.Empty) { }
+
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
         option (aelf.is_view) = true;
