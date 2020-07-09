@@ -156,7 +156,7 @@ namespace AElf.Kernel.SmartContract
                 HashHelper.XorAndCompute(fromHash, PreviousBlockHash)));
         }
 
-        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int number = 1)
+        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue)
         {
             if (start < 0 || start > end)
             {

@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract
 
         Hash GetRandomHash(Hash fromHash);
 
-        long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int generateNumber = 1);
+        long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue);
 
         object ValidateStateSize(object obj);
     }
