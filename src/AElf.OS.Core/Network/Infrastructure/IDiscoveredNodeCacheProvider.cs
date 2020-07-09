@@ -5,9 +5,9 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IDiscoveredNodeCacheProvider
     {
-        void Add(string nodeEndPoint);
+        void Add(string nodeEndpoint);
         
-        bool TryTake(out string nodeEndPoint);
+        bool TryTake(out string nodeEndpoint);
     }
 
     public class DiscoveredNodeCacheProvider : IDiscoveredNodeCacheProvider, ISingletonDependency
@@ -24,9 +24,9 @@ namespace AElf.OS.Network.Infrastructure
             _queuedNodes.Enqueue(nodeEndpoint);
         }
 
-        public bool TryTake(out string nodeEndPoint)
+        public bool TryTake(out string nodeEndpoint)
         {
-            return _queuedNodes.TryDequeue(out nodeEndPoint);
+            return _queuedNodes.TryDequeue(out nodeEndpoint);
         }
     }
 }

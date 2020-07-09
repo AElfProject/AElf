@@ -14,6 +14,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeerDiscoveryJobProcessor
     {
         Task<bool> SendDiscoveryJobAsync(IPeer peer);
+        Task CompleteAsync();
     }
 
     public class PeerDiscoveryJobProcessor : IPeerDiscoveryJobProcessor, ISingletonDependency
@@ -23,7 +24,8 @@ namespace AElf.OS.Network.Infrastructure
         private readonly IAElfNetworkServer _networkServer;
         private readonly IAccountService _accountService;
 
-        private readonly TransformManyBlock<IPeer, NodeInfo> _discoverNodesDataflow;
+        private TransformManyBlock<IPeer, NodeInfo> _discoverNodesDataflow;
+        private ActionBlock<NodeInfo> _processNodeDataflow;
 
         private const int DiscoverNodesBoundedCapacity = 50;
         private const int DiscoverNodesMaxDegreeOfParallelism = 5;
@@ -40,7 +42,7 @@ namespace AElf.OS.Network.Infrastructure
             _discoveredNodeCacheProvider = discoveredNodeCacheProvider;
             _networkServer = networkServer;
             _accountService = accountService;
-            _discoverNodesDataflow = CreatePeerDiscoveryDataflow();
+            CreatePeerDiscoveryDataflow();
 
             Logger = NullLogger<PeerDiscoveryJobProcessor>.Instance;
         }
@@ -50,9 +52,15 @@ namespace AElf.OS.Network.Infrastructure
             return await _discoverNodesDataflow.SendAsync(peer);
         }
 
-        private TransformManyBlock<IPeer, NodeInfo> CreatePeerDiscoveryDataflow()
+        public async Task CompleteAsync()
         {
-            var discoverNodesDataflow = new TransformManyBlock<IPeer, NodeInfo>(
+            _discoverNodesDataflow.Complete();
+            await _processNodeDataflow.Completion;
+        }
+
+        private void CreatePeerDiscoveryDataflow()
+        {
+            _discoverNodesDataflow = new TransformManyBlock<IPeer, NodeInfo>(
                 async peer => await DiscoverNodesAsync(peer),
                 new ExecutionDataflowBlockOptions
                 {
@@ -60,16 +68,14 @@ namespace AElf.OS.Network.Infrastructure
                     MaxDegreeOfParallelism = DiscoverNodesMaxDegreeOfParallelism
                 });
 
-            var processNodeDataflow =
+            _processNodeDataflow =
                 new ActionBlock<NodeInfo>(async node => await ProcessNodeAsync(node), new ExecutionDataflowBlockOptions
                 {
                     BoundedCapacity = ProcessNodeBoundedCapacity,
                     MaxDegreeOfParallelism = ProcessNodeMaxDegreeOfParallelism
                 });
 
-            discoverNodesDataflow.LinkTo(processNodeDataflow, new DataflowLinkOptions {PropagateCompletion = true});
-
-            return discoverNodesDataflow;
+            _discoverNodesDataflow.LinkTo(_processNodeDataflow, new DataflowLinkOptions {PropagateCompletion = true});
         }
 
         private async Task<List<NodeInfo>> DiscoverNodesAsync(IPeer peer)
