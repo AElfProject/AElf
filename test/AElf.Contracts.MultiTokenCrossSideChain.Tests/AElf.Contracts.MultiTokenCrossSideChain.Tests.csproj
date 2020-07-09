@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>AElf.Contracts.MultiTokenCrossSideChain</RootNamespace>
@@ -37,6 +36,11 @@
         <OutputItemType>Contract</OutputItemType>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" >
+        <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+        <OutputItemType>Contract</OutputItemType>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ProjectReference>
     
     <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
     <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
@@ -60,9 +64,6 @@
     </ContractStub>
     <ContractStub Include="..\..\protobuf\acs5.proto">
         <Link>Protobuf\Proto\acs5.proto</Link>
-    </ContractStub>
-    <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
-        <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
     </ContractStub>
     <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
         <Link>Protobuf\Proto\transaction_fee.proto</Link>
