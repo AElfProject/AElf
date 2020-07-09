@@ -75,7 +75,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var tokenSymbol = "CWJ";
             var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
-            await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+            await ExecuteProposalForParliamentTransaction(Tester,
                 TokenConverterContractAddress,
                 nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
             var getPairConnector = await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol
@@ -83,6 +83,65 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = tokenSymbol
             });
             getPairConnector.ResourceConnector.Symbol.Equals(tokenSymbol).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task UpdateConnector_Without_Authority_Test()
+        {
+            var tokenSymbol = "CWJ";
+            await AddPairConnectorAsync(tokenSymbol);
+            var updateConnector = new Connector
+            {
+                Symbol = tokenSymbol,
+                Weight = "0.3"
+            };
+            var updateRet = await TokenConverterContractStub.UpdateConnector.SendAsync(updateConnector);
+            updateRet.TransactionResult.Error.ShouldContain("Only manager can perform this action.");
+        }
+        
+        // if update resource token connector, the virtual balance as a parameter should not equal to the origin one.
+        [Theory]
+        [InlineData(true, "", "0.5", 0, "input symbol can not be empty")]
+        [InlineData(true, "TTA", "0.5", 0, "Can not find target connector.")]
+        [InlineData(true, "LIO", "0.5a", 0, "Invalid decimal")]
+        [InlineData(true, "LIO", "1", 0, "Connector Shares has to be a decimal between 0 and 1.")]
+        [InlineData(true, "LIO", "0.5", 20, "")]
+        [InlineData(false, "LIO", "0.3", 200, "")]
+        public async Task UpdateConnector_Test(bool isUpdateResourceToken, string inputTokenSymbol,
+            string weight, long virtualBalance, string error)
+        {
+            var creatConnectorTokenSymbol = "LIO";
+            await AddPairConnectorAsync(creatConnectorTokenSymbol);
+            var pairConnector = await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol
+            {
+                Symbol = creatConnectorTokenSymbol
+            });
+            var updateConnectorInput =
+                isUpdateResourceToken ? pairConnector.ResourceConnector : pairConnector.ResourceConnector;
+            if(isUpdateResourceToken)
+                updateConnectorInput.Symbol = inputTokenSymbol;
+            updateConnectorInput.Weight = weight;
+            updateConnectorInput.VirtualBalance = virtualBalance;
+            var updateRet = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                TokenConverterContractAddress,
+                nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector), updateConnectorInput);
+            if(!string.IsNullOrEmpty(error))
+                updateRet.Error.ShouldContain(error);
+            else
+            {
+                updateRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                var afterUpdatePairConnector = await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol
+                {
+                    Symbol = creatConnectorTokenSymbol
+                });
+                var afterUpdateConnector =
+                    isUpdateResourceToken ? afterUpdatePairConnector.ResourceConnector : pairConnector.ResourceConnector;
+                updateConnectorInput.Weight.Equals(afterUpdateConnector.Weight).ShouldBeTrue();
+                if(isUpdateResourceToken)
+                    updateConnectorInput.VirtualBalance.ShouldNotBe(afterUpdateConnector.VirtualBalance);
+                else
+                    updateConnectorInput.VirtualBalance.ShouldBe(afterUpdateConnector.VirtualBalance);
+            }
         }
         
          [Fact]
@@ -286,6 +345,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Symbol = symbol
                 });
             return balanceResult.Balance;
+        }
+
+        private async Task AddPairConnectorAsync(string tokenSymbol)
+        {
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            await ExecuteProposalForParliamentTransaction(Tester,
+                TokenConverterContractAddress,
+                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
         }
     }
 }
