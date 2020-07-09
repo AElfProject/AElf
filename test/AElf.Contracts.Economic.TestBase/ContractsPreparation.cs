@@ -543,80 +543,59 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
+        protected async Task ApproveByParliamentMembers(Hash proposalId)
         {
-            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposal = new CreateProposalInput
-            {
-                OrganizationAddress = genesisOwner,
-                ContractMethodName = method,
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-                Params = input.ToByteString(),
-                ToAddress = contract
-            };
-            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            CheckResult(createResult.TransactionResult);
-
-            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(proposalHash);
-                CheckResult(approveResult.TransactionResult);
+                await tester.Approve.SendAsync(proposalId);
             }
-
-            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
-            CheckResult(releaseResult.TransactionResult);
         }
-        
-        protected async Task ExecuteProposalTransactionWithNewParliament(Address from, Address contract, string method, IMessage input, Address genesisOwner)
+
+        private async Task<Hash> CreateAndApproveProposalForParliament(Address from, Address contract,
+            string method, IMessage input, Address parliamentOrganization = null)
         {
+            if(parliamentOrganization == null)
+                parliamentOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
-                OrganizationAddress = genesisOwner,
+                OrganizationAddress = parliamentOrganization,
                 ContractMethodName = method,
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
                 Params = input.ToByteString(),
                 ToAddress = contract
             };
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            CheckResult(createResult.TransactionResult);
+            var proposalHash = createResult.Output;
+            await ApproveByParliamentMembers(proposalHash);
 
-            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
-            foreach (var bp in InitialCoreDataCenterKeyPairs)
-            {
-                var tester = GetParliamentContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(proposalHash);
-                CheckResult(approveResult.TransactionResult);
-            }
-
-            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
-            CheckResult(releaseResult.TransactionResult);
+            return proposalHash;
         }
-        
-        protected async Task<TransactionResult> ExecuteProposalTransactionWithTransactionResult(Address from, Address contract, string method, IMessage input)
+
+        protected async Task<TransactionResult> ExecuteProposalForParliamentTransaction(Address from, Address contract,
+            string method, IMessage input, Address parliamentOrganization = null)
         {
-            var genesisOwner = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposal = new CreateProposalInput
-            {
-                OrganizationAddress = genesisOwner,
-                ContractMethodName = method,
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-                Params = input.ToByteString(),
-                ToAddress = contract
-            };
-            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            CheckResult(createResult.TransactionResult);
-
-            var proposalHash = Hash.Parser.ParseFrom(createResult.TransactionResult.ReturnValue);
-            foreach (var bp in InitialCoreDataCenterKeyPairs)
-            {
-                var tester = GetParliamentContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(proposalHash);
-                CheckResult(approveResult.TransactionResult);
-            }
-
+            if (parliamentOrganization == null)
+                parliamentOrganization =
+                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalHash =
+                await CreateAndApproveProposalForParliament(from, contract, method, input,
+                    parliamentOrganization);
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
+            return releaseResult.TransactionResult;
+        }
+
+        protected async Task<TransactionResult> ExecuteProposalTransactionForParliamentWithException(Address from,
+            Address contract,
+            string method, IMessage input, Address parliamentOrganization = null)
+        {
+            if (parliamentOrganization == null)
+                parliamentOrganization =
+                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalHash =
+                await CreateAndApproveProposalForParliament(from, contract, method, input,
+                    parliamentOrganization);
+            var releaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalHash);
             return releaseResult.TransactionResult;
         }
 

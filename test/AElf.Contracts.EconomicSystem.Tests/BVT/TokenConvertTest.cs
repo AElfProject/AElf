@@ -35,67 +35,74 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress
             };
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController), newAuthority);
+            await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress, nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController), newAuthority);
             var controller = await TokenConverterContractStub.GetControllerForManageConnector.CallAsync(new Empty());
             controller.OwnerAddress.ShouldBe(calculatedNewParliamentAddress);
+        }
+
+        [Fact]
+        public async Task AddPairConnector_With_Invalid_Input_Test()
+        {
+            string tokenSymbol = "NETT";
+            // add connector without authority
+            {
+                var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+                var addConnectorWithoutAuthorityRet =
+                    await TokenConverterContractStub.AddPairConnector.SendWithExceptionAsync(pairConnector);
+                addConnectorWithoutAuthorityRet.TransactionResult.Error.ShouldContain(
+                    "Only manager can perform this action.");
+            }
+
+            //input invalid token symbol
+            {
+                var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+                pairConnector.ResourceConnectorSymbol = string.Empty;
+                await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+            }
+            
         }
         
          [Fact]
         public async Task Add_Pair_Connector_And_Enable_Success_Test()
         {
-            string token = "NETT";
-            var createTokenRet = (await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = token,
-                TokenName = "NETT name",
-                TotalSupply = 100_0000_0000,
-                Issuer = BootMinerAddress,
-                IsBurnable = true,
-                LockWhiteList = { TokenConverterContractAddress}
-            })).TransactionResult;
-            createTokenRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var pairConnector = new PairConnectorParam
-            {
-                ResourceConnectorSymbol = token,
-                ResourceWeight = "0.05",
-                NativeWeight = "0.05",
-                NativeVirtualBalance = 1_0000_0000,
-            };
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
+            string tokenSymbol = "NETT";
+            await CreateTokenAsync(tokenSymbol);
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                 nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
-            var resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
+            var resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
             resourceConnector.ShouldNotBeNull();
             resourceConnector.IsPurchaseEnabled.ShouldBe(false);
-            var issueRet = (await TokenContractStub.Issue.SendAsync(new IssueInput
+            await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Amount = 99_9999_0000,
                 To = BootMinerAddress,
-                Symbol = token
-            })).TransactionResult;
-            issueRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                Symbol = tokenSymbol
+            });
             var toBeBuildConnectorInfo = new ToBeConnectedTokenInfo
             {
-                TokenSymbol = token,
+                TokenSymbol = tokenSymbol,
                 AmountToTokenConvert = 99_9999_0000
             }; 
             var deposit = await TokenConverterContractStub.GetNeededDeposit.CallAsync(toBeBuildConnectorInfo);
             deposit.NeedAmount.ShouldBe(100);
             var buildRet = (await TokenConverterContractStub.EnableConnector.SendAsync(toBeBuildConnectorInfo)).TransactionResult;
             buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var tokenInTokenConvert = await GetBalanceAsync(token, TokenConverterContractAddress);
+            var tokenInTokenConvert = await GetBalanceAsync(tokenSymbol, TokenConverterContractAddress);
             tokenInTokenConvert.ShouldBe(99_9999_0000);
-            resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
+            resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
             resourceConnector.ShouldNotBeNull();
             resourceConnector.IsPurchaseEnabled.ShouldBe(true);
-            var beforeTokenBalance = await GetBalanceAsync(token, BootMinerAddress);
+            var beforeTokenBalance = await GetBalanceAsync(tokenSymbol, BootMinerAddress);
             var beforeBaseBalance = await GetBalanceAsync(EconomicContractsTestConstants.NativeTokenSymbol, BootMinerAddress);
             var buyRet = (await TokenConverterContractStub.Buy.SendAsync(new BuyInput
             {
-                Symbol = token,
+                Symbol = tokenSymbol,
                 Amount = 10000
             })).TransactionResult;
             buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var afterTokenBalance = await GetBalanceAsync(token, BootMinerAddress);
+            var afterTokenBalance = await GetBalanceAsync(tokenSymbol, BootMinerAddress);
             var afterBaseBalance = await GetBalanceAsync(EconomicContractsTestConstants.NativeTokenSymbol, BootMinerAddress);
             (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
             (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
@@ -121,7 +128,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "test value"
                 };
-                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
+                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
@@ -133,7 +140,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "1.05"
                 };
-                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
+                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
@@ -145,7 +152,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "0.15"
                 };
-                var transactionResult = await ExecuteProposalTransactionWithTransactionResult(Tester, TokenConverterContractAddress,
+                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
@@ -176,7 +183,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     NativeWeight = "0.05",
                     NativeVirtualBalance = 1_000_000_00000000,
                 };
-                await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
+                await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
                 var ramNewInfo = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol()
                 {
@@ -207,7 +214,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 NativeWeight = "0.05",
                 NativeVirtualBalance = 1_0000_0000,
             };
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                 nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
             var updateConnector = new Connector
             {
@@ -218,16 +225,41 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Weight = "0.49",
                 RelatedSymbol = "change"
             };
-            await ExecuteProposalTransaction(Tester, TokenConverterContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                 nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector), updateConnector);
             var resourceConnector = (await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = token})).ResourceConnector;
             resourceConnector.Weight.ShouldBe("0.49");
+        }
+
+        private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
+            string resourceWeight = "0.05", string nativeWeight = "0.05")
+        {
+            return new PairConnectorParam
+            {
+                ResourceConnectorSymbol = tokenSymbol,
+                ResourceWeight = resourceWeight,
+                NativeWeight = nativeWeight,
+                NativeVirtualBalance = nativeBalance
+            };
+        }
+
+        private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000)
+        {
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = symbol,
+                TokenName = symbol + " name",
+                TotalSupply = totalSupply,
+                Issuer = BootMinerAddress,
+                IsBurnable = true,
+                LockWhiteList = {TokenConverterContractAddress}
+            });
         }
         
         private async Task<long> GetBalanceAsync(string symbol, Address owner)
         {
             var balanceResult = await TokenContractStub.GetBalance.CallAsync(
-                new GetBalanceInput()
+                new GetBalanceInput
                 {
                     Owner = owner,
                     Symbol = symbol

@@ -68,7 +68,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = createOrganizationResult.Output;
 
             var methodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeMethodFeeController),
                 new AuthorityInfo
                 {
@@ -93,7 +93,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var updatedWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BackupSubsidyProportionInfo.Proportion.ShouldBe(10);
             updatedWeightSetting.CitizenWelfareProportionInfo.Proportion.ShouldBe(10);
@@ -118,7 +118,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var minerRewardProfit =
                 await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
@@ -148,7 +148,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ReElectionRewardWeight = 1,
                 VotesWeightRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.SetMinerRewardWeightSetting), newWeightSetting);
             var updatedWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BasicMinerRewardProportionInfo.Proportion.ShouldBe(10);
