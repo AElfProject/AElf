@@ -21,24 +21,4 @@ namespace AElf.Contracts.MultiToken
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
-
-    [DependsOn(typeof(ContractTestAElfModule))]
-    public class MultiTokenContractCrossChainTestAElfModule : ContractTestAElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var instance = new TestTokenBalanceTransactionGenerator();
-            context.Services.AddSingleton(instance);
-            context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
-            context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
-
-            Configure<HostSmartContractBridgeContextOptions>(options =>
-            {
-                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables["SymbolListToPayTxFee"] = "WRITE,READ,STORAGE,TRAFFIC,";
-                options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
-            });
-        }
-    }
 }

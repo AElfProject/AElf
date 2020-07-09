@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel;
