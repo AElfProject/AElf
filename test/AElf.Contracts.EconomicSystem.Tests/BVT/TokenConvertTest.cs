@@ -40,27 +40,49 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             controller.OwnerAddress.ShouldBe(calculatedNewParliamentAddress);
         }
 
+
+        [Theory]
+        [InlineData("WRITE", "0.5", "0.5", "resource token symbol has existed")]
+        [InlineData("", "0.5", "0.5", "resource token symbol should not be empty")]
+        [InlineData("N89", "0.2", "0.5", "Invalid symbol.")]
+        [InlineData("MKA", "0", "0.5", "Connector Shares has to be a decimal between 0 and 1.")]
+        [InlineData("JUN", "0.9", "1", "Connector Shares has to be a decimal between 0 and 1.")]
+        public async Task AddPairConnector_With_Invalid_Input_Test(string tokenSymbol, string resourceWeight,
+            string nativeWeight, string errorMessage)
+        {
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            pairConnector.NativeWeight = nativeWeight;
+            pairConnector.ResourceWeight = resourceWeight;
+            var addPairConnectorRet = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                TokenConverterContractAddress,
+                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+            addPairConnectorRet.Error.ShouldContain(errorMessage);
+        }
+        
         [Fact]
-        public async Task AddPairConnector_With_Invalid_Input_Test()
+        public async Task AddPairConnector_Without_Authority_Test()
         {
             string tokenSymbol = "NETT";
-            // add connector without authority
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            var addConnectorWithoutAuthorityRet =
+                await TokenConverterContractStub.AddPairConnector.SendAsync(pairConnector);
+            addConnectorWithoutAuthorityRet.TransactionResult.Error.ShouldContain(
+                "Only manager can perform this action.");
+        }
+        
+        [Fact]
+        public async Task AddPairConnector_Success_Test()
+        {
+            var tokenSymbol = "CWJ";
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                TokenConverterContractAddress,
+                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+            var getPairConnector = await TokenConverterContractStub.GetPairConnector.CallAsync(new TokenSymbol
             {
-                var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
-                var addConnectorWithoutAuthorityRet =
-                    await TokenConverterContractStub.AddPairConnector.SendWithExceptionAsync(pairConnector);
-                addConnectorWithoutAuthorityRet.TransactionResult.Error.ShouldContain(
-                    "Only manager can perform this action.");
-            }
-
-            //input invalid token symbol
-            {
-                var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
-                pairConnector.ResourceConnectorSymbol = string.Empty;
-                await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
-            }
-            
+                Symbol = tokenSymbol
+            });
+            getPairConnector.ResourceConnector.Symbol.Equals(tokenSymbol).ShouldBeTrue();
         }
         
          [Fact]
@@ -128,7 +150,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "test value"
                 };
-                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
+                var transactionResult = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
@@ -140,7 +162,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "1.05"
                 };
-                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
+                var transactionResult = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
@@ -152,10 +174,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = "0.15"
                 };
-                var transactionResult = await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
+                await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress,
                     nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), newRate);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
                 var feeRate1 = await TokenConverterContractStub.GetFeeRate.CallAsync(new Empty());
                 feeRate1.ShouldBe(newRate);
             }

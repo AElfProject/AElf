@@ -548,7 +548,8 @@ namespace AElf.Contracts.Economic.TestBase
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
-                await tester.Approve.SendAsync(proposalId);
+                var approveResult = await tester.Approve.SendAsync(proposalId);
+                CheckResult(approveResult.TransactionResult);
             }
         }
 
@@ -566,13 +567,14 @@ namespace AElf.Contracts.Economic.TestBase
                 ToAddress = contract
             };
             var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            CheckResult(createResult.TransactionResult);
             var proposalHash = createResult.Output;
             await ApproveByParliamentMembers(proposalHash);
-
             return proposalHash;
         }
-
-        protected async Task<TransactionResult> ExecuteProposalForParliamentTransaction(Address from, Address contract,
+        
+        protected async Task<TransactionResult> ExecuteProposalForParliamentTransactionWithoutCheck(Address from,
+            Address contract,
             string method, IMessage input, Address parliamentOrganization = null)
         {
             if (parliamentOrganization == null)
@@ -585,18 +587,14 @@ namespace AElf.Contracts.Economic.TestBase
             return releaseResult.TransactionResult;
         }
 
-        protected async Task<TransactionResult> ExecuteProposalTransactionForParliamentWithException(Address from,
-            Address contract,
+        protected async Task ExecuteProposalForParliamentTransaction(Address from, Address contract,
             string method, IMessage input, Address parliamentOrganization = null)
         {
-            if (parliamentOrganization == null)
-                parliamentOrganization =
-                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalHash =
-                await CreateAndApproveProposalForParliament(from, contract, method, input,
+
+            var releaseResult =
+                await ExecuteProposalForParliamentTransactionWithoutCheck(from, contract, method, input,
                     parliamentOrganization);
-            var releaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalHash);
-            return releaseResult.TransactionResult;
+            CheckResult(releaseResult);
         }
 
         #endregion

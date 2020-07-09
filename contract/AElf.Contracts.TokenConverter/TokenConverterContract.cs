@@ -74,7 +74,7 @@ namespace AElf.Contracts.TokenConverter
                 "resource token symbol should not be empty");
             var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
             Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
-                "resource token symbol has been existed");
+                "resource token symbol has existed");
             var resourceConnector = new Connector
             {
                 Symbol = input.ResourceConnectorSymbol,
