@@ -64,7 +64,6 @@ namespace AElf.Contracts.TokenConverter
         {
             var toConnector = State.Connectors[input.TokenSymbol];
             Assert(toConnector != null, "[GetNeededDeposit]Can't find to connector.");
-            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             Assert(fromConnector != null, "[GetNeededDeposit]Can't find from connector.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(

@@ -543,7 +543,7 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        protected async Task ApproveByParliamentMembers(Hash proposalId)
+        private async Task ApproveByParliamentMembers(Hash proposalId)
         {
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
@@ -573,10 +573,11 @@ namespace AElf.Contracts.Economic.TestBase
             return proposalHash;
         }
         
-        protected async Task<TransactionResult> ExecuteProposalForParliamentTransactionWithoutCheck(Address from,
-            Address contract,
+
+        protected async Task ExecuteProposalForParliamentTransaction(Address from, Address contract,
             string method, IMessage input, Address parliamentOrganization = null)
         {
+
             if (parliamentOrganization == null)
                 parliamentOrganization =
                     await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
@@ -584,17 +585,7 @@ namespace AElf.Contracts.Economic.TestBase
                 await CreateAndApproveProposalForParliament(from, contract, method, input,
                     parliamentOrganization);
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
-            return releaseResult.TransactionResult;
-        }
-
-        protected async Task ExecuteProposalForParliamentTransaction(Address from, Address contract,
-            string method, IMessage input, Address parliamentOrganization = null)
-        {
-
-            var releaseResult =
-                await ExecuteProposalForParliamentTransactionWithoutCheck(from, contract, method, input,
-                    parliamentOrganization);
-            CheckResult(releaseResult);
+            CheckResult(releaseResult.TransactionResult);
         }
 
         #endregion
