@@ -315,6 +315,11 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
 
+        public object ValidateStateSize(object obj)
+        {
+            return _smartContractBridgeContextImplementation.ValidateStateSize(obj);
+        }
+
         public Hash GetRandomHash(Hash fromHash)
         {
             return _smartContractBridgeContextImplementation.GetRandomHash(fromHash);

@@ -29,7 +29,6 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<INetworkService, NetworkService>();
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
 
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();

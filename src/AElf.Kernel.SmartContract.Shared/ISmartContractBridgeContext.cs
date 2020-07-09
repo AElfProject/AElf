@@ -80,6 +80,8 @@ namespace AElf.Kernel.SmartContract
         Hash GetRandomHash(Hash fromHash);
 
         long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue, int generateNumber = 1);
+
+        object ValidateStateSize(object obj);
     }
 
     [Serializable]
@@ -169,4 +171,25 @@ namespace AElf.Kernel.SmartContract
         {
         }
     }
+
+    [Serializable]
+    public class StateOverSizeException : SmartContractBridgeException
+    {
+        public StateOverSizeException()
+        {
+        }
+
+        public StateOverSizeException(string message) : base(message)
+        {
+        }
+
+        public StateOverSizeException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected StateOverSizeException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+    }
+    
 }

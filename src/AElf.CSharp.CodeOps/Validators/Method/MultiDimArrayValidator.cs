@@ -9,6 +9,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class MultiDimArrayValidator : IValidator<MethodDefinition>, ITransientDependency
     {
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)
