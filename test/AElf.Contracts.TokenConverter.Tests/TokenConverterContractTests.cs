@@ -4,6 +4,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -82,38 +83,78 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task Initialize_Failed_Test()
         {
-            var input = new InitializeInput
-            {
-                BaseTokenSymbol = NativeSymbol,
-                FeeRate = "0.005",
-                Connectors = {WriteConnector}
-            };
-
             //Base token symbol is invalid.
             {
+                var input = GetLegalInitializeInput();
                 input.BaseTokenSymbol = "elf1";
                 var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
             }
 
-            //Invalid symbol
+            //invalid fee rate
             {
-                input.BaseTokenSymbol = "ELF";
-                WriteConnector.Symbol = "write";
+                var input = GetLegalInitializeInput();
+                input.FeeRate = "1ass";
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Invalid decimal \"1ass\"").ShouldBeTrue();
+            }
+            
+            //invalid fee rate  fee rate should >0 && < 1
+            {
+                var input = GetLegalInitializeInput();
+                input.FeeRate = "1";
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Fee rate has to be a decimal between 0 and 1.").ShouldBeTrue();
+            }
+            
+            //Invalid connector symbol
+            {
+                var input = GetLegalInitializeInput();
+                input.Connectors[0].Symbol = "write";
                 var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Invalid symbol.").ShouldBeTrue();
             }
+            
+            //invalid weight rate
+            {
+                var input = GetLegalInitializeInput();
+                input.Connectors[0].Weight = "1";
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Connector Shares has to be a decimal between 0 and 1.").ShouldBeTrue();
+            }
+            
+            //invalid weight rate
+            {
+                var input = GetLegalInitializeInput();
+                input.Connectors[0].Weight = "weight1ass";
+                var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Invalid decimal \"weight1ass\"").ShouldBeTrue();
+            }
 
             //Already initialized
             {
-                WriteConnector.Symbol = "WRITE";
+                var input = GetLegalInitializeInput();
                 await InitializeTokenConverterContract();
                 var result = (await DefaultStub.Initialize.SendWithExceptionAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Already initialized.").ShouldBeTrue();
             }
+        }
+        
+        [Fact]
+        public async Task Initialize_With_Default_Base_Token_Test()
+        {
+            var input = GetLegalInitializeInput();
+            input.BaseTokenSymbol = string.Empty;
+            await DefaultStub.Initialize.SendAsync(input);
+            var baseTokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
+            baseTokenSymbol.Symbol.Equals(NativeSymbol).ShouldBeTrue();
         }
 
         [Fact]
@@ -170,16 +211,6 @@ namespace AElf.Contracts.TokenConverter
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
-
-            var buyResultInvalidSymbol = (await DefaultStub.Buy.SendWithExceptionAsync(
-                new BuyInput
-                {
-                    Symbol = "write",
-                    Amount = 1000L,
-                    PayLimit = 1010L
-                })).TransactionResult;
-            buyResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
-            buyResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
 
             var buyResultNotExistConnector = (await DefaultStub.Buy.SendWithExceptionAsync(
                 new BuyInput
@@ -274,16 +305,6 @@ namespace AElf.Contracts.TokenConverter
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var sellResultInvalidSymbol = (await DefaultStub.Sell.SendWithExceptionAsync(
-                new SellInput
-                {
-                    Symbol = "write",
-                    Amount = 1000L,
-                    ReceiveLimit = 900L
-                })).TransactionResult;
-            sellResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
-            sellResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
-
             var sellResultNotExistConnector = (await DefaultStub.Sell.SendWithExceptionAsync(
                 new SellInput()
                 {
@@ -308,6 +329,17 @@ namespace AElf.Contracts.TokenConverter
         #endregion
 
         #region Private Task
+        private InitializeInput GetLegalInitializeInput()
+        {
+            var writeConnector = Connector.Parser.ParseFrom(WriteConnector.ToByteString());
+            return new InitializeInput
+            {
+                BaseTokenSymbol = NativeSymbol,
+                FeeRate = "0.005",
+                Connectors = {writeConnector}
+            };
+        }
+        
         private async Task CreateRamToken()
         {
             var createResult = (await TokenContractStub.Create.SendAsync(

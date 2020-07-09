@@ -41,9 +41,6 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub TokenContractStub =>
             GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-        internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
-
         internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub =>
             GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                 DefaultSenderKeyPair);
