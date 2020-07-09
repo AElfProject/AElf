@@ -82,7 +82,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Symbol = tokenSymbol
             });
-            getPairConnector.ResourceConnector.Symbol.Equals(tokenSymbol).ShouldBeTrue();
+            getPairConnector.ResourceConnector.Symbol.ShouldBe(tokenSymbol);
         }
 
         [Fact]
@@ -136,11 +136,77 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 var afterUpdateConnector =
                     isUpdateResourceToken ? afterUpdatePairConnector.ResourceConnector : pairConnector.ResourceConnector;
-                updateConnectorInput.Weight.Equals(afterUpdateConnector.Weight).ShouldBeTrue();
+                updateConnectorInput.Weight.ShouldBe(afterUpdateConnector.Weight);;
                 if(isUpdateResourceToken)
                     updateConnectorInput.VirtualBalance.ShouldNotBe(afterUpdateConnector.VirtualBalance);
                 else
                     updateConnectorInput.VirtualBalance.ShouldBe(afterUpdateConnector.VirtualBalance);
+            }
+        }
+
+        [Fact]
+        public async Task Trade_With_UnPurchasable_Connector_Test()
+        {
+            var symbol = "PXY";
+            await AddPairConnectorAsync(symbol);
+            var buyRet = await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = symbol,
+                Amount = 100
+            });
+            buyRet.TransactionResult.Error.ShouldContain("can't purchase");
+            
+            var sellRet = await TokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = symbol,
+                Amount = 100
+            });
+            sellRet.TransactionResult.Error.ShouldContain("can't purchase");
+        }
+
+        [Fact]
+        public async Task SetFeeRate_Test()
+        {
+            //not controller
+            {
+                var setFeeRateRet = await TokenConverterContractStub.SetFeeRate.SendAsync(new StringValue
+                {
+                    Value = "0.5"
+                });
+                setFeeRateRet.TransactionResult.Error.ShouldContain("Only manager can perform this action.");
+            }
+
+            var invalidRate = new StringValue();
+            // can not parse
+            {
+                invalidRate.Value = "asd";
+                var setFeeRateRet = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                    TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), invalidRate);
+                setFeeRateRet.Error.ShouldContain("Invalid decimal");
+            }
+            
+            // == 1
+            {
+                invalidRate.Value = "1";
+                var setFeeRateRet = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                    TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), invalidRate);
+                setFeeRateRet.Error.ShouldContain("Fee rate has to be a decimal between 0 and 1.");
+            }
+            
+            // success
+            {
+                var validRate = new StringValue
+                {
+                    Value = "0.333"
+                }; 
+                var setFeeRateRet = await ExecuteProposalForParliamentTransactionWithoutCheck(Tester,
+                    TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), validRate);
+                setFeeRateRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                var getFeeRate = await TokenConverterContractStub.GetFeeRate.CallAsync(new Empty());
+                getFeeRate.Value.ShouldBe(validRate.Value);
             }
         }
         

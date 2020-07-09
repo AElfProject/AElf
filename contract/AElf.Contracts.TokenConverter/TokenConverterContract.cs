@@ -156,7 +156,6 @@ namespace AElf.Contracts.TokenConverter
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "[Sell]Can't find from connector.");
             Assert(fromConnector.IsPurchaseEnabled, "can't purchase");
-            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "[Sell]Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
@@ -253,10 +252,8 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
-            Assert(input.TokenSymbol != null, "Invalid symbol.");
             var fromConnector = State.Connectors[input.TokenSymbol];
             Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
-            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "[EnableConnector]Can't find to connector.");
             var needDeposit = GetNeededDeposit(input);

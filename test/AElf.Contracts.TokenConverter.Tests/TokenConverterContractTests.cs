@@ -206,7 +206,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Buy_Failed_Test()
+        public async Task Buy_With_Invalid_Input_Test()
         {
             await CreateRamToken();
             await InitializeTokenConverterContract();
@@ -290,7 +290,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Sell_Failed_Test()
+        public async Task Sell_With_Invalid_Input_Test()
         {
             await CreateRamToken();
             await InitializeTokenConverterContract();
