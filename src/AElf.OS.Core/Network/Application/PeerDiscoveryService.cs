@@ -80,8 +80,6 @@ namespace AElf.OS.Network.Application
             {
                 if (await _nodeManager.GetNodeAsync(endpoint) != null)
                     return endpoint;
-
-                await _nodeManager.RemoveNodeAsync(endpoint);
             }
 
             return null;
