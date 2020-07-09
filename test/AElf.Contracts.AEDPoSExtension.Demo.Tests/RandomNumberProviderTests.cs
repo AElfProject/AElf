@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.RandomNumberProvider;
 using AElf.Types;
@@ -28,14 +29,30 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         public async Task GetRandomBytesTest_Int64()
         {
             var stub = await DeployRandomNumberProviderContract();
-            var randomBytes = await stub.GetRandomBytes.CallAsync(new GetRandomBytesInput
+
+            var randomIntegers = new List<long>();
+
+            for (var i = 0; i < 100; i++)
             {
-                Kind = 2,
-                Value = HashHelper.ComputeFrom("Test2").ToByteString()
-            }.ToBytesValue());
-            var randomNumber = new Int64Value();
-            randomNumber.MergeFrom(randomBytes.Value);
-            randomNumber.Value.ShouldNotBe(0);
+                var randomBytes = await stub.GetRandomBytes.CallAsync(new GetRandomBytesInput
+                {
+                    Kind = 2,
+                    Value = HashHelper.ComputeFrom("Test2").ToByteString()
+                }.ToBytesValue());
+                var randomNumber = new Int64Value();
+                randomNumber.MergeFrom(randomBytes.Value);
+                randomNumber.Value.ShouldBePositive();
+                randomNumber.Value.ShouldBeLessThan(10000);
+                await stub.GetRandomBytes.SendAsync(new GetRandomBytesInput
+                {
+                    Kind = 2,
+                    Value = HashHelper.ComputeFrom("Test2").ToByteString()
+                }.ToBytesValue());
+
+                randomIntegers.Add(randomNumber.Value);
+            }
+
+            randomIntegers.Count.ShouldBe(100);
         }
     }
 }
