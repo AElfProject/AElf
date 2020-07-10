@@ -113,6 +113,10 @@ namespace AElf.OS.Network.Infrastructure
                 else
                 {
                     var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
+                    
+                    if(endpointLocal.IsNullOrWhiteSpace())
+                        return;
+                    
                     if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
                     {
                         _discoveredNodeCacheProvider.Add(endpointLocal);

@@ -143,16 +143,13 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 await PingNodeAsync(client, remoteEndpoint);
+                await client.Channel.ShutdownAsync();
                 return true;
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e, $"Could not ping peer {remoteEndpoint}.");
                 return false;
-            }
-            finally
-            {
-                await client.Channel.ShutdownAsync();
             }
         }
 
