@@ -7,6 +7,8 @@ using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,9 +19,15 @@ using Xunit;
 namespace AElf.Contracts.Referendum
 {
     public class ReferendumContractTest : ReferendumContractTestBase
-    {
+    {  
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly TestDemoSmartContractAddressNameProvider _smartContractAddressNameProvider;
         public ReferendumContractTest()
         {
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _smartContractAddressNameProvider = GetRequiredService<TestDemoSmartContractAddressNameProvider>();
             InitializeContracts();
         }
 
@@ -873,6 +881,136 @@ namespace AElf.Contracts.Referendum
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+        [Fact]
+        public async Task CreateOrganizationBySystemContract_Test()
+        { 
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                TokenSymbol = "Elf",
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = minimalApproveThreshold,
+                    MinimalVoteThreshold = minimalVoteThreshold,
+                    MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                    MaximalRejectionThreshold = maximalRejectionThreshold
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {DefaultSender}
+                }
+            };
+            var input = new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = createOrganizationInput,
+                OrganizationAddressFeedbackMethod = ""
+            };
+           //Unauthorized to create organization
+            var addressByCalculate = ReferendumContractStub.CalculateOrganizationAddress.SendAsync(createOrganizationInput);
+             var transactionResult =
+               await   ReferendumContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input);
+            transactionResult.TransactionResult.Error.Contains("Unauthorized");
+            //success
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex= new BlockIndex
+           {
+               BlockHash = chain.Result.BestChainHash,
+               BlockHeight = chain.Result.BestChainHeight
+           };
+          await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+               _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+          var transactionResult1 =
+              await ReferendumContractStub.CreateOrganizationBySystemContract.SendAsync(input);
+          transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+          transactionResult1.Output.Value.Equals(addressByCalculate);
+          var boolResult= ReferendumContractStub.ValidateOrganizationExist.SendAsync(addressByCalculate.Result.Output);
+          boolResult.Result.Output.Value.ShouldBeTrue();
+          //create again to verify address 
+          var exist_transactionResult =
+              await ReferendumContractStub.CreateOrganizationBySystemContract.SendAsync(input);
+          exist_transactionResult.Output.Value.Equals(addressByCalculate);
+          //invalid contract
+          var method = "OrganizationAddressFeedbackMethodName";
+          var input2 = new CreateOrganizationBySystemContractInput
+          {
+              OrganizationCreationInput = createOrganizationInput,
+              OrganizationAddressFeedbackMethod = method
+          };
+          var transactionResult2 =
+              await ReferendumContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input2);
+          transactionResult2.TransactionResult.Error.Contains("invalid contract");
+          //Invalid organization data
+          var createOrganizationInput3 = new CreateOrganizationInput
+          {
+              ProposalReleaseThreshold = new ProposalReleaseThreshold
+              {
+                  MinimalApprovalThreshold = minimalApproveThreshold,
+                  MinimalVoteThreshold = minimalVoteThreshold,
+                  MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                  MaximalRejectionThreshold = maximalRejectionThreshold
+              },
+              ProposerWhiteList = new ProposerWhiteList
+              {
+                  Proposers = {DefaultSender}
+              }
+          };
+          var input3 = new CreateOrganizationBySystemContractInput
+          {
+              OrganizationCreationInput = createOrganizationInput3,
+              OrganizationAddressFeedbackMethod = ""
+          };
+          var transactionResult3 =
+              await   ReferendumContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input3);
+          transactionResult3.TransactionResult.Error.Contains("Invalid organization data");
+        }
+       [Fact]
+        public async Task CreateProposalBySystemContract_Test()
+        {
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, new []{DefaultSender});
+            var transferInput = new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = TokenContractAddress,
+                Memo = "Transfer"
+            };
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Transfer),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+            var input =new CreateProposalBySystemContractInput
+            {
+                ProposalInput = createProposalInput, OriginProposer = DefaultSender
+            };
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex= new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            //Unauthorized to propose
+            var transactionResult =
+                await ReferendumContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+            transactionResult.TransactionResult.Error.Contains("Unauthorized");
+            //success
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            var transactionResult2 =
+                await ReferendumContractStub.CreateProposalBySystemContract.SendAsync(input);
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress,
