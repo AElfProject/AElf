@@ -323,6 +323,55 @@ namespace AElf.Contracts.TokenConverter
                     new TokenSymbol {Symbol = token})).ResourceConnector;
             resourceConnector.Weight.ShouldBe("0.49");
         }
+        
+        [Fact] 
+         public async Task Add_Pair_Connector_And_Enable_Success_Test()
+         {
+             await DefaultStub.Initialize.SendAsync(new InitializeInput
+             {
+                 FeeRate =  "0.005"
+             });
+            string tokenSymbol = "NETT";
+            await CreateTokenAsync(tokenSymbol);
+            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
+            await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
+                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+            var resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
+            resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(false);
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Amount = 99_9999_0000,
+                To = DefaultSender,
+                Symbol = tokenSymbol
+            });
+            var toBeBuildConnectorInfo = new ToBeConnectedTokenInfo
+            {
+                TokenSymbol = tokenSymbol,
+                AmountToTokenConvert = 99_9999_0000
+            }; 
+            var deposit = await DefaultStub.GetNeededDeposit.CallAsync(toBeBuildConnectorInfo);
+            deposit.NeedAmount.ShouldBe(100);
+            var buildRet = (await DefaultStub.EnableConnector.SendAsync(toBeBuildConnectorInfo)).TransactionResult;
+            buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var tokenInTokenConvert = await GetBalanceAsync(tokenSymbol, TokenConverterContractAddress);
+            tokenInTokenConvert.ShouldBe(99_9999_0000);
+            resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
+            resourceConnector.ShouldNotBeNull();
+            resourceConnector.IsPurchaseEnabled.ShouldBe(true);
+            var beforeTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
+            var beforeBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
+            var buyRet = (await DefaultStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = tokenSymbol,
+                Amount = 10000
+            })).TransactionResult;
+            buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var afterTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
+            var afterBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
+            (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
+            (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
+        }
 
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
             string resourceWeight = "0.05", string nativeWeight = "0.05")
