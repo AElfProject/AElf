@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using AElf.Contracts.Configuration;
 using AElf.Kernel.SmartContract.Application;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Configuration
+namespace AElf.Kernel.Miner
 {
     public interface IBlockTransactionLimitProvider
     {
@@ -11,13 +11,13 @@ namespace AElf.Kernel.Configuration
         Task SetLimitAsync(IBlockIndex blockIndex, int limit);
     }
 
-    internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<BlockTransactionLimit>, IBlockTransactionLimitProvider,
+    internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int32Value>, IBlockTransactionLimitProvider,
         ISingletonDependency
     {
-        private const string BlockExecutedDataName = nameof(BlockTransactionLimit);
+        private const string BlockExecutedDataName = "BlockTransactionLimit";
 
         public BlockTransactionLimitProvider(
-            ICachedBlockchainExecutedDataService<BlockTransactionLimit> cachedBlockchainExecutedDataService) : base(
+            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService) : base(
             cachedBlockchainExecutedDataService)
         {
         }
@@ -25,12 +25,12 @@ namespace AElf.Kernel.Configuration
         public Task<int> GetLimitAsync(IChainContext chainContext)
         {
             var limit = GetBlockExecutedData(chainContext);
-            return Task.FromResult(limit?.Value ?? 0);
+            return Task.FromResult(limit?.Value ?? int.MaxValue);
         }
 
         public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
         {
-            var blockTransactionLimit = new BlockTransactionLimit
+            var blockTransactionLimit = new Int32Value
             {
                 Value = limit
             };

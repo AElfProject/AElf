@@ -9,7 +9,6 @@
     
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,9 +18,6 @@
         <ContractMessage Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractMessage>
-        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
-            <Link>Protobuf\Proto\configuration_contract.proto</Link>
-        </ContractStub>
     </ItemGroup>
     <ItemGroup>
         <CommenMessage Include="..\..\protobuf\execution.proto">

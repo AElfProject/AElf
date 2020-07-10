@@ -11,7 +11,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight);
         Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds);
         Task CleanByHeightAsync(long height);
-        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0);
+        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount);
         Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId);
         Task<TransactionPoolStatus> GetTransactionPoolStatusAsync();
     }

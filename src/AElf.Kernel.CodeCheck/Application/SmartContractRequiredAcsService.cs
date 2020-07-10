@@ -1,20 +1,19 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Configuration;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.CodeCheck.Application
 {
     public class SmartContractRequiredAcsService : ISmartContractRequiredAcsService
     {
-        private readonly IConfigurationDataService _configurationDataService;
+        private readonly IConfigurationService _configurationService;
 
-        public SmartContractRequiredAcsService(IConfigurationDataService configurationDataService)
+        public SmartContractRequiredAcsService(IConfigurationService configurationService)
         {
-            _configurationDataService = configurationDataService;
+            _configurationService = configurationService;
         }
 
         public async Task<RequiredAcs> GetRequiredAcsInContractsAsync(Hash blockHash, long blockHeight)
@@ -26,8 +25,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
 
             var returned =
-                await _configurationDataService.GetConfigurationDataAsync(
-                    RequiredAcsInContractsConfigurationNameProvider.Name, chainContext);
+                await _configurationService.GetConfigurationDataAsync(
+                    RequiredAcsInContractsConfigurationName, chainContext);
 
             var requiredAcsInContracts = new RequiredAcsInContracts();
             requiredAcsInContracts.MergeFrom(returned);
@@ -37,5 +36,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 RequireAll = requiredAcsInContracts.RequireAll
             };
         }
+        
+        private const string RequiredAcsInContractsConfigurationName = "RequiredAcsInContracts";
     }
 }
