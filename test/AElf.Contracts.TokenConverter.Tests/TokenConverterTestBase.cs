@@ -45,10 +45,6 @@ namespace AElf.Contracts.TokenConverter
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultSenderKeyPair);
         
-        internal List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
-            new List<ParliamentContractContainer.ParliamentContractStub>();
-
-
         internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {

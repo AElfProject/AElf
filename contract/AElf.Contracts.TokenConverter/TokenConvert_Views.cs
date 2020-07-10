@@ -63,7 +63,7 @@ namespace AElf.Contracts.TokenConverter
         public override DepositInfo GetNeededDeposit(ToBeConnectedTokenInfo input)
         {
             var toConnector = State.Connectors[input.TokenSymbol];
-            Assert(toConnector != null, "[GetNeededDeposit]Can't find to connector.");
+            Assert(toConnector != null && !toConnector.IsDepositAccount, "[GetNeededDeposit]Can't find to connector.");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             Assert(fromConnector != null, "[GetNeededDeposit]Can't find from connector.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(

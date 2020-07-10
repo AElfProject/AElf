@@ -37,9 +37,15 @@ namespace AElf.Contracts.TokenConverter
             foreach (var connector in input.Connectors)
             {
                 if (connector.IsDepositAccount)
+                {
+                    Assert(!string.IsNullOrEmpty(connector.Symbol),"Invalid connector symbol.");
                     AssertValidConnectorWeight(connector);
+                }
                 else
-                    AssertValidConnectorAndNormalizeWeight(connector);
+                {
+                    Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
+                    AssertValidConnectorWeight(connector);
+                }
                 State.Connectors[connector.Symbol] = connector;
             }
 
@@ -82,7 +88,8 @@ namespace AElf.Contracts.TokenConverter
                 RelatedSymbol = nativeConnectorSymbol,
                 Weight = input.ResourceWeight
             };
-            AssertValidConnectorAndNormalizeWeight(resourceConnector);
+            Assert(IsValidSymbol(resourceConnector.Symbol), "Invalid symbol.");
+            AssertValidConnectorWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
             {
                 Symbol = nativeConnectorSymbol,
@@ -253,7 +260,8 @@ namespace AElf.Contracts.TokenConverter
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
             var fromConnector = State.Connectors[input.TokenSymbol];
-            Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
+            Assert(fromConnector != null && !fromConnector.IsDepositAccount,
+                "[EnableConnector]Can't find from connector.");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "[EnableConnector]Can't find to connector.");
             var needDeposit = GetNeededDeposit(input);
@@ -381,13 +389,7 @@ namespace AElf.Contracts.TokenConverter
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
         }
-
-        private void AssertValidConnectorAndNormalizeWeight(Connector connector)
-        {
-            Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
-            AssertValidConnectorWeight(connector);
-        }
-
+        
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);
