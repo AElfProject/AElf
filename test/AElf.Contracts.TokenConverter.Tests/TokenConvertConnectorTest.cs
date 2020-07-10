@@ -323,9 +323,37 @@ namespace AElf.Contracts.TokenConverter
                     new TokenSymbol {Symbol = token})).ResourceConnector;
             resourceConnector.Weight.ShouldBe("0.49");
         }
-        
+
+        [Fact]
+        public async Task EnableConnector_With_Invalid_Input_Test()
+        {
+            var tokenSymbol = "TEST";
+            
+            // connector does not exist
+            {
+                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                {
+                    TokenSymbol = tokenSymbol,
+                    AmountToTokenConvert = 100,
+                });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+            }
+            
+            // invalid connector（deposit）
+            {
+                await AddPairConnectorAsync(tokenSymbol);
+                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                {
+                    TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
+                    AmountToTokenConvert = 100,
+                });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+            }
+
+        }
+
         [Fact] 
-         public async Task Add_Pair_Connector_And_Enable_Success_Test()
+         public async Task EnableConnector_Success_Test()
          {
              await DefaultStub.Initialize.SendAsync(new InitializeInput
              {
@@ -333,12 +361,7 @@ namespace AElf.Contracts.TokenConverter
              });
             string tokenSymbol = "NETT";
             await CreateTokenAsync(tokenSymbol);
-            var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
-            await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
-            var resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
-            resourceConnector.ShouldNotBeNull();
-            resourceConnector.IsPurchaseEnabled.ShouldBe(false);
+            await AddPairConnectorAsync(tokenSymbol);
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Amount = 99_9999_0000,
@@ -352,26 +375,93 @@ namespace AElf.Contracts.TokenConverter
             }; 
             var deposit = await DefaultStub.GetNeededDeposit.CallAsync(toBeBuildConnectorInfo);
             deposit.NeedAmount.ShouldBe(100);
-            var buildRet = (await DefaultStub.EnableConnector.SendAsync(toBeBuildConnectorInfo)).TransactionResult;
-            buildRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            await DefaultStub.EnableConnector.SendAsync(toBeBuildConnectorInfo);
             var tokenInTokenConvert = await GetBalanceAsync(tokenSymbol, TokenConverterContractAddress);
             tokenInTokenConvert.ShouldBe(99_9999_0000);
-            resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
+            var resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
             resourceConnector.ShouldNotBeNull();
             resourceConnector.IsPurchaseEnabled.ShouldBe(true);
-            var beforeTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
-            var beforeBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
-            var buyRet = (await DefaultStub.Buy.SendAsync(new BuyInput
+
+            // after enable connector buy
             {
-                Symbol = tokenSymbol,
-                Amount = 10000
-            })).TransactionResult;
-            buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var afterTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
-            var afterBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
-            (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
-            (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
-        }
+                var beforeTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
+                var beforeBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
+                var buyRet = (await DefaultStub.Buy.SendAsync(new BuyInput
+                {
+                    Symbol = tokenSymbol,
+                    Amount = 10000
+                })).TransactionResult;
+                buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
+                var afterTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
+                var afterBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
+                (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
+                (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
+            }
+            
+            // after enable connector update connector 
+            {
+                var updateRet = await ExecuteProposalForParliamentTransactionWithException(
+                    TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector),
+                    resourceConnector);
+                updateRet.Error.ShouldContain("onnector can not be updated because it has been activated");
+            }
+         }
+
+         [Fact]
+         public async Task GetNeededDeposit_With_Invalid_Input_Test()
+         {
+             var tokenSymbol = "TEST";
+            
+             // connector does not exist
+             {
+                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                 {
+                     TokenSymbol = tokenSymbol,
+                     AmountToTokenConvert = 100,
+                 });
+                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+             }
+            
+             // invalid connector（deposit）
+             {
+                 await AddPairConnectorAsync(tokenSymbol);
+                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                 {
+                     TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
+                     AmountToTokenConvert = 100,
+                 });
+                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+             }
+         }
+         
+         
+         [Fact]
+         public async Task GetNeededDeposit_Success_Test()
+         {
+             var tokenSymbol = "TEST";
+            
+             // connector does not exist
+             {
+                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                 {
+                     TokenSymbol = tokenSymbol,
+                     AmountToTokenConvert = 100,
+                 });
+                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+             }
+            
+             // invalid connector（deposit）
+             {
+                 await AddPairConnectorAsync(tokenSymbol);
+                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
+                 {
+                     TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
+                     AmountToTokenConvert = 100,
+                 });
+                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+             }
+         }
 
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
             string resourceWeight = "0.05", string nativeWeight = "0.05")

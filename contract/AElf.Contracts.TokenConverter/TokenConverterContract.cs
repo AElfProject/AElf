@@ -58,7 +58,7 @@ namespace AElf.Contracts.TokenConverter
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can not find target connector.");
-            Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been actived");
+            Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been activated");
             if (!string.IsNullOrEmpty(input.Weight))
             {
                 var weight = AssertedDecimal(input.Weight);
