@@ -1,12 +1,10 @@
-using AElf.Kernel;
 using AElf.OS.Network.Helpers;
-using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
 using Moq;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Infrastructure
 {
     public class PeerPoolMaxPeersPerIpAddressTests : NetworkMaxPeersPerIpAddressTestBase
     {

@@ -26,7 +26,6 @@ namespace AElf.OS.Network
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<INetworkService, NetworkService>();
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             
             context.Services.AddSingleton<IPeerPool, PeerPool>();
             context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());

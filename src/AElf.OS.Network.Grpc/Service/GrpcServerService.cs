@@ -303,7 +303,7 @@ namespace AElf.OS.Network.Grpc
             BlockWithTransactions block;
             try
             {
-                block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
+                block = await _blockchainService.GetBlockWithTransactionsByHashAsync(request.Hash);
 
                 if (block == null)
                 {
@@ -343,7 +343,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var blocks =
-                    await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+                    await _blockchainService.GetBlocksWithTransactionsAsync(request.PreviousBlockHash, request.Count);
 
                 blockList.Blocks.AddRange(blocks);
 

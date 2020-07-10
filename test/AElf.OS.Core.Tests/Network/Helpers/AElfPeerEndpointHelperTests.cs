@@ -2,7 +2,7 @@ using AElf.OS.Network.Helpers;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Helpers
 {
     public class AElfPeerEndpointHelperTests : OSCoreNetworkServiceTestBase
     {
@@ -14,6 +14,8 @@ namespace AElf.OS.Network
         [InlineData("0.0.0.0", true, NetworkConstants.DefaultPeerPort)]
         [InlineData("::1", true, NetworkConstants.DefaultPeerPort)]
         [InlineData("::", true, NetworkConstants.DefaultPeerPort)]
+        [InlineData("[1fff:0:a88:85a3::ac1f]:8001", true,8001)]
+        [InlineData("[1fff:0:a88:85a3::ac1f]:8907333", false)]
         [InlineData("", false)]
         [InlineData(" ", false)]
         [InlineData("aelf.bp1.cn:8907333", false)]
