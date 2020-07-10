@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -52,10 +51,18 @@ namespace AElf.Contracts.TokenConverter
         #region Views Test
 
         [Fact]
-        public async Task View_Test()
+        public async Task GetBaseTokenSymbol_Test()
         {
             await InitializeTokenConverterContract();
-            //GetConnector
+            var tokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
+            tokenSymbol.ShouldNotBeNull();
+            tokenSymbol.Symbol.ShouldBe("ELF");
+        }
+
+        [Fact]
+        public async Task GetPairConnector_Test()
+        {
+            await InitializeTokenConverterContract();
             var ramConnectorInfo = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol()
             {
                 Symbol = WriteConnector.Symbol
@@ -65,15 +72,6 @@ namespace AElf.Contracts.TokenConverter
             ramConnectorInfo.VirtualBalance.ShouldBe(WriteConnector.VirtualBalance);
             ramConnectorInfo.IsPurchaseEnabled.ShouldBe(WriteConnector.IsPurchaseEnabled);
             ramConnectorInfo.IsVirtualBalanceEnabled.ShouldBe(WriteConnector.IsVirtualBalanceEnabled);
-
-            //GetFeeReceiverAddress
-            var feeReceiverAddress = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
-            feeReceiverAddress.ShouldBe(feeReceiverAddress);
-
-            //GetBaseTokenSymbol
-            var tokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
-            tokenSymbol.ShouldNotBeNull();
-            tokenSymbol.Symbol.ShouldBe("ELF");
         }
 
         #endregion
@@ -172,6 +170,10 @@ namespace AElf.Contracts.TokenConverter
 
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance, fromConnectorWeight,
                 toConnectorBalance, toConnectorWeight, 1000L);
+            var depositAmountBeforeBuy = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
             var fee = Convert.ToInt64(amountToPay * 5 / 1000);
 
             var buyResult = (await DefaultStub.Buy.SendAsync(
@@ -184,6 +186,11 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Verify the outcome of the transaction
+            var depositAmountAfterBuy = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
+            depositAmountAfterBuy.Value.Sub(depositAmountBeforeBuy.Value).ShouldBe(amountToPay);
             var balanceOfTesterWrite = await GetBalanceAsync(WriteSymbol, DefaultSender);
             balanceOfTesterWrite.ShouldBe(1000L);
 
@@ -262,6 +269,10 @@ namespace AElf.Contracts.TokenConverter
 
             var amountToReceive = BancorHelper.GetReturnFromPaid(fromConnectorBalance, fromConnectorWeight,
                 toConnectorBalance, toConnectorWeight, 1000L);
+            var depositAmountBeforeSell = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
             var fee = Convert.ToInt64(amountToReceive * 5 / 1000);
 
             var sellResult = (await DefaultStub.Sell.SendAsync(new SellInput
@@ -273,6 +284,11 @@ namespace AElf.Contracts.TokenConverter
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Verify the outcome of the transaction
+            var depositAmountAfterSell = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
+            {
+                Value = WriteConnector.Symbol
+            });
+            depositAmountBeforeSell.Value.Sub(depositAmountAfterSell.Value).ShouldBe(amountToReceive);
             var balanceOfTesterRam = await GetBalanceAsync(WriteSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(0L);
 

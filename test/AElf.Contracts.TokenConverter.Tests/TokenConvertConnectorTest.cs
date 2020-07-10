@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -19,7 +20,41 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task TransferAuthorizationForTokenConvert_Test()
+        public async Task DefaultController_Test()
+        {
+            var defaultController = await DefaultStub.GetControllerForManageConnector.CallAsync(new Empty());
+            defaultController.ContractAddress.ShouldBe(ParliamentContractAddress);
+            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            defaultController.OwnerAddress.ShouldBe(defaultParliament);
+        }
+
+        [Fact]
+        public async Task TransferAuthorizationForTokenConvert_Fail_Test()
+        {
+            // sender is not authorized
+            {
+                var changeControllerRet =
+                    await DefaultStub.ChangeConnectorController.SendWithExceptionAsync(new AuthorityInfo());
+                changeControllerRet.TransactionResult.Error.ShouldContain("Only manager can perform this action.");
+            }
+            
+            //invalid authority
+            {
+                var newAuthority = new AuthorityInfo
+                {
+                    ContractAddress = ParliamentContractAddress,
+                    OwnerAddress = DefaultSender
+                };
+                var changeControllerRet = await ExecuteProposalForParliamentTransactionWithException(
+                    TokenConverterContractAddress,
+                    nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController),
+                    newAuthority);
+                changeControllerRet.Error.ShouldContain("new controller does not exist");
+            }
+        }
+
+        [Fact]
+        public async Task TransferAuthorizationForTokenConvert_Success_Test()
         {
             var newParliament = new Parliament.CreateOrganizationInput
             {
@@ -461,6 +496,17 @@ namespace AElf.Contracts.TokenConverter
                  });
                  enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
              }
+         }
+
+         [Fact]
+         public async Task GetFeeReceiverAddress_Test()
+         {
+             await DefaultStub.Initialize.SendAsync(new InitializeInput
+             {
+                 FeeRate =  "0.005"
+             });
+             var receiver = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
+             receiver.ShouldBe(TreasuryContractAddress);
          }
 
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
