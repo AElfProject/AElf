@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,42 +81,57 @@ namespace AElf.OS.Network.Infrastructure
 
         private async Task<List<NodeInfo>> DiscoverNodesAsync(IPeer peer)
         {
-            var nodeList = await peer.GetNodesAsync();
+            try
+            {
+                var nodeList = await peer.GetNodesAsync();
 
-            if (nodeList?.Nodes == null)
+                if (nodeList?.Nodes == null)
+                    return new List<NodeInfo>();
+
+                Logger.LogDebug($"Discover nodes: {nodeList} from peer: {peer}.");
+                return nodeList.Nodes.ToList();
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e, "Discover nodes failed.");
                 return new List<NodeInfo>();
-
-            Logger.LogDebug($"Discover nodes: {nodeList} from peer: {peer}.");
-            return nodeList.Nodes.ToList();
+            }
         }
 
         private async Task ProcessNodeAsync(NodeInfo node)
         {
-            if (!await ValidateNodeAsync(node))
-                return;
+            try
+            {
+                if (!await ValidateNodeAsync(node))
+                    return;
 
-            if (await _nodeManager.AddNodeAsync(node))
-            {
-                _discoveredNodeCacheProvider.Add(node.Endpoint);
-                Logger.LogDebug($"Discover and add node: {node.Endpoint} successfully.");
-            }
-            else
-            {
-                var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
-                if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
+                if (await _nodeManager.AddNodeAsync(node))
                 {
-                    _discoveredNodeCacheProvider.Add(endpointLocal);
-                    Logger.LogDebug($"Only refresh node: {endpointLocal}.");
+                    _discoveredNodeCacheProvider.Add(node.Endpoint);
+                    Logger.LogDebug($"Discover and add node: {node.Endpoint} successfully.");
                 }
                 else
                 {
-                    await _nodeManager.RemoveNodeAsync(endpointLocal);
-                    if (await _nodeManager.AddNodeAsync(node))
-                        _discoveredNodeCacheProvider.Add(node.Endpoint);
+                    var endpointLocal = await TakeEndpointFromDiscoveredNodeCacheAsync();
+                    if (await _networkServer.CheckEndpointAvailableAsync(endpointLocal))
+                    {
+                        _discoveredNodeCacheProvider.Add(endpointLocal);
+                        Logger.LogDebug($"Only refresh node: {endpointLocal}.");
+                    }
+                    else
+                    {
+                        await _nodeManager.RemoveNodeAsync(endpointLocal);
+                        if (await _nodeManager.AddNodeAsync(node))
+                            _discoveredNodeCacheProvider.Add(node.Endpoint);
 
-                    Logger.LogDebug(
-                        $"Remove unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
+                        Logger.LogDebug(
+                            $"Remove unavailable node: {endpointLocal}, and add node: {node.Endpoint} successfully.");
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e, "Process node failed.");
             }
         }
 

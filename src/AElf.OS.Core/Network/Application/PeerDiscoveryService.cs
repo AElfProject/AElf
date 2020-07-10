@@ -41,7 +41,9 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in peers)
             {
-                await _peerDiscoveryJobProcessor.SendDiscoveryJobAsync(peer);
+                var result = await _peerDiscoveryJobProcessor.SendDiscoveryJobAsync(peer);
+                if (!result)
+                    Logger.LogWarning($"Send discovery job failed: {peer}");
             }
         }
 
