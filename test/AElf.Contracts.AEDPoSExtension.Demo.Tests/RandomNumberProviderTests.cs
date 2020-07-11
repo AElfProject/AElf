@@ -32,7 +32,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var randomIntegers = new List<long>();
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 5; i++)
             {
                 var randomBytes = await stub.GetRandomBytes.CallAsync(new GetRandomBytesInput
                 {
@@ -52,7 +52,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 randomIntegers.Add(randomNumber.Value);
             }
 
-            randomIntegers.Count.ShouldBe(100);
+            randomIntegers.Count.ShouldBe(5);
         }
     }
 }
