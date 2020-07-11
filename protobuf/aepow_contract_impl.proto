@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package AEPoWImpl;
+
+import "acs1.proto";
+import "acs4.proto";
+import "aepow_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AEPoW";
+
+service AEPoWContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEPoW.AEPoWContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs4.proto";
+    option (aelf.base) = "aepow_contract.proto";
+}
