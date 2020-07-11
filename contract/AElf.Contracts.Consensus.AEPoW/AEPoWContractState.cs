@@ -9,5 +9,7 @@ namespace AElf.Contracts.Consensus.AEPoW
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
 
         public MappedState<long, string> BlockProducers { get; set; }
+
+        public SingletonState<int> CurrentDifficulty { get; set; }
     }
 }

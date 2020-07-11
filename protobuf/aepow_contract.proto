@@ -12,6 +12,9 @@ option csharp_namespace = "AElf.Contracts.Consensus.AEPoW";
 service AEPoWContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEPoW.AEPoWContractState";
     
+    rpc CoinBase (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
     rpc GetBlockProducer (google.protobuf.Int64Value) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
