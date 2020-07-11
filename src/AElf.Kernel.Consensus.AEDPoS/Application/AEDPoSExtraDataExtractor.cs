@@ -6,29 +6,18 @@ using Google.Protobuf;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
-    public class AEDPoSExtraDataExtractor : IConsensusExtraDataExtractor
+    public class AEDPoSExtraDataExtractor : ConsensusExtraDataExtractorBase
     {
-        private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly IConsensusExtraDataKeyProvider _consensusExtraDataKeyProvider;
-
-        public AEDPoSExtraDataExtractor(IBlockExtraDataService blockExtraDataService, 
-            IConsensusExtraDataKeyProvider consensusExtraDataKeyProvider)
+        public AEDPoSExtraDataExtractor(IBlockExtraDataService blockExtraDataService,
+            IConsensusExtraDataKeyProvider consensusExtraDataKeyProvider) : base(blockExtraDataService,
+            consensusExtraDataKeyProvider)
         {
-            _blockExtraDataService = blockExtraDataService;
-            _consensusExtraDataKeyProvider = consensusExtraDataKeyProvider;
         }
 
-        public ByteString ExtractConsensusExtraData(BlockHeader header)
+        protected override bool ValidateConsensusExtraData(BlockHeader header, ByteString consensusExtraData)
         {
-            var consensusExtraData =
-                _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataKeyProvider.BlockHeaderExtraDataKey, header);
-            if (consensusExtraData == null)
-                return null;
-
             var headerInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-
-            // Validate header information
-            return headerInformation.SenderPubkey != header.SignerPubkey ? null : consensusExtraData;
+            return headerInformation.SenderPubkey == header.SignerPubkey;
         }
     }
 }

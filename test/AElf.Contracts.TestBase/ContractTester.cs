@@ -117,7 +117,7 @@ namespace AElf.Contracts.TestBase
                         options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
                     }
 
-                    options.Services.Configure<ConsensusOptions>(o =>
+                    options.Services.Configure<AEDPoSOptions>(o =>
                     {
                         var miners = new List<string>();
 
@@ -213,7 +213,7 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
+            var aeDPoSOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<AEDPoSOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
@@ -224,7 +224,7 @@ namespace AElf.Contracts.TestBase
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList(consensusOptions));
+                GenerateConsensusInitializationCallList(aeDPoSOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             return await osBlockchainNodeContextService.StartAsync(dto);
@@ -236,8 +236,8 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
-            var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
-            consensusOptions.StartTimestamp = TimestampHelper.GetUtcNow();
+            var aeDPoSOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<AEDPoSOptions>>().Value;
+            aeDPoSOptions.StartTimestamp = TimestampHelper.GetUtcNow();
 
             var dto = new OsBlockchainNodeContextStartDto
             {
@@ -249,7 +249,7 @@ namespace AElf.Contracts.TestBase
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList(consensusOptions));
+                GenerateConsensusInitializationCallList(aeDPoSOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             var result = await osBlockchainNodeContextService.StartAsync(dto);
@@ -302,7 +302,7 @@ namespace AElf.Contracts.TestBase
         }
 
         private List<ContractInitializationMethodCall>
-            GenerateConsensusInitializationCallList(ConsensusOptions consensusOptions)
+            GenerateConsensusInitializationCallList(AEDPoSOptions aeDPoSOptions)
         {
             var consensusMethodCallList = new List<ContractInitializationMethodCall>();
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
@@ -315,10 +315,10 @@ namespace AElf.Contracts.TestBase
                 {
                     Pubkeys =
                     {
-                        consensusOptions.InitialMinerList.Select(ByteStringHelper.FromHexString)
+                        aeDPoSOptions.InitialMinerList.Select(ByteStringHelper.FromHexString)
                     }
-                }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp));
+                }.GenerateFirstRoundOfNewTerm(aeDPoSOptions.MiningInterval,
+                    aeDPoSOptions.StartTimestamp));
             return consensusMethodCallList;
         }
 

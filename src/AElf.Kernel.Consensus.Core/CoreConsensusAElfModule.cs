@@ -15,6 +15,13 @@ namespace AElf.Kernel.Consensus
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddSingleton<IConsensusExtraDataKeyProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
+            context.Services.AddTransient<IConsensusExtraDataExtractor, DefaultConsensusExtraDataExtractor>();
+            context.Services.AddSingleton<ITriggerInformationProvider, DefaultTriggerInformationProvider>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, DefaultBroadcastPrivilegedPubkeyListProvider>();
+
+            var configuration = context.Services.GetConfiguration();
+            Configure<ConsensusOptions>(configuration.GetSection("Consensus"));
         }
     }
 }

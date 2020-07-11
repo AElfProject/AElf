@@ -7,22 +7,22 @@ namespace AElf.ContractTestBase
     // TODO: Same code in src/AElf.Blockchains.MainChain/AEDPoSContractInitializationDataProvider, need to resolve.
     public class MainChainAEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider
     {
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _aeDPoSOptions;
 
-        public MainChainAEDPoSContractInitializationDataProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
+        public MainChainAEDPoSContractInitializationDataProvider(IOptionsSnapshot<AEDPoSOptions> aeDPoSOptions)
         {
-            _consensusOptions = consensusOptions.Value;
+            _aeDPoSOptions = aeDPoSOptions.Value;
         }
 
         public AEDPoSContractInitializationData GetContractInitializationData()
         {
             return new AEDPoSContractInitializationData
             {
-                MiningInterval = _consensusOptions.MiningInterval,
-                PeriodSeconds = _consensusOptions.PeriodSeconds,
-                StartTimestamp = _consensusOptions.StartTimestamp,
-                InitialMinerList = _consensusOptions.InitialMinerList,
-                MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+                MiningInterval = _aeDPoSOptions.MiningInterval,
+                PeriodSeconds = _aeDPoSOptions.PeriodSeconds,
+                StartTimestamp = _aeDPoSOptions.StartTimestamp,
+                InitialMinerList = _aeDPoSOptions.InitialMinerList,
+                MinerIncreaseInterval = _aeDPoSOptions.MinerIncreaseInterval
             };
         }
     }

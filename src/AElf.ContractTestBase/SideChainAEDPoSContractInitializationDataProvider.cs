@@ -10,13 +10,13 @@ namespace AElf.ContractTestBase
     public class SideChainAEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider
     {
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _aeDPoSOptions;
 
-        public SideChainAEDPoSContractInitializationDataProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions,
+        public SideChainAEDPoSContractInitializationDataProvider(IOptionsSnapshot<AEDPoSOptions> aeDPoSOptions,
             ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
-            _consensusOptions = consensusOptions.Value;
+            _aeDPoSOptions = aeDPoSOptions.Value;
         }
 
         public AEDPoSContractInitializationData GetContractInitializationData()
@@ -27,13 +27,13 @@ namespace AElf.ContractTestBase
             var aedPoSContractInitializationData = new AEDPoSContractInitializationData
             {
                 InitialMinerList = sideChainInitializationData == null
-                    ? _consensusOptions.InitialMinerList
+                    ? _aeDPoSOptions.InitialMinerList
                     : MinerListWithRoundNumber.Parser
                         .ParseFrom(sideChainInitializationData.ChainInitializationConsensusInfo.InitialMinerListData)
                         .MinerList.Pubkeys.Select(p => p.ToHex()).ToList(),
-                StartTimestamp = sideChainInitializationData?.CreationTimestamp ?? _consensusOptions.StartTimestamp,
-                PeriodSeconds = _consensusOptions.PeriodSeconds,
-                MiningInterval = _consensusOptions.MiningInterval,
+                StartTimestamp = sideChainInitializationData?.CreationTimestamp ?? _aeDPoSOptions.StartTimestamp,
+                PeriodSeconds = _aeDPoSOptions.PeriodSeconds,
+                MiningInterval = _aeDPoSOptions.MiningInterval,
                 IsSideChain = true
             };
 

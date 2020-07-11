@@ -7,4 +7,12 @@ namespace AElf.Kernel.Consensus.Application
     {
         Task<List<string>> GetPubkeyList(BlockHeader blockHeader);
     }
+
+    public class DefaultBroadcastPrivilegedPubkeyListProvider : IBroadcastPrivilegedPubkeyListProvider
+    {
+        public Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
+        {
+            return Task.FromResult(new List<string>());
+        }
+    }
 }

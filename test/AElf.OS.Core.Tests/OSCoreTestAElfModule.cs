@@ -33,7 +33,7 @@ namespace AElf.OS
                 o.NodeAccountPassword = nodeAccountPassword;
             });
 
-            Configure<ConsensusOptions>(o =>
+            Configure<AEDPoSOptions>(o =>
             {
                 var miners = new List<string>();
                 for (var i = 0; i < 3; i++)
