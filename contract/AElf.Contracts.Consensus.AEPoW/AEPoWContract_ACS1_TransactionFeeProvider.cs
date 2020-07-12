@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
@@ -31,6 +30,7 @@ namespace AElf.Contracts.Consensus.AEPoW
             {
                 AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");

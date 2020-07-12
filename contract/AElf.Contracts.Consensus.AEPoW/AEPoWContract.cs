@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Acs4;
 using AElf.Types;
 using Google.Protobuf;
@@ -9,6 +8,13 @@ namespace AElf.Contracts.Consensus.AEPoW
 {
     public partial class AEPoWContract : AEPoWContractImplContainer.AEPoWContractImplBase
     {
+        public override Empty Initialize(InitializeInput input)
+        {
+            Assert(input.SupposedProduceSeconds > 0, "Invalid input.");
+            State.SupposedProduceSeconds.Value = input.SupposedProduceSeconds;
+            return new Empty();
+        }
+
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
             return new ConsensusCommand
@@ -16,22 +22,28 @@ namespace AElf.Contracts.Consensus.AEPoW
                 ArrangedMiningTime = Context.CurrentBlockTime,
                 LimitMillisecondsOfMiningBlock = int.MaxValue,
                 MiningDueTime = TimestampHelper.MaxValue,
-
             };
         }
 
         public override BytesValue GetConsensusExtraData(BytesValue input)
         {
-            return input;
+            return CalculateNonce().ToBytesValue();
         }
 
+        // TODO: Cache nonce in Kernel code.
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
+            var nonce = new Hash();
+            nonce.MergeFrom(input.Value);
             return new TransactionList
             {
                 Transactions =
                 {
-                    GenerateTransaction(nameof(CoinBase), Context.Sender)
+                    GenerateTransaction(nameof(CoinBase), new CoinBaseInput
+                    {
+                        Nonce = nonce,
+                        Producer = Context.Sender
+                    })
                 }
             };
         }
@@ -53,9 +65,7 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         private bool IsValid(Hash resultHash)
         {
-            var prefix = Enumerable.Range(0, State.CurrentDifficulty.Value).Select(x => "0")
-                .Aggregate("0", (s1, s2) => s1 + s2);
-            return resultHash.ToHex().StartsWith(prefix);
+            return resultHash.Value.Take(State.CurrentDifficulty.Value).All(b => b == 0);
         }
 
         private Transaction GenerateTransaction(string methodName, IMessage parameter) => new Transaction
@@ -67,5 +77,21 @@ namespace AElf.Contracts.Consensus.AEPoW
             RefBlockNumber = Context.CurrentHeight,
             RefBlockPrefix = BlockHelper.GetRefBlockPrefix(Context.PreviousBlockHash)
         };
+
+        private Hash CalculateNonce()
+        {
+            var blockHash = Context.PreviousBlockHash;
+            var nonceNumber = 1L;
+            var nonce = HashHelper.ComputeFrom(new Int64Value {Value = nonceNumber});
+            var resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
+            while (!IsValid(resultHash))
+            {
+                nonceNumber++;
+                nonce = HashHelper.ComputeFrom(new Int64Value {Value = nonceNumber});
+                resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
+            }
+
+            return nonce;
+        }
     }
 }

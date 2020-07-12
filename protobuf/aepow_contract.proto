@@ -12,10 +12,34 @@ option csharp_namespace = "AElf.Contracts.Consensus.AEPoW";
 service AEPoWContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEPoW.AEPoWContractState";
     
-    rpc CoinBase (aelf.Address) returns (google.protobuf.Empty) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc CoinBase (CoinBaseInput) returns (google.protobuf.Empty) {
     }
     
     rpc GetBlockProducer (google.protobuf.Int64Value) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
+}
+
+message InitializeInput {
+    int64 supposed_produce_seconds = 1;
+}
+
+message CoinBaseInput {
+    aelf.Address producer = 1;
+    aelf.Hash nonce = 2;
+}
+
+message PoWRecord {
+    aelf.Address producer = 1;
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+// Events
+
+message NonceUpdated {
+    option (aelf.is_event) = true;
+    aelf.Hash nonce = 1;
+    int64 block_height = 2;
 }
