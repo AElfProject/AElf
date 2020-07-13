@@ -9,6 +9,7 @@ using AElf.OS.Network.Protocol.Types;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using QuickGraph;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -26,17 +27,13 @@ namespace AElf.OS.Network
                 o.ListeningPort = 2000;
                 o.MaxPeers = 2;
             });
-            
-            context.Services.AddSingleton(o =>
-            {
-                var mockService = new Mock<ISyncStateService>();
-                mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
-                return mockService.Object;
-            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var syncStateProvider = context.ServiceProvider.GetRequiredService<INodeSyncStateProvider>();
+            syncStateProvider.SetSyncTarget(-1);
+            
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             

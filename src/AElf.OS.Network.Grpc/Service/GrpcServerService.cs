@@ -190,24 +190,6 @@ namespace AElf.OS.Network.Grpc
 
             return new VoidReply();
         }
-        
-        /// <summary>
-        /// This method is called when another peer broadcasts a transaction.
-        /// </summary>
-        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
-        {
-            try
-            {
-                await ProcessTransactionAsync(tx, context.GetPublicKey());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"SendTransaction error - {context.GetPeerInfo()}: ");
-                throw;
-            }
-
-            return new VoidReply();
-        }
 
         private async Task ProcessTransactionAsync(Transaction tx, string peerPubkey)
         {
@@ -268,24 +250,6 @@ namespace AElf.OS.Network.Grpc
             }
 
             return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// This method is called when a peer wants to broadcast an announcement.
-        /// </summary>
-        public override async Task<VoidReply> SendAnnouncement(BlockAnnouncement an, ServerCallContext context)
-        {
-            try
-            {
-                await ProcessAnnouncementAsync(an, context.GetPublicKey());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"Process announcement error: {context.GetPeerInfo()}");
-                throw;
-            }
-
-            return new VoidReply();
         }
 
         /// <summary>
