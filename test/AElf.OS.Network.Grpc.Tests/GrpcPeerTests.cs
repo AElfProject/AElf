@@ -4,18 +4,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Moq;
-using NSubstitute;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeerTests : GrpcNetworkTestBase
     {
@@ -45,6 +43,59 @@ namespace AElf.OS.Network
         public override void Dispose()
         {
             AsyncHelper.RunSync(() => _networkServer.StopAsync(false));
+        }
+
+        [Fact]
+        public void KnowsBlock_Test()
+        {
+            var hash = HashHelper.ComputeFrom("TestHash");
+            
+            _grpcPeer.KnowsBlock(hash).ShouldBeFalse();
+            _grpcPeer.TryAddKnownBlock(hash).ShouldBeTrue();
+            _grpcPeer.KnowsBlock(hash).ShouldBeTrue();
+            _grpcPeer.TryAddKnownBlock(hash).ShouldBeFalse();
+        }
+        
+        [Fact]
+        public void KnowsTransaction_Test()
+        {
+            var hash = HashHelper.ComputeFrom("TransactionHash");
+            
+            _grpcPeer.KnowsTransaction(hash).ShouldBeFalse();
+            _grpcPeer.TryAddKnownTransaction(hash).ShouldBeTrue();
+            _grpcPeer.KnowsTransaction(hash).ShouldBeTrue();
+            _grpcPeer.TryAddKnownTransaction(hash).ShouldBeFalse();
+        }
+
+        [Fact]
+        public void UpdateLastKnownLib_Test()
+        {
+            var libAnnouncement = new LibAnnouncement
+            {
+                LibHeight = 100,
+                LibHash = HashHelper.ComputeFrom(100)
+            };
+            _grpcPeer.UpdateLastKnownLib(libAnnouncement);
+            _grpcPeer.LastKnownLibHash.ShouldBe(libAnnouncement.LibHash);
+            _grpcPeer.LastKnownLibHeight.ShouldBe(libAnnouncement.LibHeight);
+            
+            libAnnouncement = new LibAnnouncement
+            {
+                LibHeight = 101,
+                LibHash = HashHelper.ComputeFrom(101)
+            };
+            _grpcPeer.UpdateLastKnownLib(libAnnouncement);
+            _grpcPeer.LastKnownLibHash.ShouldBe(libAnnouncement.LibHash);
+            _grpcPeer.LastKnownLibHeight.ShouldBe(libAnnouncement.LibHeight);
+            
+            var wrongLibAnnouncement = new LibAnnouncement
+            {
+                LibHeight = 90,
+                LibHash = HashHelper.ComputeFrom(90)
+            };
+            _grpcPeer.UpdateLastKnownLib(wrongLibAnnouncement);
+            _grpcPeer.LastKnownLibHash.ShouldBe(libAnnouncement.LibHash);
+            _grpcPeer.LastKnownLibHeight.ShouldBe(libAnnouncement.LibHeight);
         }
 
         [Fact]
@@ -104,6 +155,25 @@ namespace AElf.OS.Network
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
+        
+        [Fact]
+        public void EnqueueLibAnnouncement_ShouldExecuteCallback_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            bool called = false;
+            _nonInterceptedPeer.EnqueueLibAnnouncement(new LibAnnouncement(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne();
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
 
         [Fact]
         public void EnqueueAnnouncement_WithPeerNotReady_Test()
@@ -111,16 +181,57 @@ namespace AElf.OS.Network
             AutoResetEvent executed = new AutoResetEvent(false);
 
             NetworkException exception = null;
-            _grpcPeer.IsConnected = false;
+            _nonInterceptedPeer.IsConnected = false;
             Should.Throw<NetworkException>(() =>
-                _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+                _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
                 {
                     exception = ex;
                     executed.Set();
                 }));
+        }
+        
+        [Fact]
+        public void EnqueueBlock_WithPeerNotReady_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            _nonInterceptedPeer.IsConnected = false;
 
             Should.Throw<NetworkException>(()=>
-                _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+                _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+                {
+                    exception = ex;
+                    executed.Set();
+                }));
+        }
+        
+        [Fact]
+        public void EnqueueTransaction_WithPeerNotReady_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            _nonInterceptedPeer.IsConnected = false;
+
+            Should.Throw<NetworkException>(()=>
+                _nonInterceptedPeer.EnqueueTransaction(new Transaction(), ex =>
+                {
+                    exception = ex;
+                    executed.Set();
+                }));
+        }
+        
+        [Fact]
+        public void EnqueueLibAnnouncement_WithPeerNotReady_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            _nonInterceptedPeer.IsConnected = false;
+
+            Should.Throw<NetworkException>(()=>
+                _nonInterceptedPeer.EnqueueLibAnnouncement(new LibAnnouncement(), ex =>
                 {
                     exception = ex;
                     executed.Set();
@@ -146,8 +257,9 @@ namespace AElf.OS.Network
             
             await _grpcPeer.DisconnectAsync(false);
             
-            isReady = _grpcPeer.IsReady;
-            isReady.ShouldBeFalse();
+            _grpcPeer.IsShutdown.ShouldBeTrue();
+            _grpcPeer.IsConnected.ShouldBeFalse();
+            _grpcPeer.ConnectionStatus.ShouldBe("Shutdown");
         }
         
         private GrpcPeer MockServiceClient(string ipAddress)
@@ -169,6 +281,11 @@ namespace AElf.OS.Network
             var blockStreamCall = MockStreamCall<BlockWithTransactions, VoidReply>(testCompletionSource);
             mockClient.Setup(m => m.BlockBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
                 .Returns(blockStreamCall);
+            
+            // setup mock lib stream
+            var libAnnouncementStreamCall = MockStreamCall<LibAnnouncement, VoidReply>(testCompletionSource);
+            mockClient.Setup(m => m.LibAnnouncementBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Returns(libAnnouncementStreamCall);
             
             // create peer
             var grpcPeer = GrpcTestPeerHelpers.CreatePeerWithClient(ipAddress, 

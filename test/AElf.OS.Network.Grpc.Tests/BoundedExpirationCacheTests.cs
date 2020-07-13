@@ -1,40 +1,43 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.OS.Network.Grpc;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class BoundedExpirationCacheTests : GrpcBasicNetworkTestBase
     {
         [Fact]
         public void Test_Add_Existence()
         {
-            BoundedExpirationCache cache = new BoundedExpirationCache(10, 10_000);
-            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
-            cache.TryAdd(HashHelper.ComputeFrom("hello_world")).ShouldBeTrue();
-            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeTrue();
-            cache.TryAdd(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
+            var hash = HashHelper.ComputeFrom("hello_world");
+            var cache = new BoundedExpirationCache(10, 10_000);
+            cache.HasHash(hash).ShouldBeFalse();
+            cache.TryAdd(hash).ShouldBeTrue();
+            cache.HasHash(hash).ShouldBeTrue();
+            cache.TryAdd(hash).ShouldBeFalse();
         }
 
         [Fact]
         public async Task Test_Expiration()
         {
-            BoundedExpirationCache cache = new BoundedExpirationCache(10, 4); // 4ms timeout
-            cache.TryAdd(HashHelper.ComputeFrom("hello_world"));
+            var hash = HashHelper.ComputeFrom("hello_world");
+            var cache = new BoundedExpirationCache(10, 4); // 4ms timeout
+            cache.TryAdd(hash);
             await Task.Delay(TimeSpan.FromSeconds(1));
-            cache.HasHash(HashHelper.ComputeFrom("hello_world")).ShouldBeFalse();
+
+            cache.HasHash(hash, false).ShouldBeTrue();
+
+            cache.HasHash(hash).ShouldBeFalse();
         }
-        
+
         [Fact]
         public async Task Test_MultiItem_Expiration()
         {
             int cacheCapacity = 10;
             int timeout = 1_000;
-            BoundedExpirationCache cache = new BoundedExpirationCache(cacheCapacity, timeout);
+            var cache = new BoundedExpirationCache(cacheCapacity, timeout);
             List<string> hashStrings = new List<string>();
             for (int i = 0; i < cacheCapacity; i++)
             {
