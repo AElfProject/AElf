@@ -176,7 +176,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Withdraw_Test()
+        public async Task VoteContract_Withdraw_Fail_Test()
         {
             //const long txFee = 1_00000000;
             //without vote
@@ -187,7 +187,7 @@ namespace AElf.Contracts.Vote
                 withdrawResult.Error.Contains("Voting record not found").ShouldBeTrue();
             }
 
-            //withdraw with other person
+            //Within lock token withdraw with other person
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
 
@@ -209,31 +209,91 @@ namespace AElf.Contracts.Vote
                 var afterBalance = GetUserBalance(voteAddress);
                 beforeBalance.ShouldBe(afterBalance); // Stay same
             }
-
-            //success
+            
+            //Within not lock token withdraw with other person
             {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-
-                var voteUser = Accounts[1].KeyPair;
-                var voteAddress = Accounts[1].Address;
-
-                await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
+                var registerItem = await RegisterVotingItemAsync(100, 3, false, DefaultSender, 1);
+                var withdrawUser = Accounts[2];
+                var voteId = HashHelper.ComputeFrom("hash");
+                await VoteContractStub.Vote.SendAsync(new VoteInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Voter = withdrawUser.Address,
+                    VoteId = voteId,
+                    Option = registerItem.Options[1],
+                    Amount = 100
+                });
                 await TakeSnapshot(registerItem.VotingItemId, 1);
-
-                var voteIds = await GetVoteIds(voteUser, registerItem.VotingItemId);
-                var beforeBalance = GetUserBalance(voteAddress);
-                var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var afterBalance = GetUserBalance(voteAddress);
-                beforeBalance.ShouldBe(afterBalance - 100);
+                var voteIds = await GetVoteIds(DefaultSenderKeyPair, registerItem.VotingItemId);
+                var transactionResult = await WithdrawWithException(withdrawUser.KeyPair, voteIds.ActiveVotes.First());
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldContain("No permission to withdraw votes of others");
             }
         }
 
         [Fact]
-        public async Task VoteContract_AddOption_Test()
+        public async Task VoteContract_Withdraw_Success_Test()
         {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+
+            var voteUser = Accounts[1].KeyPair;
+            var voteAddress = Accounts[1].Address;
+            var voteItemId = registerItem.VotingItemId;
+            var voteAmount = 100;
+            await Vote(voteUser, voteItemId, registerItem.Options[1], voteAmount);
+            var voteIds = await GetVoteIds(voteUser, voteItemId);
+            var currentVoteId = voteIds.ActiveVotes.First();
+            var voteRecordBeforeWithdraw = await VoteContractStub.GetVotingRecord.CallAsync(currentVoteId);
+            voteRecordBeforeWithdraw.IsWithdrawn.ShouldBe(false);
+            var voteItems = await VoteContractStub.GetVotedItems.CallAsync(voteAddress);
+            voteItems.VotedItemVoteIds[voteItemId.ToHex()].ActiveVotes.Count.ShouldBe(1);
+            voteItems.VotedItemVoteIds[voteItemId.ToHex()].WithdrawnVotes.Count.ShouldBe(0);
+            var voteResultBeforeWithdraw = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+            {
+                SnapshotNumber = 1,
+                VotingItemId = voteItemId
+            });
+            await TakeSnapshot(voteItemId, 1);
+
+           
+            var beforeBalance = GetUserBalance(voteAddress);
+            var transactionResult = await Withdraw(voteUser, currentVoteId);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            voteItems = await VoteContractStub.GetVotedItems.CallAsync(voteAddress);
+            voteItems.VotedItemVoteIds[voteItemId.ToHex()].ActiveVotes.Count.ShouldBe(0);
+            voteItems.VotedItemVoteIds[voteItemId.ToHex()].WithdrawnVotes.Count.ShouldBe(1);
+            var voteRecordAfterWithdraw = await VoteContractStub.GetVotingRecord.CallAsync(currentVoteId);
+            voteRecordAfterWithdraw.IsWithdrawn.ShouldBe(true);
+            var voteResultAfterWithdraw = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+            {
+                SnapshotNumber = 1,
+                VotingItemId = voteItemId
+            });
+            voteResultBeforeWithdraw.VotesAmount.Sub(voteResultAfterWithdraw.VotesAmount).ShouldBe(voteAmount);
+            voteResultBeforeWithdraw.Results[registerItem.Options[1]]
+                .Sub(voteResultAfterWithdraw.Results[registerItem.Options[1]]).ShouldBe(voteAmount);
+            voteResultBeforeWithdraw.VotersCount.Sub(1).ShouldBe(voteResultAfterWithdraw.VotersCount);
+            var afterBalance = GetUserBalance(voteAddress);
+            beforeBalance.ShouldBe(afterBalance - 100);
+        }
+
+        [Fact]
+        public async Task VoteContract_AddOption_Fail_Test()
+        {
+            //vote item does not exist
+            {
+                var voteItemId = HashHelper.ComputeFrom("hash");
+                var otherUser = Accounts[10].KeyPair;
+                var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendWithExceptionAsync(
+                    new AddOptionInput
+                    {
+                        Option = Accounts[0].Address.ToBase58(),
+                        VotingItemId = voteItemId
+                    })).TransactionResult;
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Voting item not found.").ShouldBeTrue();
+            }
             //add without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -262,27 +322,67 @@ namespace AElf.Contracts.Vote
                 transactionResult.Error.Contains("Option already exists").ShouldBeTrue();
             }
 
-            //add success
+            // option length exceed 1024
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var address = Accounts[3].Address.ToBase58();
-                var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+                var newOption = new StringBuilder().Append('a', VoteContractConstant.OptionLengthLimit + 1);
+                var transactionResult = (await VoteContractStub.AddOption.SendWithExceptionAsync(new AddOptionInput
                 {
-                    Option = address,
+                    Option = newOption.ToString(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
+                transactionResult.Error.ShouldContain("Invalid input.");
+            }
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var votingItem = await GetVoteItem(registerItem.VotingItemId);
-                votingItem.Options.Count.ShouldBe(4);
-                votingItem.Options.Contains(address).ShouldBeTrue();
+            // option count exceed 64
+            {
+                var registerItem = await RegisterVotingItemAsync(100, VoteContractConstant.MaximumOptionsCount, true,
+                    DefaultSender, 1);
+                var newOption = Accounts[VoteContractConstant.MaximumOptionsCount].Address.ToBase58();
+                var transactionResult = (await VoteContractStub.AddOption.SendWithExceptionAsync(new AddOptionInput
+                {
+                    Option = newOption,
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+                transactionResult.Error.ShouldContain(
+                    $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             }
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOption_Test()
+        public async Task VoteContract_AddOption_Success_Test()
         {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var address = Accounts[3].Address.ToBase58();
+            var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+            {
+                Option = address,
+                VotingItemId = registerItem.VotingItemId
+            })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var votingItem = await GetVoteItem(registerItem.VotingItemId);
+            votingItem.Options.Count.ShouldBe(4);
+            votingItem.Options.Contains(address).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task VoteContract_RemoveOption_Fail_Test()
+        {
+            //voteItem does not exist
+            {
+                var voteItemId = HashHelper.ComputeFrom("hash");
+                var transactionResult = (await VoteContractStub.RemoveOption.SendWithExceptionAsync(
+                    new RemoveOptionInput
+                    {
+                        Option = Accounts[3].Address.ToBase58(),
+                        VotingItemId = voteItemId
+                    })).TransactionResult;
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldContain("Voting item not found.");
+            }
             //remove without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -311,23 +411,39 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
             }
-
-            //remove success
+            
+            //option length exceed 1024
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var removeOption = registerItem.Options[0];
-                var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
-                {
-                    Option = removeOption,
-                    VotingItemId = registerItem.VotingItemId
-                })).TransactionResult;
+                var invalidOption = new StringBuilder().Append('a', VoteContractConstant.OptionLengthLimit + 1);
+                var transactionResult = (await VoteContractStub.RemoveOption.SendWithExceptionAsync(
+                    new RemoveOptionInput
+                    {
+                        Option = invalidOption.ToString(),
+                        VotingItemId = registerItem.VotingItemId
+                    })).TransactionResult;
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var votingItem = await GetVoteItem(registerItem.VotingItemId);
-                votingItem.Options.Count.ShouldBe(2);
-                votingItem.Options.Contains(removeOption).ShouldBeFalse();
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Invalid input.").ShouldBeTrue();
             }
+        }
+
+        [Fact]
+        public async Task VoteContract_RemoveOption_Success_Test()
+        {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var removeOption = registerItem.Options[0];
+            var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+            {
+                Option = removeOption,
+                VotingItemId = registerItem.VotingItemId
+            })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var votingItem = await GetVoteItem(registerItem.VotingItemId);
+            votingItem.Options.Count.ShouldBe(2);
+            votingItem.Options.Contains(removeOption).ShouldBeFalse();
         }
 
         [Fact]
@@ -351,21 +467,20 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
             }
-            //with some of exist
+            //voteItem does not exist
             {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var itemId = HashHelper.ComputeFrom("hash");
                 var transactionResult = (await VoteContractStub.AddOptions.SendWithExceptionAsync(new AddOptionsInput
                 {
-                    VotingItemId = registerItem.VotingItemId,
+                    VotingItemId = itemId,
                     Options =
                     {
                         Accounts[0].Address.ToBase58(),
-                        registerItem.Options[1]
                     }
                 })).TransactionResult;
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Option already exists").ShouldBeTrue();
+                transactionResult.Error.Contains("Voting item not found.").ShouldBeTrue();
             }
             //success
             {
@@ -388,8 +503,24 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOptions_Test()
+        public async Task VoteContract_RemoveOptions_Fail_Test()
         {
+            //voteItem does not exist
+            {
+                var voteItemId = HashHelper.ComputeFrom("hash");
+                var transactionResult = (await VoteContractStub.RemoveOptions.SendWithExceptionAsync(
+                    new RemoveOptionsInput
+                    {
+                        VotingItemId = voteItemId,
+                        Options =
+                        {
+                            Accounts[0].Address.ToBase58()
+                        }
+                    })).TransactionResult;
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldContain("Voting item not found.");
+            }
             //without permission
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -425,24 +556,26 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
             }
-            //success
+        }
+
+        [Fact]
+        public async Task VoteContract_RemoveOptions_Success_Test()
+        {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var transactionResult = (await VoteContractStub.RemoveOptions.SendAsync(new RemoveOptionsInput
             {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var transactionResult = (await VoteContractStub.RemoveOptions.SendAsync(new RemoveOptionsInput
+                VotingItemId = registerItem.VotingItemId,
+                Options =
                 {
-                    VotingItemId = registerItem.VotingItemId,
-                    Options =
-                    {
-                        registerItem.Options[0],
-                        registerItem.Options[1]
-                    }
-                })).TransactionResult;
+                    registerItem.Options[0],
+                    registerItem.Options[1]
+                }
+            })).TransactionResult;
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var votingItem = await GetVoteItem(registerItem.VotingItemId);
-                votingItem.Options.Count.ShouldBe(1);
-            }
+            var votingItem = await GetVoteItem(registerItem.VotingItemId);
+            votingItem.Options.Count.ShouldBe(1);
         }
 
         [Fact]
