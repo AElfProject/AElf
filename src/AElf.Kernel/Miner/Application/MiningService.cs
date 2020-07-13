@@ -121,7 +121,9 @@ namespace AElf.Kernel.Miner.Application
                     var txTotalCount = transactions.Count + systemTransactions.Count;
 
                     var pending = txTotalCount > requestMiningDto.TransactionCountLimit
-                        ? transactions.Take(txTotalCount - systemTransactions.Count).ToList()
+                        ? transactions
+                            .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
+                            .ToList()
                         : transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
@@ -131,7 +133,7 @@ namespace AElf.Kernel.Miner.Application
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
-                                          $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
+                                          $"not executed transactions {pending.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
                     return blockExecutedSet;
                 }
             }
