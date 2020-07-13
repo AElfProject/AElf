@@ -619,5 +619,39 @@ namespace AElf.Contracts.Vote
             votingResult.VotersCount.ShouldBe(4);
             votingResult.VotesAmount.ShouldBe(600L);
         }
+
+        [Fact]
+        public async Task VoteContract_GetVotingRecords_Test()
+        {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var voteUser = Accounts[1].KeyPair;
+            var voteItemId = registerItem.VotingItemId;
+            var voteAmount = 100;
+            await Vote(voteUser, voteItemId, registerItem.Options[1], voteAmount);
+            var voteIds = await GetVoteIds(voteUser, voteItemId);
+            var currentVoteId = voteIds.ActiveVotes.First();
+            var voteRecord = await VoteContractStub.GetVotingRecords.CallAsync(new GetVotingRecordsInput
+            {
+                Ids = {currentVoteId }
+            });
+            voteRecord.Records.Count.ShouldBe(1);
+            voteRecord.Records[0].Amount.ShouldBe(voteAmount);
+        }
+
+        [Fact]
+        public async Task VoteContract_GetVotingIds_Test()
+        {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var voteUser = Accounts[1];
+            var voteItemId = registerItem.VotingItemId;
+            var voteAmount = 100;
+            await Vote(voteUser.KeyPair, voteItemId, registerItem.Options[1], voteAmount);
+            var voteIds = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = voteUser.Address,
+                VotingItemId = registerItem.VotingItemId
+            });
+            voteIds.ActiveVotes.Count.ShouldBe(1);
+        }
     }
 }
