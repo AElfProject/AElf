@@ -1,6 +1,9 @@
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using AElf.ContractTestKit;
+using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
 using Shouldly;
@@ -42,6 +45,37 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
+        public async Task Register_With_Invalid_Timestamp()
+        {
+            var endTime = TimestampHelper.GetUtcNow();
+            var input = new VotingRegisterInput
+            {
+                TotalSnapshotNumber = 0,
+                EndTimestamp = endTime,
+                StartTimestamp = endTime.AddDays(1),
+                Options = {GenerateOptions(1)},
+                AcceptedCurrency = TestTokenSymbol,
+                IsLockToken = true
+            };
+            var transactionResult = (await VoteContractStub.Register.SendWithExceptionAsync(input)).TransactionResult;
+            transactionResult.Error.ShouldContain("Invalid active time.");
+        }
+        
+        [Fact]
+        public async Task Register_With_Zero_Total_Snapshot_Test()
+        {
+            var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 0);
+            votingItem.CurrentSnapshotNumber.ShouldBe(1);
+            var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+            {
+                VotingItemId = votingItem.VotingItemId,
+                SnapshotNumber = 1
+            });
+            votingResult.VotingItemId.ShouldBe(votingItem.VotingItemId);
+            votingResult.SnapshotNumber.ShouldBe(1);
+        }
+
+        [Fact]
         public async Task VoteContract_Vote_Test()
         {
             //voting item not exist
@@ -72,6 +106,17 @@ namespace AElf.Contracts.Vote
                     await VoteWithException(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
+            
+            //vote option length is over the limit 1024
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var voter = Accounts[11].KeyPair;
+                var option = new StringBuilder();
+                option.Append('a', VoteContractConstant.OptionLengthLimit + 1);
+                var voteResult = await VoteWithException(voter, registerItem.VotingItemId, option.ToString(), 100);
+                voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                voteResult.Error.Contains("Invalid input.").ShouldBeTrue();
+            }
 
             //vote option not exist
             {
@@ -82,14 +127,52 @@ namespace AElf.Contracts.Vote
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 voteResult.Error.Contains($"Option {option} not found").ShouldBeTrue();
             }
+        }
 
-            //vote success
+        [Fact]
+        public async Task Vote_Sender_Test()
+        {
+            var votingItem = await RegisterVotingItemAsync(10, 4, false, DefaultSender, 10);
+            var otherVoter = GetVoteContractTester(Accounts[11].KeyPair);
+            var voteRet = await otherVoter.Vote.SendWithExceptionAsync(new VoteInput
             {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var voter = Accounts[11].KeyPair;
-                var voteResult = await Vote(voter, registerItem.VotingItemId, registerItem.Options[1], 100);
-                voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
+                VotingItemId = votingItem.VotingItemId,
+                Amount = 100,
+                Option = votingItem.Options[1]
+            });
+            voteRet.TransactionResult.Error.ShouldContain("Sender of delegated voting event must be the Sponsor.");
+        }
+
+        [Fact]
+        public async Task Vote_Success()
+        {
+            var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+            var voteItemId = registerItem.VotingItemId;
+            var voter = Accounts[11];
+            var voteAmount = 100;
+            var beforeVoteBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = TestTokenSymbol,
+                Owner = voter.Address
+            });
+            var transactionResult = await Vote(voter.KeyPair, voteItemId, registerItem.Options[1], voteAmount);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var voteResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+            {
+                SnapshotNumber = 1,
+                VotingItemId = voteItemId
+            });
+            voteResult.Results[registerItem.Options[1]].ShouldBe(voteAmount);
+            voteResult.VotesAmount.ShouldBe(voteAmount);
+            voteResult.VotersCount.ShouldBe(1);
+            var afterVoteBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = TestTokenSymbol,
+                Owner = voter.Address
+            });
+            beforeVoteBalance.Balance.Sub(afterVoteBalance.Balance).ShouldBe(voteAmount);
+            var voteItems = await VoteContractStub.GetVotedItems.CallAsync(voter.Address);
+            voteItems.VotedItemVoteIds.Count.ShouldBe(1);
         }
 
         [Fact]
