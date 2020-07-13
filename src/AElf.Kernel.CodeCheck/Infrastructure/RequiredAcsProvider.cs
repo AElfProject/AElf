@@ -1,17 +1,17 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Configuration;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.CodeCheck.Application
+namespace AElf.Kernel.CodeCheck.Infrastructure
 {
-    public class SmartContractRequiredAcsService : ISmartContractRequiredAcsService
+    public class RequiredAcsProvider : IRequiredAcsProvider
     {
         private readonly IConfigurationService _configurationService;
 
-        public SmartContractRequiredAcsService(IConfigurationService configurationService)
+        public RequiredAcsProvider(IConfigurationService configurationService)
         {
             _configurationService = configurationService;
         }
