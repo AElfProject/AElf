@@ -210,7 +210,7 @@ namespace AElf.Contracts.Vote
                 beforeBalance.ShouldBe(afterBalance); // Stay same
             }
             
-            //Within not lock token withdraw with other person
+            //Without lock token and withdrawn by other person
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, false, DefaultSender, 1);
                 var withdrawUser = Accounts[2];
@@ -224,7 +224,7 @@ namespace AElf.Contracts.Vote
                     Amount = 100
                 });
                 await TakeSnapshot(registerItem.VotingItemId, 1);
-                var voteIds = await GetVoteIds(DefaultSenderKeyPair, registerItem.VotingItemId);
+                var voteIds = await GetVoteIds(withdrawUser.KeyPair, registerItem.VotingItemId);
                 var transactionResult = await WithdrawWithException(withdrawUser.KeyPair, voteIds.ActiveVotes.First());
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("No permission to withdraw votes of others");
