@@ -159,10 +159,10 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             foreach (var instruction in branchingInstructions)
             {
                 var targetInstruction = (Instruction) instruction.Operand;
-                if (targetInstruction.OpCode == OpCodes.Nop)
-                {
-                    il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
-                }
+                if (targetInstruction.Offset >= instruction.Offset)
+                    continue;
+                
+                il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
             }
             
             il.Body.OptimizeMacros();

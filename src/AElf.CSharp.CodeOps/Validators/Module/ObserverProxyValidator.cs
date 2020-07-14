@@ -129,17 +129,16 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Should be a call placed before each branching opcode
             foreach (var instruction in method.Body.Instructions)
             {
-                if (Constants.JumpingOpCodes.Contains(instruction.OpCode) && instruction.Operand is Instruction targetInstruction)
+                if (Constants.JumpingOpCodes.Contains(instruction.OpCode) 
+                    && instruction.Operand is Instruction targetInstruction 
+                    && targetInstruction.Offset < instruction.Offset)
                 {
-                    if (targetInstruction.OpCode == OpCodes.Nop)
-                    {
-                        var proxyCallInstruction = targetInstruction.Next; 
+                    var proxyCallInstruction = targetInstruction.Next; 
 
-                        if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
-                        {
-                            errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
-                                                                         $"[{method.DeclaringType.Name} > {method.Name}]"));
-                        }
+                    if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
+                    {
+                        errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
+                                                                     $"[{method.DeclaringType.Name} > {method.Name}]"));
                     }
                 }
                 
