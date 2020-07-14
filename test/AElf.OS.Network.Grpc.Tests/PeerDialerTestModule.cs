@@ -18,7 +18,6 @@ namespace AElf.OS.Network
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            var netTestContext = new NetworkTestContext();
 
             services.AddTransient(provider =>
             {
@@ -27,7 +26,6 @@ namespace AElf.OS.Network
                     .Returns<DnsEndPoint, Handshake>((pe, hsk) =>
                     {
                         var handshake = NetworkTestHelper.CreateValidHandshake(CryptoHelper.GenerateKeyPair(), 10, hsk.HandshakeData.ChainId);
-                        netTestContext.GeneratedHandshakes[pe.Host.ToString()] = handshake;
 
                         var handShakeReply = Task.FromResult(new HandshakeReply
                         {
@@ -40,7 +38,6 @@ namespace AElf.OS.Network
                 return mockService.Object;
             });
 
-            services.AddSingleton<NetworkTestContext>(netTestContext);
         }
     }
 

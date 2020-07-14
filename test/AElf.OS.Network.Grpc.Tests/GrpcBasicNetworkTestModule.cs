@@ -26,9 +26,6 @@ namespace AElf.OS.Network
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var netTestHelper = new NetworkTestContext();
-            context.Services.AddSingleton(netTestHelper);
-
             Configure<NetworkOptions>(o =>
             {
                 o.ListeningPort = 2001;
@@ -62,7 +59,6 @@ namespace AElf.OS.Network
                     {
                         var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint,
                             NetworkTestConstants.FakePubkey);
-                        netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
 
@@ -73,7 +69,6 @@ namespace AElf.OS.Network
                     {
                         var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint2,
                             NetworkTestConstants.FakePubkey);
-                        netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
 
@@ -94,9 +89,7 @@ namespace AElf.OS.Network
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.FakeIpEndpoint2,
                             NetworkTestConstants.FakePubkey,
                             mockClient.Object);
-
-                        netTestHelper.AddDialedPeer(peer);
-
+                        
                         return Task.FromResult(peer);
                     });
 
@@ -122,9 +115,7 @@ namespace AElf.OS.Network
 
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             NetworkTestConstants.FakePubkey, mockClient.Object);
-
-                        netTestHelper.AddDialedPeer(peer);
-
+                        
                         return Task.FromResult(peer);
                     });
 
@@ -150,9 +141,7 @@ namespace AElf.OS.Network
 
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             NetworkTestConstants.FakePubkey, mockClient.Object);
-
-                        netTestHelper.AddDialedPeer(peer);
-
+                        
                         return peer;
                     });
 
@@ -185,9 +174,7 @@ namespace AElf.OS.Network
 
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             keyPair.PublicKey.ToHex(), mockClient.Object);
-
-                        netTestHelper.AddDialedPeer(peer);
-
+                        
                         return Task.FromResult(peer);
                     });
 
