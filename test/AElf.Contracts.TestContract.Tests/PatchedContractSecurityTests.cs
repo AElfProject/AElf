@@ -392,15 +392,15 @@ namespace AElf.Contract.TestContract
         {
             {
                 await TestBasicSecurityContractStub.TestWhileInfiniteLoop.SendAsync(new Int32Input
-                    {Int32Value = 14900});
+                    {Int32Value = 14999});
                 var txResult = await TestBasicSecurityContractStub.TestWhileInfiniteLoop.SendWithExceptionAsync(
                     new Int32Input
-                        {Int32Value = 15000});
+                        {Int32Value = 15001});
                 txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
             }
 
             {
-                await TestBasicSecurityContractStub.TestForInfiniteLoop.SendAsync(new Int32Input {Int32Value = 14900});
+                await TestBasicSecurityContractStub.TestForInfiniteLoop.SendAsync(new Int32Input {Int32Value = 14999});
                 var txResult = await TestBasicSecurityContractStub.TestForInfiniteLoop.SendWithExceptionAsync(
                     new Int32Input
                         {Int32Value = 15000});
@@ -409,7 +409,7 @@ namespace AElf.Contract.TestContract
 
             {
                 await TestBasicSecurityContractStub.TestWhileInfiniteLoopWithState.SendAsync(new Int32Input
-                    {Int32Value = 14900});
+                    {Int32Value = 14999});
                 var txResult =
                     await TestBasicSecurityContractStub.TestWhileInfiniteLoopWithState.SendWithExceptionAsync(
                         new Int32Input

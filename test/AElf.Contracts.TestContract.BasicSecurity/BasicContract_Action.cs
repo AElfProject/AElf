@@ -321,7 +321,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         
         public override Int32Output TestWhileInfiniteLoop(Int32Input input)
         {
-            int i = 1;
+            int i = 0;
             var count = input.Int32Value;
             while (i++ < count)
             {
