@@ -180,6 +180,9 @@ namespace AElf.Kernel.Types.Tests
             )));
             
             Assert.False(wrongSource.IsIn(target));
+            
+            var emptySource=new Bloom();
+            Assert.False(emptySource.IsIn(target));
         }
     }
 }
