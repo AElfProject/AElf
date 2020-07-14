@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Miner;
+using AElf.Kernel.Miner.Application;
 using AElf.TestBase;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -37,6 +40,17 @@ namespace AElf.Kernel
                     BlockHeight = blockIndex.BlockHeight
                 });
             limit.ShouldBe(blockTransactionLimit);
+
+            var blockTransactionLimitLessThanSystemTransaction =
+                GetRequiredService<IEnumerable<ISystemTransactionGenerator>>().Count();
+            await _blockTransactionLimitProvider.SetLimitAsync(blockIndex, blockTransactionLimitLessThanSystemTransaction);
+            var limit2 = await _blockTransactionLimitProvider.GetLimitAsync(
+                new ChainContext
+                {
+                    BlockHash = blockIndex.BlockHash,
+                    BlockHeight = blockIndex.BlockHeight
+                });
+            limit2.ShouldBe(blockTransactionLimit);
         }
 
         [Fact]

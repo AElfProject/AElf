@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner
@@ -15,11 +19,16 @@ namespace AElf.Kernel.Miner
         ISingletonDependency
     {
         private const string BlockExecutedDataName = "BlockTransactionLimit";
+        private readonly int _systemTransactionCount;
 
+        public ILogger<BlockTransactionLimitProvider> Logger { get; set; }
+        
         public BlockTransactionLimitProvider(
-            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService) : base(
+            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService, 
+            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators) : base(
             cachedBlockchainExecutedDataService)
         {
+            _systemTransactionCount = systemTransactionGenerators.Count();
         }
 
         public Task<int> GetLimitAsync(IChainContext chainContext)
@@ -30,11 +39,15 @@ namespace AElf.Kernel.Miner
 
         public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
         {
+            if (limit <= _systemTransactionCount)
+                return;
+            
             var blockTransactionLimit = new Int32Value
             {
                 Value = limit
             };
             await AddBlockExecutedDataAsync(blockIndex, blockTransactionLimit);
+            Logger.LogDebug($"BlockTransactionLimit has been changed to {limit}");
         }
 
         protected override string GetBlockExecutedDataName()
