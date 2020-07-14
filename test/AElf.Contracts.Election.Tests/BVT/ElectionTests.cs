@@ -14,6 +14,7 @@ using Shouldly;
 using Xunit;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
+using Google.Protobuf.Collections;
 
 namespace AElf.Contracts.Election
 {
@@ -498,9 +499,82 @@ namespace AElf.Contracts.Election
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
         }
+        
+        [Fact]
+        public async Task Election_VoteWeightInterestSetting_With_Invalid_Input_Test()
+        {
+            // argument <= 0
+            {
+                var newSetting = new VoteWeightInterestList
+                {
+                    VoteWeightInterestInfos =
+                    {
+                        new VoteWeightInterest
+                        {
+                            Capital = 0,
+                            Interest = 4,
+                            Day = 0
+                        }
+                    }
+                };
+                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                    nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
+                settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
+                settingRet.Error.ShouldContain("invalid input");
+            }
+            
+            // interest count == 0
+            {
+                var newSetting = new VoteWeightInterestList();
+                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                    nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
+                settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
+                settingRet.Error.ShouldContain("invalid input");
+            }
+            
+            // repeat day
+            {
+                var newSetting = new VoteWeightInterestList
+                {
+                    VoteWeightInterestInfos =
+                    {
+                        new VoteWeightInterest
+                        {
+                            Capital = 1,
+                            Interest = 2,
+                            Day = 3
+                        },
+                        new VoteWeightInterest
+                        {
+                            Capital = 1,
+                            Interest = 2,
+                            Day = 3
+                        }
+                    }
+                };
+                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                    nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
+                settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
+                settingRet.Error.ShouldContain("repeat day");
+            }
+        }
+        
+        [Fact]
+        public async Task Election_VoteWeightInterestSetting_Without_Authority_Test()
+        {
+            var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
+                new Empty());
+            defaultSetting.VoteWeightInterestInfos.Count.ShouldBe(3);
+            defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
+            defaultSetting.VoteWeightInterestInfos[0].Day = 50;
+
+            var setWithoutAuthRet = await ElectionContractStub.SetVoteWeightInterest.SendAsync(defaultSetting);
+            setWithoutAuthRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            setWithoutAuthRet.TransactionResult.Error.ShouldContain("No permission.");
+        }
 
         [Fact]
-        public async Task Election_Vote_Weight_Interest_Setting()
+        public async Task Election_VoteWeightInterestSetting_Test()
         {
             var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
                 new Empty());
@@ -518,7 +592,35 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task Authorization_Transfer_For_Set_Vote_Weight_Interest()
+        public async Task Election_ChangeVoteWeightInterestController_Without_Authority_Test()
+        {
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = new Address(),
+                ContractAddress = ParliamentContractAddress
+            };
+            var changeControllerRet =
+                await ElectionContractStub.ChangeVoteWeightInterestController.SendAsync(newAuthority);
+            changeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeControllerRet.TransactionResult.Error.ShouldContain("No Permission");
+        }
+        
+        [Fact]
+        public async Task Election_ChangeVoteWeightInterestController_With_Invalid_Input_Test()
+        {
+            var newAuthority = new AuthorityInfo
+            {
+                OwnerAddress = TokenHolderContractAddress,
+                ContractAddress = ParliamentContractAddress
+            };
+            var changeControllerRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
+            changeControllerRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeControllerRet.Error.ShouldContain("Invalid authority input.");
+        }
+
+        [Fact]
+        public async Task Election_ChangeVoteWeightInterestController_Test()
         {
             var defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
                 new Empty());
@@ -556,7 +658,34 @@ namespace AElf.Contracts.Election
         }
         
         [Fact]
-        public async Task Election_Amount_And_Time_For_Calculate_Vote_Weight_Update()
+        public async Task Election_SetVoteWeightProportion_Without_Authority_Test()
+        {
+            var newSetting = new VoteWeightProportion
+            {
+                TimeProportion = 3,
+                AmountProportion = 3
+            };
+            var settingRet = await ElectionContractStub.SetVoteWeightProportion.SendAsync(newSetting);
+            settingRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            settingRet.TransactionResult.Error.ShouldContain("No permission");
+        }
+        
+        [Fact]
+        public async Task Election_SetVoteWeightProportion_With_Invalid_Input_Test()
+        {
+            var newSetting = new VoteWeightProportion
+            {
+                TimeProportion = 0,
+                AmountProportion = 3
+            };
+            var settingRet =  await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                nameof(ElectionContractStub.SetVoteWeightProportion), newSetting);
+            settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            settingRet.Error.ShouldContain("invalid input");
+        }
+        
+        [Fact]
+        public async Task Election_SetVoteWeightProportion_Test()
         {
             var defaultSetting = await ElectionContractStub.GetVoteWeightProportion.CallAsync(
                 new Empty());

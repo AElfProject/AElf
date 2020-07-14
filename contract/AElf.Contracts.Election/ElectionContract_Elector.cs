@@ -392,7 +392,6 @@ namespace AElf.Contracts.Election
         public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null, "invalid input");
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
             State.VoteWeightInterestController.Value = input;
             return new Empty();
