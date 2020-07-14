@@ -74,7 +74,7 @@ namespace AElf.Contracts.Election
             var minimumVotes = candidateVotesAmount;
             var minimumVotesCandidate = input.CandidatePubkey;
             bool replaceWillHappen = false;
-            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.Reverse())
+            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.OrderBy(x => x.Value))
             {
                 if (pubkeyToVotesAmount.Value < minimumVotes)
                 {
@@ -327,10 +327,35 @@ namespace AElf.Contracts.Election
             {
                 rankingList.DataCenters[votingRecord.Option] =
                     rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                UpdateDataCenterAfterWithdraw(rankingList, votingRecord.Option);
                 State.DataCentersRankingList.Value = rankingList;
             }
 
             return new Empty();
+        }
+
+        private void UpdateDataCenterAfterWithdraw(DataCenterRankingList rankingList, string withDrawOption)
+        {
+            var amountAfterWithdraw = rankingList.DataCenters[withDrawOption];
+            if (rankingList.DataCenters.Any(x => x.Value <= amountAfterWithdraw))
+                return;
+            long maxVoteAmountOutDataCenter = 0;
+            string maxVoteAmountOptionOutDataCenter = null;
+            foreach (var candidateByteString in State.Candidates.Value.Value)
+            {
+                var candidatePublicKeyString = candidateByteString.ToHex();
+                if (rankingList.DataCenters.ContainsKey(candidatePublicKeyString) ||
+                    !State.CandidateInformationMap[candidatePublicKeyString].IsCurrentCandidate) continue;
+                var candidateVoteAmount = State.CandidateVotes[candidatePublicKeyString].ObtainedActiveVotedVotesAmount;
+                if (maxVoteAmountOutDataCenter > candidateVoteAmount)
+                    continue;
+                maxVoteAmountOptionOutDataCenter = candidatePublicKeyString;
+                maxVoteAmountOutDataCenter = candidateVoteAmount;
+            }
+
+            if (string.IsNullOrEmpty(maxVoteAmountOptionOutDataCenter))
+                return;
+            rankingList.DataCenters[maxVoteAmountOptionOutDataCenter] = maxVoteAmountOutDataCenter;
         }
 
         #endregion
@@ -338,7 +363,7 @@ namespace AElf.Contracts.Election
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            Assert(input.VoteWeightInterestInfos.Count > 0, "invalid input");
             // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -359,7 +384,7 @@ namespace AElf.Contracts.Election
         public override Empty SetVoteWeightProportion(VoteWeightProportion input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
+            Assert(input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
             State.VoteWeightProportion.Value = input;
             return new Empty();
         }

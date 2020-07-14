@@ -25,6 +25,31 @@ namespace AElf.Contracts.Election
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task ElectionContract_RegisterElectionVotingEvent_Register_Twice_Test()
+        {
+            var registerAgainRet =
+                await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
+            registerAgainRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            registerAgainRet.TransactionResult.Error.ShouldContain("Already registered.");
+        }
+        
+        [Fact]
+        public async Task ElectionContract_SetTreasurySchemeIds_SetTwice_Test()
+        {
+            var setSchemeIdRet = await ElectionContractStub.SetTreasurySchemeIds.SendAsync(new SetTreasurySchemeIdsInput
+            {
+                SubsidyHash = HashHelper.ComputeFrom("Subsidy"),
+                TreasuryHash = HashHelper.ComputeFrom("Treasury"),
+                WelfareHash = HashHelper.ComputeFrom("Welfare"),
+                VotesRewardHash = HashHelper.ComputeFrom("VotesReward"),
+                ReElectionRewardHash = HashHelper.ComputeFrom("ReElectionReward")
+            });
+            setSchemeIdRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            setSchemeIdRet.TransactionResult.Error.ShouldContain("Treasury profit ids already set.");
+        }
+
 
         #region AnnounceElection
 
@@ -62,6 +87,15 @@ namespace AElf.Contracts.Election
             transactionResult.Error.ShouldContain("This public key already announced election.");
             s.Stop();
             _testOutputHelper.WriteLine(s.ElapsedMilliseconds.ToString());
+        }
+        
+        [Fact]
+        public async Task ElectionContract_AnnounceElection_MinerAnnounce_Test()
+        {
+            var miner = InitialCoreDataCenterKeyPairs[0];
+            var minerAnnounceRet = await AnnounceElectionAsync(miner);
+            minerAnnounceRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            minerAnnounceRet.Error.ShouldContain("Initial miner cannot announce election.");
         }
 
         #endregion

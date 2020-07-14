@@ -41,6 +41,31 @@ namespace AElf.Contracts.Election
             electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
 
+        [Fact]
+        public async Task ElectionContract_AnnounceElection_State_Test()
+        {
+            var candidatesKeyPair = ValidationDataCenterKeyPairs.First();
+            var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            await AnnounceElectionAsync(candidatesKeyPair);
+            var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
+            var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
+            {
+                VotingItemId = MinerElectionVotingItemId
+            });
+            votingItem.Options.Count.ShouldBe(1);
+            votingItem.Options.ShouldContain(candidatesKeyPair.PublicKey.ToHex());
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterList.DataCenters.ContainsKey(candidatesKeyPair.PublicKey.ToHex()).ShouldBeTrue();
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(candidatesKeyPair.PublicKey)
+            });
+            profitDetail.Details.Count.ShouldBe(1);
+        }
+
         /// <summary>
         /// Take first 7 full node key pairs to announce election.
         /// </summary>
@@ -139,6 +164,31 @@ namespace AElf.Contracts.Election
                 });
                 votingItem.Options.Count.ShouldBe(candidates.Count - quitCount);
             }
+        }
+        
+        [Fact]
+        public async Task ElectionContract_QuiteElection_State_Test()
+        {
+            var candidatesKeyPair = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidatesKeyPair);
+            var balanceBeforeQuit = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            await QuitElectionAsync(candidatesKeyPair);
+            var balanceAfterQuit = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            balanceAfterQuit.ShouldBe(balanceBeforeQuit + ElectionContractConstants.LockTokenForElection);
+            var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
+            {
+                VotingItemId = MinerElectionVotingItemId
+            });
+            votingItem.Options.Count.ShouldBe(0);
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterList.DataCenters.Count.ShouldBe(0);
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(candidatesKeyPair.PublicKey)
+            });
+            // profitDetail.Details.Count.ShouldBe(0);
         }
 
         /// <summary>
