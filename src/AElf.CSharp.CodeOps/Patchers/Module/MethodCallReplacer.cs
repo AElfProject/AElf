@@ -25,6 +25,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             {OpCodes.Sub, OpCodes.Sub_Ovf},
             {OpCodes.Mul, OpCodes.Mul_Ovf}
         };
+        
+        public bool SystemContactIgnored => false;
 
         public void Patch(ModuleDefinition module)
         {
