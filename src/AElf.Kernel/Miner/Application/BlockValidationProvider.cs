@@ -28,8 +28,8 @@ namespace AElf.Kernel.Miner.Application
         {
             var txCountLimit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
             });
 
             return Math.Max(txCountLimit, _systemTransactionCount) >= block.TransactionIds.Count();
