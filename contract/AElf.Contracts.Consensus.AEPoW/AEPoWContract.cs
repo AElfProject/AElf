@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Acs4;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,6 +18,8 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
+            Context.LogDebug(() => "Getting consensus command for PoW.");
+
             return new ConsensusCommand
             {
                 ArrangedMiningTime = Context.CurrentBlockTime,
@@ -27,14 +30,16 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         public override BytesValue GetConsensusExtraData(BytesValue input)
         {
+            Context.LogDebug(() => "Entered GetConsensusExtraData of PoW.");
             return CalculateNonce().ToBytesValue();
         }
 
         // TODO: Cache nonce in Kernel code.
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
-            var nonce = new Hash();
-            nonce.MergeFrom(input.Value);
+            Context.LogDebug(() => "Entered GenerateConsensusTransactions of PoW.");
+            var nonce = CalculateNonce();
+
             return new TransactionList
             {
                 Transactions =
@@ -54,6 +59,7 @@ namespace AElf.Contracts.Consensus.AEPoW
             nonce.MergeFrom(input.ToByteString());
             return new ValidationResult
             {
+                // TODO: Need to fix.
                 Success = IsValid(HashHelper.ConcatAndCompute(Context.PreviousBlockHash, nonce))
             };
         }
@@ -80,10 +86,20 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         private Hash CalculateNonce()
         {
+            Context.LogDebug(() => "Entered CalculateNonce.");
+
+            var currentHeight = Context.CurrentHeight;
+            if (Nonces != null && Nonces.ContainsKey(currentHeight))
+            {
+                return Nonces[currentHeight];
+            }
+
             var blockHash = Context.PreviousBlockHash;
             var nonceNumber = 1L;
             var nonce = HashHelper.ComputeFrom(new Int64Value {Value = nonceNumber});
             var resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
+            Context.LogDebug(() => "Entered CalculateNonce 2.");
+
             while (!IsValid(resultHash))
             {
                 nonceNumber++;
@@ -91,7 +107,17 @@ namespace AElf.Contracts.Consensus.AEPoW
                 resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
             }
 
+            Context.LogDebug(() => $"New nonce: {nonce}, number: {nonceNumber}");
+
+            if (Nonces == null)
+            {
+                Nonces = new Dictionary<long, Hash>();
+            }
+
+            Nonces.Add(currentHeight, nonce);
             return nonce;
         }
+
+        public Dictionary<long, Hash> Nonces { get; set; }
     }
 }

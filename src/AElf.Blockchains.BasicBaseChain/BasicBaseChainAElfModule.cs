@@ -35,9 +35,7 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(CrossChainAElfModule),
         typeof(KernelAElfModule),
-        typeof(AEDPoSAElfModule),
         typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
@@ -45,19 +43,13 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(GrpcCrossChainAElfModule),
 
         typeof(GovernmentSystemAElfModule),
         typeof(EconomicSystemAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-        typeof(ParallelExecutionModule),
-
-        //plugin
-        typeof(ExecutionPluginForMethodFeeModule),
-        typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForCallThresholdModule)
+        typeof(ParallelExecutionModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {

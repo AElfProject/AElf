@@ -1,4 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -11,7 +12,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.SideChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule)
+        typeof(BasicBaseChainAElfModule),
+        typeof(AEDPoSAElfModule)
     )]
     public class SideChainAElfModule : AElfModule
     {

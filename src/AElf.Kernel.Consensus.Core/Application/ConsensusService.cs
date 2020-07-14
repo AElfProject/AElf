@@ -190,12 +190,11 @@ namespace AElf.Kernel.Consensus.Application
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
-            return (await _contractReaderFactory
-                    .Create(contractReaderContext)
-                    .GetConsensusExtraData
-                    .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
-                        _consensusCommand.ToBytesValue()))).Value
-                .ToByteArray();
+            var consensusContractStub = _contractReaderFactory.Create(contractReaderContext);
+            var triggerInformation = _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
+                _consensusCommand.ToBytesValue());
+            var extraData = await consensusContractStub.GetConsensusExtraData.CallAsync(triggerInformation);
+            return extraData.Value.ToByteArray();
         }
 
         /// <summary>

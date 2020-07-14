@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using AElf.Blockchains.MainChain;
+using AElf.Blockchains.PoWChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
@@ -33,8 +34,11 @@ namespace AElf.Launcher
                 case ChainType.SideChain:
                     AddApplication<SideChainAElfModule>(services);
                     break;
-                default:
+                case ChainType.MainChain:
                     AddApplication<MainChainAElfModule>(services);
+                    break;
+                case ChainType.PoWChain:
+                    AddApplication<PoWChainAElfModule>(services);
                     break;
             }
 

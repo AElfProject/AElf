@@ -1,6 +1,7 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Database;
+using AElf.Kernel.Consensus.AEPoW;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
@@ -13,12 +14,13 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.PoWChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule)
+        typeof(BasicBaseChainAElfModule),
+        typeof(AEPoWAElfModule)
     )]
     public class PoWChainAElfModule : AElfModule
     {
         public ILogger<PoWChainAElfModule> Logger { get; set; }
-        
+
         public PoWChainAElfModule()
         {
             Logger = NullLogger<PoWChainAElfModule>.Instance;
@@ -27,8 +29,8 @@ namespace AElf.Blockchains.PoWChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<IContractDeploymentListProvider, PowChainContractDeploymentListProvider>();
-            services.AddTransient<IGenesisSmartContractDtoProvider, PowChainGenesisSmartContractDtoProvider>();
+            services.AddTransient<IContractDeploymentListProvider, PoWChainContractDeploymentListProvider>();
+            services.AddTransient<IGenesisSmartContractDtoProvider, PoWChainGenesisSmartContractDtoProvider>();
 
             var config = context.Services.GetConfiguration();
 
@@ -36,7 +38,7 @@ namespace AElf.Blockchains.PoWChain
             {
                 services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseInMemoryDatabase());
             }
-            
+
             if (config.GetConnectionString("StateDb") == "InMemory")
             {
                 services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseInMemoryDatabase());

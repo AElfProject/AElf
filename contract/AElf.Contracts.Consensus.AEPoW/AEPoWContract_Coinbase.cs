@@ -14,6 +14,8 @@ namespace AElf.Contracts.Consensus.AEPoW
             if (Context.CurrentHeight == 2)
             {
                 State.BlockchainStartTime.Value = Context.CurrentBlockTime;
+                State.SupposedProduceSeconds.Value = 10;
+                State.CurrentDifficulty.Value = 1;
             }
 
             Assert(State.Records[Context.CurrentHeight] == null,
@@ -30,12 +32,13 @@ namespace AElf.Contracts.Consensus.AEPoW
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            State.TokenContract.Transfer.Send(new TransferInput
-            {
-                To = input.Producer,
-                Amount = GetCurrentCoinBaseAmount(),
-                Symbol = Context.Variables.NativeSymbol
-            });
+            // TODO: Comment because ELF not initialized.
+            // State.TokenContract.Transfer.Send(new TransferInput
+            // {
+            //     To = input.Producer,
+            //     Amount = GetCurrentCoinBaseAmount(),
+            //     Symbol = Context.Variables.NativeSymbol
+            // });
 
             Context.Fire(new NonceUpdated
             {
@@ -59,19 +62,24 @@ namespace AElf.Contracts.Consensus.AEPoW
         /// </summary>
         private void AdjustDifficulty()
         {
+            Context.LogDebug(() => $"Entered AdjustDifficulty.");
             var currentHeight = Context.CurrentHeight;
             if (currentHeight < AdjustDifficultyReferenceBlockNumber) return;
             var timeSpans = new List<Duration>();
             var tempBlockTime = Context.CurrentBlockTime;
             for (var i = 1; i < AdjustDifficultyReferenceBlockNumber; i++)
             {
-                var record = State.Records[currentHeight.Sub(i)];
+                var height = currentHeight.Sub(i);
+                var record = State.Records[height];
+                if (record == null) continue;
                 timeSpans.Add(tempBlockTime - record.Timestamp);
                 tempBlockTime = record.Timestamp;
             }
 
             // Cannot use Average method directly because safe checks of smart contract.
             var averageProduceTime = timeSpans.Select(s => s.Seconds).Sum().Div(timeSpans.Count);
+            Context.LogDebug(() => $"Average produce time: {averageProduceTime}");
+            Context.LogDebug(() => $"Current difficulty: {State.CurrentDifficulty.Value}");
             State.CurrentDifficulty.Value = averageProduceTime > State.SupposedProduceSeconds.Value
                 ? State.CurrentDifficulty.Value.Sub(1)
                 : State.CurrentDifficulty.Value.Add(1);
