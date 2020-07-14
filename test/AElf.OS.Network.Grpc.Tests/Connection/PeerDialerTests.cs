@@ -6,7 +6,7 @@ using AElf.OS.Network.Protocol;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class PeerDialerTests : PeerDialerTestBase
     {
@@ -36,6 +36,15 @@ namespace AElf.OS.Network
             grpcPeer.CurrentBlockHeight.ShouldBe(peersHandshake.HandshakeData.BestChainHeight);
             grpcPeer.LastKnownLibHeight.ShouldBe(peersHandshake.HandshakeData.LastIrreversibleBlockHeight);
         }
+        
+        [Fact]
+        public async Task DialPeer_InvalidEndpoint_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
+            var grpcPeer = await _peerDialer.DialPeerAsync(endpoint);
+            
+            grpcPeer.ShouldBeNull();
+        }
 
         [Fact]
         public async Task DialBackPeer_Test()
@@ -51,6 +60,17 @@ namespace AElf.OS.Network
             grpcPeer.LastKnownLibHeight.ShouldBe(handshake.HandshakeData.LastIrreversibleBlockHeight);
             grpcPeer.Info.Pubkey.ShouldBe(handshake.HandshakeData.Pubkey.ToHex());
             grpcPeer.Info.ProtocolVersion.ShouldBe(handshake.HandshakeData.Version);
+        }
+        
+        [Fact]
+        public async Task DialBackPeer_InvalidEndpoint_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            
+            var grpcPeer = await _peerDialer.DialBackPeerAsync(endpoint, handshake);
+            
+            grpcPeer.ShouldBeNull();
         }
     }
 }

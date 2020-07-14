@@ -1,31 +1,28 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServerTests : GrpcBasicNetworkTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
         private readonly ILocalEventBus _eventBus;
         private readonly IPeerPool _peerPool;
-
-        private readonly NetworkTestContext _testContext;
+        private readonly IReconnectionService _reconnectionService;
 
         public GrpcNetworkServerTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _peerPool = GetRequiredService<IPeerPool>();
-            _testContext = GetRequiredService<NetworkTestContext>();
+            _reconnectionService = GetRequiredService<IReconnectionService>();
         }
         
         private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
@@ -39,10 +36,8 @@ namespace AElf.OS.Network
             return peer;
         }
 
-        #region Lifecycle
-
         [Fact]
-        public async Task Start_ShouldLaunch_NetInitEvent()
+        public async Task Start_Test()
         {
             NetworkInitializedEvent eventData = null;
             _eventBus.Subscribe<NetworkInitializedEvent>(ed =>
@@ -56,21 +51,28 @@ namespace AElf.OS.Network
 
             eventData.ShouldNotBeNull();
         }
-        
+
         [Fact]
-        public async Task Stop_ShouldLaunch_DisconnectAllPeers()
+        public async Task Disconnect_Test()
         {
             await _networkServer.StartAsync();
             var peer = AddPeerToPool();
             peer.IsShutdown.ShouldBeFalse();
             await _networkServer.DisconnectAsync(peer);
-            await _networkServer.StopAsync();
             peer.IsShutdown.ShouldBeTrue();
+            
+            await _networkServer.StopAsync();
         }
-        
-        #endregion
 
-        #region Dialing
+        [Fact]
+        public async Task TrySchedulePeerReconnection_Test()
+        {
+            var peer = AddPeerToPool();
+            var result = await _networkServer.TrySchedulePeerReconnectionAsync(peer);
+            result.ShouldBeTrue();
+            
+            _reconnectionService.GetReconnectingPeer(peer.RemoteEndpoint.ToString()).ShouldNotBeNull();
+        }
 
         [Fact] 
         public async Task DialPeerAsync_HostAlreadyInPool_ShouldReturnFalse()
@@ -148,7 +150,5 @@ namespace AElf.OS.Network
             
             _peerPool.PeerCount.ShouldBe(0);
         }
-
-        #endregion
     }
 }

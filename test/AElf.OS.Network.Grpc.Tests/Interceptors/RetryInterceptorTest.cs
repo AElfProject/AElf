@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using AElf.OS.Network.Grpc;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Xunit;
 
-namespace AElf.OS.Network.Interceptors
+namespace AElf.OS.Network.Grpc
 {
     public class RetryInterceptorTest : RetryInterceptorTestBase
     {

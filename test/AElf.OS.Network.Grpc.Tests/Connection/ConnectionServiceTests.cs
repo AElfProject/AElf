@@ -1,21 +1,18 @@
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
-    public class PeerConnectionServiceTests : ServerServiceTestBase
+    public class ConnectionServiceTests : ServerServiceTestBase
     {
         private readonly IConnectionService _connectionService;
         private readonly IPeerPool _peerPool;
 
-        public PeerConnectionServiceTests()
+        public ConnectionServiceTests()
         {
             _connectionService = GetRequiredService<IConnectionService>();
             _peerPool = GetRequiredService<IPeerPool>();

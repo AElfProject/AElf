@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -17,7 +14,6 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeerTests : GrpcNetworkTestBase
     {
-        private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
         
         private IPeerPool _pool;
@@ -26,15 +22,11 @@ namespace AElf.OS.Network.Grpc
 
         public GrpcPeerTests()
         {
-            _blockchainService = GetRequiredService<IBlockchainService>();
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _pool = GetRequiredService<IPeerPool>();
 
             _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
             _grpcPeer.IsConnected = true;
-
-            //_nonInterceptedPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:2000", false);
-            //_nonInterceptedPeer.IsConnected = true;
             _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
             _pool.TryAddPeer(_grpcPeer);
