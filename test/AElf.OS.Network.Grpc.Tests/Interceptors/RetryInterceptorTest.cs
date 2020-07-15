@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class RetryInterceptorTest : RetryInterceptorTestBase
+    public class RetryInterceptorTest : GrpcNetworkWithPeerTestBase
     {
         [Fact]
         public async Task RetryDoesNotExceedSuccess()

@@ -9,10 +9,10 @@ using Moq;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -42,7 +42,7 @@ namespace AElf.OS.Network
     }
 
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerInvalidHandshakeTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -68,7 +68,7 @@ namespace AElf.OS.Network
     }
     
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerReplyErrorTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

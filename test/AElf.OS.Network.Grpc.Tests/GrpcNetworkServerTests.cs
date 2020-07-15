@@ -10,7 +10,7 @@ using Xunit;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcNetworkServerTests : GrpcBasicNetworkTestBase
+    public class GrpcNetworkServerTests : GrpcNetworkTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
         private readonly ILocalEventBus _eventBus;
@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Grpc
         private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
             string pubkey = NetworkTestConstants.FakePubkey)
         {
-            var peer = GrpcTestPeerHelpers.CreateBasicPeer(ip, pubkey);
+            var peer = GrpcTestPeerHelper.CreateBasicPeer(ip, pubkey);
             bool added = _peerPool.TryAddPeer(peer);
             
             Assert.True(added);
@@ -82,16 +82,7 @@ namespace AElf.OS.Network.Grpc
             
             added.ShouldBeFalse();
         }
-        
-        [Fact] 
-        public void DialPeerAsync_ShouldThrowException()
-        {
-            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
-            _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
-            
-            _peerPool.PeerCount.ShouldBe(0);
-        }
-        
+
         [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
@@ -104,25 +95,7 @@ namespace AElf.OS.Network.Grpc
             _peerPool.FindPeerByEndpoint(endpoint).ShouldNotBeNull();
         }
         
-        [Fact] 
-        public async Task DialPeerAsync_GoodPeer_ShouldLaunchConnectionEvent()
-        {
-            PeerConnectedEventData eventData = null;
-            _eventBus.Subscribe<PeerConnectedEventData>(e =>
-            {
-                eventData = e;
-                return Task.CompletedTask;
-            });
-            
-            // two different hosts with the same pubkey.
-            AElfPeerEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
-            
-            added.ShouldBeTrue();
-            _peerPool.FindPeerByEndpoint(endpoint).ShouldNotBeNull();
-            
-            eventData.ShouldNotBeNull();
-        }
+        
         
         [Fact] 
         public void DialPeerAsync_HandshakeNetProblem_ShouldThrowException()

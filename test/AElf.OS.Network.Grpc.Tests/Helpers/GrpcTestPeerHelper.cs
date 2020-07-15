@@ -5,9 +5,9 @@ using AElf.OS.Network.Protocol.Types;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
-    public static class GrpcTestPeerHelpers
+    public static class GrpcTestPeerHelper
     {
         private static Channel CreateMockChannel() => new Channel("127.0.0.1:9999", ChannelCredentials.Insecure);
         

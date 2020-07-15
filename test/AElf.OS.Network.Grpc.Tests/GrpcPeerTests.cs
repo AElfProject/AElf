@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcPeerTests : GrpcNetworkTestBase
+    public class GrpcPeerTests : GrpcNetworkWithChainTestBase
     {
         private IAElfNetworkServer _networkServer;
         
@@ -25,7 +25,7 @@ namespace AElf.OS.Network.Grpc
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _pool = GetRequiredService<IPeerPool>();
 
-            _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
+            _grpcPeer = GrpcTestPeerHelper.CreateNewPeer();
             _grpcPeer.IsConnected = true;
             _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
@@ -280,7 +280,7 @@ namespace AElf.OS.Network.Grpc
                 .Returns(libAnnouncementStreamCall);
             
             // create peer
-            var grpcPeer = GrpcTestPeerHelpers.CreatePeerWithClient(ipAddress, 
+            var grpcPeer = GrpcTestPeerHelper.CreatePeerWithClient(ipAddress, 
                 NetworkTestConstants.FakePubkey, mockClient.Object);
             
             grpcPeer.IsConnected = true;

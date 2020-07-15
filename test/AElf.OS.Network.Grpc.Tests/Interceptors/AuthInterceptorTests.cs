@@ -10,7 +10,7 @@ using Xunit.Sdk;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class AuthInterceptorTests : GrpcNetworkTestBase
+    public class AuthInterceptorTests : GrpcNetworkWithPeerTestBase
     {
         private readonly IPeerPool _peerPool;
         private readonly AuthInterceptor _authInterceptor;

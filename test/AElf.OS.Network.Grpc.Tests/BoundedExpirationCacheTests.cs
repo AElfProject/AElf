@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class BoundedExpirationCacheTests : GrpcBasicNetworkTestBase
+    public class BoundedExpirationCacheTests : GrpcNetworkTestBase
     {
         [Fact]
         public void Test_Add_Existence()

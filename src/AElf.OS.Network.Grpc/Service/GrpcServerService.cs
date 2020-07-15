@@ -59,7 +59,7 @@ namespace AElf.OS.Network.Grpc
                         Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
                 }
 
-                if(!GrpcEndPointHelpers.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
+                if(!GrpcEndPointHelper.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
                     return new HandshakeReply { Error = HandshakeError.InvalidConnection};
             
                 return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);

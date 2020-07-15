@@ -24,7 +24,7 @@ using Xunit;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcServerServiceTests : GrpcNetworkTestBase
+    public class GrpcServerServiceTests : GrpcNetworkWithChainAndPeerTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
         private readonly IBlockchainService _blockchainService;
@@ -612,8 +612,6 @@ namespace AElf.OS.Network.Grpc
 
         #endregion RequestBlocks
         
-        #region Disconnect
-
         [Fact]
         public async Task Disconnect_ShouldRemovePeer_Test()
         {
@@ -621,78 +619,6 @@ namespace AElf.OS.Network.Grpc
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
-        #endregion Disconnect
-
-        #region Other tests
-        [Fact]
-        public async Task NetworkServer_Stop_Test()
-        {
-            await _networkServer.StopAsync(false);
-
-            var peers = _peerPool.GetPeers(true).Cast<GrpcPeer>();
-
-            foreach (var peer in peers)
-            {
-                peer.IsReady.ShouldBeFalse();
-            }
-        }
-
-        [Fact]
-        public async Task Auth_ClientStreamingServerHandler_Success_Test()
-        {
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            var request = Mock.Of<IAsyncStreamReader<string>>();
-            var continuation = new ClientStreamingServerMethod<string, string>((s, y) => Task.FromResult("test"));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
-            var context = BuildServerCallContext(metadata);
-            var headerCount = context.RequestHeaders.Count;
-            
-            var result = await authInterceptor.ClientStreamingServerHandler(request, context, continuation);
-            result.ShouldBe("test");
-            context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
-        }
-        
-        [Fact]
-        public async Task Auth_UnaryServerHandler_Failed_Test()
-        {
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            
-            var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, CryptoHelper.GenerateKeyPair().PublicKey.ToHex()}};
-            var context = BuildServerCallContext(metadata);
-            var headerCount = context.RequestHeaders.Count;
-            var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
-            result.ShouldBeNull();
-            context.RequestHeaders.Count.ShouldBe(headerCount);
-        }
-
-        [Fact]
-        public async Task ClientStreamingServerHandler_Success_Test()
-        {
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            var requestStream = new TestAsyncStreamReader<string>(new []{"test1", "test2", "test3"});
-            var continuation = new ClientStreamingServerMethod<string, string>((s,y) => Task.FromResult(s.Current));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
-            var context = BuildServerCallContext(metadata);
-            var headerCount = context.RequestHeaders.Count;
-            
-            await requestStream.MoveNext();
-            var result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
-            result.ShouldBe("test1");
-            context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
-            
-            await requestStream.MoveNext();
-            result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
-            result.ShouldBe("test2");
-            
-            await requestStream.MoveNext();
-            result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
-            result.ShouldBe("test3");
-        }
-
         [Fact]
         public async Task GetNodes_Test()
         {
@@ -728,20 +654,5 @@ namespace AElf.OS.Network.Grpc
             var pingResult = await _serverService.CheckHealth(new HealthCheckRequest(), BuildServerCallContext());
             pingResult.ShouldBe(new HealthCheckReply());
         }
-
-        [Fact]
-        public async Task Auth_ClientStreamingServerHandler_Failed_Test()
-        {
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            var request = Mock.Of<IAsyncStreamReader<string>>();
-            var continuation = new ClientStreamingServerMethod<string, string>((s, y) => Task.FromResult("test"));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, "invalid-pubkey"}};
-            var context = BuildServerCallContext(metadata);
-            
-            var result = await authInterceptor.ClientStreamingServerHandler(request, context, continuation);
-            result.ShouldBeNull();
-        }
-        #endregion
     }
 }
