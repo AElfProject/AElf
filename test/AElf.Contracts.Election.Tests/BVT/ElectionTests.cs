@@ -13,8 +13,8 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using AElf.Contracts.Parliament;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
-using Google.Protobuf.Collections;
 
 namespace AElf.Contracts.Election
 {
@@ -413,10 +413,10 @@ namespace AElf.Contracts.Election
 
             var voterKeyPair = VoterKeyPairs[0];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-
+            var candidateStringKey = candidateKeyPair.PublicKey.ToHex();
             // Vote
             var transactionResult =
-                await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
+                await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var voteId =
@@ -424,6 +424,10 @@ namespace AElf.Contracts.Election
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
 
             voteId.ShouldBe(Hash.Parser.ParseFrom(transactionResult.ReturnValue));
+            var candidateInfoBeforeWithdraw = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = candidateStringKey
+            });
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
@@ -434,12 +438,22 @@ namespace AElf.Contracts.Election
                 var executionResult = await WithdrawVotes(voterKeyPair, voteId);
                 executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+            var candidateInfoAfterWithdraw = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = candidateStringKey
+            });
+            candidateInfoBeforeWithdraw.AllObtainedVotedVotesAmount.ShouldBe(candidateInfoAfterWithdraw.AllObtainedVotedVotesAmount);
+            candidateInfoBeforeWithdraw.ObtainedActiveVotedVotesAmount.Sub(candidateInfoAfterWithdraw.ObtainedActiveVotedVotesAmount).ShouldBe(amount);
+
+            candidateInfoBeforeWithdraw.ObtainedActiveVotingRecordIds.Contains(voteId).ShouldBeTrue();
+            candidateInfoAfterWithdraw.ObtainedActiveVotingRecordIds.Contains(voteId).ShouldBeFalse();
+            candidateInfoAfterWithdraw.ObtainedWithdrawnVotingRecordIds.Contains(voteId).ShouldBeTrue();
             
             //check candidate records
             {
                 var candidateVote = await ElectionContractStub.GetCandidateVoteWithAllRecords.CallAsync(new StringValue
                 {
-                    Value = candidateKeyPair.PublicKey.ToHex()
+                    Value = candidateStringKey
                 });
                 candidateVote.ObtainedWithdrawnVotesRecords.Select(o=>o.VoteId).ShouldContain(voteId);
             }
@@ -725,5 +739,212 @@ namespace AElf.Contracts.Election
             defaultSetting.TimeProportion.ShouldBe(3);
             defaultSetting.AmountProportion.ShouldBe(3);
         }
+        
+        #region test about adjust data center 
+        [Fact]
+        public async Task ElectionContract_Vote_DataCenter_Replace_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var span = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var fullCount = 5.Mul(5);
+            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
+            {
+                await AnnounceElectionAsync(keyPair);
+                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                voteAmount = voteAmount.Add(span);
+            }
+
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterList.DataCenters.Count.ShouldBe(fullCount);
+            var minimumCandidate =
+                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
+            
+            var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
+            await AnnounceElectionAsync(newCandidate);
+            var voteToCandidateRet = await VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var newDataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            newDataCenterList.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeFalse();
+            newDataCenterList.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeTrue();
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetailOfOldOne = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
+            });
+            profitDetailOfOldOne.Details.Count.ShouldBe(0);
+            var profitDetailOfNewOne = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
+            });
+            profitDetailOfNewOne.Details.Count.ShouldBe(1);
+        }
+        
+        [Fact]
+        public async Task ElectionContract_Withdraw_DataCenter_Replace_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var span = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var fullCount = 5.Mul(5);
+            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
+            {
+                await AnnounceElectionAsync(keyPair);
+                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                voteAmount = voteAmount.Add(span);
+            }
+
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            var minimumCandidate =
+                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
+            
+            // vote a new candidate that should be added to the date center, and the minimum one in data center should be removed.
+            var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
+            await AnnounceElectionAsync(newCandidate);
+            var voter2 = VoterKeyPairs.Skip(1).First();
+            var voteToCandidateRet = await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // after withdraw, the new candidate should be removed
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter2 = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter2.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            voteIdOfVoter2.ActiveVotes.Count.ShouldBe(1);
+            var withdrawVotesRet = await WithdrawVotes(voter2, voteIdOfVoter2.ActiveVotes[0]);
+            withdrawVotesRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var dataCenterListAfterWithDraw = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterListAfterWithDraw.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
+            dataCenterListAfterWithDraw.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
+            
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
+            });
+            profitDetail.Details.Count.ShouldBe(1);
+            var profitDetailOfTheWithdraw = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
+            });
+            profitDetailOfTheWithdraw.Details.Count.ShouldBe(0);
+        }
+        
+         [Fact]
+        public async Task ElectionContract_ChangeVoteOption_DataCenter_Replace_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var span = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var fullCount = 5.Mul(5);
+            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
+            {
+                await AnnounceElectionAsync(keyPair);
+                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                voteAmount = voteAmount.Add(span);
+            }
+
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            var minimumCandidate =
+                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
+            
+            // vote a new candidate that should be added to the date center, and the minimum one in data center should be removed.
+            var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
+            await AnnounceElectionAsync(newCandidate);
+            var voter2 = VoterKeyPairs.Skip(1).First();
+            var voteToCandidateRet = await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // after change option, the minimum candidate amount add to 2700, it should be in data center
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter2 = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter2.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            voteIdOfVoter2.ActiveVotes.Count.ShouldBe(1);
+            // await change
+            var changeOptionRet = await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], minimumCandidate.Key);
+            changeOptionRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var dataCenterListAfterChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterListAfterChangeOption.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
+            dataCenterListAfterChangeOption.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
+            
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetailOfTheIn = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
+            });
+            profitDetailOfTheIn.Details.Count.ShouldBe(1);
+            var profitDetailOfTheOut = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
+            });
+            profitDetailOfTheOut.Details.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task ElectionContract_QuitElection_DataCenter_Replace_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var span = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var fullCount = 5.Mul(5);
+            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
+            {
+                await AnnounceElectionAsync(keyPair);
+                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                voteAmount = voteAmount.Add(span);
+            }
+            var maximumVoteAmountCandidate = ValidationDataCenterKeyPairs[fullCount - 1];
+            var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
+            await AnnounceElectionAsync(newCandidate);
+            await VoteToCandidate(voter,newCandidate.PublicKey.ToHex(), lockTime, span.Div(2));
+            await QuitElectionAsync(maximumVoteAmountCandidate);
+            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterList.DataCenters.Count.ShouldBe(fullCount);
+            dataCenterList.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeTrue();
+            dataCenterList.DataCenters.ContainsKey(maximumVoteAmountCandidate.PublicKey.ToHex()).ShouldBeFalse();
+            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var profitDetailOfNewCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
+            });
+            profitDetailOfNewCandidate.Details.Count.ShouldBe(1);
+            var profitDetailOfMaximumVoteAmountCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(maximumVoteAmountCandidate.PublicKey)
+            });
+            profitDetailOfMaximumVoteAmountCandidate.Details.Count.ShouldBe(0);
+            
+            var minimumVoteAmountCandidate = ValidationDataCenterKeyPairs[0];
+            await QuitElectionAsync(minimumVoteAmountCandidate);
+            dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenterList.DataCenters.Count.ShouldBe(fullCount - 1);
+            var profitDetailOfMinimumCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = subsidy,
+                Beneficiary = Address.FromPublicKey(minimumVoteAmountCandidate.PublicKey)
+            });
+            profitDetailOfMinimumCandidate.Details.Count.ShouldBe(0);
+        }
+        #endregion
     }
 }
