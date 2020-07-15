@@ -89,21 +89,7 @@ namespace AElf.Contracts.Election
                 State.DataCentersRankingList.Value.DataCenters.Remove(minimumVotesCandidate);
                 State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
                     candidateVotesAmount);
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumVotesCandidate))
-                });
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    BeneficiaryShare = new BeneficiaryShare
-                    {
-                        Beneficiary =
-                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
-                        Shares = 1
-                    }
-                });
+                NotifyProfitReplaceCandidateInDataCenter(minimumVotesCandidate, input.CandidatePubkey);
             }
         }
 
@@ -337,10 +323,10 @@ namespace AElf.Contracts.Election
         private void UpdateDataCenterAfterWithdraw(DataCenterRankingList rankingList, string withDrawOption)
         {
             var amountAfterWithdraw = rankingList.DataCenters[withDrawOption];
-            if (rankingList.DataCenters.Any(x => x.Value <= amountAfterWithdraw))
+            if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
                 return;
             long maxVoteAmountOutDataCenter = 0;
-            string maxVoteAmountOptionOutDataCenter = null;
+            string maxVoteOptionOutDataCenter = null;
             foreach (var candidateByteString in State.Candidates.Value.Value)
             {
                 var candidatePublicKeyString = candidateByteString.ToHex();
@@ -349,15 +335,36 @@ namespace AElf.Contracts.Election
                 var candidateVoteAmount = State.CandidateVotes[candidatePublicKeyString].ObtainedActiveVotedVotesAmount;
                 if (maxVoteAmountOutDataCenter > candidateVoteAmount)
                     continue;
-                maxVoteAmountOptionOutDataCenter = candidatePublicKeyString;
+                maxVoteOptionOutDataCenter = candidatePublicKeyString;
                 maxVoteAmountOutDataCenter = candidateVoteAmount;
             }
 
-            if (string.IsNullOrEmpty(maxVoteAmountOptionOutDataCenter))
+            if (maxVoteAmountOutDataCenter <= amountAfterWithdraw)
                 return;
-            rankingList.DataCenters[maxVoteAmountOptionOutDataCenter] = maxVoteAmountOutDataCenter;
+            rankingList.DataCenters.Remove(withDrawOption);
+            rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
+            NotifyProfitReplaceCandidateInDataCenter(withDrawOption, maxVoteOptionOutDataCenter);
         }
 
+        private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
+            string newCandidateDataCenter)
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldCandidateInDataCenter))
+            });
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary =
+                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newCandidateDataCenter)),
+                    Shares = 1
+                }
+            });
+        }
         #endregion
 
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)

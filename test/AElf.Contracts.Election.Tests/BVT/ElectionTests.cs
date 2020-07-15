@@ -313,6 +313,27 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_Vote_DataCenter_Amount_Test()
+        {
+            const long amount = 500;
+            const int lockTime = 100 * 60 * 60 * 24;
+
+            var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+            var candidateKeyPair = candidatesKeyPairs.First();
+            var voterKeyPair = VoterKeyPairs.First();
+            var candidateStringKey = candidateKeyPair.PublicKey.ToHex();
+            var firstVoteRet = await VoteToCandidate(voterKeyPair,candidateStringKey, lockTime, amount);
+            firstVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            var dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenter.DataCenters.ContainsKey(candidateStringKey).ShouldBeTrue();
+            dataCenter.DataCenters[candidateStringKey].ShouldBe(amount);
+            var secondVoteRet = await VoteToCandidate(voterKeyPair,candidateStringKey, lockTime, amount);
+            secondVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
+            dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            dataCenter.DataCenters[candidateStringKey].ShouldBe(amount * 2);
+        }
+
+        [Fact]
         public async Task ElectionContract_ChangeVotingTarget()
         {
             var candidatesKeyPairs = await ElectionContract_Vote_Test();
