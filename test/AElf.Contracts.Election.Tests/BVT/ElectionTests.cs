@@ -189,7 +189,7 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(candidatesKeyPair.PublicKey)
             });
-            // profitDetail.Details.Count.ShouldBe(0);
+            profitDetail.Details.Count.ShouldBe(0);
         }
 
         /// <summary>
