@@ -323,11 +323,12 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             int i = 0;
             var count = input.Int32Value;
-            while (i++ < count)
+            while (i < count)
             {
+                i++;
             }
 
-            return new Int32Output{Int32Value = i};
+            return new Int32Output {Int32Value = i};
         }
 
         public override Int32Output TestWhileInfiniteLoopWithState(Int32Input input)
@@ -357,7 +358,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override Int32Output TestForeachInfiniteLoop(StringInput input)
         {
             int i = 1;
-            int[] arr = new int[3]; 
+            int[] arr = new int[3];
             foreach (var t in arr)
             {
                 i++;
