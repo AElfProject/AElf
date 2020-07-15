@@ -6,6 +6,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -167,7 +168,6 @@ namespace AElf.Contracts.Election
         {
             var voter = VoterKeyPairs.First();
             var voteAmount = 100;
-            var span = 100;
             var lockTime = 120 * 60 * 60 * 24;
             var candidate = ValidationDataCenterKeyPairs.First();
             await AnnounceElectionAsync(candidate);
@@ -183,7 +183,56 @@ namespace AElf.Contracts.Election
             withdrawRet.Status.ShouldBe(TransactionResultStatus.Failed);
             withdrawRet.Error.ShouldContain("days to unlock your token");
         }
+        #endregion
+
+        #region ChangeVotingOption
+
+        [Fact]
+        public async Task Election_ChangeVotingOption_Not_Voter_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            var voteId = voteIdOfVoter.ActiveVotes[0];
+            var changeOptionRet = await ElectionContractStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = candidate.PublicKey.ToHex(),
+                VoteId = voteId
+            });
+            changeOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeOptionRet.TransactionResult.Error.ShouldContain("No permission to change current vote's option.");
+        }
         
+        [Fact]
+        public async Task Election_ChangeVotingOption_With_Expire_Vote_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            var voteId = voteIdOfVoter.ActiveVotes[0];
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
+            var changeOptionRet = await ChangeVoteOption(voter, voteId, candidate.PublicKey.ToHex());
+            changeOptionRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeOptionRet.Error.ShouldContain("This vote already expired");
+        }
 
         #endregion
 
