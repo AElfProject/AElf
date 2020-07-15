@@ -341,7 +341,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests", "test\AElf.ContractTestBase.Tests\AElf.ContractTestBase.Tests.csproj", "{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Shared.Test", "test\AElf.Kernel.SmartContract.Shared.Test\AElf.Kernel.SmartContract.Shared.Test.csproj", "{B1D72EE7-183B-46F8-B365-A5F0B93EC91A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Shared.Tests", "test\AElf.Kernel.SmartContract.Shared.Tests\AElf.Kernel.SmartContract.Shared.Tests.csproj", "{B1D72EE7-183B-46F8-B365-A5F0B93EC91A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
