@@ -116,6 +116,19 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_QuitElection_MinerQuit_Test()
         {
+            await NextRound(BootMinerKeyPair);
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
+            victories.Value.Contains(ByteStringHelper.FromHexString(candidate.PublicKey.ToHex())).ShouldBeTrue();
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            var quitElectionRet = await QuitElectionAsync(candidate);
+            quitElectionRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            quitElectionRet.Error.ShouldContain("Current miners cannot quit election");
         }
 
         #endregion
@@ -453,6 +466,42 @@ namespace AElf.Contracts.Election
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Only consensus contract can update candidate information");
         }
+        
+        [Fact]
+        public async Task Election_UpdateMultipleCandidateInformation_Without_Authority_Test()
+        {
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var updateInfo = new UpdateMultipleCandidateInformationInput
+            {
+                Value =
+                {
+                    new UpdateCandidateInformationInput
+                    {
+                        IsEvilNode = true,
+                        Pubkey = pubkey,
+                        RecentlyProducedBlocks = 10,
+                        RecentlyMissedTimeSlots = 100
+                    }
+                }
+            };
+            
+            var transactionResult = (await ElectionContractStub.UpdateMultipleCandidateInformation.SendAsync(updateInfo)
+                ).TransactionResult;
 
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update candidate information");
+        }
+        
+        [Fact]
+        public async Task Election_UpdateMinersCount_Without_Authority_Test()
+        {
+            var transactionResult = (await ElectionContractStub.UpdateMinersCount.SendAsync(new UpdateMinersCountInput
+                    {
+                        MinersCount = 10
+                    })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update miners count");
+        }
     }
 }
