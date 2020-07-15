@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -15,7 +16,9 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private bool _field3;
         private BasicContractTestType _basicTestType;
         private InnerContractType _innerContractType;
-
+        
+        private Dictionary<long, long> dict { get; set; }
+        
         public static InnerContractType _innerContractTypeStaticField;
 
         public override Empty InitialBasicSecurityContract(Address input)
@@ -274,6 +277,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             _field3 = input.BoolValue;
             State.Int64Info.Value = Number;
             State.StringInfo.Value = String;
+            dict = new Dictionary<long, long>();
             return new Empty();
         }
 
