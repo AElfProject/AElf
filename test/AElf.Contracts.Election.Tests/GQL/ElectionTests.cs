@@ -11,7 +11,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Volo.Abp.Validation;
 using Xunit;
 
 namespace AElf.Contracts.Election
@@ -112,6 +111,11 @@ namespace AElf.Contracts.Election
             var transactionResult = await QuitElectionAsync(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task ElectionContract_QuitElection_MinerQuit_Test()
+        {
         }
 
         #endregion
@@ -421,6 +425,34 @@ namespace AElf.Contracts.Election
         }
 
         #endregion
+
+        [Fact]
+        public async Task Election_TakeSnapshot_Without_Authority_Test()
+        {
+            var takeSnapshot = await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput
+            {
+                TermNumber = 1
+            });
+            takeSnapshot.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            takeSnapshot.TransactionResult.Error.ShouldContain("No permission");
+        }
+
+        [Fact]
+        public async Task Election_UpdateCandidateInformation_Without_Authority_Test()
+        {
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
+                new UpdateCandidateInformationInput
+                {
+                    IsEvilNode = true,
+                    Pubkey = pubkey,
+                    RecentlyProducedBlocks = 10,
+                    RecentlyMissedTimeSlots = 100
+                })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update candidate information");
+        }
 
     }
 }

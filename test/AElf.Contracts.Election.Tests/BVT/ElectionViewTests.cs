@@ -18,8 +18,6 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetMinersCount_Test()
         {
-            await ElectionContract_AnnounceElection_Test();
-
             var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
             minersCount.Value.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
         }

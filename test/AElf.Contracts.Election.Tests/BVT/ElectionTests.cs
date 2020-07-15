@@ -518,24 +518,6 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_MarkCandidateAsEvilNode_Test()
-        {
-            await ElectionContract_AnnounceElection_Test();
-
-            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
-            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
-                new UpdateCandidateInformationInput
-                {
-                    IsEvilNode = true,
-                    Pubkey = pubkey,
-                    RecentlyProducedBlocks = 10,
-                    RecentlyMissedTimeSlots = 100
-                })).TransactionResult;
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); // No permission.
-        }
-        
-        [Fact]
         public async Task Election_VoteWeightInterestSetting_With_Invalid_Input_Test()
         {
             // argument <= 0
