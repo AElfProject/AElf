@@ -264,6 +264,18 @@ namespace AElf.Contracts.Election
                 };
             }
 
+            var dataCenterList = State.DataCentersRankingList.Value;
+            if (dataCenterList.DataCenters.ContainsKey(input.CandidatePubkey))
+                dataCenterList.DataCenters[input.CandidatePubkey] =
+                    dataCenterList.DataCenters[input.CandidatePubkey].Add(votingRecord.Amount);
+            if (dataCenterList.DataCenters.ContainsKey(votingRecord.Option))
+            {
+                dataCenterList.DataCenters[votingRecord.Option] =
+                    dataCenterList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, votingRecord.Option);
+            }
+
+            State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
         }
 
@@ -313,18 +325,18 @@ namespace AElf.Contracts.Election
             {
                 rankingList.DataCenters[votingRecord.Option] =
                     rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
-                UpdateDataCenterAfterWithdraw(rankingList, votingRecord.Option);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, votingRecord.Option);
                 State.DataCentersRankingList.Value = rankingList;
             }
 
             return new Empty();
         }
 
-        private void UpdateDataCenterAfterWithdraw(DataCenterRankingList rankingList, string withDrawOption)
+        private bool IsUpdateDataCenterAfterMemberVoteAmountChange(DataCenterRankingList rankingList, string member)
         {
-            var amountAfterWithdraw = rankingList.DataCenters[withDrawOption];
+            var amountAfterWithdraw = rankingList.DataCenters[member];
             if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
-                return;
+                return false;
             long maxVoteAmountOutDataCenter = 0;
             string maxVoteOptionOutDataCenter = null;
             foreach (var candidateByteString in State.Candidates.Value.Value)
@@ -340,10 +352,11 @@ namespace AElf.Contracts.Election
             }
 
             if (maxVoteAmountOutDataCenter <= amountAfterWithdraw)
-                return;
-            rankingList.DataCenters.Remove(withDrawOption);
+                return false;
+            rankingList.DataCenters.Remove(member);
             rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
-            NotifyProfitReplaceCandidateInDataCenter(withDrawOption, maxVoteOptionOutDataCenter);
+            NotifyProfitReplaceCandidateInDataCenter(member, maxVoteOptionOutDataCenter);
+            return true;
         }
 
         private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
