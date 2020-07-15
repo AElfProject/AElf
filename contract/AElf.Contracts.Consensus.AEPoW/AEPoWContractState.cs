@@ -15,6 +15,6 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         public SingletonState<Timestamp> BlockchainStartTime { get; set; }
 
-        public SingletonState<long> SupposedProduceSeconds { get; set; }
+        public SingletonState<long> SupposedProduceNanoSeconds { get; set; }
     }
 }

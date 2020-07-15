@@ -14,16 +14,18 @@ namespace AElf.Contracts.Consensus.AEPoW
             if (Context.CurrentHeight == 2)
             {
                 State.BlockchainStartTime.Value = Context.CurrentBlockTime;
-                State.SupposedProduceSeconds.Value = 10;
+                State.SupposedProduceNanoSeconds.Value = 10000000000;
                 State.CurrentDifficulty.Value = 1;
             }
 
             Assert(State.Records[Context.CurrentHeight] == null,
                 $"Block of height {Context.CurrentHeight} already generated.");
+            Context.LogDebug(() => $"Record of height {Context.CurrentHeight} set.");
             State.Records[Context.CurrentHeight] = new PoWRecord
             {
-                Producer = input.Producer,
-                Timestamp = Context.CurrentBlockTime
+                Producer = Context.Sender,
+                Timestamp = Context.CurrentBlockTime,
+                NonceNumber = input.NonceNumber
             };
 
             if (State.TokenContract.Value == null)
@@ -32,17 +34,17 @@ namespace AElf.Contracts.Consensus.AEPoW
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            // TODO: Comment because ELF not initialized.
+            // TODO: ELF not initialized in PoW Chain.
             // State.TokenContract.Transfer.Send(new TransferInput
             // {
-            //     To = input.Producer,
+            //     To = Context.Sender,
             //     Amount = GetCurrentCoinBaseAmount(),
             //     Symbol = Context.Variables.NativeSymbol
             // });
 
             Context.Fire(new NonceUpdated
             {
-                Nonce = input.Nonce,
+                NonceNumber = input.NonceNumber,
                 BlockHeight = Context.CurrentHeight
             });
 
@@ -77,10 +79,10 @@ namespace AElf.Contracts.Consensus.AEPoW
             }
 
             // Cannot use Average method directly because safe checks of smart contract.
-            var averageProduceTime = timeSpans.Select(s => s.Seconds).Sum().Div(timeSpans.Count);
-            Context.LogDebug(() => $"Average produce time: {averageProduceTime}");
+            var averageProduceTime = timeSpans.Select(s => s.Nanos.Div(timeSpans.Count)).Sum();
+            Context.LogDebug(() => $"Average produce time: {averageProduceTime} nanos");
             Context.LogDebug(() => $"Current difficulty: {State.CurrentDifficulty.Value}");
-            State.CurrentDifficulty.Value = averageProduceTime > State.SupposedProduceSeconds.Value
+            State.CurrentDifficulty.Value = averageProduceTime > State.SupposedProduceNanoSeconds.Value
                 ? State.CurrentDifficulty.Value.Sub(1)
                 : State.CurrentDifficulty.Value.Add(1);
         }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Acs4;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -12,7 +13,7 @@ namespace AElf.Contracts.Consensus.AEPoW
         public override Empty Initialize(InitializeInput input)
         {
             Assert(input.SupposedProduceSeconds > 0, "Invalid input.");
-            State.SupposedProduceSeconds.Value = input.SupposedProduceSeconds;
+            State.SupposedProduceNanoSeconds.Value = input.SupposedProduceSeconds;
             return new Empty();
         }
 
@@ -31,14 +32,20 @@ namespace AElf.Contracts.Consensus.AEPoW
         public override BytesValue GetConsensusExtraData(BytesValue input)
         {
             Context.LogDebug(() => "Entered GetConsensusExtraData of PoW.");
-            return CalculateNonce().ToBytesValue();
+            var nonce = HashHelper.ComputeFrom(new Int64Value {Value = CalculateNonce()});
+            var validateInfo = new PoWValidateInfo
+            {
+                Nonce = nonce,
+                PreviousBlockHash = Context.PreviousBlockHash
+            };
+            Context.LogDebug(() => $"Extra Data: {validateInfo}");
+            return validateInfo.ToBytesValue();
         }
 
-        // TODO: Cache nonce in Kernel code.
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
             Context.LogDebug(() => "Entered GenerateConsensusTransactions of PoW.");
-            var nonce = CalculateNonce();
+            var nonceNumber = CalculateNonce();
 
             return new TransactionList
             {
@@ -46,7 +53,7 @@ namespace AElf.Contracts.Consensus.AEPoW
                 {
                     GenerateTransaction(nameof(CoinBase), new CoinBaseInput
                     {
-                        Nonce = nonce,
+                        NonceNumber = nonceNumber,
                         Producer = Context.Sender
                     })
                 }
@@ -55,23 +62,36 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
-            var nonce = new Hash();
-            nonce.MergeFrom(input.ToByteString());
+            var validateInfo = PoWValidateInfo.Parser.ParseFrom(input.Value.ToByteArray());
+            Context.LogDebug(() => $"Validate Data: {validateInfo}");
+
+            var isValid = IsValid(HashHelper.ConcatAndCompute(validateInfo.PreviousBlockHash, validateInfo.Nonce));
+            Context.LogDebug(() => $"Is Valid: {isValid}");
             return new ValidationResult
             {
-                // TODO: Need to fix.
-                Success = IsValid(HashHelper.ConcatAndCompute(Context.PreviousBlockHash, nonce))
+                // This is not enough, more validations should be in kernel code.
+                Success = isValid
             };
         }
 
         public override ValidationResult ValidateConsensusAfterExecution(BytesValue input)
         {
+            var record = State.Records[Context.CurrentHeight.Sub(1)];
+            Context.LogDebug(() => $"Record: {record}");
+            if (record == null)
+            {
+                return new ValidationResult
+                {
+                    Message = $"Record of height {Context.CurrentHeight.Sub(1)} is null."
+                };
+            }
+
             return new ValidationResult {Success = true};
         }
 
         private bool IsValid(Hash resultHash)
         {
-            return resultHash.Value.Take(State.CurrentDifficulty.Value).All(b => b == 0);
+            return resultHash.ToHex().Take(3).All(b => b == 0);
         }
 
         private Transaction GenerateTransaction(string methodName, IMessage parameter) => new Transaction
@@ -84,40 +104,46 @@ namespace AElf.Contracts.Consensus.AEPoW
             RefBlockPrefix = BlockHelper.GetRefBlockPrefix(Context.PreviousBlockHash)
         };
 
-        private Hash CalculateNonce()
+        private long CalculateNonce()
         {
             Context.LogDebug(() => "Entered CalculateNonce.");
 
             var currentHeight = Context.CurrentHeight;
-            if (Nonces != null && Nonces.ContainsKey(currentHeight))
+            if (NonceCache != null && NonceCache.ContainsKey(currentHeight))
             {
-                return Nonces[currentHeight];
+                Context.LogDebug(() => "Use cached nonce.");
+                return NonceCache[currentHeight];
             }
 
             var blockHash = Context.PreviousBlockHash;
             var nonceNumber = 1L;
             var nonce = HashHelper.ComputeFrom(new Int64Value {Value = nonceNumber});
             var resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
-            Context.LogDebug(() => "Entered CalculateNonce 2.");
+            Context.LogDebug(() => "Start calculate nonce.");
 
             while (!IsValid(resultHash))
             {
                 nonceNumber++;
                 nonce = HashHelper.ComputeFrom(new Int64Value {Value = nonceNumber});
                 resultHash = HashHelper.ConcatAndCompute(blockHash, nonce);
+                if (nonceNumber % 100000 == 0)
+                {
+                    var number = nonceNumber;
+                    Context.LogDebug(() => $"Nonce increased to: {number}");
+                }
             }
 
-            Context.LogDebug(() => $"New nonce: {nonce}, number: {nonceNumber}");
+            Context.LogDebug(() => $"New nonce: {nonce}, number: {nonceNumber}, result hash: {resultHash}");
 
-            if (Nonces == null)
+            if (NonceCache == null)
             {
-                Nonces = new Dictionary<long, Hash>();
+                NonceCache = new Dictionary<long, long>();
             }
 
-            Nonces.Add(currentHeight, nonce);
-            return nonce;
+            NonceCache.Add(currentHeight, nonceNumber);
+            return nonceNumber;
         }
 
-        public Dictionary<long, Hash> Nonces { get; set; }
+        private Dictionary<long, long> NonceCache { get; set; }
     }
 }

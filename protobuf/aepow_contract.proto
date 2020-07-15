@@ -28,18 +28,25 @@ message InitializeInput {
 
 message CoinBaseInput {
     aelf.Address producer = 1;
-    aelf.Hash nonce = 2;
+    int64 nonce_number = 2;
+}
+
+message PoWValidateInfo {
+    aelf.Hash nonce = 1;
+    aelf.Hash previous_block_hash = 2;
 }
 
 message PoWRecord {
     aelf.Address producer = 1;
     google.protobuf.Timestamp timestamp = 2;
+    int64 nonce_number = 3;
+    aelf.Hash previous_block_hash = 4;
 }
 
 // Events
 
 message NonceUpdated {
     option (aelf.is_event) = true;
-    aelf.Hash nonce = 1;
+    int64 nonce_number = 1;
     int64 block_height = 2;
 }
