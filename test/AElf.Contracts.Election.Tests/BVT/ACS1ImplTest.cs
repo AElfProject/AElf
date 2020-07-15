@@ -15,6 +15,25 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests
     {
+
+        [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Authority_Test()
+        {
+            var newController = new AuthorityInfo
+            {
+                OwnerAddress = ElectionContractAddress,
+                ContractAddress = ParliamentContractAddress
+            };
+            var methodFeeController = await ElectionContractStub.GetMethodFeeController.CallAsync(new Empty()); 
+            var proposalCreationMethodName = nameof(ElectionContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateProposalAsync(ElectionContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, newController);
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            releaseResult.TransactionResult.Error.ShouldContain("Invalid authority input");
+        }
+        
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
@@ -72,6 +91,102 @@ namespace AElf.Contracts.Election
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task SetMethodFee_With_Invalid_Input_Test()
+        {
+            // Invalid amount
+            {
+                var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+                {
+                    MethodName = "Test",
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "NOTEXIST",
+                            BasicFee = -111
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Invalid amount.");
+            }
+
+            // token does not exist
+            {
+                var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+                {
+                    MethodName = "Test",
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "NOTEXIST",
+                            BasicFee = 111
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+            }
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Without_Authority_Test()
+        {
+            var tokenSymbol = "ELF";
+            var methodName = "Test";
+            var basicFee = 111;
+            var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+            {
+                MethodName = methodName,
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = tokenSymbol,
+                        BasicFee = basicFee
+                    }
+                }
+            });
+            setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Success_Test()
+        {
+            var tokenSymbol = "ELF";
+            var methodName = "Test";
+            var basicFee = 111;
+            var methodFeeController = await VoteContractStub.GetMethodFeeController.CallAsync(new Empty());
+            const string proposalCreationMethodName = nameof(VoteContractStub.SetMethodFee);
+            var proposalId = await CreateProposalAsync(VoteContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new MethodFees
+                {
+                    MethodName = methodName,
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = tokenSymbol,
+                            BasicFee = basicFee
+                        }
+                    }
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var getMethodFee = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = methodName
+            });
+            getMethodFee.Fees.Count.ShouldBe(1);
+            getMethodFee.Fees[0].Symbol.ShouldBe(tokenSymbol);
+            getMethodFee.Fees[0].BasicFee.ShouldBe(basicFee);
         }
 
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
