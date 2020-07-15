@@ -66,7 +66,6 @@ namespace AElf.Contracts.Consensus.AEPoW
             Context.LogDebug(() => $"Validate Data: {validateInfo}");
 
             var isValid = IsValid(HashHelper.ConcatAndCompute(validateInfo.PreviousBlockHash, validateInfo.Nonce));
-            Context.LogDebug(() => $"Is Valid: {isValid}");
             return new ValidationResult
             {
                 // This is not enough, more validations should be in kernel code.
@@ -91,7 +90,9 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         private bool IsValid(Hash resultHash)
         {
-            return resultHash.ToHex().Take(3).All(b => b == 0);
+            var prefix = Enumerable.Range(0, State.CurrentDifficulty.Value).Select(x => "0")
+                .Aggregate("0", (s1, s2) => s1 + s2);
+            return resultHash.ToHex().StartsWith(prefix);
         }
 
         private Transaction GenerateTransaction(string methodName, IMessage parameter) => new Transaction
