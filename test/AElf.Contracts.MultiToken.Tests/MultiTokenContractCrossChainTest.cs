@@ -1069,7 +1069,8 @@ namespace AElf.Contracts.MultiToken
                 .ProposalId;
             await ApproveWithMinersAsync(proposalId, parliamentContract, tester);
             var releaseTx = await tester.GenerateTransactionAsync(crossChainContract,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing), proposalId);
+                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexingProposal),
+                new ReleaseCrossChainIndexingProposalInput {ChainIdList = {MainChainId}});
             await tester.MineAsync(new List<Transaction> {releaseTx});
             var result = await tester.GetTransactionResultAsync(releaseTx.GetHash());
             var releasedProposalId = ProposalReleased.Parser
@@ -1081,7 +1082,8 @@ namespace AElf.Contracts.MultiToken
             parentChainHeight.ShouldBe(height);
         }
 
-        private async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, long sideTransactionHeight)
+        private async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, long sideTransactionHeight,
+            int sideChainId)
         {
             await BootMinerChangeRoundAsync(MainChainTester, ConsensusAddress, true);
             // proposing tx
@@ -1096,7 +1098,10 @@ namespace AElf.Contracts.MultiToken
 
             await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
             var releaseTx = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing), null, proposalId,
+                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexingProposal), null, new ReleaseCrossChainIndexingProposalInput
+                {
+                    ChainIdList = {sideChainId}
+                }, 
                 true);
 
             var block2 = await MainChainTester.MineAsync(new List<Transaction> {releaseTx});
@@ -1123,7 +1128,7 @@ namespace AElf.Contracts.MultiToken
                 root);
             crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
 
-            await DoIndexAsync(crossChainBlockData, sideTransactionHeight);
+            await DoIndexAsync(crossChainBlockData, sideTransactionHeight, sideChainId);
         }
 
         private async Task SideIndexSideChainAsync(int sideChainId, long sideTransactionHeight, Hash root)
@@ -1156,7 +1161,10 @@ namespace AElf.Contracts.MultiToken
 
             await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
             var releaseTx = await MainChainTester.GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing), proposalId);
+                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexingProposal), new ReleaseCrossChainIndexingProposalInput
+                {
+                    ChainIdList = {sideChainId}
+                });
             var block2 = await MainChainTester.MineAsync(new List<Transaction> {releaseTx});
 
             var blockRoot = await IndexMainChainBlockAsync(SideChainTester, SideConsensusAddress,
@@ -1219,7 +1227,8 @@ namespace AElf.Contracts.MultiToken
                 .ProposalId;
             await ApproveWithMinersAsync(proposalId, parliamentContract, tester);
             var releaseTx = await tester.GenerateTransactionAsync(crossChainContract,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexing), proposalId);
+                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexingProposal),
+                new ReleaseCrossChainIndexingProposalInput {ChainIdList = {MainChainId}});
             await tester.MineAsync(new List<Transaction> {releaseTx});
             var result = await tester.GetTransactionResultAsync(releaseTx.GetHash());
             var releasedProposalId = ProposalReleased.Parser
