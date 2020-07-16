@@ -98,7 +98,7 @@ namespace AElf.Contracts.Election
         {
             // Invalid amount
             {
-                var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+                var setMethodFeeRet = await ElectionContractStub.SetMethodFee.SendAsync(new MethodFees
                 {
                     MethodName = "Test",
                     Fees =
@@ -116,7 +116,7 @@ namespace AElf.Contracts.Election
 
             // token does not exist
             {
-                var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+                var setMethodFeeRet = await ElectionContractStub.SetMethodFee.SendAsync(new MethodFees
                 {
                     MethodName = "Test",
                     Fees =
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Election
             var tokenSymbol = "ELF";
             var methodName = "Test";
             var basicFee = 111;
-            var setMethodFeeRet = await VoteContractStub.SetMethodFee.SendAsync(new MethodFees
+            var setMethodFeeRet = await ElectionContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = methodName,
                 Fees =
@@ -161,9 +161,9 @@ namespace AElf.Contracts.Election
             var tokenSymbol = "ELF";
             var methodName = "Test";
             var basicFee = 111;
-            var methodFeeController = await VoteContractStub.GetMethodFeeController.CallAsync(new Empty());
-            const string proposalCreationMethodName = nameof(VoteContractStub.SetMethodFee);
-            var proposalId = await CreateProposalAsync(VoteContractAddress,
+            var methodFeeController = await ElectionContractStub.GetMethodFeeController.CallAsync(new Empty());
+            const string proposalCreationMethodName = nameof(ElectionContractStub.SetMethodFee);
+            var proposalId = await CreateProposalAsync(ElectionContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName, new MethodFees
                 {
                     MethodName = methodName,
@@ -180,7 +180,7 @@ namespace AElf.Contracts.Election
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalId);
             releaseResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var getMethodFee = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
+            var getMethodFee = await ElectionContractStub.GetMethodFee.CallAsync(new StringValue
             {
                 Value = methodName
             });
