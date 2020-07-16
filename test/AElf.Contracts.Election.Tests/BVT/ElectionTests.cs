@@ -740,9 +740,7 @@ namespace AElf.Contracts.Election
 
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
-            var minimumCandidate =
-                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
-            
+            var minimumCandidate = dataCenterList.DataCenters.First();
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
             var voteToCandidateRet = await VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
@@ -782,9 +780,7 @@ namespace AElf.Contracts.Election
             }
 
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
-            var minimumCandidate =
-                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
-            
+            var minimumCandidate = dataCenterList.DataCenters.First();
             // vote a new candidate that should be added to the date center, and the minimum one in data center should be removed.
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
@@ -838,9 +834,7 @@ namespace AElf.Contracts.Election
             }
 
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
-            var minimumCandidate =
-                dataCenterList.DataCenters.Aggregate((curMin, x) => curMin.Value < x.Value ? curMin : x);
-            
+            var minimumCandidate = dataCenterList.DataCenters.First();
             // vote a new candidate that should be added to the date center, and the minimum one in data center should be removed.
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
