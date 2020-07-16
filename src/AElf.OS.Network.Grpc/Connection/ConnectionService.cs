@@ -334,10 +334,11 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public void RemovePeer(string pubkey)
+        public async Task RemovePeerAsync(string pubkey)
         {
             var peer = _peerPool.RemovePeer(pubkey);
-            peer?.DisconnectAsync(false);
+            if (peer != null)
+                await peer.DisconnectAsync(false);
         }
     }
 }

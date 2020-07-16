@@ -300,12 +300,12 @@ namespace AElf.OS.Network.Grpc
         }
 
         [Fact]
-        public void GetPeerByPubkey_Test()
+        public async Task GetPeerByPubkey_Test()
         {
             var peer = CreatePeerAndAddToPeerPool(pubkey: NetworkTestConstants.FakePubkey);
             _connectionService.GetPeerByPubkey(NetworkTestConstants.FakePubkey).ShouldBe(peer);
             
-            _connectionService.RemovePeer(NetworkTestConstants.FakePubkey);
+            await _connectionService.RemovePeerAsync(NetworkTestConstants.FakePubkey);
             _connectionService.GetPeerByPubkey(NetworkTestConstants.FakePubkey).ShouldBeNull();
         }
 

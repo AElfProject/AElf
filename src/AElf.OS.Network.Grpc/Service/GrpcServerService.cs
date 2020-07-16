@@ -366,13 +366,13 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
-        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
 
             try
             {
-                _connectionService.RemovePeer(context.GetPublicKey());
+               await _connectionService.RemovePeerAsync(context.GetPublicKey());
             }
             catch (Exception e)
             {
@@ -380,7 +380,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
 
         /// <summary>

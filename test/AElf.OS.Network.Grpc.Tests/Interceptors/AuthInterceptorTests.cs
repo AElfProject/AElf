@@ -15,6 +15,9 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly AuthInterceptor _authInterceptor;
 
+        private Server _server;
+        private Channel _channel;
+
         public AuthInterceptorTests()
         {
             _peerPool = GetRequiredService<IPeerPool>();
@@ -38,12 +41,12 @@ namespace AElf.OS.Network.Grpc
                 .AddMethod(method, (request, context) => unaryHandler(request, context)).Build()
                 .Intercept(_authInterceptor);
             helper.ServiceDefinition = serverServiceDefinition;
-            var server = helper.GetServer();
-            server.Start();
+            _server = helper.GetServer();
+            _server.Start();
 
-            var channel = helper.GetChannel();
+            _channel = helper.GetChannel();
 
-            var result = await Calls.AsyncUnaryCall(new CallInvocationDetails<string, string>(channel, method, default),
+            var result = await Calls.AsyncUnaryCall(new CallInvocationDetails<string, string>(_channel, method, default),
                 "");
             result.ShouldBe("ok");
         }
@@ -55,11 +58,11 @@ namespace AElf.OS.Network.Grpc
             helper.UnaryHandler = new UnaryServerMethod<string, string>((request, context) => Task.FromResult("ok"));
 
             helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            var server = helper.GetServer();
-            server.Start();
-            var channel = helper.GetChannel();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
             
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await Calls.AsyncUnaryCall(helper.CreateUnaryCall(), ""));
 
             var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
@@ -76,7 +79,7 @@ namespace AElf.OS.Network.Grpc
                 return metadata;
             });
 
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
             
             callInvoker = helper.GetChannel().Intercept(metadata =>
@@ -89,11 +92,11 @@ namespace AElf.OS.Network.Grpc
                 return metadata;
             });
 
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
 
             ((GrpcPeer) peer).InboundSessionId = null;
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await callInvoker.AsyncUnaryCall(method, "localhost", new CallOptions(), ""));
         }
         
@@ -111,9 +114,9 @@ namespace AElf.OS.Network.Grpc
             });
 
             helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            var server = helper.GetServer();
-            server.Start();
-            var channel = helper.GetChannel();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
 
             var method = new Method<string, string>(MethodType.Unary, MockServiceBuilder.ServiceName, "Unary",
                 Marshallers.StringMarshaller, Marshallers.StringMarshaller);
@@ -139,11 +142,11 @@ namespace AElf.OS.Network.Grpc
             helper.ClientStreamingHandler = new ClientStreamingServerMethod<string, string>((request, context) => Task.FromResult("ok"));
 
             helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            var server = helper.GetServer();
-            server.Start();
-            var channel = helper.GetChannel();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
             
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await Calls.AsyncClientStreamingCall(helper.CreateClientStreamingCall()).ResponseAsync);
 
             var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName, "ClientStreaming",
@@ -161,7 +164,7 @@ namespace AElf.OS.Network.Grpc
                 return metadata;
             });
 
-            await ShouldBeCancelRpcException(async () =>
+            await ShouldBeCancelRpcExceptionAsync(async () =>
                 await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync);
         }
 
@@ -179,9 +182,9 @@ namespace AElf.OS.Network.Grpc
             });
 
             helper.ServiceDefinition = helper.ServiceDefinition.Intercept(_authInterceptor);
-            var server = helper.GetServer();
-            server.Start();
-            var channel = helper.GetChannel();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
 
             var method = new Method<string, string>(MethodType.ClientStreaming, MockServiceBuilder.ServiceName,
                 "ClientStreaming",
@@ -197,12 +200,11 @@ namespace AElf.OS.Network.Grpc
                 return metadata;
             });
 
-            var call = callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions());
-            await call.RequestStream.WriteAsync("hello!");
-            (await call).ShouldBe("ok");
+            var result = await callInvoker.AsyncClientStreamingCall(method, "localhost", new CallOptions()).ResponseAsync;
+            result.ShouldBe("ok");
         }
 
-        private async Task ShouldBeCancelRpcException(Func<Task> func)
+        private async Task ShouldBeCancelRpcExceptionAsync(Func<Task> func)
         {
             try
             {
@@ -213,6 +215,13 @@ namespace AElf.OS.Network.Grpc
             {
                 e.Status.StatusCode.ShouldBe(StatusCode.Cancelled);
             }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _channel.ShutdownAsync().Wait();
+            _server.ShutdownAsync().Wait();
         }
     }
 }
