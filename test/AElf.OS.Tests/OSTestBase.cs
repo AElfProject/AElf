@@ -20,6 +20,11 @@ namespace AElf.OS
     {
         
     }
+    
+    public class AccountServiceTestBase : AElfIntegratedTest<AccountServiceTestAElfModule>
+    {
+        
+    }
 
     public class KeyStoreTestBase : AElfIntegratedTest<KeyStoreTestAElfModule>
     {
