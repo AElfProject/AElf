@@ -43,7 +43,7 @@ rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerLis
 
 message MinerListWithRoundNumber {
     MinerList miner_list = 1;
-    sint64 round_number = 2;
+    int64 round_number = 2;
 }
 
 message MinerList {
@@ -71,36 +71,36 @@ message SInt64Value
 }
 
 message Round {
-    sint64 round_number = 1;
-    map<string, MinerInRound> real time miners information = 2;
-    sint64 main chain miners round number = 3;
-    sint64 blockchain age = 4;
-    string extra block producer of previous round = 7;
-    sint64 term number = 8;
-    sint64 confirmed irreversible block height = 9;
-    sint64 confirmed irreversible block round number = 10;
-    bool is miner list just changed = 11;
-    sint64 round id for validation = 12;
+    int64 round_number = 1;
+    map<string, MinerInRound> real_time_miners_information = 2;
+    int64 main_chain_miners_round_number = 3;
+    int64 blockchain_age = 4;
+    string extra_block_producer_of_previous_round = 5;
+    int64 term_number = 6;
+    int64 confirmed_irreversible_block_height = 7;
+    int64 confirmed_irreversible_block_round_number = 8;
+    bool is_miner_list_just_changed = 9;
+    int64 round_id_for_validation = 10;
 }
 
 message MinerInRound {
-    sint32 order = 1;
-    bool is extra block producer = 2;
-    aelf.Hash in value = 3;
-    aelf.Hash out value = 4;
+    int32 order = 1;
+    bool is_extra_block_producer = 2;
+    aelf.Hash in_value = 3;
+    aelf.Hash out_value = 4;
     aelf.Hash signature = 5;
-    google.protobuf.Timestamp expected mining time = 6;
-    sint64 produced blocks = 7;
-    sint64 missed time slots = 8;
+    google.protobuf.Timestamp expected_mining_time = 6;
+    int64 produced_blocks = 7;
+    int64 missed_time_slots = 8;
     string pubkey = 9;
-    aelf.Hash previous in value = 12;
-    sint32 supposed order of next round = 13;
-    sint32 final order of next round = 14;
-    repeated google.protobuf.Timestamp actual mining times = 15;
-    map<string, bytes> encrypted pieces = 16;
-    map<string, bytes> decrypted pieces = 17;
-    sint32 produced tiny blocks = 18;
-    sint64 implied irreversible block height = 19;
+    aelf.Hash previous_in_value = 10;
+    int32 supposed_order_of_next_round = 11;
+    int32 final_order_of_next_round = 12;
+    repeated google.protobuf.Timestamp actual_mining_times = 13;// Miners must fill actual mining time when they do the mining.
+    map<string, bytes> encrypted_pieces = 14;
+    map<string, bytes> decrypted_pieces = 15;
+    int64 produced_tiny_blocks = 16;
+    int64 implied_irreversible_block_height = 17;
 }
 ```
 
@@ -291,11 +291,11 @@ Query whether the miner is the current miner.
 ### GetNextElectCountDown
 
 ```Protobuf
-rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value){}
+rpc GetNextElectCountDown (google.protobuf.Empty) returns (google.protobuf.Int64Value){}
 
-message SInt64Value
+message Int64Value
 {
-    sint64 value = 1;
+    int64 value = 1;
 }
 ```
 

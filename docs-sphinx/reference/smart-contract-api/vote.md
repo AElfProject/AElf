@@ -14,7 +14,7 @@ message VotingRegisterInput {
     google.protobuf.Timestamp end_timestamp = 2;
     string accepted_currency = 3;
     bool is_lock_token = 4;
-    sint64 total_snapshot_number = 5;
+    int64 total_snapshot_number = 5;
     repeated string options = 6;
 }
 ```
@@ -37,7 +37,7 @@ rpc Vote (VoteInput) returns (google.protobuf.Empty){}
 message VoteInput {
     aelf.Hash voting_item_id = 1;
     aelf.Address voter = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
     string option = 4;
     aelf.Hash vote_id = 5;
     bool is_change_target = 6;
@@ -47,8 +47,8 @@ message Voted {
     option (aelf.is_event) = true;
     aelf.Hash voting_item_id = 1;
     aelf.Address voter = 2;
-    sint64 snapshot_number = 3;
-    sint64 amount = 4;
+    int64 snapshot_number = 3;
+    int64 amount = 4;
     google.protobuf.Timestamp vote_timestamp = 5;
     string option = 6;
     aelf.Hash vote_id = 7;
@@ -205,8 +205,8 @@ message VotingItem {
     aelf.Hash voting_item_id = 1;
     string accepted_currency = 2;
     bool is_lock_token = 3;
-    sint64 current_snapshot_number = 4;
-    sint64 total_snapshot_number = 5;
+    int64 current_snapshot_number = 4;
+    int64 total_snapshot_number = 5;
     repeated string options = 6;
     google.protobuf.Timestamp register_timestamp = 7;
     google.protobuf.Timestamp start_timestamp = 8;
@@ -240,17 +240,17 @@ rpc GetVotingResult (GetVotingResultInput) returns (VotingResult){}
 
 message GetVotingResultInput {
     aelf.Hash voting_item_id = 1;
-    sint64 snapshot_number = 2;
+    int64 snapshot_number = 2;
 }
 
 message VotingResult {
     aelf.Hash voting_item_id = 1;
-    map<string, sint64> results = 2; // option -> amount
-    sint64 snapshot_number = 3;
-    sint64 voters_count = 4;
+    map<string, int64> results = 2; // option -> amount
+    int64 snapshot_number = 3;
+    int64 voters_count = 4;
     google.protobuf.Timestamp snapshot_start_timestamp = 5;
     google.protobuf.Timestamp snapshot_end_timestamp = 6;
-    sint64 votes_amount = 7;
+    int64 votes_amount = 7;
 }
 ```
 
@@ -281,12 +281,12 @@ message Hash
 
 message VotingResult {
     aelf.Hash voting_item_id = 1;
-    map<string, sint64> results = 2; // option -> amount
-    sint64 snapshot_number = 3;
-    sint64 voters_count = 4;
+    map<string, int64> results = 2; // option -> amount
+    int64 snapshot_number = 3;
+    int64 voters_count = 4;
     google.protobuf.Timestamp snapshot_start_timestamp = 5;
     google.protobuf.Timestamp snapshot_end_timestamp = 6;
-    sint64 votes_amount = 7;
+    int64 votes_amount = 7;
 }
 ```
 
@@ -317,8 +317,8 @@ message Hash{
 message VotingRecord {
     aelf.Hash voting_item_id = 1;
     aelf.Address voter = 2;
-    sint64 snapshot_number = 3;
-    sint64 amount = 4;
+    int64 snapshot_number = 3;
+    int64 amount = 4;
     google.protobuf.Timestamp withdraw_timestamp = 5;
     google.protobuf.Timestamp vote_timestamp = 6;
     bool is_withdrawn = 7;
@@ -363,8 +363,8 @@ message VotingRecords {
 message VotingRecord {
     aelf.Hash voting_item_id = 1;
     aelf.Address voter = 2;
-    sint64 snapshot_number = 3;
-    sint64 amount = 4;
+    int64 snapshot_number = 3;
+    int64 amount = 4;
     google.protobuf.Timestamp withdraw_timestamp = 5;
     google.protobuf.Timestamp vote_timestamp = 6;
     bool is_withdrawn = 7;

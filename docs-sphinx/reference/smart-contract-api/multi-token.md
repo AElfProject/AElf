@@ -14,8 +14,8 @@ rpc Create (CreateInput) returns (google.protobuf.Empty){}
 message CreateInput {
     string symbol = 1;
     string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
+    int64 total_supply = 3;
+    int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
@@ -41,7 +41,7 @@ rpc Issue (IssueInput) returns (google.protobuf.Empty){}
 
 message IssueInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
     string memo = 3;
     aelf.Address to = 4;
 }
@@ -63,7 +63,7 @@ rpc Transfer (TransferInput) returns (google.protobuf.Empty){}
 message TransferInput {
     aelf.Address to = 1;
     string symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
     string memo = 4;
 }
 ```
@@ -85,7 +85,7 @@ message TransferFromInput {
     aelf.Address from = 1;
     aelf.Address to = 2;
     string symbol = 3;
-    sint64 amount = 4;
+    int64 amount = 4;
     string memo = 5;
 }
 ```
@@ -111,7 +111,7 @@ rpc Approve (ApproveInput) returns (google.protobuf.Empty){}
 message ApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 ```
 
@@ -130,7 +130,7 @@ rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty){}
 message UnApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 ```
 
@@ -198,7 +198,7 @@ rpc Burn (BurnInput) returns (google.protobuf.Empty) { }
 
 message BurnInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 ```
 
@@ -289,8 +289,8 @@ message SymbolListToPayTxSizeFee{
 
 message SymbolToPayTxSizeFee{
     string token_symbol = 1;
-    sint32 base_token_weight = 2;
-    sint32 added_token_weight = 3;
+    int32 base_token_weight = 2;
+    int32 added_token_weight = 3;
 }
 ```
 
@@ -313,12 +313,12 @@ message UpdateCoefficientsInput {
 }
 
 message CalculateFeeCoefficients {
-    sint32 fee_token_type = 1;
+    int32 fee_token_type = 1;
     repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
 }
 
 message CalculateFeePieceCoefficients {
-    repeated sint32 value = 1;
+    repeated int32 value = 1;
 }
 
 enum FeeTypeEnum {
@@ -343,12 +343,12 @@ This action sets methods used to calculate resource token fees.
 rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty){}
 
 message UpdateCoefficientsInput {
-    repeated sint32 piece_numbers = 1;// To specify pieces gonna update.
+    repeated int32 piece_numbers = 1;// To specify pieces gonna update.
     CalculateFeeCoefficients coefficients = 2;
 }
 
 message CalculateFeePieceCoefficients {
-    repeated sint32 value = 1;
+    repeated int32 value = 1;
 }
 ```
 
@@ -364,7 +364,7 @@ rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Em
 message AdvanceResourceTokenInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 ```
 
@@ -383,7 +383,7 @@ rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.
 message TakeResourceTokenBackInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
-    sint64 amount = 3;
+    int64 amount = 3;
 }
 ```
 
@@ -402,11 +402,11 @@ rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protob
 message ValidateTokenInfoExistsInput{
     string symbol = 1;
     string token_name = 2;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
+    int64 total_supply = 3;
+    int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    sint32 issue_chain_id = 7;
+    int32 issue_chain_id = 7;
     bool is_profitable = 8;
 }
 ```
@@ -430,7 +430,7 @@ rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty)
 
 message TransferToContractInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
     string memo = 3;
 }
 ```
@@ -498,14 +498,14 @@ message GetTokenInfoInput {
 message TokenInfo {
     string symbol = 1;
     string token_name = 2;
-    sint64 supply = 3;
-    sint64 total_supply = 4;
-    sint32 decimals = 5;
+    int64 supply = 3;
+    int64 total_supply = 4;
+    int32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
     bool is_profitable = 8;
-    sint32 issue_chain_id = 9;
-    sint64 burned = 10;
+    int32 issue_chain_id = 9;
+    int64 burned = 10;
 }
 ```
 
@@ -565,7 +565,7 @@ message GetBalanceInput {
 message GetBalanceOutput {
     string symbol = 1;
     aelf.Address owner = 2;
-    sint64 balance = 3;
+    int64 balance = 3;
 }
 ```
 
@@ -595,7 +595,7 @@ message GetAllowanceOutput {
     string symbol = 1;
     aelf.Address owner = 2;
     aelf.Address spender = 3;
-    sint64 allowance = 4;
+    int64 allowance = 4;
 }
 ```
 
@@ -644,7 +644,7 @@ message GetLockedAmountOutput {
     aelf.Address address = 1;
     string symbol = 2;
     aelf.Hash lock_id = 3;
-    sint64 amount = 4;
+    int64 amount = 4;
 }
 ```
 
@@ -690,12 +690,12 @@ This view method return the primary token symbol if it's set. If not, returns th
 rpc GetCalculateFeeCoefficientForContract (aelf.SInt32Value) returns (CalculateFeeCoefficients){}
 
 message CalculateFeeCoefficients {
-    sint32 fee_token_type = 1;
+    int32 fee_token_type = 1;
     repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
 }
 
 message CalculateFeePieceCoefficients {
-    repeated sint32 value = 1;
+    repeated int32 value = 1;
 }
 
 enum FeeTypeEnum {
@@ -737,10 +737,9 @@ message SymbolListToPayTxSizeFee{
 
 message SymbolToPayTxSizeFee{
     string token_symbol = 1;
-    sint32 base_token_weight = 2;
-    sint32 added_token_weight = 3;
+    int32 base_token_weight = 2;
+    int32 added_token_weight = 3;
 }
-
 ```
 
 This method returns available tokens that can be used to pay for transaction fee.
@@ -824,7 +823,7 @@ message AuthorityInfo {
 rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage){}
 
 message ResourceUsage {
-    map<string, sint32> value = 1;
+    map<string, int32> value = 1;
 }
 ```
 
@@ -839,7 +838,7 @@ This method is used on a side chain. It returns how much resource tokens should 
 rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental){}
 
 message OwningRental {
-    map<string, sint64> resource_amount = 1;
+    map<string, int64> resource_amount = 1;
 }
 ```
 
@@ -854,7 +853,7 @@ This method is used on a side chain. It returns how much resource tokens (count 
 rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue){}
 
 message OwningRentalUnitValue {
-    map<string, sint64> resource_unit_value = 1;
+    map<string, int64> resource_unit_value = 1;
 }
 ```
 

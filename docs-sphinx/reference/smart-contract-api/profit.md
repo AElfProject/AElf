@@ -10,18 +10,19 @@ The Profit contract is an abstract layer for creating scheme to share bonus. Dev
 rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash){}
 
 message CreateSchemeInput {
-    sint64 profit_receiving_due_period_count = 1;
+    int64 profit_receiving_due_period_count = 1;
     bool is_release_all_balance_every_time_by_default = 2;
-    sint32 delay_distribute_period_count = 3;
+    int32 delay_distribute_period_count = 3;
     aelf.Address manager = 4;
     bool can_remove_beneficiary_directly = 5;
     aelf.Hash token = 6;
 }
 
 message SchemeCreated {
+    option (aelf.is_event) = true;
     aelf.Address virtual_address = 1;
     aelf.Address manager = 2;
-    sint64 profit_receiving_due_period_count = 3;
+    int64 profit_receiving_due_period_count = 3;
     bool is_release_all_balance_every_time_by_default = 4;
     aelf.Hash scheme_id = 5;
 }
@@ -54,7 +55,7 @@ rpc AddSubScheme (AddSubSchemeInput) returns (google.protobuf.Empty){}
 message AddSubSchemeInput {
     aelf.Hash scheme_id = 1;
     aelf.Hash sub_scheme_id = 2;
-    sint64 sub_scheme_shares = 3;
+    int64 sub_scheme_shares = 3;
 }
 ```
 
@@ -90,12 +91,12 @@ rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty){}
 message AddBeneficiaryInput {
     aelf.Hash scheme_id = 1;
     BeneficiaryShare beneficiary_share = 2;
-    sint64 end_period = 3;
+    int64 end_period = 3;
 }
 
 message BeneficiaryShare {
     aelf.Address beneficiary = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 ```
 
@@ -135,12 +136,12 @@ rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty){}
 message AddBeneficiariesInput {
     aelf.Hash scheme_id = 1;
     repeated BeneficiaryShare beneficiary_shares = 2;
-    sint64 end_period = 4;
+    int64 end_period = 3;
 }
 
 message BeneficiaryShare {
     aelf.Address beneficiary = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 ```
 
@@ -179,8 +180,8 @@ rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
 
 message ContributeProfitsInput {
     aelf.Hash scheme_id = 1;
-    sint64 amount = 2;
-    sint64 period = 3;
+    int64 amount = 2;
+    int64 period = 3;
     string symbol = 4;
 }
 ```
@@ -220,9 +221,8 @@ rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty){}
 
 message DistributeProfitsInput {
     aelf.Hash scheme_id = 1;
-    sint64 period = 2;
-    sint64 amount = 3;
-    string symbol = 4;
+    int64 period = 2;
+    map<string, int64> amounts_map = 3;
 }
 ```
 
@@ -232,8 +232,7 @@ should be called by the manager.
 - **DistributeProfitsInput**
   - **scheme id**: scheme id.
   - **period**: term， here should be the current term.
-  - **amount**: number.
-  - **symbol**: token symbol.
+  - **amounts_map**: token symbol and its amount.
 
 ### **Reset manager**
 
@@ -300,7 +299,7 @@ rpc GetSchemeAddress (SchemePeriod) returns (aelf.Address){}
 
 message SchemePeriod {
     aelf.Hash scheme_id = 1;
-    sint64 period = 2;
+    int64 period = 2;
 }
 ```
 
@@ -320,12 +319,12 @@ rpc GetDistributedProfitsInfo (SchemePeriod) returns (DistributedProfitsInfo){}
 
 message SchemePeriod {
     aelf.Hash scheme_id = 1;
-    sint64 period = 2;
+    int64 period = 2;
 }
 
 message DistributedProfitsInfo {
-    sint64 total_shares = 1;
-    map<string, sint64> profits_amount = 2;
+    int64 total_shares = 1;
+    map<string, sint64> amounts_map = 2;
     bool is_released = 3;
 }
 ```
@@ -356,10 +355,10 @@ message ProfitDetails {
 }
 
 message ProfitDetail {
-    sint64 start_period = 1;
-    sint64 end_period = 2;
-    sint64 shares = 3;
-    sint64 last_profit_period = 4;
+    int64 start_period = 1;
+    int64 end_period = 2;
+    int64 shares = 3;
+    int64 last_profit_period = 4;
     bool is_weight_removed = 5;
 }
 ```
@@ -383,16 +382,16 @@ Gets a beneficiaries profit details for a given scheme.
 ### GetProfitAmount
 
 ```Protobuf
-rpc GetProfitAmount (ClaimProfitsInput) returns (aelf.SInt64Value){}
+rpc GetProfitAmount (ClaimProfitsInput) returns (aelf.Int64Value){}
 
 message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
     string symbol = 2;
 }
 
-message SInt64Value
+message Int64Value
 {
-    sint64 value = 1;
+    int64 value = 1;
 }
 ```
 

@@ -89,6 +89,7 @@ message ContractCodeCheckInput{
     string code_check_release_method = 3;
     aelf.Hash proposed_contract_input_hash = 4;
     sint32 category = 5;
+    bool is_system_contract = 6;
 }
 ```
 
@@ -100,6 +101,7 @@ Propose to check the code of a contract.
   - **code_check_release_method**: method to call after code check complete (DeploySmartContract or UpdateSmartContract)
   - **proposed_contract_input_hash**: id of the proposed contract
   - **category**: contract category (always 0 for now)
+  - **is_system_contract**: indicates if the contract is the system contract.
 
 - **Returns**
   - **value**: Hash of the proposed contract.
@@ -303,10 +305,10 @@ Gets the current serial number of genesis contract (corresponds to the serial nu
 ```protobuf
 rpc GetContractInfo (aelf.Address) returns (ContractInfo){}
 
-message ContractInfo {
-    uint64 serial_number = 1;
+message ContractInfo{
+    int64 serial_number = 1;
     aelf.Address author = 2;
-    int32 category = 3;
+    sint32 category = 3;
     aelf.Hash code_hash = 4;
     bool is_system_contract = 5;
     int32 version = 6;

@@ -11,8 +11,8 @@ rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.E
 
 message CreateTokenHolderProfitSchemeInput {
     string symbol = 1;
-    sint64 minimum_lock_minutes = 2;
-    map<string, sint64> auto_distribute_threshold = 3;
+    int64 minimum_lock_minutes = 2;
+    map<string, int64> auto_distribute_threshold = 3;
 }
 ```
 
@@ -20,7 +20,7 @@ It creates a scheme which stores relevant information about dividend in profit c
 
 - **CreateTokenHolderProfitSchemeInput**
   - **symbol**: the token that will be used for locking and distributing profits.
-  - **minimum** lock time: minimum lock time before withdrawing.
+  - **minimum lock time** : minimum lock time before withdrawing.
   - **automatic distribution threshold**: used when registering for profits (RegisterForProfits).
 
 ### **AddBeneficiary**
@@ -30,7 +30,7 @@ rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Emp
 
 message AddTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
-    sint64 shares = 2;
+    int64 shares = 2;
 }
 ```
 
@@ -47,7 +47,7 @@ rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protob
 
 message RemoveTokenHolderBeneficiaryInput {
     aelf.Address beneficiary = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 ```
 
@@ -64,17 +64,19 @@ Note: this method can be used to remove a beneficiary or update its shares.
 rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty){}
 
 message ContributeProfitsInput {
-    aelf.Address scheme_manager = 1;
-    sint64 amount = 2;
-    string symbol = 3;
+    aelf.Hash scheme_id = 1;
+    int64 amount = 2;
+    int64 period = 3;
+    string symbol = 4;
 }
 ```
 
 Contribute some token to a scheme.
 
 - **ContributeProfitsInput**
-  - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
+  - **scheme id**: scheme id you want to contribute.
   - **amount**: the amount of tokens to contribute.
+  - **period**: the period you want to contribute.
   - **symbol**: the token to contribute.
 
 ### **DistributeProfits**
@@ -101,7 +103,7 @@ rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty)
 
 message RegisterForProfitsInput {
     aelf.Address scheme_manager = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 ```
 
@@ -125,7 +127,6 @@ rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty){}
 message ClaimProfitsInput {
     aelf.Address scheme_manager = 1;
     aelf.Address beneficiary = 2;
-    string symbol = 3;
 }
 ```
 
@@ -134,7 +135,6 @@ The sender withdraws his/her token from the scheme.
 - **ClaimProfitsInput**
   - **scheme manager**: manager of the scheme; when creating the scheme the Sender is set to manager.
   - **beneficiary**: the beneficiary, defaults to the Sender.
-  - **symbol**: the symbol to claim.
 
 ## **View methods**
 
@@ -146,9 +146,9 @@ rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) { }
 message TokenHolderProfitScheme {
     string symbol = 1;
     aelf.Hash scheme_id = 2;
-    sint64 period = 3;
-    sint64 minimum_lock_minutes = 4;
-    map<string, sint64> auto_distribute_threshold = 5;
+    int64 period = 3;
+    int64 minimum_lock_minutes = 4;
+    map<string, int64> auto_distribute_threshold = 5;
 }
 ```
 

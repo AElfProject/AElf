@@ -18,10 +18,10 @@ rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValu
 }
 
 message VerifyTransactionInput {
-  aelf.Hash transaction_id = 1;
-  aelf.MerklePath path = 2;
-  sint64 parent_chain_height = 3;
-  int32 verified_chain_id = 4;
+    aelf.Hash transaction_id = 1;
+    aelf.MerklePath path = 2;
+    int64 parent_chain_height = 3;
+    int32 verified_chain_id = 4;
 }
 
 ```

@@ -7,10 +7,11 @@ During the execution, Events are used internally to represent events that have h
 ```protobuf
 message Transferred {
     option (aelf.is_event) = true;
-    Address from = 1;
-    Address to = 2;
-    string symbol = 3;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
+    string memo = 5;
 }
 ```
 

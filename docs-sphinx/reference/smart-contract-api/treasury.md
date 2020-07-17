@@ -11,15 +11,15 @@ rpc Donate (DonateInput) returns (google.protobuf.Empty){}
 
 message DonateInput {
     string symbol = 1;
-    sint64 amount = 2;
+    int64 amount = 2;
 }
 
 message DonationReceived {
-    aelf.Address from = 1 [(aelf.is_indexed) = true];
-    aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
-    sint64 amount = 4 [(aelf.is_indexed) = true];
-    string memo = 5;
+    option (aelf.is_event) = true;
+    aelf.Address from = 1;
+    aelf.Address pool_contract = 2;
+    string symbol = 3;
+    int64 amount = 4;
 }
 ```
 
@@ -32,7 +32,7 @@ Donates tokens from the caller to the treasury. If the tokens are not native tok
 - **Event**
   - **DonationReceived**
     - **from**: from address.
-    - **to**: to address.
+    - **pool contract**: which contract has this dividend pool.
     - **symbol**: token symbol.
     - **amount**: amount of token.
     - **memo**: memo.
@@ -126,33 +126,17 @@ Change the controller who is able to update symbol list and activities' weight a
 
 For reference, you can find here the available view methods.
 
-### GetCurrentTreasuryBalance
-
-```Protobuf
-rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value){}
-
-message SInt64Value
-{
-    sint64 value = 1;
-}
-```
-
-Get the Treasury's total balance of the native token from the Treasury.
-
-- **Returns**
-  - **value**: amount of native token.
-
 ### GetWelfareRewardAmountSample
 
 ```Protobuf
 rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput){}
 
 message GetWelfareRewardAmountSampleInput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 
 message GetWelfareRewardAmountSampleOutput {
-    repeated sint64 value = 1;
+    repeated int64 value = 1;
 }
 ```
 

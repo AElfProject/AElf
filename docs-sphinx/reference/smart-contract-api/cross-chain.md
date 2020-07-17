@@ -9,7 +9,7 @@ Defines C# API functions for cross chain contract.
 ```protobuf
 rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {}
 
-message CrossChainBlockData {
+CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data_list = 1;
     repeated ParentChainBlockData parent_chain_block_data_list = 2;
     int64 previous_block_height = 3;
