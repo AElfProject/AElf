@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -145,6 +146,11 @@ namespace AElf.Kernel.SmartContract
             if (size > stateSizeLimit)
                 throw new StateOverSizeException($"State size {size} exceeds limit of {stateSizeLimit}.");
             return obj;
+        }
+
+        public BigInteger ConvertHashToBigInteger(Hash hash)
+        {
+            return new BigInteger(hash.Value.ToByteArray());
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();

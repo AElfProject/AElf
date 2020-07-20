@@ -11,10 +11,12 @@ namespace AElf.Contracts.Consensus.AEPoW
 
         public MappedState<long, PoWRecord> Records { get; set; }
 
-        public SingletonState<int> CurrentDifficulty { get; set; }
+        public SingletonState<string> CurrentDifficulty { get; set; }
 
         public SingletonState<Timestamp> BlockchainStartTime { get; set; }
 
-        public SingletonState<long> SupposedProduceNanoSeconds { get; set; }
+        public SingletonState<long> SupposedProduceMilliseconds { get; set; }
+
+        public SingletonState<string> CoinBaseTokenSymbol { get; set; }
     }
 }

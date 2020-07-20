@@ -20,20 +20,25 @@ service AEPoWContract {
     rpc GetBlockProducer (google.protobuf.Int64Value) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetDifficulty (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitializeInput {
-    int64 supposed_produce_seconds = 1;
+    int64 supposed_produce_milliseconds = 1;
 }
 
 message CoinBaseInput {
     aelf.Address producer = 1;
     int64 nonce_number = 2;
+    string new_difficulty = 3;
 }
 
 message PoWValidateInfo {
     aelf.Hash nonce = 1;
     aelf.Hash previous_block_hash = 2;
+    string new_difficulty = 3;
 }
 
 message PoWRecord {
@@ -41,6 +46,12 @@ message PoWRecord {
     google.protobuf.Timestamp timestamp = 2;
     int64 nonce_number = 3;
     aelf.Hash previous_block_hash = 4;
+}
+
+message AdjustDifficultyInfo {
+    string current_difficulty = 1;
+    int64 average_produce_milliseconds = 2;
+    int64 supposed_produce_milliseconds = 3;
 }
 
 // Events
