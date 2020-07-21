@@ -12,12 +12,14 @@ namespace AElf.OS
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
             ISmartContractRegistrationProvider smartContractRegistrationProvider,
-            ISmartContractExecutiveProvider smartContractExecutiveProvider)
+            ISmartContractExecutiveProvider smartContractExecutiveProvider,
+            ITransactionContextFactory transactionContextFactory)
             : base(defaultContractZeroCodeProvider,
                 smartContractRunnerContainer,
                 hostSmartContractBridgeContextService,
                 smartContractRegistrationProvider,
-                smartContractExecutiveProvider
+                smartContractExecutiveProvider,
+                transactionContextFactory
             )
         {
         }

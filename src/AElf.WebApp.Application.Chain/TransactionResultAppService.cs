@@ -80,10 +80,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-
             var output = _objectMapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
-
+            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
+            output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
+            output.TransactionSize = transaction?.CalculateSize() ?? 0;
+            
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
                 var validationStatus =
@@ -96,9 +97,6 @@ namespace AElf.WebApp.Application.Chain
 
                 return output;
             }
-
-            output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
-            output.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);

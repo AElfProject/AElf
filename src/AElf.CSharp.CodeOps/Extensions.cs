@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -159,9 +160,14 @@ namespace AElf.CSharp.CodeOps
             return contractBase.DeclaringType;
         }
         
-        public static Type FindExecutionObserverType(this Assembly assembly)
+        public static Type FindExecutionObserverProxyType(this Assembly assembly)
         {
             return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
+        }
+        
+        public static Type FindExecutionObserverType(this Assembly assembly)
+        {
+            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserver));
         }
     }
 }

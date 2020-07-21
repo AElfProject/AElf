@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel.Configuration;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
@@ -15,6 +16,8 @@ namespace AElf.Kernel.SmartContractExecution
         {
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, CodeUpdatedLogEventProcessor>();
+            context.Services.AddTransient(typeof(IConfigurationProcessor),
+                typeof(ExecutionObserverThresholdConfigurationProcessor));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

@@ -1,4 +1,4 @@
-using Org.BouncyCastle.Tsp;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Sdk.CSharp
 {

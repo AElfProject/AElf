@@ -1,4 +1,5 @@
 using Acs3;
+using AElf.Kernel.SmartContract;
 using AElf.Types;
 
 namespace AElf.Contracts.Association
@@ -7,6 +8,7 @@ namespace AElf.Contracts.Association
     {
         public static int Count(this ProposerWhiteList proposerWhiteList)
         {
+            ISmartContractBridgeContext smartContractBridgeContext;
             return proposerWhiteList.Proposers.Count;
         }
 

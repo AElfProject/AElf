@@ -3,6 +3,8 @@ using System.Reflection;
 using AElf.CSharp.CodeOps;
 using AElf.Types;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Sdk.CSharp;
 
 
 namespace AElf.Runtime.CSharp
@@ -85,8 +87,7 @@ namespace AElf.Runtime.CSharp
             _methodSetExecutionObserver = counterType == null
                 ? null
                 : CreateDelegate<Action<IExecutionObserver>>(null,
-                    counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver),
-                        new[] {typeof(IExecutionObserver)}));
+                    counterType?.GetMethod(nameof(ExecutionObserverProxy.SetObserver)));
         }
 
         public void InternalInitialize(ISmartContractBridgeContext context)
@@ -111,7 +112,7 @@ namespace AElf.Runtime.CSharp
             _methodResetFields?.Invoke();
         }
 
-        internal void SetExecutionObserver(IExecutionObserver observer)
+        internal void SetExecutionObserver(ExecutionObserver observer)
         {
             _methodSetExecutionObserver?.Invoke(observer);
         }
