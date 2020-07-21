@@ -372,5 +372,20 @@ namespace AElf.Kernel
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(_tv[1].BlockHash);
             blockStateSet.ShouldBeNull();
         }
+
+        [Fact]
+        public async Task MergeBlockState_ShouldThrowInvalidOperationException()
+        {
+            var chainStateInfo = new ChainStateInfo
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                MergingBlockHash = null,
+                Status = ChainStateMergingStatus.Common
+            };
+            
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash));
+        }
     }
 }

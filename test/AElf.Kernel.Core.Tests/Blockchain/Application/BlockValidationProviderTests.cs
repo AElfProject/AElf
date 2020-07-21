@@ -47,8 +47,6 @@ namespace AElf.Kernel.Blockchain.Application
 
             block.Body.TransactionIds.Add(Hash.Empty);
             block.Header = _kernelTestHelper.GenerateBlock(9, HashHelper.ComputeFrom("PreviousBlockHash")).Header;
-            validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
-            validateResult.ShouldBeFalse();
 
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeTrue();

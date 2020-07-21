@@ -42,17 +42,12 @@ namespace AElf.Kernel.Blockchain.Application
             existBlock.ShouldBeNull();
 
             await _fullBlockchainService.AddBlockAsync(block);
-            await _fullBlockchainService.AddTransactionsAsync(transactions);
 
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.GetHash().ShouldBe(block.GetHash());
-            existBlock.Body.TransactionsCount.ShouldBe(3);
+            existBlock.ShouldBe(block);
 
-            foreach (var tx in transactions)
-            {
-                var existTransaction = await _transactionManager.GetTransactionAsync(tx.GetHash());
-                existTransaction.ShouldBe(tx);
-            }
+            var blockHeader = await _fullBlockchainService.GetBlockHeaderByHashAsync(block.GetHash());
+            blockHeader.ShouldBe(block.Header);
         }
 
         [Fact]
@@ -465,23 +460,31 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Attach_New_Block_To_Chain_Test()
         {
             var chain = await _fullBlockchainService.GetChainAsync();
-            var newUnlinkedBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
                 new List<Transaction> {_kernelTestHelper.GenerateTransaction()});
-            await _fullBlockchainService.AddBlockAsync(newUnlinkedBlock);
-            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newUnlinkedBlock);
+            await _fullBlockchainService.AddBlockAsync(newBlock);
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
             status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
         }
-
+        
         [Fact]
-        public async Task Attach_Linked_Block_To_Chain_Test()
+        public async Task Attach_Exist_Block_To_Chain_Test()
         {
             var chain = await _fullBlockchainService.GetChainAsync();
-            await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[7]
-                .Height, _kernelTestHelper.BestBranchBlockList[7].GetHash());
-            var linkedBlock = _kernelTestHelper.BestBranchBlockList[8];
-            await _fullBlockchainService.AddBlockAsync(linkedBlock);
-            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, linkedBlock);
+            var block = _kernelTestHelper.BestBranchBlockList.Last();
+            await _fullBlockchainService.AddBlockAsync(block);
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, block);
             status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+            chainBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
+
+            chain = await _fullBlockchainService.GetChainAsync();
+            block = _kernelTestHelper.LongestBranchBlockList.Last();
+            await _fullBlockchainService.AddBlockAsync(block);
+            status = await _fullBlockchainService.AttachBlockToChainAsync(chain, block);
+            status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
+            chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+            chainBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
         }
 
         [Fact]
