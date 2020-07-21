@@ -25,17 +25,14 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
-        private readonly SmartContractStateOptions _smartContractStateOptions;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
-            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options, 
-            IOptionsSnapshot<SmartContractStateOptions> smartContractStateOptions)
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
-            _smartContractStateOptions = smartContractStateOptions.Value;
 
             Variables = new ContextVariableDictionary(options.Value.ContextVariables);
 
@@ -140,7 +137,12 @@ namespace AElf.Kernel.SmartContract
 
         public object ValidateStateSize(object obj)
         {
-            var stateSizeLimit = _smartContractStateOptions.StateLimitSize;
+            var stateSizeLimit = AsyncHelper.RunSync(() => _smartContractBridgeService.GetStateSizeLimitAsync(
+                new ChainContext
+                {
+                    BlockHash = _transactionContext.PreviousBlockHash, 
+                    BlockHeight = _transactionContext.BlockHeight - 1
+                }));
             var size = SerializationHelper.Serialize(obj).Length;
             if (size > stateSizeLimit)
                 throw new StateOverSizeException($"State size {size} exceeds limit of {stateSizeLimit}.");

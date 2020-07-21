@@ -18,6 +18,8 @@ namespace AElf.Kernel.SmartContractExecution
             context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, CodeUpdatedLogEventProcessor>();
             context.Services.AddTransient(typeof(IConfigurationProcessor),
                 typeof(ExecutionObserverThresholdConfigurationProcessor));
+            context.Services.AddTransient(typeof(IConfigurationProcessor),
+                typeof(StateLimitSizeConfigurationProcessor));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

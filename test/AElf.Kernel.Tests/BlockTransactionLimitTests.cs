@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.TestBase;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -12,34 +13,56 @@ using Xunit;
 
 namespace AElf.Kernel
 {
-    public sealed class BlockTransactionLimitTests : AElfIntegratedTest<BlockTransactionLimitExecutedModule>
+    public sealed class BlockTransactionLimitTests : AElfIntegratedTest<KernelTestAElfModule>
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly IConfigurationProcessor _blockTransactionLimitConfigurationProcessor;
-        
+        private readonly IBlockStateSetManger _blockStateSetManger;
+
         public BlockTransactionLimitTests()
         {
             _blockTransactionLimitProvider = GetRequiredService<IBlockTransactionLimitProvider>();
             _blockTransactionLimitConfigurationProcessor = GetRequiredService<IConfigurationProcessor>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
         }
         
         [Fact]
         public async Task TransactionLimitSetAndGet_Test()
         {
-            var blockTransactionLimit = 50;
             var blockIndex = new BlockIndex
             {
                 BlockHash = HashHelper.ComputeFrom("BlockHash"),
                 BlockHeight = 1
             };
-            await _blockTransactionLimitProvider.SetLimitAsync(blockIndex, blockTransactionLimit);
-            var limit = await _blockTransactionLimitProvider.GetLimitAsync(
-                new ChainContext
-                {
-                    BlockHash = blockIndex.BlockHash,
-                    BlockHeight = blockIndex.BlockHeight
-                });
-            limit.ShouldBe(blockTransactionLimit);
+            
+            await _blockStateSetManger.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            });
+
+            var blockTransactionLimit = 50;
+
+            {
+                var limit = await _blockTransactionLimitProvider.GetLimitAsync(
+                    new ChainContext
+                    {
+                        BlockHash = blockIndex.BlockHash,
+                        BlockHeight = blockIndex.BlockHeight
+                    });
+                limit.ShouldBe(int.MaxValue);
+            }
+
+            {
+                await _blockTransactionLimitProvider.SetLimitAsync(blockIndex, blockTransactionLimit);
+                var limit = await _blockTransactionLimitProvider.GetLimitAsync(
+                    new ChainContext
+                    {
+                        BlockHash = blockIndex.BlockHash,
+                        BlockHeight = blockIndex.BlockHeight
+                    });
+                limit.ShouldBe(blockTransactionLimit);
+            }
 
             var blockTransactionLimitLessThanSystemTransaction =
                 GetRequiredService<IEnumerable<ISystemTransactionGenerator>>().Count();
@@ -62,6 +85,12 @@ namespace AElf.Kernel
                 BlockHash = HashHelper.ComputeFrom("BlockHash"),
                 BlockHeight = 1
             };
+            
+            await _blockStateSetManger.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            });
             await _blockTransactionLimitConfigurationProcessor.ProcessConfigurationAsync(new Int32Value
             {
                 Value = blockTransactionLimit
