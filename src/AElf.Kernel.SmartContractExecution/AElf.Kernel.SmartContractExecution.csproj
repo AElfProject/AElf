@@ -9,6 +9,7 @@
     
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
     </ItemGroup>
 
     <ItemGroup>
