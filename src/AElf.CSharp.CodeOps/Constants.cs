@@ -22,6 +22,7 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Ble_S,
             OpCodes.Ble_Un,
             OpCodes.Blt,
+            OpCodes.Blt_S,
             OpCodes.Bne_Un,
             OpCodes.Bne_Un_S,
             OpCodes.Br,
