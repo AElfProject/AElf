@@ -37,16 +37,17 @@ namespace AElf.Kernel.SmartContract.Application
                 limit.ShouldBe(SmartContractConstants.StateSizeLimit);
             }
             
+            var expectedLimit = 50;
+            
             {
-                var stateSizeLimit = 50;
-                await _stateSizeLimitProvider.SetStateSizeLimitAsync(blockIndex, stateSizeLimit);
+                await _stateSizeLimitProvider.SetStateSizeLimitAsync(blockIndex, expectedLimit);
                 var limit = await _stateSizeLimitProvider.GetStateSizeLimitAsync(blockIndex);
-                limit.ShouldBe(stateSizeLimit);
+                limit.ShouldBe(expectedLimit);
                 
-                stateSizeLimit = 1;
-                await _stateSizeLimitProvider.SetStateSizeLimitAsync(blockIndex, stateSizeLimit);
+                expectedLimit = 1;
+                await _stateSizeLimitProvider.SetStateSizeLimitAsync(blockIndex, expectedLimit);
                 limit = await _stateSizeLimitProvider.GetStateSizeLimitAsync(blockIndex);
-                limit.ShouldBe(stateSizeLimit);
+                limit.ShouldBe(expectedLimit);
                 
                 await _stateSizeLimitProvider.SetStateSizeLimitAsync(blockIndex, 0);
                 limit = await _stateSizeLimitProvider.GetStateSizeLimitAsync(
@@ -55,7 +56,28 @@ namespace AElf.Kernel.SmartContract.Application
                         BlockHash = blockIndex.BlockHash,
                         BlockHeight = blockIndex.BlockHeight
                     });
-                limit.ShouldBe(stateSizeLimit);
+                limit.ShouldBe(expectedLimit);
+            }
+            
+            var blockIndex2 = new BlockIndex
+            {
+                BlockHash = HashHelper.ComputeFrom("BlockHash1"),
+                BlockHeight = blockIndex.BlockHeight + 1
+            };
+            
+            var blockStateSet2 = new BlockStateSet
+            {
+                PreviousHash = blockIndex.BlockHash,
+                BlockHash = blockIndex2.BlockHash,
+                BlockHeight = blockIndex2.BlockHeight + 1
+            };
+            
+            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet2);
+            
+            {
+                var stateSizeLimit =
+                    await _stateSizeLimitProvider.GetStateSizeLimitAsync(blockIndex2);
+                stateSizeLimit.ShouldBe(expectedLimit);
             }
         }
     }

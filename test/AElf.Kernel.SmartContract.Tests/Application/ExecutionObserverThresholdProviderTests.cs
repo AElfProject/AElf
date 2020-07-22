@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.TestBase;
 using Shouldly;
