@@ -27,8 +27,9 @@ namespace AElf.Sdk.CSharp.Tests
             var injectedCounter =  Contract.GetType().Assembly
                     .GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
             injectedCounter.ShouldNotBeNull();
-            
-            _proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver), new[] { typeof(ExecutionObserver) });
+
+            _proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver),
+                new[] {typeof(IExecutionObserver)});
             _proxyCountMethod.ShouldNotBeNull();
         }
 
