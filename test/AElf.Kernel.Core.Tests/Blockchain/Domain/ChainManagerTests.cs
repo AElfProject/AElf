@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
@@ -135,7 +136,7 @@ namespace AElf.Kernel.Blockchain.Domain
             {
                 (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1])).ShouldBeTrue();
                 //test repeat set
-                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1])).ShouldBeTrue();
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1])).ShouldBeFalse();
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(1.BlockHeight())).BlockHash.ShouldBe(
@@ -567,6 +568,11 @@ namespace AElf.Kernel.Blockchain.Domain
                     _blocks[7]);
                 (await _chainManager.GetChainBlockIndexAsync(7.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[11]);
+                
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[13])).ShouldBeFalse();
+                
+                await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[25])
+                    .ShouldThrowAsync<InvalidOperationException>();
             }
         }
 
@@ -807,6 +813,16 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
                 chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToStorageKey()).ShouldBeFalse();
             }
+
+            // Attach linked block
+            {
+                await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                {
+                    Height = 7.BlockHeight(),
+                    BlockHash = _blocks[11],
+                    PreviousBlockHash = _blocks[10]
+                }).ShouldThrowAsync<Exception>();
+            }
         }
 
         [Fact]
@@ -832,8 +848,50 @@ namespace AElf.Kernel.Blockchain.Domain
             };
 
             _chainManager
+                .SetChainBlockLinkExecutionStatusAsync(firstBlockLink, ChainBlockLinkExecutionStatus.ExecutionNone)
+                .ShouldThrow<InvalidOperationException>();
+            
+            _chainManager
                 .SetChainBlockLinkExecutionStatusAsync(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
                 .ShouldThrow<InvalidOperationException>();
+        }
+        
+        [Fact]
+        public async Task SetChainBlockLinkExecutionStatuses_Test()
+        {
+            var blockLink1 = new ChainBlockLink
+            {
+                Height = 1.BlockHeight(),
+                BlockHash = _blocks[1],
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
+            };
+            
+            var blockLink2 = new ChainBlockLink
+            {
+                Height = 2.BlockHeight(),
+                BlockHash = _blocks[2],
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
+            };
+
+            await _chainManager
+                .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
+                    ChainBlockLinkExecutionStatus.ExecutionNone).ShouldThrowAsync<InvalidOperationException>();
+
+            blockLink2.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed;
+            await _chainManager
+                .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess).ShouldThrowAsync<InvalidOperationException>();
+            
+            blockLink2.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
+            await _chainManager
+                .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
+            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
+
+            currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[2]);
+            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
         }
 
         [Fact]

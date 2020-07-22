@@ -276,13 +276,12 @@ namespace AElf.Kernel.Blockchain.Domain
 
             while (true)
             {
-                if (irreversibleBlockHash == null)
-                    break;
                 var chainBlockLink = await GetChainBlockLinkAsync(irreversibleBlockHash);
-                if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
+                if (chainBlockLink == null || !chainBlockLink.IsLinked)
+                    throw new InvalidOperationException(
+                        $"should not set an unlinked block as irreversible block, height: {chainBlockLink?.Height}, hash: {chainBlockLink?.BlockHash}");
+                if (chainBlockLink.IsIrreversibleBlock)
                     break;
-                if (!chainBlockLink.IsLinked)
-                    throw new InvalidOperationException($"should not set an unlinked block as irreversible block, height: {chainBlockLink.Height}, hash: {chainBlockLink.BlockHash}");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Add(chainBlockLink);
                 irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
@@ -290,18 +289,21 @@ namespace AElf.Kernel.Blockchain.Domain
 
             if (links.Count > 0)
             {
-                if(links.Last().Height<= chain.LastIrreversibleBlockHeight) 
+                if (links.Last().Height <= chain.LastIrreversibleBlockHeight)
                     return false;
                 await SetChainBlockIndexesAsync(links.ToDictionary(l => l.Height, l => l.BlockHash));
                 await SetChainBlockLinksAsync(links);
                 chain.LastIrreversibleBlockHash = links.First().BlockHash;
                 chain.LastIrreversibleBlockHeight = links.First().Height;
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
-                
-                Logger.LogDebug($"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
+
+                Logger.LogDebug(
+                    $"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash)

@@ -36,7 +36,7 @@ namespace AElf.Kernel
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        public List<Block> NotLinkedBlockList { get; set; }
 
         public KernelTestHelper(IBlockchainService blockchainService,
             ITransactionResultService transactionResultService,
@@ -45,7 +45,7 @@ namespace AElf.Kernel
             BestBranchBlockList = new List<Block>();
             LongestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
-            UnlinkedBranchBlockList = new List<Block>();
+            NotLinkedBlockList = new List<Block>();
 
             _blockchainService = blockchainService;
             _transactionResultService = transactionResultService;
@@ -89,7 +89,7 @@ namespace AElf.Kernel
             ForkBranchBlockList =
                 await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
+            NotLinkedBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
