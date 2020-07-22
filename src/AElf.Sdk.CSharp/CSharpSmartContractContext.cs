@@ -181,7 +181,7 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// Like SendVirtualInline but the virtual address us a system smart contract. 
+        /// Sends a virtual inline transaction to another contract. This method is only available to system smart contract.
         /// </summary>
         /// <param name="fromVirtualAddress">The virtual address of the system contract to use as sender.</param>
         /// <param name="toAddress">The address of the contract you're seeking to interact with.</param>
@@ -312,6 +312,11 @@ namespace AElf.Sdk.CSharp
         public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
         {
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
+        }
+
+        public object ValidateStateSize(object obj)
+        {
+            return _smartContractBridgeContextImplementation.ValidateStateSize(obj);
         }
     }
 }

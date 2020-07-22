@@ -1007,7 +1007,9 @@ namespace AElf.Contracts.MultiToken
                 .NonIndexed)
             .ProposalId;
         await ApproveWithMinersAsync(proposalId, false);
-        var releaseResult = await SideChainCrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+        var releaseResult =
+            await SideChainCrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+                new ReleaseCrossChainIndexingProposalInput {ChainIdList = {MainChainId}});
         var releasedProposalId = ProposalReleased.Parser
             .ParseFrom(releaseResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalReleased))).NonIndexed).ProposalId;
         releasedProposalId.ShouldBe(proposalId);
@@ -1053,8 +1055,10 @@ namespace AElf.Contracts.MultiToken
             transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
         }
         await SideChain2TestKit.MineAsync(transactionList);
-        
-        var releaseResult = await SideChain2CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+
+        var releaseResult =
+            await SideChain2CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+                new ReleaseCrossChainIndexingProposalInput {ChainIdList = {MainChainId}});
         var releasedProposalId = ProposalReleased.Parser
             .ParseFrom(releaseResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalReleased))).NonIndexed).ProposalId;
         releasedProposalId.ShouldBe(proposalId);
@@ -1063,7 +1067,8 @@ namespace AElf.Contracts.MultiToken
         parentChainHeight.ShouldBe(height);
     }
     
-    private async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, long sideTransactionHeight)
+    private async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, long sideTransactionHeight,
+        int sideChainId)
     {
         await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
         // proposing tx
@@ -1073,8 +1078,10 @@ namespace AElf.Contracts.MultiToken
             .ParseFrom(proposingResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
     
         await ApproveWithMinersAsync(proposalId);
-        var releaseTx = CrossChainContractStub.ReleaseCrossChainIndexing.GetTransaction(proposalId);
-    
+        var releaseTx = CrossChainContractStub.ReleaseCrossChainIndexingProposal.GetTransaction(new ReleaseCrossChainIndexingProposalInput
+        {
+            ChainIdList = {sideChainId}
+        });
         var blockExecutedSet = await MineAsync(new List<Transaction> {releaseTx});
 
         await IndexMainChainBlockAsync(releaseTx, blockExecutedSet.Height, sideTransactionHeight,
@@ -1097,8 +1104,8 @@ namespace AElf.Contracts.MultiToken
         var sideChainBlockData = CreateSideChainBlockData(_fakeBlockHeader, sideTransactionHeight, sideChainId,
             root);
         crossChainBlockData.SideChainBlockDataList.Add(sideChainBlockData);
-    
-        await DoIndexAsync(crossChainBlockData, sideTransactionHeight);
+
+        await DoIndexAsync(crossChainBlockData, sideTransactionHeight, sideChainId);
     }
     
     private async Task SideIndexSideChainAsync(int sideChainId, long sideTransactionHeight, Hash root)
@@ -1125,7 +1132,10 @@ namespace AElf.Contracts.MultiToken
             .ParseFrom(executionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
     
         await ApproveWithMinersAsync(proposalId, true);
-        var releaseTx = CrossChainContractStub.ReleaseCrossChainIndexing.GetTransaction(proposalId);
+        var releaseTx = CrossChainContractStub.ReleaseCrossChainIndexingProposal.GetTransaction(new ReleaseCrossChainIndexingProposalInput
+        {
+            ChainIdList = {sideChainId}
+        });
         var executedSet = await MineAsync(new List<Transaction> {releaseTx});
        
         var blockRoot = await IndexMainChainBlockAsync(releaseTx, executedSet.Height, sideTransactionHeight,
@@ -1175,7 +1185,9 @@ namespace AElf.Contracts.MultiToken
             .ParseFrom(proposingExecutionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
             .ProposalId;
         await ApproveWithMinersAsync(proposalId, false);
-        var releaseExecutionResult = await SideChainCrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+        var releaseExecutionResult =
+            await SideChainCrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+                new ReleaseCrossChainIndexingProposalInput {ChainIdList = {MainChainId}});
         var releasedProposalId = ProposalReleased.Parser
             .ParseFrom(releaseExecutionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalReleased))).NonIndexed).ProposalId;
         releasedProposalId.ShouldBe(proposalId);

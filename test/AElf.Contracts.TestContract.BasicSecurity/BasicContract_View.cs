@@ -30,6 +30,30 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             };
         }
 
+        public override BytesOutput QueryBytesSingletonState(Empty input)
+        {
+            return new BytesOutput
+            {
+                BytesValue = ByteString.CopyFrom(State.BytesSingletonState.Value)
+            };
+        }
+        
+        public override Int32Output QueryInt32SingletonState(Empty input)
+        {
+            return new Int32Output
+            {
+                Int32Value = State.Int32SingletonState.Value
+            };
+        }
+
+        public override Int32Value QueryEnumState(Empty input)
+        {
+            return new Int32Value
+            {
+                Value = (int) State.EnumState.Value
+            };
+        }
+
         public override Int32Output QueryInt32State(Empty input)
         {
             return new Int32Output
@@ -102,27 +126,30 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             };
         }
 
+        public override ProtobufMessage QueryMappedState(ProtobufInput input)
+        {
+            var message = State.MappedState[input.ProtobufValue.Int64Value];
+            return message ?? new ProtobufMessage();
+        }
+
         public override ProtobufMessage QueryMappedState1(ProtobufInput input)
         {
             var result = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
-            if (result == null)
-                return new ProtobufMessage();
-
-            return result;
+            return result ?? new ProtobufMessage();
         }
 
-        public override TradeMessage QueryMappedState2(Complex3Input input)
+        public override ProtobufMessage QueryMappedState2(ProtobufInput input)
         {
-            var message = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
-            if (message == null)
-                return new TradeMessage();
+            var message = State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                input.ProtobufValue.StringValue];
+            
+            return message ?? new ProtobufMessage();
+        }
 
-            return new TradeMessage
-            {
-                FromAmount = message.FromAmount,
-                ToAmount = message.ToAmount,
-                Timestamp = message.Timestamp
-            };
+        public override TradeMessage QueryMappedState3(Complex3Input input)
+        {
+            var tradeMessage = State.Complex5Info[input.From][input.PairA][input.To][input.PairB];
+            return tradeMessage ?? new TradeMessage();
         }
 
         public override Int64Output QueryExternalMethod1(Address input)
@@ -186,7 +213,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override BoolValue CheckFieldsAlreadyReset(Empty input)
         {
             var res = _field1 == 0 && _field2 == null && _field3 == false && _basicTestType == null &&
-                      _innerContractType == null;
+                      _innerContractType == null && dict == null;
             return new BoolValue {Value = res};
         }
     }

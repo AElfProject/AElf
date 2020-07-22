@@ -221,6 +221,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             Count,
             Size
         }
+
+        public bool SystemContactIgnored => false;
     }
 
     public class ArrayValidationResult : ValidationResult
