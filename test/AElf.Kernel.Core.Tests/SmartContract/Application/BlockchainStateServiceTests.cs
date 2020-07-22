@@ -58,11 +58,10 @@ namespace AElf.Kernel.SmartContract.Application
         [Fact]
         public async Task BlockState_MergeBlock_Test()
         {
-            await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[0]);
-            await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[1]);
-            await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[2]);
-            await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[3]);
-            await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[4]);
+            for (var i = 0; i < 5; i++)
+            {
+                await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[i]);
+            }
 
             {
                 await _blockchainStateService.MergeBlockStateAsync(_kernelTestHelper.BestBranchBlockList[0].Height,
