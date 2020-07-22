@@ -17,7 +17,4 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="SmartContractExecution\Domain" />
-    </ItemGroup>
 </Project>

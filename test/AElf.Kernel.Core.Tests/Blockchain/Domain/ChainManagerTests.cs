@@ -820,7 +820,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 {
                     Height = 7.BlockHeight(),
                     BlockHash = _blocks[11],
-                    PreviousBlockHash = _blocks[10]
+                    PreviousBlockHash = _blocks[10],
+                    IsLinked = true
                 }).ShouldThrowAsync<Exception>();
             }
         }
@@ -877,11 +878,13 @@ namespace AElf.Kernel.Blockchain.Domain
                 .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
                     ChainBlockLinkExecutionStatus.ExecutionNone).ShouldThrowAsync<InvalidOperationException>();
 
+            blockLink1.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
             blockLink2.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed;
             await _chainManager
                 .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
                     ChainBlockLinkExecutionStatus.ExecutionSuccess).ShouldThrowAsync<InvalidOperationException>();
             
+            blockLink1.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
             blockLink2.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
             await _chainManager
                 .SetChainBlockLinkExecutionStatusesAsync(new List<ChainBlockLink> {blockLink1, blockLink2},
