@@ -51,7 +51,10 @@ namespace AElf.Sdk.CSharp.Tests
         public void TestInfiniteLoop_InContractImplementation()
         {
             SetObserver();
-            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoop(new Empty()));
+            Should.NotThrow(() =>
+                Contract.TestInfiniteLoop(new Int32Value {Value = 99}));
+            Should.Throw<RuntimeBranchThresholdExceededException>(() =>
+                Contract.TestInfiniteLoop(new Int32Value {Value = 101}));
             ClearObserver();
         }
 
@@ -59,7 +62,8 @@ namespace AElf.Sdk.CSharp.Tests
         public void TestInfiniteLoop_InSeparateClass()
         {
             SetObserver();
-            Should.Throw<RuntimeBranchThresholdExceededException>(() => Contract.TestInfiniteLoopInSeparateClass(new Empty()));
+            Should.Throw<RuntimeBranchThresholdExceededException>(() =>
+                Contract.TestInfiniteLoopInSeparateClass(new Empty()));
             ClearObserver();
         }
         
