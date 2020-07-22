@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -15,7 +16,9 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private bool _field3;
         private BasicContractTestType _basicTestType;
         private InnerContractType _innerContractType;
-
+        
+        private Dictionary<long, long> dict { get; set; }
+        
         public static InnerContractType _innerContractTypeStaticField;
 
         public override Empty InitialBasicSecurityContract(Address input)
@@ -159,7 +162,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                         StringValue = input.ProtobufValue.StringValue
                     };
             }
-            
+
             return new Empty();
         }
 
@@ -199,7 +202,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                     input.ProtobufValue.StringValue];
             if (protobufMessage == null)
             {
-                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][input.ProtobufValue.StringValue] =
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
                     new ProtobufMessage
                     {
                         BoolValue = true,
@@ -209,7 +213,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             }
             else
             {
-                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][input.ProtobufValue.StringValue] =
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
                     new ProtobufMessage
                     {
                         BoolValue = true,
@@ -272,6 +277,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             _field3 = input.BoolValue;
             State.Int64Info.Value = Number;
             State.StringInfo.Value = String;
+            dict = new Dictionary<long, long>();
             return new Empty();
         }
 
@@ -315,6 +321,66 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
                 StringValue = s
             };
+        }
+        
+        public override Int32Output TestWhileInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            while (i < count)
+            {
+                i++;
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Int32Output TestWhileInfiniteLoopWithState(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            while (i++ < count)
+            {
+                if (i % 7 == 0)
+                    State.LoopInt32Value.Value = i;
+            }
+
+            return new Int32Output {Int32Value = State.LoopInt32Value.Value};
+        }
+
+        public override Int32Output TestForInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            for (i = 0; i < count; i++)
+            {
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Int32Output TestForeachInfiniteLoop(StringInput input)
+        {
+            int i = 1;
+            int[] arr = new int[3];
+            foreach (var t in arr)
+            {
+                i++;
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Empty TestInfiniteRecursiveCall(Int32Input input)
+        {
+            RecursiveCall(input.Int32Value);
+            return new Empty();
+        }
+
+        private void RecursiveCall(int value)
+        {
+            if (value > 0)
+                RecursiveCall(value - 1);
         }
 
         public class InnerContractType

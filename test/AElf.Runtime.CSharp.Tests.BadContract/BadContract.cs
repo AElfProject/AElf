@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -96,15 +97,13 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             return new Empty();
         }
 
-        public override Empty TestInfiniteLoop(Empty input)
+        public override Empty TestInfiniteLoop(Int32Value input)
         {
-            var stop = false;
-            var list = new List<int>();
-            while (true)
+            int i = 0;
+            while (i++ < input.Value)
             {
-                list.Add(int.MaxValue); // Just add any value to exhaust memory
-                if(stop) break;
             }
+
             return new Empty();
         }
 
@@ -158,10 +157,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public static void UseInfiniteLoopInSeparateClass()
         {
-            var list = new List<int>();
-            while (true)
+            int i = 0;
+            for (; true;)
             {
-                list.Add(int.MaxValue);
+                i++;
             }
         }
 

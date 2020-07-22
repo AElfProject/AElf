@@ -138,41 +138,4 @@ namespace AElf.Kernel
             });
         }
     }
-
-    [DependsOn(typeof(KernelTestAElfModule))]
-    public class BlockTransactionLimitExecutedModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-
-            var dict = new Dictionary<string, Int32Value>();
-            services.AddTransient(provider =>
-            {
-                string CalculateKey(Hash hash, string key)
-                {
-                    return String.Concat(hash.ToHex(), key);
-                }
-
-                var mockBlockChainStateService = new Mock<ICachedBlockchainExecutedDataService<Int32Value>>();
-                mockBlockChainStateService
-                    .Setup(m => m.GetBlockExecutedData(It.IsAny<ChainContext>(), It.IsAny<string>()))
-                    .Returns<ChainContext, string>((chainContext, key) => dict[CalculateKey(chainContext.BlockHash, key)]);
-
-                mockBlockChainStateService
-                    .Setup(m => m.AddBlockExecutedDataAsync(It.IsAny<IBlockIndex>(),
-                        It.IsAny<Dictionary<string, Int32Value>>()))
-                    .Returns<IBlockIndex, Dictionary<string, Int32Value>>((blockIndex, blockExecutedData) =>
-                    {
-                        foreach (var kv in blockExecutedData)
-                        {
-                            dict[CalculateKey(blockIndex.BlockHash, kv.Key)] = kv.Value;
-                        }
-
-                        return Task.CompletedTask;
-                    });
-                return mockBlockChainStateService.Object;
-            });
-        }
-    }
 }
