@@ -19,7 +19,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
 {
-    public class ExecutionPluginForResourceFeeTest : ExecutionPluginForResourceFeeTestBase
+    public partial class ExecutionPluginForResourceFeeTest : ExecutionPluginForResourceFeeTestBase
     {
         public ExecutionPluginForResourceFeeTest()
         {

@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
@@ -125,6 +126,99 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             transactions.ShouldNotBeEmpty();
             transactions[0].From.ShouldBe(DefaultSender);
             transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
+        }
+        
+        [Fact]
+        public async Task GetPreTransactions_None_PreTransaction_Generate_Test()
+        {
+            await DeployTestContractAsync();
+
+            await SetMethodFee_Successful(10);
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
+                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
+            plugin.ShouldNotBeNull();
+            var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var chain = await bcs.GetChainAsync();
+            
+            //height == 1
+            var transactions = (await plugin.GetPreTransactionsAsync(TestContract.ContractContainer.Descriptors,
+                new TransactionContext
+                {
+                    Transaction = new Transaction
+                    {
+                        From = DefaultSender,
+                        To = _testContractAddress,
+                        MethodName = nameof(_testContractStub.DummyMethod)
+                    },
+                    BlockHeight = 1,
+                    PreviousBlockHash = chain.BestChainHash
+                })).ToList();
+
+            transactions.Count.ShouldBe(0);
+            
+            // invalid contract descriptor
+            transactions = (await plugin.GetPreTransactionsAsync(AEDPoSContractContainer.Descriptors,
+                new TransactionContext
+                {
+                    Transaction = new Transaction
+                    {
+                        From = DefaultSender,
+                        To = DefaultSender,
+                        MethodName = nameof(_testContractStub.DummyMethod)
+                    },
+                    BlockHeight = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash
+                })).ToList();
+
+            transactions.Count.ShouldBe(0);
+            
+            // method name == ChargeTransactionFees, to == token contract address
+            var tokenContractAddress = await GetTokenContractAddressAsync();
+            transactions = (await plugin.GetPreTransactionsAsync(AEDPoSContractContainer.Descriptors,
+                new TransactionContext
+                {
+                    Transaction = new Transaction
+                    {
+                        From = DefaultSender,
+                        To = tokenContractAddress,
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees)
+                    },
+                    BlockHeight = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash
+                })).ToList();
+
+            transactions.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task GenerateTransactions_Transaction_Success_Test()
+        {
+            await DeployTestContractAsync();
+            var feeAmount = 7;
+            await SetMethodFee_Successful(feeAmount);
+            var dummy = await _testContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var blockHeader = await bcs.GetBestChainLastBlockHeaderAsync();
+            var block = await bcs.GetBlockByHashAsync(blockHeader.GetHash());
+            var systemTransactionGenerators = Application.ServiceProvider.GetRequiredService<IEnumerable<ISystemTransactionGenerator>>()
+                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
+            var systemTransactionGenerator = systemTransactionGenerators.SingleOrDefault(p => p.GetType() == typeof(ClaimFeeTransactionGenerator));
+            systemTransactionGenerator.ShouldNotBeNull();
+            var transactions = await systemTransactionGenerator.GenerateTransactionsAsync(DefaultSender, blockHeader.Height, blockHeader.GetHash());
+            transactions.Count.ShouldBe(1);
+            var claimFeeTransaction = transactions[0];
+            claimFeeTransaction.MethodName.ShouldBe(nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees));
+            var txFeeMap = TotalTransactionFeesMap.Parser.ParseFrom(claimFeeTransaction.Params);
+            txFeeMap.Value.ContainsKey("ELF");
+            
+            var transactionValidations = Application.ServiceProvider.GetRequiredService<IEnumerable<IBlockValidationProvider>>()
+                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
+            var claimTransactionValidation = transactionValidations.SingleOrDefault(p => p.GetType() == typeof(ClaimTransactionFeesValidationProvider));
+            claimTransactionValidation.ShouldNotBeNull();
+            var validateRet = await claimTransactionValidation.ValidateBlockAfterExecuteAsync(block);
+            validateRet.ShouldBe(true);
         }
 
         private async Task SetMethodFee_Successful(long feeAmount)
