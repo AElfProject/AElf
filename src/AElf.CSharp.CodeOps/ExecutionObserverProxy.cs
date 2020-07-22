@@ -1,14 +1,14 @@
 using System;
-using AElf.Sdk.CSharp;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.CSharp.CodeOps
 {
     // Injected into contract, not used directly, kept as a template to compare IL codes
     public static class ExecutionObserverProxy
     {
-        [ThreadStatic] private static ExecutionObserver _observer;
+        [ThreadStatic] private static IExecutionObserver _observer;
 
-        public static void SetObserver(ExecutionObserver observer)
+        public static void SetObserver(IExecutionObserver observer)
         {
             _observer = observer;
         }

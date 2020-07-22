@@ -164,10 +164,5 @@ namespace AElf.CSharp.CodeOps
         {
             return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
         }
-        
-        public static Type FindExecutionObserverType(this Assembly assembly)
-        {
-            return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserver));
-        }
     }
 }
