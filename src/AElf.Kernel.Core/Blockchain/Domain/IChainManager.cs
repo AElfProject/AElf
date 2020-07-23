@@ -157,6 +157,10 @@ namespace AElf.Kernel.Blockchain.Domain
             var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
             await _chainBlockLinks.SetAllAsync(chainBlockLinks.ToDictionary(l => prefix + l.BlockHash.ToStorageKey(),
                 l => l));
+            foreach (var chainBlockLink in chainBlockLinks)
+            {
+                _chainBlockLinkCacheProvider.SetChainBlockLink(chainBlockLink);
+            }
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)

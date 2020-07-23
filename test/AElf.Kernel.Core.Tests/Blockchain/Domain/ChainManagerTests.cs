@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Types;
 using Shouldly;
@@ -23,6 +24,7 @@ namespace AElf.Kernel.Blockchain.Domain
         private readonly ChainManager _chainManager;
         private readonly Hash _genesis;
         private readonly Hash[] _blocks = Enumerable.Range(1, 101).Select(IntToHash).ToArray();
+        private readonly IChainBlockLinkCacheProvider _chainBlockLinkCacheProvider;
 
         private static Hash IntToHash(int n)
         {
@@ -35,6 +37,7 @@ namespace AElf.Kernel.Blockchain.Domain
         public ChainManagerTests()
         {
             _chainManager = GetRequiredService<ChainManager>();
+            _chainBlockLinkCacheProvider = GetRequiredService<IChainBlockLinkCacheProvider>();
             _genesis = _blocks[0];
         }
 
@@ -840,6 +843,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ExecutionStatus
+                .ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             var secondBlockLink = new ChainBlockLink
             {
@@ -892,35 +897,13 @@ namespace AElf.Kernel.Blockchain.Domain
             
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ExecutionStatus
+                .ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[2]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
-        }
-
-        [Fact]
-        public async Task Set_Block_Validated_Test()
-        {
-            var firstBlockLink = new ChainBlockLink
-            {
-                Height = 1.BlockHeight(),
-                BlockHash = _blocks[1],
-                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
-            };
-
-            await _chainManager.SetChainBlockLinkExecutionStatusAsync(firstBlockLink,
-                ChainBlockLinkExecutionStatus.ExecutionFailed);
-            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
-            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-
-            var secondBlockLink = new ChainBlockLink
-            {
-                Height = 2.BlockHeight(),
-                BlockHash = _blocks[2],
-                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
-            };
-
-            _chainManager.SetChainBlockLinkExecutionStatusAsync(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
-                .ShouldThrow<InvalidOperationException>();
+            _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[2]).ExecutionStatus
+                .ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
         }
 
         [Fact]
@@ -1117,6 +1100,39 @@ namespace AElf.Kernel.Blockchain.Domain
             });
             status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
             status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+        }
+
+        [Fact]
+        public async Task ChainBlockLinkCache_Test()
+        {
+            var chainBlockLink = new ChainBlockLink
+            {
+                Height = 1.BlockHeight(),
+                BlockHash = _blocks[1]
+            };
+
+            (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBeNull();
+            _chainManager.GetCachedChainBlockLinks().ShouldBeEmpty();
+            _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ShouldBeNull();
+
+            await _chainManager.SetChainBlockLinkAsync(chainBlockLink);
+            
+            (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBe(chainBlockLink);
+            _chainManager.GetCachedChainBlockLinks().Count.ShouldBe(1);
+            _chainManager.GetCachedChainBlockLinks().ShouldContain(chainBlockLink);
+            _chainBlockLinkCacheProvider.GetChainBlockLink(_blocks[1]).ShouldBe(chainBlockLink);
+            
+            await _chainManager.SetChainBlockLinkAsync(new ChainBlockLink
+            {
+                Height = 2.BlockHeight(),
+                BlockHash = _blocks[2]
+            });
+
+            _chainManager.GetCachedChainBlockLinks().Count.ShouldBe(2);
+            _chainManager.CleanCachedChainBlockLinks(2.BlockHeight());
+            _chainManager.GetCachedChainBlockLinks().ShouldBeEmpty();
+            
+            (await _chainManager.GetChainBlockLinkAsync(_blocks[1])).ShouldBe(chainBlockLink);
         }
     }
 }
