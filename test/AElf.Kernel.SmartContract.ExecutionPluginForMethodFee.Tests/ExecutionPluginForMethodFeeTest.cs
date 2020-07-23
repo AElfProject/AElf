@@ -16,6 +16,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Shouldly;
+using Xunit.Sdk;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
@@ -102,11 +103,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task GetPreTransactionsTest()
         {
             await DeployTestContractAsync();
-
             await SetMethodFee_Successful(10);
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
-                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
+            var plugin = GetCreateInstance<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
@@ -127,16 +125,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             transactions[0].From.ShouldBe(DefaultSender);
             transactions[0].To.ShouldBe(await GetTokenContractAddressAsync());
         }
+
+        private I GetCreateInstance<I, T>() where T: I
+        {
+            var implements = Application.ServiceProvider.GetRequiredService<IEnumerable<I>>()
+                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per t
+            var implement = implements.SingleOrDefault(p => p.GetType() == typeof(T));
+            return implement;
+        }
         
         [Fact]
         public async Task GetPreTransactions_None_PreTransaction_Generate_Test()
         {
             await DeployTestContractAsync();
-
             await SetMethodFee_Successful(10);
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
-                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
+            var plugin = GetCreateInstance<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
@@ -202,9 +205,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var blockHeader = await bcs.GetBestChainLastBlockHeaderAsync();
             var block = await bcs.GetBlockByHashAsync(blockHeader.GetHash());
-            var systemTransactionGenerators = Application.ServiceProvider.GetRequiredService<IEnumerable<ISystemTransactionGenerator>>()
-                .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var systemTransactionGenerator = systemTransactionGenerators.SingleOrDefault(p => p.GetType() == typeof(ClaimFeeTransactionGenerator));
+            var systemTransactionGenerator = GetCreateInstance<ISystemTransactionGenerator, ClaimFeeTransactionGenerator>();
             systemTransactionGenerator.ShouldNotBeNull();
             var transactions = await systemTransactionGenerator.GenerateTransactionsAsync(DefaultSender, blockHeader.Height, blockHeader.GetHash());
             transactions.Count.ShouldBe(1);
