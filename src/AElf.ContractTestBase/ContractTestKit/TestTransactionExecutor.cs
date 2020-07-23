@@ -12,7 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestBase.ContractTestKit
 {
     public class TestTransactionExecutor : ITestTransactionExecutor
     {
@@ -50,17 +50,18 @@ namespace AElf.ContractTestKit
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
             
-            var transactions = new List<Transaction> {transaction};
             var blockExecutedSet = await miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
                     BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
-                }, transactions, blockTimeProvider.GetBlockTime());
+                },
+                new List<Transaction> {transaction},
+                blockTimeProvider.GetBlockTime());
 
             var block = blockExecutedSet.Block;
 
-            await blockchainService.AddTransactionsAsync(transactions);
+            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 

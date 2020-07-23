@@ -5,12 +5,10 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
-using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
@@ -18,7 +16,6 @@ using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -39,7 +36,7 @@ using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using Xunit.Abstractions;
 
-namespace AElf.ContractTestKit
+namespace AElf.ContractTestBase.ContractTestKit
 {
     public class ContractTestModule<TSelf> : ContractTestModule
         where TSelf : ContractTestModule<TSelf>
@@ -62,7 +59,6 @@ namespace AElf.ContractTestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(TokenKernelAElfModule),
         typeof(CSharpRuntimeAElfModule))]
     public class ContractTestModule : AbpModule
     {
@@ -77,15 +73,18 @@ namespace AElf.ContractTestKit
                 options.ContextVariables["SymbolListToPayRental"] = "CPU,RAM,DISK,NET";
             });
 
-            Configure<ChainOptions>(options => options.ChainId = ChainId);
+            Configure<ChainOptions>(options =>
+            {
+                if (options.ChainId == 0) options.ChainId = ChainId;
+            });
 
             #region Infra
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddTransient<ChainCreationService>();
-            services.AddSingleton<TxHub>();
-            services.AddSingleton<SmartContractRunnerContainer>();
+            // services.AddTransient<ChainCreationService>();
+            // services.AddSingleton<TxHub>();
+            // services.AddSingleton<SmartContractRunnerContainer>();
 
             #endregion
 
@@ -104,26 +103,13 @@ namespace AElf.ContractTestKit
 
             services.AddSingleton(o => Mock.Of<INetworkService>());
 
-            // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
-//            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
-//            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-            
-            context.Services.AddTransient(o =>
-            {
-                var mockService = new Mock<IGenesisSmartContractDtoProvider>();
-                mockService.Setup(s =>
-                        s.GetGenesisSmartContractDtos())
-                    .Returns(new List<GenesisSmartContractDto>());
-                return mockService.Object;
-            });
 
             #endregion
 
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITestTransactionExecutor, TestTransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
             context.Services.Replace(ServiceDescriptor
                 .Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
             context.Services.AddSingleton<ISmartContractRunner, UnitTestCSharpSmartContractRunner>(provider =>
@@ -134,11 +120,10 @@ namespace AElf.ContractTestKit
             });
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
             context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
-            context.Services
-                .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
+            context.Services.RemoveAll(s => s.ImplementationType == typeof(ConsensusRequestMiningEventHandler));
         }
 
-        public int ChainId { get; } = 500;
+        public int ChainId { get; } = ChainHelper.ConvertBase58ToChainId("AELF");
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
