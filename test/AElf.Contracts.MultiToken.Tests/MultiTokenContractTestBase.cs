@@ -328,7 +328,7 @@ namespace AElf.Contracts.MultiToken
 
             if (isMainChain)
             {
-                foreach (var account in SampleAccount.Accounts.Take(4))
+                foreach (var account in SampleAccount.Accounts.Take(5))
                 {
                     var parliamentContractStub =
                         GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
@@ -340,7 +340,7 @@ namespace AElf.Contracts.MultiToken
             }
             else
             {
-                foreach (var account in SampleAccount.Accounts.Take(4))
+                foreach (var account in SampleAccount.Accounts.Take(5))
                 {
                     var parliamentContractStub =
                         SideChainTestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(

@@ -408,7 +408,7 @@ namespace AElf.Contracts.MultiToken
             Owner = DefaultAccount.Address,
             Symbol = NativeToken
         });
-        Assert.True(balance.Balance == (balanceBefore.Balance - 1000));
+        balance.Balance.ShouldBe(balanceBefore.Balance - 1000);
     
         //verify side chain token address throw main chain token contract
         var tokenAddress = await TokenContractStub.GetCrossChainTransferTokenContractAddress.CallAsync(
@@ -951,7 +951,7 @@ namespace AElf.Contracts.MultiToken
             registerCrossChainTokenContractAddressInput.ToByteString(), tokenContract);
         await ApproveWithMinersAsync(proposalId);
         var transactionList = new List<Transaction>();
-        foreach (var account in SampleAccount.Accounts.Take(4))
+        foreach (var account in SampleAccount.Accounts.Take(5))
         {
             var parliamentContractStub =
                 SideChain2TestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(
