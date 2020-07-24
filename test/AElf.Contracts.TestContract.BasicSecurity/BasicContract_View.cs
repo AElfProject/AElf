@@ -213,7 +213,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override BoolValue CheckFieldsAlreadyReset(Empty input)
         {
             var res = _field1 == 0 && _field2 == null && _field3 == false && _basicTestType == null &&
-                      _innerContractType == null;
+                      _innerContractType == null && dict == null;
             return new BoolValue {Value = res};
         }
     }
