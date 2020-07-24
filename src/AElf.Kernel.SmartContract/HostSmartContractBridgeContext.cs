@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -145,6 +147,27 @@ namespace AElf.Kernel.SmartContract
             if (size > stateSizeLimit)
                 throw new StateOverSizeException($"State size {size} exceeds limit of {stateSizeLimit}.");
             return obj;
+        }
+
+        public Hash GetRandomHash(Hash fromHash)
+        {
+            var currentBlockTimeHash = HashHelper.ComputeFrom(CurrentBlockTime);
+            return HashHelper.XorAndCompute(TransactionId, HashHelper.XorAndCompute(currentBlockTimeHash,
+                HashHelper.XorAndCompute(fromHash, PreviousBlockHash)));
+        }
+
+        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue)
+        {
+            if (start < 0 || start > end)
+            {
+                throw new ArgumentException("Incorrect arguments.");
+            }
+
+            var range = end.Sub(start);
+            var bigInteger = new BigInteger(hash.Value.ToByteArray());
+            // This is safe because range is long type.
+            var index = Math.Abs((long) (bigInteger % range));
+            return index.Add(start);
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();
