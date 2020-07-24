@@ -290,8 +290,9 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (!plugin.IsStopExecuting(preTrace.ReturnValue, out var error)) continue;
                     
+                    // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
                     preTrace.Error = error;
-                    preTrace.ExecutionStatus = ExecutionStatus.ExecutionStoppedByPrePlugin;
+                    preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
             }
@@ -373,7 +374,7 @@ namespace AElf.Kernel.SmartContract.Application
                 else
                 {
                     txResult.Error = trace.Error;
-                    if (trace.ExecutionStatus != ExecutionStatus.Prefailed || IsStoppedByPrePlugin(trace))
+                    if (trace.ExecutionStatus != ExecutionStatus.Prefailed || IsExecutionStoppedByPrePlugin(trace))
                     {
                         txResult.Logs.AddRange(trace.GetPluginLogs());
                         txResult.UpdateBloom();
@@ -414,7 +415,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
                 foreach (var preTrace in trace.PreTraces)
                 {
-                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                    if (preTrace.IsSuccessful())
+                        transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
                 }
 
                 foreach (var postTrace in trace.PostTraces)
@@ -461,9 +463,10 @@ namespace AElf.Kernel.SmartContract.Application
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        private bool IsStoppedByPrePlugin(TransactionTrace trace)
+        private bool IsExecutionStoppedByPrePlugin(TransactionTrace trace)
         {
-            return trace.PreTraces.Any(pt => pt.ExecutionStatus == ExecutionStatus.ExecutionStoppedByPrePlugin);
+            return _prePlugins.Any(prePlugin =>
+                trace.PreTraces.Any(preTrace => prePlugin.IsStopExecuting(preTrace.ReturnValue, out _)));
         }
 
         private ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)

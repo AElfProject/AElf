@@ -1,3 +1,4 @@
+using System.IO;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AutoMapper;
@@ -22,10 +23,17 @@ namespace AElf.WebApp.Application.Chain
                                 ? ByteString.CopyFrom(new byte[256]).ToBase64()
                                 : s.Bloom.ToBase64()))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString().ToUpper()))
+                .ForMember(d => d.Error, opt => opt.MapFrom(s => TakeErrorMessage(s)))
                 .Ignore(d => d.Transaction)
                 .Ignore(d => d.TransactionSize);
 
             CreateMap<LogEvent, LogEventDto>();
+        }
+
+        private static string TakeErrorMessage(TransactionResult transactionResult)
+        {
+            using var stringReader = new StringReader(transactionResult.Error);
+            return stringReader.ReadLine();
         }
     }
 }
