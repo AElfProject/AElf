@@ -54,12 +54,13 @@ namespace AElf.ContractTestBase.Tests
             var primaryTokenSymbol = await _primaryTokenSymbolService.GetPrimaryTokenSymbol();
             primaryTokenSymbol.ShouldBe("ELF");
         }
-
+        
         [Fact]
         public void SideChain_Token_GetInitializeMethodList_Test()
         {
             var methodCallList = _tokenContractInitializationProvider.GetInitializeMethodList(new byte[] { });
-            methodCallList.Count.ShouldBe(5);
+            
+            //should be same as SideChainTokenContractInitializationDataProvider
             methodCallList.Exists(x => x.MethodName == nameof(TokenContractContainer.TokenContractStub.Create))
                 .ShouldBeTrue();
             methodCallList
