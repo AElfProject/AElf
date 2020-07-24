@@ -2,7 +2,7 @@ using AElf.Types;
 
 namespace AElf.Kernel
 {
-    public abstract class EvilTriggerOptions
+    public class EvilTriggerOptions
     {
         public int EvilTriggerNumber { get; set; } = 32;
         public bool RepackagedTransaction { get; set; }
