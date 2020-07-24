@@ -31,6 +31,7 @@ namespace AElf.Kernel
             context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.AddTransient(typeof(IConfigurationProcessor),
                 typeof(BlockTransactionLimitConfigurationProcessor));
+            Configure<EvilTriggerOptions>(context.Services.GetConfiguration().GetSection("EvilTrigger"));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

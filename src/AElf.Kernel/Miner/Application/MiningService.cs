@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
@@ -12,6 +14,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application
@@ -26,14 +29,17 @@ namespace AElf.Kernel.Miner.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
 
+        private readonly EvilTriggerOptions _evilTriggerOptions;
+
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockExecutingService blockExecutingService,
-            IBlockchainService blockchainService, 
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+            IBlockchainService blockchainService,
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+            IOptionsMonitor<EvilTriggerOptions> evilTriggerOptions)
         {
             Logger = NullLogger<MiningService>.Instance;
             _blockGenerationService = blockGenerationService;
@@ -44,6 +50,8 @@ namespace AElf.Kernel.Miner.Application
             _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
 
             EventBus = NullLocalEventBus.Instance;
+
+            _evilTriggerOptions = evilTriggerOptions.CurrentValue;
         }
 
         private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
@@ -55,7 +63,7 @@ namespace AElf.Kernel.Miner.Application
 
             foreach (var transaction in systemTransactions)
             {
-                await SignAsync(transaction);
+                await SignAsync(transaction, previousBlockHeight);
             }
 
             await _blockchainService.AddTransactionsAsync(systemTransactions);
@@ -63,9 +71,18 @@ namespace AElf.Kernel.Miner.Application
             return systemTransactions;
         }
 
-        private async Task SignAsync(Transaction notSignerTransaction)
+        private async Task SignAsync(Transaction notSignerTransaction, long previousBlockHeight)
         {
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().ToByteArray());
+            if (_evilTriggerOptions.ErrorSignatureInSystemTransaction &&
+                previousBlockHeight + 1 % _evilTriggerOptions.EvilTriggerNumber == 0)
+            {
+                ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
+                    notSignerTransaction.GetHash().ToByteArray());
+                Logger.LogWarning("EVIL TRIGGER - Error sign system transactions");
+            }
+
             notSignerTransaction.Signature = ByteString.CopyFrom(signature);
         }
 
@@ -82,12 +99,27 @@ namespace AElf.Kernel.Miner.Application
                 BlockTime = expectedMiningTime
             });
             block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
+            if (!_evilTriggerOptions.ChangeBlockHeaderSignPubKey ||
+                preBlockHeight + 1 % _evilTriggerOptions.EvilTriggerNumber != 0) return block;
+            
+            ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+            block.Header.SignerPubkey = ByteString.CopyFrom(keyPair.PublicKey);
+            Logger.LogWarning("EVIL TRIGGER - Error block SignerPubkey");
+
             return block;
         }
 
         private async Task SignBlockAsync(Block block)
         {
             var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
+
+            if (_evilTriggerOptions.ErrorSignatureInBlock && block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+            {
+                ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray());
+                Logger.LogWarning("EVIL TRIGGER - Error sign block");
+            }
+
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
 
@@ -127,6 +159,48 @@ namespace AElf.Kernel.Miner.Application
                         : transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
+
+                    if (_evilTriggerOptions.ErrorTransactionCountInBody &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        var last = block.Body.TransactionIds.Last();
+                        block.Body.TransactionIds.Add(last);
+                        Logger.LogWarning($"EVIL TRIGGER - RepeatTransactionInOneBlockAttack - Tx {last}");
+                    }
+                    
+                    if (_evilTriggerOptions.ReverseTransactionList &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        var enumerable = block.Body.TransactionIds.Reverse();
+                        block.Body.TransactionIds.Clear();
+                        block.Body.TransactionIds.AddRange(enumerable);
+                        Logger.LogWarning($"EVIL TRIGGER - ReverseTransactionList");
+                    }
+
+                    if (_evilTriggerOptions.ChangeBlockHeader)
+                    {
+                        var blockHeader = block.Header;
+                        var number = _evilTriggerOptions.EvilTriggerNumber;
+                        switch (block.Height % number)
+                        {
+                            case 0:
+                                blockHeader.Height += 1;
+                                Logger.LogWarning(
+                                    $"EVIL TRIGGER - ChangeBlockHeader - Block Height {blockHeader.Height}");
+                                break;
+                            case 1:
+                                blockHeader.MerkleTreeRootOfTransactions =
+                                    HashHelper.ComputeFrom("Fake MerkleTreeRootOfTransactions");
+                                Logger.LogWarning(
+                                    "EVIL TRIGGER - ChangeBlockHeader - Fake MerkleTreeRootOfTransactions");
+                                break;
+                            case 2:
+                                blockHeader.ChainId = ChainHelper.GetChainId(1);
+                                Logger.LogWarning(
+                                    $"EVIL TRIGGER - ChangeBlockHeader - Error ChainId {blockHeader.ChainId}");
+                                break;
+                        }
+                    }
 
                     block = blockExecutedSet.Block;
                     await SignBlockAsync(block);
