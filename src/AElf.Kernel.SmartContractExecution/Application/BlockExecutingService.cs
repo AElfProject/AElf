@@ -144,12 +144,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            if (executionReturnSetCollection.Unexecutable.Count > 0)
-            {
-                await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader,
-                        executionReturnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
-            }
+            // if (executionReturnSetCollection.Unexecutable.Count > 0)
+            // {
+            //     await EventBus.PublishAsync(
+            //         new UnexecutableTransactionsFoundEvent(blockHeader,
+            //             executionReturnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
+            // }
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)

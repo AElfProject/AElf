@@ -17,7 +17,7 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             AssertTransactionGeneratedByPlugin();
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
@@ -25,7 +25,7 @@ namespace AElf.Contracts.MultiToken
             // Primary token not created yet.
             if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
             {
-                return new BoolValue {Value = true};
+                return new ChargeTransactionFeesOutput {Success = true};
             }
 
             // Record tx fee bill during current charging process.
@@ -62,7 +62,11 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
+            var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
+            var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+            if (!chargingResult)
+                chargingOutput.ChargingInformation = "Transaction fee charging failed.";
+            return chargingOutput;
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
