@@ -39,7 +39,8 @@ namespace AElf.Contracts.Economic.TestBase
                 new RequestMiningDto
                 {
                     PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
                 }, transactions, blockTimeProvider.GetBlockTime());
             
             var block = blockExecutedSet.Block;

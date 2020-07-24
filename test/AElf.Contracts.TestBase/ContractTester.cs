@@ -546,7 +546,8 @@ namespace AElf.Contracts.TestBase
                 {
                     PreviousBlockHash = preBlockHash,
                     PreviousBlockHeight = preBlockHeight,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
                 }, txs, blockTime ?? DateTime.UtcNow.ToTimestamp());
             
             var block = executedBlockSet.Block;
