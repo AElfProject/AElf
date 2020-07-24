@@ -55,6 +55,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var notExecutedBlocks =
                 await _blockchainService.GetBlocksAsync(notExecutedChainBlockLinks.Select(l => l.BlockHash));
 
+            foreach (var b in notExecutedBlocks)
+            {
+                Logger.LogDebug($"NotExecuted block {b}");
+            }
+
             var executionResult = new BlockExecutionResult();
             try
             {

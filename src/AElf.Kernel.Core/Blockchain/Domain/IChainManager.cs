@@ -321,6 +321,8 @@ namespace AElf.Kernel.Blockchain.Domain
                     }
                     else if (chainBlockLink.ExecutionStatus == ChainBlockLinkExecutionStatus.ExecutionFailed)
                     {
+                        Logger.LogDebug(
+                            $"[ExecutionFailed] Height: {chainBlockLink.Height}, Hash {chainBlockLink.BlockHash}");
                         output.Clear();
                     }
                 }
