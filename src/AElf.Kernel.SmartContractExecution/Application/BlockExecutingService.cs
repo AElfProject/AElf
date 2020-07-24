@@ -142,14 +142,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return Task.FromResult(block);
         }
 
-        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
+        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            // if (executionReturnSetCollection.Unexecutable.Count > 0)
-            // {
-            //     await EventBus.PublishAsync(
-            //         new UnexecutableTransactionsFoundEvent(blockHeader,
-            //             executionReturnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
-            // }
+            return Task.CompletedTask;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
