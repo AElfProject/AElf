@@ -159,7 +159,8 @@ namespace AElf.Kernel.Miner.Application
                         : transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
-
+                    block = blockExecutedSet.Block;
+                    
                     if (_evilTriggerOptions.ErrorTransactionCountInBody &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
@@ -202,7 +203,6 @@ namespace AElf.Kernel.Miner.Application
                         }
                     }
 
-                    block = blockExecutedSet.Block;
                     await SignBlockAsync(block);
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
