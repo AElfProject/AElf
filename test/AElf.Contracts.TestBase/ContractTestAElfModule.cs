@@ -41,8 +41,6 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
 
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
-
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 
             context.Services.AddTransient(o =>
