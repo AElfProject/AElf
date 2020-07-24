@@ -75,12 +75,12 @@ namespace AElf.Kernel.Miner.Application
         {
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().ToByteArray());
             if (_evilTriggerOptions.ErrorSignatureInSystemTransaction &&
-                previousBlockHeight + 1 % _evilTriggerOptions.EvilTriggerNumber == 0)
+                (previousBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
                 ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                 signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
                     notSignerTransaction.GetHash().ToByteArray());
-                Logger.LogWarning("EVIL TRIGGER - Error sign system transactions");
+                Logger.LogWarning($"EVIL TRIGGER - Error sign system transactions, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
             }
 
             notSignerTransaction.Signature = ByteString.CopyFrom(signature);
@@ -100,11 +100,11 @@ namespace AElf.Kernel.Miner.Application
             });
             block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             if (!_evilTriggerOptions.ChangeBlockHeaderSignPubKey ||
-                preBlockHeight + 1 % _evilTriggerOptions.EvilTriggerNumber != 0) return block;
+                (preBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber != 0) return block;
             
             ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
             block.Header.SignerPubkey = ByteString.CopyFrom(keyPair.PublicKey);
-            Logger.LogWarning("EVIL TRIGGER - Error block SignerPubkey");
+            Logger.LogWarning($"EVIL TRIGGER - Error block SignerPubkey, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
 
             return block;
         }
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Miner.Application
             {
                 ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                 signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray());
-                Logger.LogWarning("EVIL TRIGGER - Error sign block");
+                Logger.LogWarning($"EVIL TRIGGER - Error sign block public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
             }
 
             block.Header.Signature = ByteString.CopyFrom(signature);
