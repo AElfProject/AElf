@@ -5,7 +5,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Contracts.MultiTokenCrossSideChain
+namespace AElf.Contracts.MultiToken
 {
     public class TestTokenBalanceTransactionGenerator : ISystemTransactionGenerator, ISingletonDependency
     {

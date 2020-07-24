@@ -5,192 +5,219 @@ using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestBase;
+using AElf.Contracts.Referendum;
 using AElf.CrossChain;
-using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Kernel.Token;
+using AElf.Types;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
-using AElf.GovernmentSystem;
-using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Shouldly;
-using Volo.Abp.Threading;
 
-namespace AElf.Contracts.MultiTokenCrossSideChain
+namespace AElf.Contracts.MultiToken
 {
     public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
     {
-        protected Address BasicContractZeroAddress;
-        protected Address CrossChainContractAddress;
-        protected Address TokenContractAddress;
-        protected Address ParliamentAddress;
-        protected Address ConsensusAddress;
-        protected Address ReferendumAddress;
-        protected Address AssociationAddress;
+        internal CrossChainContractContainer.CrossChainContractStub CrossChainContractStub;
+
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub;
+
+        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub;
+
+        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
+
+        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
 
         protected Address SideBasicContractZeroAddress;
+        internal BasicContractZeroContainer.BasicContractZeroStub SideChainBasicContractZeroStub;
+
         protected Address SideCrossChainContractAddress;
+        internal CrossChainContractContainer.CrossChainContractStub SideChainCrossChainContractStub;
+
         protected Address SideTokenContractAddress;
+        internal TokenContractImplContainer.TokenContractImplStub SideChainTokenContractStub;
+
         protected Address SideParliamentAddress;
+        internal ParliamentContractContainer.ParliamentContractStub SideChainParliamentContractStub;
+
         protected Address SideConsensusAddress;
+        internal AEDPoSContractContainer.AEDPoSContractStub SideChainAEDPoSContractStub;
 
         protected Address Side2BasicContractZeroAddress;
         protected Address Side2CrossChainContractAddress;
+        internal CrossChainContractContainer.CrossChainContractStub SideChain2CrossChainContractStub;
         protected Address Side2TokenContractAddress;
+        internal TokenContractImplContainer.TokenContractImplStub SideChain2TokenContractStub;
         protected Address Side2ParliamentAddress;
+        internal ParliamentContractContainer.ParliamentContractStub SideChain2ParliamentContractStub;
         protected Address Side2ConsensusAddress;
+        internal AEDPoSContractContainer.AEDPoSContractStub SideChain2AEDPoSContractStub;
 
         protected long TotalSupply;
         protected long BalanceOfStarter;
         protected Timestamp BlockchainStartTimestamp => TimestampHelper.GetUtcNow();
 
-        protected ContractTester<MultiTokenContractCrossChainTestAElfModule> MainChainTester;
-        protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChainTester;
-        protected ContractTester<MultiTokenContractCrossChainTestAElfModule> SideChain2Tester;
+        protected ContractTestKit<MultiTokenContractSideChainTestAElfModule> SideChainTestKit;
+        protected ContractTestKit<MultiTokenContractSideChainTestAElfModule> SideChain2TestKit;
 
         protected readonly List<string> ResourceTokenSymbolList;
 
         protected int MainChainId;
-        
+
         public MultiTokenContractCrossChainTestBase()
         {
-            MainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
-            MainChainTester =
-                new ContractTester<MultiTokenContractCrossChainTestAElfModule>(MainChainId,
-                    SampleECKeyPairs.KeyPairs[0]);
-            AsyncHelper.RunSync(() =>
-                MainChainTester.InitialChainAsyncWithAuthAsync(MainChainTester.GetDefaultContractTypes(
-                    MainChainTester.GetCallOwnerAddress(), out TotalSupply,
-                    out _,
-                    out BalanceOfStarter)));
-            BasicContractZeroAddress = MainChainTester.GetZeroContractAddress();
-            CrossChainContractAddress =
-                MainChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
-            TokenContractAddress = MainChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-            ParliamentAddress = MainChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
-            ConsensusAddress = MainChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
-            ReferendumAddress = MainChainTester.GetContractAddress(ReferendumSmartContractAddressNameProvider.Name);
-            AssociationAddress = MainChainTester.GetContractAddress(AssociationSmartContractAddressNameProvider.Name);
-            ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
+            MainChainId = Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value
+                .ChainId;
+            BasicContractZeroStub =
+                GetTester<BasicContractZeroContainer.BasicContractZeroStub>(BasicContractZeroAddress,
+                    DefaultAccount.KeyPair);
+
+            CrossChainContractStub =
+                GetTester<CrossChainContractContainer.CrossChainContractStub>(CrossChainContractAddress,
+                    DefaultAccount.KeyPair);
+
+            TokenContractStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress,
+                    DefaultAccount.KeyPair);
+
+            ParliamentContractStub =
+                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                    DefaultAccount.KeyPair);
+
+            AEDPoSContractStub = GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress);
+
+            ReferendumContractStub =
+                GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
+                    DefaultAccount.KeyPair);
+
+            ResourceTokenSymbolList = Application.ServiceProvider
+                .GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
                 .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
-        protected void StartSideChain(int chainId, long height, string symbol, bool registerParentChainTokenContractAddress)
+        protected void StartSideChain(int chainId, long height, string symbol,
+            bool registerParentChainTokenContractAddress)
         {
-            SideChainTester =
-                new ContractTester<MultiTokenContractCrossChainTestAElfModule>(chainId, SampleECKeyPairs.KeyPairs[0]);
-            AsyncHelper.RunSync(() =>
-                SideChainTester.InitialCustomizedChainAsync(chainId,
-                    configureSmartContract: SideChainTester.GetSideChainSystemContract(
-                        SideChainTester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChainTester.GetCallOwnerAddress(), height,
-                        registerParentChainTokenContractAddress ? TokenContractAddress : null)));
-            SideBasicContractZeroAddress = SideChainTester.GetZeroContractAddress();
+            SideChainTestKit = CreateContractTestKit<MultiTokenContractSideChainTestAElfModule>(
+                new ChainInitializationDto
+                {
+                    ChainId = chainId,
+                    Symbol = symbol,
+                    ParentChainTokenContractAddress = TokenContractAddress,
+                    ParentChainId = MainChainId,
+                    CreationHeightOnParentChain = height,
+                    RegisterParentChainTokenContractAddress = registerParentChainTokenContractAddress
+                });
+            SideBasicContractZeroAddress = SideChainTestKit.ContractZeroAddress;
+            SideChainBasicContractZeroStub =
+                SideChainTestKit.GetTester<BasicContractZeroContainer.BasicContractZeroStub>(
+                    SideBasicContractZeroAddress);
+
             SideCrossChainContractAddress =
-                SideChainTester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
-            SideTokenContractAddress = SideChainTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+                SideChainTestKit.SystemContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
+            SideChainCrossChainContractStub =
+                SideChainTestKit.GetTester<CrossChainContractContainer.CrossChainContractStub>(
+                    SideCrossChainContractAddress);
+
+            SideTokenContractAddress =
+                SideChainTestKit.SystemContractAddresses[TokenSmartContractAddressNameProvider.Name];
+            SideChainTokenContractStub =
+                SideChainTestKit.GetTester<TokenContractImplContainer.TokenContractImplStub>(SideTokenContractAddress);
             SideParliamentAddress =
-                SideChainTester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
-            SideConsensusAddress = SideChainTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
+                SideChainTestKit.SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+            SideChainParliamentContractStub =
+                SideChainTestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(SideParliamentAddress);
+
+            SideConsensusAddress =
+                SideChainTestKit.SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
+            SideChainAEDPoSContractStub =
+                SideChainTestKit.GetTester<AEDPoSContractContainer.AEDPoSContractStub>(SideConsensusAddress);
         }
+
 
         protected void StartSideChain2(int chainId, long height, string symbol)
         {
-            SideChain2Tester =
-                new ContractTester<MultiTokenContractCrossChainTestAElfModule>(chainId, SampleECKeyPairs.KeyPairs[0]);
-            AsyncHelper.RunSync(() =>
-                SideChain2Tester.InitialCustomizedChainAsync(chainId,
-                    configureSmartContract: SideChain2Tester.GetSideChainSystemContract(
-                        SideChain2Tester.GetCallOwnerAddress(), MainChainId, symbol, out TotalSupply,
-                        SideChain2Tester.GetCallOwnerAddress(), height, TokenContractAddress)));
-            Side2BasicContractZeroAddress = SideChain2Tester.GetZeroContractAddress();
+            SideChain2TestKit = CreateContractTestKit<MultiTokenContractSideChainTestAElfModule>(
+                new ChainInitializationDto
+                {
+                    ChainId = chainId,
+                    Symbol = symbol,
+                    ParentChainTokenContractAddress = TokenContractAddress,
+                    ParentChainId = MainChainId,
+                    CreationHeightOnParentChain = height
+                });
+            Side2BasicContractZeroAddress = SideChain2TestKit.ContractZeroAddress;
             Side2CrossChainContractAddress =
-                SideChain2Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
-            Side2TokenContractAddress = SideChain2Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+                SideChain2TestKit.SystemContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
+            SideChain2CrossChainContractStub =
+                SideChain2TestKit.GetTester<CrossChainContractContainer.CrossChainContractStub>(
+                    Side2CrossChainContractAddress);
+            Side2TokenContractAddress =
+                SideChain2TestKit.SystemContractAddresses[TokenSmartContractAddressNameProvider.Name];
+            SideChain2TokenContractStub = SideChain2TestKit
+                .GetTester<TokenContractImplContainer.TokenContractImplStub>(Side2TokenContractAddress);
             Side2ParliamentAddress =
-                SideChain2Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
-            Side2ConsensusAddress = SideChain2Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
+                SideChain2TestKit.SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
+            SideChain2ParliamentContractStub =
+                SideChain2TestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(Side2ParliamentAddress);
+            Side2ConsensusAddress =
+                SideChain2TestKit.SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
+            SideChain2AEDPoSContractStub =
+                SideChain2TestKit.GetTester<AEDPoSContractContainer.AEDPoSContractStub>(Side2ConsensusAddress);
         }
 
         protected async Task<int> InitAndCreateSideChainAsync(string symbol, long parentChainHeightOfCreation = 0,
             int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
             await ApproveBalanceAsync(lockedTokenAmount);
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, symbol);
-            await ApproveWithMinersAsync(proposalId, ParliamentAddress, MainChainTester);
+            await ApproveWithMinersAsync(proposalId);
 
-            var releaseTxResult =
-                await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                    nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseSideChainCreation),
-                    new ReleaseSideChainCreationInput {ProposalId = proposalId});
+            var releaseResult = await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(
+                new ReleaseSideChainCreationInput
+                    {ProposalId = proposalId});
             var sideChainCreatedEvent = SideChainCreatedEvent.Parser
-                .ParseFrom(releaseTxResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
+                .ParseFrom(releaseResult.TransactionResult.Logs
+                    .First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
                     .NonIndexed);
             var chainId = sideChainCreatedEvent.ChainId;
 
             return chainId;
         }
 
-        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            ECKeyPair ecKeyPair, IMessage input, bool isMainChain)
-        {
-            if (!isMainChain)
-            {
-                return ecKeyPair == null
-                    ? await SideChainTester.GenerateTransactionAsync(contractAddress, methodName, input)
-                    : await SideChainTester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
-            }
-
-            return ecKeyPair == null
-                ? await MainChainTester.GenerateTransactionAsync(contractAddress, methodName, input)
-                : await MainChainTester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
-        }
-
         internal async Task<CrossChainMerkleProofContext> GetBoundParentChainHeightAndMerklePathByHeight(long height)
         {
-            var result = await SideChainTester.ExecuteContractWithMiningAsync(SideCrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetBoundParentChainHeightAndMerklePathByHeight), new Int64Value
+            return await SideChainCrossChainContractStub.GetBoundParentChainHeightAndMerklePathByHeight.CallAsync(
+                new Int64Value
                 {
                     Value = height
                 });
-
-            var crossChainMerkleProofContext = CrossChainMerkleProofContext.Parser.ParseFrom(result.ReturnValue);
-            return crossChainMerkleProofContext;
         }
 
         internal async Task<long> GetSideChainHeight(int chainId)
         {
-            var result = await MainChainTester.CallContractMethodAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetSideChainHeight), new Int32Value
-                {
-                    Value = chainId
-                });
-
-            var height = Int64Value.Parser.ParseFrom(result);
-            return height.Value;
+            return (await CrossChainContractStub.GetSideChainHeight.CallAsync(new Int32Value
+            {
+                Value = chainId
+            })).Value;
+            ;
         }
 
         internal async Task<long> GetParentChainHeight(
-            ContractTester<MultiTokenContractCrossChainTestAElfModule> tester, Address sideCrossChainContract)
+            CrossChainContractContainer.CrossChainContractStub crossChainContractStub)
         {
-            var result = await tester.CallContractMethodAsync(sideCrossChainContract,
-                nameof(CrossChainContractContainer.CrossChainContractStub
-                    .GetParentChainHeight), new Empty());
-
-            var height = Int64Value.Parser.ParseFrom(result);
-            return height.Value;
+            return (await crossChainContractStub.GetParentChainHeight.CallAsync(new Empty())).Value;
         }
 
         private SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
@@ -216,95 +243,88 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, symbol,
                 new SideChainTokenInitialIssue
                 {
-                    Address = MainChainTester.GetCallOwnerAddress(),
+                    Address = DefaultAccount.Address,
                     Amount = 100
                 });
             var requestSideChainCreationResult =
-                await MainChainTester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                    nameof(CrossChainContractContainer.CrossChainContractStub.RequestSideChainCreation),
-                    createProposalInput);
+                await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
 
-            var proposalId = ProposalCreated.Parser.ParseFrom(requestSideChainCreationResult.Logs
+            var proposalId = ProposalCreated.Parser.ParseFrom(requestSideChainCreationResult.TransactionResult.Logs
                 .First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed).ProposalId;
             return proposalId;
         }
 
-        protected async Task ApproveWithMinersAsync(Hash proposalId, Address parliament,
-            ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
+        protected async Task ApproveWithMinersAsync(Hash proposalId, bool isMainChain = true)
         {
-            var approveTransaction1 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[0], proposalId);
-            var approveTransaction2 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[1], proposalId);
-            var approveTransaction0 = await tester.GenerateTransactionAsync(parliament,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve),
-                tester.InitialMinerList[2], proposalId);
-            await tester.MineAsync(
-                new List<Transaction> {approveTransaction0, approveTransaction1, approveTransaction2});
-        }
+            var transactionList = new List<Transaction>();
 
-        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId, Address parliamentAddress,
-            ContractTester<MultiTokenContractCrossChainTestAElfModule> tester)
-        {
-            var transactionResult = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
-            return transactionResult;
-        }
-
-        protected async Task<Hash> CreateProposalAsync(
-            ContractTester<MultiTokenContractCrossChainTestAElfModule> tester, Address parliamentAddress, string method,
-            ByteString input,
-            Address contractAddress)
-        {
-            var organizationAddress = Address.Parser.ParseFrom((await tester.ExecuteContractWithMiningAsync(
-                    parliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
-                    new Empty()))
-                .ReturnValue);
-            var proposal = await tester.ExecuteContractWithMiningAsync(parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
-                new CreateProposalInput
+            if (isMainChain)
+            {
+                foreach (var account in SampleAccount.Accounts.Take(5))
                 {
-                    ContractMethodName = method,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = input,
-                    ToAddress = contractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+                    var parliamentContractStub =
+                        GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                            account.KeyPair);
+                    transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
+                }
+
+                await MineAsync(transactionList);
+            }
+            else
+            {
+                foreach (var account in SampleAccount.Accounts.Take(5))
+                {
+                    var parliamentContractStub =
+                        SideChainTestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                            SideParliamentAddress, account.KeyPair);
+                    transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
+                }
+
+                await SideChainTestKit.MineAsync(transactionList);
+            }
+        }
+
+        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
+        {
+            var transaction = ParliamentContractStub.Release.GetTransaction(proposalId);
+            return await ExecuteTransactionWithMiningAsync(transaction);
+            ;
+        }
+
+        internal async Task<Hash> CreateProposalAsync(
+            ParliamentContractContainer.ParliamentContractStub parliamentContractStub, string method,
+            ByteString input, Address contractAddress)
+        {
+            var organizationAddress = await parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalResult = await parliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ContractMethodName = method,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = input,
+                ToAddress = contractAddress,
+                OrganizationAddress = organizationAddress
+            });
+            var proposalId = proposalResult.Output;
             return proposalId;
         }
 
-        protected async Task BootMinerChangeRoundAsync(
-            ContractTester<MultiTokenContractCrossChainTestAElfModule> tester, Address consensusAddress,
+        internal async Task BootMinerChangeRoundAsync(AEDPoSContractContainer.AEDPoSContractStub aedPoSContractStub,
             bool isMainChain, long nextRoundNumber = 2)
         {
             if (isMainChain)
             {
-                var info = await tester.CallContractMethodAsync(consensusAddress,
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
-                    new Empty());
-                var currentRound = Round.Parser.ParseFrom(info);
+                var currentRound = await aedPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 var expectedStartTime = TimestampHelper.GetUtcNow();
                 currentRound.GenerateNextRoundInformation(expectedStartTime, BlockchainStartTimestamp,
                     out var nextRound);
-                nextRound.RealTimeMinersInformation[tester.InitialMinerList[0].PublicKey.ToHex()]
+                nextRound.RealTimeMinersInformation[DefaultAccount.KeyPair.PublicKey.ToHex()]
                     .ExpectedMiningTime = expectedStartTime;
-
-                var txResult = await tester.ExecuteContractWithMiningAsync(consensusAddress,
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                    nextRound);
-                txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await aedPoSContractStub.NextRound.SendAsync(nextRound);
             }
 
             if (!isMainChain)
             {
-                var info = await tester.CallContractMethodAsync(consensusAddress,
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
-                    new Empty());
-                var currentRound = Round.Parser.ParseFrom(info);
+                var currentRound = await aedPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMilliseconds(
                         ((long) currentRound.TotalMilliseconds(4000)).Mul(
@@ -314,59 +334,38 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
 
                 if (currentRound.RoundNumber >= 3)
                 {
-                    nextRound.RealTimeMinersInformation[tester.InitialMinerList[0].PublicKey.ToHex()]
+                    nextRound.RealTimeMinersInformation[DefaultAccount.KeyPair.PublicKey.ToHex()]
                         .ExpectedMiningTime -= new Duration {Seconds = 2400};
-                    var res = await tester.ExecuteContractWithMiningAsync(consensusAddress,
-                        nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                        nextRound);
-                    res.Status.ShouldBe(TransactionResultStatus.Mined);
+                    await aedPoSContractStub.NextRound.SendAsync(nextRound);
                 }
                 else
                 {
-                    nextRound.RealTimeMinersInformation[tester.InitialMinerList[0].PublicKey.ToHex()]
+                    nextRound.RealTimeMinersInformation[DefaultAccount.KeyPair.PublicKey.ToHex()]
                         .ExpectedMiningTime -= new Duration {Seconds = (currentRound.RoundNumber) * 20};
 
-                    var txResult = await tester.ExecuteContractWithMiningAsync(consensusAddress,
-                        nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                        nextRound);
-                    txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    await aedPoSContractStub.NextRound.SendAsync(nextRound);
                 }
             }
         }
 
         private async Task ApproveBalanceAsync(long amount)
         {
-            var callOwner = Address.FromPublicKey(MainChainTester.KeyPair.PublicKey);
-
-            var approveResult = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.Approve), new ApproveInput
-                {
-                    Spender = CrossChainContractAddress,
-                    Symbol = "ELF",
-                    Amount = amount
-                });
-            approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            await MainChainTester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractImplContainer.TokenContractImplStub.GetAllowance),
-                new GetAllowanceInput
-                {
-                    Symbol = "ELF",
-                    Owner = callOwner,
-                    Spender = CrossChainContractAddress
-                });
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Spender = CrossChainContractAddress,
+                Symbol = "ELF",
+                Amount = amount
+            });
         }
 
         private async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
             int parentChainId = 0)
         {
-            var crossChainInitializationTransaction = await MainChainTester.GenerateTransactionAsync(
-                CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new CrossChain.InitializeInput
-                {
-                    ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
-                    CreationHeightOnParentChain = parentChainHeightOfCreation
-                });
-            await MainChainTester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
+            await CrossChainContractStub.Initialize.SendAsync(new CrossChain.InitializeInput
+            {
+                ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
+                CreationHeightOnParentChain = parentChainHeightOfCreation
+            });
         }
     }
 }

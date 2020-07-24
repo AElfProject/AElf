@@ -163,8 +163,9 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task DonateResourceToken_Without_Authorized_Test()
         {
+            var tokenStub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[2].KeyPair);
             var donate =
-                await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps());
+                await tokenStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps());
             donate.TransactionResult.Error.ShouldContain("No permission");
         }
 
