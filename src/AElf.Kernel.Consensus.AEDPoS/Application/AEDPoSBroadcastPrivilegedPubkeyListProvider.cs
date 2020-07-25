@@ -36,8 +36,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var consensusExtraData =
                 _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataProvider.BlockHeaderExtraDataKey,
                     blockHeader);
+            if (consensusExtraData == null) return new List<string>();
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
+            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock && _cachedPubkeyList.Any())
             {
                 // The orders changed every round, and the orders can be updated during every behaviour of UPDATE_VALUE or NEXT_ROUND,
                 // so we can skip the update for TINY_BLOCK.

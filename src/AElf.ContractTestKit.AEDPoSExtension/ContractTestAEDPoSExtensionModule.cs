@@ -45,6 +45,9 @@ namespace AElf.ContractTestKit.AEDPoSExtension
             context.Services.AddSingleton<IPlainTransactionExecutingService, UnitTestPlainTransactionExecutingService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.RemoveAll<ISystemTransactionGenerator>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
+            context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }
