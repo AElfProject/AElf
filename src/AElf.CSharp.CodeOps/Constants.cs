@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using AElf.CSharp.CodeOps.Patchers.Module;
-using AElf.CSharp.CodeOps.Validators.Module;
 using Mono.Cecil.Cil;
 
 namespace AElf.CSharp.CodeOps
@@ -25,6 +22,7 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Ble_S,
             OpCodes.Ble_Un,
             OpCodes.Blt,
+            OpCodes.Blt_S,
             OpCodes.Bne_Un,
             OpCodes.Bne_Un_S,
             OpCodes.Br,
@@ -46,16 +44,6 @@ namespace AElf.CSharp.CodeOps
             typeof(uint).FullName,
             typeof(ulong).FullName,
             typeof(string).FullName,
-        };
-
-        public static readonly List<Type> SystemContractInApplicableValidatorList = new List<Type>
-        {
-            typeof(ObserverProxyValidator)
-        };
-
-        public static readonly List<Type> SystemContractInApplicablePatcherList = new List<Type>
-        {
-            typeof(ExecutionObserverInjector)
         };
     }
 }

@@ -3,37 +3,20 @@ syntax = "proto3";
 package acs6;
 import "aelf/options.proto";
 import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs6";
 
 service RandomNumberProviderContract {
-
-    // Action
-    rpc RequestRandomNumber (aelf.Hash) returns (RandomNumberOrder) {
-    }
-
-    // View
-    rpc GetRandomNumber (aelf.Hash) returns (aelf.Hash) {
+    rpc GetRandomBytes (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
 }
 
-message RandomNumberOrder {
-    int64 block_height = 1;// Orderer is possible to get a random number after this height.
-    aelf.Hash token_hash = 2;// Token to get the random number.
-}
-
 // Events
 
-message RandomNumberRequestHandled {
+message RandomBytesGenerated {
     option (aelf.is_event) = true;
-    aelf.Address requester = 1;
-    aelf.Hash token_hash = 2;
-    int64 block_height = 3;
-}
-
-message RandomNumberGenerated {
-    option (aelf.is_event) = true;
-    aelf.Hash token_hash = 1;
-    aelf.Hash random_hash = 2;// Random Number
+    bytes argument = 1;
+    bytes random_bytes = 2;
 }

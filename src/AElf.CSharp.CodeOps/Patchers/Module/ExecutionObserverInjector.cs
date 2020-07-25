@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -8,6 +9,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 {
     public class ExecutionObserverInjector : IPatcher<ModuleDefinition>
     {
+        public bool SystemContactIgnored => true;
+        
         public void Patch(ModuleDefinition module)
         {
             // Check if already injected, do not double inject
@@ -155,8 +158,13 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
             foreach (var instruction in branchingInstructions)
             {
-                il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
+                var targetInstruction = (Instruction) instruction.Operand;
+                if (targetInstruction.Offset >= instruction.Offset)
+                    continue;
+                
+                il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
             }
+            
             il.Body.OptimizeMacros();
         }
     }

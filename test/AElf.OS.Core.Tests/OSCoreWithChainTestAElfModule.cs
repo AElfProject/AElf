@@ -32,8 +32,6 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
-
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
