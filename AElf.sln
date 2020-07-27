@@ -341,7 +341,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests", "test\AElf.ContractTestBase.Tests\AElf.ContractTestBase.Tests.csproj", "{8750A2E5-DD57-408D-9EB8-05FD3A6376CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiTokenCrossSideChain.Tests", "test\AElf.Contracts.MultiTokenCrossSideChain.Tests\AElf.Contracts.MultiTokenCrossSideChain.Tests.csproj", "{850A384F-6226-433F-8777-396A3717F7E0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiTokenCrossChainTransfer.Tests", "test\AElf.Contracts.MultiTokenCrossChainTransfer.Tests\AElf.Contracts.MultiTokenCrossChainTransfer.Tests.csproj", "{850A384F-6226-433F-8777-396A3717F7E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
