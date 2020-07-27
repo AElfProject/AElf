@@ -6,10 +6,7 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -50,7 +47,6 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
