@@ -310,8 +310,12 @@ namespace AElf.Kernel.Blockchain.Domain
             while (true)
             {
                 var chainBlockLink = await GetChainBlockLinkAsync(blockHash);
+                
                 if (chainBlockLink != null)
                 {
+                    Logger.LogDebug(
+                        $"[ChinBlockLink] Height: {chainBlockLink.Height}, Hash {chainBlockLink.BlockHash}, ExecutionStatus {chainBlockLink.ExecutionStatus}");
+
                     if (chainBlockLink.ExecutionStatus == ChainBlockLinkExecutionStatus.ExecutionNone)
                     {
                         output.Add(chainBlockLink);
