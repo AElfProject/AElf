@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using AElf.CrossChain;
 using AElf.GovernmentSystem;
-using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
@@ -20,7 +19,6 @@ namespace AElf.Contracts.MultiToken
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 CrossChainSmartContractAddressNameProvider.Name,
-                ConfigurationSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name,
                 ReferendumSmartContractAddressNameProvider.Name
             };
