@@ -65,14 +65,20 @@ namespace AElf.Kernel.Miner.Application
                 Logger.LogWarning($"EVIL TRIGGER - over block transaction limit: {limit}");
             }
 
-            if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
+            var isTransactionPackable = _transactionPackingOptionProvider.IsTransactionPackable(chainContext);
+            Logger.LogDebug($"TransactionPackable is {isTransactionPackable}");
+            
+            if (isTransactionPackable)
             {
                 var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
                     previousBlockHash, limit);
 
+                Logger.LogDebug($"Got {executableTransactionSet.Transactions.Count} txs from tx pool.");
+
                 txList.AddRange(executableTransactionSet.Transactions);
             }
 
+           
             if (_evilTriggerOptions.RepackagedTransaction &&
                 (previousBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
