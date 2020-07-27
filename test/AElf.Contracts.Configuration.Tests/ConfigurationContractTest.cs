@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.CodeCheck;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
@@ -46,7 +47,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
                     new SetConfigurationInput
                     {
-                        Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                        Key = "BlockTransactionLimit",
                         Value = new Int32Value {Value = 100}.ToByteString()
                     });
             var status = transactionResult.Status;
@@ -64,7 +65,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
-                    new StringValue {Value = BlockTransactionLimitConfigurationNameProvider.Name});
+                    new StringValue {Value = "BlockTransactionLimit"});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
             var limitFromResult = new Int32Value();
             limitFromResult.MergeFrom(BytesValue.Parser.ParseFrom(transactionResult.ReturnValue).Value);
@@ -127,7 +128,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
                 new SetConfigurationInput
                 {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Key = "RequiredAcsInContracts",
                     Value = new RequiredAcsInContracts().ToByteString()
                 });
 
@@ -145,7 +146,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
             var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput
                 {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Key = "RequiredAcsInContracts",
                     Value = contractFeeChargingPolicy.ToByteString()
                 },
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
@@ -157,7 +158,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
                 new StringValue
                 {
-                    Value = RequiredAcsInContractsConfigurationNameProvider.Name
+                    Value = "RequiredAcsInContracts"
                 });
             RequiredAcsInContracts.Parser.ParseFrom(BytesValue.Parser.ParseFrom(actual).Value)
                 .ShouldBe(contractFeeChargingPolicy);
