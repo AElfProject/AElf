@@ -169,13 +169,26 @@ namespace AElf.Kernel.Miner.Application
                         Logger.LogWarning($"EVIL TRIGGER - RepeatTransactionInOneBlockAttack - Tx {last}");
                     }
                     
+                    if (_evilTriggerOptions.RemoveOneTransaction &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - before remove {block.Body.TransactionsCount}");
+                        var last = block.Body.TransactionIds.Last();
+                        block.Body.TransactionIds.Remove(last);
+                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - remove Tx {last}, count {block.Body.TransactionsCount}");
+                    }
+                    
                     if (_evilTriggerOptions.ReverseTransactionList &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
+                        var first = block.Body.TransactionIds.First();
+                        Logger.LogWarning($"EVIL TRIGGER - ReverseTransaction - before reverse first Tx {first}");
+
                         var enumerable = block.Body.TransactionIds.Reverse();
+                        var values = enumerable as Hash[] ?? enumerable.ToArray();
                         block.Body.TransactionIds.Clear();
-                        block.Body.TransactionIds.AddRange(enumerable);
-                        Logger.LogWarning($"EVIL TRIGGER - ReverseTransactionList");
+                        block.Body.TransactionIds.Add(values);
+                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - reverse Tx first Tx {block.Body.TransactionIds.First()}");
                     }
 
                     if (_evilTriggerOptions.ChangeBlockHeader)
@@ -185,7 +198,7 @@ namespace AElf.Kernel.Miner.Application
                         switch (block.Height % number)
                         {
                             case 0:
-                                blockHeader.Height += 1;
+                                blockHeader.Height += 5;
                                 Logger.LogWarning(
                                     $"EVIL TRIGGER - ChangeBlockHeader - Block Height {blockHeader.Height}");
                                 break;
@@ -207,7 +220,8 @@ namespace AElf.Kernel.Miner.Application
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
-                                          $"not executed transactions {pending.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
+                                          $"not executed transactions {pending.Count + systemTransactions.Count - block.Body.TransactionsCount}, " +
+                                          $"chain id is {block.Header.ChainId}");
                     return blockExecutedSet;
                 }
             }
