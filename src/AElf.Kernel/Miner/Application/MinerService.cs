@@ -62,7 +62,7 @@ namespace AElf.Kernel.Miner.Application
                 chainContext.BlockHeight % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
                 limit *= 2;
-                Logger.LogWarning($"EVIL TRIGGER - over block transaction limit: {limit}");
+                Logger.LogWarning($"EVIL TRIGGER - Over block transaction limit: {limit}");
             }
 
             if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
@@ -77,12 +77,13 @@ namespace AElf.Kernel.Miner.Application
                 (previousBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(previousBlockHash);
-                if (block.TransactionIds.Count() > 5)
+                if (block.TransactionIds.Count() > 5 && txList.Count > 0)
                 {
                     var lastTxId = block.TransactionIds.Last();
                     var alreadyExecutedTransaction =
                         await _blockchainService.GetTransactionsAsync(new[] {lastTxId});
                     Logger.LogWarning($"EVIL TRIGGER - RepackagedTransaction  - Tx {lastTxId} ");
+                    txList.RemoveAt(txList.Count - 1);
                     txList.AddRange(alreadyExecutedTransaction);
                 }
             }

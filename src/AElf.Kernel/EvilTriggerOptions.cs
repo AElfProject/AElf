@@ -9,6 +9,7 @@ namespace AElf.Kernel
         public bool OverBlockTransactionLimit { get; set; }
         public bool ErrorTransactionCountInBody { get; set; }
         public bool ReverseTransactionList { get; set; }
+        public bool RemoveOneTransaction { get; set; }
         public bool ErrorSignatureInBlock { get; set; }
         public bool ErrorSignatureInSystemTransaction { get; set; }
         public bool ChangeBlockHeaderSignPubKey { get; set; }
