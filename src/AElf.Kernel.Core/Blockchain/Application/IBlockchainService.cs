@@ -268,7 +268,13 @@ namespace AElf.Kernel.Blockchain.Application
                         ? ChainBlockLinkExecutionStatus.ExecutionSuccess
                         : ChainBlockLinkExecutionStatus.ExecutionNone;
             }
-
+            
+            if (chainBlockLink.Height == 3171)
+            {
+                Logger.LogDebug(
+                    $"Attach block link height {chainBlockLink.Height}, hash {chainBlockLink.BlockHash}, execution status {chainBlockLink.ExecutionStatus}");
+            }
+            
             var status = await _chainManager.AttachBlockToChainAsync(chain, chainBlockLink);
 
             return status;

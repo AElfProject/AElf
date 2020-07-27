@@ -532,6 +532,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 while (chainBlockLink != null && chainBlockLink.Height > libHeight)
                 {
+                    Logger.LogDebug(
+                        $"Reset chain block link height {chainBlockLink.Height}, hash {chainBlockLink.BlockHash}");
                     chainBlockLink.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
                     chainBlockLink.IsLinked = false;
                     await SetChainBlockLinkAsync(chainBlockLink);
