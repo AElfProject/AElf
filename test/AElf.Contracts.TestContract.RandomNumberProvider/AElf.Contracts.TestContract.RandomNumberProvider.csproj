@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.TestContract.CommitmentScheme</PackageId>
-        <RootNamespace>AElf.Contracts.TestContract.CommitmentScheme</RootNamespace>
+        <PackageId>AElf.Contracts.TestContract.RandomNumberProvider</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.RandomNumberProvider</RootNamespace>
         <IsContract>false</IsContract>
     </PropertyGroup>
 
@@ -27,8 +27,8 @@
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\commitment_scheme_contract.proto">
-            <Link>Protobuf\Proto\commitment_scheme_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\random_number_provider_contract.proto">
+            <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

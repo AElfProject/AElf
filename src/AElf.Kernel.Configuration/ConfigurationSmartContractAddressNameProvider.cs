@@ -3,7 +3,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Configuration
 {
     public class ConfigurationSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

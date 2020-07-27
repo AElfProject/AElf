@@ -317,7 +317,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenHolder.Tests", "test\AElf.Contracts.TokenHolder.Tests\AElf.Contracts.TokenHolder.Tests.csproj", "{A3425AC9-6CD0-4D39-B82B-5716456F1C70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.CommitmentScheme", "test\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj", "{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.RandomNumberProvider", "test\AElf.Contracts.TestContract.RandomNumberProvider\AElf.Contracts.TestContract.RandomNumberProvider.csproj", "{1DD7CB96-0349-4CC1-B66A-6A3FA88874BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Proposal", "src\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj", "{151C28D4-E35D-4C50-BBCE-E664A97E1C44}"
 EndProject

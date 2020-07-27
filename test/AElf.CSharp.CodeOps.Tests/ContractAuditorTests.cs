@@ -21,7 +21,7 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using Microsoft.Extensions.Options;
 using Mono.Cecil.Cil;

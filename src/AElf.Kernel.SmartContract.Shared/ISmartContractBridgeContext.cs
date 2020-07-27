@@ -77,6 +77,10 @@ namespace AElf.Kernel.SmartContract
 
         Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
 
+        Hash GetRandomHash(Hash fromHash);
+
+        long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue);
+
         object ValidateStateSize(object obj);
     }
 
