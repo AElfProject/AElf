@@ -3,12 +3,15 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using AutoMapper;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.AutoMapper;
 
 namespace AElf.WebApp.Application.Chain
 {
     public class TransactionProfile : Profile
     {
+        public const string ErrorTrace = "WithMetrics";
+
         public TransactionProfile()
         {
             CreateMap<Transaction, TransactionDto>();
@@ -23,15 +26,28 @@ namespace AElf.WebApp.Application.Chain
                                 ? ByteString.CopyFrom(new byte[256]).ToBase64()
                                 : s.Bloom.ToBase64()))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString().ToUpper()))
-                .ForMember(d => d.Error, opt => opt.MapFrom(s => TakeErrorMessage(s)))
+                .ForMember(d => d.Error, opt => opt.MapFrom<TransactionErrorResolver>())
                 .Ignore(d => d.Transaction)
                 .Ignore(d => d.TransactionSize);
 
             CreateMap<LogEvent, LogEventDto>();
         }
+    }
 
-        private static string TakeErrorMessage(TransactionResult transactionResult)
+    public class TransactionErrorResolver : IValueResolver<TransactionResult, TransactionResultDto, string>
+    {
+        public string Resolve(TransactionResult source, TransactionResultDto destination, string destMember,
+            ResolutionContext context)
         {
+            var errorTraceNeeded = (bool) context.Items[TransactionProfile.ErrorTrace];
+            return TakeErrorMessage(source, errorTraceNeeded);
+        }
+
+        public static string TakeErrorMessage(TransactionResult transactionResult, bool errorTraceNeeded)
+        {
+            if (errorTraceNeeded)
+                return transactionResult.Error;
+
             using var stringReader = new StringReader(transactionResult.Error);
             return stringReader.ReadLine();
         }

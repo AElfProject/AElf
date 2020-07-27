@@ -26,6 +26,7 @@ using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
@@ -676,16 +677,36 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.BroadcastTransactions(transactionList);
 
             var block = await _osTestHelper.MinedOneBlock();
+            var txResult = await _osTestHelper.GetTransactionResultsAsync(transactionList[0].GetHash());
 
             // After executed
             var transactionHex = transactionList[1].GetHash().ToHex();
-            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+            {
+                var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                    $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
-            response.TransactionId.ShouldBe(transactionHex);
-            response.BlockNumber.ShouldBe(block.Height);
-            response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
-            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                response.TransactionId.ShouldBe(transactionHex);
+                response.BlockNumber.ShouldBe(block.Height);
+                response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
+                response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                var errorInResponse = response.Error;
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult, false));
+            }
+
+            var optionMonitor = GetRequiredService<IOptionsMonitor<WebAppOptions>>();
+            optionMonitor.CurrentValue.IsDebugMode = true;
+            
+            {
+                var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                    $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+
+                response.TransactionId.ShouldBe(transactionHex);
+                response.BlockNumber.ShouldBe(block.Height);
+                response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
+                response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                var errorInResponse = response.Error;
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult, true));
+            }
         }
 
         [Fact]
@@ -1432,14 +1453,10 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
-                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), new CrossChainReceiveTokenInput
                     {
-                        Symbol = "ELF",
-                        TokenName = $"elf token {i}",
-                        TotalSupply = 1000_0000,
-                        Decimals = 2,
-                        Issuer = SampleAddress.AddressList[0],
-                        IsBurnable = true
+                        FromChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
+                        ParentChainHeight = i
                     });
 
                 var signature =
