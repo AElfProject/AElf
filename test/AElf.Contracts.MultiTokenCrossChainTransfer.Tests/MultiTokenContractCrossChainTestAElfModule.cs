@@ -39,6 +39,7 @@ namespace AElf.Contracts.MultiToken
             var instance = new TestTokenBalanceTransactionGenerator();
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.AddTransient<IContractDeploymentListProvider, MultiChainContractDeploymentListProvider>();
             context.Services.AddTransient<IParliamentContractInitializationDataProvider,
