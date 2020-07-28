@@ -7,7 +7,6 @@ using AElf.CrossChain.Application;
 using AElf.Kernel;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
-using SampleAccount = AElf.ContractTestBase.ContractTestKit.SampleAccount;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -28,6 +27,7 @@ namespace AElf.Contracts.MultiToken
             // Default Initialization Data
             return Task.FromResult(new ChainInitializationData
             {
+                Creator = address,
                 ChainId = _chainInitializationOptions.ChainId,
                 ChainCreatorPrivilegePreserved = true,
                 ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
