@@ -83,14 +83,15 @@ namespace AElf.Kernel.Miner.Application
                 (previousBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(previousBlockHash);
-                if (block.TransactionIds.Count() > 5 && txList.Count > 0)
+                if (block.TransactionIds.Count() > 5)
                 {
                     var lastTxId = block.TransactionIds.Last();
                     var alreadyExecutedTransaction =
                         await _blockchainService.GetTransactionsAsync(new[] {lastTxId});
-                    Logger.LogWarning($"EVIL TRIGGER - RepackagedTransaction  - Tx {lastTxId} ");
-                    txList.RemoveAt(txList.Count - 1);
-                    txList.AddRange(alreadyExecutedTransaction);
+                    if (txList.Count == limit)
+                        txList.RemoveAt(txList.Count - 1);
+                    txList.Insert(0,alreadyExecutedTransaction.First());
+                    Logger.LogWarning($"EVIL TRIGGER - RepackagedTransaction  - Tx {txList.First()} ");
                 }
             }
 
