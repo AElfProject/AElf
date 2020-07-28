@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -28,17 +29,23 @@ namespace AElf.Contracts.Economic.TestBase
         public async Task<TransactionResult> ExecuteAsync(Transaction transaction)
         {
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var transactionPoolService = _serviceProvider.GetRequiredService<ITransactionPoolService>();
-            await transactionPoolService.AddTransactionsAsync(new List<Transaction> {transaction});
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = _serviceProvider.GetRequiredService<IMinerService>();
+            var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
-            var blockExecutedSet = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var transactions = new List<Transaction> {transaction};
+            var blockExecutedSet = await miningService.MineAsync(
+                new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
+                }, transactions, blockTimeProvider.GetBlockTime());
+            
             var block = blockExecutedSet.Block;
 
+            await blockchainService.AddTransactionsAsync(transactions);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 

@@ -1,5 +1,6 @@
 using AElf.OS.Account;
 using AElf.OS.BlockSync;
+using AElf.OS.Worker;
 using AElf.TestBase;
 
 namespace AElf.OS
@@ -35,6 +36,10 @@ namespace AElf.OS
     }
     
     public class BlockSyncAttachBlockAbnormalPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockAbnormalPeerTestAElfModule>
+    {
+    }
+    
+    public class PeerDiscoveryWorkerTestBase : AElfIntegratedTest<PeerDiscoveryWorkerTestModule>
     {
     }
 }

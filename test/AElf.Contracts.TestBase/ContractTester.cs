@@ -21,6 +21,7 @@ using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -537,16 +538,21 @@ namespace AElf.Contracts.TestBase
         private async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime, Hash preBlockHash,
             long preBlockHeight)
         {
-            await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
+            var miningService = Application.ServiceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            var executedBlockSet = await minerService.MineAsync(preBlockHash, preBlockHeight,
-                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var executedBlockSet = await miningService.MineAsync(new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlockHash,
+                    PreviousBlockHeight = preBlockHeight,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
+                }, txs, blockTime ?? DateTime.UtcNow.ToTimestamp());
             
             var block = executedBlockSet.Block;
 
+            await blockchainService.AddTransactionsAsync(txs);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
@@ -562,19 +568,6 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             return await blockchainService.GetTransactionsAsync(txs);
-        }
-
-        /// <summary>
-        /// In test cases, we can't distinguish normal txs and system txs,
-        /// so just keep in mind if some txs looks like system txs,
-        /// just add them first manually.
-        /// </summary>
-        /// <param name="txs"></param>
-        /// <returns></returns>
-        private async Task AddTransactionsAsync(IEnumerable<Transaction> txs)
-        {
-            var transactionPoolService = Application.ServiceProvider.GetRequiredService<ITransactionPoolService>();
-            await transactionPoolService.AddTransactionsAsync(txs);
         }
 
         /// <summary>
@@ -690,7 +683,7 @@ namespace AElf.Contracts.TestBase
             var transactionManager = Application.ServiceProvider.GetRequiredService<ITransactionManager>();
             var blockAttachService =
                 Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
-            txs.ForEach(tx => AsyncHelper.RunSync(() => transactionManager.AddTransactionAsync(tx)));
+            await transactionManager.AddTransactionsAsync(txs);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
