@@ -18,8 +18,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.Service
         private readonly Hash _pluginOriginId = new Hash();
         public PlainTransactionExecutingAsPluginService
         (ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins) : base(
-            smartContractExecutiveService, postPlugins, prePlugins)
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins, 
+            ITransactionContextFactory transactionContextFactory) : base(
+            smartContractExecutiveService, postPlugins, prePlugins, transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
         }
