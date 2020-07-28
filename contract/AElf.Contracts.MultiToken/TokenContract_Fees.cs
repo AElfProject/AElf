@@ -23,7 +23,7 @@ namespace AElf.Contracts.MultiToken
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
-            if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
+            if (State.ChainPrimaryTokenSymbol.Value == null)
             {
                 return new ChargeTransactionFeesOutput {Success = true};
             }
@@ -65,7 +65,7 @@ namespace AElf.Contracts.MultiToken
             var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
             var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
             if (!chargingResult)
-                chargingOutput.ChargingInformation = "Transaction fee charging failed.";
+                chargingOutput.ChargingInformation = "Transaction fee not enough.";
             return chargingOutput;
         }
 
@@ -116,7 +116,7 @@ namespace AElf.Contracts.MultiToken
         {
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
-            var symbolToPayTxFee = input.PrimaryTokenSymbol;
+            var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
             if (bill.FeesMap.Any())
             {
                 symbolChargedForBaseFee = bill.FeesMap.First().Key;

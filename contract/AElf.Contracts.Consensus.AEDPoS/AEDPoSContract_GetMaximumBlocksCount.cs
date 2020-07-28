@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             var currentHeight = Context.CurrentHeight;
-            var currentRoundNumber = currentRound.RoundNumberBlockMinedEventHandler
+            var currentRoundNumber = currentRound.RoundNumber;
 
             Context.LogDebug(() =>
                 $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
