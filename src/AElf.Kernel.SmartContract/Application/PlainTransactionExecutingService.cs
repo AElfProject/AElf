@@ -469,7 +469,7 @@ namespace AElf.Kernel.SmartContract.Application
                 trace.PreTraces.Any(preTrace => prePlugin.IsStopExecuting(preTrace.ReturnValue, out _)));
         }
 
-        private ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
+        protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
         {
             if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
             {
