@@ -26,14 +26,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             var currentHeight = Context.CurrentHeight;
-            var currentRoundNumber = currentRound.RoundNumber;
+            var currentRoundNumber = currentRound.RoundNumberBlockMinedEventHandler
 
             Context.LogDebug(() =>
                 $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
-            if (libRoundNumber == 0 || currentRound.IsMinerListJustChanged)
+            if (libRoundNumber == 0)
             {
-                Context.LogDebug(() => $"Current blockchain mining status: {BlockchainMiningStatus.Normal}");
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
