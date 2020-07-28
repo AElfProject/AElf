@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -228,9 +227,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20260010, true)]
         [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
         [InlineData(100000000, 2, 2, 0, 1, 2, "TSA", 1, true)]
+        [InlineData(100000000, 2, 2, 0, 13, 2, "TSB", 2, true)]
+        [InlineData(100000000, 2, 2, 0, 20, 20, "TSB", 2, false)]
         [InlineData(1, 0, 1, 0, 1, 2, "TSB", 1, false)]
         [InlineData(10, 0, 0, 0, 1, 2, "ELF", 10, false)] // Charge 10 ELFs tx size fee.
-        public async Task ChargeFeeFailedTests(long balance1, long balance2, long balance3, long fee1, long fee2,
+        public async Task ChargeFee_Set_Method_Fees_Tests(long balance1, long balance2, long balance3, long fee1, long fee2,
             long fee3, string chargedSymbol, long chargedAmount, bool isChargingSuccessful)
         {
             await DeployTestContractAsync();
@@ -346,7 +347,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task Method_Fee_Set_Zero_ChargeFee_Should_Be_Zero()
         {
             await DeployTestContractAsync();
-            
             await SetMethodFee_Successful(0);
 
             var tokenContractStub = await GetTokenContractStubAsync();
@@ -366,30 +366,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 Symbol = "ELF"
             });
             before.Balance.ShouldBe(after.Balance);
-        }
-        
-        [Fact]
-        public async Task Method_Fee_Not_Set_Zero_ChargeFee()
-        {
-            await DeployTestContractAsync();
-
-            var tokenContractStub = await GetTokenContractStubAsync();
-            var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-
-            var dummy = await _testContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            await _testContractStub.DummyMethod.SendAsync(new Empty());
-            
-            var after = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-            before.Balance.ShouldBeGreaterThan(after.Balance);
         }
     }
 }
