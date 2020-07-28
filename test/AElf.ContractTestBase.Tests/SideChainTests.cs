@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
-using AElf.ContractTestKit;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace AElf.ContractTestBase.Tests
 {
-    public class SideChainTests : SideChainTestBase
+    public sealed class SideChainTests : SideChainTestBase
     {
         private readonly IBlockchainService _blockchainService;
 

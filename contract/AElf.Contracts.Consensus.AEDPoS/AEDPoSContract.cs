@@ -1,10 +1,9 @@
 ﻿using System.Linq;
-using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
-using AElf.Contracts.TokenHolder;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -260,11 +259,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #endregion
 
+        // Keep this for compatibility.
         public override Hash GetRandomHash(Int64Value input)
         {
             Assert(input.Value > 1, "Invalid block height.");
             Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
             return State.RandomHashes[input.Value] ?? Hash.Empty;
+        }
+
+        public override BytesValue GetRandomBytes(BytesValue input)
+        {
+            var height = new Int64Value();
+            height.MergeFrom(input.Value);
+            return GetRandomHash(height).ToBytesValue();
         }
     }
 }

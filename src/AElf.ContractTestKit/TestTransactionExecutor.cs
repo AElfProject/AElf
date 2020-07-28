@@ -50,19 +50,18 @@ namespace AElf.ContractTestKit
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
             
+            var transactions = new List<Transaction> {transaction};
             var blockExecutedSet = await miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
                     BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
                     TransactionCountLimit = int.MaxValue
-                },
-                new List<Transaction> {transaction},
-                blockTimeProvider.GetBlockTime());
+                }, transactions, blockTimeProvider.GetBlockTime());
 
             var block = blockExecutedSet.Block;
 
-            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            await blockchainService.AddTransactionsAsync(transactions);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
