@@ -510,7 +510,7 @@ namespace AElf.Kernel.SmartContract.Application
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        private ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
+        protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
         {
             if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
             {
