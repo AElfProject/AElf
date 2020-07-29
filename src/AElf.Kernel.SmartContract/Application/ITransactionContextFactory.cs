@@ -1,4 +1,3 @@
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -56,8 +55,12 @@ namespace AElf.Kernel.SmartContract.Application
             Address originAddress, int callDepth = 0, Timestamp blockTime = null)
         {
             var txContext = Create(transaction, chainContext, blockTime, callDepth);
-            txContext.Origin = originAddress;
-            txContext.OriginTransactionId = originTransactionId;
+            
+            if (originAddress != null)
+                txContext.Origin = originAddress;
+            
+            if (originTransactionId != null)
+                txContext.OriginTransactionId = originTransactionId;
             return txContext;
         }
     }
