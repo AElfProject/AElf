@@ -21,13 +21,14 @@ namespace AElf.Contracts.CrossChain
             State.IndexingPendingProposal.Value = new ProposedCrossChainIndexing();
 
             CreateInitialOrganizationForInitialControllerAddress();
+            State.Initialized.Value = true;
+
             if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
                 return new Empty();
 
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
-            State.Initialized.Value = true;
             return new Empty();
         }
 
@@ -217,7 +218,6 @@ namespace AElf.Contracts.CrossChain
             Assert(info != null && info.SideChainStatus != SideChainStatus.Terminated,
                 "Side chain not found or incorrect side chain status.");
             Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
-            var sideChainCreator = info.Proposer;
             var expectedOrganizationAddress = info.IndexingFeeController.OwnerAddress;
             Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
             info.IndexingPrice = input.IndexingFee;
