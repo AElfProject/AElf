@@ -211,7 +211,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var dummy = await userTestContractStub.DummyMethod
                 .SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            dummy.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee charging failed.");
+            dummy.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee not enough.");
             var transactionFeeDic = dummy.TransactionResult.GetChargedTransactionFees();
             await CheckTransactionFeesMapAsync(transactionFeeDic);
             
@@ -283,7 +283,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 var dummyResult = await userTestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
                 dummyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                dummyResult.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee charging failed.");
+                dummyResult.TransactionResult.Error.ShouldBe("Pre-Error: Transaction fee not enough.");
                 if (chargedSymbol != null)
                 {
                     dummyResult.TransactionResult.GetChargedTransactionFees().Keys.ShouldContain(chargedSymbol);

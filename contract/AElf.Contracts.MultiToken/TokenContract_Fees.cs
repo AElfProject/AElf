@@ -65,7 +65,7 @@ namespace AElf.Contracts.MultiToken
             var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
             var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
             if (!chargingResult)
-                chargingOutput.ChargingInformation = "Transaction fee charging failed.";
+                chargingOutput.ChargingInformation = "Transaction fee not enough.";
             return chargingOutput;
         }
 
