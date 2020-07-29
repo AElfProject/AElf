@@ -463,6 +463,7 @@ namespace AElf.Kernel.SmartContract.Application
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
+<<<<<<< HEAD
         private bool IsExecutionStoppedByPrePlugin(TransactionTrace trace)
         {
             return _prePlugins.Any(prePlugin =>
@@ -470,6 +471,9 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         private ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
+=======
+        protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
+>>>>>>> variables-configutaion
         {
             if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
             {
