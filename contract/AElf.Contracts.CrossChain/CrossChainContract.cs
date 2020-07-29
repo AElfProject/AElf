@@ -1,4 +1,3 @@
-using System.Linq;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
@@ -287,7 +286,7 @@ namespace AElf.Contracts.CrossChain
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             Assert(
                 input.ContractAddress == State.ParliamentContract.Value &&
-                ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
+                ValidateParliamentOrganization(input.OwnerAddress), "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
             Context.Fire(new CrossChainIndexingControllerChanged
             {
