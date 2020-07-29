@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Core" Version="2.9.0" />
+        <PackageReference Include="Volo.Abp.Core" Version="3.0.5" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
