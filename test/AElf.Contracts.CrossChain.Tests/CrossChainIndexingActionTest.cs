@@ -1300,11 +1300,10 @@ namespace AElf.Contracts.CrossChain.Tests
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var indexedCrossChainBlockData =
-                await CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight.CallAsync(new Int64Value
+                await CrossChainContractStub.GetIndexedSideChainBlockDataByHeight.CallAsync(new Int64Value
                     {Value = releaseResult.TransactionResult.BlockNumber});
             
             indexedCrossChainBlockData.SideChainBlockDataList.ShouldBe(crossChainBlockData.SideChainBlockDataList);
-            indexedCrossChainBlockData.ParentChainBlockDataList.ShouldBeEmpty();
             
             var indexedSideChainBlockData =
                 await CrossChainContractStub.GetIndexedSideChainBlockDataByHeight.CallAsync(new Int64Value
