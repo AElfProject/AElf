@@ -40,15 +40,15 @@ namespace AElf.WebApp.Application.Chain
             ResolutionContext context)
         {
             var errorTraceNeeded = (bool) context.Items[TransactionProfile.ErrorTrace];
-            return TakeErrorMessage(source, errorTraceNeeded);
+            return TakeErrorMessage(source.Error, errorTraceNeeded);
         }
 
-        public static string TakeErrorMessage(TransactionResult transactionResult, bool errorTraceNeeded)
+        public static string TakeErrorMessage(string transactionResultError, bool errorTraceNeeded)
         {
             if (errorTraceNeeded)
-                return transactionResult.Error;
+                return transactionResultError;
 
-            using var stringReader = new StringReader(transactionResult.Error);
+            using var stringReader = new StringReader(transactionResultError);
             return stringReader.ReadLine();
         }
     }

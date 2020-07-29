@@ -80,35 +80,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.Service
 
             return trace;
         }
-        // private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,
-        //     out TransactionTrace trace)
-        // {
-        //     if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
-        //     {
-        //         throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
-        //     }
-        //
-        //     trace = new TransactionTrace
-        //     {
-        //         TransactionId = singleTxExecutingDto.Transaction.GetHash()
-        //     };
-        //     var txContext = new TransactionContext
-        //     {
-        //         OriginTransactionId = _pluginOriginId,
-        //         PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
-        //         CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
-        //         Transaction = singleTxExecutingDto.Transaction,
-        //         BlockHeight = singleTxExecutingDto.ChainContext.BlockHeight + 1,
-        //         Trace = trace,
-        //         CallDepth = singleTxExecutingDto.Depth,
-        //         StateCache = singleTxExecutingDto.ChainContext.StateCache,
-        //         Origin = singleTxExecutingDto.Origin != null
-        //             ? singleTxExecutingDto.Origin
-        //             : singleTxExecutingDto.Transaction.From
-        //     };
-        //
-        //     return txContext;
-        // }
         
         private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
             ITransactionContext txContext, TieredStateCache internalStateCache,
