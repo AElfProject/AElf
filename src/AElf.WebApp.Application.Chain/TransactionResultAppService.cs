@@ -99,7 +99,8 @@ namespace AElf.WebApp.Application.Chain
                 if (validationStatus != null)
                 {
                     output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
-                    output.Error = validationStatus.Error;
+                    output.Error =
+                        TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
                 }
 
                 return output;
