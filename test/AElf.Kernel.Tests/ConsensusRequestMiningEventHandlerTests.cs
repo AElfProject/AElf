@@ -1,0 +1,84 @@
+using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Infrastructure;
+using Shouldly;
+using Volo.Abp.EventBus.Local;
+using Xunit;
+
+namespace AElf.Kernel
+{
+    public class ConsensusRequestMiningEventHandlerTests : KernelConsensusRequestMiningTestBase
+    {
+        private readonly IBlockchainService _blockchainService;
+        private readonly ConsensusRequestMiningEventHandler _consensusRequestMiningEventHandler;
+        private readonly ILocalEventBus _localEventBus;
+
+        public ConsensusRequestMiningEventHandlerTests()
+        {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _consensusRequestMiningEventHandler = GetRequiredService<ConsensusRequestMiningEventHandler>();
+            _localEventBus = GetRequiredService<ILocalEventBus>();
+        }
+
+        [Fact]
+        public async Task HandleEventAsync_Test()
+        {
+            BlockMinedEventData blockMinedEventData = null;
+            _localEventBus.Subscribe<BlockMinedEventData>(d =>
+            {
+                blockMinedEventData = d;
+                return Task.CompletedTask;
+            });
+            
+            var chain = await _blockchainService.GetChainAsync();
+            var bestChainHash = chain.BestChainHash;
+            var bestChainHeight = chain.BestChainHeight;
+
+            {
+                var eventData = new ConsensusRequestMiningEventData(HashHelper.ComputeFrom("NotBestChain"),
+                    bestChainHeight,
+                    TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
+                    TimestampHelper.GetUtcNow().AddMilliseconds(499));
+
+                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
+                await Task.Delay(500);
+                blockMinedEventData.ShouldBeNull();
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHeight.ShouldBe(bestChainHeight);
+                chain.BestChainHash.ShouldBe(bestChainHash);
+            }
+
+            {
+                var eventData = new ConsensusRequestMiningEventData(bestChainHash, bestChainHeight,
+                    TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
+                    TimestampHelper.GetUtcNow().AddMilliseconds(499));
+
+                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
+                await Task.Delay(500);
+                blockMinedEventData.ShouldBeNull();
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHeight.ShouldBe(bestChainHeight);
+                chain.BestChainHash.ShouldBe(bestChainHash);
+            }
+            
+            {
+                var eventData = new ConsensusRequestMiningEventData(bestChainHash, bestChainHeight,
+                    TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
+                    TimestampHelper.GetUtcNow().AddSeconds(30));
+
+                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
+                await Task.Delay(500);
+                blockMinedEventData.ShouldNotBeNull();
+                blockMinedEventData.BlockHeader.Height.ShouldBe(bestChainHeight +1);
+                blockMinedEventData.BlockHeader.PreviousBlockHash.ShouldBe(bestChainHash);
+                
+                chain = await _blockchainService.GetChainAsync();
+                chain.Branches.ShouldContainKey(blockMinedEventData.BlockHeader.GetHash().ToStorageKey());
+                
+                (await _blockchainService.HasBlockAsync(blockMinedEventData.BlockHeader.GetHash())).ShouldBeTrue();
+            }
+        }
+    }
+}

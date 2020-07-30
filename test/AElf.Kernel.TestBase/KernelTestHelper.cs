@@ -117,6 +117,17 @@ namespace AElf.Kernel
             return transaction;
         }
 
+        public List<Transaction> GenerateTransactions(int count, long refBlockNumber = 0, Hash refBlockHash = null)
+        {
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < count; i++)
+            {
+                transactions.Add(GenerateTransaction(refBlockNumber, refBlockHash));
+            }
+
+            return transactions;
+        }
+
         public TransactionResult GenerateTransactionResult(Transaction transaction, TransactionResultStatus status,
             LogEvent logEvent = null)
         {
