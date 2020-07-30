@@ -1,10 +1,13 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Extensions;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -17,16 +20,18 @@ namespace AElf.OS.Handlers
             private readonly INetworkService _networkService;
             private readonly IBlockchainService _blockchainService;
             private readonly ISyncStateService _syncStateService;
+            private readonly EvilTriggerOptions _evilTriggerOptions;
 
             public ILogger<BlockMinedEventHandler> Logger { get; set; }
 
             public BlockMinedEventHandler(INetworkService networkService, IBlockchainService blockchainService,
-                ISyncStateService syncStateService)
+                ISyncStateService syncStateService, IOptionsMonitor<EvilTriggerOptions> evilTriggerOptions)
             {
                 _networkService = networkService;
                 _blockchainService = blockchainService;
                 _syncStateService = syncStateService;
-                
+                _evilTriggerOptions = evilTriggerOptions.CurrentValue;
+
                 Logger = NullLogger<BlockMinedEventHandler>.Instance;
             }
 
@@ -51,6 +56,15 @@ namespace AElf.OS.Handlers
                     return;
                 }
 
+                if (blockWithTransactions.Transactions.Count > 5 && _evilTriggerOptions.ChangeTransactionList &&
+                    blockWithTransactions.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                {
+                    var transaction = blockWithTransactions.Transactions;
+                    blockWithTransactions.Transactions.RemoveAt(transaction.Count - 1);
+                    Logger.LogWarning(
+                        "EVIL TRIGGER - ChangeTransactionList - Remove last transaction from Transactions");
+                }
+                
                 Logger.LogDebug(
                     $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
 

@@ -25,6 +25,7 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
+            Configure<EvilTriggerOptions>(configuration.GetSection("EvilTrigger"));
         }
         
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
