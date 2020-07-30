@@ -80,7 +80,8 @@ namespace AElf.Kernel.Miner.Application
                 ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                 signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
                     notSignerTransaction.GetHash().ToByteArray());
-                Logger.LogWarning($"EVIL TRIGGER - Error sign system transactions, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
+                Logger.LogWarning(
+                    $"EVIL TRIGGER - Error sign system transactions, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
             }
 
             notSignerTransaction.Signature = ByteString.CopyFrom(signature);
@@ -101,10 +102,11 @@ namespace AElf.Kernel.Miner.Application
             block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             if (!_evilTriggerOptions.ChangeBlockHeaderSignPubKey ||
                 (preBlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber != 0) return block;
-            
+
             ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
             block.Header.SignerPubkey = ByteString.CopyFrom(keyPair.PublicKey);
-            Logger.LogWarning($"EVIL TRIGGER - Error block SignerPubkey, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
+            Logger.LogWarning(
+                $"EVIL TRIGGER - Error block SignerPubkey, public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
 
             return block;
         }
@@ -117,7 +119,8 @@ namespace AElf.Kernel.Miner.Application
             {
                 ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                 signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray());
-                Logger.LogWarning($"EVIL TRIGGER - Error sign block public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
+                Logger.LogWarning(
+                    $"EVIL TRIGGER - Error sign block public key: {keyPair.PublicKey.ToHex()}, private key {keyPair.PrivateKey.ToHex()}");
             }
 
             block.Header.Signature = ByteString.CopyFrom(signature);
@@ -157,10 +160,87 @@ namespace AElf.Kernel.Miner.Application
                             .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             .ToList()
                         : transactions;
+
+                    if (transactions.Count > 0 && _evilTriggerOptions.InvalidContracts &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        var tx = transactions.Last();
+                        var invalidTransaction = new Transaction
+                        {
+                            From = tx.From,
+                            Params = tx.Params,
+                            MethodName = tx.MethodName,
+                            RefBlockNumber = tx.RefBlockNumber,
+                            RefBlockPrefix = tx.RefBlockPrefix,
+                            Signature = tx.Signature
+                        };
+                        ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                        invalidTransaction.To = Address.FromPublicKey(keyPair.PublicKey);
+                        if (pending.Count == requestMiningDto.TransactionCountLimit)
+                        {
+                            pending.RemoveAt(pending.Count - 1);
+                            pending.Add(invalidTransaction);
+                        }
+
+                        Logger.LogWarning(
+                            $"EVIL TRIGGER - InvalidContracts - Contract: {pending.Last().To.ToBase58()}");
+                    }
+
+                    if (transactions.Count > 0 && _evilTriggerOptions.InvalidMethod &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        var fakeMethod = "FakeMethod";
+                        var tx = transactions.Last();
+                        var invalidTransaction = new Transaction
+                        {
+                            From = tx.From,
+                            To = tx.To,
+                            Params = tx.Params,
+                            MethodName = fakeMethod,
+                            RefBlockNumber = tx.RefBlockNumber,
+                            RefBlockPrefix = tx.RefBlockPrefix,
+                            Signature = tx.Signature
+                        };
+                        if (pending.Count == requestMiningDto.TransactionCountLimit)
+                        {
+                            pending.RemoveAt(pending.Count - 1);
+                            pending.Add(invalidTransaction);
+                        }
+
+                        Logger.LogWarning(
+                            $"EVIL TRIGGER - InvalidMethod - Method: {pending.Last().MethodName}");
+                    }
+
+                    if (transactions.Count > 0 && _evilTriggerOptions.InvalidSignature &&
+                        block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
+                    {
+                        var tx = transactions.Last();
+                        var invalidTransaction = new Transaction
+                        {
+                            From = tx.From,
+                            To = tx.To,
+                            Params = tx.Params,
+                            MethodName = tx.MethodName,
+                            RefBlockNumber = tx.RefBlockNumber,
+                            RefBlockPrefix = tx.RefBlockPrefix,
+                        };
+                        ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                        invalidTransaction.Signature = ByteString.CopyFrom(
+                            CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray()));
+                        if (pending.Count == requestMiningDto.TransactionCountLimit)
+                        {
+                            pending.RemoveAt(pending.Count - 1);
+                            pending.Add(invalidTransaction);
+                        }
+                        
+                        Logger.LogWarning(
+                            "EVIL TRIGGER - InvalidSignature");
+                    }
+
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
                     block = blockExecutedSet.Block;
-                    
+
                     if (_evilTriggerOptions.ErrorTransactionCountInBody &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
@@ -168,16 +248,18 @@ namespace AElf.Kernel.Miner.Application
                         block.Body.TransactionIds.Add(last);
                         Logger.LogWarning($"EVIL TRIGGER - RepeatTransactionInOneBlockAttack - Tx {last}");
                     }
-                    
+
                     if (_evilTriggerOptions.RemoveOneTransaction &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
-                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - before remove {block.Body.TransactionsCount}");
+                        Logger.LogWarning(
+                            $"EVIL TRIGGER - RemoveTransactions - before remove {block.Body.TransactionsCount}");
                         var last = block.Body.TransactionIds.Last();
                         block.Body.TransactionIds.Remove(last);
-                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - remove Tx {last}, count {block.Body.TransactionsCount}");
+                        Logger.LogWarning(
+                            $"EVIL TRIGGER - RemoveTransactions - remove Tx {last}, count {block.Body.TransactionsCount}");
                     }
-                    
+
                     if (_evilTriggerOptions.ReverseTransactionList &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
@@ -188,7 +270,8 @@ namespace AElf.Kernel.Miner.Application
                         var values = enumerable as Hash[] ?? enumerable.ToArray();
                         block.Body.TransactionIds.Clear();
                         block.Body.TransactionIds.Add(values);
-                        Logger.LogWarning($"EVIL TRIGGER - RemoveTransactions - reverse Tx first Tx {block.Body.TransactionIds.First()}");
+                        Logger.LogWarning(
+                            $"EVIL TRIGGER - RemoveTransactions - reverse Tx first Tx {block.Body.TransactionIds.First()}");
                     }
 
                     if (_evilTriggerOptions.ChangeBlockHeader)
