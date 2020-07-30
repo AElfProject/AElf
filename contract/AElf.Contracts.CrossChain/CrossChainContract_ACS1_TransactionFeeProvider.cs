@@ -16,7 +16,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (new List<string>
             {
-                nameof(ProposeCrossChainIndexing), nameof(ReleaseCrossChainIndexing)
+                nameof(ProposeCrossChainIndexing), nameof(ReleaseCrossChainIndexingProposal)
             }.Contains(input.Value))
             {
                 return new MethodFees

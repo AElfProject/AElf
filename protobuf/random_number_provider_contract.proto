@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "acs1.proto";
+import "acs6.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.RandomNumberProvider";
+
+service RandomNumberProviderContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.RandomNumberProvider.RandomNumberProviderContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs6.proto";
+}
+
+message GetRandomBytesInput {
+    int32 kind = 1;// if kind == 1, return hash; otherwise, return int64.
+    bytes value = 2;
+}

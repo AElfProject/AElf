@@ -43,7 +43,8 @@ namespace AElf.WebApp.Application.Net.Tests
             AElfPeerEndpointHelper.TryParse(ipAddress, out var ip);
             
             peerMock.SetupGet(p => p.RemoteEndpoint).Returns(ip);
-            peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>());
+            peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>
+                {{"test", new List<RequestMetric> {new RequestMetric()}}});
 
             return peerMock.Object;
         }
@@ -93,6 +94,28 @@ namespace AElf.WebApp.Application.Net.Tests
             peers.ShouldContain(peer => peer.ConnectionTime == connectionTime.Seconds);
             peers.ShouldContain(peer => peer.Inbound);
             peers.ShouldContain(peer => peer.Inbound == false);
+            peers.ShouldAllBe(peer => peer.RequestMetrics.Count == 0);
+        }
+        
+        [Fact]
+        public async Task GetPeers_WithMetrics_Test()
+        {
+            var connectionTime = TimestampHelper.GetUtcNow();
+            var ipAddressOne = "192.168.1.1:1680";
+            var onePubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad";
+
+            var peerOne = BuildPeer(ipAddressOne, onePubkey, connectionTime, true);
+            _peerPool.TryAddPeer(peerOne);
+
+            var peers = await GetResponseAsObjectAsync<List<PeerDto>>("api/net/peers?withMetrics=true");
+            
+            peers.Count.ShouldBe(1);
+            
+            peers.ShouldContain(peer => peer.IpAddress.IsIn(ipAddressOne));
+            peers.ShouldContain(peer => peer.ProtocolVersion == KernelConstants.ProtocolVersion);
+            peers.ShouldContain(peer => peer.ConnectionTime == connectionTime.Seconds);
+            peers.ShouldContain(peer => peer.Inbound);
+            peers.ShouldAllBe(peer => peer.RequestMetrics.Count == 1);
         }
         
         [Fact]

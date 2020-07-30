@@ -10,7 +10,7 @@ namespace AElf.Kernel.Configuration
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services
-                .AddSingleton<IBlockAcceptedLogEventProcessor, BlockTransactionLimitChangedLogEventProcessor>();
+                .AddSingleton<IBlockAcceptedLogEventProcessor, ConfigurationSetLogEventProcessor>();
         }
     }
 }

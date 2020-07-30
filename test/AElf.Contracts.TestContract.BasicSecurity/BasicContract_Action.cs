@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -16,7 +16,9 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private bool _field3;
         private BasicContractTestType _basicTestType;
         private InnerContractType _innerContractType;
-
+        
+        private Dictionary<long, long> dict { get; set; }
+        
         public static InnerContractType _innerContractTypeStaticField;
 
         public override Empty InitialBasicSecurityContract(Address input)
@@ -75,11 +77,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Empty TestStringState(StringInput input)
         {
-            if (string.IsNullOrEmpty(State.StringInfo.Value))
-                State.StringInfo.Value = string.Empty;
-
-            State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
-
+            State.StringInfo.Value = input.StringValue;
             return new Empty();
         }
 
@@ -90,9 +88,35 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new Empty();
         }
 
+        public override Empty TestBytesSingletonState(BytesInput input)
+        {
+            State.BytesSingletonState.Value = input.BytesValue.ToByteArray();
+
+            return new Empty();
+        }
+
+        public override Empty TestInt32SingletonState(Int32Input input)
+        {
+            State.Int32SingletonState.Value = input.Int32Value;
+            return new Empty();
+        }
+
+        public override Empty TestEnumState(Int32Input input)
+        {
+            State.EnumState.Value = (StateEnum) input.Int32Value;
+            return new Empty();
+        }
+
         public override Empty TestProtobufState(ProtobufInput input)
         {
             State.ProtoInfo2.Value = input.ProtobufValue;
+
+            return new Empty();
+        }
+
+        public override Empty TestSingletonState(ProtobufInput input)
+        {
+            State.ProtoInfo.Value = input.ProtobufValue;
 
             return new Empty();
         }
@@ -109,6 +133,35 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         {
             State.BoolInfo.Value = input.BoolData.BoolValue;
             State.Int32Info.Value = input.Int32Data.Int32Value;
+
+            return new Empty();
+        }
+
+        public override Empty TestMappedState(ProtobufInput input)
+        {
+            var protobufMessage = State.MappedState[input.ProtobufValue.Int64Value];
+            if (protobufMessage == null)
+            {
+                State.MappedState[input.ProtobufValue.Int64Value] =
+                    new ProtobufMessage
+                    {
+                        BoolValue = true,
+                        Int64Value = input.ProtobufValue.Int64Value,
+                        StringValue = input.ProtobufValue.StringValue
+                    };
+            }
+            else
+            {
+                State.MappedState[input.ProtobufValue.Int64Value] =
+                    new ProtobufMessage
+                    {
+                        BoolValue = true,
+                        Int64Value = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue]
+                            .Int64Value
+                            .Add(input.ProtobufValue.Int64Value),
+                        StringValue = input.ProtobufValue.StringValue
+                    };
+            }
 
             return new Empty();
         }
@@ -142,13 +195,46 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new Empty();
         }
 
-        public override Empty TestMapped2State(Complex3Input input)
+        public override Empty TestMapped2State(ProtobufInput input)
         {
-            var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
+            var protobufMessage =
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                    input.ProtobufValue.StringValue];
+            if (protobufMessage == null)
+            {
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
+                    new ProtobufMessage
+                    {
+                        BoolValue = true,
+                        Int64Value = input.ProtobufValue.Int64Value,
+                        StringValue = input.ProtobufValue.StringValue
+                    };
+            }
+            else
+            {
+                State.Complex4Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue][
+                        input.ProtobufValue.StringValue] =
+                    new ProtobufMessage
+                    {
+                        BoolValue = true,
+                        Int64Value = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue]
+                            .Int64Value
+                            .Add(input.ProtobufValue.Int64Value),
+                        StringValue = input.ProtobufValue.StringValue
+                    };
+            }
+
+            return new Empty();
+        }
+
+        public override Empty TestMapped3State(Complex3Input input)
+        {
+            var tradeMessage = State.Complex5Info[input.From][input.PairA][input.To][input.PairB];
             if (tradeMessage == null)
             {
                 input.TradeDetails.Timestamp = Context.CurrentBlockTime;
-                State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
+                State.Complex5Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
             }
             else
             {
@@ -156,7 +242,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 tradeMessage.ToAmount = tradeMessage.ToAmount.Add(input.TradeDetails.ToAmount);
                 tradeMessage.Timestamp = Context.CurrentBlockTime;
 
-                State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
+                State.Complex5Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
             }
 
             return new Empty();
@@ -191,6 +277,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             _field3 = input.BoolValue;
             State.Int64Info.Value = Number;
             State.StringInfo.Value = String;
+            dict = new Dictionary<long, long>();
             return new Empty();
         }
 
@@ -234,6 +321,66 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 BasicTypeStaticNumber = _basicTestType.CheckStaticNumberValue(),
                 StringValue = s
             };
+        }
+        
+        public override Int32Output TestWhileInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            while (i < count)
+            {
+                i++;
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Int32Output TestWhileInfiniteLoopWithState(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            while (i++ < count)
+            {
+                if (i % 7 == 0)
+                    State.LoopInt32Value.Value = i;
+            }
+
+            return new Int32Output {Int32Value = State.LoopInt32Value.Value};
+        }
+
+        public override Int32Output TestForInfiniteLoop(Int32Input input)
+        {
+            int i = 0;
+            var count = input.Int32Value;
+            for (i = 0; i < count; i++)
+            {
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Int32Output TestForeachInfiniteLoop(StringInput input)
+        {
+            int i = 1;
+            int[] arr = new int[3];
+            foreach (var t in arr)
+            {
+                i++;
+            }
+
+            return new Int32Output {Int32Value = i};
+        }
+
+        public override Empty TestInfiniteRecursiveCall(Int32Input input)
+        {
+            RecursiveCall(input.Int32Value);
+            return new Empty();
+        }
+
+        private void RecursiveCall(int value)
+        {
+            if (value > 0)
+                RecursiveCall(value - 1);
         }
 
         public class InnerContractType

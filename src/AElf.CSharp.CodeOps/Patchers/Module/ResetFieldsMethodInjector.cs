@@ -8,6 +8,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
 {
     public class ResetFieldsMethodInjector : IPatcher<ModuleDefinition>
     {
+        public bool SystemContactIgnored => false;
+        
         public void Patch(ModuleDefinition module)
         {
             foreach (var type in module.Types.Where(t => !t.IsContractImplementation()))

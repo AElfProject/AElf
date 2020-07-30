@@ -222,13 +222,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.Delay(200);
             await _txHub.UpdateTransactionPoolByBestChainAsync(chain.BestChainHash, chain.BestChainHeight);
 
-            var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             executableTransactionSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
             executableTransactionSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
             executableTransactionSet.Transactions[0].ShouldBe(transaction);
 
             var wrongBlockHash = HashHelper.ComputeFrom("WrongBlockHash");
-            executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(wrongBlockHash);
+            executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync(wrongBlockHash, int.MaxValue);
             executableTransactionSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
             executableTransactionSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
             executableTransactionSet.Transactions.Count.ShouldBe(0);
@@ -250,7 +250,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task TxHubBestChainShouldBeAsync(Hash blockHash, long blockHeight)
         {
-            var executableTxSet = await _txHub.GetExecutableTransactionSetAsync(blockHash);
+            var executableTxSet = await _txHub.GetExecutableTransactionSetAsync(blockHash, int.MaxValue);
             executableTxSet.PreviousBlockHash.ShouldBe(blockHash);
             executableTxSet.PreviousBlockHeight.ShouldBe(blockHeight);
         }

@@ -25,6 +25,7 @@ namespace AElf.CSharp.CodeOps
             context.Services.AddSingleton<IAcsValidator, AcsValidator>();
             context.Services.AddSingleton<IWhitelistProvider, WhitelistProvider>();
 
+            context.Services.AddTransient<IPatcher, StateWrittenSizeLimitMethodInjector>();
             context.Services.AddTransient<IPatcher, ResetFieldsMethodInjector>();
             context.Services.AddTransient<IPatcher, ExecutionObserverInjector>();
             context.Services.AddTransient<IPatcher, MethodCallReplacer>();

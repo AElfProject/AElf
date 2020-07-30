@@ -18,14 +18,15 @@ using AElf.CSharp.Core.Extension;
 using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using Xunit;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
+using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
 
 namespace AElf.Contract.TestContract
 {
