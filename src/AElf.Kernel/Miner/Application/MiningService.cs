@@ -176,12 +176,10 @@ namespace AElf.Kernel.Miner.Application
                         };
                         ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                         invalidTransaction.To = Address.FromPublicKey(keyPair.PublicKey);
-                        if (pending.Count == requestMiningDto.TransactionCountLimit)
-                        {
+                        if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                            pending.Add(invalidTransaction);
-                        }
-
+                        
+                        pending.Add(invalidTransaction);
                         Logger.LogWarning(
                             $"EVIL TRIGGER - InvalidContracts - Contract: {pending.Last().To.ToBase58()}");
                     }
@@ -201,11 +199,10 @@ namespace AElf.Kernel.Miner.Application
                             RefBlockPrefix = tx.RefBlockPrefix,
                             Signature = tx.Signature
                         };
-                        if (pending.Count == requestMiningDto.TransactionCountLimit)
-                        {
+                        if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                            pending.Add(invalidTransaction);
-                        }
+                        
+                        pending.Add(invalidTransaction);
 
                         Logger.LogWarning(
                             $"EVIL TRIGGER - InvalidMethod - Method: {pending.Last().MethodName}");
@@ -227,12 +224,11 @@ namespace AElf.Kernel.Miner.Application
                         ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                         invalidTransaction.Signature = ByteString.CopyFrom(
                             CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray()));
-                        if (pending.Count == requestMiningDto.TransactionCountLimit)
-                        {
+                        if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                            pending.Add(invalidTransaction);
-                        }
                         
+                        pending.Add(invalidTransaction);
+
                         Logger.LogWarning(
                             "EVIL TRIGGER - InvalidSignature");
                     }
