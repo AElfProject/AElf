@@ -265,6 +265,7 @@ namespace AElf.Contracts.CrossChain
             Context.LogDebug(() => "Releasing cross chain data..");
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
+            Assert(input.ChainIdList.Count > 0, "Empty input not allowed.");
             ReleaseIndexingProposal(input.ChainIdList);
             RecordCrossChainData(input.ChainIdList);
             return new Empty();

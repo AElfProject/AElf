@@ -201,22 +201,10 @@ namespace AElf.CrossChain.Indexing.Application
             return parentChainBlockDataList;
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-        {
-            var crossChainBlockData = await _contractReaderFactory
-                .Create(new ContractReaderContext
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight,
-                    ContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight
-                    })
-                })
-                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new Int64Value {Value = blockHeight});
-            return crossChainBlockData;
-        }
+        // public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
+        // {
+        //     throw new NotImplementedException();
+        // }
 
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {

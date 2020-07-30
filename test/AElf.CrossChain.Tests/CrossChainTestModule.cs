@@ -36,15 +36,6 @@ namespace AElf.CrossChain
             context.Services.AddTransient(provider =>
             {
                 var mockCrossChainIndexingDataService = new Mock<ICrossChainIndexingDataService>();
-                mockCrossChainIndexingDataService
-                    .Setup(m => m.GetIndexedCrossChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<long>()))
-                    .Returns<Hash, long>((blockHash, blockHeight) =>
-                    {
-                        var crossChainTestHelper =
-                            context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
-
-                        return Task.FromResult(crossChainTestHelper.GetIndexedCrossChainExtraData(blockHeight));
-                    });
 
                 mockCrossChainIndexingDataService.Setup(m =>
                         m.GetCrossChainTransactionInputForNextMiningAsync(It.IsAny<Hash>(), It.IsAny<long>()))

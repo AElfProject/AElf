@@ -65,6 +65,8 @@ namespace AElf.Contracts.CrossChain
 
         public override Int64Value GetParentChainHeight(Empty input)
         {
+            var parentChainId = State.ParentChainId.Value;
+            Assert(parentChainId != 0, "Parent chain not exist.");
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             return new Int64Value
             {
@@ -75,7 +77,7 @@ namespace AElf.Contracts.CrossChain
         public override Int32Value GetParentChainId(Empty input)
         {
             var parentChainId = State.ParentChainId.Value;
-            Assert(parentChainId != 0);
+            Assert(parentChainId != 0, "Parent chain not exist.");
             return new Int32Value() {Value = parentChainId};
         }
 
