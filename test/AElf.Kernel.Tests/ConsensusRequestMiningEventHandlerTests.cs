@@ -28,7 +28,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task HandleEventAsync_Test()
+        public async Task HandleEvent_Test()
         {
             BlockMinedEventData blockMinedEventData = null;
             _localEventBus.Subscribe<BlockMinedEventData>(d =>

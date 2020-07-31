@@ -99,8 +99,6 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
 
@@ -130,8 +128,6 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
         }
@@ -150,14 +146,10 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-
-            context.Services.AddTransient<IAccountService, AccountService>();
             
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
 
@@ -177,8 +169,6 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConsensusExtraDataExtractor>();
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
-                    .Returns(ByteString.Empty);
                 return mockService.Object;
             });
         }
