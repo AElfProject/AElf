@@ -9,6 +9,7 @@ using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.Service;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -66,6 +67,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             
                 return mockService.Object;
             });
+        }
+    }
+    
+    [DependsOn(
+        typeof(ContractTestModule))]
+    public class ExecutionPluginTransactionDirectlyForMethodFeeTestModule : ContractTestModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            context.Services.RemoveAll<IContractInitializationProvider>();
+            context.Services.RemoveAll<IPreExecutionPlugin>();
+            context.Services.RemoveAll<IPostExecutionPlugin>();
+            context.Services.Replace(ServiceDescriptor
+                .Singleton<IPlainTransactionExecutingService, PlainTransactionExecutingAsPluginService>());
+            context.Services.Replace(ServiceDescriptor
+                .Singleton<ITransactionExecutingService, PlainTransactionExecutingAsPluginService>());
         }
     }
 }
