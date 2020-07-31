@@ -8,6 +8,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -28,6 +29,8 @@ namespace AElf.Kernel.Miner.Application
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainService _blockchainService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
+        private readonly ITransactionManager _transactionManager;
+
 
         private readonly EvilTriggerOptions _evilTriggerOptions;
 
@@ -39,6 +42,7 @@ namespace AElf.Kernel.Miner.Application
             IBlockExecutingService blockExecutingService,
             IBlockchainService blockchainService,
             ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+            ITransactionManager transactionManager,
             IOptionsMonitor<EvilTriggerOptions> evilTriggerOptions)
         {
             Logger = NullLogger<MiningService>.Instance;
@@ -48,6 +52,7 @@ namespace AElf.Kernel.Miner.Application
             _accountService = accountService;
             _blockchainService = blockchainService;
             _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+            _transactionManager = transactionManager;
 
             EventBus = NullLocalEventBus.Instance;
 
@@ -178,8 +183,9 @@ namespace AElf.Kernel.Miner.Application
                         invalidTransaction.To = Address.FromPublicKey(keyPair.PublicKey);
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                        
-                        pending.Add(invalidTransaction);
+
+                        pending.Insert(0,invalidTransaction);
+                        await _transactionManager.AddTransactionAsync(invalidTransaction);
                         Logger.LogWarning(
                             $"EVIL TRIGGER - InvalidContracts - Contract: {pending.Last().To.ToBase58()}");
                     }
@@ -201,8 +207,9 @@ namespace AElf.Kernel.Miner.Application
                         };
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                        
-                        pending.Add(invalidTransaction);
+
+                        pending.Insert(0,invalidTransaction);
+                        await _transactionManager.AddTransactionAsync(invalidTransaction);
 
                         Logger.LogWarning(
                             $"EVIL TRIGGER - InvalidMethod - Method: {pending.Last().MethodName}");
@@ -211,6 +218,8 @@ namespace AElf.Kernel.Miner.Application
                     if (transactions.Count > 0 && _evilTriggerOptions.InvalidSignature &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
                     {
+                        Logger.LogWarning(
+                            "EVIL TRIGGER - Generated InvalidSignature transaction");
                         var tx = transactions.Last();
                         var invalidTransaction = new Transaction
                         {
@@ -226,8 +235,9 @@ namespace AElf.Kernel.Miner.Application
                             CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray()));
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                        
-                        pending.Add(invalidTransaction);
+
+                        pending.Insert(0,invalidTransaction);
+                        await _transactionManager.AddTransactionAsync(invalidTransaction);
 
                         Logger.LogWarning(
                             "EVIL TRIGGER - InvalidSignature");

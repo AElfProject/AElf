@@ -49,13 +49,13 @@ namespace AElf.CrossChain.Application
                     bytes = ByteString.CopyFrom(
                         ByteArrayHelper.HexStringToByteArray(HashHelper.ComputeFrom(fake).ToHex()));
                     Logger.LogWarning(
-                        $"EVIL TRIGGER - ErrorSystemTransactionCount - Empty to FakeCrossChainExtraDate");
+                        $"EVIL TRIGGER - ErrorCrossChainExtraDate - Empty to FakeCrossChainExtraDate");
                 }
                 else
                 {
                     bytes = ByteString.Empty;
                     Logger.LogWarning(
-                        $"EVIL TRIGGER - ErrorSystemTransactionCount - to Empty");
+                        $"EVIL TRIGGER - ErrorCrossChainExtraDate - to Empty");
                 }
             }
 
