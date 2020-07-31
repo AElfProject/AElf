@@ -16,6 +16,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
             State.InitializedFromParentChain.Value = true;
+            Assert(input.Creator != null, "creator should not be null");
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
@@ -52,7 +53,7 @@ namespace AElf.Contracts.MultiToken
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
-                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid input.");
+                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid native token input.");
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
