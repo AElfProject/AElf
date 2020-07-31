@@ -177,17 +177,18 @@ namespace AElf.Kernel.Miner.Application
                             MethodName = tx.MethodName,
                             RefBlockNumber = tx.RefBlockNumber,
                             RefBlockPrefix = tx.RefBlockPrefix,
-                            Signature = tx.Signature
                         };
                         ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                         invalidTransaction.To = Address.FromPublicKey(keyPair.PublicKey);
+                        await SignAsync(invalidTransaction,block.Height - 1);
+                        
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
 
                         pending.Insert(0,invalidTransaction);
                         await _transactionManager.AddTransactionAsync(invalidTransaction);
                         Logger.LogWarning(
-                            $"EVIL TRIGGER - InvalidContracts - Contract: {pending.Last().To.ToBase58()}");
+                            $"EVIL TRIGGER - InvalidContracts - Contract: {pending.First().To.ToBase58()}");
                     }
 
                     if (transactions.Count > 0 && _evilTriggerOptions.InvalidMethod &&
@@ -203,16 +204,16 @@ namespace AElf.Kernel.Miner.Application
                             MethodName = fakeMethod,
                             RefBlockNumber = tx.RefBlockNumber,
                             RefBlockPrefix = tx.RefBlockPrefix,
-                            Signature = tx.Signature
                         };
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-
+                        await SignAsync(invalidTransaction,block.Height - 1);
+                        
                         pending.Insert(0,invalidTransaction);
                         await _transactionManager.AddTransactionAsync(invalidTransaction);
 
                         Logger.LogWarning(
-                            $"EVIL TRIGGER - InvalidMethod - Method: {pending.Last().MethodName}");
+                            $"EVIL TRIGGER - InvalidMethod - Method: {pending.First().MethodName}");
                     }
 
                     if (transactions.Count > 0 && _evilTriggerOptions.InvalidSignature &&
@@ -232,7 +233,7 @@ namespace AElf.Kernel.Miner.Application
                         };
                         ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
                         invalidTransaction.Signature = ByteString.CopyFrom(
-                            CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, block.GetHash().ToByteArray()));
+                            CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, invalidTransaction.GetHash().ToByteArray()));
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
 
