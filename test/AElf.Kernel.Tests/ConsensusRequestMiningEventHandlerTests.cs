@@ -2,7 +2,10 @@ using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
+using Autofac.Core;
+using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
@@ -14,12 +17,14 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly ConsensusRequestMiningEventHandler _consensusRequestMiningEventHandler;
         private readonly ILocalEventBus _localEventBus;
+        private readonly KernelConsensusRequestMiningTestContext _testContext;
 
         public ConsensusRequestMiningEventHandlerTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _consensusRequestMiningEventHandler = GetRequiredService<ConsensusRequestMiningEventHandler>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
+            _testContext = GetRequiredService<KernelConsensusRequestMiningTestContext>();
         }
 
         [Fact]
@@ -35,6 +40,9 @@ namespace AElf.Kernel
             var chain = await _blockchainService.GetChainAsync();
             var bestChainHash = chain.BestChainHash;
             var bestChainHeight = chain.BestChainHeight;
+            
+            _testContext.MockConsensusService.Verify(
+                s => s.TriggerConsensusAsync(It.IsAny<ChainContext>()), Times.Exactly(10));
 
             {
                 var eventData = new ConsensusRequestMiningEventData(HashHelper.ComputeFrom("NotBestChain"),
@@ -48,6 +56,9 @@ namespace AElf.Kernel
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHeight.ShouldBe(bestChainHeight);
                 chain.BestChainHash.ShouldBe(bestChainHash);
+
+                _testContext.MockConsensusService.Verify(
+                    s => s.TriggerConsensusAsync(It.IsAny<ChainContext>()), Times.Exactly(10));
             }
 
             {
@@ -61,6 +72,9 @@ namespace AElf.Kernel
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHeight.ShouldBe(bestChainHeight);
                 chain.BestChainHash.ShouldBe(bestChainHash);
+                
+                _testContext.MockConsensusService.Verify(
+                    s => s.TriggerConsensusAsync(It.IsAny<ChainContext>()), Times.Exactly(11));
             }
             
             {
@@ -78,6 +92,9 @@ namespace AElf.Kernel
                 chain.Branches.ShouldContainKey(blockMinedEventData.BlockHeader.GetHash().ToStorageKey());
                 
                 (await _blockchainService.HasBlockAsync(blockMinedEventData.BlockHeader.GetHash())).ShouldBeTrue();
+                
+                _testContext.MockConsensusService.Verify(
+                    s => s.TriggerConsensusAsync(It.IsAny<ChainContext>()), Times.Exactly(11));
             }
         }
     }
