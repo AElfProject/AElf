@@ -1,5 +1,3 @@
-using AElf.Kernel.SmartContract;
-
 namespace AElf.Sdk.CSharp
 {
     // Instantiated for every transaction
