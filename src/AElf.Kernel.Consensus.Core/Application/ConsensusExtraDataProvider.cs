@@ -51,7 +51,7 @@ namespace AElf.Kernel.Consensus.Application
                         errorConsensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
                         {
                             BlockHash = blockHeader.PreviousBlockHash,
-                            BlockHeight = blockHeader.Height - 10
+                            BlockHeight = blockHeader.Height - 3
                         });
                         consensusInformation = errorConsensusInformation;
                         Logger.LogWarning(
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Consensus.Application
                         errorConsensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
                         {
                             BlockHash = blockHeader.PreviousBlockHash,
-                            BlockHeight = blockHeader.Height + 10
+                            BlockHeight = blockHeader.Height + 3
                         });
                         consensusInformation = errorConsensusInformation;
                         Logger.LogWarning(
