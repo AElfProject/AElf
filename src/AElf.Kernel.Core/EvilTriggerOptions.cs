@@ -1,4 +1,3 @@
-using AElf.Types;
 
 namespace AElf.Kernel
 {
@@ -14,5 +13,13 @@ namespace AElf.Kernel
         public bool ErrorSignatureInSystemTransaction { get; set; }
         public bool ChangeBlockHeaderSignPubKey { get; set; }
         public bool ChangeBlockHeader{ get; set; }
+        public bool InvalidMethod { get; set; }
+        public bool InvalidContracts { get; set; }
+        public bool InvalidSignature { get; set; }
+        public bool ChangeTransactionList { get; set; }
+        public bool ConflictTransaction { get; set; }
+        public bool ErrorConsensusExtraDate { get; set; }
+        public bool ErrorCrossChainExtraDate { get; set; }
+        public bool ErrorSystemTransactionCount { get; set; }
     }
 }

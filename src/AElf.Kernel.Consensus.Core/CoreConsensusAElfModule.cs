@@ -15,6 +15,8 @@ namespace AElf.Kernel.Consensus
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddSingleton<IConsensusExtraDataKeyProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
+            
+            Configure<EvilTriggerOptions>(context.Services.GetConfiguration().GetSection("EvilTrigger"));
         }
     }
 }

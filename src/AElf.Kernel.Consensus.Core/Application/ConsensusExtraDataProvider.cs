@@ -4,19 +4,24 @@ using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class ConsensusExtraDataProvider : IConsensusExtraDataKeyProvider 
+    public class ConsensusExtraDataProvider : IConsensusExtraDataKeyProvider
     {
         public string BlockHeaderExtraDataKey => ConsensusConstants.ConsensusExtraDataKey;
 
         private readonly IConsensusService _consensusService;
+        private readonly EvilTriggerOptions _evilTriggerOptions;
+
         public ILogger<ConsensusExtraDataProvider> Logger { get; set; }
 
-        public ConsensusExtraDataProvider(IConsensusService consensusService)
+        public ConsensusExtraDataProvider(IConsensusService consensusService,
+            IOptionsMonitor<EvilTriggerOptions> evilTriggerOptions)
         {
             _consensusService = consensusService;
+            _evilTriggerOptions = evilTriggerOptions.CurrentValue;
 
             Logger = NullLogger<ConsensusExtraDataProvider>.Instance;
         }
@@ -33,6 +38,33 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             });
+
+            if (consensusInformation!=null && _evilTriggerOptions.ErrorConsensusExtraDate)
+            {
+                var number = _evilTriggerOptions.EvilTriggerNumber;
+                switch (blockHeader.Height % number)
+                {
+                    case 0:
+                        consensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
+                        {
+                            BlockHash = blockHeader.PreviousBlockHash,
+                            BlockHeight = blockHeader.Height - 10
+                        });
+                        Logger.LogWarning(
+                            "EVIL TRIGGER - ErrorConsensusExtraDate - Error BlockHeight");
+                        break;
+                    case 1:
+                        consensusInformation = consensusInformation.Take(consensusInformation.Length / 2).ToArray();
+                        Logger.LogWarning(
+                            "EVIL TRIGGER - ErrorConsensusExtraDate - Cut in half");
+                        break;
+                    case 2:
+                        consensusInformation = consensusInformation.Reverse().ToArray();
+                        Logger.LogWarning(
+                            "EVIL TRIGGER - ErrorConsensusExtraDate - Reverse bytes");
+                        break;
+                }
+            }
 
             if (consensusInformation == null) return ByteString.Empty;
             

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
+using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,12 +10,20 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IEvilOptionsService : IApplicationService
     {
+        Task<EvilTriggerOptions> SetEvilTriggerNumberAsync(int count);
         Task<EvilTriggerOptions> SetRepackagedTransactionAsync(bool repackagedTransaction);
         Task<EvilTriggerOptions> SetOverBlockTransactionLimitAsync(bool overBlockTransactionLimit);
         Task<EvilTriggerOptions> SetRemoveTransactionCountInBodyAsync(bool removeTransactionCountInBody);
         Task<EvilTriggerOptions> SetReverseTransactionListAsync(bool reverseTransactionList);
         Task<EvilTriggerOptions> SetErrorSignatureInBlockAsync(bool repackagedTransaction);
-        
+        Task<EvilTriggerOptions> SetInvalidMethodAsync(bool status);
+        Task<EvilTriggerOptions> SetInvalidContractAsync(bool status);
+        Task<EvilTriggerOptions> SetInvalidSignatureAsync(bool status);
+        Task<EvilTriggerOptions> SetChangeTransactionListAsync(bool status);
+        Task<EvilTriggerOptions> SetErrorConsensusExtraDateAsync(bool status);
+        Task<EvilTriggerOptions> SetErrorCrossChainExtraDateAsync(bool status);
+        Task<EvilTriggerOptions> SetErrorSystemTransactionCountAsync(bool status);
+
         Task<EvilTriggerOptions> GetEvilTriggerOptionsAsync();
     }
 
@@ -31,7 +40,13 @@ namespace AElf.WebApp.Application.Chain
             _options = optionsMonitor.CurrentValue;
         }
 
-
+        public Task<EvilTriggerOptions> SetEvilTriggerNumberAsync(int count)
+        {
+            _options.EvilTriggerNumber = count;
+            Logger.LogDebug($"EvilTriggerNumber is {count}");
+            return Task.FromResult(_options);
+        }
+        
         public Task<EvilTriggerOptions> SetRepackagedTransactionAsync(bool repackagedTransaction)
         {
             _options.RepackagedTransaction = repackagedTransaction;
@@ -64,6 +79,55 @@ namespace AElf.WebApp.Application.Chain
         {
             _options.ErrorSignatureInBlock = errorSignatureInBlock;
             Logger.LogDebug($"Evil ErrorSignatureInBlock is {errorSignatureInBlock}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetInvalidMethodAsync(bool status)
+        {
+            _options.InvalidMethod = status;
+            Logger.LogDebug($"Evil SetInvalidMethod is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetInvalidContractAsync(bool status)
+        {
+            _options.InvalidContracts = status;
+            Logger.LogDebug($"Evil ErrorSignatureInBlock is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetInvalidSignatureAsync(bool status)
+        {
+            _options.InvalidSignature = status;
+            Logger.LogDebug($"Evil ErrorSignatureInBlock is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetChangeTransactionListAsync(bool status)
+        {
+            _options.ChangeTransactionList = status;
+            Logger.LogDebug($"Evil ChangeTransactionList is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetErrorConsensusExtraDateAsync(bool status)
+        {
+            _options.ErrorConsensusExtraDate = status;
+            Logger.LogDebug($"Evil ErrorConsensusExtraDate is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetErrorCrossChainExtraDateAsync(bool status)
+        {
+            _options.ErrorCrossChainExtraDate = status;
+            Logger.LogDebug($"Evil ErrorCrossChainExtraDate is {status}");
+            return Task.FromResult(_options);
+        }
+        
+        public Task<EvilTriggerOptions> SetErrorSystemTransactionCountAsync(bool status)
+        {
+            _options.ErrorSystemTransactionCount = status;
+            Logger.LogDebug($"Evil ErrorSystemTransactionCount is {status}");
             return Task.FromResult(_options);
         }
 

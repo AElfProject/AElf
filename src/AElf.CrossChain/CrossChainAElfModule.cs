@@ -22,6 +22,8 @@ namespace AElf.CrossChain
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<IChainInitializationDataPlugin, CrossChainPlugin>();
             context.Services.AddSingleton<INodePlugin, CrossChainPlugin>();
+            
+            Configure<EvilTriggerOptions>(context.Services.GetConfiguration().GetSection("EvilTrigger"));
         }
     }
 }
