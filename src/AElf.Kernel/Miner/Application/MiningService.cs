@@ -165,6 +165,7 @@ namespace AElf.Kernel.Miner.Application
                             .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             .ToList()
                         : transactions;
+                    var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
                     if (transactions.Count > 0 && _evilTriggerOptions.InvalidContracts &&
                         block.Height % _evilTriggerOptions.EvilTriggerNumber == 0)
@@ -172,7 +173,7 @@ namespace AElf.Kernel.Miner.Application
                         var tx = transactions.Last();
                         var invalidTransaction = new Transaction
                         {
-                            From = tx.From,
+                            From = address,
                             Params = tx.Params,
                             MethodName = tx.MethodName,
                             RefBlockNumber = tx.RefBlockNumber,
@@ -198,16 +199,17 @@ namespace AElf.Kernel.Miner.Application
                         var tx = transactions.Last();
                         var invalidTransaction = new Transaction
                         {
-                            From = tx.From,
+                            From = address,
                             To = tx.To,
                             Params = tx.Params,
                             MethodName = fakeMethod,
                             RefBlockNumber = tx.RefBlockNumber,
                             RefBlockPrefix = tx.RefBlockPrefix,
                         };
+                        await SignAsync(invalidTransaction,block.Height - 1);
+
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)
                             pending.RemoveAt(pending.Count - 1);
-                        await SignAsync(invalidTransaction,block.Height - 1);
                         
                         pending.Insert(0,invalidTransaction);
                         await _transactionManager.AddTransactionAsync(invalidTransaction);
@@ -222,16 +224,18 @@ namespace AElf.Kernel.Miner.Application
                         Logger.LogWarning(
                             "EVIL TRIGGER - Generated InvalidSignature transaction");
                         var tx = transactions.Last();
+                        ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                        address = Address.FromPublicKey(keyPair.PublicKey);
                         var invalidTransaction = new Transaction
                         {
-                            From = tx.From,
+                            From = address,
                             To = tx.To,
                             Params = tx.Params,
                             MethodName = tx.MethodName,
                             RefBlockNumber = tx.RefBlockNumber,
                             RefBlockPrefix = tx.RefBlockPrefix,
                         };
-                        ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
+                        
                         invalidTransaction.Signature = ByteString.CopyFrom(
                             CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, invalidTransaction.GetHash().ToByteArray()));
                         if (pending.Count == requestMiningDto.TransactionCountLimit - systemTransactions.Count)

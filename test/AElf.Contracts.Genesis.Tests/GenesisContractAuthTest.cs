@@ -11,7 +11,6 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -29,18 +28,44 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task Initialize_AlreadyExist_Test()
         {
-            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
-                new AuthorityInfo()
-                {
-                    OwnerAddress = SampleAddress.AddressList[0],
-                    ContractAddress = BasicContractZeroAddress
-                });
+            {
+                var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.Initialize), new InitializeInput
+                    {
+                        ContractDeploymentAuthorityRequired = false
+                    });
+                
+                txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                txResult.Error.ShouldContain("Contract zero already initialized.");
+            }
 
-            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.ShouldContain("Unauthorized behavior.");
+            {
+                var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                    new AuthorityInfo()
+                    {
+                        OwnerAddress = SampleAddress.AddressList[0],
+                        ContractAddress = BasicContractZeroAddress
+                    });
+
+                txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                txResult.Error.ShouldContain("Unauthorized behavior.");
+            }
         }
 
+        [Fact]
+        public async Task DeploySystemContract_Test()
+        {
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress, nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract), new SystemContractDeploymentInput()
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+            });
+            
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("System contract deployment failed.");
+        }
+        
         [Fact]
         public async Task DeploySmartContracts_Test()
         {

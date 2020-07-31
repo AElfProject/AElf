@@ -25,6 +25,22 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
+        public async Task DeploySystemContract_Test_Unauthorized()
+        {
+            var txResult = await DefaultTester.DeploySystemSmartContract.SendAsync( new SystemContractDeploymentInput()
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+            });
+
+            var contractDeployed = ContractDeployed.Parser.ParseFrom(txResult.TransactionResult.Logs
+                .First(l => l.Name.Contains(nameof(ContractDeployed))).NonIndexed);
+            var address = contractDeployed.Address;
+            var author = await DefaultTester.GetContractAuthor.CallAsync(address);
+            author.ShouldBe(DefaultSender);
+        }
+        
+        [Fact]
         public async Task Query_SmartContracts_Info_Test()
         {
             var contractAddress = await Deploy_SmartContracts_Test();
