@@ -108,45 +108,6 @@ namespace AElf.Kernel
         }
     }
 
-    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(CoreConsensusAElfModule))]
-    public class KernelWithConsensusStaffTestAElfModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-
-            services.AddTransient(builder =>
-            {
-                var mockConsensusScheduler = new Mock<IConsensusScheduler>();
-                return mockConsensusScheduler.Object;
-            });
-
-            services.AddTransient(builder =>
-            {
-                var mockTriggerInformationProvider = new Mock<ITriggerInformationProvider>();
-                return mockTriggerInformationProvider.Object;
-            });
-
-            services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IConsensusExtraDataExtractor>();
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
-                    .Returns(ByteString.Empty);
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
-                    .Returns(ByteString.CopyFromUtf8("test"));
-                return mockService.Object;
-            });
-
-            services.AddTransient(provider =>
-            {
-                var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
-                return mockService.Object;
-            });
-        }
-    }
-
     [DependsOn(typeof(KernelWithChainTestAElfModule))]
     public class KernelMiningTestAElfModule : AElfModule
     {
@@ -228,8 +189,6 @@ namespace AElf.Kernel
                 var mockService = new Mock<IConsensusExtraDataExtractor>();
                 mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
                     .Returns(ByteString.Empty);
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
-                    .Returns(ByteString.CopyFromUtf8("test"));
                 return mockService.Object;
             });
         }
