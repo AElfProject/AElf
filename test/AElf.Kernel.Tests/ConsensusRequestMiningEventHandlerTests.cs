@@ -50,8 +50,7 @@ namespace AElf.Kernel
                     TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
                     TimestampHelper.GetUtcNow().AddMilliseconds(499));
 
-                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
-                await Task.Delay(500);
+                await HandleConsensusRequestMiningEventAsync(eventData);
                 blockMinedEventData.ShouldBeNull();
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHeight.ShouldBe(bestChainHeight);
@@ -66,8 +65,7 @@ namespace AElf.Kernel
                     TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
                     TimestampHelper.GetUtcNow().AddMilliseconds(499));
 
-                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
-                await Task.Delay(500);
+                await HandleConsensusRequestMiningEventAsync(eventData);
                 blockMinedEventData.ShouldBeNull();
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHeight.ShouldBe(bestChainHeight);
@@ -82,8 +80,7 @@ namespace AElf.Kernel
                     TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(500),
                     TimestampHelper.GetUtcNow().AddSeconds(30));
 
-                await _consensusRequestMiningEventHandler.HandleEventAsync(eventData);
-                await Task.Delay(500);
+                await HandleConsensusRequestMiningEventAsync(eventData);
                 blockMinedEventData.ShouldNotBeNull();
                 blockMinedEventData.BlockHeader.Height.ShouldBe(bestChainHeight +1);
                 blockMinedEventData.BlockHeader.PreviousBlockHash.ShouldBe(bestChainHash);
@@ -96,6 +93,13 @@ namespace AElf.Kernel
                 _testContext.MockConsensusService.Verify(
                     s => s.TriggerConsensusAsync(It.IsAny<ChainContext>()), Times.Exactly(11));
             }
+        }
+
+        private async Task HandleConsensusRequestMiningEventAsync(
+            ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        {
+            await _consensusRequestMiningEventHandler.HandleEventAsync(consensusRequestMiningEventData);
+            await Task.Delay(500);
         }
     }
 }

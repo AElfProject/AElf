@@ -152,17 +152,7 @@ namespace AElf.Kernel
             var services = context.Services;
 
             context.Services.AddTransient<IAccountService, AccountService>();
-
-            services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<ITransactionValidationService>();
-                mockService.Setup(m =>
-                        m.ValidateTransactionWhileCollectingAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>()))
-                    .Returns(Task.FromResult(true));
-
-                return mockService.Object;
-            });
-
+            
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();

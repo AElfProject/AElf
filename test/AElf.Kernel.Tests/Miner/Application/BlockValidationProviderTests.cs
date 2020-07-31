@@ -65,12 +65,7 @@ namespace AElf.Kernel.Miner.Application
 
         private Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, int transactionCount)
         {
-            var transactions = new List<Transaction>();
-            for (var i = 0; i < transactionCount; i++)
-            {
-                transactions.Add(_kernelTestHelper.GenerateTransaction());
-            }
-
+            var transactions = _kernelTestHelper.GenerateTransactions(transactionCount);
             return _kernelTestHelper.GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
         }
 
