@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +37,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var consensusExtraData =
                 _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataKeyProvider.BlockHeaderExtraDataKey,
                     blockHeader);
-            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            AElfConsensusHeaderInformation consensusInformation;
+            try
+            {
+                consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
             if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
                 // The orders changed every round, and the orders can be updated during every behaviour of UPDATE_VALUE or NEXT_ROUND,
