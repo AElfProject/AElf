@@ -48,6 +48,7 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
+                Logger.LogDebug($"Triggered download job by announce {syncAnnouncementDto.SyncBlockHash}");
                 await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
                 .SyncBlockHeight,
                     syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
@@ -63,6 +64,7 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
+                Logger.LogDebug($"Triggered download job by block {syncBlockDto.BlockWithTransactions}");
                 await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
                     syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }

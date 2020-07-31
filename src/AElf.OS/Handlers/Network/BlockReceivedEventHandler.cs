@@ -50,7 +50,9 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            await _blockSyncService.SyncByBlockAsync(chain,new SyncBlockDto
+            Logger.LogDebug($"Received block {blockWithTransactions}");
+            
+            await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
             {
                 BlockWithTransactions = blockWithTransactions,
                 BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
