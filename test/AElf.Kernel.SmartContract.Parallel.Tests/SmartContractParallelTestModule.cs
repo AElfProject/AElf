@@ -47,6 +47,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                         .Returns(Task.FromResult((NonparallelContractCode) null));
                     return mock.Object;
                 });
+
+            context.Services.AddTransient<ITransactionContextFactory, ParallelTestTransactionContextFactory>();
         }
 
         #region Mocks

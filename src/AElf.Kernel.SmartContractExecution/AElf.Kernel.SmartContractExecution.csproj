@@ -21,8 +21,8 @@
         </ContractMessage>
     </ItemGroup>
     <ItemGroup>
-        <CommenMessage Include="..\..\protobuf\execution.proto">
+        <CommonMessage Include="..\..\protobuf\execution.proto">
             <Link>Protobuf\Proto\execution.proto</Link>
-        </CommenMessage>
+        </CommonMessage>
     </ItemGroup>
 </Project>

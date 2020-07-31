@@ -1,5 +1,6 @@
 using AElf.Kernel.SmartContract.Events;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -22,6 +23,16 @@ namespace AElf.Kernel.SmartContract.Application
     {
         public CleanSmartContractAddressChangeHeightEventHandler(
             ICachedBlockchainExecutedDataService<SmartContractAddress> cachedBlockchainExecutedDataService) : base(
+            cachedBlockchainExecutedDataService)
+        {
+        }
+    }
+    
+    public class CleanIntegerDataChangeHeightEventHandler : CleanBlockExecutedDataChangeHeightBaseEventHandler<
+        Int32Value>, ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
+    {
+        public CleanIntegerDataChangeHeightEventHandler(
+            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService) : base(
             cachedBlockchainExecutedDataService)
         {
         }
