@@ -68,6 +68,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             if (_evilTriggerOptions.ConflictTransaction && parallelize.Count >= 2 &&
                 (chainContext.BlockHeight + 1) % _evilTriggerOptions.EvilTriggerNumber == 0)
             {
+                Logger.LogWarning(
+                    $"EVIL TRIGGER - Error Parallelizables list, before evil:\n" +
+                    $"{groupedTransactions.Parallelizables.First().First()},\n" +
+                    $"{groupedTransactions.Parallelizables.Last().First()}");
+
                 var transactionList = groupedTransactions.Parallelizables.First();
                 var lastTransactionList = groupedTransactions.Parallelizables.Last();
                 var transaction = transactionList.First();
@@ -75,9 +80,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
                 groupedTransactions.Parallelizables.First().RemoveAt(transactionList.Count - 1);
                 groupedTransactions.Parallelizables.First().Insert(0, lastTransaction);
-                
+
                 groupedTransactions.Parallelizables.Last().RemoveAt(lastTransactionList.Count - 1);
                 groupedTransactions.Parallelizables.Last().Insert(0, transaction);
+                Logger.LogWarning(
+                    $"EVIL TRIGGER - Error Parallelizables list, after evil:\n" +
+                    $"{groupedTransactions.Parallelizables.First().First()},\n" +
+                    $"{groupedTransactions.Parallelizables.Last().First()}");
             }
 
             var returnSets = new List<ExecutionReturnSet>();
