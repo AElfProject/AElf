@@ -46,35 +46,11 @@ namespace AElf.Kernel.Consensus.Application
                 switch (blockHeader.Height % number)
                 {
                     case 0:
-                        Logger.LogWarning(
-                            $"EVIL TRIGGER - ErrorConsensusExtraDate - before evil {consensusInformation.ToHex()}");
-                        errorConsensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
-                        {
-                            BlockHash = blockHeader.PreviousBlockHash,
-                            BlockHeight = blockHeader.Height - 3
-                        });
-                        consensusInformation = errorConsensusInformation;
-                        Logger.LogWarning(
-                            $"EVIL TRIGGER - ErrorConsensusExtraDate - Error lower BlockHeight {consensusInformation.ToHex()}");
-                        break;
-                    case 1:
-                        Logger.LogWarning(
-                            $"EVIL TRIGGER - ErrorConsensusExtraDate - before evil {consensusInformation.ToHex()}");
-                        errorConsensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
-                        {
-                            BlockHash = blockHeader.PreviousBlockHash,
-                            BlockHeight = blockHeader.Height + 3
-                        });
-                        consensusInformation = errorConsensusInformation;
-                        Logger.LogWarning(
-                            $"EVIL TRIGGER - ErrorConsensusExtraDate - Error higher BlockHeight {consensusInformation.ToHex()}");
-                        break;
-                    case 2:
                         consensusInformation = consensusInformation.Take(consensusInformation.Length / 2).ToArray();
                         Logger.LogWarning(
                             "EVIL TRIGGER - ErrorConsensusExtraDate - Cut in half");
                         break;
-                    case 3:
+                    case 1:
                         consensusInformation = consensusInformation.Reverse().ToArray();
                         Logger.LogWarning(
                             "EVIL TRIGGER - ErrorConsensusExtraDate - Reverse bytes");

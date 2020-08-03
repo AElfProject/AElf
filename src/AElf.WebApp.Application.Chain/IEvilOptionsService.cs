@@ -16,14 +16,16 @@ namespace AElf.WebApp.Application.Chain
         Task<EvilTriggerOptions> SetRemoveTransactionCountInBodyAsync(bool removeTransactionCountInBody);
         Task<EvilTriggerOptions> SetReverseTransactionListAsync(bool reverseTransactionList);
         Task<EvilTriggerOptions> SetErrorSignatureInBlockAsync(bool repackagedTransaction);
+        Task<EvilTriggerOptions> SetChangeBlockHeaderAsync(bool status);
+        Task<EvilTriggerOptions> SetInvalidBlockHeaderAsync(bool status);
         Task<EvilTriggerOptions> SetInvalidMethodAsync(bool status);
         Task<EvilTriggerOptions> SetInvalidContractAsync(bool status);
         Task<EvilTriggerOptions> SetInvalidSignatureAsync(bool status);
         Task<EvilTriggerOptions> SetChangeTransactionListAsync(bool status);
+        Task<EvilTriggerOptions> SetConflictTransactionAsync(bool status);
         Task<EvilTriggerOptions> SetErrorConsensusExtraDateAsync(bool status);
         Task<EvilTriggerOptions> SetErrorCrossChainExtraDateAsync(bool status);
         Task<EvilTriggerOptions> SetErrorSystemTransactionCountAsync(bool status);
-
         Task<EvilTriggerOptions> GetEvilTriggerOptionsAsync();
     }
 
@@ -82,6 +84,20 @@ namespace AElf.WebApp.Application.Chain
             return Task.FromResult(_options);
         }
         
+        public Task<EvilTriggerOptions> SetChangeBlockHeaderAsync(bool status)
+        {
+            _options.ChangeBlockHeader = status;
+            Logger.LogDebug($"Evil ChangeBlockHeader is {status}");
+            return Task.FromResult(_options);
+        }
+
+        public Task<EvilTriggerOptions> SetInvalidBlockHeaderAsync(bool status)
+        {
+            _options.InvalidBlockHeader = status;
+            Logger.LogDebug($"Evil InvalidBlockHeader is {status}");
+            return Task.FromResult(_options);
+        }
+
         public Task<EvilTriggerOptions> SetInvalidMethodAsync(bool status)
         {
             _options.InvalidMethod = status;
@@ -110,6 +126,13 @@ namespace AElf.WebApp.Application.Chain
             return Task.FromResult(_options);
         }
         
+        public Task<EvilTriggerOptions> SetConflictTransactionAsync(bool status)
+        {
+            _options.ConflictTransaction = status;
+            Logger.LogDebug($"Evil SetConflictTransaction is {status}");
+            return Task.FromResult(_options);
+        }
+
         public Task<EvilTriggerOptions> SetErrorConsensusExtraDateAsync(bool status)
         {
             _options.ErrorConsensusExtraDate = status;

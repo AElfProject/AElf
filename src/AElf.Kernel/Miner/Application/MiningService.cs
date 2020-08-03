@@ -31,7 +31,6 @@ namespace AElf.Kernel.Miner.Application
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
         private readonly ITransactionManager _transactionManager;
 
-
         private readonly EvilTriggerOptions _evilTriggerOptions;
 
         public ILocalEventBus EventBus { get; set; }

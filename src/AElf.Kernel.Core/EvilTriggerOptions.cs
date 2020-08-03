@@ -13,6 +13,7 @@ namespace AElf.Kernel
         public bool ErrorSignatureInSystemTransaction { get; set; }
         public bool ChangeBlockHeaderSignPubKey { get; set; }
         public bool ChangeBlockHeader{ get; set; }
+        public bool InvalidBlockHeader { get; set; }
         public bool InvalidMethod { get; set; }
         public bool InvalidContracts { get; set; }
         public bool InvalidSignature { get; set; }

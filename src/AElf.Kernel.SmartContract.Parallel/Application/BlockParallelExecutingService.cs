@@ -5,6 +5,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application
 {
@@ -12,9 +13,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
     {
         public BlockParallelExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService, ITransactionResultService transactionResultService,
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider) : base(
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider, IOptionsMonitor<EvilTriggerOptions> evilTriggerOptions) : base(
             transactionExecutingService, blockchainStateService, transactionResultService,
-            systemTransactionExtraDataProvider)
+            systemTransactionExtraDataProvider,evilTriggerOptions)
         {
         }
 
