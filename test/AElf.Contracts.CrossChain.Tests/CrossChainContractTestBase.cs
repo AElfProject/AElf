@@ -5,48 +5,28 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.ContractTestKit;
-using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shouldly;
+using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
-using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
 
 namespace AElf.Contracts.CrossChain.Tests
 {
-    public class CrossChainContractTestBase : AEDPoSExtensionTestBase
+    public class CrossChainContractTestBase<T> : ContractTestBase<T> where T : AbpModule
     {
         #region Contract Address
-
-        public Address TokenContractAddress =>
-            ContractAddresses[TokenSmartContractAddressNameProvider.Name];
-
-        protected Address ParliamentContractAddress =>
-            ContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
-
-        protected Address AssociationContractAddress =>
-            ContractAddresses[AssociationSmartContractAddressNameProvider.Name];
-
-        public Address CrossChainContractAddress =>
-            ContractAddresses[SmartContractConstants.CrossChainContractSystemHashName];
-
-        public Address ConsensusContractAddress =>
-            ContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
 
         #endregion
 
@@ -56,7 +36,7 @@ namespace AElf.Contracts.CrossChain.Tests
         protected Address AnotherSender => Accounts.Last().Address;
 
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            Accounts.Take(AEDPoSExtensionConstants.InitialKeyPairCount).Select(a=>a.KeyPair).ToList();
+            Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
 
         protected Address DefaultSender => Address.FromPublicKey(DefaultKeyPair.PublicKey);
 
@@ -65,26 +45,21 @@ namespace AElf.Contracts.CrossChain.Tests
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
-            GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
-                DefaultKeyPair);
-
         #region Token
 
         internal TokenContractContainer.TokenContractStub TokenContractStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(
-                ContractAddresses[TokenSmartContractAddressNameProvider.Name],
-                DefaultKeyPair);
-
+            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+        
         #endregion
 
         #region Paliament
 
         internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
-            GetParliamentContractTester(DefaultKeyPair);
+            GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, DefaultKeyPair);
 
-        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
+        internal AssociationContractContainer.AssociationContractStub AssociationContractStub =>
+            GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, DefaultKeyPair);
+ 
 
         internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
             ECKeyPair keyPair)
@@ -119,41 +94,29 @@ namespace AElf.Contracts.CrossChain.Tests
                 keyPair);
         }
 
-        protected readonly List<string> ResourceTokenSymbolList;
+        protected List<string> ResourceTokenSymbolList => GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
+            .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
 
         public CrossChainContractTestBase()
         {
-            ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
-            {
-                TokenSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                SmartContractConstants.CrossChainContractSystemHashName,
-                ConsensusSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name
-            }));
-
             AsyncHelper.RunSync(InitializeTokenAsync);
-            AsyncHelper.RunSync(InitializeParliamentContractAsync);
-
-            AssociationContractStub =
-                GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
-                    DefaultKeyPair);
-
-            ResourceTokenSymbolList = GetRequiredService<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>()
-                .Value.ContextVariables["SymbolListToPayRental"].Split(",").ToList();
         }
 
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
             int parentChainId = 0, bool withException = false)
         {
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            var tx = CrossChainContractStub.Initialize.GetTransaction(new InitializeInput
             {
-                CrossChainContractStub.Initialize.GetTransaction(new InitializeInput
-                {
-                    ParentChainId = parentChainId,
-                    CreationHeightOnParentChain = parentChainHeightOfCreation
-                })
-            }, withException);
+                ParentChainId = parentChainId,
+                CreationHeightOnParentChain = parentChainHeightOfCreation
+            });
+            
+            var blockExecutedSet = await MineAsync(new List<Transaction>
+            {
+                tx
+            });
+            (blockExecutedSet.TransactionResultMap[tx.GetHash()].Status == TransactionResultStatus.Failed).ShouldBe(
+                withException);
         }
 
         internal async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
@@ -222,7 +185,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            await MineAsync(new List<Transaction>
             {
                 TokenContractStub.Create.GetTransaction(new CreateInput
                 {
@@ -246,7 +209,7 @@ namespace AElf.Contracts.CrossChain.Tests
         protected async Task ApproveBalanceAsync(long amount, ECKeyPair keyPair = null)
         {
             var tokenContractStub = keyPair == null ? TokenContractStub : GetTokenContractStub(keyPair);
-            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            await MineAsync(new List<Transaction>
             {
                 tokenContractStub.Approve.GetTransaction(new ApproveInput
                 {
@@ -417,19 +380,22 @@ namespace AElf.Contracts.CrossChain.Tests
             pendingChainIndexingProposalStatus.ToBeReleased.ShouldBe(toBeReleased);
         }
         
-        internal async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, int[] chainIdList)
+        internal async Task<long> DoIndexAsync(CrossChainBlockData crossChainBlockData, int[] chainIdList)
         {
             var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
-            var proposalId = ProposalCreated.Parser
-                .ParseFrom(txRes.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
-                .ProposalId;
-            await ApproveWithMinersAsync(proposalId);
+            var proposalIdList = txRes.TransactionResult.Logs.Where(l => l.Name.Contains(nameof(ProposalCreated)))
+                .Select(e => ProposalCreated.Parser.ParseFrom(e.NonIndexed).ProposalId);
+            foreach (var proposalId in proposalIdList)
+            {
+                await ApproveWithMinersAsync(proposalId);
+            }
 
-            await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+            var txResult =await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
                 new ReleaseCrossChainIndexingProposalInput
                 {
                     ChainIdList = {chainIdList}
                 });
+            return txResult.TransactionResult.BlockNumber;
         }
 
         internal async Task<Hash> DisposeSideChainProposalAsync(Int32Value chainId)

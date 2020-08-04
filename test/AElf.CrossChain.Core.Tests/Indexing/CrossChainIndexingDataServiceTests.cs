@@ -26,60 +26,7 @@ namespace AElf.CrossChain.Indexing
         }
 
         #region Side chain
-
-        [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithIndex_Test()
-        {
-            var chainId = _chainOptions.ChainId;
-            var fakeMerkleTreeRoot1 = HashHelper.ComputeFrom("fakeMerkleTreeRoot1");
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                Height = 1,
-                ChainId = chainId,
-                TransactionStatusMerkleTreeRoot = fakeMerkleTreeRoot1
-            };
-
-            var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
-            fakeIndexedCrossChainBlockData.SideChainBlockDataList.AddRange(new[] {fakeSideChainBlockData});
-
-            _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(fakeSideChainBlockData.Height,
-                fakeIndexedCrossChainBlockData);
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
-
-            AddFakeCacheData(new Dictionary<int, List<ICrossChainBlockEntity>>
-            {
-                {
-                    chainId,
-                    new List<ICrossChainBlockEntity>
-                    {
-                        fakeSideChainBlockData
-                    }
-                }
-            });
-
-            var res = await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(
-                fakeSideChainBlockData.BlockHeaderHash, 1);
-            Assert.True(res.SideChainBlockDataList[0].Height == fakeSideChainBlockData.Height);
-            Assert.True(res.SideChainBlockDataList[0].ChainId == chainId);
-        }
-
-        [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithoutIndex_Test()
-        {
-            var chainId = _chainOptions.ChainId;
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                Height = 1,
-                ChainId = chainId
-            };
-
-            var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
-            fakeIndexedCrossChainBlockData.SideChainBlockDataList.AddRange(new[] {fakeSideChainBlockData});
-
-            var res = await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(
-                fakeSideChainBlockData.BlockHeaderHash, 1);
-            Assert.True(res == null);
-        }
+        
 
         [Fact]
         public async Task PrepareExtraDataForNextMiningAsync_NoProposal_FirstTimeIndexing_Test()

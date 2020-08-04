@@ -98,23 +98,7 @@ namespace AElf.CrossChain
                 mockCrossChainIndexingDataService.Setup(service => service.GetNonIndexedBlockAsync(It.IsAny<long>()))
                     .Returns<long>(async height => await irreversibleBlockStateProvider.Value
                         .GetNotIndexedIrreversibleBlockByHeightAsync(height));
-                mockCrossChainIndexingDataService
-                    .Setup(m => m.GetIndexedCrossChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<long>()))
-                    .Returns(() =>
-                    {
-                        var crossChainBlockData = new CrossChainBlockData
-                        {
-                            SideChainBlockDataList =
-                            {
-                                new SideChainBlockData
-                                {
-                                    ChainId = 123, Height = 1,
-                                    TransactionStatusMerkleTreeRoot = HashHelper.ComputeFrom("fakeTransactionMerkleTree")
-                                }
-                            }
-                        };
-                        return Task.FromResult(crossChainBlockData);
-                    });
+
                 mockCrossChainIndexingDataService
                     .Setup(m => m.GetIndexedSideChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<long>())).Returns(
                         () =>

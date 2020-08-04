@@ -101,15 +101,6 @@ namespace AElf.CrossChain
                 dict.IdHeightDict.Add(_sideChainIdHeights);
                 return dict.ToByteArray();
             }
-            
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight))
-            {
-                long height = Int64Value.Parser.ParseFrom(transaction.Params).Value;
-                if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return crossChainBlockData.ToByteArray();
-                trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new CrossChainBlockData().ToByteArray();
-            }
 
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIndexingInformationList))
             {
