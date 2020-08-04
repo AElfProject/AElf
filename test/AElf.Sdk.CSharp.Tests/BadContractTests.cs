@@ -15,34 +15,21 @@ namespace AElf.Sdk.CSharp.Tests
     public class BadContractTests : SdkCSharpTestBase
     {
         private CustomContract.BadContract Contract = new CustomContract.BadContract();
-        private IStateProvider StateProvider { get; }
-        private IHostSmartContractBridgeContext BridgeContext { get; }
 
         private readonly MethodInfo _proxyCountMethod;
 
         public BadContractTests()
         {
-            StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
-            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
-
-            var transactionContext = new TransactionContext()
-            {
-                Transaction = new Transaction()
-                {
-                    From = SampleAddress.AddressList[0],
-                    To = SampleAddress.AddressList[1]
-                }
-            };
-
-            BridgeContext.TransactionContext = transactionContext;
+            BridgeContext.TransactionContext = TransactionContext;
 
             Contract.InternalInitialize(BridgeContext);
             
             var injectedCounter =  Contract.GetType().Assembly
                     .GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
             injectedCounter.ShouldNotBeNull();
-            
-            _proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver), new[] { typeof(IExecutionObserver) });
+
+            _proxyCountMethod = injectedCounter.GetMethod(nameof(ExecutionObserverProxy.SetObserver),
+                new[] {typeof(IExecutionObserver)});
             _proxyCountMethod.ShouldNotBeNull();
         }
 
