@@ -1257,7 +1257,9 @@ namespace AElf.Contracts.Genesis
                 Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
             }
         }
-
+        
+        #endregion
+        
         [Fact]
         public async Task SetInitialController_Failed_Test()
         {
@@ -1267,7 +1269,15 @@ namespace AElf.Contracts.Genesis
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.ShouldContain("Genesis owner already initialized");
         }
-        
-        #endregion
+
+        [Fact]
+        public async Task SetContractProposerRequiredState_Failed_Test()
+        {
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.SetContractProposerRequiredState),
+                ParliamentAddress);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("Genesis contract already initialized");
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel;
+using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -14,13 +15,19 @@ namespace AElf.Contracts.Genesis
     {
         private async Task<Address> Deploy_SmartContracts_Test()
         {
-            var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+            var contractDeploymentInput = new ContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
-            });
+            };
+            var result = await DefaultTester.DeploySmartContract.SendAsync(contractDeploymentInput);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             result.Output.ShouldNotBeNull();
+
+            {
+                var tx = await DefaultTester.DeploySmartContract.SendWithExceptionAsync(contractDeploymentInput);
+                tx.TransactionResult.Error.ShouldContain("contract code has already been deployed before");
+            }
             return result.Output;
         }
 
@@ -30,7 +37,8 @@ namespace AElf.Contracts.Genesis
             var txResult = await DefaultTester.DeploySystemSmartContract.SendAsync( new SystemContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
+                Name = TokenSmartContractAddressNameProvider.Name
             });
 
             var contractDeployed = ContractDeployed.Parser.ParseFrom(txResult.TransactionResult.Logs
@@ -38,6 +46,16 @@ namespace AElf.Contracts.Genesis
             var address = contractDeployed.Address;
             var author = await DefaultTester.GetContractAuthor.CallAsync(address);
             author.ShouldBe(DefaultSender);
+
+            var address2 =
+                await DefaultTester.GetContractAddressByName.CallAsync(TokenSmartContractAddressNameProvider.Name);
+            address2.ShouldBe(address);
+
+
+            {
+                (await DefaultTester.GetContractAddressByName.CallAsync(HashHelper.ComputeFrom("Random"))).ShouldBe(
+                    new Address());
+            }
         }
         
         [Fact]
@@ -48,6 +66,14 @@ namespace AElf.Contracts.Genesis
             var resultSerialNumber = await DefaultTester.CurrentContractSerialNumber.CallAsync(new Empty());
             resultSerialNumber.Value.ShouldNotBe(0);
 
+            {
+                var resultInfo = await DefaultTester.GetContractInfo.CallAsync(DefaultSender);
+                resultInfo.ShouldBe(new ContractInfo());
+
+                var resultHash = await DefaultTester.GetContractHash.CallAsync(DefaultSender);
+                resultHash.ShouldBe(new Hash());
+            }
+            
             {
                 var resultInfo = await DefaultTester.GetContractInfo.CallAsync(contractAddress);
                 resultInfo.ShouldNotBeNull();
@@ -75,6 +101,13 @@ namespace AElf.Contracts.Genesis
                 var address = SampleAddress.AddressList[0];
                 var registrationInfo =
                     await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(address);
+                registrationInfo.ShouldBe(new SmartContractRegistration());
+            }
+            
+            {
+                var registrationInfo =
+                    await DefaultTester.GetSmartContractRegistrationByCodeHash.CallAsync(
+                        HashHelper.ComputeFrom("Random"));
                 registrationInfo.ShouldBe(new SmartContractRegistration());
             }
             
