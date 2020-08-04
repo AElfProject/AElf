@@ -27,16 +27,13 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
         private readonly EvilTriggerOptions _evilTriggerOptions;
-        private readonly ITransactionManager _transactionManager;
-        private readonly IAccountService _accountService;
 
         public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
         public ILocalEventBus EventBus { get; set; }
 
-        public LocalParallelTransactionExecutingService(IAccountService accountService, ITransactionGrouper grouper,
+        public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             IPlainTransactionExecutingService planTransactionExecutingService,
             ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
-            ITransactionManager transactionManager,
             IOptionsMonitor<EvilTriggerOptions> evilTriggerOption)
         {
             _grouper = grouper;
@@ -46,8 +43,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
 
             _evilTriggerOptions = evilTriggerOption.CurrentValue;
-            _transactionManager = transactionManager;
-            _accountService = accountService;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -73,16 +68,16 @@ namespace AElf.Kernel.SmartContract.Parallel
                     $"{groupedTransactions.Parallelizables.First().First()},\n" +
                     $"{groupedTransactions.Parallelizables.Last().First()}");
 
-                var transactionList = groupedTransactions.Parallelizables.First();
-                var lastTransactionList = groupedTransactions.Parallelizables.Last();
-                var transaction = transactionList.First();
-                var lastTransaction = lastTransactionList.First();
+                var transactionList1 = groupedTransactions.Parallelizables.First();
+                var transactionList2 = groupedTransactions.Parallelizables.Last();
+                var transaction1 = transactionList1.First();
+                var transaction2 = transactionList2.First();
 
-                groupedTransactions.Parallelizables.First().RemoveAt(transactionList.Count - 1);
-                groupedTransactions.Parallelizables.First().Insert(0, lastTransaction);
+                groupedTransactions.Parallelizables.First().RemoveAt(0);
+                groupedTransactions.Parallelizables.First().Insert(0, transaction2);
 
-                groupedTransactions.Parallelizables.Last().RemoveAt(lastTransactionList.Count - 1);
-                groupedTransactions.Parallelizables.Last().Insert(0, transaction);
+                groupedTransactions.Parallelizables.Last().RemoveAt(0);
+                groupedTransactions.Parallelizables.Last().Insert(0, transaction1);
                 Logger.LogWarning(
                     $"EVIL TRIGGER - Error Parallelizables list, after evil:\n" +
                     $"{groupedTransactions.Parallelizables.First().First()},\n" +
