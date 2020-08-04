@@ -25,6 +25,22 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
+        public async Task DeploySystemContract_Test_Unauthorized()
+        {
+            var txResult = await DefaultTester.DeploySystemSmartContract.SendAsync( new SystemContractDeploymentInput()
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+            });
+
+            var contractDeployed = ContractDeployed.Parser.ParseFrom(txResult.TransactionResult.Logs
+                .First(l => l.Name.Contains(nameof(ContractDeployed))).NonIndexed);
+            var address = contractDeployed.Address;
+            var author = await DefaultTester.GetContractAuthor.CallAsync(address);
+            author.ShouldBe(DefaultSender);
+        }
+        
+        [Fact]
         public async Task Query_SmartContracts_Info_Test()
         {
             var contractAddress = await Deploy_SmartContracts_Test();
@@ -83,6 +99,14 @@ namespace AElf.Contracts.Genesis
         {
             var contractAddress = await Deploy_SmartContracts_Test();
 
+            var failedUpdate = await AnotherTester.UpdateSmartContract.SendWithExceptionAsync(
+                new ContractUpdateInput()
+                {
+                    Address = contractAddress,
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
+                });
+            failedUpdate.TransactionResult.Error.ShouldContain("No permission.");
+            
             var resultUpdate = await DefaultTester.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput()
                 {
@@ -128,6 +152,13 @@ namespace AElf.Contracts.Genesis
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Code is not changed.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task SetInitialController_Failed_Test()
+        {
+            var tx = await ZeroTester.SetInitialControllerAddress.SendWithExceptionAsync(ContractZeroAddress);
+            tx.TransactionResult.Error.ShouldContain("Unauthorized to initialize genesis contract.");
         }
     }
 }
