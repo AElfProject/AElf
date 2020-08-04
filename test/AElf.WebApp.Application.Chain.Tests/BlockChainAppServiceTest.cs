@@ -690,7 +690,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
                 response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
                 var errorInResponse = response.Error;
-                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult, false));
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult.Error, false));
             }
 
             var optionMonitor = GetRequiredService<IOptionsMonitor<WebAppOptions>>();
@@ -705,7 +705,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
                 response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
                 var errorInResponse = response.Error;
-                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult, true));
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult.Error, true));
             }
         }
 
