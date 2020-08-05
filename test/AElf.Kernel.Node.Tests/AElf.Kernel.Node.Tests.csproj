@@ -11,4 +11,9 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+    </ItemGroup>
 </Project>
