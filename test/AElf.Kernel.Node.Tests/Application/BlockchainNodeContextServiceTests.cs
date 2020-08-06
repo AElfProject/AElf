@@ -71,8 +71,9 @@ namespace AElf.Kernel.Node.Tests.Application
             chain = await _blockchainService.GetChainAsync();
             chain.LastIrreversibleBlockHeight.ShouldBe(2);
             
-            await _blockchainNodeContextService.StartAsync(dto);
+            context = await _blockchainNodeContextService.StartAsync(dto);
             chain = await _blockchainService.GetChainAsync();
+            context.ChainId.ShouldBe(dto.ChainId);
             chain.BestChainHeight.ShouldBe(2);
             chain.BestChainHash.ShouldBe(block2.GetHash());
             
