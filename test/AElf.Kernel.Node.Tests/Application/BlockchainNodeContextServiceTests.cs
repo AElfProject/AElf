@@ -9,7 +9,7 @@ using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.Kernel.Node.Tests.Application
+namespace AElf.Kernel.Node.Application
 {
     public class BlockchainNodeContextServiceTests : NodeTestBase
     {

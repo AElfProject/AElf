@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.Node.Tests
+namespace AElf.Kernel.Node
 {
     [DependsOn(typeof(NodeAElfModule), typeof(KernelCoreTestAElfModule))]
     public class NodeTestAElfModule : AElfModule

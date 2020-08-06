@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
+        <RootNamespace>AElf.Kernel.Node</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.3.0" />
