@@ -1278,7 +1278,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 await AssociationContractStub.Release.SendAsync(indexingFeeAdjustProposalId);
 
                 (await CrossChainContractStub.GetSideChainIndexingFeePrice.CallWithExceptionAsync(new Int32Value()
-                    {Value = sideChainId})).Value.ShouldContain("Side chain not found.");
+                    {Value = sideChainId + 1})).Value.ShouldContain("Side chain not found.");
                 
                 var indexingFeePriceCheck =
                     await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new Int32Value()
@@ -1349,7 +1349,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             (await CrossChainContractStub.GetSideChainIndexingFeeController.CallWithExceptionAsync(new Int32Value
             {
-                Value = sideChainId
+                Value = sideChainId + 1
             })).Value.ShouldContain("Side chain not found.");
                 
             var oldSideChainFeeController =

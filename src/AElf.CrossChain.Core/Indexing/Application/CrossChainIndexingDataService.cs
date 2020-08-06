@@ -241,7 +241,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
             if (indexingProposalStatusList == null)
-                return true; // cross chain contract not updated
+                return true; // cross chain contract not updated, deprecated if re-run from zero
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
             return toBeReleasedChainIdList.Count > 0;
         }
@@ -251,7 +251,7 @@ namespace AElf.CrossChain.Indexing.Application
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
             if (indexingProposalStatusList == null)
-                return ByteString.Empty;
+                return ByteString.Empty; // cross chain contract not updated, deprecated if rerun from zero
             
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
