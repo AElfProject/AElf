@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Runtime.CSharp
 {
-    public sealed class SmartContractRunnerTest: CSharpRuntimeTestBase
+    public sealed class SmartContractRunnerTests: CSharpRuntimeTestBase
     {
         [Fact]
         public async Task Run_Test()
