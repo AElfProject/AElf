@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using AElf.Kernel.SmartContract;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
