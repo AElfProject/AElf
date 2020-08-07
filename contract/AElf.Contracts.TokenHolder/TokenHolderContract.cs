@@ -207,6 +207,7 @@ namespace AElf.Contracts.TokenHolder
                             Period = scheme.Period
                         };
                     distributedInput.AmountsMap[threshold.Key] = 0;
+                    break;
                 }
 
                 if (distributedInput == null) return new Empty();
