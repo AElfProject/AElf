@@ -631,7 +631,7 @@ namespace AElf.OS.Network.Grpc
                 Endpoint = "127.0.0.1:2001",
                 Pubkey = ByteString.CopyFromUtf8("pubkey1")
             };
-            await _nodeManager.AddOrUpdateNodeAsync(node);
+            await _nodeManager.AddNodeAsync(node);
             var request = new NodesRequest
             {
                 MaxCount = 1

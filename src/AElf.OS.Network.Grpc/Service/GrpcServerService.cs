@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Grpc.Helpers;
@@ -29,19 +30,19 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ISyncStateService _syncStateService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IPeerDiscoveryService _peerDiscoveryService;
+        private readonly INodeManager _nodeManager;
         private readonly IConnectionService _connectionService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
         public GrpcServerService(ISyncStateService syncStateService, IConnectionService connectionService,
-            IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService)
+            IBlockchainService blockchainService, INodeManager nodeManager)
         {
             _syncStateService = syncStateService;
             _connectionService = connectionService;
             _blockchainService = blockchainService;
-            _peerDiscoveryService = peerDiscoveryService;
+            _nodeManager = nodeManager;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -340,7 +341,7 @@ namespace AElf.OS.Network.Grpc
             NodeList nodes;
             try
             {
-                nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+                nodes = await _nodeManager.GetRandomNodesAsync(request.MaxCount);
             }
             catch (Exception e)
             {

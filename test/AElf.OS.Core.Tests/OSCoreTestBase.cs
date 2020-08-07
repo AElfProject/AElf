@@ -27,4 +27,9 @@ namespace AElf.OS
     {
         
     }
+    
+    public class PeerDiscoveryTestBase : AElfIntegratedTest<PeerDiscoveryTestModule>
+    {
+        
+    }
 }

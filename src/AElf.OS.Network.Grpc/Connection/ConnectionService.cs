@@ -340,5 +340,10 @@ namespace AElf.OS.Network.Grpc
             if (peer != null)
                 await peer.DisconnectAsync(false);
         }
+
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _peerDialer.CheckEndpointAvailableAsync(endpoint);
+        }
     }
 }

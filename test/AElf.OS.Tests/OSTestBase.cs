@@ -44,6 +44,10 @@ namespace AElf.OS
     {
     }
     
+    public class PeerDiscoveryWorkerTestBase : AElfIntegratedTest<PeerDiscoveryWorkerTestModule>
+    {
+    }
+    
     public class PeerReconnectionTestBase : AElfIntegratedTest<PeerReconnectionTestAElfModule>
     {
     }

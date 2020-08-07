@@ -167,6 +167,11 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _connectionService.CheckEndpointAvailableAsync(endpoint);
+        }
+
         public async Task StopAsync(bool gracefulDisconnect = true)
         {
             try

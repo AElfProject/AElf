@@ -390,7 +390,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
 
             var chain = await _blockchainService.GetChainAsync();
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
@@ -532,7 +532,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             responseTransactionIds.Count.ShouldBe(2);
 
             var chain = await _blockchainService.GetChainAsync();
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[0]);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[1]);
 
@@ -1230,7 +1230,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldBeNull();
 
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
 
             parameters = new Dictionary<string, string>
@@ -1255,7 +1255,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(chain.BestChainHash).ToBase64());
             sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
 
-            existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }
 
