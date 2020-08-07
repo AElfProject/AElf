@@ -10,5 +10,7 @@ namespace AElf.Kernel.Miner
         public long PreviousBlockHeight { get; set; }
 
         public Duration BlockExecutionTime { get; set; }
+        
+        public int TransactionCountLimit { get; set; }
     }
 }

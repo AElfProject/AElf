@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -119,7 +118,13 @@ namespace AElf.Kernel.Miner.Application
                         requestMiningDto.PreviousBlockHeight);
                     _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
                         block.Header);
-                    var pending = transactions;
+                    var txTotalCount = transactions.Count + systemTransactions.Count;
+
+                    var pending = txTotalCount > requestMiningDto.TransactionCountLimit
+                        ? transactions
+                            .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
+                            .ToList()
+                        : transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
 
@@ -128,7 +133,7 @@ namespace AElf.Kernel.Miner.Application
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
-                                          $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
+                                          $"not executed transactions {pending.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
                     return blockExecutedSet;
                 }
             }
