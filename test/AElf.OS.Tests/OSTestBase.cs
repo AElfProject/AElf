@@ -39,6 +39,10 @@ namespace AElf.OS
     {
     }
     
+    public class BlockSyncRetryTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
+    {
+    }
+    
     public class PeerDiscoveryWorkerTestBase : AElfIntegratedTest<PeerDiscoveryWorkerTestModule>
     {
     }
