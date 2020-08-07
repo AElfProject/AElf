@@ -17,15 +17,15 @@
         <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
-    <Import Project="..\AllContracts.props" />
-
+    
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.CommitmentScheme\AElf.Contracts.TestContract.CommitmentScheme.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.RandomNumberProvider\AElf.Contracts.TestContract.RandomNumberProvider.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
     </ItemGroup>
+    <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
@@ -46,9 +46,9 @@
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\acs6.proto">
+        <ContractBase Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
-        </ContractMessage>
+        </ContractBase>
         <ContractMessage Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractMessage>
@@ -70,8 +70,8 @@
         <ContractStub Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\association.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\commitment_scheme_contract.proto">
-            <Link>Protobuf\Proto\commitment_scheme_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\random_number_provider_contract.proto">
+            <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

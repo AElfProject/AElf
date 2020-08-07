@@ -21,6 +21,7 @@ namespace AElf.OS.Network
         public const int DefaultDiscoveryMaxNodesToRequest = 10;
         public const int DefaultDiscoveryPeriod = 60_000;
         public const int DefaultDiscoveryPeersToRequestCount = 5;
+        public const int DefaultDiscoveryMaxNodesToKeep = 512;
 
         public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";

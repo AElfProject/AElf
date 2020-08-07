@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Kernel.CodeCheck";
+
+message RequiredAcsInContracts {
+    repeated string acs_list = 1;
+    bool require_all = 2;
+}

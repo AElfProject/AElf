@@ -341,5 +341,10 @@ namespace AElf.OS.Network.Grpc.Connection
         {
             _peerPool.RemovePeer(pubkey);
         }
+
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _peerDialer.CheckEndpointAvailableAsync(endpoint);
+        }
     }
 }

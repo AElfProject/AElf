@@ -21,7 +21,7 @@ using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using Microsoft.Extensions.Options;
 using Mono.Cecil.Cil;
@@ -308,6 +308,7 @@ namespace AElf.CSharp.CodeOps
                 .Findings;
 
             findings.Count(f => f is MethodCallInjectionValidationResult).ShouldBe(3);
+            findings.Count(f => f is ObserverProxyValidationResult).ShouldBe(1);
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));

@@ -1,10 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract;
-using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -15,25 +9,10 @@ namespace AElf.Sdk.CSharp.Tests
     public class TestContractTests : SdkCSharpTestBase
     {
         private CustomContract.TestContract Contract = new CustomContract.TestContract();
-        private IStateProvider StateProvider { get; }
-        private IHostSmartContractBridgeContext BridgeContext { get; }
 
         public TestContractTests()
         {
-            StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
-            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
-            
-            var transactionContext = new TransactionContext()
-            {
-                Transaction = new Transaction()
-                {
-                    From = SampleAddress.AddressList[0],
-                    To = SampleAddress.AddressList[1]
-                }
-            };
-
-            BridgeContext.TransactionContext = transactionContext;
-            
+            BridgeContext.TransactionContext = TransactionContext;
             Contract.InternalInitialize(BridgeContext);
         }
 
