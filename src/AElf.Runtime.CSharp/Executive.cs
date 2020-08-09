@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
@@ -46,7 +45,8 @@ namespace AElf.Runtime.CSharp
         public Executive(Assembly assembly)
         {
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
+            _smartContractProxy =
+                new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverProxyType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();
@@ -90,7 +90,9 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            var observer = new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, CurrentTransactionContext.ExecutionBranchThreshold);
+            var observer =
+                new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
+                    CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
             
             try
             {

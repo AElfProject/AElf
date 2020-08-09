@@ -31,6 +31,8 @@ namespace AElf.Kernel.SmartContract.Application
         Address GetZeroSmartContractAddress(int chainId);
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
+
+        Task<int> GetStateSizeLimitAsync(IChainContext chainContext);
     }
 
     public class SmartContractBridgeService : ISmartContractBridgeService
@@ -39,17 +41,19 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IStateSizeLimitProvider _stateSizeLimitProvider;
 
         public ILogger<SmartContractBridgeService> Logger { get; set; }
 
         public SmartContractBridgeService(ISmartContractService smartContractService,
             IBlockchainService blockchainService, ISmartContractAddressService smartContractAddressService,
-            IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager, IStateSizeLimitProvider stateSizeLimitProvider)
         {
             _smartContractService = smartContractService;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
             _blockchainStateManager = blockchainStateManager;
+            _stateSizeLimitProvider = stateSizeLimitProvider;
             Logger = NullLogger<SmartContractBridgeService>.Instance;
         }
 
@@ -110,6 +114,12 @@ namespace AElf.Kernel.SmartContract.Application
             
             return _blockchainStateManager.GetStateAsync(key, blockHeight,
                 blockHash);
+        }
+
+        public async Task<int> GetStateSizeLimitAsync(IChainContext chainContext)
+        {
+            var stateSizeLimit = await _stateSizeLimitProvider.GetStateSizeLimitAsync(chainContext);
+            return stateSizeLimit;
         }
     }
 }

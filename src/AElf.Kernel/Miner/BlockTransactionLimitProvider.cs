@@ -11,7 +11,7 @@ namespace AElf.Kernel.Miner
 {
     public interface IBlockTransactionLimitProvider
     {
-        Task<int> GetLimitAsync(IChainContext chainContext);
+        Task<int> GetLimitAsync(IBlockIndex blockIndex);
         Task SetLimitAsync(IBlockIndex blockIndex, int limit);
     }
 
@@ -31,9 +31,9 @@ namespace AElf.Kernel.Miner
             _systemTransactionCount = systemTransactionGenerators.Count();
         }
 
-        public Task<int> GetLimitAsync(IChainContext chainContext)
+        public Task<int> GetLimitAsync(IBlockIndex blockIndex)
         {
-            var limit = GetBlockExecutedData(chainContext);
+            var limit = GetBlockExecutedData(blockIndex);
             return Task.FromResult(limit?.Value ?? int.MaxValue);
         }
 
