@@ -15,18 +15,18 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IAccountService _accountService;
-        private readonly IConsensusExtraDataKeyProvider _consensusExtraDataKeyProvider;
+        private readonly IConsensusExtraDataProvider _consensusExtraDataProvider;
 
         private readonly List<string> _cachedPubkeyList = new List<string>();
 
         public ILogger<AEDPoSBroadcastPrivilegedPubkeyListProvider> Logger { get; set; }
 
         public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
-            IAccountService accountService, IConsensusExtraDataKeyProvider consensusExtraDataKeyProvider)
+            IAccountService accountService, IConsensusExtraDataProvider consensusExtraDataProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _accountService = accountService;
-            _consensusExtraDataKeyProvider = consensusExtraDataKeyProvider;
+            _consensusExtraDataProvider = consensusExtraDataProvider;
 
             Logger = NullLogger<AEDPoSBroadcastPrivilegedPubkeyListProvider>.Instance;
         }
@@ -34,10 +34,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
         {
             var consensusExtraData =
-                _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataKeyProvider.BlockHeaderExtraDataKey,
+                _blockExtraDataService.GetExtraDataFromBlockHeader(_consensusExtraDataProvider.BlockHeaderExtraDataKey,
                     blockHeader);
+            if (consensusExtraData == null) return new List<string>();
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
+            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock && _cachedPubkeyList.Any())
             {
                 // The orders changed every round, and the orders can be updated during every behaviour of UPDATE_VALUE or NEXT_ROUND,
                 // so we can skip the update for TINY_BLOCK.

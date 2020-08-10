@@ -16,15 +16,15 @@ namespace AElf.CrossChain.Application
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
-        private readonly IConsensusExtraDataKeyProvider _consensusExtraDataKeyProvider;
+        private readonly IConsensusExtraDataProvider _consensusExtraDataProvider;
 
         public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
             ICrossChainIndexingDataService crossChainIndexingDataService,
-            IConsensusExtraDataKeyProvider consensusExtraDataKeyProvider)
+            IConsensusExtraDataProvider consensusExtraDataProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _crossChainIndexingDataService = crossChainIndexingDataService;
-            _consensusExtraDataKeyProvider = consensusExtraDataKeyProvider;
+            _consensusExtraDataProvider = consensusExtraDataProvider;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
@@ -88,7 +88,7 @@ namespace AElf.CrossChain.Application
             parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
             parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
-                new[] {_consensusExtraDataKeyProvider.BlockHeaderExtraDataKey}));
+                new[] {_consensusExtraDataProvider.BlockHeaderExtraDataKey}));
             return parentChainBlockData;
         }
 
