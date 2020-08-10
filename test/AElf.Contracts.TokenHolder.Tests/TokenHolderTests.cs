@@ -174,15 +174,15 @@ namespace AElf.Contracts.TokenHolder
             });
             var afterRemoveScheme = await ProfitContractStub.GetScheme.CallAsync(schemeIds.SchemeIds[0]);
             afterRemoveScheme.TotalShares.ShouldBe(beforeRemoveScheme.TotalShares - amount);
-            var profitAmount = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                Beneficiary = Starter,
-                SchemeId = schemeId
-            });
-            profitAmount.Details.Count.ShouldBe(2);
-            profitAmount.Details[0].Shares.ShouldBe(beforeRemoveScheme.TotalShares);
-            profitAmount.Details[0].EndPeriod.ShouldBe(0);
-            profitAmount.Details[1].Shares.ShouldBe(beforeRemoveScheme.TotalShares - amount);
+            // var profitAmount = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            // {
+            //     Beneficiary = Starter,
+            //     SchemeId = schemeId
+            // });
+            // profitAmount.Details.Count.ShouldBe(2);
+            // profitAmount.Details[0].Shares.ShouldBe(beforeRemoveScheme.TotalShares);
+            // profitAmount.Details[0].EndPeriod.ShouldBe(0);
+            // profitAmount.Details[1].Shares.ShouldBe(beforeRemoveScheme.TotalShares - amount);
         }
 
         [Fact]

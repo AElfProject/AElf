@@ -243,35 +243,35 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             transactions.Count.ShouldBe(0);
         }
 
-        [Fact]
-        public async Task GetPostTransactions_Success_Test()
-        {
-            const string symbol = "READ";
-            var plugin = GetCreateInstance<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
-            plugin.ShouldNotBeNull();
-            var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var chain = await bcs.GetChainAsync();
-
-            var transactions = (await plugin.GetPostTransactionsAsync(TestContract.ContractContainer.Descriptors,
-                new TransactionContext
-                {
-                    Transaction = new Transaction
-                    {
-                        From = TestContractAddress,
-                        To = TokenConverterAddress,
-                        MethodName = nameof(TestContractStub.CpuConsumingMethod)
-                    },
-                    BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
-                })).ToList();
-
-            transactions.Count.ShouldBe(1);
-            var postTransaction = transactions[0];
-            postTransaction.MethodName.ShouldBe(nameof(TokenContractStub.ChargeResourceToken));
-            var tokenFeeInfo = ChargeResourceTokenInput.Parser.ParseFrom(postTransaction.Params);
-            tokenFeeInfo.CostDic.ContainsKey(symbol);
-            tokenFeeInfo.CostDic[symbol].ShouldBeGreaterThan(0);
-        }
+        // [Fact]
+        // public async Task GetPostTransactions_Success_Test()
+        // {
+        //     const string symbol = "READ";
+        //     var plugin = GetCreateInstance<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
+        //     plugin.ShouldNotBeNull();
+        //     var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+        //     var chain = await bcs.GetChainAsync();
+        //
+        //     var transactions = (await plugin.GetPostTransactionsAsync(TestContract.ContractContainer.Descriptors,
+        //         new TransactionContext
+        //         {
+        //             Transaction = new Transaction
+        //             {
+        //                 From = TestContractAddress,
+        //                 To = TokenConverterAddress,
+        //                 MethodName = nameof(TestContractStub.CpuConsumingMethod)
+        //             },
+        //             BlockHeight = chain.BestChainHeight + 1,
+        //             PreviousBlockHash = chain.BestChainHash
+        //         })).ToList();
+        //
+        //     transactions.Count.ShouldBe(1);
+        //     var postTransaction = transactions[0];
+        //     postTransaction.MethodName.ShouldBe(nameof(TokenContractStub.ChargeResourceToken));
+        //     var tokenFeeInfo = ChargeResourceTokenInput.Parser.ParseFrom(postTransaction.Params);
+        //     tokenFeeInfo.CostDic.ContainsKey(symbol);
+        //     tokenFeeInfo.CostDic[symbol].ShouldBeGreaterThan(0);
+        // }
 
         private I GetCreateInstance<I, T>() where T : I
         {
