@@ -2,12 +2,10 @@ syntax = "proto3";
 
 package aelf;
 
-import "kernel.proto";
-
 option csharp_namespace = "AElf.Kernel.SmartContractExecution";
 
-message TransactionTraceMessage
+message ExecutionObserverThreshold
 {
-    int64 request_id = 1;
-    repeated TransactionTrace transaction_traces = 2;
+    int32 execution_call_threshold = 1;
+    int32 execution_branch_threshold = 2;
 }
