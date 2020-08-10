@@ -343,6 +343,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiTokenCrossChainTransfer.Tests", "test\AElf.Contracts.MultiTokenCrossChainTransfer.Tests\AElf.Contracts.MultiTokenCrossChainTransfer.Tests.csproj", "{850A384F-6226-433F-8777-396A3717F7E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.CodeCheck.Tests", "test\AElf.Kernel.CodeCheck.Tests\AElf.Kernel.CodeCheck.Tests.csproj", "{E9F84A8F-5761-407D-9200-BE8E3493073C}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core.Tests", "test\AElf.Runtime.CSharp.Core.Tests\AElf.Runtime.CSharp.Core.Tests.csproj", "{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractDeployer.Tests", "test\AElf.ContractDeployer.Tests\AElf.ContractDeployer.Tests.csproj", "{B64C5954-9CC0-4A0B-9453-92324B51C23D}"
@@ -985,6 +987,10 @@ Global
 		{850A384F-6226-433F-8777-396A3717F7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9F84A8F-5761-407D-9200-BE8E3493073C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9F84A8F-5761-407D-9200-BE8E3493073C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9F84A8F-5761-407D-9200-BE8E3493073C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9F84A8F-5761-407D-9200-BE8E3493073C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1168,5 +1174,6 @@ Global
 		{850A384F-6226-433F-8777-396A3717F7E0} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{B64C5954-9CC0-4A0B-9453-92324B51C23D} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{E9F84A8F-5761-407D-9200-BE8E3493073C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
