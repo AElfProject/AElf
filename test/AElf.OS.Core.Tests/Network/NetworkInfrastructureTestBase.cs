@@ -7,4 +7,9 @@ namespace AElf.OS.Network
     {
         
     }
+    
+    public class NetworkMaxPeersPerIpAddressTestBase : AElfIntegratedTest<NetworkMaxPeersPerIpAddressTestModule>
+    {
+        
+    }
 }
