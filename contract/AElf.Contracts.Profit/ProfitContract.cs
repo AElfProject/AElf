@@ -265,7 +265,10 @@ namespace AElf.Contracts.Profit
                 }
                 else
                 {
-                    expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                    if(expiryDetail.EndPeriod == long.MaxValue)
+                        currentDetail.Details.Remove(expiryDetail);
+                    else
+                        expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
             }
 

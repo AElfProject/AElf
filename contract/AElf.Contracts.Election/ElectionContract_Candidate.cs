@@ -164,13 +164,32 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Option = pubkey
             });
-
-            // Remove this candidate from subsidy profit scheme.
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            var dataCenterList = State.DataCentersRankingList.Value;
+            if (dataCenterList.DataCenters.ContainsKey(pubkey))
             {
-                SchemeId = State.SubsidyHash.Value,
-                Beneficiary = Context.Sender
-            });
+                dataCenterList.DataCenters[pubkey] = 0;
+                if (!IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, pubkey))
+                {
+                    State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                    {
+                        SchemeId = State.SubsidyHash.Value,
+                        Beneficiary = Context.Sender
+                    });
+                    dataCenterList.DataCenters.Remove(pubkey);
+                }
+
+                State.DataCentersRankingList.Value = dataCenterList;
+            }
+            else
+            {
+                // Remove this candidate from subsidy profit scheme.
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Context.Sender
+                });
+            }
+           
 
             return new Empty();
         }
@@ -196,7 +215,6 @@ namespace AElf.Contracts.Election
             }
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
-            State.DataCentersRankingList.Value.DataCenters.Remove(recoveredPublicKey.ToHex());
         }
 
         #endregion
