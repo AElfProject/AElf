@@ -6,21 +6,19 @@ using AElf.OS.Network.Protocol;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class PeerDialerTests : PeerDialerTestBase
     {
         private readonly IPeerDialer _peerDialer;
         private readonly IBlockchainService _blockchainService;
         private readonly IHandshakeProvider _handshakeProvider;
-        private readonly NetworkTestContext _networkTestContext;
 
         public PeerDialerTests()
         {
             _peerDialer = GetRequiredService<IPeerDialer>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _handshakeProvider = GetRequiredService<IHandshakeProvider>();
-            _networkTestContext = GetRequiredService<NetworkTestContext>();
         }
 
         [Fact]
@@ -31,10 +29,18 @@ namespace AElf.OS.Network
             
             grpcPeer.ShouldNotBeNull();
 
-            var peersHandshake = _networkTestContext.GeneratedHandshakes[endpoint.Host];
-            grpcPeer.CurrentBlockHash.ShouldBe(peersHandshake.HandshakeData.BestChainHash);
-            grpcPeer.CurrentBlockHeight.ShouldBe(peersHandshake.HandshakeData.BestChainHeight);
-            grpcPeer.LastKnownLibHeight.ShouldBe(peersHandshake.HandshakeData.LastIrreversibleBlockHeight);
+            grpcPeer.CurrentBlockHash.ShouldBe(HashHelper.ComputeFrom("BestChainHash"));
+            grpcPeer.CurrentBlockHeight.ShouldBe(10);
+            grpcPeer.LastKnownLibHeight.ShouldBe(1);
+        }
+        
+        [Fact]
+        public async Task DialPeer_InvalidEndpoint_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
+            var grpcPeer = await _peerDialer.DialPeerAsync(endpoint);
+            
+            grpcPeer.ShouldBeNull();
         }
 
         [Fact]
@@ -51,6 +57,17 @@ namespace AElf.OS.Network
             grpcPeer.LastKnownLibHeight.ShouldBe(handshake.HandshakeData.LastIrreversibleBlockHeight);
             grpcPeer.Info.Pubkey.ShouldBe(handshake.HandshakeData.Pubkey.ToHex());
             grpcPeer.Info.ProtocolVersion.ShouldBe(handshake.HandshakeData.Version);
+        }
+        
+        [Fact]
+        public async Task DialBackPeer_InvalidEndpoint_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            
+            var grpcPeer = await _peerDialer.DialBackPeerAsync(endpoint, handshake);
+            
+            grpcPeer.ShouldBeNull();
         }
     }
 }
