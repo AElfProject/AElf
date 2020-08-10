@@ -822,13 +822,14 @@ namespace AElf.Contracts.TestBase
                 {
                     Symbol = symbol
                 });
-
-            if(parentChainTokenContractAddress != null)
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                    new InitializeFromParentChainInput
-                    {
-                        RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
-                    });
+            // side chain creator should not be null
+            
+            // if(parentChainTokenContractAddress != null)
+            //     tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+            //         new InitializeFromParentChainInput
+            //         {
+            //             RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
+            //         });
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
                 new Empty());
             

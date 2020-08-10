@@ -122,10 +122,12 @@ namespace AElf.Contract.TestContract
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
             //deploy test contract1
+            var basicFunctionPatchedCode = PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value;
+            CheckCode(basicFunctionPatchedCode);
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
+                    basicFunctionPatchedCode,
                     TestBasicFunctionContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
