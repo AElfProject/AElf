@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using AElf.TestBase;
+using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -25,6 +26,13 @@ namespace AElf.CSharp.CodeOps
         protected byte[] ReadPatchedContractCode(Type contractType)
         {
             return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
+        }
+
+        protected ModuleDefinition GetModule(Type contractType)
+        {
+            var code = ReadContractCode(contractType);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
         }
 
         private byte[] ReadCode(string path)

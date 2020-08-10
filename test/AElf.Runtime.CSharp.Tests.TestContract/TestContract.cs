@@ -1,5 +1,7 @@
+using System;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -171,5 +173,15 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
             return new StringOutput {StringValue = merged};
         }
+
+        public bool TestStateType()
+        {
+            State.ReadonlyBool.Value = false;
+            State.ProtoInfo.Value = new ProtobufMessage();
+            State.Int32Info.Value = Int32.MaxValue;
+            State.MappedState[1] = new Address();
+            State.MappedInt64State[1] = 1;
+            return State.BoolInfo.Value;
+        }
     }
-}
+}    

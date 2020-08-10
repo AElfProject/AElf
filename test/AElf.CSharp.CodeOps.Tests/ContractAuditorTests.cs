@@ -344,7 +344,7 @@ namespace AElf.CSharp.CodeOps
         }
 
 
-        void RemoveInstruction(MethodDefinition method, Func<Instruction, bool> where)
+        void RemoveInstruction(MethodDefinition method, Func<Mono.Cecil.Cil.Instruction, bool> where)
         {
             var il = method.Body.GetILProcessor();
 

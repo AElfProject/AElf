@@ -188,15 +188,15 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
 
             // Fail if the type is not allowed in the namespace 
             if (!namespaceRule.Types.TryGetValue(type.Name, out var typeRule) ||
-                (typeRule.Permission == Permission.Denied && !typeRule.Members.Any()))
+                typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
             {
                 return namespaceRule.Permission == Permission.Allowed
                     ? WhitelistSearchResult.Allowed
                     : WhitelistSearchResult.DeniedType;
             }
 
-            if (typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
-                return WhitelistSearchResult.DeniedType;
+            // if (typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
+            //     return WhitelistSearchResult.DeniedType;
 
             if (member == null)
                 return WhitelistSearchResult.Allowed;

@@ -1,4 +1,5 @@
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {
@@ -17,5 +18,9 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
 
         public ReadonlyState<bool> ReadonlyBool { get; set; }
+        
+        public MappedState<long, Address> MappedState { get; set; }
+        
+        public MappedState<long, long> MappedInt64State { get; set; }
     }
 }
