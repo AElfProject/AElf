@@ -54,6 +54,17 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("No permission.", transactionResult.Error);
         }
+        
+        [Fact]
+        public async Task GetConfiguration_Of_Not_Exist_Key_Test()
+        {
+            var transactionResult =
+                await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    new StringValue {Value = "BlockTransactionLimit"});
+            Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
+            transactionResult.ReturnValue.Length.ShouldBe(0);
+        }
 
         [Fact]
         public async Task Get_Block_Transaction_Limit()
@@ -120,6 +131,35 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("No permission.", transactionResult.Error);
         }
+        
+        [Fact]
+        public async Task ChangeConfigurationController_With_Invalid_Authority()
+        {
+            var proposalId = await SetTransactionOwnerAddressProposalAsync(new AuthorityInfo
+            {
+                ContractAddress = ParliamentAddress,
+                OwnerAddress = ParliamentAddress
+            });
+            await ApproveWithMinersAsync(proposalId);
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            transactionResult.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
+        public async Task GetConfigurationController_Default_Authority()
+        {
+            var transactionResult =
+                await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
+                    new Empty());
+            var defaultAuthority = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
+            var defaultParliament = await ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                new Empty());
+            var defaultParliamentAddress = Address.Parser.ParseFrom(defaultParliament.ReturnValue);
+            defaultAuthority.ContractAddress.ShouldBe(ParliamentAddress);
+            defaultAuthority.OwnerAddress.ShouldBe(defaultParliamentAddress);
+        }
 
         [Fact]
         public async Task SetRequiredAcsInContracts_NoPermission()
@@ -134,6 +174,20 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission.");
+        }
+
+        [Fact]
+        public async Task SetConfiguration_With_Invalid_Input_Test()
+        {
+            var value = ParliamentAddress;
+            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput(),
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+            proposalId.ShouldNotBeNull();
+            await ApproveWithMinersAsync(proposalId);
+            var releaseTxResult = await ReleaseProposalAsync(proposalId);
+            releaseTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            releaseTxResult.Error.ShouldContain("Invalid set config input");
         }
 
         [Fact]
