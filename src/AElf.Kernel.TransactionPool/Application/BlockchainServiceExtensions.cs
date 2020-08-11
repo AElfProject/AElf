@@ -10,7 +10,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public static async Task<List<IBlockIndex>> GetBlockIndexesAsync(this IBlockchainService blockchainService,
             long firstHeight, Hash bestChainHash, long bestChainHeight)
         {
-            if (firstHeight == 0)
+            if (firstHeight <= 0)
                 return new List<IBlockIndex>();
             
             var indexCount = bestChainHeight - firstHeight;

@@ -309,40 +309,35 @@ namespace AElf.Contract.TestContract
             var pairA = "ELF";
             var to = Accounts[1].Address.ToBase58();
             var pairB = "USDT";
-                    
-            await TestBasicSecurityContractStub.TestMapped2State.SendAsync(new Complex3Input
+
+            var protobufMessage = new ProtobufMessage
             {
-                From = from,
-                PairA = pairA,
-                To = to,
-                PairB = pairB,
-                TradeDetails = new TradeMessage
-                {
-                    FromAmount = 1830,
-                    ToAmount = 1000,
-                    Timestamp = TimestampHelper.GetUtcNow()
-                }
+                Int64Value = 1,
+                StringValue = "string",
+                BoolValue = true
+            };
+            
+            await TestBasicSecurityContractStub.TestMapped2State.SendAsync(new ProtobufInput()
+            {
+                ProtobufValue = protobufMessage
             });
 
-            var queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new Complex3Input
+            var queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new ProtobufInput
             {
-                From = from,
-                PairA = pairA,
-                To = to,
-                PairB = pairB
+                ProtobufValue = protobufMessage
             }));
-            queryResult.FromAmount.ShouldBe(1830);
-            queryResult.ToAmount.ShouldBe(1000);
+            queryResult.ShouldBe(protobufMessage);
             
-            queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new Complex3Input
+            queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new ProtobufInput
             {
-                From = from,
-                PairA = pairA,
-                To = to,
-                PairB = "ETH"
+                ProtobufValue = new ProtobufMessage
+                {
+                    Int64Value = 0,
+                    StringValue = "string",
+                    BoolValue = true
+                }
             }));
-            queryResult.FromAmount.ShouldBe(0);
-            queryResult.ToAmount.ShouldBe(0);
+            queryResult.ShouldBe(new ProtobufMessage());
         }
 
         [Fact]

@@ -26,6 +26,8 @@ service CrossChainContract {
     }
     rpc ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput) returns (google.protobuf.Empty){
     }
+    rpc AcceptCrossChainIndexingProposal(AcceptCrossChainIndexingProposalInput) returns (google.protobuf.Empty){
+    }
     
     // Views
     rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {
@@ -49,7 +51,7 @@ service CrossChainContract {
     rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetPendingCrossChainIndexingProposal (google.protobuf.Empty) returns (GetPendingCrossChainIndexingProposalOutput) {
+    rpc GetIndexingProposalStatus (google.protobuf.Empty) returns (GetIndexingProposalStatusOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetSideChainIndexingFeePrice(google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
@@ -88,16 +90,28 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-message CrossChainIndexingDataProposedEvent{
-    option (aelf.is_event) = true;
-    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+message ProposedCrossChainIndexing{
+    map<int32, ChainIndexingProposal> ChainIndexingProposalCollections = 1;
 }
 
-message CrossChainIndexingProposal{
+message ChainIndexingProposal{
     aelf.Hash proposal_id = 1;
     aelf.Address proposer = 2;
     acs7.CrossChainBlockData proposed_cross_chain_block_data = 3;
     CrossChainIndexingProposalStatus status = 4;
+    int32 chain_id = 5;
+}
+
+message GetIndexingProposalStatusOutput{
+    map<int32, PendingChainIndexingProposalStatus> chain_indexing_proposal_status = 1;
+}
+
+message PendingChainIndexingProposalStatus{
+    aelf.Hash proposal_id = 1;
+    aelf.Address proposer = 2;
+    bool to_be_released = 3;
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    google.protobuf.Timestamp expired_time = 5;
 }
 
 message GetPendingCrossChainIndexingProposalOutput{
@@ -110,9 +124,8 @@ message GetPendingCrossChainIndexingProposalOutput{
 
 enum CrossChainIndexingProposalStatus{
     NON_PROPOSED = 0;
-    PROPOSED = 1;
-    PENDING = 2;
-    TO_BE_RELEASED = 3;
+    PENDING = 1;
+    ACCEPTED = 2;
 }
 
 message GetSideChainIndexingFeeControllerOutput {
@@ -169,4 +182,8 @@ message SideChainIndexingFeeControllerChanged{
     option (aelf.is_event) = true;
     int32 chain_id = 1 [(aelf.is_indexed) = true];
     acs1.AuthorityInfo authority_info = 2;
+}
+
+message AcceptCrossChainIndexingProposalInput{
+    int32 chain_id = 1;
 }

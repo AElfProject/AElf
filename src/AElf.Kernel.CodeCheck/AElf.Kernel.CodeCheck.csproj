@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
     </ItemGroup>
 
@@ -19,5 +20,11 @@
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\code_check.proto">
+            <Link>Protobuf\Proto\code_check.proto</Link>
+        </CommonMessage>
     </ItemGroup>
 </Project>

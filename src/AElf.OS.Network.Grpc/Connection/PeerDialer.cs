@@ -132,6 +132,26 @@ namespace AElf.OS.Network.Grpc
 
             return handshakeReply;
         }
+        
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint remoteEndpoint)
+        {
+            var client = await CreateClientAsync(remoteEndpoint);
+
+            if (client == null)
+                return false;
+
+            try
+            {
+                await PingNodeAsync(client, remoteEndpoint);
+                await client.Channel.ShutdownAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e, $"Could not ping peer {remoteEndpoint}.");
+                return false;
+            }
+        }
 
         public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
@@ -155,6 +175,7 @@ namespace AElf.OS.Network.Grpc
 
             return peer;
         }
+
 
         /// <summary>
         /// Checks that the distant node is reachable by pinging it.
