@@ -153,12 +153,9 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
                     new Empty());
             var defaultAuthority = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
-            var defaultParliament = await ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
-                new Empty());
-            var defaultParliamentAddress = Address.Parser.ParseFrom(defaultParliament.ReturnValue);
+            var defaultParliament = await GetParliamentDefaultOrganizationAddressAsync();
             defaultAuthority.ContractAddress.ShouldBe(ParliamentAddress);
-            defaultAuthority.OwnerAddress.ShouldBe(defaultParliamentAddress);
+            defaultAuthority.OwnerAddress.ShouldBe(defaultParliament);
         }
 
         [Fact]
@@ -285,22 +282,61 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         [Fact]
         public async Task SetMethodFee_Failed_Test()
         {
-            var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
-                new MethodFees
-                {
-                    MethodName = "name",
-                    Fees = {new MethodFee
+            var methodName = "Name";
+            //invalid token
+            {
+                var invalidToken = "NOTEXIST";
+                var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    new MethodFees
                     {
-                        Symbol ="ELF" ,BasicFee = 2
-                    }}
-                });
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Unauthorized").ShouldBeTrue();
+                        MethodName = methodName,
+                        Fees = {new MethodFee
+                        {
+                            Symbol =invalidToken ,BasicFee = 2
+                        }}
+                    });
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Token is not found").ShouldBeTrue();
+            }
+            
+            //invalid token amount
+            {
+                var invalidAmount = -1;
+                var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    new MethodFees
+                    {
+                        MethodName = methodName,
+                        Fees = {new MethodFee
+                        {
+                            Symbol = "ELF" ,BasicFee = invalidAmount
+                        }}
+                    });
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Invalid amount").ShouldBeTrue();
+            }
+            
+            // unauthorized
+            {
+                var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    new MethodFees
+                    {
+                        MethodName = methodName,
+                        Fees = {new MethodFee
+                        {
+                            Symbol ="ELF" ,BasicFee = 2
+                        }}
+                    });
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains("Unauthorized").ShouldBeTrue();
+            }
         }
         [Fact]
         public async Task SetMethodFee_Success_Test()
         {
+            var methodName = "name";
             //SetMethodFee Test
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
@@ -320,7 +356,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new MethodFees
                 {
-                    MethodName = "name",
+                    MethodName = methodName,
                     Fees = {new MethodFee
                     {
                         Symbol ="ELF" ,BasicFee = 2
@@ -330,15 +366,15 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var txResult = await ReleaseProposalAsync(proposalId);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             //GetMethodFee Test
-            var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetMethodFee),
-               new StringValue
-               {
-                   Value = "name"
-               }
-               );
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult.ReturnValue.ShouldNotBeNull();
+            var methodFeeByteString = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
+                nameof(ConfigurationContainer.ConfigurationStub.GetMethodFee), new StringValue
+                {
+                    Value = methodName
+                });
+            var methodFee = MethodFees.Parser.ParseFrom(methodFeeByteString);
+            methodFee.Fees.Count.ShouldBe(1);
+            methodFee.Fees[0].Symbol.ShouldBe("ELF");
+            methodFee.Fees[0].BasicFee.ShouldBe(2);
         }
     }
 }
