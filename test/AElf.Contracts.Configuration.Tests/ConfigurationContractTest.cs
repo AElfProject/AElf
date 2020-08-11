@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
+using AElf.Kernel.CodeCheck;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
@@ -46,12 +47,23 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
                     new SetConfigurationInput
                     {
-                        Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                        Key = "BlockTransactionLimit",
                         Value = new Int32Value {Value = 100}.ToByteString()
                     });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("No permission.", transactionResult.Error);
+        }
+        
+        [Fact]
+        public async Task GetConfiguration_Of_Not_Exist_Key_Test()
+        {
+            var transactionResult =
+                await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    new StringValue {Value = "BlockTransactionLimit"});
+            Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
+            transactionResult.ReturnValue.Length.ShouldBe(0);
         }
 
         [Fact]
@@ -64,7 +76,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
-                    new StringValue {Value = BlockTransactionLimitConfigurationNameProvider.Name});
+                    new StringValue {Value = "BlockTransactionLimit"});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
             var limitFromResult = new Int32Value();
             limitFromResult.MergeFrom(BytesValue.Parser.ParseFrom(transactionResult.ReturnValue).Value);
@@ -119,6 +131,35 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("No permission.", transactionResult.Error);
         }
+        
+        [Fact]
+        public async Task ChangeConfigurationController_With_Invalid_Authority()
+        {
+            var proposalId = await SetTransactionOwnerAddressProposalAsync(new AuthorityInfo
+            {
+                ContractAddress = ParliamentAddress,
+                OwnerAddress = ParliamentAddress
+            });
+            await ApproveWithMinersAsync(proposalId);
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            transactionResult.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
+        public async Task GetConfigurationController_Default_Authority()
+        {
+            var transactionResult =
+                await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
+                    new Empty());
+            var defaultAuthority = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
+            var defaultParliament = await ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                new Empty());
+            var defaultParliamentAddress = Address.Parser.ParseFrom(defaultParliament.ReturnValue);
+            defaultAuthority.ContractAddress.ShouldBe(ParliamentAddress);
+            defaultAuthority.OwnerAddress.ShouldBe(defaultParliamentAddress);
+        }
 
         [Fact]
         public async Task SetRequiredAcsInContracts_NoPermission()
@@ -127,12 +168,26 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
                 new SetConfigurationInput
                 {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Key = "RequiredAcsInContracts",
                     Value = new RequiredAcsInContracts().ToByteString()
                 });
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission.");
+        }
+
+        [Fact]
+        public async Task SetConfiguration_With_Invalid_Input_Test()
+        {
+            var value = ParliamentAddress;
+            var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput(),
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+            proposalId.ShouldNotBeNull();
+            await ApproveWithMinersAsync(proposalId);
+            var releaseTxResult = await ReleaseProposalAsync(proposalId);
+            releaseTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            releaseTxResult.Error.ShouldContain("Invalid set config input");
         }
 
         [Fact]
@@ -145,7 +200,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
             var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput
                 {
-                    Key = RequiredAcsInContractsConfigurationNameProvider.Name,
+                    Key = "RequiredAcsInContracts",
                     Value = contractFeeChargingPolicy.ToByteString()
                 },
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
@@ -157,7 +212,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
                 new StringValue
                 {
-                    Value = RequiredAcsInContractsConfigurationNameProvider.Name
+                    Value = "RequiredAcsInContracts"
                 });
             RequiredAcsInContracts.Parser.ParseFrom(BytesValue.Parser.ParseFrom(actual).Value)
                 .ShouldBe(contractFeeChargingPolicy);

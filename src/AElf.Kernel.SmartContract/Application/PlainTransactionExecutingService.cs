@@ -18,6 +18,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly ITransactionContextFactory _transactionContextFactory;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -25,9 +26,11 @@ namespace AElf.Kernel.SmartContract.Application
         public ILocalEventBus LocalEventBus { get; set; }
 
         public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins)
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins, 
+            ITransactionContextFactory transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
+            _transactionContextFactory = transactionContextFactory;
             _prePlugins = GetUniquePlugins(prePlugins);
             _postPlugins = GetUniquePlugins(postPlugins);
             Logger = NullLogger<PlainTransactionExecutingService>.Instance;
@@ -147,7 +150,8 @@ namespace AElf.Kernel.SmartContract.Application
             if (singleTxExecutingDto.IsCancellable)
                 cancellationToken.ThrowIfCancellationRequested();
 
-            var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
+            var txContext = CreateTransactionContext(singleTxExecutingDto);
+            var trace = txContext.Trace;
 
             var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
             var internalChainContext =
@@ -506,32 +510,21 @@ namespace AElf.Kernel.SmartContract.Application
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,
-            out TransactionTrace trace)
+        protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
         {
             if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
             {
                 throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
             }
 
-            trace = new TransactionTrace
-            {
-                TransactionId = singleTxExecutingDto.Transaction.GetHash()
-            };
-            var txContext = new TransactionContext
-            {
-                OriginTransactionId = singleTxExecutingDto.OriginTransactionId,
-                PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
-                CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
-                Transaction = singleTxExecutingDto.Transaction,
-                BlockHeight = singleTxExecutingDto.ChainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = singleTxExecutingDto.Depth,
-                StateCache = singleTxExecutingDto.ChainContext.StateCache,
-                Origin = singleTxExecutingDto.Origin != null
-                    ? singleTxExecutingDto.Origin
-                    : singleTxExecutingDto.Transaction.From
-            };
+
+            var origin = singleTxExecutingDto.Origin != null
+                ? singleTxExecutingDto.Origin
+                : singleTxExecutingDto.Transaction.From;
+            
+            var txContext = _transactionContextFactory.Create(singleTxExecutingDto.Transaction,
+                singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
+                singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);
 
             return txContext;
         }

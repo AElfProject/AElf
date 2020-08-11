@@ -18,10 +18,7 @@ namespace AElf.Contracts.CrossChain
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ParentChainId.Value = input.ParentChainId;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
-            State.CrossChainIndexingProposal.Value = new CrossChainIndexingProposal
-            {
-                Status = CrossChainIndexingProposalStatus.NonProposed
-            };
+            State.IndexingPendingProposal.Value = new ProposedCrossChainIndexing();
 
             CreateInitialOrganizationForInitialControllerAddress();
             if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
@@ -201,6 +198,9 @@ namespace AElf.Contracts.CrossChain
             Assert(info != null, "Side chain not found.");
             Assert(info.SideChainStatus != SideChainStatus.Terminated, "Incorrect chain status.");
 
+            if (TryGetIndexingProposal(chainId, out _))
+                ResetChainIndexingProposal(chainId);
+            
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
             State.SideChainInfo[chainId] = info;
@@ -252,62 +252,30 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public override Empty ProposeCrossChainIndexing(CrossChainBlockData input)
         {
-            EnsureTransactionOnlyExecutedOnceInOneBlock();
-            ClearCrossChainIndexingProposalIfExpired();
-            AssertValidCrossChainDataBeforeIndexing(input);
-            ProposeCrossChainBlockData(input, Context.Sender);
-            return new Empty();
-        }
-
-        /// <summary>
-        /// Release cross chain block data proposed before and trigger the proposal to release.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty ReleaseCrossChainIndexing(Hash input)
-        {
+            Context.LogDebug(() => "Proposing cross chain data..");
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
-            var pendingProposalExists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
-                out var pendingCrossChainIndexingProposal);
-            Assert(pendingProposalExists && pendingCrossChainIndexingProposal.ProposalId == input,
-                "Cross chain indexing pending proposal not found.");
-            HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId, pendingCrossChainIndexingProposal);
+            ClearCrossChainIndexingProposalIfExpired();
+            var crossChainDataDto = ValidateCrossChainDataBeforeIndexing(input);
+            ProposeCrossChainBlockData(crossChainDataDto, Context.Sender);
             return new Empty();
         }
 
-        public override Empty RecordCrossChainData(RecordCrossChainDataInput input)
+        public override Empty ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput input)
         {
-            Context.LogDebug(() => "Start RecordCrossChainData.");
+            Context.LogDebug(() => "Releasing cross chain data..");
+            EnsureTransactionOnlyExecutedOnceInOneBlock();
+            AssertAddressIsCurrentMiner(Context.Sender);
+            ReleaseIndexingProposal(input.ChainIdList);
+            RecordCrossChainData(input.ChainIdList);
+            return new Empty();
+        }
+
+        public override Empty AcceptCrossChainIndexingProposal(AcceptCrossChainIndexingProposalInput input)
+        {
             AssertCrossChainIndexingControllerAuthority(Context.Sender);
-            AssertIsCrossChainBlockDataToBeReleased(input);
-
-            var indexedParentChainBlockData =
-                IndexParentChainBlockData(input.ProposedCrossChainData.ParentChainBlockDataList);
-
-            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
-            {
-                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.LogDebug(() =>
-                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
-            }
-
-            var indexedSideChainBlockData = IndexSideChainBlockData(
-                input.ProposedCrossChainData.SideChainBlockDataList,
-                input.Proposer);
-
-            if (indexedSideChainBlockData.SideChainBlockDataList.Count > 0)
-            {
-                State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
-                Context.LogDebug(() =>
-                    $"Last indexed side chain height {indexedSideChainBlockData.SideChainBlockDataList.Last().Height}");
-                Context.Fire(new SideChainBlockDataIndexed());
-            }
-
-            ResetCrossChainIndexingProposal();
-
-            Context.LogDebug(() => "Finished RecordCrossChainData.");
-
+            AssertIsCrossChainBlockDataAccepted(input.ChainId);
+            ResetChainIndexingProposal(input.ChainId);
             return new Empty();
         }
 

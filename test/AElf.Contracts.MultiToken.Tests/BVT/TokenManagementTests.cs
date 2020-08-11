@@ -1,24 +1,11 @@
 using System.Threading.Tasks;
-using Acs2;
-using AElf.Contracts.Parliament;
-using AElf.Contracts.Profit;
-using AElf.Contracts.Referendum;
-using AElf.Contracts.TestContract.BasicFunction;
-using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
-using AElf.Contracts.Treasury;
-using AElf.EconomicSystem;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
 
 // ReSharper disable CheckNamespace
@@ -118,109 +105,7 @@ namespace AElf.Contracts.MultiToken
 
         public MultiTokenContractTests()
         {
-            var category = KernelConstants.CodeCoverageRunnerCategory;
-
-            // TokenContract
-            {
-                var code = TokenContractCode;
-                TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TokenContractStub =
-                    GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
-                Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
-            }
-
-            // ProfitContract
-            {
-                var code = ProfitContractCode;
-                ProfitContractAddress = AsyncHelper.RunSync(() =>
-                    DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
-                        DefaultKeyPair)
-                );
-                ProfitContractStub =
-                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
-                        DefaultKeyPair);
-            }
-
-            // TreasuryContract
-            {
-                var code = TreasuryContractCode;
-                TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TreasuryContractStub =
-                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //TokenConvertContract
-            {
-                var code = TokenConverterContractCode;
-                TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                TokenConverterContractStub =
-                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //ReferendumContract
-            {
-                var code = ReferendumContractCode;
-                ReferendumContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ReferendumSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ReferendumContractStub =
-                    GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
-                        DefaultKeyPair);
-            }
-
-            //BasicFunctionContract
-            {
-                BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, BasicFunctionContractCode,
-                    BasicFunctionContractName, DefaultKeyPair));
-                BasicFunctionContractStub =
-                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
-                        DefaultKeyPair);
-
-                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                    category, OtherBasicFunctionContractCode,
-                    OtherBasicFunctionContractName, DefaultKeyPair));
-                OtherBasicFunctionContractStub =
-                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
-                        OtherBasicFunctionContractAddress,
-                        DefaultKeyPair);
-            }
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            
-            //ParliamentContract
-            {
-                var code = ParliamentCode;
-                ParliamentContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    ParliamentSmartContractAddressNameProvider.Name, DefaultKeyPair));
-                ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
-                        DefaultKeyPair);
-                AsyncHelper.RunSync(InitializeParliamentContract);
-            }
-            
-            //AEDPOSContract
-            {
-                ConsensusContractAddress = AsyncHelper.RunSync(() =>
-                    DeploySystemSmartContract(
-                        KernelConstants.CodeCoverageRunnerCategory,
-                        ConsensusContractCode,
-                        HashHelper.ComputeFrom("AElf.ContractNames.Consensus"),
-                        DefaultKeyPair
-                    ));
-                AEDPoSContractStub = GetConsensusContractTester(DefaultKeyPair);
-                AsyncHelper.RunSync(async () => await InitializeAElfConsensus());
-            }
-            
-            //AssociationContract
-            {
-                var code = AssociationContractCode;
-                AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
-                    AssociationSmartContractAddressNameProvider.Name, DefaultKeyPair));
-            }
         }
 
         private async Task CreateNativeTokenAsync()
@@ -312,7 +197,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private async Task TokenConverter_Converter()
+        private async Task TokenConverterConverterAsync()
         {
             await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
 
@@ -500,28 +385,12 @@ namespace AElf.Contracts.MultiToken
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = NativeTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
         }
         
         [Fact]
         public async Task AddChainPrimaryTokenWhiteList_Test()
         {
             await CreatePrimaryTokenAsync();
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = PrimaryTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
             {
                 var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
                 {
@@ -551,13 +420,31 @@ namespace AElf.Contracts.MultiToken
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = "NOTEXIST",
+                    Address = TokenContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("Invalid input.");
+            }
         }
 
         [Fact]
-        public async Task IssueTokenWithDifferentMemoLength_Test()
+        public async Task IssueToken_With_Invalid_Input()
         {
             await CreateNativeTokenAsync();
             await CreateNormalTokenAsync();
+            // to is null
+            {
+                var result = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                });
+                result.TransactionResult.Error.ShouldContain("To address not filled.");
+            }
+            // invalid memo
             {
                 var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
@@ -576,9 +463,163 @@ namespace AElf.Contracts.MultiToken
                     To = DefaultAddress,
                     Memo = "MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest MemoTest..."
                 });
-                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.ShouldContain("Invalid memo size.");
             }
+            // issue token that is not existed
+            {
+                var result = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
+                {
+                    Symbol = "NOTEXISTED",
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                });
+                result.TransactionResult.Error.ShouldContain("Token is not found");
+            }
+            //invalid chain id
+            {
+                var chainTokenSymbol = "CHAIN";
+                await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = chainTokenSymbol,
+                    TokenName = "chain token",
+                    Issuer = DefaultAddress,
+                    IssueChainId = 10,
+                    TotalSupply = 1000_000,
+                    Decimals = 8
+                });
+                var result = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput()
+                {
+                    Symbol = chainTokenSymbol,
+                    Amount = 100,
+                    To = DefaultAddress,
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.ShouldContain("Unable to issue token with wrong chainId");
+            }
+        }
+        
+        [Fact]
+        public async Task IssueToken_Test()
+        {
+            await CreateNativeTokenAsync();
+            var newTokenSymbol = "AIN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = newTokenSymbol,
+                TokenName = "ain token",
+                Issuer = DefaultAddress,
+                TotalSupply = 1000_000,
+                Decimals = 8
+            });
+            // invalid input
+            {
+                var issueRet = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput
+                {
+                    Amount = 10000,
+                    To = DefaultAddress,
+                });
+                issueRet.TransactionResult.Error.ShouldContain("invalid symbol");
+                issueRet = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput
+                {
+                    Symbol = "NOTEXIST",
+                    Amount = 10000,
+                    To = DefaultAddress,
+                });
+                issueRet.TransactionResult.Error.ShouldContain("Token is not found");
+            }
+            //invalid amount
+            {
+                var issueRet = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput
+                {
+                    Symbol = newTokenSymbol,
+                    Amount = -1,
+                    To = DefaultAddress,
+                });
+                issueRet.TransactionResult.Error.ShouldContain("Invalid amount");
+                issueRet = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput
+                {
+                    Symbol = newTokenSymbol,
+                    Amount = 0,
+                    To = DefaultAddress,
+                });
+                issueRet.TransactionResult.Error.ShouldContain("Invalid amount");
+                issueRet = await TokenContractStub.Issue.SendWithExceptionAsync(new IssueInput
+                {
+                    Symbol = newTokenSymbol,
+                    Amount = 1_000_000_000,
+                    To = DefaultAddress,
+                });
+                issueRet.TransactionResult.Error.ShouldContain("Total supply exceeded");
+            }
+        }
+        
+        [Fact]
+        public async Task TokenCreate_Test()
+        {
+            var createTokenInfo = new CreateInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                TokenName = AliceCoinTokenInfo.TokenName,
+                TotalSupply = AliceCoinTokenInfo.TotalSupply,
+                Decimals = AliceCoinTokenInfo.Decimals,
+                Issuer = AliceCoinTokenInfo.Issuer,
+                IsBurnable = AliceCoinTokenInfo.IsBurnable,
+                LockWhiteList =
+                {
+                    BasicFunctionContractAddress,
+                    OtherBasicFunctionContractAddress,
+                    TokenConverterContractAddress,
+                    TreasuryContractAddress
+                }
+            };
+            var createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfo);
+            createTokenRet.TransactionResult.Error.ShouldContain("Invalid native token input");
+            var createTokenInfoWithInvalidTokenName = new CreateInput();
+            createTokenInfoWithInvalidTokenName.MergeFrom(createTokenInfo);
+            createTokenInfoWithInvalidTokenName.Symbol = "ITISAVERYLONGSYMBOLNAME";
+            createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidTokenName);
+            createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
+            var createTokenInfoWithInvalidDecimal = new CreateInput();
+            createTokenInfoWithInvalidDecimal.MergeFrom(createTokenInfo);
+            createTokenInfoWithInvalidDecimal.Decimals = 100;
+            createTokenRet = await TokenContractStub.Create.SendWithExceptionAsync(createTokenInfoWithInvalidDecimal);
+            createTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
+            await CreateNativeTokenAsync();
+            await TokenContractStub.Create.SendAsync(createTokenInfo);
+            var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol
+            });
+            tokenInfo.Issuer.ShouldBe(createTokenInfo.Issuer);
+        }
+
+        [Fact]
+        public async Task SetPrimaryToken_Test()
+        {
+            var setPrimaryTokenRet = await TokenContractStub.SetPrimaryTokenSymbol.SendWithExceptionAsync(new SetPrimaryTokenSymbolInput
+            {
+                Symbol = "NOTEXISTED"
+            });
+            setPrimaryTokenRet.TransactionResult.Error.ShouldContain("Invalid input");
+            await CreateNativeTokenAsync();
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+            {
+                Symbol = NativeTokenInfo.Symbol
+            });
+            var primaryToken = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
+            primaryToken.Value.ShouldBe(NativeTokenInfo.Symbol);
+            setPrimaryTokenRet = await TokenContractStub.SetPrimaryTokenSymbol.SendWithExceptionAsync(new SetPrimaryTokenSymbolInput
+            {
+                Symbol = NativeTokenInfo.Symbol
+            });
+            setPrimaryTokenRet.TransactionResult.Error.ShouldContain("Failed to set primary token symbol");
+        }
+        [Fact]
+        public async Task GetNativeToken_Test()
+        {
+            await CreateNativeTokenAsync();
+            var tokenInfo = await TokenContractStub.GetNativeTokenInfo.CallAsync(new Empty());
+            tokenInfo.Symbol.ShouldBe(NativeTokenInfo.Symbol);
         }
     }
 }

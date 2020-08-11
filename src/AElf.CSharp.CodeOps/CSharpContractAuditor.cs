@@ -7,7 +7,7 @@ using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.Options;
 using Mono.Cecil;
 
@@ -63,10 +63,7 @@ namespace AElf.CSharp.CodeOps
 
         private IEnumerable<ValidationResult> Validate<T>(T t, CancellationToken ct, bool isSystemContract)
         {
-            var validators = _policy.GetValidators<T>();
-            validators = isSystemContract
-                ? validators.FilterSystemContractApplicableValidators()
-                : validators;
+            var validators = _policy.GetValidators<T>().Where(v => !v.SystemContactIgnored || !isSystemContract);
             return validators.SelectMany(v => v.Validate(t, ct));
         }
         

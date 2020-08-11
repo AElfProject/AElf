@@ -19,7 +19,8 @@ namespace AElf.OS.Worker
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
         public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
-            INetworkService networkService, IReconnectionService reconnectionService,
+            INetworkService networkService, 
+            IReconnectionService reconnectionService,
             IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
         {
             _peerDiscoveryService = peerDiscoveryService;
@@ -38,17 +39,17 @@ namespace AElf.OS.Worker
 
         internal async Task ProcessPeerDiscoveryJobAsync()
         {
-            var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
+            await _peerDiscoveryService.RefreshNodeAsync();
 
-            if (newNodes == null || newNodes.Nodes.Count <= 0)
+            await _peerDiscoveryService.DiscoverNodesAsync();
+
+            if (_networkService.IsPeerPoolFull())
             {
-                Logger.LogTrace("No new nodes discovered");
                 return;
             }
 
-            Logger.LogInformation($"New nodes discovered : {newNodes}.");
-
-            foreach (var node in newNodes.Nodes)
+            var nodes = await _peerDiscoveryService.GetNodesAsync(10);
+            foreach (var node in nodes.Nodes)
             {
                 try
                 {
@@ -59,13 +60,13 @@ namespace AElf.OS.Worker
                         Logger.LogDebug($"Peer {node.Endpoint} is already in the reconnection queue.");
                         continue;
                     }
-                    
+
                     if (_networkService.IsPeerPoolFull())
                     {
                         Logger.LogTrace("Peer pool is full, aborting add.");
                         break;
                     }
-                    
+
                     await _networkService.AddPeerAsync(node.Endpoint);
                 }
                 catch (Exception e)
