@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AElf.Kernel.Configuration.Tests
 {
-    public sealed class ConfigurationServiceTest : KernelConfigurationTestBase
+    public sealed partial class ConfigurationServiceTest : KernelConfigurationTestBase
     {
         private readonly IConfigurationService _configurationService;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
