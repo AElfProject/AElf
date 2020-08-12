@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -184,5 +186,22 @@ namespace AElf.Kernel.Types.Tests
             var emptySource=new Bloom();
             Assert.False(emptySource.IsIn(target));
         }
+        
+        #region AElf.Kernel.LogEventExtensions
+
+        [Fact]
+        public async Task LogEventGetBloom_Test()
+        {
+            var logEvent = new LogEvent
+            {
+                Name = "test1"
+            };
+            var bloom = logEvent.GetBloom();
+            bloom.ShouldNotBeNull();
+            logEvent = new LogEvent();
+            bloom = logEvent.GetBloom();
+            bloom.Data.Any(x => x != 0).ShouldBeTrue();
+        }
+        #endregion
     }
 }
