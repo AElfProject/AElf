@@ -23,5 +23,12 @@ namespace AElf.Kernel.Types.Tests
             var result= TimestampHelper.DurationFromMinutes(1);
             result.Seconds.ShouldBe(60);
         }
+        
+        [Fact]
+        public void GetUtcNow_Test()
+        { 
+            var result= TimestampHelper.GetUtcNow();
+            result.ShouldNotBeNull();
+        }
     }
 }

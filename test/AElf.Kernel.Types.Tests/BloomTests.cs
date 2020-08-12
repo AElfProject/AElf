@@ -186,6 +186,14 @@ namespace AElf.Kernel.Types.Tests
             var emptySource=new Bloom();
             Assert.False(emptySource.IsIn(target));
         }
+
+        [Fact]
+        public async Task AddValue_With_Null_Test()
+        {
+            var bloom = new Bloom();
+            bloom.AddValue((IMessage)null);
+            bloom.Data.Length.ShouldBe(0);
+        } 
         
         #region AElf.Kernel.LogEventExtensions
 
