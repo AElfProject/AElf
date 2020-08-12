@@ -8,7 +8,7 @@ namespace AElf.OS.Network.Extensions
 {
     public static class BlockchainServiceExtensions
     {
-        public static async Task<BlockWithTransactions> GetBlockWithTransactionsByHash(this IBlockchainService blockchainService, Hash blockHash)
+        public static async Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(this IBlockchainService blockchainService, Hash blockHash)
         {
             var block = await blockchainService.GetBlockByHashAsync(blockHash);
 
@@ -20,7 +20,7 @@ namespace AElf.OS.Network.Extensions
             return new BlockWithTransactions { Header = block.Header, Transactions = { transactions }};
         }
         
-        public static async Task<List<BlockWithTransactions>> GetBlocksWithTransactions(this IBlockchainService blockchainService,
+        public static async Task<List<BlockWithTransactions>> GetBlocksWithTransactionsAsync(this IBlockchainService blockchainService,
             Hash firstHash, int count)
         {
             var blocks = await blockchainService.GetBlocksInBestChainBranchAsync(firstHash, count);

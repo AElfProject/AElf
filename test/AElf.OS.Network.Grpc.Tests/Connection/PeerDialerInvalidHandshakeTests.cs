@@ -4,7 +4,7 @@ using AElf.OS.Network.Helpers;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class PeerDialerInvalidHandshakeTests : PeerDialerInvalidHandshakeTestBase
     {

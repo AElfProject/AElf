@@ -1,6 +1,6 @@
 using AElf.Cryptography.ECDSA;
 
-namespace AElf.OS
+namespace AElf.OS.Network
 {
     public class TestPeerKeyProvider
     {

@@ -1,15 +1,11 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
-using AElf.OS.Network;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS.Network
 {
     [DependsOn(typeof(OSCoreWithChainTestAElfModule))]
     public class OSCoreSyncFlagTestModule : AElfModule

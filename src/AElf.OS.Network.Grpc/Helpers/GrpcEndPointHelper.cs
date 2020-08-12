@@ -3,7 +3,7 @@ using AElf.OS.Network.Helpers;
 
 namespace AElf.OS.Network.Grpc.Helpers
 {
-    public static class GrpcEndPointHelpers
+    public static class GrpcEndPointHelper
     {
         public static bool ParseDnsEndPoint(string grpcEndpoint, out DnsEndPoint outEndPoint)
         {

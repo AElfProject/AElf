@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Consensus;
@@ -14,6 +15,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
@@ -21,7 +23,11 @@ using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
+using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
+using BlockValidationProvider = AElf.Kernel.Miner.Application.BlockValidationProvider;
 
 namespace AElf.Kernel
 {
@@ -93,49 +99,83 @@ namespace AElf.Kernel
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
                 return mockService.Object;
             });
+
+            services.AddTransient<BlockValidationProvider>();
         }
     }
 
-    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(CoreConsensusAElfModule))]
-    public class KernelWithConsensusStaffTestAElfModule : AElfModule
+    [DependsOn(typeof(KernelWithChainTestAElfModule))]
+    public class KernelMiningTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
 
-            services.AddTransient(builder =>
-            {
-                var mockConsensusScheduler = new Mock<IConsensusScheduler>();
-                return mockConsensusScheduler.Object;
-            });
+            context.Services.AddTransient<IAccountService, AccountService>();
 
-            services.AddTransient(builder =>
+            services.AddSingleton(provider =>
             {
-                var mockTriggerInformationProvider = new Mock<ITriggerInformationProvider>();
-                return mockTriggerInformationProvider.Object;
+                var mockService = new Mock<ITransactionValidationService>();
+                mockService.Setup(m =>
+                        m.ValidateTransactionWhileCollectingAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>()))
+                    .Returns(Task.FromResult(true));
+
+                return mockService.Object;
             });
 
             services.AddTransient(provider =>
             {
-                var mockService = new Mock<IConsensusExtraDataExtractor>();
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
-                    .Returns(ByteString.Empty);
-                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
-                    .Returns(ByteString.CopyFromUtf8("test"));
+                var mockService = new Mock<ISmartContractAddressService>();
                 return mockService.Object;
             });
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var kernelTestHelper = context.ServiceProvider.GetRequiredService<KernelTestHelper>();
+            var ecKeyPairProvider = context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>();
+            ecKeyPairProvider.SetKeyPair(kernelTestHelper.KeyPair);
+        }
+    }
+
+    [DependsOn(typeof(KernelMiningTestAElfModule), typeof(CoreConsensusAElfModule))]
+    public class KernelConsensusRequestMiningTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
             
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
-                mockService.Setup(m => m.GetAddressByContractNameAsync(It.IsAny<IChainContext>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(default(Address)));
+                return mockService.Object;
+            });
+
+            var consensusRequestMiningTestContext = new KernelConsensusRequestMiningTestContext();
+            
+            services.AddSingleton(builder =>
+            {
+                var mockConsensusService = new Mock<IConsensusService>();
+
+                consensusRequestMiningTestContext.MockConsensusService = mockConsensusService;
+
+                return mockConsensusService.Object;
+            });
+
+            services.AddSingleton<KernelConsensusRequestMiningTestContext>(consensusRequestMiningTestContext);
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
                 return mockService.Object;
             });
         }
+    }
+
+    public class KernelConsensusRequestMiningTestContext
+    {
+        public Mock<IConsensusService> MockConsensusService { get; set; }
     }
 }

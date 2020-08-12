@@ -12,7 +12,7 @@ using Moq;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Infrastructure
 {
     public class PeerPoolTests : NetworkInfrastructureTestBase
     {
@@ -32,21 +32,48 @@ namespace AElf.OS.Network
             _blackListProvider.AddHostToBlackList(host,NetworkConstants.DefaultPeerRemovalSeconds);
             _peerPool.AddHandshakingPeer(host, "somePubKey").ShouldBeFalse();
         }
-        
+
         [Fact]
-        public void GetPeersByHost_ShouldReturnAllPeers_WithSameHost()
+        public void IsPeerBlackListed_Test()
+        {
+            var host = "12.34.56.67";
+            _peerPool.IsPeerBlackListed(host).ShouldBeFalse();
+            _blackListProvider.AddHostToBlackList(host,NetworkConstants.DefaultPeerRemovalSeconds);
+            _peerPool.IsPeerBlackListed(host).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void QueryPeers_Test()
         {
             var commonHost = "12.34.56.67";
             string commonPort = "1900";
             string commonEndpoint = commonHost + ":" + commonPort;
-            
-            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
-            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
-            _peerPool.TryAddPeer(CreatePeer("12.34.56.64:1900"));
-            _peerPool.TryAddPeer(CreatePeer("12.34.56.61:1900"));
 
-            var peersWithSameHost = _peerPool.GetPeersByHost(commonHost);
-            peersWithSameHost.Count.ShouldBe(2);
+            var peer1 = CreatePeer(commonEndpoint);
+            _peerPool.TryAddPeer(peer1);
+            var peer2 = CreatePeer(commonEndpoint);
+            _peerPool.TryAddPeer(peer2);
+            var peer3 = CreatePeer("12.34.56.64:1900");
+            _peerPool.TryAddPeer(peer3);
+            var peer4 = CreatePeer("12.34.56.61:1900", isReady: false);
+            _peerPool.TryAddPeer(peer4);
+
+            var peers = _peerPool.GetPeers();
+            peers.Count.ShouldBe(3);
+            
+            peers = _peerPool.GetPeers(true);
+            peers.Count.ShouldBe(4);
+
+            peers = _peerPool.GetPeersByHost(commonHost);
+            peers.Count.ShouldBe(2);
+            peers.ShouldContain(peer1);
+            peers.ShouldContain(peer2);
+
+            var peer = _peerPool.FindPeerByEndpoint(peer3.RemoteEndpoint);
+            peer.ShouldBe(peer3);
+            
+            peer = _peerPool.FindPeerByPublicKey(peer3.Info.Pubkey);
+            peer.ShouldBe(peer3);
         }
 
         [Fact]
@@ -63,22 +90,25 @@ namespace AElf.OS.Network
             peers.Values.Count.ShouldBe(2);
             peers.Values.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
         }
-        
+
         [Fact]
-        public void RemoveHandshakingPeer_Last_ShouldRemoveEndpoint()
+        public void RemoveHandshakingPeer_Test()
         {
             var commonHost = "12.34.56.64";
             var mockPubkeyOne = "pub1";
             var mockPubkeyTwo = "pub2";
             
+            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyOne).ShouldBeFalse();
+            
             _peerPool.AddHandshakingPeer(commonHost, mockPubkeyOne);
             _peerPool.AddHandshakingPeer(commonHost, mockPubkeyTwo);
             
-            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyOne);
+            _peerPool.RemoveHandshakingPeer(commonHost, "NotExist").ShouldBeFalse();
+            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyOne).ShouldBeTrue();
             _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out _).ShouldBeTrue();
             
             // remove last should remove entry
-            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyTwo);
+            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyTwo).ShouldBeTrue();
             _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out _).ShouldBeFalse();
 
         }
@@ -150,11 +180,26 @@ namespace AElf.OS.Network
             _peerPool.IsFull().ShouldBeTrue();
         }
         
-        private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint, string pubKey = null)
+        [Fact]
+        public void AddHandshakingPeer_PeerPoolIsFull_ShouldReturnFalse()
+        {
+            var peer1 = CreatePeer("127.0.0.1:8801");
+            _peerPool.TryAddPeer(peer1);
+            var peer2 = CreatePeer("127.0.0.1:8802");
+            _peerPool.TryAddPeer(peer2);
+
+            var handshakingPeerHost = "192.168.100.100";
+            var addResult = _peerPool.AddHandshakingPeer(handshakingPeerHost, "pubkey");
+            addResult.ShouldBeFalse();
+            _peerPool.GetHandshakingPeers().ShouldNotContainKey(handshakingPeerHost);
+        }
+
+        private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint, string pubKey = null,
+            bool isReady = true)
         {
             var peerMock = new Mock<IPeer>();
             var pubkey = pubKey ?? CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
-            
+
             var peerInfo = new PeerConnectionInfo
             {
                 Pubkey = pubkey,
@@ -167,7 +212,8 @@ namespace AElf.OS.Network
 
             peerMock.Setup(p => p.RemoteEndpoint).Returns(endpoint);
             peerMock.Setup(p => p.Info).Returns(peerInfo);
-            
+            peerMock.Setup(p => p.IsReady).Returns(isReady);
+
             return peerMock.Object;
         }
 
