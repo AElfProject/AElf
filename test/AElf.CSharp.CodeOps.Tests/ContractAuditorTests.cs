@@ -219,6 +219,11 @@ namespace AElf.CSharp.CodeOps
                 .FirstOrDefault(f => f is DescriptorAccessValidationResult &&
                                      f.Info.Type == "BadCase1" && f.Info.ReferencingMethod == "SetFileDescriptor")
                 .ShouldNotBeNull();
+            
+            findings
+                .FirstOrDefault(f => f is DescriptorAccessValidationResult &&
+                                     f.Info.Type == "BadCase6" && f.Info.ReferencingMethod == ".cctor")
+                .ShouldNotBeNull();
 
             // Initialization value not allowed for resettable members, in regular type
             findings

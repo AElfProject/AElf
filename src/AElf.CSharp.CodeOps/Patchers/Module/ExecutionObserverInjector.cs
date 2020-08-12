@@ -15,8 +15,8 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
         public void Patch(ModuleDefinition module)
         {
             // Check if already injected, do not double inject
-            // if (module.Types.Select(t => t.Name).Contains(nameof(ExecutionObserverProxy)))
-            //     return;
+            if (module.Types.Select(t => t.Name).Contains(nameof(ExecutionObserverProxy)))
+                return;
             
             // ReSharper disable once IdentifierTypo
             var nmspace = module.Types.Single(m => m.BaseType is TypeDefinition).Namespace;

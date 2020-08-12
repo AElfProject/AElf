@@ -9,6 +9,8 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContract : TestContractContainer.TestContractBase
     {
+        private static int i = 0;
+        
         public override BoolOutput TestBoolState(BoolInput input)
         {
             State.BoolInfo.Value = input.BoolValue;
@@ -174,14 +176,22 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
             return new StringOutput {StringValue = merged};
         }
 
-        public bool TestStateType()
+        // for test cases
+        public bool TestStateType(int i)
         {
             State.ReadonlyBool.Value = false;
             State.ProtoInfo.Value = new ProtobufMessage();
             State.Int32Info.Value = Int32.MaxValue;
             State.MappedState[1] = new Address();
-            State.MappedInt64State[1] = 1;
+            State.MappedInt64State[1] = i + 1;
+            State.StringInfo.Value = "test";
             return State.BoolInfo.Value;
+        }
+
+        public class TestNestClass
+        {
+            private static int i = 0;
+            private const int j = 0;
         }
     }
 }    

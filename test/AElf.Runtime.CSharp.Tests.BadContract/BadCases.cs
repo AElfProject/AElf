@@ -48,4 +48,19 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             collection = Array.AsReadOnly(new[] { new BadCase3() });
         }
     }
+
+    public class BadCase6
+    {
+        public static FileDescriptor Descriptor
+        {
+            get { return descriptor; }
+        }
+
+        private static FileDescriptor descriptor;
+
+        public BadCase6()
+        {
+            descriptor = null;
+        }
+    }
 }

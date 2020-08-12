@@ -28,9 +28,16 @@ namespace AElf.CSharp.CodeOps
             return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
         }
 
-        protected ModuleDefinition GetModule(Type contractType)
+        protected ModuleDefinition GetContractModule(Type contractType)
         {
             var code = ReadContractCode(contractType);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
+        }
+        
+        protected ModuleDefinition GetModule(Type type)
+        {
+            var code = ReadCode(Assembly.GetAssembly(type).Location);
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             return modDef;
         }
@@ -39,7 +46,7 @@ namespace AElf.CSharp.CodeOps
         {
             return File.Exists(path)
                 ? File.ReadAllBytes(path)
-                : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+                : throw new FileNotFoundException("DLL cannot be found. " + path);
         }
     }
 }
