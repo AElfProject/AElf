@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
-using AElf.Kernel.Configuration;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.Txn.Application;
 using Google.Protobuf.WellKnownTypes;
@@ -40,17 +40,23 @@ namespace AElf.Kernel.Miner.Application
             Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            var txList = new List<Transaction>();
+            
             var chainContext = new ChainContext
             {
                 BlockHash = previousBlockHash,
                 BlockHeight = previousBlockHeight
             };
+
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
-            var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
-                previousBlockHash,
-                _transactionPackingOptionProvider.IsTransactionPackable(chainContext)
-                    ? limit
-                    : -1);
+            if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
+            {
+                var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
+                    previousBlockHash, limit);
+
+                txList.AddRange(executableTransactionSet.Transactions);
+            }
+            
 
             Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
@@ -59,8 +65,9 @@ namespace AElf.Kernel.Miner.Application
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = previousBlockHeight,
-                    BlockExecutionTime = blockExecutionTime
-                }, executableTransactionSet.Transactions, blockTime);
+                    BlockExecutionTime = blockExecutionTime,
+                    TransactionCountLimit = limit
+                }, txList, blockTime);
         }
     }
 }

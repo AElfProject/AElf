@@ -160,8 +160,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
-
-            ClearExpiredRandomNumberTokens();
         }
 
         private void ProcessNextTerm(Round nextRound)
