@@ -23,19 +23,24 @@ namespace AElf.Kernel
             IEnumerable<Transaction> nonCancellableTransactions,
             IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken)
         {
-            var block = GenerateBlock(blockHeader, nonCancellableTransactions.Concat(cancellableTransactions)
-                .Select(p => p.GetHash()));
+            var transactions = cancellationToken.IsCancellationRequested
+                ? nonCancellableTransactions.ToList()
+                : nonCancellableTransactions.Concat(cancellableTransactions).ToList();
 
-            return Task.FromResult(new BlockExecutedSet(){Block = block});
+            var block = GenerateBlock(blockHeader, transactions.Select(p => p.GetHash()));
+
+            return Task.FromResult(new BlockExecutedSet() {Block = block});
         }
 
         private Block GenerateBlock(BlockHeader blockHeader, IEnumerable<Hash> transactionIds)
         {
+            
             var leafNodes = transactionIds as Hash[] ?? transactionIds.ToArray();
             blockHeader.MerkleTreeRootOfTransactions = BinaryMerkleTree.FromLeafNodes(leafNodes).Root;
             blockHeader.MerkleTreeRootOfWorldState = Hash.Empty;
             blockHeader.MerkleTreeRootOfTransactionStatus = Hash.Empty;
-            blockHeader.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
+            if (blockHeader.SignerPubkey.IsEmpty)
+                blockHeader.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
             
             var block = new Block
             {

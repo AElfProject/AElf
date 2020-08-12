@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Types;
 using AElf.WebApp.Application.Net.Dto;
 using Volo.Abp.Application.Services;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Net
 {
@@ -24,15 +26,18 @@ namespace AElf.WebApp.Application.Net
     {
         private readonly INetworkService _networkService;
         private readonly IReconnectionService _reconnectionService;
+        private readonly IObjectMapper<NetApplicationWebAppAElfModule> _objectMapper;
 
         private static readonly string Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
 
-        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService)
+        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService,
+            IObjectMapper<NetApplicationWebAppAElfModule> objectMapper)
         {
             _networkService = networkService;
             _reconnectionService = reconnectionService;
+            _objectMapper = objectMapper;
         }
-        
+
         /// <summary>
         /// Attempts to add a node to the connected network nodes
         /// </summary>
@@ -52,7 +57,7 @@ namespace AElf.WebApp.Application.Net
             _reconnectionService.CancelReconnection(address);
             return await _networkService.RemovePeerByEndpointAsync(address, int.MaxValue);
         }
-        
+
         /// <summary>
         /// Get peer info about the connected network nodes
         /// </summary>
@@ -60,21 +65,9 @@ namespace AElf.WebApp.Application.Net
         public List<PeerDto> GetPeers(bool withMetrics = false)
         {
             var peerList = _networkService.GetPeers();
-            
-            var peerDtoList = peerList.Select(p => new PeerDto
-            {
-                IpAddress = p.IpAddress,
-                ProtocolVersion = p.ProtocolVersion,
-                ConnectionTime = p.ConnectionTime,
-                Inbound = p.Inbound,
-                ConnectionStatus = p.ConnectionStatus,
-                BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
-                BufferedBlocksCount = p.BufferedBlocksCount,
-                BufferedTransactionsCount = p.BufferedTransactionsCount,
-                RequestMetrics = withMetrics ? p.RequestMetrics : null
-            }).ToList();
-            
-            return peerDtoList;
+
+            return _objectMapper.GetMapper().Map<List<PeerInfo>, List<PeerDto>>(peerList,
+                opt => opt.Items[PeerInfoProfile.WithMetrics] = withMetrics);
         }
 
         /// <summary>

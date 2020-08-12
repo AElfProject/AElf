@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Application

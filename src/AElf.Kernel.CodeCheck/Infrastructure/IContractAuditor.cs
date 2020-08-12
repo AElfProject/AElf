@@ -1,4 +1,4 @@
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 
 namespace AElf.Kernel.CodeCheck.Infrastructure

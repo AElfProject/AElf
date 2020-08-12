@@ -47,6 +47,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                         .Returns(Task.FromResult((NonparallelContractCode) null));
                     return mock.Object;
                 });
+
+            context.Services.AddTransient<ITransactionContextFactory, ParallelTestTransactionContextFactory>();
         }
 
         #region Mocks
@@ -111,7 +113,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
     }
 }

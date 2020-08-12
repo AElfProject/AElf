@@ -11,11 +11,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Kernel;
+using Google.Protobuf.Reflection;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -36,6 +39,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
         public ILogger<TransactionResultAppService> Logger { get; set; }
@@ -44,12 +48,14 @@ namespace AElf.WebApp.Application.Chain
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
             ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _objectMapper = objectMapper;
             _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
             
             Logger = NullLogger<TransactionResultAppService>.Instance;
@@ -74,34 +80,26 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+            var output = _objectMapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-
-            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-
+            output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
+            output.TransactionSize = transaction?.CalculateSize() ?? 0;
+            
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
                 var validationStatus =
                     _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionIdHash);
-                if (validationStatus == null)
+                if (validationStatus != null)
                 {
-                    Logger.LogTrace($"Cannot find tx {transactionIdHash} in tx result cache provider.");
-                    output.Status = transactionResult.Status.ToString();
-                }
-                else
-                {
-                    Logger.LogTrace($"Status of tx {transactionIdHash}: {validationStatus.TransactionResultStatus}");
-                    output.Status = validationStatus.TransactionResultStatus.ToString();
+                    output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
                     output.Error = validationStatus.Error;
                 }
 
                 return output;
             }
 
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-            output.TransactionSize = transaction.CalculateSize();
-            
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
+            var methodDescriptor =
+                await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
@@ -112,25 +110,6 @@ namespace AElf.WebApp.Application.Chain
                 }
 
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Pending)
-            {
-                return output;
-            }
-            var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-            output.BlockHash = block.GetHash().ToHex();
-
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                output.ReturnValue = transactionResult.ReturnValue.ToHex();
-                var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-            {
-                output.Error = transactionResult.Error;
             }
 
             return output;
@@ -220,14 +199,7 @@ namespace AElf.WebApp.Application.Chain
 
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
             var path = binaryMerkleTree.GenerateMerklePath(index);
-            var merklePath = new MerklePathDto {MerklePathNodes = new List<MerklePathNodeDto>()};
-            foreach (var node in path.MerklePathNodes)
-            {
-                merklePath.MerklePathNodes.Add(new MerklePathNodeDto
-                {
-                    Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode
-                });
-            }
+            var merklePath = _objectMapper.Map<MerklePath, MerklePathDto>(path);
 
             return merklePath;
         }
@@ -277,22 +249,16 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
         {
             var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
-            var transactionResultDto =
-                JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            var transactionResultDto = _objectMapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
+            
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
             transactionResultDto.BlockHash = blockHash.ToHex();
-            transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
 
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-                transactionResultDto.Error = transactionResult.Error;
-
-            transactionResultDto.Transaction =
-                JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            transactionResultDto.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
             transactionResultDto.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
-                await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
+                await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
 
             if (methodDescriptor != null)
             {
@@ -304,9 +270,7 @@ namespace AElf.WebApp.Application.Chain
 
                 transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(parameters);
             }
-
-            transactionResultDto.Status = transactionResult.Status.ToString();
-
+            
             return transactionResultDto;
         }
 
@@ -369,6 +333,20 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return true;
+        }
+        
+        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
+            string methodName, bool throwException = true)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetContractMethodDescriptorAsync(chainContext,
+                contractAddress, methodName, throwException);
         }
     }
 }

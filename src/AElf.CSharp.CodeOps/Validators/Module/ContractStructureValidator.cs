@@ -26,6 +26,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             }
         }
 
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)
@@ -150,7 +152,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private IEnumerable<ValidationResult> ValidateRegularType(TypeDefinition type)
         {
-            // Skip if ExecutionObserver (validated in a separate validator)
+            // Skip if ExecutionObserverThreshold (validated in a separate validator)
             if (type.Name == typeof(ExecutionObserverProxy).Name)
                 return Enumerable.Empty<ValidationResult>();
 
