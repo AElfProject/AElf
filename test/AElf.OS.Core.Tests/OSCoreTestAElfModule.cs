@@ -64,6 +64,8 @@ namespace AElf.OS
             {
                 o.PeerInvalidTransactionLimit = 5;
                 o.PeerInvalidTransactionTimeout = 1000;
+                o.PeerDiscoveryMaxNodesToKeep = 5;
+                o.MaxPeers = 5;
             });
         }
     }

@@ -23,6 +23,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Shouldly;
 using Volo.Abp.Threading;
 using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
 
@@ -177,8 +178,8 @@ namespace AElf.Contracts.CrossChain.Tests
             return chainId;
         }
         
-        internal async Task<TransactionResult> CreateSideChainByDefaultSenderAsync(bool initCrossChainContract, long parentChainHeightOfCreation = 0,
-            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, bool isPrivilegeReserved = false)
+        internal async Task<TransactionResult> CreateSideChainAsync(bool initCrossChainContract, long parentChainHeightOfCreation,
+            int parentChainId, long lockedTokenAmount, long indexingFee, bool isPrivilegeReserved)
         {
             if (initCrossChainContract)
                 await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
@@ -191,6 +192,19 @@ namespace AElf.Contracts.CrossChain.Tests
                     {ProposalId = proposalId});
 
             return releaseTx.TransactionResult;
+        }
+        
+        internal async Task<int> CreateSideChainByDefaultSenderAsync(bool initCrossChainContract, long parentChainHeightOfCreation = 0,
+            int parentChainId = 0, long lockedTokenAmount = 10, long indexingFee = 1, bool isPrivilegeReserved = false)
+        {
+            var releaseTxResult =
+                await CreateSideChainAsync(initCrossChainContract, parentChainHeightOfCreation, parentChainId, lockedTokenAmount,
+                    indexingFee, isPrivilegeReserved);
+            var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(releaseTxResult.Logs
+                .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
+                
+            var sideChainId = sideChainCreatedEvent.ChainId;
+            return sideChainId;
         }
 
         private async Task InitializeParliamentContractAsync()
@@ -393,8 +407,17 @@ namespace AElf.Contracts.CrossChain.Tests
                 Symbol = "ELF"
             })).Balance;
         }
+
+        internal void AssertChainIndexingProposalStatus(PendingChainIndexingProposalStatus pendingChainIndexingProposalStatus, 
+            Address expectedProposer, Hash expectedProposalId, CrossChainBlockData expectedCrossChainData, bool toBeReleased)
+        {
+            pendingChainIndexingProposalStatus.ProposalId.ShouldBe(expectedProposalId);
+            pendingChainIndexingProposalStatus.Proposer.ShouldBe(expectedProposer);
+            pendingChainIndexingProposalStatus.ProposedCrossChainBlockData.ShouldBe(expectedCrossChainData);
+            pendingChainIndexingProposalStatus.ToBeReleased.ShouldBe(toBeReleased);
+        }
         
-        internal async Task DoIndexAsync(CrossChainBlockData crossChainBlockData)
+        internal async Task DoIndexAsync(CrossChainBlockData crossChainBlockData, int[] chainIdList)
         {
             var txRes = await CrossChainContractStub.ProposeCrossChainIndexing.SendAsync(crossChainBlockData);
             var proposalId = ProposalCreated.Parser
@@ -402,7 +425,11 @@ namespace AElf.Contracts.CrossChain.Tests
                 .ProposalId;
             await ApproveWithMinersAsync(proposalId);
 
-            await CrossChainContractStub.ReleaseCrossChainIndexing.SendAsync(proposalId);
+            await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
+                new ReleaseCrossChainIndexingProposalInput
+                {
+                    ChainIdList = {chainIdList}
+                });
         }
 
         internal async Task<Hash> DisposeSideChainProposalAsync(Int32Value chainId)

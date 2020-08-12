@@ -5,8 +5,7 @@ namespace AElf.CSharp.CodeOps
     // Injected into contract, not used directly, kept as a template to compare IL codes
     public static class ExecutionObserverProxy
     {
-        [ThreadStatic]
-        private static IExecutionObserver _observer;
+        [ThreadStatic] private static IExecutionObserver _observer;
 
         public static void SetObserver(IExecutionObserver observer)
         {
@@ -18,7 +17,7 @@ namespace AElf.CSharp.CodeOps
             if (_observer != null)
                 _observer.BranchCount();
         }
-        
+
         public static void CallCount()
         {
             if (_observer != null)

@@ -1,10 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -25,6 +25,33 @@ namespace AElf.Contracts.Profit.BVT
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
+        }
+        [Fact]
+        public async Task ProfitContract_SetMethodFee_Success_Test()
+        {
+            var methodName = "OnlyTest";
+            var fee = 100;
+            var tokenSymbol = "ELF";
+            var methodFeeController = await ProfitContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var proposalId = await CreateProposalAsync(ProfitContractAddress,
+                methodFeeController.OwnerAddress, nameof(ProfitContractStub.SetMethodFee), new MethodFees
+                {
+                    MethodName = methodName,
+                    Fees = {new MethodFee
+                    {
+                        Symbol = tokenSymbol,
+                        BasicFee = fee
+                    }}
+                });
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+            var getMethodFee = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = methodName
+            });
+            getMethodFee.Fees.Count.ShouldBe(1);
+            getMethodFee.Fees[0].Symbol.ShouldBe(tokenSymbol);
+            getMethodFee.Fees[0].BasicFee.ShouldBe(fee);
         }
 
         [Fact]
@@ -84,6 +111,22 @@ namespace AElf.Contracts.Profit.BVT
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetMethodFee_Test()
+        {
+            var methodFee = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = nameof(ProfitContractStub.CreateScheme)
+            });
+            methodFee.Fees[0].BasicFee.ShouldBe(10_00000000);
+            
+            var defaultMethodFee = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = "Test"
+            });
+            defaultMethodFee.Fees[0].BasicFee.ShouldBe(1_00000000);
         }
 
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
