@@ -60,7 +60,7 @@ namespace AElf.OS.Network.Grpc
                         Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
                 }
 
-                if(!GrpcEndPointHelpers.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
+                if(!GrpcEndPointHelper.ParseDnsEndPoint(context.Peer, out DnsEndPoint peerEndpoint))
                     return new HandshakeReply { Error = HandshakeError.InvalidConnection};
             
                 return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
@@ -191,24 +191,6 @@ namespace AElf.OS.Network.Grpc
 
             return new VoidReply();
         }
-        
-        /// <summary>
-        /// This method is called when another peer broadcasts a transaction.
-        /// </summary>
-        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
-        {
-            try
-            {
-                await ProcessTransactionAsync(tx, context.GetPublicKey());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"SendTransaction error - {context.GetPeerInfo()}: ");
-                throw;
-            }
-
-            return new VoidReply();
-        }
 
         private async Task ProcessTransactionAsync(Transaction tx, string peerPubkey)
         {
@@ -272,24 +254,6 @@ namespace AElf.OS.Network.Grpc
         }
 
         /// <summary>
-        /// This method is called when a peer wants to broadcast an announcement.
-        /// </summary>
-        public override async Task<VoidReply> SendAnnouncement(BlockAnnouncement an, ServerCallContext context)
-        {
-            try
-            {
-                await ProcessAnnouncementAsync(an, context.GetPublicKey());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"Process announcement error: {context.GetPeerInfo()}");
-                throw;
-            }
-
-            return new VoidReply();
-        }
-
-        /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
         /// of <see cref="BlockRequest.Hash"/> is not null, the request is by ID, otherwise it will be
         /// by height.
@@ -304,7 +268,7 @@ namespace AElf.OS.Network.Grpc
             BlockWithTransactions block;
             try
             {
-                block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
+                block = await _blockchainService.GetBlockWithTransactionsByHashAsync(request.Hash);
 
                 if (block == null)
                 {
@@ -344,7 +308,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var blocks =
-                    await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+                    await _blockchainService.GetBlocksWithTransactionsAsync(request.PreviousBlockHash, request.Count);
 
                 blockList.Blocks.AddRange(blocks);
 
@@ -403,13 +367,13 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
-        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
 
             try
             {
-                _connectionService.RemovePeer(context.GetPublicKey());
+               await _connectionService.RemovePeerAsync(context.GetPublicKey());
             }
             catch (Exception e)
             {
@@ -417,7 +381,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
 
         /// <summary>

@@ -5,6 +5,7 @@ using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -17,6 +18,7 @@ namespace AElf.OS.Network.Grpc
         public AuthInterceptor(IPeerPool peerPool)
         {
             _peerPool = peerPool;
+            Logger = NullLogger<AuthInterceptor>.Instance;
         }
 
         public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request,
