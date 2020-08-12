@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 using Google.Protobuf;
 using Shouldly;
@@ -10,8 +9,6 @@ namespace AElf.Types.Tests.Extensions
 {
     public class ExtensionTests
     {
-
-
         [Fact]
         public void Number_Extensions_Methods_Test()
         {
@@ -113,6 +110,115 @@ namespace AElf.Types.Tests.Extensions
            var result= string1.GetBytes();
            var expected = Encoding.UTF8.GetBytes(string1);
            result.ShouldBe(expected);
+        }
+
+        [Fact]
+        public void MerklePathExtensions_ComputeRootWithLeafNode_Test()
+        {
+            // left node
+            {
+                var merkleLeftNode = new MerklePathNode
+                {
+                    Hash = HashHelper.ComputeFrom("node1"),
+                    IsLeftChildNode = true
+                };
+            
+                var nodePath = new MerklePath
+                {
+                    MerklePathNodes = { merkleLeftNode }
+                };
+
+                var hash = HashHelper.ComputeFrom("new");
+
+                var calculateHash = nodePath.ComputeRootWithLeafNode(hash);
+                var targetHash = HashHelper.ConcatAndCompute(merkleLeftNode.Hash, hash);
+                calculateHash.ShouldBe(targetHash);
+            }
+            
+            // right node
+            {
+                var merkleLeftNode = new MerklePathNode
+                {
+                    Hash = HashHelper.ComputeFrom("node1"),
+                    IsLeftChildNode = false
+                };
+            
+                var nodePath = new MerklePath
+                {
+                    MerklePathNodes = { merkleLeftNode }
+                };
+
+                var hash = HashHelper.ComputeFrom("new");
+
+                var calculateHash = nodePath.ComputeRootWithLeafNode(hash);
+                var targetHash = HashHelper.ConcatAndCompute(hash, merkleLeftNode.Hash);
+                calculateHash.ShouldBe(targetHash);
+            }
+        }
+
+        [Fact]
+        public void NumericExtensions_ToBytes_For_long()
+        {
+            long number = -2;
+            var bigEndianBytes = number.ToBytes(true);
+            ((int)bigEndianBytes.Last()).ShouldBe(254);
+            var numberFromBigEndianBytes = BitConverter.ToInt64(BitConverter.IsLittleEndian ? bigEndianBytes.Reverse().ToArray() : bigEndianBytes);
+            numberFromBigEndianBytes.ShouldBe(number);
+
+            var littleEndianBytes = number.ToBytes(false);
+            ((int)littleEndianBytes.Last()).ShouldBe(255);
+            numberFromBigEndianBytes = BitConverter.ToInt64(BitConverter.IsLittleEndian ? littleEndianBytes: littleEndianBytes.Reverse().ToArray());
+            numberFromBigEndianBytes.ShouldBe(number);
+        }
+        
+        [Fact]
+        public void NumericExtensions_ToBytes_For_ulong()
+        {
+            ulong number = ulong.MaxValue - 1;
+            var bigEndianBytes = number.ToBytes(true);
+            ((int)bigEndianBytes.Last()).ShouldBe(254);
+            var numberFromBigEndianBytes = BitConverter.ToUInt64(BitConverter.IsLittleEndian ? bigEndianBytes.Reverse().ToArray() : bigEndianBytes);
+            numberFromBigEndianBytes.ShouldBe(number);
+            
+            var littleEndianBytes = number.ToBytes(false);
+            ((int)littleEndianBytes.Last()).ShouldBe(255);
+            numberFromBigEndianBytes = BitConverter.ToUInt64(BitConverter.IsLittleEndian ? littleEndianBytes: littleEndianBytes.Reverse().ToArray());
+            numberFromBigEndianBytes.ShouldBe(number);
+        }
+        
+        [Fact]
+        public void NumericExtensions_ToBytes_For_int()
+        {
+            int number = -2;
+            var bigEndianBytes = number.ToBytes(true);
+            ((int)bigEndianBytes.Last()).ShouldBe(254);
+            var numberFromBigEndianBytes = BitConverter.ToInt32(BitConverter.IsLittleEndian ? bigEndianBytes.Reverse().ToArray() : bigEndianBytes);
+            numberFromBigEndianBytes.ShouldBe(number);
+
+            var littleEndianBytes = number.ToBytes(false);
+            ((int)littleEndianBytes.Last()).ShouldBe(255);
+            numberFromBigEndianBytes = BitConverter.ToInt32(BitConverter.IsLittleEndian ? littleEndianBytes: littleEndianBytes.Reverse().ToArray());
+            numberFromBigEndianBytes.ShouldBe(number);
+        }
+        
+        [Fact]
+        public void NumericExtensions_ToBytes_For_uint()
+        {
+            uint number = uint.MaxValue - 1;
+            var bigEndianBytes = number.ToBytes(true);
+            ((int)bigEndianBytes.Last()).ShouldBe(254);
+            var numberFromBigEndianBytes = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? bigEndianBytes.Reverse().ToArray() : bigEndianBytes);
+            numberFromBigEndianBytes.ShouldBe(number);
+            
+            var littleEndianBytes = number.ToBytes(false);
+            ((int)littleEndianBytes.Last()).ShouldBe(255);
+            numberFromBigEndianBytes = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? littleEndianBytes: littleEndianBytes.Reverse().ToArray());
+            numberFromBigEndianBytes.ShouldBe(number);
+        }
+
+        [Fact]
+        public void FileDescriptorExtensions_GetIdentity()
+        {
         }
     }
 }
