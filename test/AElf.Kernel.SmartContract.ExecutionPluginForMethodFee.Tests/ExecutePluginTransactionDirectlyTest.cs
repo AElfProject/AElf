@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     MethodName = methodName,
                     PrimaryTokenSymbol = nativeTokenSymbol
                 });
-                chargeFeeRet.Output.Value.ShouldBe(true);
+                chargeFeeRet.Output.Success.ShouldBe(true);
                 var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
                 afterChargeBalance.ShouldBeLessThan(beforeChargeBalance);
             }
@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     ContractAddress = TokenContractAddress,
                     MethodName = methodName
                 });
-                chargeFeeRet.Output.Value.ShouldBe(true);
+                chargeFeeRet.Output.Success.ShouldBe(true);
                 var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
                 afterChargeBalance.ShouldBe(beforeChargeBalance);
             }
@@ -131,7 +131,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);
 
             var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(chargeTransactionFeesInput);
-            chargeFeeRet.Output.Value.ShouldBe(isSuccess);
+            chargeFeeRet.Output.Success.ShouldBe(isSuccess);
             var afterBalanceList = await GetDefaultBalancesAsync(orderedSymbolList);
             for (var i = 0; i < tokenCount; i++)
             {

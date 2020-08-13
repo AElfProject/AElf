@@ -12,7 +12,6 @@ namespace AElf.Kernel.Miner.Application
         ILocalEventHandler<BlockAcceptedEvent>,
         ILocalEventHandler<BestChainFoundEventData>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
-        ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
         private readonly ITransactionPoolService _transactionPoolService;
@@ -35,11 +34,6 @@ namespace AElf.Kernel.Miner.Application
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             await _transactionPoolService.UpdateTransactionPoolByBestChainAsync(eventData.BlockHash, eventData.BlockHeight);
-        }
-
-        public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
-        {
-            await _transactionPoolService.CleanByTransactionIdsAsync(eventData.Transactions);
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)

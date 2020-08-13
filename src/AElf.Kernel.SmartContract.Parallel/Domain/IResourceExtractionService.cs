@@ -16,9 +16,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData);
 
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
-
-        Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData);
-
+        
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
 
         void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds);

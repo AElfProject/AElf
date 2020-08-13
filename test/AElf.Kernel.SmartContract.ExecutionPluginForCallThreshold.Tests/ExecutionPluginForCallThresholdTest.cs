@@ -84,7 +84,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
             burnResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var dummy = await DefaultTester.DummyMethod.SendWithExceptionAsync(new Empty());
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            dummy.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold.");
         }
 
         [Fact]
@@ -190,7 +191,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
                 transferWriteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 var dummy = await DefaultTester.DummyMethod.SendWithExceptionAsync(new Empty());
-                dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+                dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                dummy.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold.");
             }
         }
         
