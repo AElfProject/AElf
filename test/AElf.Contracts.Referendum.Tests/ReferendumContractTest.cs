@@ -635,6 +635,12 @@ namespace AElf.Contracts.Referendum
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
+            // do not reach minimal approve amount
+            {
+                var result = await ReferendumContractStub.Release.SendWithExceptionAsync(proposalId);
+                result.TransactionResult.Error.ShouldContain("Not approved");
+            }
+            
             {
                 var amount = 5000;
                 var keyPair = Accounts[3].KeyPair;
@@ -687,6 +693,14 @@ namespace AElf.Contracts.Referendum
             await ApproveAsync(Accounts[3].KeyPair, proposalId);
             var proposal = await ReferendumContractStub.GetProposal.CallAsync(proposalId);
             proposal.ToBeReleased.ShouldBeTrue();
+            
+            // invalid sender
+            {
+                var ret =
+                    await ReferendumContractStub.ChangeOrganizationThreshold.SendWithExceptionAsync(
+                        new ProposalReleaseThreshold());
+                ret.TransactionResult.Error.ShouldContain("Organization not found");
+            }
 
             {
                 var proposalReleaseThresholdInput = new ProposalReleaseThreshold
@@ -724,6 +738,33 @@ namespace AElf.Contracts.Referendum
 
                 proposal = await referendumContractStub.GetProposal.CallAsync(proposalId);
                 proposal.ToBeReleased.ShouldBeFalse();
+            }
+        }
+
+        [Fact]
+        public async Task ChangeOrganizationProposalWhitelist_Fail_Test()
+        {
+            // invalid sender
+            {
+                var ret =
+                    await ReferendumContractStub.ChangeOrganizationProposerWhiteList.SendWithExceptionAsync(
+                        new ProposerWhiteList());
+                ret.TransactionResult.Error.ShouldContain("Organization not found");
+            }
+            
+            // invalid proposal whitelist
+            {
+                var organizationAddress = await CreateOrganizationAsync();
+                var newProposalWhitelist = new ProposerWhiteList();
+                var changeProposerWhitelistProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
+                    newProposalWhitelist,
+                    nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                var keyPair = Accounts[3].KeyPair;
+                await ApproveAllowanceAsync(keyPair, 5000, changeProposerWhitelistProposalId);
+                await ApproveAsync(keyPair, changeProposerWhitelistProposalId);
+                var ret = await ReferendumContractStub.Release.SendWithExceptionAsync(
+                    changeProposerWhitelistProposalId);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization");
             }
         }
 
@@ -786,6 +827,34 @@ namespace AElf.Contracts.Referendum
         }
 
         [Fact]
+        public async Task SetMethodFee_Fail_Test()
+        {
+            // invalid token symbol
+            {
+                var invalidTokenSymbol = "CPW";
+                var inputFee = GetValidMethodFees();
+                inputFee.Fees[0].Symbol = invalidTokenSymbol;
+                var ret = await ReferendumContractStub.SetMethodFee.SendWithExceptionAsync(inputFee);
+                ret.TransactionResult.Error.ShouldContain("Token is not found");
+            }
+            
+            //invalid fee amount
+            {
+                var inputFee = GetValidMethodFees();
+                inputFee.Fees[0].BasicFee = -1;
+                var ret = await ReferendumContractStub.SetMethodFee.SendWithExceptionAsync(inputFee);
+                ret.TransactionResult.Error.ShouldContain("Invalid amount");
+            }
+            
+            //invalid sender
+            {
+                var inputFee = GetValidMethodFees();
+                var ret = await ReferendumContractStub.SetMethodFee.SendWithExceptionAsync(inputFee);
+                ret.TransactionResult.Error.ShouldContain("Unauthorized");
+            }
+        }
+
+        [Fact]
         public async Task SetMethodFee_Test()
         {
             var inputFee = new MethodFees
@@ -822,6 +891,21 @@ namespace AElf.Contracts.Referendum
                 Symbol = "ELF",
                 BasicFee = 5000_0000L
             });
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Organization_Test()
+        {
+            var methodFeeController = await ReferendumContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var proposalId = await CreateFeeProposalAsync(ReferendumContractAddress,
+                methodFeeController.OwnerAddress, nameof(ReferendumContractStub.ChangeMethodFeeController), new AuthorityInfo
+                {
+                    OwnerAddress = TokenContractAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+            await ApproveWithMinersAsync(proposalId);
+            var ret = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+            ret.TransactionResult.Error.ShouldContain("Invalid authority input");
         }
         
         [Fact]
@@ -1013,6 +1097,183 @@ namespace AElf.Contracts.Referendum
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        [Fact]
+        public async Task CreateOrganization_With_Invalid_Input_Test()
+        {
+            // token symbol is null or empty
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.TokenSymbol = string.Empty;
+                var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+            
+            // no proposer in proposeWhiteList
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.ProposerWhiteList.Proposers.Clear();
+                var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+            
+            //MinimalApprovalThreshold > MinimalVoteThreshold
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.ProposalReleaseThreshold.MinimalApprovalThreshold =
+                    validInput.ProposalReleaseThreshold.MinimalVoteThreshold + 1;
+                var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+            
+            //MinimalApprovalThreshold == 0
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.ProposalReleaseThreshold.MinimalApprovalThreshold = 0;
+                    var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+            
+            //MaximalAbstentionThreshold < 0
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.ProposalReleaseThreshold.MaximalAbstentionThreshold = -1;
+                var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+            
+            //MaximalRejectionThreshold < 0
+            {
+                var validInput = GetValidCreateOrganizationInput();
+                validInput.ProposalReleaseThreshold.MaximalRejectionThreshold = -1;
+                var ret = await ReferendumContractStub.CreateOrganization.SendWithExceptionAsync(validInput);
+                ret.TransactionResult.Error.ShouldContain("Invalid organization data");
+            }
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_With_Invalid_Proposal_Test()
+        {
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, new []{DefaultSender});
+            var input =new CreateProposalBySystemContractInput
+            {
+                OriginProposer = DefaultSender
+            };
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex= new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            
+            //invalid organization
+            {
+                var proposal = GetValidCreateProposalInput(organizationAddress);
+                proposal.OrganizationAddress = ReferendumContractAddress;
+                input.ProposalInput = proposal;
+                var ret =
+                    await ReferendumContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Organization not found");
+            }
+            
+            //method name = string.Empty
+            {
+                var proposal = GetValidCreateProposalInput(organizationAddress);
+                proposal.ContractMethodName = string.Empty;
+                input.ProposalInput = proposal;
+                var ret =
+                    await ReferendumContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+            
+            //invalid expire time
+            {
+                var proposal = GetValidCreateProposalInput(organizationAddress);
+                proposal.ExpiredTime = new Timestamp();
+                input.ProposalInput = proposal;
+                var ret =
+                    await ReferendumContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+            
+            //invalid url
+            {
+                var proposal = GetValidCreateProposalInput(organizationAddress);
+                proposal.ProposalDescriptionUrl = "ppp";
+                input.ProposalInput = proposal;
+                var ret =
+                    await ReferendumContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+        }
+
+        [Fact]
+        public async Task ClearProposal_Fail_Test()
+        {
+            // the proposal that is not exist
+            {
+                var proposalId = new Hash();
+                var ret = await ReferendumContractStub.ClearProposal.SendWithExceptionAsync(proposalId);
+                ret.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+            
+            // the proposal that is not expired
+            {
+                var organizationAddress = await CreateOrganizationAsync();
+                var newProposalWhitelist = new ProposerWhiteList();
+                var changeProposerWhitelistProposalId = await CreateReferendumProposalAsync(DefaultSenderKeyPair,
+                    newProposalWhitelist,
+                    nameof(ReferendumContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                var ret = await ReferendumContractStub.ClearProposal.SendWithExceptionAsync(changeProposerWhitelistProposalId);
+                ret.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+        }
+
+        private CreateOrganizationInput GetValidCreateOrganizationInput(Address sender = null)
+        {
+            var validSender = sender ?? DefaultSender;
+            return new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 5000,
+                    MinimalVoteThreshold = 5000,
+                    MaximalAbstentionThreshold = 10000,
+                    MaximalRejectionThreshold = 10000
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {validSender}
+                },
+                TokenSymbol = "ELF",
+            };
+        }
+        
+        private CreateProposalInput GetValidCreateProposalInput(Address organizationAddress)
+        {
+            var transferInput = new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = TokenContractAddress,
+                Memo = "Transfer"
+            };
+            return new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Transfer),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+        }
+
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress,
             Timestamp timestamp = null)
         {
@@ -1060,10 +1321,12 @@ namespace AElf.Contracts.Referendum
             return proposal.Output;
         }
 
-        private async Task<Address> CreateOrganizationAsync(long minimalApproveThreshold, long minimalVoteThreshold,
-            long maximalAbstentionThreshold, long maximalRejectionThreshold, Address[] proposerWhiteList,
+        private async Task<Address> CreateOrganizationAsync(long minimalApproveThreshold = 5000, long minimalVoteThreshold = 5000,
+            long maximalAbstentionThreshold = 10000, long maximalRejectionThreshold = 10000, Address[] proposerWhiteList = null,
             string symbol = "ELF")
         {
+            if (proposerWhiteList == null)
+                proposerWhiteList = new[] {DefaultSender};
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -1173,6 +1436,22 @@ namespace AElf.Contracts.Referendum
                 var approveResult = await tester.Approve.SendAsync(proposalId);
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
+        }
+
+        private MethodFees GetValidMethodFees()
+        {
+            return new MethodFees
+            {
+                MethodName = nameof(ReferendumContractStub.CreateProposal),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 5000_0000L
+                    }
+                }
+            };
         }
     }
 }
