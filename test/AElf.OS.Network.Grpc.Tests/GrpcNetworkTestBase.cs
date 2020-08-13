@@ -6,25 +6,29 @@ using Grpc.Core;
 using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
+    public class GrpcNetworkWithChainTestBase : AElfIntegratedTest<GrpcNetworkWithChainTestModule>
+    {
+    }
+
     public class GrpcNetworkTestBase : AElfIntegratedTest<GrpcNetworkTestModule>
     {
     }
-
-    public class GrpcBasicNetworkTestBase : AElfIntegratedTest<GrpcBasicNetworkTestModule>
+    
+    public class GrpcNetworkWithPeerTestBase : AElfIntegratedTest<GrpcNetworkWithPeerTestModule>
     {
     }
     
-    public class ServerServiceTestBase : AElfIntegratedTest<ConnectionServiceTestModule>
-    {
-    }
-
     public class GrpcNetworkWithBootNodesTestBase : AElfIntegratedTest<GrpcNetworkWithBootNodesTestModule>
     {
     }
-
-    public class GrpcBackpressureTestBase : AElfIntegratedTest<GrpcBackpressureTestModule>
+    
+    public class GrpcNetworkConnectionWithBootNodesTestBase : AElfIntegratedTest<GrpcNetworkConnectionWithBootNodesTestModule>
+    {
+    }
+    
+    public class GrpcNetworkWithChainAndPeerTestBase : AElfIntegratedTest<GrpcNetworkWithChainAndPeerTestModule>
     {
     }
 
