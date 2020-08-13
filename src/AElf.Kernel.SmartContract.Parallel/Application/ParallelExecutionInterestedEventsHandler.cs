@@ -8,9 +8,7 @@ using Volo.Abp.EventBus;
 namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ParallelExecutionInterestedEventsHandler : ILocalEventHandler<TransactionAcceptedEvent>,
-//        ILocalEventHandler<BlockAcceptedEvent>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
-        ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
         private readonly IResourceExtractionService _resourceExtractionService;
@@ -41,11 +39,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                 KernelConstants.ChainCleaningQueueName);
             
             return Task.CompletedTask;
-        }
-
-        public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
-        {
-            await _resourceExtractionService.HandleUnexecutableTransactionsFoundAsync(eventData);
         }
     }
 }

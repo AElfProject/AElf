@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs5;
@@ -88,8 +89,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
             };
         }
 
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation)
         {
+            preExecutionInformation = string.Empty;
             return false;
         }
     }
