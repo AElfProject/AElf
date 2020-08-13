@@ -13,5 +13,12 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>
