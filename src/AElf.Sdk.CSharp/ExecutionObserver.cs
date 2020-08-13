@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Tsp;
-
 namespace AElf.Sdk.CSharp
 {
     // Instantiated for every transaction
