@@ -21,13 +21,13 @@ namespace AElf.CSharp.CodeOps.Instruction
         [Fact]
         public void IdentifyInstruction_Tests()
         {
-            var tokenContractModule = GetContractModule(typeof(TestContract));
-            var tokenContractTypeDef = tokenContractModule.GetType("AElf.Runtime.CSharp.Tests.TestContract", nameof(TestContract));
+            var testContractModule = GetContractModule(typeof(TestContract));
+            var tokenContractTypeDef = testContractModule.GetType("AElf.Runtime.CSharp.Tests.TestContract", nameof(TestContract));
             var createMethod = tokenContractTypeDef.Methods.First(m => m.Name == nameof(TestContract.TestStateType));
 
             var identifyResult = createMethod.Body.Instructions
                 .Where(i => _stateWrittenInstructionInjector.IdentifyInstruction(i)).ToList();
-            identifyResult.Count.ShouldBe(2);
+            identifyResult.Count.ShouldBe(3);
             {
                 var methodReference = (MethodReference) identifyResult[0].Operand;
                 ((GenericInstanceType) methodReference.DeclaringType).GenericArguments.Last().Resolve().FullName
@@ -38,6 +38,12 @@ namespace AElf.CSharp.CodeOps.Instruction
                 var methodReference = (MethodReference) identifyResult[1].Operand;
                 ((GenericInstanceType) methodReference.DeclaringType).GenericArguments.Last().Resolve().FullName
                     .ShouldBe(typeof(Address).FullName);
+            }
+            
+            {
+                var methodReference = (MethodReference) identifyResult[2].Operand;
+                ((GenericInstanceType) methodReference.DeclaringType).GenericArguments.Last().Resolve().FullName
+                    .ShouldBe(typeof(string).FullName);
             }
         }
 

@@ -44,7 +44,7 @@ namespace AElf.CSharp.CodeOps
             return instruction.OpCode + operandStr;
         }
 
-        public static IEnumerable<FieldDefinition> GetStaticFields(this TypeDefinition type)
+        public static IEnumerable<FieldDefinition> GetResetableStaticFields(this TypeDefinition type)
         {
             // Get static fields from type
             var fields = type.Fields.Where(f => 
@@ -54,7 +54,7 @@ namespace AElf.CSharp.CodeOps
                 ).ToList();
 
             // Get static fields from nested types 
-            fields.AddRange(type.NestedTypes.SelectMany(GetStaticFields));
+            fields.AddRange(type.NestedTypes.SelectMany(GetResetableStaticFields));
 
             return fields;
         }

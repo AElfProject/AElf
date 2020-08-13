@@ -1,6 +1,5 @@
 using System;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -9,7 +8,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContract : TestContractContainer.TestContractBase
     {
-        private static int i = 0;
+        public static int i;
         
         public override BoolOutput TestBoolState(BoolInput input)
         {
@@ -19,7 +18,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
                 BoolValue = State.BoolInfo.Value
             };
         }
-
+    
         public override Int32Output TestInt32State(Int32Input input)
         {
             State.Int32Info.Value = State.Int32Info.Value.Sub(input.Int32Value);
@@ -190,8 +189,14 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
         public class TestNestClass
         {
-            private static int i = 0;
-            private const int j = 0;
+            public static int k;
+            public const int j = 1;
+
+            public void TestState()
+            {
+                var state =new TestContractState();
+                state.ProtoInfo.Value = new ProtobufMessage();
+            }
         }
     }
 }    

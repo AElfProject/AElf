@@ -51,16 +51,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
     public class BadCase6
     {
-        public static FileDescriptor Descriptor
-        {
-            get { return descriptor; }
-        }
-
-        private static FileDescriptor descriptor;
-
         public BadCase6()
         {
-            descriptor = null;
+            var array = new int[0][]; // multi dim array
+            int length = array.Length;
         }
     }
 }

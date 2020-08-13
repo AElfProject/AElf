@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.CSharp.CodeOps.Patchers.Module;
+using AElf.Runtime.CSharp.Tests.BadContract;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using Shouldly;
 using Xunit;
@@ -41,6 +42,15 @@ namespace AElf.CSharp.CodeOps.Patch
             {
                 method.HasSameBody(typeDefinition.Methods.Single(m => m.Name == method.Name)).ShouldBeTrue();
             }
+        }
+        
+        [Fact]
+        public void ExecutionObserverInjectorPatchTest2()
+        {
+            var module = GetContractModule(typeof(BadContract));
+
+            var executionObserverInjector = new ExecutionObserverInjector();
+            executionObserverInjector.Patch(module);
         }
     }
 }

@@ -406,6 +406,14 @@ namespace AElf.Contract.TestContract
                         {Int32Value = 15000});
                 txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
             }
+            
+            {
+                await TestBasicSecurityContractStub.TestForInfiniteLoopInSeparateClass.SendAsync(new Int32Input {Int32Value = 14999});
+                var txResult = await TestBasicSecurityContractStub.TestForInfiniteLoop.SendWithExceptionAsync(
+                    new Int32Input
+                        {Int32Value = 15000});
+                txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+            }
 
             {
                 await TestBasicSecurityContractStub.TestWhileInfiniteLoopWithState.SendAsync(new Int32Input
@@ -416,16 +424,35 @@ namespace AElf.Contract.TestContract
                             {Int32Value = 15000});
                 txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
             }
+
+            {
+                await TestBasicSecurityContractStub.TestForeachInfiniteLoop.SendAsync(new ListInput
+                    {List = {new int[14999]}});
+                var txResult =
+                    await TestBasicSecurityContractStub.TestForeachInfiniteLoop.SendWithExceptionAsync(
+                        new ListInput{List = {new int[15000]}});
+                txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeBranchThresholdExceededException));
+            }
         }
 
         [Fact]
         public async Task TestMethodCallCount()
         {
-            await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendAsync(new Int32Input
-                {Int32Value = 14900});
-            var txResult = await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendWithExceptionAsync(
-                new Int32Input {Int32Value = 15000});
-            txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
+            {
+                await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendAsync(new Int32Input
+                    {Int32Value = 14900});
+                var txResult = await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendWithExceptionAsync(
+                    new Int32Input {Int32Value = 15000});
+                txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
+            }
+            
+            {
+                await TestBasicSecurityContractStub.TestInfiniteRecursiveCallInSeparateClass.SendAsync(new Int32Input
+                    {Int32Value = 14900});
+                var txResult = await TestBasicSecurityContractStub.TestInfiniteRecursiveCall.SendWithExceptionAsync(
+                    new Int32Input {Int32Value = 15000});
+                txResult.TransactionResult.Error.ShouldContain(nameof(RuntimeCallThresholdExceededException));
+            }
         }
     }
 }

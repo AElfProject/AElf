@@ -11,6 +11,8 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
     public class BadContract : BadContractContainer.BadContractBase
     {
         int i = 1;
+        private static BadCase1 staticNotAllowedTypeField;
+        private static int staticAllowedTypeField;
         
         public override Empty UpdateDoubleState(DoubleInput input)
         {
@@ -103,7 +105,8 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             while (i++ < input.Value)
             {
             }
-
+            
+            ExecutionObserverProxy.SetObserver(null);
             return new Empty();
         }
 

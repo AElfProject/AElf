@@ -35,6 +35,13 @@ namespace AElf.CSharp.CodeOps
             return modDef;
         }
         
+        protected ModuleDefinition GetPatchedContractModule(Type contractType)
+        {
+            var code = ReadPatchedContractCode(contractType);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
+        }
+        
         protected ModuleDefinition GetModule(Type type)
         {
             var code = ReadCode(Assembly.GetAssembly(type).Location);
@@ -42,7 +49,7 @@ namespace AElf.CSharp.CodeOps
             return modDef;
         }
 
-        private byte[] ReadCode(string path)
+        protected byte[] ReadCode(string path)
         {
             return File.Exists(path)
                 ? File.ReadAllBytes(path)
