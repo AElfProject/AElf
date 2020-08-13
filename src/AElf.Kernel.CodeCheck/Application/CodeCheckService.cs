@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,18 +9,18 @@ namespace AElf.Kernel.CodeCheck.Application
 {
     public class CodeCheckService : ICodeCheckService, ITransientDependency
     {
-        private readonly ISmartContractRequiredAcsService _smartContractRequiredAcsService;
+        private readonly IRequiredAcsProvider _requiredAcsProvider;
         private readonly IContractAuditorContainer _contractAuditorContainer;
         private readonly CodeCheckOptions _codeCheckOptions;
 
         public ILogger<CodeCheckService> Logger { get; set; }
 
 
-        public CodeCheckService(ISmartContractRequiredAcsService smartContractRequiredAcsService,
+        public CodeCheckService(IRequiredAcsProvider requiredAcsProvider,
             IContractAuditorContainer contractAuditorContainer,
             IOptionsMonitor<CodeCheckOptions> codeCheckOptionsMonitor)
         {
-            _smartContractRequiredAcsService = smartContractRequiredAcsService;
+            _requiredAcsProvider = requiredAcsProvider;
             _contractAuditorContainer = contractAuditorContainer;
             _codeCheckOptions = codeCheckOptionsMonitor.CurrentValue;
         }
@@ -32,7 +31,7 @@ namespace AElf.Kernel.CodeCheck.Application
                 return false;
 
             var requiredAcs =
-                await _smartContractRequiredAcsService.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
+                await _requiredAcsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);
             try
             {
                 // Check contract code

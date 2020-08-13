@@ -31,7 +31,39 @@ namespace AElf.OS.Network.Application
             _blockchainService = GetRequiredService<IBlockchainService>();
             _eventBus = GetRequiredService<ILocalEventBus>();
         }
+
+        [Fact]
+        public async Task StartSync_CurrentSyncStateIsNotUnInitialized_Test()
+        {
+            _syncStateProvider.SetSyncTarget(10);
+            
+            _peerPool.TryAddPeer(CreatePeer(15));
+            _peerPool.TryAddPeer(CreatePeer(16));
+            
+            await _syncStateService.StartSyncAsync();
+            _syncStateService.GetCurrentSyncTarget().ShouldBe(10);
+            
+        }
         
+        [Fact]
+        public async Task StartSync_NoEnoughPeer_Test()
+        {
+            _peerPool.TryAddPeer(CreatePeer(0));
+            _peerPool.TryAddPeer(CreatePeer(16));
+            
+            InitialSyncFinishedEvent eventData = null;
+            _eventBus.Subscribe<InitialSyncFinishedEvent>(args =>
+            {
+                eventData = args;
+                return Task.CompletedTask;
+            });
+            
+            await _syncStateService.StartSyncAsync();
+            _syncStateService.GetCurrentSyncTarget().ShouldBe(-1);
+            
+            eventData.ShouldNotBeNull();
+        }
+
         [Fact]
         public void Initial_State_Is_Syncing()
         {
@@ -53,13 +85,20 @@ namespace AElf.OS.Network.Application
             _peerPool.TryAddPeer(CreatePeer(15));
             _peerPool.TryAddPeer(CreatePeer(16));
             
+            InitialSyncFinishedEvent eventData = null;
+            _eventBus.Subscribe<InitialSyncFinishedEvent>(args =>
+            {
+                eventData = args;
+                return Task.CompletedTask;
+            });
+            
             await _syncStateService.StartSyncAsync();
             _syncStateService.SyncState.ShouldBe(SyncState.Syncing);
-            _syncStateProvider.SyncTarget.ShouldBe(15);
+            _syncStateService.GetCurrentSyncTarget().ShouldBe(15);
             
             await _syncStateService.UpdateSyncStateAsync();
             _syncStateService.SyncState.ShouldBe(SyncState.Syncing);
-            _syncStateProvider.SyncTarget.ShouldBe(15);
+            _syncStateService.GetCurrentSyncTarget().ShouldBe(15);
 
             for (var i = 0; i < 4; i++)
             {
@@ -71,7 +110,9 @@ namespace AElf.OS.Network.Application
 
             await _syncStateService.UpdateSyncStateAsync();
             _syncStateService.SyncState.ShouldBe(SyncState.Finished);
-            _syncStateProvider.SyncTarget.ShouldBe(-1);
+            _syncStateService.GetCurrentSyncTarget().ShouldBe(-1);
+            
+            eventData.ShouldNotBeNull();
         }
         
         [Fact]

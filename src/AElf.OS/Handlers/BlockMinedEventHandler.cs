@@ -43,7 +43,7 @@ namespace AElf.OS.Handlers
                 }
 
                 var blockWithTransactions =
-                    await _blockchainService.GetBlockWithTransactionsByHash(eventData.BlockHeader.GetHash());
+                    await _blockchainService.GetBlockWithTransactionsByHashAsync(eventData.BlockHeader.GetHash());
 
                 if (blockWithTransactions == null)
                 {

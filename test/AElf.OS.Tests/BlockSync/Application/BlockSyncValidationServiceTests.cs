@@ -8,6 +8,7 @@ using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -17,7 +18,6 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IAccountService _accountService;
         private readonly OSTestHelper _osTestHelper;
 
@@ -25,7 +25,6 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockSyncValidationService = GetRequiredService<IBlockSyncValidationService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
             _accountService = GetRequiredService<IAccountService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
@@ -122,11 +121,49 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
 
             var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("SyncBlockHash"),
-                chain.LastIrreversibleBlockHeight - 1);
+                chain.LastIrreversibleBlockHeight + 1);
 
             var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task ValidateBlockBeforeAttach_Success()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactions = await _osTestHelper.GenerateTransferTransactions(3);
+            var block = _osTestHelper.GenerateBlockWithTransactions(chain.BestChainHash, chain.BestChainHeight,
+                transactions);
+
+            var result = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(block);
+            result.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task ValidateBlockBeforeAttach_InvalidTransaction_ReturnFalse()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await _osTestHelper.GenerateTransferTransaction();
+            transaction.Signature = ByteString.Empty;
+            var block = _osTestHelper.GenerateBlockWithTransactions(chain.BestChainHash, chain.BestChainHeight,
+                new []{transaction});
+            
+            var result = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(block);
+            result.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task ValidateBlockBeforeAttach_ExpiredTransaction_ReturnFalse()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await _osTestHelper.GenerateTransferTransaction();
+            transaction.RefBlockNumber = chain.BestChainHeight + 1;
+            var block = _osTestHelper.GenerateBlockWithTransactions(chain.BestChainHash, chain.BestChainHeight,
+                new []{transaction});
+            
+            var result = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(block);
+            result.ShouldBeFalse();
         }
 
         private string GetEncodedPubKeyString()
@@ -134,18 +171,6 @@ namespace AElf.OS.BlockSync.Application
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
             return address.ToBase58();
-        }
-
-        [Fact]
-        public void TryAddAnnouncementCache_MultipleTimes()
-        {
-            for (var i = 0; i < 120; i++)
-            {
-                var blockHash = HashHelper.ComputeFrom(Guid.NewGuid().ToString());
-                var blockHeight = i;
-                var result = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, GetEncodedPubKeyString());
-                result.ShouldBeTrue();
-            }
         }
     }
 }

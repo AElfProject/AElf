@@ -3,13 +3,12 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.Kernel;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.ContractTestBase
 {

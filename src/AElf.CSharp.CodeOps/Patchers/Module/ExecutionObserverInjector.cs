@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Linq;
+using AElf.Kernel.SmartContract;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -157,8 +159,13 @@ namespace AElf.CSharp.CodeOps.Patchers.Module
             il.InsertBefore(method.Body.Instructions.First(), il.Create(OpCodes.Call, callCountRef));
             foreach (var instruction in branchingInstructions)
             {
-                il.InsertBefore(instruction, il.Create(OpCodes.Call, branchCountRef));
+                var targetInstruction = (Instruction) instruction.Operand;
+                if (targetInstruction.Offset >= instruction.Offset)
+                    continue;
+                
+                il.InsertAfter(targetInstruction, il.Create(OpCodes.Call, branchCountRef));
             }
+            
             il.Body.OptimizeMacros();
         }
     }
