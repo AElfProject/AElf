@@ -287,7 +287,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void GetSubStatePath_Test()
         {
             var stateName = "Balances";
-            var state = new MappedStateBase();
+            var state = new MappedState();
             state.Path = new StatePath();
             state.Path.Parts.Add(stateName);
             var key = "ELF";
