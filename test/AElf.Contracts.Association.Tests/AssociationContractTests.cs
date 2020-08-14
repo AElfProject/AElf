@@ -914,6 +914,27 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Organization_Test()
+        {
+            var methodFeeController = await AssociationContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName = nameof(AssociationContractStub.ChangeMethodFeeController);
+
+            var proposalId = await CreateFeeProposalAsync(AssociationContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
+                {
+                    OwnerAddress = ParliamentContractAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
             var createOrganizationResult =
@@ -973,6 +994,33 @@ namespace AElf.Contracts.Association
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Fail_Test()
+        {
+            // fee < 0
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].BasicFee = -1;
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Invalid amount");
+            }
+            
+            // token does not exist
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].Symbol = "NOTEXIST";
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Token is not found");
+            }
+            
+            // without authority
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Unauthorized to set method fee");
+            }
         }
 
         [Fact]
@@ -1413,6 +1461,19 @@ namespace AElf.Contracts.Association
                 Params = transferInput.ToByteString(),
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
+            };
+        }
+        
+        private MethodFees GetValidMethodFees()
+        {
+            return new MethodFees
+            {
+                MethodName = "Test",
+                Fees = { new MethodFee
+                {
+                    Symbol = "ELF",
+                    BasicFee = 10
+                }}
             };
         }
 
