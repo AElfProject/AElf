@@ -13,7 +13,7 @@ fi
 
 plugin="${scriptdir}/contract_csharp_plugin"
 
-version="v1.0.2"
+version="v1.0.3"
 
 if [[ ! -f ${plugin} ]]; then
     if [[ ${osn} == "macosx" ]]; then
@@ -25,7 +25,7 @@ if [[ ! -f ${plugin} ]]; then
     # Make sure you grab the latest version
     if [[ ! -f ${filename} ]]; then
         echo "download contract plugin ${filename} from github"
-        curl -OL https://github.com/AElfProject/contract-plugin/releases/download/${version}/${filename}
+        curl -OL https://github.com/shiwk/contract-plugin/releases/download/${version}/${filename}
     fi
     
     # Unzip
