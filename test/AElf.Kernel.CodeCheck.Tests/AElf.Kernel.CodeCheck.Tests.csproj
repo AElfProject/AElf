@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Kernel.CodeCheck\AElf.Kernel.CodeCheck.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+      <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    </ItemGroup>
+
+<!--    <ItemGroup>-->
+<!--        <ContractMessage Include="..\..\protobuf\acs1.proto">-->
+<!--            <Link>Protobuf\Proto\acs1.proto</Link>-->
+<!--        </ContractMessage>-->
+<!--        <ContractStub Include="..\..\protobuf\configuration_contract.proto">-->
+<!--            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>-->
+<!--        </ContractStub>-->
+<!--    </ItemGroup>-->
+</Project>
