@@ -30,8 +30,7 @@ namespace AElf.CSharp.CodeOps.Patch
         {
             var module = GetContractModule(typeof(TestContract));
 
-            var typeDefinition = GetModule(typeof(ExecutionObserverProxy)).Types
-                .Single(t => t.Name == nameof(ExecutionObserverProxy));
+            var typeDefinition = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Test");
 
             var executionObserverInjector = new ExecutionObserverInjector();
             executionObserverInjector.Patch(module);
