@@ -126,8 +126,6 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                CurrentTransactionContext.Trace.ExecutionCallCount = observer.GetCallCount();
-                CurrentTransactionContext.Trace.ExecutionBranchCount = observer.GetBranchCount();
                 Cleanup();
             }
 
@@ -190,15 +188,10 @@ namespace AElf.Runtime.CSharp
 
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
             }
-            catch (TargetInvocationException ex)
-            {
-                CurrentTransactionContext.Trace.Error += ex;
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            }
             catch (Exception ex)
             {
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                CurrentTransactionContext.Trace.Error += "\n" + ex;
+                CurrentTransactionContext.Trace.Error += ex + "\n";
             }
         }
         
