@@ -101,8 +101,8 @@ namespace AElf.Runtime.CSharp
 
         internal void Cleanup()
         {
-            _methodCleanup();
             _methodSetExecutionObserver?.Invoke(null);
+            _methodCleanup();
             ResetFields();
         }
 

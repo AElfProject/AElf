@@ -150,8 +150,12 @@ namespace AElf.Contracts.Election
             // To get previous round information.
             await NextRound(BootMinerKeyPair);
 
-            ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList()
-                .ForEach(async kp => await AnnounceElectionAsync(kp));
+            var keyPairs = ValidationDataCenterKeyPairs
+                .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList();
+            foreach (var keyPair in keyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
@@ -169,7 +173,10 @@ namespace AElf.Contracts.Election
         {
             await NextRound(BootMinerKeyPair);
 
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
@@ -295,8 +302,10 @@ namespace AElf.Contracts.Election
             }
 
             var lessVotesCandidates = ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-            lessVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
+            foreach (var candidate in lessVotesCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 1);
+            }
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
