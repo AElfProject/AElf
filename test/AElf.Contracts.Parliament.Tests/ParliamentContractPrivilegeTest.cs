@@ -82,6 +82,15 @@ namespace AElf.Contracts.Parliament
         }
 
         [Fact]
+        public async Task ChangeOrganizationProposerWhiteList_Without_Authority_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentContractContainer.ParliamentContractStub.ChangeOrganizationProposerWhiteList),
+                new ProposerWhiteList());
+            result.Error.ShouldContain("No permission");
+        }
+        
+        [Fact]
         public async Task Change_OrganizationProposalWhiteList_Test()
         {
             var organizationAddress = await GetDefaultOrganizationAddressAsync();
