@@ -121,7 +121,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TokenConverterContractStub.SetConnector)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -137,7 +138,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TokenContractStub.ChargeResourceToken)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -153,7 +155,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = "BuyResourceToken"
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -178,7 +181,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TestContractStub.CpuConsumingMethod)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(1);
@@ -205,7 +209,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TokenConverterContractStub.SetConnector)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -221,7 +226,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TokenContractStub.ChargeResourceToken)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -237,7 +243,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = "BuyResourceToken"
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(0);
@@ -262,7 +269,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                         MethodName = nameof(TestContractStub.CpuConsumingMethod)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
+                    PreviousBlockHash = chain.BestChainHash,
+                    Trace = new TransactionTrace()
                 })).ToList();
 
             transactions.Count.ShouldBe(1);
