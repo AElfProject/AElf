@@ -18,8 +18,7 @@ namespace AElf.Kernel.SmartContract
 
         public override void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
-            var codes = ContractsDeployer.GetContractCodes<SmartContractTestAElfModule>(
-                "../../../../../src/AElf.Launcher/contracts/");
+            var codes = ContractsDeployer.GetContractCodes<SmartContractTestAElfModule>();
             DefaultContractZeroRegistration=  new SmartContractRegistration
             {
                 Category = GetCategory(),
