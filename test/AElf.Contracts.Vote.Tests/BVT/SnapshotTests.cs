@@ -38,32 +38,26 @@ namespace AElf.Contracts.Vote
             transactionResult.Error.Contains("Voting item not found").ShouldBeTrue();
         }
         
-        // [Fact]
-        // public async Task VoteContract_TakeSnapshot_Exceed_TotalSnapshotNumber_Test()
-        // {
-        //     var totalSnapshotNumber = 1;
-        //     var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, totalSnapshotNumber);
-        //     await VoteContractStub.TakeSnapshot.SendAsync(
-        //         new TakeSnapshotInput
-        //         {
-        //             VotingItemId = votingItem.VotingItemId,
-        //             SnapshotNumber = 1
-        //         });
-        //     await VoteContractStub.TakeSnapshot.SendAsync(
-        //         new TakeSnapshotInput
-        //         {
-        //             VotingItemId = votingItem.VotingItemId,
-        //             SnapshotNumber = 2
-        //         });
-        //     var transactionResult = (await VoteContractStub.TakeSnapshot.SendWithExceptionAsync(
-        //         new TakeSnapshotInput
-        //         {
-        //             VotingItemId = votingItem.VotingItemId,
-        //             SnapshotNumber = 3
-        //         })).TransactionResult;
-        //     transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-        //     transactionResult.Error.Contains("Current voting item already ended.").ShouldBeTrue();
-        // }
+        [Fact]
+        public async Task VoteContract_TakeSnapshot_Exceed_TotalSnapshotNumber_Test()
+        {
+            var totalSnapshotNumber = 1;
+            var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, totalSnapshotNumber);
+            await VoteContractStub.TakeSnapshot.SendAsync(
+                new TakeSnapshotInput
+                {
+                    VotingItemId = votingItem.VotingItemId,
+                    SnapshotNumber = 1
+                });
+            var transactionResult = (await VoteContractStub.TakeSnapshot.SendWithExceptionAsync(
+                new TakeSnapshotInput
+                {
+                    VotingItemId = votingItem.VotingItemId,
+                    SnapshotNumber = 2
+                })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Current voting item already ended.").ShouldBeTrue();
+        }
 
         [Fact]
         public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber_Test()

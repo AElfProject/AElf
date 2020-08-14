@@ -232,7 +232,7 @@ namespace AElf.Contracts.Vote
 
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
 
-            Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
+            Assert(votingItem.CurrentSnapshotNumber - 1 < votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");
 
             // Update previous voting going information.
