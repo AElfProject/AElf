@@ -64,10 +64,24 @@ namespace AElf.Sdk.CSharp
     [Serializable]
     public class RuntimeCallThresholdExceededException : BaseAElfException
     {
+        public RuntimeCallThresholdExceededException()
+        {
+        }
+
+        public RuntimeCallThresholdExceededException(string message) : base(message)
+        {
+        }
     }
     
     [Serializable]
     public class RuntimeBranchThresholdExceededException : BaseAElfException
     {
+        public RuntimeBranchThresholdExceededException()
+        {
+        }
+
+        public RuntimeBranchThresholdExceededException(string message) : base(message)
+        {
+        }
     }
 }

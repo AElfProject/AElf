@@ -4,7 +4,7 @@ using AElf.OS.Network.Infrastructure;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Infrastructure
 {
     public class PeerInvalidTransactionProviderTests : NetworkInfrastructureTestBase
     {
