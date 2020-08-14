@@ -104,7 +104,7 @@ namespace AElf.Types.Tests.Helper
             else
             {
                 var subArray = ByteArrayHelper.SubArray(array, startIndex);
-                subArray.Length.ShouldBe(array.Length - startIndex + 1);
+                subArray.Length.ShouldBe(array.Length - startIndex);
                 for (var i = 0; i < length; i++)
                 {
                     subArray[i].ShouldBe(array[startIndex + i]);
