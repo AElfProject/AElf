@@ -23,7 +23,7 @@ namespace AElf.Contracts.Association
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ConsensusOptions>(options =>
+            Configure<AEDPoSOptions>(options =>
             {
                 options.MiningInterval = 4000;
                 options.InitialMinerList =

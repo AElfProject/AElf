@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    // TODO: Split.
     public class DefaultConsensusContractInitializationProvider : IContractInitializationProvider
     {
         private readonly ConsensusOptions _consensusOptions;

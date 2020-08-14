@@ -22,7 +22,6 @@ namespace AElf.Blockchains.PoWChain
                 AssociationSmartContractAddressNameProvider.Name,
                 ReferendumSmartContractAddressNameProvider.Name,
                 TokenSmartContractAddressNameProvider.Name,
-                ConfigurationSmartContractAddressNameProvider.Name,
                 ConsensusSmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 TokenHolderSmartContractAddressNameProvider.Name,

@@ -47,7 +47,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             var configuration = context.Services.GetConfiguration();
             Configure<AEDPoSOptions>(option =>
             {
-                var aeDPoSOptions = configuration.GetSection("Consensus");
+                var aeDPoSOptions = configuration.GetSection("AEDPoS");
                 aeDPoSOptions.Bind(option);
 
                 var startTimeStamp = aeDPoSOptions["StartTimestamp"];

@@ -48,7 +48,6 @@ namespace AElf.Contracts.Consensus.AEPoW
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-
             if (CheckCoinBaseTokenExists())
             {
                 State.TokenContract.Transfer.Send(new TransferInput
