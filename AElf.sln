@@ -346,6 +346,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core.Tests", "test\AElf.Runtime.CSharp.Core.Tests\AElf.Runtime.CSharp.Core.Tests.csproj", "{C3EEC9D9-F818-4058-B6F3-B71C1C0B8D47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractDeployer.Tests", "test\AElf.ContractDeployer.Tests\AElf.ContractDeployer.Tests.csproj", "{B64C5954-9CC0-4A0B-9453-92324B51C23D}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.CodeCheck.Tests", "test\AElf.Kernel.CodeCheck.Tests\AElf.Kernel.CodeCheck.Tests.csproj", "{E9F84A8F-5761-407D-9200-BE8E3493073C}"
 EndProject
 Global
