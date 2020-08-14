@@ -22,6 +22,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.EventBus.Local;
 using Xunit;
 
 namespace AElf.Parallel.Tests
@@ -42,6 +43,7 @@ namespace AElf.Parallel.Tests
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
         private readonly IBlockStateSetManger _blockStateSetManger;
+        private readonly ILocalEventBus _localEventBus;
 
         private int _groupCount = 10;
         private int _transactionCount = 20;
@@ -62,6 +64,7 @@ namespace AElf.Parallel.Tests
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
         [Fact]
@@ -319,6 +322,13 @@ namespace AElf.Parallel.Tests
             groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
             groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
 
+            _localEventBus.Subscribe<ConflictingTransactionsFoundInParallelGroupsEvent>(e =>
+            {
+                e.ConflictingSets.Count.ShouldBe(_groupCount + 1);
+                e.ExistingSets.Count.ShouldBe(_groupCount);
+                return Task.CompletedTask;
+            });
+            
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
             block.TransactionIds.Count().ShouldBe(_transactionCount + 1);

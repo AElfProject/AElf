@@ -3,92 +3,146 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Acs0;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class BlockExecutingServiceTests : SmartContractExecutionExecutingTestBase
+    public sealed class BlockExecutingServiceTests : SmartContractExecutionTestBase
     {
         private readonly BlockExecutingService _blockExecutingService;
         private readonly KernelTestHelper _kernelTestHelper;
+        private readonly SmartContractExecutionHelper _smartContractExecutionHelper;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockStateSetManger _blockStateSetManger;
+        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
 
         public BlockExecutingServiceTests()
         {
             _blockExecutingService = GetRequiredService<BlockExecutingService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _smartContractExecutionHelper = GetRequiredService<SmartContractExecutionHelper>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
+            _systemTransactionExtraDataProvider = GetRequiredService<ISystemTransactionExtraDataProvider>();
         }
 
         [Fact]
-        public async Task Execute_Block_NonCancellable()
+        public async Task Execute_Block_NonCancellable_Without_SystemTransactionCount()
         {
-            var txs = BuildTransactions(5);
-            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
+            var chain = await _smartContractExecutionHelper.CreateChainAsync();
+            var blockHeader = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash).Header;
+            var transactions = GetTransactions();
+            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
+            await CheckBlockExecutedSetAsync(blockExecutedSet, 2); 
+        }
+        
+        [Fact]
+        public async Task Execute_Block_NonCancellable_With_SystemTransactionCount()
+        {
+            var chain = await _smartContractExecutionHelper.CreateChainAsync();
+            var blockHeader = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash).Header;
+            _systemTransactionExtraDataProvider.SetSystemTransactionCount(1, blockHeader);
+            var transactions = GetTransactions();
+            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
+            await CheckBlockExecutedSetAsync(blockExecutedSet, 2); 
+        }
 
-            var block = (await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs)).Block;
-            var allTxIds = txs.Select(x => x.GetHash()).ToList();
+        [Fact]
+        public async Task Execute_Block_Cancellable_Empty()
+        {
+            var chain = await _smartContractExecutionHelper.CreateChainAsync();
 
-            block.Body.TransactionsCount.ShouldBe(txs.Count);
+            var transactions = GetTransactions();
 
-            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.Root;
-            block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
+            var blockHeader = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash).Header;
+            var nonCancellableTxs = new[] {transactions[0]};
+            var cancellableTxs = new Transaction[0];
 
-            block.Body.TransactionIds.ShouldBe(allTxIds);
+            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
+                cancellableTxs, CancellationToken.None);
+            await CheckBlockExecutedSetAsync(blockExecutedSet, 1);
+        }
+
+        [Fact]
+        public async Task Execute_Block_Cancellable_Cancelled()
+        {
+            var chain = await _smartContractExecutionHelper.CreateChainAsync();
+
+            var blockHeader = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash).Header;
+            var transactions = GetTransactions();
+            var nonCancellableTxs = new[] {transactions[0]};
+            var cancellableTxs = new[] {transactions[1]};
+            var cancelToken = new CancellationTokenSource();
+            cancelToken.Cancel();
+
+            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
+                cancellableTxs, cancelToken.Token);
+            await CheckBlockExecutedSetAsync(blockExecutedSet, 1);
         }
 
         [Fact]
         public async Task Execute_Block_Cancellable()
         {
-            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
-            var nonCancellableTxs = BuildTransactions(5);
-            var cancellableTxs = BuildTransactions(5);
-            var cancelToken = new CancellationTokenSource();
-            cancelToken.Cancel();
+            var chain = await _smartContractExecutionHelper.CreateChainAsync();
 
-            var block = (await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
-                cancellableTxs, cancelToken.Token)).Block;
+            var blockHeader = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash).Header;
+            var transactions = GetTransactions();
+            var nonCancellableTxs = new[] {transactions[0]};
+            var cancellableTxs = new[] {transactions[1]};
 
-            var allTxIds = nonCancellableTxs.Select(x => x.GetHash()).ToList();
-            allTxIds.Add(cancellableTxs[0].GetHash());
-            allTxIds.Add(cancellableTxs[1].GetHash());
-            allTxIds.Add(cancellableTxs[2].GetHash());
-
-            var allTxs = new List<Transaction>();
-            allTxs.AddRange(nonCancellableTxs);
-            allTxs.Add(cancellableTxs[0]);
-            allTxs.Add(cancellableTxs[1]);
-            allTxs.Add(cancellableTxs[2]);
-
-            block.Body.TransactionsCount.ShouldBe(nonCancellableTxs.Count);
-
-            var nonCancellableTxIds = nonCancellableTxs.Select(tx => tx.GetHash()).ToList();
-            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(nonCancellableTxIds);
-            var merkleTreeRoot = binaryMerkleTree.Root;
-            block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
-
-            block.Body.TransactionIds.ShouldBe(nonCancellableTxIds);
+            var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
+                cancellableTxs, CancellationToken.None);
+            await CheckBlockExecutedSetAsync(blockExecutedSet, 2);
         }
 
-        private List<Transaction> BuildTransactions(int txCount)
+        private async Task CheckBlockExecutedSetAsync(BlockExecutedSet blockExecutedSet, int transactionCount)
         {
-            var result = new List<Transaction>(txCount);
-            
-            for (int i = 0; i < txCount; i++)
+            blockExecutedSet.Block.Body.TransactionIds.Count.ShouldBe(transactionCount);
+            blockExecutedSet.TransactionResultMap.Values.Select(t => t.Status)
+                .ShouldAllBe(status => status == TransactionResultStatus.Mined);
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(blockExecutedSet.GetHash());
+            blockStateSet.ShouldNotBeNull();
+            var transactionResults = await _transactionResultManager.GetTransactionResultsAsync(
+                blockExecutedSet.TransactionIds.ToList(),
+                blockExecutedSet.GetHash());
+            transactionResults.Count.ShouldBe(transactionCount);
+            foreach (var transactionResult in transactionResults)
             {
-                result.Add(new Transaction
+                blockExecutedSet.TransactionResultMap[transactionResult.TransactionId].ShouldBe(transactionResult);
+            }
+        }
+
+        private List<Transaction> GetTransactions()
+        {
+            return new List<Transaction>
+            {
+                new Transaction
                 {
                     From = SampleAddress.AddressList[0],
-                    To = SampleAddress.AddressList[1],
-                    MethodName = Guid.NewGuid().ToString()
-                });
-            }
-
-            return result;
+                    To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                    MethodName = nameof(ACS0Container.ACS0Stub.GetContractInfo),
+                    Params = _smartContractAddressService.GetZeroSmartContractAddress().ToByteString()
+                },
+                new Transaction
+                {
+                    From = SampleAddress.AddressList[0],
+                    To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                    MethodName = nameof(ACS0Container.ACS0Stub.GetContractHash),
+                    Params = _smartContractAddressService.GetZeroSmartContractAddress().ToByteString()
+                }
+            };
         }
     }
 }
