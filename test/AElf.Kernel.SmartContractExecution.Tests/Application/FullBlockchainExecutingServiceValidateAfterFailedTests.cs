@@ -10,14 +10,14 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingServiceValidateFailedTests : ValidateAfterFailedTestBase
+    public sealed class FullBlockchainExecutingServiceValidateAfterFailedTests : ValidateAfterFailedTestBase
     {
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainManager _chainManager;
         private readonly KernelTestHelper _kernelTestHelper;
         
-        public FullBlockchainExecutingServiceValidateFailedTests()
+        public FullBlockchainExecutingServiceValidateAfterFailedTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
