@@ -7,7 +7,7 @@ using AElf.CSharp.CodeOps.Policies;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.Options;
 using Mono.Cecil;
 

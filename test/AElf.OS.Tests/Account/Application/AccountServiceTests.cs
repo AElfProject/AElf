@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Kernel.Account.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -9,15 +10,15 @@ using Xunit;
 
 namespace AElf.OS.Account.Application
 {
-    public class AccountServiceTests : OSTestBase
+    public class AccountServiceTests : AccountServiceTestBase
     {
         private readonly AccountOptions _accountOptions;
-        private readonly AccountService _accountService;
+        private readonly IAccountService _accountService;
 
         public AccountServiceTests()
         {
             _accountOptions = GetRequiredService<IOptionsSnapshot<AccountOptions>>().Value;
-            _accountService = GetRequiredService<AccountService>();
+            _accountService = GetRequiredService<IAccountService>();
         }
 
         [Fact]
@@ -25,6 +26,10 @@ namespace AElf.OS.Account.Application
         {
             var publicKey = await _accountService.GetPublicKeyAsync();
 
+            Assert.Equal(Address.FromPublicKey(publicKey).ToBase58(), _accountOptions.NodeAccount);
+
+            // Test unlock account
+            publicKey = await _accountService.GetPublicKeyAsync();
             Assert.Equal(Address.FromPublicKey(publicKey).ToBase58(), _accountOptions.NodeAccount);
         }
 
@@ -43,9 +48,9 @@ namespace AElf.OS.Account.Application
 
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
-            
+
             var recoverResult = CryptoHelper.RecoverPublicKey(signature, data, out var recoverPublicKey);
-            var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
+            var verifyResult = recoverResult && publicKey.BytesEqual(recoverPublicKey);
 
             Assert.True(verifyResult);
         }
@@ -60,7 +65,7 @@ namespace AElf.OS.Account.Application
             var publicKey = await _accountService.GetPublicKeyAsync();
 
             var recoverResult = CryptoHelper.RecoverPublicKey(signature, data2, out var recoverPublicKey);
-            var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
+            var verifyResult = recoverResult && publicKey.BytesEqual(recoverPublicKey);
 
             Assert.False(verifyResult);
         }
@@ -83,12 +88,17 @@ namespace AElf.OS.Account.Application
         }
 
         [Fact]
-        public async Task GetAccountAsync_WithParameterIsNull()
+        public async Task GetAccountAsync_WithOptionEmpty()
         {
             _accountOptions.NodeAccount = string.Empty;
+            // Test create key pair
             var account = await _accountService.GetAccountAsync();
-
-            Assert.NotEqual(account.ToBase58(), _accountOptions.NodeAccount);
+            account.ShouldNotBeNull();
+            
+            // Test read key pair
+            account = await _accountService.GetAccountAsync();
+            account.ShouldNotBeNull();
         }
+
     }
 }

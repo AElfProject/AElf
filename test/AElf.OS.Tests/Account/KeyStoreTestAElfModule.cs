@@ -11,7 +11,7 @@ using Volo.Abp.Modularity;
 namespace AElf.OS.Account
 {
     [DependsOn(
-        typeof(OSCoreTestAElfModule)
+        typeof(OSTestAElfModule)
     )]
     public class KeyStoreTestAElfModule : AElfModule
     {
