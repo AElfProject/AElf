@@ -72,5 +72,22 @@ namespace AElf.OS.Network.Application
                 AddSeconds(1));
             peers.Count.ShouldBe(0);
         }
+
+        [Fact]
+        public void CancelReconnection_NotExitEndpoint_ReturnFalse()
+        {
+            var result = _reconnectionService.CancelReconnection("127.0.0.1:5677");
+            result.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public void GetReconnectingPeer_Test()
+        {
+            var endpoint = "127.0.0.1:5677";
+            _reconnectionService.SchedulePeerForReconnection(endpoint);
+            var result = _reconnectionService.GetReconnectingPeer(endpoint);
+            result.ShouldNotBeNull();
+            result.Endpoint.ShouldBe(endpoint);
+        }
     }
 }

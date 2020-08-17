@@ -205,13 +205,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
-        {
-            ClearResourceCache(eventData.Transactions);
-
-            await Task.CompletedTask;
-        }
-
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             ClearResourceCache(eventData.Block.TransactionIds);

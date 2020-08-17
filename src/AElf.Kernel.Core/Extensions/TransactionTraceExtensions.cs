@@ -67,7 +67,7 @@ namespace AElf.Kernel
                 foreach (var trace in txTrace.PostTraces)
                 {
                     trace.SurfaceUpError();
-                    if (!trace.IsSuccessful())
+                    if (!string.IsNullOrEmpty(trace.Error))
                     {
                         txTrace.Error += $"Post-Error: {trace.Error}";
                     }
@@ -79,7 +79,7 @@ namespace AElf.Kernel
                 foreach (var trace in txTrace.PreTraces)
                 {
                     trace.SurfaceUpError();
-                    if (!trace.IsSuccessful())
+                    if (!string.IsNullOrEmpty(trace.Error))
                     {
                         txTrace.Error += $"Pre-Error: {trace.Error}";
                     }

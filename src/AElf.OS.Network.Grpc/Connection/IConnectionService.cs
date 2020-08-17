@@ -15,7 +15,7 @@ namespace AElf.OS.Network.Grpc
         Task<HandshakeReply> DoHandshakeAsync(DnsEndPoint endpoint, Handshake handshake);
         void ConfirmHandshake(string peerPubkey);
         Task DisconnectPeersAsync(bool gracefulDisconnect);
-        void RemovePeer(string pubkey);
         Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint);
+        Task RemovePeerAsync(string pubkey);
     }
 }

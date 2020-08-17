@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Modularity;
-using AElf.OS.Network;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS.Network
 {
     [DependsOn(typeof(OSCoreTestAElfModule))]
     public class PeerInvalidTransactionTestModule : AElfModule
