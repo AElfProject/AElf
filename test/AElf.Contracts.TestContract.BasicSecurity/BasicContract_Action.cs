@@ -359,21 +359,32 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new Int32Output {Int32Value = i};
         }
 
-        public override Int32Output TestForeachInfiniteLoop(StringInput input)
+        public override Int32Output TestForInfiniteLoopInSeparateClass(Int32Input input)
+        {
+            SeparateClass.UseInfiniteLoopInSeparateClass(input.Int32Value);
+            return new Int32Output();
+        }
+
+        public override Int32Output TestForeachInfiniteLoop(ListInput input)
         {
             int i = 1;
-            int[] arr = new int[3];
-            foreach (var t in arr)
+            foreach (var t in input.List)
             {
                 i++;
             }
 
             return new Int32Output {Int32Value = i};
         }
-
+   
         public override Empty TestInfiniteRecursiveCall(Int32Input input)
         {
             RecursiveCall(input.Int32Value);
+            return new Empty();
+        }
+
+        public override Empty TestInfiniteRecursiveCallInSeparateClass(Int32Input input)
+        {
+            SeparateClass.UseInfiniteRecursiveCallInSeparateClass(input.Int32Value);
             return new Empty();
         }
 
@@ -417,6 +428,24 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 return _testTypeString == null && _innerContractTypePrivateStaticField == null &&
                        InnerContractTypePublicStaticField == null;
             }
+        }
+    }
+
+    class SeparateClass
+    {
+        public static void UseInfiniteLoopInSeparateClass(int count)
+        {
+            for (int i = 0; i < count;)
+            {
+                i++;
+            }
+        }
+
+        public static void UseInfiniteRecursiveCallInSeparateClass(int count)
+        {
+            if (count <= 0)
+                return;
+            UseInfiniteRecursiveCallInSeparateClass(count -1);
         }
     }
 }

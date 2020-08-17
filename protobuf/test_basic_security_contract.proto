@@ -68,9 +68,12 @@ service BasicSecurityContract {
     }
     rpc TestForInfiniteLoop(Int32Input) returns (Int32Output) {
     }
-    rpc TestForeachInfiniteLoop(StringInput) returns (Int32Output) {
+    rpc TestForInfiniteLoopInSeparateClass(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForeachInfiniteLoop(ListInput) returns (Int32Output) {
     }
     rpc TestInfiniteRecursiveCall (Int32Input) returns (google.protobuf.Empty) { }
+    rpc TestInfiniteRecursiveCallInSeparateClass (Int32Input) returns (google.protobuf.Empty) { }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -224,6 +227,10 @@ message ProtobufMessage {
 message ResetNestedInput {
     int32 int32_value = 1;
     string string_value = 2;
+}
+
+message ListInput {
+    repeated int32 list =1;
 }
 
 //Output
