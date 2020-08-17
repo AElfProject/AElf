@@ -201,11 +201,6 @@ namespace AElf.CrossChain.Indexing.Application
             return parentChainBlockDataList;
         }
 
-        // public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-        // {
-        //     throw new NotImplementedException();
-        // }
-
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var indexedSideChainBlockData = await _contractReaderFactory
