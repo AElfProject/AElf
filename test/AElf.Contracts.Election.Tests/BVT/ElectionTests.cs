@@ -189,7 +189,8 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(candidatesKeyPair.PublicKey)
             });
-            profitDetail.Details.Count.ShouldBe(0);
+            profitDetail.Details.Count.ShouldBe(1);
+            profitDetail.Details[0].EndPeriod.ShouldBe(0);
         }
 
         /// <summary>
@@ -755,7 +756,8 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
             });
-            profitDetailOfOldOne.Details.Count.ShouldBe(0);
+            profitDetailOfOldOne.Details.Count.ShouldBe(1);
+            profitDetailOfOldOne.Details[0].EndPeriod.ShouldBe(0);
             var profitDetailOfNewOne = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -809,13 +811,14 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
             });
-            profitDetail.Details.Count.ShouldBe(1);
+            profitDetail.Details[0].EndPeriod.ShouldBe(0);
+            profitDetail.Details[1].EndPeriod.ShouldBe(long.MaxValue);
             var profitDetailOfTheWithdraw = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
             });
-            profitDetailOfTheWithdraw.Details.Count.ShouldBe(0);
+            profitDetailOfTheWithdraw.Details.Count.ShouldBe(1);
         }
         
          [Fact]
@@ -864,13 +867,16 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumCandidate.Key))
             });
-            profitDetailOfTheIn.Details.Count.ShouldBe(1);
+            profitDetailOfTheIn.Details.Count.ShouldBe(2);
+            profitDetailOfTheIn.Details[0].EndPeriod.ShouldBe(0);
+            profitDetailOfTheIn.Details[1].EndPeriod.ShouldBe(long.MaxValue);
             var profitDetailOfTheOut = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
             });
-            profitDetailOfTheOut.Details.Count.ShouldBe(0);
+            profitDetailOfTheOut.Details.Count.ShouldBe(1);
+            profitDetailOfTheOut.Details[0].EndPeriod.ShouldBe(0);
         }
 
         [Fact]
@@ -908,7 +914,8 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(maximumVoteAmountCandidate.PublicKey)
             });
-            profitDetailOfMaximumVoteAmountCandidate.Details.Count.ShouldBe(0);
+            profitDetailOfMaximumVoteAmountCandidate.Details.Count.ShouldBe(1);
+            profitDetailOfMaximumVoteAmountCandidate.Details[0].EndPeriod.ShouldBe(0);
             
             var minimumVoteAmountCandidate = ValidationDataCenterKeyPairs[0];
             await QuitElectionAsync(minimumVoteAmountCandidate);
@@ -919,7 +926,8 @@ namespace AElf.Contracts.Election
                 SchemeId = subsidy,
                 Beneficiary = Address.FromPublicKey(minimumVoteAmountCandidate.PublicKey)
             });
-            profitDetailOfMinimumCandidate.Details.Count.ShouldBe(0);
+            profitDetailOfMinimumCandidate.Details.Count.ShouldBe(1);
+            profitDetailOfMinimumCandidate.Details[0].EndPeriod.ShouldBe(0);
         }
         #endregion
     }
