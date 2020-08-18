@@ -263,7 +263,7 @@ namespace AElf.Contracts.Profit
                 {
                     currentDetail.Details.Remove(expiryDetail);
                 }
-                else
+                else if(expiryDetail.EndPeriod >= scheme.CurrentPeriod)
                 {
                     expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
@@ -667,7 +667,8 @@ namespace AElf.Contracts.Profit
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
             // ReSharper disable once PossibleNullReferenceException
-            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod >= d.LastProfitPeriod).ToList();
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod == 0 ? d.EndPeriod >= d.StartPeriod : d.EndPeriod >= d.LastProfitPeriod).ToList();
             // ReSharper disable once PossibleNullReferenceException
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 

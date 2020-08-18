@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -18,8 +18,6 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetMinersCount_Test()
         {
-            await ElectionContract_AnnounceElection_Test();
-
             var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
             minersCount.Value.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
         }
@@ -262,6 +260,17 @@ namespace AElf.Contracts.Election
                 LockTime = day * 24 * 3600
             });
             weight.Value.ShouldBe(9433);
+        }
+
+        [Fact]
+        public async Task Election_GetMinerElectionVotingItemId_Test()
+        {
+            var voteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
+            {
+                VotingItemId = voteItemId
+            });
+            voteItem.IsLockToken.ShouldBe(false);
         }
 
         private async Task<List<ECKeyPair>> UserVotesCandidate(int voterCount, long voteAmount, int lockDays)
