@@ -18,16 +18,25 @@ namespace AElf.CrossChain.Cache.Infrastructure
 
         private long _targetHeight;
         private readonly int _chainId;
+        private readonly int _sizeLimit;
 
         public ChainCacheEntity(int chainId, long chainHeight)
         {
             _chainId = chainId;
             _targetHeight = chainHeight;
+            _sizeLimit = CrossChainConstants.ChainCacheEntityCapacity;
+        }
+        
+        public ChainCacheEntity(int chainId, long chainHeight, int sizeLimit)
+        {
+            _chainId = chainId;
+            _targetHeight = chainHeight;
+            _sizeLimit = sizeLimit;
         }
 
         public long TargetChainHeight()
         {
-            return _cache.Count < CrossChainConstants.ChainCacheEntityCapacity ? _targetHeight : -1;
+            return _cache.Count < _sizeLimit ? _targetHeight : -1;
         }
 
         public bool TryAdd(ICrossChainBlockEntity crossChainBlockEntity)
@@ -46,7 +55,7 @@ namespace AElf.CrossChain.Cache.Infrastructure
         /// </summary>
         /// <param name="height">Height of block info needed</param>
         /// <param name="crossChainBlockEntity"></param>
-        /// <param name="isCacheSizeLimited">Use <see cref="CrossChainConstants.ChainCacheEntityCapacity"/> as cache count threshold if true.</param>
+        /// <param name="isCacheSizeLimited">Use <see cref="CrossChainConstants.DefaultBlockCacheEntityCount"/> as cache count threshold if true.</param>
         /// <returns></returns>
         public bool TryTake(long height, out ICrossChainBlockEntity crossChainBlockEntity, bool isCacheSizeLimited)
         {

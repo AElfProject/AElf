@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache.Infrastructure
@@ -17,7 +18,14 @@ namespace AElf.CrossChain.Cache.Infrastructure
     {
         private readonly ConcurrentDictionary<int, IChainCacheEntity> _chainCacheEntities =
             new ConcurrentDictionary<int, IChainCacheEntity>();
-        
+
+        private readonly CrossChainConfigOptions _crossChainConfigOptions;
+
+        public CrossChainCacheEntityProvider(IOptionsSnapshot<CrossChainConfigOptions> optionsSnapshot)
+        {
+            _crossChainConfigOptions = optionsSnapshot.Value;
+        }
+
         public int Size => _chainCacheEntities.Count;
         
         public List<int> GetCachedChainIds()
@@ -27,7 +35,8 @@ namespace AElf.CrossChain.Cache.Infrastructure
 
         public void AddChainCacheEntity(int remoteChainId, long initialTargetHeight)
         {
-            var chainCacheEntity = new ChainCacheEntity(remoteChainId, initialTargetHeight);
+            var chainCacheEntity = new ChainCacheEntity(remoteChainId, initialTargetHeight,
+                _crossChainConfigOptions.CrossChainCacheSizeLimit);
             _chainCacheEntities.TryAdd(remoteChainId, chainCacheEntity);
         }
 
