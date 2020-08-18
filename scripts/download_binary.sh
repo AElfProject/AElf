@@ -25,7 +25,7 @@ if [[ ! -f ${plugin} ]]; then
     # Make sure you grab the latest version
     if [[ ! -f ${filename} ]]; then
         echo "download contract plugin ${filename} from github"
-        curl -OL https://github.com/shiwk/contract-plugin/releases/download/${version}/${filename}
+        curl -OL https://github.com/AElfProject/contract-plugin/releases/download/${version}/${filename}
     fi
     
     # Unzip
