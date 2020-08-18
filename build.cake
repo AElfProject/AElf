@@ -148,13 +148,13 @@ Task("Test-with-Codecov-N")
     var codecovToken = "$CODECOV_TOKEN";
     var actions = new List<Action>();
     var testProjects = GetFiles("./test/*.Tests/*.csproj");
-
+    var testProjectList = testProjects.OrderBy(p=>p.FullPath).ToList();
     var n = Argument("n",1);
     var parts = Argument("parts",1);
 
     Information($"n:{n}, parts:{parts}");
     int i=0;
-    foreach(var testProject in testProjects)
+    foreach(var testProject in testProjectList)
     {
         if(i++ % parts == n - 1){
             DotNetCoreTest(testProject.FullPath, testSetting);
