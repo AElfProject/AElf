@@ -28,38 +28,13 @@ namespace AElf.OS.Network.Application
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _blackListProvider = GetRequiredService<IBlackListedPeerProvider>();
         }
-
-        #region Blacklisting
-
-        [Fact]
-        public async Task RemovePeerByPubkey_Test()
-        {
-            var peerPubKey = "blacklistpeer";
-            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
-            var host = endpoint.Host;
-
-            //invalid address
-            var result = await _networkService.RemovePeerByPubkeyAsync("InvalidPubkey");
-            result.ShouldBeFalse();
-            
-            result = await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
-            result.ShouldBeTrue();
-            _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
-        }
         
         [Fact]
-        public async Task RemovePeerByEndpoint_Test()
+        public async Task AddPeer_Test()
         {
-            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
-            var host = endpoint.Host;
-
-            //invalid address
-            var result = await _networkService.RemovePeerByEndpointAsync("");
-            result.ShouldBeFalse();
-            
-            result = await _networkService.RemovePeerByEndpointAsync("127.0.0.1:5000");
+            var endpoint = "127.0.0.1:5000";
+            var result = await _networkService.AddPeerAsync(endpoint);
             result.ShouldBeTrue();
-            _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
         }
 
         [Fact]
@@ -71,21 +46,23 @@ namespace AElf.OS.Network.Application
 
         }
         [Fact]
-        public async Task AddPeerAsync_CannotAddBlacklistedPeer()
+        public async Task AddPeer_DotNotRemoveBlackList_Test()
         {
             AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var endpoint);
             var host = endpoint.Host;
 
             _blackListProvider.AddHostToBlackList(host, NetworkConstants.DefaultPeerRemovalSeconds);
+
+            await _networkService.AddPeerAsync(endpoint.ToString());
             
-            (await _networkService.AddPeerAsync(endpoint.ToString())).ShouldBeFalse();
+            _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
         }
         
         [Fact]
         public async Task AddTrustedPeer_Test()
         {
             var endpoint = "127.0.0.1:5000";
-            AElfPeerEndpointHelper.TryParse("127.0.0.1:5000", out var aelfPeerEndpoint);
+            AElfPeerEndpointHelper.TryParse(endpoint, out var aelfPeerEndpoint);
             var host = aelfPeerEndpoint.Host;
 
             _blackListProvider.AddHostToBlackList(host, 5000);
@@ -94,8 +71,46 @@ namespace AElf.OS.Network.Application
             
             _blackListProvider.IsIpBlackListed(host).ShouldBeFalse();
         }
+        
+        [Fact]
+        public async Task AddTrustedInvalidPeer_Test()
+        {
+            var endpoint = "ipv6:192.168.197.54";
+            var result = await _networkService.AddTrustedPeerAsync(endpoint);
+            
+            result.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task RemovePeerByPubkey_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("192.168.100.200:5000", out var endpoint);
+            var host = endpoint.Host;
 
-        #endregion Blacklisting
+            //invalid pubkey
+            var result = await _networkService.RemovePeerByPubkeyAsync("InvalidPubkey");
+            result.ShouldBeFalse();
+            
+            result = await _networkService.RemovePeerByPubkeyAsync("NormalPeer");
+            result.ShouldBeTrue();
+            _blackListProvider.IsIpBlackListed("192.168.100.200").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task RemovePeerByEndpoint_Test()
+        {
+            var endpointString = "192.168.100.200:5000";
+            AElfPeerEndpointHelper.TryParse(endpointString, out var endpoint);
+            var host = endpoint.Host;
+
+            //invalid address
+            var result = await _networkService.RemovePeerByEndpointAsync("");
+            result.ShouldBeFalse();
+            
+            result = await _networkService.RemovePeerByEndpointAsync(endpointString);
+            result.ShouldBeTrue();
+            _blackListProvider.IsIpBlackListed(host).ShouldBeTrue();
+        }
 
         #region GetBlocks
 
@@ -117,7 +132,7 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task GetBlocks_NetworkException_ReturnsNonSuccessfulResponse()
         {
-            var response = await _networkService.GetBlocksAsync(HashHelper.ComputeFrom("block_hash"), 1, "failed_peer");
+            var response = await _networkService.GetBlocksAsync(HashHelper.ComputeFrom("block_hash"), 1, "FailedPeer");
             response.Success.ShouldBeFalse();
             response.Payload.ShouldBeNull();
         }
@@ -144,7 +159,7 @@ namespace AElf.OS.Network.Application
         [Fact]
         public async Task GetBlockByHash_FromSpecifiedPeer_ReturnsBlocks()
         {
-            var block = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("bHash1"), "p1");
+            var block = await _networkService.GetBlockByHashAsync(HashHelper.ComputeFrom("bHash1"), "NormalPeer");
             Assert.NotNull(block);
         }
 
@@ -152,6 +167,12 @@ namespace AElf.OS.Network.Application
 
         #region GetPeers
 
+        [Fact]
+        public void GetPeers_ShouldNotIncludeFailing()
+        {
+            Assert.Equal(_networkService.GetPeers(false).Count, _peerPool.GetPeers().Count);
+        }
+        
         [Fact]
         public void GetPeers_ShouldIncludeFailing()
         {
@@ -161,58 +182,48 @@ namespace AElf.OS.Network.Application
         [Fact]
         public void GetPeersByPubKey()
         {
-            var peer = _networkService.GetPeerByPubkey("p1");
-            peer.ShouldNotBeNull();
+            var pubkey = "NormalPeer";
+            var peerInfo = _networkService.GetPeerByPubkey(pubkey);
+            peerInfo.ShouldNotBeNull();
+            
+            var peer = _peerPool.FindPeerByPublicKey(pubkey);
+            peerInfo.IpAddress.ShouldBe(peer.RemoteEndpoint.ToString());
+            peerInfo.Pubkey.ShouldBe(peer.Info.Pubkey);
+            peerInfo.LastKnownLibHeight.ShouldBe(peer.LastKnownLibHeight);
+            peerInfo.ProtocolVersion.ShouldBe(peer.Info.ProtocolVersion);
+            peerInfo.ConnectionTime.ShouldBe(peer.Info.ConnectionTime.Seconds);
+            peerInfo.ConnectionStatus.ShouldBe(peer.ConnectionStatus);
+            peerInfo.Inbound.ShouldBe(peer.Info.IsInbound);
+            peerInfo.SyncState.ShouldBe(peer.SyncState);
+            peerInfo.BufferedAnnouncementsCount.ShouldBe(peer.BufferedAnnouncementsCount);
+            peerInfo.BufferedBlocksCount.ShouldBe(peer.BufferedBlocksCount);
+            peerInfo.BufferedTransactionsCount.ShouldBe(peer.BufferedTransactionsCount);
 
             var fakePubkey = Cryptography.CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
-            peer = _networkService.GetPeerByPubkey(fakePubkey);
-            peer.ShouldBeNull();
+            peerInfo = _networkService.GetPeerByPubkey(fakePubkey);
+            peerInfo.ShouldBeNull();
         }
 
         [Fact]
-        public void PeerIsFull_Test()
+        public void IsPeerPoolFull_Test()
         {
-            var result = _peerPool.IsFull();
-            result.ShouldBeFalse();
+            var peerPoolIsFull = _peerPool.IsFull();
+            _networkService.IsPeerPoolFull().ShouldBe(peerPoolIsFull);
         }
         
         #endregion GetPeers
 
-        #region Broadcast
-
         [Fact]
-        public async Task BroadcastAnnounce_Test()
+        public async Task CheckPeersHealth_Test()
         {
-            var blockHeader = _kernelTestHelper.GenerateBlock(10, HashHelper.ComputeFrom("test")).Header;
+            var failedPeerPubkey = "FailedPeer";
+            var peer = _peerPool.FindPeerByPublicKey(failedPeerPubkey);
+            peer.ShouldNotBeNull();
 
-            //old block
-            blockHeader.Time = TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromMinutes(20);
-            await _networkService.BroadcastAnnounceAsync(blockHeader);
+            await _networkService.CheckPeersHealthAsync();
             
-            //known block
-            blockHeader.Time = TimestampHelper.GetUtcNow();
-            await _networkService.BroadcastAnnounceAsync(blockHeader);
-
-            //broadcast again
-            blockHeader = _kernelTestHelper.GenerateBlock(11, HashHelper.ComputeFrom("new")).Header;
-            await _networkService.BroadcastAnnounceAsync(blockHeader);
+            peer = _peerPool.FindPeerByPublicKey(failedPeerPubkey);
+            peer.ShouldBeNull();
         }
-
-        [Fact]
-        public void BroadcastBlockWithTransactionsAsync_Test()
-        {
-            var blockWithTransaction = new BlockWithTransactions
-            {
-                Header = _kernelTestHelper.GenerateBlock(10, HashHelper.ComputeFrom("test")).Header,
-               Transactions =
-               {
-                   new Transaction(),
-                   new Transaction()
-               }
-            };
-            var result = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransaction);
-            result.Status.ShouldBe(TaskStatus.RanToCompletion);
-        }
-        #endregion
     }
 }

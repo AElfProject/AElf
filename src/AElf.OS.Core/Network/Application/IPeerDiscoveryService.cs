@@ -4,7 +4,8 @@ namespace AElf.OS.Network.Application
 {
     public interface IPeerDiscoveryService
     {
-        Task<NodeList> DiscoverNodesAsync();
+        Task DiscoverNodesAsync();
+        Task RefreshNodeAsync();
         Task<NodeList> GetNodesAsync(int maxCount);
         Task AddNodeAsync(NodeInfo nodeInfo);
     }

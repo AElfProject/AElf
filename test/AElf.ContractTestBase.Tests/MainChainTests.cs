@@ -14,7 +14,7 @@ using Xunit;
 
 namespace AElf.ContractTestBase.Tests
 {
-    public class MainChainTests : MainChainTestBase
+    public sealed class MainChainTests : MainChainTestBase
     {
         private readonly IBlockchainService _blockchainService;
         protected readonly IContractInitializationProvider _tokenContractInitializationProvider;

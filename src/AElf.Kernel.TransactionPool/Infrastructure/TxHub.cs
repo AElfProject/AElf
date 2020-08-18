@@ -58,7 +58,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _processTransactionJobs = CreateQueuedTransactionBufferBlock();
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount = 0)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
         {
             var output = new ExecutableTransactionSet
             {
@@ -66,7 +66,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHeight = _bestChainHeight
             };
 
-            if (transactionCount < 0)
+            if (transactionCount <= 0)
             {
                 return output;
             }
@@ -79,7 +79,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
-                .Take(transactionCount == 0 ? int.MaxValue : transactionCount)
+                .Take(transactionCount)
                 .Select(x => x.Transaction));
 
             return output;

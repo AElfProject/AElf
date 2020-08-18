@@ -1,5 +1,6 @@
 using AElf.Kernel.Configuration;
 using AElf.Kernel.ChainController;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Node;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -28,6 +29,8 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
+            context.Services.AddTransient(typeof(IConfigurationProcessor),
+                typeof(BlockTransactionLimitConfigurationProcessor));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

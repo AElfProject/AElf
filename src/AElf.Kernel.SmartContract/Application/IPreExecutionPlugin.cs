@@ -11,6 +11,6 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
             ITransactionContext transactionContext);
 
-        bool IsStopExecuting(ByteString txReturnValue);
+        bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation);
     }
 }

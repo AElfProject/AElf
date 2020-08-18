@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
