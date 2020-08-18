@@ -12,5 +12,6 @@ namespace AElf.OS.Network.Infrastructure
         Task StartAsync();
         Task StopAsync(bool gracefulDisconnect = true);
         void CheckNtpDrift();
+        Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint);
     }
 }
