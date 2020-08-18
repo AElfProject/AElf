@@ -1,18 +1,24 @@
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class ConsensusExtraDataProvider : IConsensusExtraDataKeyProvider 
+    public class ConsensusExtraDataProvider : IConsensusExtraDataProvider
     {
         public string BlockHeaderExtraDataKey => ConsensusConstants.ConsensusExtraDataKey;
 
         private readonly IConsensusService _consensusService;
         public ILogger<ConsensusExtraDataProvider> Logger { get; set; }
+
+        /// <summary>
+        /// Add an empty ctor for cases only need BlockHeaderExtraDataKey.
+        /// </summary>
+        public ConsensusExtraDataProvider()
+        {
+
+        }
 
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
@@ -34,9 +40,7 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = blockHeader.Height - 1
             });
 
-            if (consensusInformation == null) return ByteString.Empty;
-            
-            return ByteString.CopyFrom(consensusInformation);
+            return consensusInformation == null ? ByteString.Empty : ByteString.CopyFrom(consensusInformation);
         }
     }
 }

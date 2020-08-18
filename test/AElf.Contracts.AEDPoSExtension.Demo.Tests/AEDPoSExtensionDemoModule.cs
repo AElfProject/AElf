@@ -1,5 +1,6 @@
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.DependencyInjection;

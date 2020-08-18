@@ -158,6 +158,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RoundNumber.ShouldBe(3);
             }
+
+            var randomHash = await ConsensusStub.GetRandomHash.CallAsync(new Int64Value {Value = 100});
+            randomHash.ShouldNotBe(Hash.Empty);
         }
     }
 }
