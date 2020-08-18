@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -17,20 +18,32 @@ namespace AElf.Kernel.SmartContract.Application
         private const string BlockExecutedDataName = "ExecutionObserverThreshold";
         private const string BranchCountThresholdKey = "BranchCountThreshold";
         private const string CallCountThresholdKey = "CallCountThreshold";
+
+        private readonly ForkHeightOptions _forkBlockOptions;
         public ILogger<ExecutionObserverThresholdProvider> Logger { get; set; }
 
         public ExecutionObserverThresholdProvider(
-            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService) :
+            ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService,IOptionsSnapshot<ForkHeightOptions> forkBlockOptionsSnapshot) :
             base(cachedBlockchainExecutedDataService)
         {
+            _forkBlockOptions = forkBlockOptionsSnapshot.Value;
         }
 
         public IExecutionObserverThreshold GetExecutionObserverThreshold(IBlockIndex blockIndex)
         {
+            var defaultExecutionBranchThreshold =
+                blockIndex.BlockHeight >= _forkBlockOptions.ExecutionObserverThresholdForkHeight
+                    ? SmartContractConstants.ExecutionBranchThreshold
+                    : SmartContractConstants.OldExecutionBranchThreshold;
+            var defaultExecutionCallThreshold =
+                blockIndex.BlockHeight >= _forkBlockOptions.ExecutionObserverThresholdForkHeight
+                    ? SmartContractConstants.ExecutionCallThreshold
+                    : SmartContractConstants.OldExecutionCallThreshold;
+            
             var branchCountObserverThreshold = GetBlockExecutedData(blockIndex, BranchCountThresholdKey)?.Value ??
-                                               SmartContractConstants.ExecutionBranchThreshold;
+                                               defaultExecutionBranchThreshold;
             var callCountObserverThreshold = GetBlockExecutedData(blockIndex, CallCountThresholdKey)?.Value ??
-                                             SmartContractConstants.ExecutionBranchThreshold;
+                                             defaultExecutionCallThreshold;
             return new ExecutionObserverThreshold
             {
                 ExecutionBranchThreshold = branchCountObserverThreshold,
