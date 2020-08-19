@@ -343,6 +343,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiTokenCrossChainTransfer.Tests", "test\AElf.Contracts.MultiTokenCrossChainTransfer.Tests\AElf.Contracts.MultiTokenCrossChainTransfer.Tests.csproj", "{850A384F-6226-433F-8777-396A3717F7E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token.Tests", "test\AElf.Kernel.Token.Tests\AElf.Kernel.Token.Tests.csproj", "{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -981,6 +983,10 @@ Global
 		{850A384F-6226-433F-8777-396A3717F7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1154,5 +1160,6 @@ Global
 		{8D614C01-C059-47F1-9D6F-9068E891101D} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{850A384F-6226-433F-8777-396A3717F7E0} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
