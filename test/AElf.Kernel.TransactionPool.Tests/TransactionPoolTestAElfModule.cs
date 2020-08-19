@@ -5,9 +5,11 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.Txn.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Volo.Abp.Modularity;
 
@@ -22,8 +24,7 @@ namespace AElf.Kernel.TransactionPool
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<TxHub>();
-            Configure<TransactionOptions>(o => { o.PoolLimit = 5120; });
+            context.Services.AddTransient<BasicTransactionValidationProvider>();
         }
     }
 
@@ -35,17 +36,21 @@ namespace AElf.Kernel.TransactionPool
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+        }
+    }
+    
+    [DependsOn(
+        typeof(TransactionPoolWithChainTestAElfModule)
+    )]
+    public class TransactionPoolTxHubTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
             var services = context.Services;
+            Configure<TransactionOptions>(o => { o.PoolLimit = 20; });
 
-            services.AddSingleton(provider =>
-            {
-                var mockService = new Mock<ITransactionValidationService>();
-                mockService.Setup(m =>
-                        m.ValidateTransactionWhileCollectingAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>()))
-                    .Returns(Task.FromResult(true));
-
-                return mockService.Object;
-            });
+            context.Services.RemoveAll<ITransactionValidationProvider>();
+            context.Services.AddTransient<ITransactionValidationProvider, BasicTransactionValidationProvider>();
         }
     }
 

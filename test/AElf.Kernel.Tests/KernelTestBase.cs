@@ -11,8 +11,14 @@ namespace AElf.Kernel
     {
 
     }
+
+    public class KernelMiningTestBase : AElfIntegratedTest<KernelMiningTestAElfModule>
+    {
+
+    }
     
-    public class KernelWithoutConsensusStaffTestBase : AElfIntegratedTest<KernelWithConsensusStaffTestAElfModule>
+    
+    public class KernelConsensusRequestMiningTestBase : AElfIntegratedTest<KernelConsensusRequestMiningTestAElfModule>
     {
 
     }

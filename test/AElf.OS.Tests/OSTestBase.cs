@@ -20,6 +20,11 @@ namespace AElf.OS
     {
         
     }
+    
+    public class AccountServiceTestBase : AElfIntegratedTest<AccountServiceTestAElfModule>
+    {
+        
+    }
 
     public class KeyStoreTestBase : AElfIntegratedTest<KeyStoreTestAElfModule>
     {
@@ -39,7 +44,15 @@ namespace AElf.OS
     {
     }
     
+    public class BlockSyncRetryTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
+    {
+    }
+    
     public class PeerDiscoveryWorkerTestBase : AElfIntegratedTest<PeerDiscoveryWorkerTestModule>
+    {
+    }
+    
+    public class PeerReconnectionTestBase : AElfIntegratedTest<PeerReconnectionTestAElfModule>
     {
     }
 }
