@@ -1,5 +1,4 @@
 using AElf.Modularity;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Token.Test
