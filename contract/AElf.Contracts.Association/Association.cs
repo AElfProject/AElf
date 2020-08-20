@@ -137,7 +137,8 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Approve)
+                ReceiptType = nameof(Approve),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }
@@ -156,7 +157,8 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Reject)
+                ReceiptType = nameof(Reject),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }
@@ -175,7 +177,8 @@ namespace AElf.Contracts.Association
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Abstain)
+                ReceiptType = nameof(Abstain),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }
@@ -189,7 +192,11 @@ namespace AElf.Contracts.Association
             Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
 
-            Context.Fire(new ProposalReleased {ProposalId = input});
+            Context.Fire(new ProposalReleased
+            {
+                ProposalId = input, 
+                OrganizationAddress = proposalInfo.OrganizationAddress
+            });
             State.Proposals.Remove(input);
 
             return new Empty();
@@ -236,6 +243,55 @@ namespace AElf.Contracts.Association
             {
                 OrganizationAddress = Context.Sender,
                 ProposerWhiteList = input
+            });
+            return new Empty();
+        }
+
+        public override Empty AddMember(Address input)
+        {
+            var organization = State.Organizations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            organization.OrganizationMemberList.OrganizationMembers.Add(input);
+            Assert(Validate(organization), "Invalid organization.");
+            State.Organizations[Context.Sender] = organization;
+            Context.Fire(new MemberAdded()
+            {
+                OrganizationAddress = Context.Sender,
+                Member = input
+            });
+            return new Empty();
+        }
+
+        public override Empty ChangeMember(ChangeMemberInput input)
+        {
+            var organization = State.Organizations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            var removeResult = organization.OrganizationMemberList.OrganizationMembers.Remove(input.OldMember);
+            Assert(removeResult, "Remove member failed.");
+            organization.OrganizationMemberList.OrganizationMembers.Add(input.NewMember);
+            Assert(Validate(organization), "Invalid organization.");
+            State.Organizations[Context.Sender] = organization;
+            Context.Fire(new MemberChanged
+            {
+                OrganizationAddress = Context.Sender,
+                OldMember = input.OldMember,
+                NewMember = input.NewMember
+            });
+            return new Empty();
+        }
+
+        public override Empty RemoveMember(Address input)
+        {
+            var organization = State.Organizations[Context.Sender];
+            Assert(organization != null, "Organization not found.");
+            var removeResult = organization.OrganizationMemberList.OrganizationMembers.Remove(input);
+            Assert(removeResult, "Remove member failed.");
+            Assert(Validate(organization), "Invalid organization.");
+            State.Organizations[Context.Sender] = organization;
+            Context.Fire(new MemberRemoved
+            {
+                OrganizationAddress = Context.Sender,
+                Member = input
             });
             return new Empty();
         }

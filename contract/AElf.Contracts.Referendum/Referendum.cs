@@ -67,7 +67,7 @@ namespace AElf.Contracts.Referendum
         {
             return Context.ConvertVirtualAddressToContractAddress(input);
         }
-        
+
         #endregion
 
         public override Address CreateOrganization(CreateOrganizationInput input)
@@ -87,9 +87,9 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(organization), "Invalid organization data.");
 
-            if (State.Organizations[organizationAddress] != null) 
+            if (State.Organizations[organizationAddress] != null)
                 return organizationAddress;
-            
+
             State.Organizations[organizationAddress] = organization;
             Context.Fire(new OrganizationCreated
             {
@@ -98,7 +98,7 @@ namespace AElf.Contracts.Referendum
 
             return organizationAddress;
         }
-        
+
         public override Address CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput input)
         {
             Assert(Context.GetSystemContractNameToAddressMapping().Values.Contains(Context.Sender),
@@ -137,7 +137,8 @@ namespace AElf.Contracts.Referendum
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
-            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender,
+                proposal.OrganizationAddress);
             referendumReceiptCreated.ReceiptType = nameof(Approve);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
@@ -151,7 +152,8 @@ namespace AElf.Contracts.Referendum
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender,
+                proposal.OrganizationAddress);
             referendumReceiptCreated.ReceiptType = nameof(Reject);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
@@ -165,7 +167,8 @@ namespace AElf.Contracts.Referendum
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;
-            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender);
+            var referendumReceiptCreated = LockToken(organization.TokenSymbol, allowance, input, Context.Sender,
+                proposal.OrganizationAddress);
             referendumReceiptCreated.ReceiptType = nameof(Abstain);
             Context.Fire(referendumReceiptCreated);
             return new Empty();
