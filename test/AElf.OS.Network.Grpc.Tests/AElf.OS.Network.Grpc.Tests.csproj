@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
+        <RootNamespace>AElf.OS.Network.Grpc</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Grpc.Core.Testing" Version="2.29.0" />

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.OS.Network.Grpc.Connection
+namespace AElf.OS.Network.Grpc
 {
     public class ConnectionService : IConnectionService
     {
@@ -41,9 +41,6 @@ namespace AElf.OS.Network.Grpc.Connection
 
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
-            if (peer == null)
-                throw new ArgumentNullException(nameof(peer));
-
             // clean the pool
             if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
                 Logger.LogWarning($"{peer} was not found in pool.");
@@ -337,9 +334,16 @@ namespace AElf.OS.Network.Grpc.Connection
             }
         }
 
-        public void RemovePeer(string pubkey)
+        public async Task RemovePeerAsync(string pubkey)
         {
-            _peerPool.RemovePeer(pubkey);
+            var peer = _peerPool.RemovePeer(pubkey);
+            if (peer != null)
+                await peer.DisconnectAsync(false);
+        }
+
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _peerDialer.CheckEndpointAvailableAsync(endpoint);
         }
     }
 }

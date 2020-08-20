@@ -16,6 +16,7 @@ using Google.Protobuf.Reflection;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.ObjectMapping;
@@ -41,6 +42,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
+        private readonly WebAppOptions _webAppOptions;
 
         public ILogger<TransactionResultAppService> Logger { get; set; }
 
@@ -49,7 +51,8 @@ namespace AElf.WebApp.Application.Chain
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper,
-            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
+            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider,
+            IOptionsMonitor<WebAppOptions> optionsSnapshot)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
@@ -57,6 +60,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _objectMapper = objectMapper;
             _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
+            _webAppOptions = optionsSnapshot.CurrentValue;
             
             Logger = NullLogger<TransactionResultAppService>.Instance;
         }
@@ -80,10 +84,14 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+            var output = _objectMapper.GetMapper()
+                .Map<TransactionResult, TransactionResultDto>(transactionResult,
+                    opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
+            
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-
-            var output = _objectMapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
-
+            output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
+            output.TransactionSize = transaction?.CalculateSize() ?? 0;
+            
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
             {
                 var validationStatus =
@@ -91,14 +99,12 @@ namespace AElf.WebApp.Application.Chain
                 if (validationStatus != null)
                 {
                     output.Status = validationStatus.TransactionResultStatus.ToString().ToUpper();
-                    output.Error = validationStatus.Error;
+                    output.Error =
+                        TransactionErrorResolver.TakeErrorMessage(validationStatus.Error, _webAppOptions.IsDebugMode);
                 }
 
                 return output;
             }
-
-            output.Transaction = _objectMapper.Map<Transaction, TransactionDto>(transaction);
-            output.TransactionSize = transaction.CalculateSize();
 
             var methodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName, false);
@@ -251,7 +257,10 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
         {
             var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
-            var transactionResultDto = _objectMapper.Map<TransactionResult, TransactionResultDto>(transactionResult);
+            var transactionResultDto = _objectMapper.GetMapper()
+                .Map<TransactionResult, TransactionResultDto>(transactionResult,
+                    opt => opt.Items[TransactionProfile.ErrorTrace] = _webAppOptions.IsDebugMode);
+
             
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
             transactionResultDto.BlockHash = blockHash.ToHex();

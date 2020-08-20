@@ -9,16 +9,15 @@ using Moq;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            var netTestContext = new NetworkTestContext();
 
             services.AddTransient(provider =>
             {
@@ -27,7 +26,6 @@ namespace AElf.OS.Network
                     .Returns<DnsEndPoint, Handshake>((pe, hsk) =>
                     {
                         var handshake = NetworkTestHelper.CreateValidHandshake(CryptoHelper.GenerateKeyPair(), 10, hsk.HandshakeData.ChainId);
-                        netTestContext.GeneratedHandshakes[pe.Host.ToString()] = handshake;
 
                         var handShakeReply = Task.FromResult(new HandshakeReply
                         {
@@ -40,12 +38,11 @@ namespace AElf.OS.Network
                 return mockService.Object;
             });
 
-            services.AddSingleton<NetworkTestContext>(netTestContext);
         }
     }
 
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerInvalidHandshakeTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -71,7 +68,7 @@ namespace AElf.OS.Network
     }
     
     [DependsOn(
-        typeof(GrpcNetworkTestModule))]
+        typeof(GrpcNetworkWithChainTestModule))]
     public class PeerDialerReplyErrorTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
