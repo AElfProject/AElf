@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public static class NetworkTestHelper
     {

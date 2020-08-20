@@ -31,37 +31,4 @@ namespace AElf.Contracts.MultiToken
             };
         }
     }
-
-    public class MultiChainContractDeploymentListProvider : IContractDeploymentListProvider
-    {
-        public List<Hash> GetDeployContractNameList()
-        {
-            return new List<Hash>
-            {
-                ConsensusSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name,
-                ConfigurationSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name
-            };
-        }
-    }
-    
-    public class SideChainContractDeploymentListProvider : IContractDeploymentListProvider
-    {
-        public List<Hash> GetDeployContractNameList()
-        {
-            return new List<Hash>
-            {
-                ConsensusSmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name
-            };
-        }
-    }
 }

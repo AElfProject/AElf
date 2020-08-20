@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,6 +50,12 @@ namespace AElf.OS.BlockSync
                     .Returns<Hash, int, string>((previousBlockHash, count, peerPubkey) =>
                     {
                         var result = new List<BlockWithTransactions>();
+
+                        if (peerPubkey == "AbnormalPeer")
+                            throw new Exception("Get blocks failed.");
+                        
+                        if (peerPubkey == "NetworkException")
+                            return Task.FromResult(new Response<List<BlockWithTransactions>>());
 
                         var hash = previousBlockHash;
 
