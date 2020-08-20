@@ -587,6 +587,19 @@ namespace AElf.Contracts.Economic.TestBase
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }
+        
+        protected async Task<TransactionResult> ExecuteProposalForParliamentTransactionWithException(Address from, Address contract,
+            string method, IMessage input, Address parliamentOrganization = null)
+        {
+            if (parliamentOrganization == null)
+                parliamentOrganization =
+                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalHash =
+                await CreateAndApproveProposalForParliament(from, contract, method, input,
+                    parliamentOrganization);
+            var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
+            return releaseResult.TransactionResult;
+        }
 
         #endregion
 
