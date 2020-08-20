@@ -4,15 +4,13 @@ using Xunit;
 
 namespace AElf.Kernel.Token.Test
 {
-    public partial class KernelTokenTest : KernelTokenTestBase
+    public class KernelTokenTest : KernelTokenTestBase
     {
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
-        private readonly IPrimaryTokenSymbolService _primaryTokenSymbolService;
 
         public KernelTokenTest()
         {
             _primaryTokenSymbolProvider = GetRequiredService<IPrimaryTokenSymbolProvider>();
-            _primaryTokenSymbolService = GetRequiredService<IPrimaryTokenSymbolService>();
         }
 
         [Fact]
