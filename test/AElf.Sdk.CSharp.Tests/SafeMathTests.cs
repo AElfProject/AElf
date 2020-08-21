@@ -66,5 +66,19 @@ namespace AElf.Sdk.CSharp.Tests
             Should.Throw<OverflowException>(() => { long.MaxValue.Add(8); });
             Should.Throw<OverflowException>(() => { ulong.MaxValue.Add(8); });
         }
+
+        [Fact]
+        public void ExceptionTest()
+        {
+            var message = "message";
+            var innerException = new Exception();
+            Should.Throw<BaseAElfException>(() => throw new BaseAElfException());
+            Should.Throw<BaseAElfException>(() => throw new BaseAElfException(message, innerException));
+            Should.Throw<AssertionException>(() => throw new AssertionException());
+            Should.Throw<AssertionException>(() => throw new AssertionException(message, innerException));
+            Should.Throw<RuntimeCallThresholdExceededException>(() => throw new RuntimeCallThresholdExceededException());
+            Should.Throw<RuntimeBranchThresholdExceededException>(() => throw new RuntimeBranchThresholdExceededException());
+
+        }
     }
 }
