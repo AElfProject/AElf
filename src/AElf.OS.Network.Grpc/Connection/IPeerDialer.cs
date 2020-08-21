@@ -7,5 +7,6 @@ namespace AElf.OS.Network.Grpc
     {
         Task<GrpcPeer> DialPeerAsync(DnsEndPoint remoteEndpoint);
         Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake);
+        Task<bool> CheckEndpointAvailableAsync(DnsEndPoint remoteEndpoint);
     }
 }

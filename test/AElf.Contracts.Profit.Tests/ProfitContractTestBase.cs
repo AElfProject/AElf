@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
@@ -14,7 +13,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;

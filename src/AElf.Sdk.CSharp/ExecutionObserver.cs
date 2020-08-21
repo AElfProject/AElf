@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Tsp;
-
 namespace AElf.Sdk.CSharp
 {
     // Instantiated for every transaction
@@ -22,7 +20,7 @@ namespace AElf.Sdk.CSharp
         {
             if (_callThreshold != -1 && _callCount == _callThreshold)
             {
-                throw new RuntimeCallThresholdExceededException();
+                throw new RuntimeCallThresholdExceededException($"Contract call threshold {_callThreshold} exceeded.");
             }
 
             _callCount++;
@@ -32,7 +30,8 @@ namespace AElf.Sdk.CSharp
         {
             if (_branchThreshold != -1 && _branchCount == _branchThreshold)
             {
-                throw new RuntimeBranchThresholdExceededException();
+                throw new RuntimeBranchThresholdExceededException(
+                    $"Contract branch threshold {_branchThreshold} exceeded.");
             }
 
             _branchCount++;

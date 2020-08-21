@@ -31,18 +31,6 @@ message SetConfigurationInput {
     bytes value = 2;
 }
 
-message BlockTransactionLimit
-{
-    int32 value = 1;
-}
-
-// Values
-
-message RequiredAcsInContracts {
-    repeated string acs_list = 1;
-    bool require_all = 2;
-}
-
 // Events
 
 message ConfigurationSet {

@@ -17,6 +17,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Infrastructure;
@@ -545,7 +546,8 @@ namespace AElf.Contracts.TestBase
                 {
                     PreviousBlockHash = preBlockHash,
                     PreviousBlockHeight = preBlockHeight,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
                 }, txs, blockTime ?? DateTime.UtcNow.ToTimestamp());
             
             var block = executedBlockSet.Block;
@@ -820,13 +822,14 @@ namespace AElf.Contracts.TestBase
                 {
                     Symbol = symbol
                 });
-
-            if(parentChainTokenContractAddress != null)
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                    new InitializeFromParentChainInput
-                    {
-                        RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
-                    });
+            // side chain creator should not be null
+            
+            // if(parentChainTokenContractAddress != null)
+            //     tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+            //         new InitializeFromParentChainInput
+            //         {
+            //             RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
+            //         });
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
                 new Empty());
             

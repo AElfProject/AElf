@@ -17,8 +17,8 @@ namespace AElf.Contracts.MultiToken
         {
             if (input == null)
                 return new Empty();
-            AssertDeveloperFeeController();
             Assert(input.Coefficients.FeeTokenType != (int) FeeTypeEnum.Tx, "Invalid fee type.");
+            AssertDeveloperFeeController();
             UpdateCoefficients(input);
             return new Empty();
         }
