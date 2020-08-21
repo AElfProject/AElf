@@ -220,7 +220,8 @@ namespace AElf.Contracts.Parliament
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             State.Proposals[proposalId] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+            Context.Fire(new ProposalCreated
+                {ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress});
             return proposalId;
         }
 

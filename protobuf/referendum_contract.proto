@@ -73,4 +73,5 @@ message ReferendumReceiptCreated {
     int64 amount = 4;
     string receipt_type = 5;
     google.protobuf.Timestamp time = 6;
+    aelf.Address organization_address=7 [(aelf.is_indexed) = true];
 }
