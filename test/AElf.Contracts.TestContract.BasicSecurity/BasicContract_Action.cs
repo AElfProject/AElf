@@ -16,6 +16,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         private bool _field3;
         private BasicContractTestType _basicTestType;
         private InnerContractType _innerContractType;
+        private List<int> _list;
         
         private Dictionary<long, long> dict { get; set; }
         
@@ -278,6 +279,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             State.Int64Info.Value = Number;
             State.StringInfo.Value = String;
             dict = new Dictionary<long, long>();
+            _list = new List<int> {1};
             return new Empty();
         }
 

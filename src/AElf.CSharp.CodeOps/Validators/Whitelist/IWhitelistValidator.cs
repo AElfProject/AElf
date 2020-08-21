@@ -7,17 +7,35 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist
 {
-    public class WhitelistValidator : IValidator<ModuleDefinition>, ITransientDependency
+    public class WhitelistValidator : WhitelistValidatorBase, ITransientDependency
+    {
+        public WhitelistValidator(IWhitelistProvider whitelistProvider) : base(whitelistProvider)
+        {
+        }
+
+        public override bool SystemContactIgnored => true;
+    }
+    
+    public class SystemContractWhitelistValidator : WhitelistValidatorBase, ITransientDependency
+    {
+        public SystemContractWhitelistValidator(ISystemContractWhitelistProvider whitelistProvider) : base(whitelistProvider)
+        {
+        }
+
+        public override bool SystemContactIgnored => false;
+    }
+    
+    public abstract class WhitelistValidatorBase : IValidator<ModuleDefinition>
     {
         private readonly IWhitelistProvider _whitelistProvider;
 
-        public WhitelistValidator(IWhitelistProvider whitelistProvider)
+        public WhitelistValidatorBase(IWhitelistProvider whitelistProvider)
         {
             _whitelistProvider = whitelistProvider;
         }
 
-        public bool SystemContactIgnored => false;
-        
+        public abstract bool SystemContactIgnored { get; }
+
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var whiteList = _whitelistProvider.GetWhitelist();

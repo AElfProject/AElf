@@ -42,6 +42,7 @@ namespace AElf.Contract.TestContract
             fields.Int32Value.ShouldBe(0);
             fields.Int64Value.ShouldBe(0);
             fields.StringValue.ShouldBe(string.Empty);
+            fields.List.ShouldBeEmpty();
 
             var allFieldReset = await TestBasicSecurityContractStub.CheckFieldsAlreadyReset.CallAsync(new Empty());
             allFieldReset.Value.ShouldBeTrue();
