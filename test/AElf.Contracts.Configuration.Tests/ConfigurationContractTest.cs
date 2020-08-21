@@ -176,13 +176,32 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         [Fact]
         public async Task SetConfiguration_With_Invalid_Input_Test()
         {
-            var value = ParliamentAddress;
             var organizationAddress = await GetParliamentDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(organizationAddress, new SetConfigurationInput(),
+            var parameter = new Int32Value
+            {
+                Value = 1
+            }.ToByteString();
+            var inputWithInvalidKey = new SetConfigurationInput
+            {
+                Value = parameter
+            };
+            var proposalId = await CreateProposalAsync(organizationAddress, inputWithInvalidKey,
                 nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             var releaseTxResult = await ReleaseProposalAsync(proposalId);
+            releaseTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            releaseTxResult.Error.ShouldContain("Invalid set config input");
+            
+            var inputWithInvalidValue = new SetConfigurationInput
+            {
+                Key = "key1"
+            };
+            proposalId = await CreateProposalAsync(organizationAddress, inputWithInvalidValue,
+                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+            proposalId.ShouldNotBeNull();
+            await ApproveWithMinersAsync(proposalId);
+            releaseTxResult = await ReleaseProposalAsync(proposalId);
             releaseTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
             releaseTxResult.Error.ShouldContain("Invalid set config input");
         }
