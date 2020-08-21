@@ -49,12 +49,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var consensusCommand =
                         new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, pubkey,
                             currentBlockTime, GetMaximumBlocksCount())).GetConsensusCommand();
-                    if (consensusCommand.Hint ==
-                        new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}.ToByteString())
-                    {
-                        Context.LogDebug(() => "Re-arranged behaviour from TinyBlock to NextRound.");
-                    }
-
                     return consensusCommand;
                 }
 

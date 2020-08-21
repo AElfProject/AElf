@@ -68,11 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            EnsureParliamentContractAddressSet();
 
             var defaultAuthority = new AuthorityInfo
             {
@@ -98,12 +94,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void AssertValidToken(string symbol, long amount)
         {
             Assert(amount >= 0, "Invalid amount.");
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
+            EnsureTokenContractAddressSet();
             var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");

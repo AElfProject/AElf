@@ -1,10 +1,13 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs1;
 using Acs3;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Proposal;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -50,6 +53,37 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var currentTermNumber = await BlockMiningService.MineBlockToNextTermAsync();
                 currentTermNumber.ShouldBe(4);
             }
+            
+            var maxMinersCount = await ConsensusStub.GetMaximumMinersCount.CallAsync(new Empty());
+
+        }
+
+        [Fact]
+        public async Task ChangeMaximumMinersCountControllerTest()
+        {
+            await BlockMiningService.MineBlockToNextTermAsync();
+
+            InitialAcs3Stubs();
+            await ParliamentStubs.First().Initialize.SendAsync(new Parliament.InitializeInput());
+            var targetAddress = await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+
+            var defaultOrganizationAddress =
+                await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(ConsensusStub.ChangeMaximumMinersCountController),
+                Params = new AuthorityInfo
+                {
+                    OwnerAddress = targetAddress,
+                    ContractAddress = ContractAddresses[ParliamentSmartContractAddressNameProvider.Name]
+                }.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = defaultOrganizationAddress
+            });
+
+            var newMinersCountController = await ConsensusStub.GetMaximumMinersCountController.CallAsync(new Empty());
+            newMinersCountController.OwnerAddress.ShouldBe(targetAddress);
         }
     }
 }
