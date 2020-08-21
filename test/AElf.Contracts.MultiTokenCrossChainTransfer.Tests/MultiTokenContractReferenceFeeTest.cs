@@ -166,6 +166,9 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         [InlineData(true, 0, new []{3}, new []{int.MaxValue, 2, 8, 2, 6, 300})]
         [InlineData(true, 0, new []{3,2}, new []{1000, 4, 3, 2}, new []{int.MaxValue, 4, 3, 2})]
         [InlineData(true, 0, new []{2,3}, new []{100, 4, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, -1, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, -1, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, 3, 0})]
         public async Task Update_Coefficient_For_Contract_Test(bool isFail, int feeType, int[] pieceNumber, 
             params int[][] newPieceFunctions)
         {
@@ -210,6 +213,17 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                         .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
                 }
             }
+        }
+
+        [Fact]
+        public async Task GetCalculateFeeCoefficientsForContract_With_Invalid_FeeType_Test()
+        {
+            var invalidFeeType = -1;
+            var ret = await TokenContractStub.GetCalculateFeeCoefficientsForContract.CallAsync(new Int32Value
+            {
+                Value = invalidFeeType
+            });
+            ret.ShouldBe(new CalculateFeeCoefficients());
         }
         
         [Fact]

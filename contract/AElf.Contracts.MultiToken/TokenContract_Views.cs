@@ -113,7 +113,7 @@ namespace AElf.Contracts.MultiToken
         public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(Int32Value input)
         {
             if (input.Value == (int) FeeTypeEnum.Tx)
-                return null;
+                return new CalculateFeeCoefficients();
             var targetTokenCoefficient =
                 State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
                     x.FeeTokenType == input.Value);
@@ -124,7 +124,7 @@ namespace AElf.Contracts.MultiToken
         {
             var targetTokenCoefficient =
                 State.AllCalculateFeeCoefficients.Value.Value.First(x =>
-                    x.FeeTokenType == (int)FeeTypeEnum.Tx);
+                    x.FeeTokenType == (int)FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
             return targetTokenCoefficient;
         }
 

@@ -353,6 +353,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token.Tests", "test\AElf.Kernel.Token.Tests\AElf.Kernel.Token.Tests.csproj", "{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.EconomicSystem.Tests", "test\AElf.EconomicSystem.Tests\AElf.EconomicSystem.Tests.csproj", "{D0294ECB-E367-4964-887B-21B239F85F09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.GovernmentSystem.Tests", "test\AElf.GovernmentSystem.Tests\AElf.GovernmentSystem.Tests.csproj", "{A61E0764-D98F-4E38-BB69-8AD4A67CAACB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1011,6 +1015,14 @@ Global
 		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0294ECB-E367-4964-887B-21B239F85F09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0294ECB-E367-4964-887B-21B239F85F09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0294ECB-E367-4964-887B-21B239F85F09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0294ECB-E367-4964-887B-21B239F85F09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A61E0764-D98F-4E38-BB69-8AD4A67CAACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A61E0764-D98F-4E38-BB69-8AD4A67CAACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A61E0764-D98F-4E38-BB69-8AD4A67CAACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A61E0764-D98F-4E38-BB69-8AD4A67CAACB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1189,5 +1201,7 @@ Global
 		{E9F84A8F-5761-407D-9200-BE8E3493073C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{B1D72EE7-183B-46F8-B365-A5F0B93EC91A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{11EBFA91-4457-4C5B-A57C-4AD69C82F2B7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{D0294ECB-E367-4964-887B-21B239F85F09} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{A61E0764-D98F-4E38-BB69-8AD4A67CAACB} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
