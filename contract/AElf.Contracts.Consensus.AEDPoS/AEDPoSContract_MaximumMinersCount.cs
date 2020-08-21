@@ -11,11 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public override Empty SetMaximumMinersCount(Int32Value input)
         {
-            if (State.ElectionContract.Value == null)
-            {
-                State.ElectionContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-            }
+            EnsureElectionContractAddressSet();
 
             Assert(input.Value > 0, "Invalid max miners count.");
 
@@ -33,11 +29,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void RequiredMaximumMinersCountControllerSet()
         {
             if (State.MaximumMinersCountController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            EnsureParliamentContractAddressSet();
 
             var defaultAuthority = new AuthorityInfo
             {

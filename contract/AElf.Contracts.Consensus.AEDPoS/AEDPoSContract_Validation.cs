@@ -84,7 +84,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new TimeSlotValidationProvider(),
 
                 // Is sender produced too many blocks at one time?
-                new ContinuousBlocksValidationProvider()
+                new ContinuousBlocksValidationProvider(),
+
+                new NormalBlockValidationProvider()
             };
 
             switch (extraData.Behaviour)

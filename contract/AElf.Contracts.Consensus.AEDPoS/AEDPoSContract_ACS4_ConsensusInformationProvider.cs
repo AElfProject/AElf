@@ -99,11 +99,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
 
                 var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
-                if (headerInformation.Round.GetHash(isContainPreviousInValue) !=
-                    currentRound.GetHash(isContainPreviousInValue))
+                if (headerInformation.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
-                    Context.LogDebug(() => $"Round information of block header:\n{headerInformation.Round}");
-                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
                     return new ValidationResult
                     {
                         Success = false, Message = "Current round information is different with consensus extra data."

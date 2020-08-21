@@ -225,11 +225,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void DistributeResourceTokensToPreviousMiners()
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            EnsureTokenContractAddressSet();
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
             foreach (var symbol in Context.Variables.GetStringArray(AEDPoSContractConstants.PayTxFeeSymbolListName)

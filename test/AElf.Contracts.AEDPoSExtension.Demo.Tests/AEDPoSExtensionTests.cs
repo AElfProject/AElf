@@ -147,6 +147,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(2);
             }
 
+            var countDown = await ConsensusStub.GetNextElectCountDown.CallAsync(new Empty());
+            countDown.Value.ShouldBePositive();
+
             // 5 more blocks will end second round.
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
