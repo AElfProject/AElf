@@ -193,7 +193,8 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Approve)
+                ReceiptType = nameof(Approve),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }
@@ -210,7 +211,8 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Reject)
+                ReceiptType = nameof(Reject),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }
@@ -227,7 +229,8 @@ namespace AElf.Contracts.Parliament
                 Address = Context.Sender,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
-                ReceiptType = nameof(Abstain)
+                ReceiptType = nameof(Abstain),
+                OrganizationAddress = proposal.OrganizationAddress
             });
             return new Empty();
         }

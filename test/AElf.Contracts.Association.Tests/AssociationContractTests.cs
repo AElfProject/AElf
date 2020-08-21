@@ -1093,10 +1093,10 @@ namespace AElf.Contracts.Association
             };
             //Unauthorized to create organization
             var addressByCalculate =
-                AssociationContractStub.CalculateOrganizationAddress.SendAsync(createOrganizationInput);
+                await AssociationContractStub.CalculateOrganizationAddress.SendAsync(createOrganizationInput);
             var transactionResult =
                 await AssociationContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input);
-            transactionResult.TransactionResult.Error.Contains("Unauthorized");
+            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized");
             //success
             var chain = _blockchainService.GetChainAsync();
             var blockIndex = new BlockIndex
@@ -1110,10 +1110,10 @@ namespace AElf.Contracts.Association
             var transactionResult1 =
                 await AssociationContractStub.CreateOrganizationBySystemContract.SendAsync(input);
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult1.Output.Value.Equals(addressByCalculate);
+            transactionResult1.Output.ShouldBe(addressByCalculate.Output);
             var boolResult =
-                AssociationContractStub.ValidateOrganizationExist.SendAsync(addressByCalculate.Result.Output);
-            boolResult.Result.Output.Value.ShouldBeTrue();
+                await AssociationContractStub.ValidateOrganizationExist.SendAsync(addressByCalculate.Output);
+            boolResult.Output.Value.ShouldBeTrue();
             //invalid contract
             var method = "OrganizationAddressFeedbackMethodName";
             var input2 = new CreateOrganizationBySystemContractInput
@@ -1123,7 +1123,7 @@ namespace AElf.Contracts.Association
             };
             var transactionResult2 =
                 await AssociationContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input2);
-            transactionResult2.TransactionResult.Error.Contains("invalid");
+            transactionResult2.TransactionResult.Error.ShouldContain("invalid");
         }
 
         [Fact]

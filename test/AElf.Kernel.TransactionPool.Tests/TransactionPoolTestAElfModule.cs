@@ -64,6 +64,7 @@ namespace AElf.Kernel.TransactionPool
         {
             var services = context.Services;
             services.AddSingleton<TransactionExecutionValidationProvider>();
+            services.AddSingleton<TransactionMethodValidationProvider>();
             services.AddSingleton<TransactionMockExecutionHelper>();
 
             services.AddSingleton(provider =>
@@ -84,6 +85,17 @@ namespace AElf.Kernel.TransactionPool
                             }
                         });
                     });
+
+                return mockService.Object;
+            });
+            
+            services.AddSingleton(provider =>
+            {
+                var mockService = new Mock<ITransactionReadOnlyExecutionService>();
+
+                mockService.Setup(m =>
+                        m.IsViewTransactionAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>()))
+                    .Returns<IChainContext, Transaction>((chainContext, transaction) => Task.FromResult(transaction.MethodName == "View"));
 
                 return mockService.Object;
             });
