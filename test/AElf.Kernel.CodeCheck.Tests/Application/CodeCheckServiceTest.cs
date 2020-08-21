@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
@@ -13,6 +14,7 @@ namespace AElf.Kernel.CodeCheck.Tests
         private readonly CodeCheckOptions _codeCheckOptions;
         private readonly IContractAuditorContainer _contractAuditorContainer;
         private readonly IRequiredAcsProvider _requiredAcsProvider;
+
 
         public CodeCheckTest()
         {
