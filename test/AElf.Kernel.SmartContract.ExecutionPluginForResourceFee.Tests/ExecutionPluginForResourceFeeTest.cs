@@ -219,7 +219,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         public async Task CompareCpuTokenConsumption_WithoutResource()
         {
             var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.TransactionResult.Error.ShouldContain("is not enough");
         }
 
