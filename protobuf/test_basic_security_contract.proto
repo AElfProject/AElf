@@ -285,6 +285,7 @@ message ResetOutput {
     int32 int32_value = 2;
     string string_value = 3;
     bool bool_value = 4;
+    repeated int32 list =5;
 }
 
 message ConstOutput {

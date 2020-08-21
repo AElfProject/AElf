@@ -8,6 +8,7 @@ using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Whitelist
 {
@@ -42,7 +43,7 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
-                .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Partial) // AElf.Cryptography
                 .Assembly(typeof(ISmartContractBridgeContext).Assembly, Trust.Full) // AElf.Kernel.SmartContract.Shared
                 ;
         }
@@ -150,6 +151,29 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
             WhitelistLinqAndCollections(whitelist);
             WhitelistOthers(whitelist);
             return whitelist;
+        }
+    }
+    
+    public interface ISystemContractWhitelistProvider : IWhitelistProvider
+    {
+    }
+
+    public class SystemContractWhitelistProvider : WhitelistProvider, ISystemContractWhitelistProvider, ISingletonDependency
+    {
+        public Whitelist GetWhitelist()
+        {
+            var whitelist = base.GetWhitelist();
+            WhitelistAElfTypes(whitelist);
+            return whitelist;
+        }
+        
+        private void WhitelistAElfTypes(Whitelist whitelist)
+        {
+            whitelist
+                // Selectively allowed types and members
+                .Namespace("AElf.Cryptography.SecretSharing", Permission.Denied, type => type
+                    .Type(typeof(SecretSharingHelper), Permission.Denied, member => member
+                        .Member(nameof(SecretSharingHelper.DecodeSecret), Permission.Allowed)));
         }
     }
 }
