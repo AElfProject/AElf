@@ -249,7 +249,7 @@ namespace AElf.Contracts.Profit
                 "Only manager can remove beneficiary.");
 
             var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
-                ? currentDetail.Details.ToList()
+                ? currentDetail.Details.Where(d => !d.IsWeightRemoved).ToList()
                 : currentDetail.Details
                     .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
