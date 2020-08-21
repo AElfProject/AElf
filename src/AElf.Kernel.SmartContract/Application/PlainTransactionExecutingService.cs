@@ -81,7 +81,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (!TryUpdateStateCache(trace, groupStateCache))
                         break;
 #if DEBUG
-                    if (trace.Error != string.Empty)
+                    if (!string.IsNullOrEmpty(trace.Error))
                     {
                         Logger.LogInformation(trace.Error);
                     }
@@ -108,12 +108,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (!trace.IsSuccessful())
             {
-                // Do not package this transaction if any of his inline transactions canceled.
-                if (IsTransactionCanceled(trace))
-                {
-                    return false;
-                }
-
                 var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
 
                 AddToTransactionStateSets(transactionExecutingStateSets, trace.PreTraces);
@@ -135,12 +129,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             transactionExecutingStateSets.AddRange(traces.Where(p => p.IsSuccessful())
                 .SelectMany(p => p.GetStateSets()));
-        }
-
-        private static bool IsTransactionCanceled(TransactionTrace trace)
-        {
-            return trace.ExecutionStatus == ExecutionStatus.Canceled || trace.PreTraces.Any(IsTransactionCanceled) ||
-                   trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
         }
 
         protected virtual async Task<TransactionTrace> ExecuteOneAsync(
@@ -300,9 +288,10 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (!plugin.IsStopExecuting(preTrace.ReturnValue)) continue;
-
+                    if (!plugin.IsStopExecuting(preTrace.ReturnValue, out var error)) continue;
+                    
                     // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
+                    preTrace.Error = error;
                     preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
@@ -367,79 +356,42 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
+            var txResult = new TransactionResult
+            {
+                TransactionId = trace.TransactionId,
+                BlockNumber = blockHeight,
+            };
+            
             if (!trace.IsSuccessful())
             {
+                // Is failed.
+                txResult.Status = TransactionResultStatus.Failed;
                 if (trace.ExecutionStatus == ExecutionStatus.Undefined)
                 {
                     // Cannot find specific contract method.
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Unexecutable,
-                        BlockNumber = blockHeight,
-                        Error = ExecutionStatus.Undefined.ToString()
-                    };
+                    txResult.Error = ExecutionStatus.Undefined.ToString();
                 }
-
-                // Show log events if pre-txs executed successfully.
-                var isContainLogEvents = trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed);
-
-                if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
+                else
                 {
-                    if (isContainLogEvents)
+                    txResult.Error = trace.Error;
+                    if (trace.ExecutionStatus != ExecutionStatus.Prefailed || IsExecutionStoppedByPrePlugin(trace))
                     {
-                        // All pre-txs succeeded, but one plugin stopped tx execution.
-                        // Need to add log events to tx result, as well as show the error message in this situation.
-                        var txResult = new TransactionResult
-                        {
-                            TransactionId = trace.TransactionId,
-                            Status = TransactionResultStatus.Failed,
-                            ReturnValue = trace.ReturnValue,
-                            BlockNumber = blockHeight,
-                            Logs = {trace.GetPluginLogs()},
-                            Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
-                        };
+                        txResult.Logs.AddRange(trace.GetPluginLogs());
                         txResult.UpdateBloom();
-                        return txResult;
                     }
-
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Unexecutable,
-                        BlockNumber = blockHeight,
-                        Error = trace.Error
-                    };
-                }
-
-                // Just failed.
-                {
-                    var txResult = new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        BlockNumber = blockHeight,
-                        Error = trace.Error,
-                        Logs = {trace.GetPluginLogs()}
-                    };
-                    txResult.UpdateBloom();
-                    return txResult;
                 }
             }
-
+            else
             {
                 // Is successful.
-                var txResult = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Mined,
-                    ReturnValue = trace.ReturnValue,
-                    BlockNumber = blockHeight,
-                    Logs = {trace.FlattenedLogs}
-                };
+                txResult.Status = TransactionResultStatus.Mined;
+                txResult.ReturnValue = trace.ReturnValue;
+                txResult.Logs.AddRange(trace.FlattenedLogs);
+                
                 txResult.UpdateBloom();
-                return txResult;
             }
+
+            return txResult;
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
@@ -463,7 +415,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
                 foreach (var preTrace in trace.PreTraces)
                 {
-                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                    if (preTrace.IsSuccessful())
+                        transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
                 }
 
                 foreach (var postTrace in trace.PostTraces)
@@ -508,6 +461,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+
+        private bool IsExecutionStoppedByPrePlugin(TransactionTrace trace)
+        {
+            return _prePlugins.Any(prePlugin =>
+                trace.PreTraces.Any(preTrace => prePlugin.IsStopExecuting(preTrace.ReturnValue, out _)));
         }
 
         protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
