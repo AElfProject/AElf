@@ -51,11 +51,7 @@ service TokenContract {
     // ACS1 - Charge Transaction Fees
     rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
-    }
-    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
-    }
-    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
     }
 
     // ACS5 - Contract Method Call Threshold
@@ -70,6 +66,10 @@ service TokenContract {
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
     rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
@@ -297,6 +297,11 @@ message ChargeTransactionFeesInput {
     int64 transaction_size_fee = 3;
     string primary_token_symbol = 4;
     repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 5;
+}
+
+message ChargeTransactionFeesOutput {
+    bool success = 1;
+    string charging_information = 2;
 }
 
 message ExtraTokenListModified {

@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
 using AElf.Kernel.FeeCalculation.Extensions;
@@ -51,9 +50,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             buyResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        private async Task AdvanceResourceToken(List<string> except = null)
+        private async Task AdvanceResourceToken(List<string> except = null, long amount = 10_000_00000000)
         {
-            const long amount = 10_000_00000000;
             var resourceTokenList = new List<string> {"READ", "WRITE", "STORAGE", "TRAFFIC"};
             if (except != null && except.Any())
             {
@@ -221,7 +219,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         public async Task CompareCpuTokenConsumption_WithoutResource()
         {
             var txResult = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
-            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.TransactionResult.Error.ShouldContain("is not enough");
         }
 
@@ -357,6 +355,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             var result = (await TokenContractStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps())).TransactionResult;
             result.Error.Contains("This method already executed in height").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task CheckResourceToken_Fail_Test()
+        {
+            await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            var checkResourceTokenRet = await TestContractStub.CpuConsumingMethod.SendWithExceptionAsync(new Empty());
+            checkResourceTokenRet.TransactionResult.Error.ShouldContain("token is not enough. Owning");
+        }
+        
+        [Fact]
+        public async Task GetResourceTokenInfo_Test()
+        {
+            var resourceToken = await TokenContractStub.GetResourceTokenInfo.CallAsync(new Empty());
+            resourceToken.Value.Count.ShouldBe(4);
         }
     }
 }

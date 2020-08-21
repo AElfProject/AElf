@@ -63,10 +63,15 @@ namespace AElf.OS.Network
         public bool EnablePeerDiscovery { get; set; } = true;
 
         /// <summary>
+        /// The maximum number of nodes that we can keep through peer discovery.
+        /// </summary>
+        public int PeerDiscoveryMaxNodesToKeep { get; set; } = NetworkConstants.DefaultDiscoveryMaxNodesToKeep;
+
+        /// <summary>
         /// The minimum distance between this node and peers needed to trigger initial sync. 
         /// </summary>
         public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
-
+        
         public int PeerInvalidTransactionTimeout { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionTimeout;
 
         public int PeerInvalidTransactionLimit { get; set; } = NetworkConstants.DefaultPeerInvalidTransactionLimit;
