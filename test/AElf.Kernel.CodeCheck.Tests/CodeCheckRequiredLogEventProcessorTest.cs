@@ -28,31 +28,5 @@ namespace AElf.Kernel.CodeCheck.Tests
             interestedEvent.ShouldNotBeNull();
             interestedEvent.LogEvent.Name.ShouldContain("CodeCheckRequired");
         }
-        
-        [Fact]
-        public async Task ProcessAsync_Test()
-        {
-            var proposalCreated = new ProposalCreated
-            {
-                ProposalId = HashHelper.ComputeFrom("Test")
-            };
-            var transactionResult = new TransactionResult
-            {
-                Logs = { new LogEvent
-                {
-                    Name = "ProposalCreated",
-                    NonIndexed = proposalCreated.ToByteString()
-                }}
-            };
-            var logEventsMap = new Dictionary<TransactionResult, List<LogEvent>>();
-            
-            // use default auditor
-            logEventsMap[transactionResult] = new List<LogEvent>{new LogEvent()};
-            await _logEventProcessor.ProcessAsync(new Block(), logEventsMap);
-            await Task.Delay(10);
-            var allProposals = _proposalProvider.GetAllProposals();
-            allProposals.Count.ShouldBe(1);
-            allProposals[0].ShouldBe(proposalCreated.ProposalId);
-        }
     }
 }
