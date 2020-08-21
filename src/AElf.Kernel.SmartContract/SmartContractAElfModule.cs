@@ -11,6 +11,7 @@ namespace AElf.Kernel.SmartContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ForkHeightOptions>(context.Services.GetConfiguration().GetSection("ForkHeight"));
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
             context.Services.AddSingleton<ITransactionExecutingService, PlainTransactionExecutingService>();
             context.Services.AddSingleton<IPlainTransactionExecutingService, PlainTransactionExecutingService>();

@@ -89,5 +89,15 @@ namespace AElf.Contracts.Election
             var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
+
+        private async Task<TransactionResult> ChangeVoteOption(ECKeyPair keyPair, Hash voteId, string newOption)
+        {
+            var electionStub = GetElectionContractTester(keyPair);
+            return (await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                VoteId = voteId,
+                CandidatePubkey = newOption
+            })).TransactionResult;
+        }
     }
 }
