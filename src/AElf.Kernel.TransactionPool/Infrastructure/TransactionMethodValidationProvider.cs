@@ -27,7 +27,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     TransactionId = transaction.GetHash(),
                     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Transaction is view transaction."
+                    Error = "View transaction is not allowed."
                 });
             }
 

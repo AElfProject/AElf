@@ -53,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             
             transactionValidationStatusChangedEventData.ShouldNotBeNull();
             transactionValidationStatusChangedEventData.TransactionResultStatus.ShouldBe(TransactionResultStatus.NodeValidationFailed);
-            transactionValidationStatusChangedEventData.Error.ShouldBe("Transaction is view transaction.");
+            transactionValidationStatusChangedEventData.Error.ShouldBe("View transaction is not allowed.");
             
         }
     }
