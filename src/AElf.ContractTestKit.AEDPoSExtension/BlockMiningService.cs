@@ -45,6 +45,8 @@ namespace AElf.ContractTestKit.AEDPoSExtension
 
         private bool _isSkipped;
 
+        private readonly IChainTypeProvider _chainTypeProvider;
+
         public BlockMiningService(IServiceProvider serviceProvider)
         {
             RegisterAssemblyResolveEvent();
@@ -52,6 +54,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
             _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
             _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
             _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
+            _chainTypeProvider = serviceProvider.GetRequiredService<IChainTypeProvider>();
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -144,7 +147,8 @@ namespace AElf.ContractTestKit.AEDPoSExtension
                     new InitialAElfConsensusContractInput
                     {
                         MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds
+                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds,
+                        IsSideChain = _chainTypeProvider.IsSideChain
                     });
                 if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
                 {

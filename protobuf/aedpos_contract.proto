@@ -27,13 +27,15 @@ service AEDPoSContract {
     }
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
-    
-    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
-    }
-    
+
     rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
     rpc ChangeMaximumMinersCountController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
+    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeSideChainConsensusInformationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -98,6 +100,12 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetSideChainConsensusInformationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMainChainCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
 }

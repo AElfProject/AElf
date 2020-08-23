@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Election;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -559,6 +560,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return result;
+        }
+
+        public override AuthorityInfo GetSideChainConsensusInformationController(Empty input)
+        {
+            return GetSideChainConsensusInformationController();
+        }
+
+        public override MinerList GetMainChainCurrentMinerList(Empty input)
+        {
+            return State.MainChainCurrentMinerList.Value;
         }
     }
 }

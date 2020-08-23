@@ -48,6 +48,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
             context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddSingleton<IChainTypeProvider, ChainTypeProvider>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
         }

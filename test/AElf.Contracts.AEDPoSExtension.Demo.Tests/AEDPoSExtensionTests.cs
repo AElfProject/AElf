@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
+using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -18,6 +22,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [Fact]
         public async Task Demo_Test()
         {
+            InitialContracts();
+
             // Check round information after initialization.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -164,6 +170,22 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var randomHash = await ConsensusStub.GetRandomHash.CallAsync(new Int64Value {Value = 100});
             randomHash.ShouldNotBe(Hash.Empty);
+        }
+
+        [Fact]
+        public async Task NotMinerTest()
+        {
+            InitialContracts();
+            var keyPair = SampleAccount.Accounts.Last().KeyPair;
+            var stub = GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+                keyPair);
+            var command = await stub.GetConsensusCommand.CallAsync(new BytesValue
+                {Value = ByteString.CopyFrom(keyPair.PublicKey)});
+            command.Hint.ShouldBe(ByteString.CopyFrom(new AElfConsensusHint
+            {
+                Behaviour = AElfConsensusBehaviour.Nothing
+            }.ToByteArray()));
         }
     }
 }

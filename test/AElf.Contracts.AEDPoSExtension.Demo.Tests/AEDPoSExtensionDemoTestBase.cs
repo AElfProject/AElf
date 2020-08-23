@@ -41,7 +41,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
             new List<ParliamentContractContainer.ParliamentContractStub>();
 
-        public AEDPoSExtensionDemoTestBase()
+        internal void InitialContracts()
         {
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
@@ -96,6 +96,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await BlockMiningService.MineBlockAsync(approvals);
 
             await ParliamentStubs.First().Release.SendAsync(proposalId);
+        }
+
+        internal void SetToSideChain()
+        {
+            var chainTypeProvider = GetRequiredService<IChainTypeProvider>();
+            chainTypeProvider.IsSideChain = true;
         }
     }
 }
