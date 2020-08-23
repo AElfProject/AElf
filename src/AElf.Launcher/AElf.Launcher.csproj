@@ -7,6 +7,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
         <ProjectReference Include="..\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj" />
+        <ProjectReference Include="..\AElf.Blockchains.PoWChain\AElf.Blockchains.PoWChain.csproj" />
         <None Update="Dockerfile">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
@@ -45,6 +46,10 @@
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
         <Content Include="appsettings.SideChain.CustomNet.json">
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="appsettings.PoWChain.MainNet.json">
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

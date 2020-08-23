@@ -29,7 +29,7 @@ namespace AElf.Contracts.MultiToken
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ConsensusOptions>(options =>
+            Configure<AEDPoSOptions>(options =>
             {
                 options.MiningInterval = 4000;
                 options.InitialMinerList =
@@ -80,7 +80,7 @@ namespace AElf.Contracts.MultiToken
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             //Configure<ChainOptions>(options => options.ChainId = SideChainInitializationDataProvider.ChainId);
-            Configure<ConsensusOptions>(options =>
+            Configure<AEDPoSOptions>(options =>
             {
                 options.MiningInterval = 4000;
                 options.InitialMinerList =

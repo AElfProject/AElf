@@ -45,12 +45,12 @@ namespace AElf.Kernel.Consensus.AEDPoS
             // thus we read the configuration of ConsensusOption here.
             // (ConsensusOption itself can support all kinds of consensus protocol via adding more properties.)
             var configuration = context.Services.GetConfiguration();
-            Configure<ConsensusOptions>(option =>
+            Configure<AEDPoSOptions>(option =>
             {
-                var consensusOptions = configuration.GetSection("Consensus");
-                consensusOptions.Bind(option);
+                var aeDPoSOptions = configuration.GetSection("AEDPoS");
+                aeDPoSOptions.Bind(option);
 
-                var startTimeStamp = consensusOptions["StartTimestamp"];
+                var startTimeStamp = aeDPoSOptions["StartTimestamp"];
                 option.StartTimestamp = new Timestamp
                 {
                     Seconds = string.IsNullOrEmpty(startTimeStamp) ? 0 : long.Parse(startTimeStamp)

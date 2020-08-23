@@ -15,16 +15,16 @@ namespace AElf.EconomicSystem
     public class EconomicContractInitializationProvider : IContractInitializationProvider, ITransientDependency
     {
         private readonly EconomicOptions _economicOptions;
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _aeDPoSOptions;
         
         public Hash SystemSmartContractName { get; } = EconomicSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Economic";
 
 
         public EconomicContractInitializationProvider(
-            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
+            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<AEDPoSOptions> aeDPoSOptions)
         {
-            _consensusOptions = consensusOptions.Value;
+            _aeDPoSOptions = aeDPoSOptions.Value;
             _economicOptions = economicOptions.Value;
         }
         
@@ -52,7 +52,7 @@ namespace AElf.EconomicSystem
                     {
                         Amount = Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
                         To = Address.FromPublicKey(
-                            ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList.First())),
+                            ByteArrayHelper.HexStringToByteArray(_aeDPoSOptions.InitialMinerList.First())),
                         Memo = "Issue native token"
                     }.ToByteString()
                 }

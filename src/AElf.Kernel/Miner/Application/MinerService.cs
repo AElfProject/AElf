@@ -56,7 +56,6 @@ namespace AElf.Kernel.Miner.Application
 
                 txList.AddRange(executableTransactionSet.Transactions);
             }
-            
 
             Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");

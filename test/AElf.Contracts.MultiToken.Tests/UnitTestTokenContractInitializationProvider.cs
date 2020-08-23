@@ -15,11 +15,11 @@ namespace AElf.Contracts.MultiToken
     public class UnitTestTokenContractInitializationProvider : TokenContractInitializationProvider
     {
         private readonly EconomicOptions _economicOptions;
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _consensusOptions;
 
         public UnitTestTokenContractInitializationProvider(
             ITokenContractInitializationDataProvider tokenContractInitializationDataProvider,
-            IOptionsSnapshot<EconomicOptions> economicOptions,IOptionsSnapshot<ConsensusOptions> consensusOptions) : base(
+            IOptionsSnapshot<EconomicOptions> economicOptions,IOptionsSnapshot<AEDPoSOptions> consensusOptions) : base(
             tokenContractInitializationDataProvider)
         {
             _economicOptions = economicOptions.Value;

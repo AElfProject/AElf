@@ -24,18 +24,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
+        private readonly IFillBlockAfterExecutionService _fillBlockAfterExecutionService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
-            ITransactionResultService transactionResultService, 
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+            ITransactionResultService transactionResultService,
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+            IFillBlockAfterExecutionService fillBlockAfterExecutionService)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             _transactionResultService = transactionResultService;
             _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+            _fillBlockAfterExecutionService = fillBlockAfterExecutionService;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -87,7 +90,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     .ToList();
             var blockStateSet =
                 CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
-            var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
+            var block = await _fillBlockAfterExecutionService.FillAsync(blockHeader, allExecutedTransactions, returnSetCollection,
                 blockStateSet);
 
             // set txn results

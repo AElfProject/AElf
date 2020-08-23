@@ -10,7 +10,8 @@ namespace AElf.Kernel
     public enum ChainType
     {
         MainChain,
-        SideChain
+        SideChain,
+        PoWChain
     }
 
     public enum NetType

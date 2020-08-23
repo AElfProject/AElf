@@ -13,16 +13,16 @@ namespace AElf.GovernmentSystem
     public class ElectionContractInitializationProvider : IContractInitializationProvider, ITransientDependency
     {
         private readonly EconomicOptions _economicOptions;
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _aeDPoSOptions;
 
         public Hash SystemSmartContractName { get; } = ElectionSmartContractAddressNameProvider.Name;
         public string ContractCodeName { get; } = "AElf.Contracts.Election";
 
 
         public ElectionContractInitializationProvider(
-            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<ConsensusOptions> consensusOptions)
+            IOptionsSnapshot<EconomicOptions> economicOptions, IOptionsSnapshot<AEDPoSOptions> aeDPoSOptions)
         {
-            _consensusOptions = consensusOptions.Value;
+            _aeDPoSOptions = aeDPoSOptions.Value;
             _economicOptions = economicOptions.Value;
         }
 
@@ -36,9 +36,9 @@ namespace AElf.GovernmentSystem
                     {
                         MaximumLockTime = _economicOptions.MaximumLockTime,
                         MinimumLockTime = _economicOptions.MinimumLockTime,
-                        TimeEachTerm = _consensusOptions.PeriodSeconds,
-                        MinerList = {_consensusOptions.InitialMinerList},
-                        MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+                        TimeEachTerm = _aeDPoSOptions.PeriodSeconds,
+                        MinerList = {_aeDPoSOptions.InitialMinerList},
+                        MinerIncreaseInterval = _aeDPoSOptions.MinerIncreaseInterval
                     }.ToByteString()
                 }
             };

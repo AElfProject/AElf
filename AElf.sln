@@ -343,6 +343,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ContractTestBase.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiTokenCrossChainTransfer.Tests", "test\AElf.Contracts.MultiTokenCrossChainTransfer.Tests\AElf.Contracts.MultiTokenCrossChainTransfer.Tests.csproj", "{850A384F-6226-433F-8777-396A3717F7E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.AEPoW", "contract\AElf.Contracts.Consensus.AEPoW\AElf.Contracts.Consensus.AEPoW.csproj", "{6CF907D2-C277-4609-9B4D-837320829E0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.AEPoW", "src\AElf.Kernel.Consensus.AEPoW\AElf.Kernel.Consensus.AEPoW.csproj", "{809EB409-8E47-4DE6-88CC-C527CF38E9B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.PoWChain", "src\AElf.Blockchains.PoWChain\AElf.Blockchains.PoWChain.csproj", "{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -981,6 +987,18 @@ Global
 		{850A384F-6226-433F-8777-396A3717F7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{850A384F-6226-433F-8777-396A3717F7E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CF907D2-C277-4609-9B4D-837320829E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CF907D2-C277-4609-9B4D-837320829E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CF907D2-C277-4609-9B4D-837320829E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CF907D2-C277-4609-9B4D-837320829E0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{809EB409-8E47-4DE6-88CC-C527CF38E9B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{809EB409-8E47-4DE6-88CC-C527CF38E9B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{809EB409-8E47-4DE6-88CC-C527CF38E9B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{809EB409-8E47-4DE6-88CC-C527CF38E9B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1154,5 +1172,8 @@ Global
 		{8D614C01-C059-47F1-9D6F-9068E891101D} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{8750A2E5-DD57-408D-9EB8-05FD3A6376CD} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{850A384F-6226-433F-8777-396A3717F7E0} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{6CF907D2-C277-4609-9B4D-837320829E0B} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{809EB409-8E47-4DE6-88CC-C527CF38E9B5} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{83AE2A37-CBA2-424B-8CA5-7D16EC37ED59} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 	EndGlobalSection
 EndGlobal

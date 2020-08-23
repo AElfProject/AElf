@@ -1,6 +1,7 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Database;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
@@ -13,7 +14,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule)
+        typeof(BasicBaseChainAElfModule),
+        typeof(AEDPoSAElfModule)
     )]
     public class MainChainAElfModule : AElfModule
     {

@@ -25,7 +25,7 @@ namespace AElf.ContractTestBase
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ConsensusOptions>(options =>
+            Configure<AEDPoSOptions>(options =>
             {
                 options.MiningInterval = 4000;
                 options.InitialMinerList = new List<string> {SampleAccount.Accounts[0].KeyPair.PublicKey.ToHex()};

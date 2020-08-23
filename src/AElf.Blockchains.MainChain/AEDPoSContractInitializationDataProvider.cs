@@ -7,22 +7,22 @@ namespace AElf.Blockchains.MainChain
     public class AEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider,
         ITransientDependency
     {
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly AEDPoSOptions _aeDPoSOptions;
 
-        public AEDPoSContractInitializationDataProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions)
+        public AEDPoSContractInitializationDataProvider(IOptionsSnapshot<AEDPoSOptions> aeDPoSOptions)
         {
-            _consensusOptions = consensusOptions.Value;
+            _aeDPoSOptions = aeDPoSOptions.Value;
         }
 
         public AEDPoSContractInitializationData GetContractInitializationData()
         {
             return new AEDPoSContractInitializationData
             {
-                MiningInterval = _consensusOptions.MiningInterval,
-                PeriodSeconds = _consensusOptions.PeriodSeconds,
-                StartTimestamp = _consensusOptions.StartTimestamp,
-                InitialMinerList = _consensusOptions.InitialMinerList,
-                MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
+                MiningInterval = _aeDPoSOptions.MiningInterval,
+                PeriodSeconds = _aeDPoSOptions.PeriodSeconds,
+                StartTimestamp = _aeDPoSOptions.StartTimestamp,
+                InitialMinerList = _aeDPoSOptions.InitialMinerList,
+                MinerIncreaseInterval = _aeDPoSOptions.MinerIncreaseInterval
             };
         }
     }

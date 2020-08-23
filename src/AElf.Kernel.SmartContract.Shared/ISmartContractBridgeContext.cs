@@ -55,7 +55,6 @@ namespace AElf.Kernel.SmartContract
         void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
             ByteString args);
 
-
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress, Address contractAddress);
 
         Address ConvertVirtualAddressToContractAddressWithContractHashName(Hash virtualAddress,

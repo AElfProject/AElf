@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AEPoW";
+
+service AEPoWContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEPoW.AEPoWContractState";
+    
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc CoinBase (CoinBaseInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetBlockProducer (google.protobuf.Int64Value) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDifficulty (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    int64 supposed_produce_milliseconds = 1;
+}
+
+message CoinBaseInput {
+    aelf.Address producer = 1;
+    int64 nonce_number = 2;
+    string new_difficulty = 3;
+}
+
+message PoWValidateInfo {
+    aelf.Hash nonce = 1;
+    aelf.Hash previous_block_hash = 2;
+    string new_difficulty = 3;
+}
+
+message PoWRecord {
+    aelf.Address producer = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    int64 nonce_number = 3;
+    aelf.Hash previous_block_hash = 4;
+}
+
+message AdjustDifficultyInfo {
+    string current_difficulty = 1;
+    int64 average_produce_milliseconds = 2;
+    int64 supposed_produce_milliseconds = 3;
+}
+
+// Events
+
+message NonceUpdated {
+    option (aelf.is_event) = true;
+    int64 nonce_number = 1;
+    int64 block_height = 2;
+}

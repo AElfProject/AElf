@@ -15,6 +15,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
+            Context.LogDebug(() => "Getting consensus command for DPoS.");
+
             _processingBlockMinerPubkey = input.Value.ToHex();
 
             if (Context.CurrentHeight < 2) return ConsensusCommandProvider.InvalidConsensusCommand;
