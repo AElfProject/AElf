@@ -5,11 +5,15 @@ using Acs0;
 using Acs3;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Economic;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestContract.RandomNumberProvider;
+using AElf.Contracts.Treasury;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -32,6 +36,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
+        
+        internal ElectionContractContainer.ElectionContractStub ElectionStub =>
+            GetTester<ElectionContractContainer.ElectionContractStub>(
+                ContractAddresses[ElectionSmartContractAddressNameProvider.Name],
+                Accounts[10].KeyPair);
+        
+        internal EconomicContractContainer.EconomicContractStub EconomicStub =>
+            GetTester<EconomicContractContainer.EconomicContractStub>(
+                ContractAddresses[EconomicSmartContractAddressNameProvider.Name],
+                Accounts[0].KeyPair);
+        
+        internal TreasuryContractContainer.TreasuryContractStub TreasuryStub =>
+            GetTester<TreasuryContractContainer.TreasuryContractStub>(
+                ContractAddresses[TreasurySmartContractAddressNameProvider.Name],
+                Accounts[0].KeyPair);
 
         internal TokenContractImplContainer.TokenContractImplStub TokenStub =>
             GetTester<TokenContractImplContainer.TokenContractImplStub>(
@@ -46,11 +65,15 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
                 // You can deploy more system contracts by adding system contract name to current list.
+                ProfitSmartContractAddressNameProvider.Name,
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name
+                ReferendumSmartContractAddressNameProvider.Name,
+                EconomicSmartContractAddressNameProvider.Name,
+                TreasurySmartContractAddressNameProvider.Name,
+                TokenConverterSmartContractAddressNameProvider.Name
             }));
         }
 

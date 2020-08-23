@@ -132,7 +132,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
 
         private void InitialContractStubs()
         {
-            foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
+            foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs.Concat(MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(18)))
             {
                 _contractStubs.Add(_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                     _consensusContractAddress, initialKeyPair));

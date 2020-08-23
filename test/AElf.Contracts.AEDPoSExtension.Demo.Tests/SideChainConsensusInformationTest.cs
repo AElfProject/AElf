@@ -36,9 +36,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                         {Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound()},
                         {Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound()},
                         {Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound()},
+                        {Accounts[3].KeyPair.PublicKey.ToHex(), new MinerInRound()},
+                        {Accounts[4].KeyPair.PublicKey.ToHex(), new MinerInRound()},
                     }
                 }
             };
+
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
                 ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
@@ -79,6 +82,49 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var controller = await ConsensusStub.GetSideChainConsensusInformationController.CallAsync(new Empty());
             controller.OwnerAddress.ShouldBe(defaultOrganizationAddress);
+        }
+
+        [Fact]
+        public async Task ChangeMinersInSideChainTest()
+        {
+            await UpdateConsensusInformationTest();
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
+            var defaultOrganizationAddress =
+                await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var headerInformation = new AElfConsensusHeaderInformation
+            {
+                Round = new Round
+                {
+                    RoundNumber = 5,
+                    RealTimeMinersInformation =
+                    {
+                        {Accounts[0].KeyPair.PublicKey.ToHex(), new MinerInRound()},
+                        {Accounts[1].KeyPair.PublicKey.ToHex(), new MinerInRound()},
+                        {Accounts[2].KeyPair.PublicKey.ToHex(), new MinerInRound()},
+                    }
+                }
+            };
+
+            await ParliamentReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(ConsensusStub.UpdateConsensusInformation),
+                Params = new ConsensusInformation
+                {
+                    Value = ByteString.CopyFrom(headerInformation.ToByteArray())
+                }.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = defaultOrganizationAddress
+            });
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
+            await BlockMiningService.MineBlockAsync();
+
+            var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
+            minerList.Pubkeys.Select(m => m.ToHex()).ShouldBe(headerInformation.Round.RealTimeMinersInformation.Keys);
         }
 
         [Fact]
