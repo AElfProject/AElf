@@ -535,7 +535,7 @@ namespace AElf.Contracts.Election
                         }
                     }
                 };
-                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("invalid input");
@@ -544,7 +544,7 @@ namespace AElf.Contracts.Election
             // interest count == 0
             {
                 var newSetting = new VoteWeightInterestList();
-                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("invalid input");
@@ -570,7 +570,7 @@ namespace AElf.Contracts.Election
                         }
                     }
                 };
-                var settingRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("repeat day");
@@ -631,7 +631,7 @@ namespace AElf.Contracts.Election
                 OwnerAddress = TokenHolderContractAddress,
                 ContractAddress = ParliamentContractAddress
             };
-            var changeControllerRet = await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+            var changeControllerRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
             changeControllerRet.Status.ShouldBe(TransactionResultStatus.Failed);
             changeControllerRet.Error.ShouldContain("Invalid authority input.");
@@ -696,7 +696,7 @@ namespace AElf.Contracts.Election
                 TimeProportion = 0,
                 AmountProportion = 3
             };
-            var settingRet =  await ExecuteProposalTransactionWithTransactionResult(BootMinerAddress, ElectionContractAddress,
+            var settingRet =  await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightProportion), newSetting);
             settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
             settingRet.Error.ShouldContain("invalid input");
