@@ -211,7 +211,8 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
-            Assert(State.CandidateInformationMap[input.CandidatePubkey] != null,
+            var targetCandidate = State.CandidateInformationMap[input.CandidatePubkey];
+            Assert( targetCandidate != null && targetCandidate.IsCurrentCandidate,
                 $"Candidate: {input.CandidatePubkey} dose not exist");
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
@@ -245,6 +246,7 @@ namespace AElf.Contracts.Election
                 oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
+            var voteAmountOfNewCandidate = 0L;
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
             if (newCandidateVotes != null)
             {
@@ -254,6 +256,7 @@ namespace AElf.Contracts.Election
                 newCandidateVotes.AllObtainedVotedVotesAmount =
                     newCandidateVotes.AllObtainedVotedVotesAmount.Add(votingRecord.Amount);
                 State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
+                voteAmountOfNewCandidate = newCandidateVotes.ObtainedActiveVotedVotesAmount;
             }
             else
             {
@@ -264,19 +267,22 @@ namespace AElf.Contracts.Election
                     ObtainedActiveVotedVotesAmount = votingRecord.Amount,
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
+                voteAmountOfNewCandidate = votingRecord.Amount;
             }
 
             var dataCenterList = State.DataCentersRankingList.Value;
             if (dataCenterList.DataCenters.ContainsKey(input.CandidatePubkey))
                 dataCenterList.DataCenters[input.CandidatePubkey] =
                     dataCenterList.DataCenters[input.CandidatePubkey].Add(votingRecord.Amount);
+            else
+                IsCandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
             if (dataCenterList.DataCenters.ContainsKey(votingRecord.Option))
             {
                 dataCenterList.DataCenters[votingRecord.Option] =
                     dataCenterList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
                 IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, votingRecord.Option);
             }
-
+            
             State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
         }
@@ -361,6 +367,22 @@ namespace AElf.Contracts.Election
             return true;
         }
 
+        private bool IsCandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate, long voteAmount)
+        {
+            var dateCenter = rankingList.DataCenters;
+            if (dateCenter.Count < GetValidationDataCenterCount())
+                return false;
+            if (dateCenter.ContainsKey(candidate))
+                return false;
+            var list = dateCenter.ToList();
+            var minimumVoteCandidateInDataCenter = list.OrderBy(x => x.Value).First();
+            if (voteAmount <= minimumVoteCandidateInDataCenter.Value) return false;
+            dateCenter.Remove(minimumVoteCandidateInDataCenter.Key);
+            dateCenter[candidate] = voteAmount;
+            NotifyProfitReplaceCandidateInDataCenter(minimumVoteCandidateInDataCenter.Key, candidate);
+            return true;
+        }
+        
         private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
             string newCandidateDataCenter)
         {
