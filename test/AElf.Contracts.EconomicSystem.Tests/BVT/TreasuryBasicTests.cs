@@ -70,7 +70,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var minerRewardProfit =
                 await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
@@ -222,7 +222,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     OwnerAddress = ParliamentContractAddress,
                     ContractAddress = ParliamentContractAddress
                 };
-                var changeRet = await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress,
+                var changeRet = await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress,
                     nameof(TreasuryContractStub.ChangeTreasuryController), newController);
                 changeRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 changeRet.Error.ShouldContain("Invalid authority input");
@@ -253,7 +253,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeTreasuryController), newController);
             var getController = await TreasuryContractStub.GetTreasuryController.CallAsync(new Empty());
             getController.ContractAddress.ShouldBe(newController.ContractAddress);
@@ -294,7 +294,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 };
                 var setSymbolRet =
-                    await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress, methodName,
+                    await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                         newSymbolList);
                 setSymbolRet.Error.ShouldContain("Need to contain native symbol");
             }
@@ -309,7 +309,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 };
                 var setSymbolRet =
-                    await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress, methodName,
+                    await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                         newSymbolList);
                 setSymbolRet.Error.ShouldContain("Symbol need to be profitable");
             }
@@ -324,7 +324,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 };
                 var setSymbolRet =
-                    await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress, methodName,
+                    await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                         newSymbolList);
                 setSymbolRet.Error.ShouldContain($"Token {resourceTokenSymbol} don't need to set to symbol list");
             }
@@ -352,7 +352,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     nativeTokenSymbol, tokenSymbol
                 }
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, methodName,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, methodName,
                     newSymbolList);
             var getSymbolList = await TreasuryContractStub.GetSymbolList.CallAsync(new Empty());
             getSymbolList.Value.Count.ShouldBe(2);
@@ -377,7 +377,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     BackupSubsidyWeight = 0
                 };
-                var setRet =  await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress, methodName,
+                var setRet =  await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                     newDividendSetting);
                 setRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 setRet.Error.ShouldContain("invalid input");
@@ -397,7 +397,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var updatedWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BackupSubsidyProportionInfo.Proportion.ShouldBe(10);
             updatedWeightSetting.CitizenWelfareProportionInfo.Proportion.ShouldBe(10);
@@ -431,7 +431,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     BasicMinerRewardWeight = 0
                 };
-                var setRet =  await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress, methodName,
+                var setRet =  await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                     newRewardWeightSetting);
                 setRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 setRet.Error.ShouldContain("invalid input");
@@ -451,7 +451,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ReElectionRewardWeight = 1,
                 VotesWeightRewardWeight = 8
             };
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.SetMinerRewardWeightSetting), newWeightSetting);
             var updatedWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BasicMinerRewardProportionInfo.Proportion.ShouldBe(10);
@@ -488,7 +488,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = createOrganizationResult.Output;
 
             var methodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeMethodFeeController),
                 new AuthorityInfo
                 {
@@ -510,7 +510,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ContractAddress = ParliamentContractAddress
             };
             var proposalCreationMethodName = nameof(ElectionContractStub.ChangeMethodFeeController);
-            var changeRet = await ExecuteProposalTransactionWithTransactionResult(Tester, TreasuryContractAddress,
+            var changeRet = await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeMethodFeeController), newController);
             changeRet.Status.ShouldBe(TransactionResultStatus.Failed);
             changeRet.Error.ShouldContain("Invalid authority input");
@@ -610,7 +610,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }
             };
             const string proposalCreationMethodName = nameof(TreasuryContractStub.SetMethodFee);
-            await ExecuteProposalTransaction(Tester, TreasuryContractAddress, proposalCreationMethodName,
+            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, proposalCreationMethodName,
                 newMethodFees);
             var getMethodFee = await TreasuryContractStub.GetMethodFee.CallAsync(new StringValue
             {
@@ -626,6 +626,17 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var treasurySchemeId = await TreasuryContractStub.GetTreasurySchemeId.CallAsync(new Empty());
             var treasuryScheme = await ProfitContractStub.GetScheme.CallAsync(treasurySchemeId);
             return treasuryScheme.VirtualAddress;
+        }
+        
+        private async Task<long> GetBalanceAsync(string symbol, Address owner)	
+        {	
+            var balanceResult = await TokenContractStub.GetBalance.CallAsync(	
+                new GetBalanceInput()	
+                {	
+                    Owner = owner,	
+                    Symbol = symbol	
+                });	
+            return balanceResult.Balance;	
         }
     }
 }
