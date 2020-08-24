@@ -260,6 +260,14 @@ namespace AElf.Contracts.Election
                 LockTime = day * 24 * 3600
             });
             weight.Value.ShouldBe(9433);
+            
+            day = 1;   // 1 day
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(1500);
         }
 
         [Fact]

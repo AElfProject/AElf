@@ -404,6 +404,58 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_ChangeVoting_To_Invalid_Target()
+        {
+            var invalidCandidateKeyPair = "invalid key";
+            var ret = await ElectionContractStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = invalidCandidateKeyPair,
+                VoteId = new Hash()
+            });
+            var errorMsg = "Candidate: " + invalidCandidateKeyPair + " dose not exist";
+            ret.TransactionResult.Error.ShouldContain(errorMsg);
+        }
+        
+        [Fact]
+        public async Task ElectionContract_ChangeVoting_To_NewTarget()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidateKeyPairs = ValidationDataCenterKeyPairs.Take(2).ToList();
+            var firstCandidate = candidateKeyPairs[0];
+            var secondCandidate = candidateKeyPairs[1];
+            await AnnounceElectionAsync(firstCandidate);
+            await AnnounceElectionAsync(secondCandidate);
+            await VoteToCandidate(voter,firstCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionStub = GetElectionContractTester(voter);
+            var beforeChangeVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = secondCandidate.PublicKey.ToHex()
+            });
+            beforeChangeVote.ObtainedActiveVotingRecords.Count.ShouldBe(0);
+            var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = firstCandidate.PublicKey.ToHex()
+            });
+            candidateVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(1);
+            candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(voteAmount);
+            var voteId = candidateVote.ObtainedActiveVotingRecordIds[0];
+            var changeRet = await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = secondCandidate.PublicKey.ToHex(),
+                VoteId = voteId
+            });
+            changeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var afterChangeVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = secondCandidate.PublicKey.ToHex()
+            });
+            afterChangeVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(1);
+            afterChangeVote.ObtainedActiveVotedVotesAmount.ShouldBe(voteAmount);
+        }
+
+        [Fact]
         public async Task ElectionContract_Withdraw_Test()
         {
             const int amount = 1000;

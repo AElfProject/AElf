@@ -211,6 +211,8 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
+            Assert(State.CandidateInformationMap[input.CandidatePubkey] != null,
+                $"Candidate: {input.CandidatePubkey} dose not exist");
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
