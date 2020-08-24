@@ -600,7 +600,7 @@ namespace AElf.Contracts.Election
             defaultSetting.VoteWeightInterestInfos[0].Capital = 13200;
             defaultSetting.VoteWeightInterestInfos[0].Day = 50;
 
-            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+            await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting);
             
             defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
@@ -665,10 +665,10 @@ namespace AElf.Contracts.Election
                 OwnerAddress = newParliamentAddress,
                 ContractAddress = ParliamentContractAddress
             };
-            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+            await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
 
-            await ExecuteProposalTransactionWithNewParliament(BootMinerAddress, ElectionContractAddress,
+            await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);
             defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
                 new Empty());
@@ -714,7 +714,7 @@ namespace AElf.Contracts.Election
                 TimeProportion = 3,
                 AmountProportion = 3
             };
-            await ExecuteProposalTransaction(BootMinerAddress, ElectionContractAddress,
+            await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightProportion), defaultSetting);
             
             defaultSetting = await ElectionContractStub.GetVoteWeightProportion.CallAsync(

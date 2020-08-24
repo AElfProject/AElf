@@ -269,6 +269,16 @@ namespace AElf.Contracts.Treasury
         {
             AssertPerformedByTreasuryController();
             Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
             foreach (var symbol in input.Value.Where(s => s != Context.Variables.NativeSymbol))
             {
                 var isTreasuryInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
@@ -293,8 +303,6 @@ namespace AElf.Contracts.Treasury
                 input.CitizenWelfareWeight > 0 && input.BackupSubsidyWeight > 0 &&
                 input.MinerRewardWeight > 0,
                 "invalid input");
-            if (State.DividendPoolWeightSetting.Value == null)
-                State.DividendPoolWeightSetting.Value = GetDefaultDividendPoolWeightSetting();
             ResetSubSchemeToTreasury(input);
             State.DividendPoolWeightSetting.Value = input;
             return new Empty();
@@ -307,8 +315,6 @@ namespace AElf.Contracts.Treasury
                 input.BasicMinerRewardWeight > 0 && input.ReElectionRewardWeight > 0 &&
                 input.VotesWeightRewardWeight > 0,
                 "invalid input");
-            if (State.MinerRewardWeightSetting.Value == null)
-                State.MinerRewardWeightSetting.Value = GetDefaultMinerRewardWeightSetting();
             ResetSubSchemeToMinerReward(input);
             State.MinerRewardWeightSetting.Value = input;
             return new Empty();
