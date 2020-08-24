@@ -65,15 +65,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
                 // You can deploy more system contracts by adding system contract name to current list.
-                ProfitSmartContractAddressNameProvider.Name,
                 TokenSmartContractAddressNameProvider.Name,
                 ParliamentSmartContractAddressNameProvider.Name,
                 ElectionSmartContractAddressNameProvider.Name,
                 AssociationSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name,
-                EconomicSmartContractAddressNameProvider.Name,
-                TreasurySmartContractAddressNameProvider.Name,
-                TokenConverterSmartContractAddressNameProvider.Name
+                ReferendumSmartContractAddressNameProvider.Name
             }));
         }
 
