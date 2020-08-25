@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using AElf.Cryptography.SecretSharing;
 using AElf.Kernel.Blockchain.Domain;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
@@ -27,5 +28,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         private Object EncodingObject { get; } = Encoding.UTF8; // type denied, member allowed
         private int ThreadId { get; } = Environment.CurrentManagedThreadId; // type denied, member allowed
         private DateTime DateTime { get; } = DateTime.Today; // type allowed, member denied
+
+        private void TestSecretSharing()
+        {
+            SecretSharingHelper.DecodeSecret(new List<byte[]>(), new List<int>(), 2);
+        } 
     }
 }
