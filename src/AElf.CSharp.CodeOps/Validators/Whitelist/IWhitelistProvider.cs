@@ -59,9 +59,6 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
                     .Type("Nullable`1", Permission.Allowed) // Required for protobuf generated code
-                    // Required to support yield keyword in protobuf generated code
-                    // .Type(typeof(Environment), Permission.Denied, member => member
-                    //     .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
                     .Type(typeof(BitConverter), Permission.Denied, member => member
                         .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
                     .Type(typeof(Uri), Permission.Denied, member => member

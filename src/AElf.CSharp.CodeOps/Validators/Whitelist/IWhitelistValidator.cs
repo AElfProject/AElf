@@ -213,8 +213,8 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
                     : WhitelistSearchResult.DeniedType;
             }
 
-            // if (typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
-            //     return WhitelistSearchResult.DeniedType;
+            if (typeRule.Permission == Permission.Denied && !typeRule.Members.Any())
+                return WhitelistSearchResult.DeniedType;
 
             if (member == null)
                 return WhitelistSearchResult.Allowed;
