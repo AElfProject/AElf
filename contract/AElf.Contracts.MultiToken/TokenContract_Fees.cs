@@ -470,10 +470,10 @@ namespace AElf.Contracts.MultiToken
                         }
                         else
                         {
+                            Context.LogDebug(() => $"Adding {amount} of {symbol}s to consensus address account.");
                             // Side Chain
                             var consensusContractAddress =
                                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                            Context.LogDebug(() => $"Adding {amount} of {symbol}s to consensus address {consensusContractAddress} account.");
                             ModifyBalance(consensusContractAddress, symbol, amount);
                         }
                     }
