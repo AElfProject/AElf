@@ -107,7 +107,12 @@ namespace AElf.OS.Network
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton(new NetworkServicePropagationTestContext());
+            var testContext = new NetworkServicePropagationTestContext();
+            var aelfNetworkServer = new Mock<IAElfNetworkServer>();
+            testContext.MockAElfNetworkServer = aelfNetworkServer;
+
+            context.Services.AddSingleton<IAElfNetworkServer>(aelfNetworkServer.Object);
+            context.Services.AddSingleton(testContext);
             context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
         }
         
@@ -160,5 +165,7 @@ namespace AElf.OS.Network
     public class NetworkServicePropagationTestContext
     {
         public List<Mock<IPeer>> MockedPeers = new List<Mock<IPeer>>();
+
+        public Mock<IAElfNetworkServer> MockAElfNetworkServer = new Mock<IAElfNetworkServer>();
     }
 }
