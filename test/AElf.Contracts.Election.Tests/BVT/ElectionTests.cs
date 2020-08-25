@@ -774,11 +774,9 @@ namespace AElf.Contracts.Election
             await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
 
-            await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
-                nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting, newParliamentAddress);
-            defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
-                new Empty());
-            defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
+            var getNewAuthority = await ElectionContractStub.GetVoteWeightInterestController.CallAsync(new Empty());
+            getNewAuthority.ContractAddress.ShouldBe(newAuthority.ContractAddress);
+            getNewAuthority.OwnerAddress.ShouldBe(newAuthority.OwnerAddress);
         }
         
         [Fact]
