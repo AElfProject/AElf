@@ -403,5 +403,13 @@ namespace AElf.Contracts.Vote
             votingResult.VotersCount.ShouldBe(4);
             votingResult.VotesAmount.ShouldBe(600L);
         }
+
+        [Fact]
+        public async Task VoteContract_GetVotedItems_Default_Return_Test()
+        {
+            var address = SampleAddress.AddressList.First();
+            var votedItem = await GetVotedItems(address);
+            votedItem.ShouldBe(new VotedItems());
+        }
     }
 }
