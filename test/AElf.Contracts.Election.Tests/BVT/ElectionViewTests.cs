@@ -260,6 +260,14 @@ namespace AElf.Contracts.Election
                 LockTime = day * 24 * 3600
             });
             weight.Value.ShouldBe(9433);
+            
+            day = 1;   // 1 day
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(1500);
         }
 
         [Fact]
@@ -271,6 +279,64 @@ namespace AElf.Contracts.Election
                 VotingItemId = voteItemId
             });
             voteItem.IsLockToken.ShouldBe(false);
+        }
+
+        [Fact]
+        public async Task Election_GetVotedCandidates_Test()
+        {
+            var ret = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
+            ret.ShouldBe(new PubkeyList());
+        }
+        
+        [Fact]
+        public async Task Election_GetCandidateInformation_Test()
+        {
+            var key = "not exist";
+            var ret = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringValue
+            {
+                Value = key
+            });
+            ret.ShouldBe(new CandidateInformation {Pubkey = key});
+        }
+        
+        [Fact]
+        public async Task Election_GetTermSnapshot_Test()
+        {
+            var ret = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
+            {
+                TermNumber = 10
+            });
+            ret.ShouldBe(new TermSnapshot());
+        }
+        
+        [Fact]
+        public async Task Election_GetElectorVote_Test()
+        {
+            var key = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var ret = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+            {
+                Value = key
+            });
+            ret.ShouldBe(new ElectorVote {Pubkey = ByteStringHelper.FromHexString(key)});
+        }
+
+        [Fact]
+        public async Task Election_GetPageableCandidateInformation_Test()
+        {
+            var ret = await ElectionContractStub.GetPageableCandidateInformation.CallAsync(new PageInformation
+            {
+                Start = 100
+            });
+            ret.ShouldBe(new GetPageableCandidateInformationOutput());
+        }
+        
+        [Fact]
+        public async Task Election_GetVoteWeightInterestController_Test()
+        {
+            var ret = await ElectionContractStub.GetVoteWeightInterestController.CallAsync(new Empty());
+            var parliamentDefaultAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            ret.OwnerAddress.ShouldBe(parliamentDefaultAddress);
+            ret.ContractAddress.ShouldBe(ParliamentContractAddress);
         }
 
         private async Task<List<ECKeyPair>> UserVotesCandidate(int voterCount, long voteAmount, int lockDays)

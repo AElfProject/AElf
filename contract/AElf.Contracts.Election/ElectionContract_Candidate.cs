@@ -180,17 +180,6 @@ namespace AElf.Contracts.Election
 
                 State.DataCentersRankingList.Value = dataCenterList;
             }
-            else
-            {
-                // Remove this candidate from subsidy profit scheme.
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Context.Sender
-                });
-            }
-           
-
             return new Empty();
         }
 

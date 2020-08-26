@@ -250,6 +250,19 @@ namespace AElf.Contracts.Election
             changeOptionRet.Status.ShouldBe(TransactionResultStatus.Failed);
             changeOptionRet.Error.ShouldContain("This vote already expired");
         }
+        
+        [Fact]
+        public async Task ElectionContract_ChangeVoting_To_Invalid_Target()
+        {
+            var invalidCandidateKeyPair = "invalid key";
+            var ret = await ElectionContractStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = invalidCandidateKeyPair,
+                VoteId = new Hash()
+            });
+            var errorMsg = "Candidate: " + invalidCandidateKeyPair + " dose not exist";
+            ret.TransactionResult.Error.ShouldContain(errorMsg);
+        }
 
         #endregion
 
