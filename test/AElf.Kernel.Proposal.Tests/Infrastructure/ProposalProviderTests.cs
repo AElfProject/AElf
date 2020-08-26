@@ -50,5 +50,16 @@ namespace AElf.Kernel.Proposal.Tests.Infrastructure
             exist.ShouldBeTrue();
             height.ShouldBe(blockHeight);
         }
+
+        [Fact]
+        public void RemoveProposalByIdTest()
+        {
+            var proposalId = HashHelper.ComputeFrom("ProposalId");
+            var blockHeight = 10;
+            _proposalProvider.AddProposal(proposalId, blockHeight);
+            _proposalProvider.RemoveProposalById(proposalId);
+            var targetProposal = _proposalProvider.TryGetProposalCreatedHeight(proposalId, out _);
+            targetProposal.ShouldBeFalse();
+        }
     }
 }
