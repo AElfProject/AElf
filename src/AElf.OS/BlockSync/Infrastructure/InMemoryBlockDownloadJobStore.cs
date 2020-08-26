@@ -14,7 +14,7 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         public Task<bool> AddAsync(BlockDownloadJobInfo blockDownloadJobInfo)
         {
-            if (_jobs.Count > 100)
+            if (_jobs.Count >= 100)
                 return Task.FromResult(false);
 
             _jobIds.Enqueue(blockDownloadJobInfo.JobId);

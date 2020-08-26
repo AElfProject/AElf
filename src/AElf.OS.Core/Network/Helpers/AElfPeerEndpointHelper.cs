@@ -52,6 +52,8 @@ namespace AElf.OS.Network.Helpers
                     
                     if (parsedPort == 0)
                         return false;
+                        
+                    port = parsedPort;
                 }
                 else // [a:b:c] or a:b:c
                 {

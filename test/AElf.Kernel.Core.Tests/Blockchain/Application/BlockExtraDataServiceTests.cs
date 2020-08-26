@@ -20,10 +20,15 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var blockHeader = new BlockHeader()
             {
-                Height = 2, // no extra data in genesis block
+                Height = 1, // no extra data in genesis block
                 ExtraData = { {"ExtraDataKey", ByteString.CopyFromUtf8("test1")} }
             };
+            
             var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
+            queryResult.ShouldBeNull();
+
+            blockHeader.Height = 2;
+            queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("ExtraDataKey", blockHeader);
             queryResult.ShouldBe(blockHeader.ExtraData.First().Value);
             
             var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("NotExistExtraDataKey", blockHeader);

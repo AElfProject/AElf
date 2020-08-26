@@ -36,7 +36,7 @@ namespace AElf.Kernel
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        public List<Block> NotLinkedBlockList { get; set; }
 
         public KernelTestHelper(IBlockchainService blockchainService,
             ITransactionResultService transactionResultService,
@@ -45,7 +45,7 @@ namespace AElf.Kernel
             BestBranchBlockList = new List<Block>();
             LongestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
-            UnlinkedBranchBlockList = new List<Block>();
+            NotLinkedBlockList = new List<Block>();
 
             _blockchainService = blockchainService;
             _transactionResultService = transactionResultService;
@@ -89,7 +89,7 @@ namespace AElf.Kernel
             ForkBranchBlockList =
                 await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
+            NotLinkedBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
@@ -115,6 +115,17 @@ namespace AElf.Kernel
             var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
+        }
+
+        public List<Transaction> GenerateTransactions(int count, long refBlockNumber = 0, Hash refBlockHash = null)
+        {
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < count; i++)
+            {
+                transactions.Add(GenerateTransaction(refBlockNumber, refBlockHash));
+            }
+
+            return transactions;
         }
 
         public TransactionResult GenerateTransactionResult(Transaction transaction, TransactionResultStatus status,

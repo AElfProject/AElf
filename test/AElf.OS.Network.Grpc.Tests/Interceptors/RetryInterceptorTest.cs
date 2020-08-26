@@ -1,14 +1,16 @@
 using System;
 using System.Threading.Tasks;
-using AElf.OS.Network.Grpc;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Xunit;
 
-namespace AElf.OS.Network.Interceptors
+namespace AElf.OS.Network.Grpc
 {
-    public class RetryInterceptorTest : RetryInterceptorTestBase
+    public class RetryInterceptorTest : GrpcNetworkWithPeerTestBase
     {
+        private Server _server;
+        private Channel _channel;
+        
         [Fact]
         public async Task RetryDoesNotExceedSuccess()
         {
@@ -24,8 +26,9 @@ namespace AElf.OS.Network.Interceptors
                 return Task.FromResult("ok");
             });
 
-            var server = helper.GetServer();
-            server.Start();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
             
             var callInvoker = helper.GetChannel().Intercept(new RetryInterceptor());
             
@@ -50,8 +53,9 @@ namespace AElf.OS.Network.Interceptors
                 return Task.FromResult("ok");
             });
 
-            var server = helper.GetServer();
-            server.Start();
+            _server = helper.GetServer();
+            _server.Start();
+            _channel = helper.GetChannel();
             
             var callInvoker = helper.GetChannel().Intercept(new RetryInterceptor());
             
@@ -71,8 +75,13 @@ namespace AElf.OS.Network.Interceptors
                 "localhost", new CallOptions().WithHeaders(oneRetryMetadata), ""));
             
             Assert.Equal(2, callCount);
-            
-            await server.ShutdownAsync();
+        }
+        
+        public override void Dispose()
+        {
+            base.Dispose();
+            _channel.ShutdownAsync().Wait();
+            _server.ShutdownAsync().Wait();
         }
     }
 }

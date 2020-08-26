@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Utils;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     /// <summary>
     /// Allows setting up a mock service in the client-server tests easily.
