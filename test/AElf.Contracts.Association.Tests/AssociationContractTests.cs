@@ -785,15 +785,6 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
-        public async Task ChangeOrganizationMember_With_Invalid_Sender_Test()
-        {
-            var ret =
-                await AssociationContractStub.ChangeOrganizationMember.SendWithExceptionAsync(
-                    new OrganizationMemberList());
-            ret.TransactionResult.Error.ShouldContain("Organization not found");
-        }
-
-        [Fact]
         public async Task ChangeOrganizationProposerWhiteList_With_Invalid_Sender_Test()
         {
             var ret =
