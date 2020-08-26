@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
@@ -14,15 +15,12 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeerTests : GrpcNetworkWithChainTestBase
     {
-        private IAElfNetworkServer _networkServer;
-        
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
         private GrpcPeer _nonInterceptedPeer;
 
         public GrpcPeerTests()
         {
-            _networkServer = GetRequiredService<IAElfNetworkServer>();
             _pool = GetRequiredService<IPeerPool>();
 
             _grpcPeer = GrpcTestPeerHelper.CreateNewPeer();
@@ -30,11 +28,6 @@ namespace AElf.OS.Network.Grpc
             _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
             _pool.TryAddPeer(_grpcPeer);
-        }
-
-        public override void Dispose()
-        {
-            AsyncHelper.RunSync(() => _networkServer.StopAsync(false));
         }
 
         [Fact]
@@ -253,7 +246,59 @@ namespace AElf.OS.Network.Grpc
             _grpcPeer.IsConnected.ShouldBeFalse();
             _grpcPeer.ConnectionStatus.ShouldBe("Shutdown");
         }
+
+        [Fact]
+        public async Task CheckHealth_Test()
+        {
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall<HealthCheckReply>(new HealthCheckReply()));
+            var grpcPeer = CreatePeer(mockClient.Object);
+            await grpcPeer.CheckHealthAsync();
+        }
         
+        [Fact]
+        public async Task CheckHealth_ObjectDisposedException_Test()
+        {
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Throws(new ObjectDisposedException("ObjectDisposedException"));
+            var grpcPeer = CreatePeer(mockClient.Object);
+            grpcPeer.CheckHealthAsync()
+                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+        }
+        
+        [Fact]
+        public async Task CheckHealth_RpcException_Test()
+        {
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
+            var grpcPeer = CreatePeer(mockClient.Object);
+
+            grpcPeer.CheckHealthAsync()
+                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Throws(new AggregateException());
+            grpcPeer = CreatePeer(mockClient.Object);
+
+            grpcPeer.CheckHealthAsync()
+                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+        }
+
+        private GrpcPeer CreatePeer(PeerService.PeerServiceClient client)
+        {
+            return GrpcTestPeerHelper.CreatePeerWithClient("127.0.0.1:2000", NetworkTestConstants.FakePubkey, client);
+        }
+
         private GrpcPeer MockServiceClient(string ipAddress)
         {
             var mockClient = new Mock<PeerService.PeerServiceClient>();
@@ -295,6 +340,14 @@ namespace AElf.OS.Network.Grpc
                 .Returns(replyTask);
             
             var call = TestCalls.AsyncClientStreamingCall(mockRequestStream.Object, Task.FromResult(new TResp()),
+                Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+
+            return call;
+        }
+        
+        private AsyncUnaryCall<TResponse> MockAsyncUnaryCall<TResponse>(TResponse reply) where TResponse : new()
+        {
+            var call = TestCalls.AsyncUnaryCall(Task.FromResult(reply),
                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
 
             return call;

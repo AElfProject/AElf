@@ -58,7 +58,38 @@ namespace AElf.OS.Network.Application
             foreach (var peer in _testContext.MockedPeers)
                 peer.Verify(p => p.EnqueueBlock(blockWithTx, It.IsAny<Action<NetworkException>>()), Times.Once());
         }
-        
+
+        [Fact]
+        public async Task BroadcastBlock_ThrowNetworkException_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException()));
+            _testContext.MockedPeers[1]
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("Unrecoverable", NetworkExceptionType.Unrecoverable)));
+            _testContext.MockedPeers[2]
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("PeerUnstable", NetworkExceptionType.PeerUnstable)));
+
+            var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
+            var blockWithTx = new BlockWithTransactions {Header = blockHeader};
+
+            await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTx);
+
+            foreach (var peer in _testContext.MockedPeers)
+            {
+                peer.Verify(p => p.EnqueueBlock(blockWithTx, It.IsAny<Action<NetworkException>>()), Times.Once());
+                peer.Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+            }
+
+            _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
+                Times.Once());
+        }
+
         [Fact]
         public async Task BroadcastAnnouncement_OldBlock_Test()
         {
@@ -97,6 +128,38 @@ namespace AElf.OS.Network.Application
                 peer.Verify(p => p.EnqueueAnnouncement(It.Is<BlockAnnouncement>(ba => ba.BlockHash == blockHeader.GetHash()), 
                     It.IsAny<Action<NetworkException>>()), Times.Once());
         }
+        
+        [Fact]
+        public async Task BroadcastAnnouncement_ThrowNetworkException_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException()));
+            _testContext.MockedPeers[1]
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("Unrecoverable", NetworkExceptionType.Unrecoverable)));
+            _testContext.MockedPeers[2]
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("PeerUnstable", NetworkExceptionType.PeerUnstable)));
+
+            var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
+            
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
+
+            foreach (var peer in _testContext.MockedPeers)
+            {
+                peer.Verify(p => p.EnqueueAnnouncement(It.Is<BlockAnnouncement>(ba => ba.BlockHash == blockHeader.GetHash()), 
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+                peer.Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+                
+            }
+
+            _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
+                Times.Once());
+        }
 
         [Fact]
         public async Task BroadcastTransaction_Test()
@@ -114,6 +177,34 @@ namespace AElf.OS.Network.Application
                 peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
                     It.IsAny<Action<NetworkException>>()), Times.Once());
         }
+        
+        [Fact]
+        public async Task BroadcastTransaction_ThrowNetworkException_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<Transaction, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException()));
+            _testContext.MockedPeers[1]
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<Transaction, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("Unrecoverable", NetworkExceptionType.Unrecoverable)));
+            _testContext.MockedPeers[2]
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<Transaction, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("PeerUnstable", NetworkExceptionType.PeerUnstable)));
+
+            var transaction = OsCoreTestHelper.CreateFakeTransaction();
+            
+            await _networkService.BroadcastTransactionAsync(transaction);
+
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+            
+            _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
+                Times.Once());
+        }
 
         [Fact]
         public async Task BroadcastLibAnnouncement_Test()
@@ -127,6 +218,36 @@ namespace AElf.OS.Network.Application
                 peer.Verify(p => p.EnqueueLibAnnouncement(
                     It.Is<LibAnnouncement>(a => a.LibHash == libHash && a.LibHeight == libHeight),
                     It.IsAny<Action<NetworkException>>()), Times.Once());
+        }
+        
+        [Fact]
+        public async Task BroadcastLibAnnouncement_ThrowNetworkException_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueLibAnnouncement(It.IsAny<LibAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<LibAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException()));
+            _testContext.MockedPeers[1]
+                .Setup(p => p.EnqueueLibAnnouncement(It.IsAny<LibAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<LibAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("Unrecoverable", NetworkExceptionType.Unrecoverable)));
+            _testContext.MockedPeers[2]
+                .Setup(p => p.EnqueueLibAnnouncement(It.IsAny<LibAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<LibAnnouncement, Action<NetworkException>>((block, action) =>
+                    action.Invoke(new NetworkException("PeerUnstable", NetworkExceptionType.PeerUnstable)));
+
+            var libHash = HashHelper.ComputeFrom("LibHash");
+            var libHeight = 2;
+            
+            await _networkService.BroadcastLibAnnounceAsync(libHash, libHeight);
+
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueLibAnnouncement(
+                    It.Is<LibAnnouncement>(a => a.LibHash == libHash && a.LibHeight == libHeight),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+            
+            _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
+                Times.Once());
         }
 
         [Fact]

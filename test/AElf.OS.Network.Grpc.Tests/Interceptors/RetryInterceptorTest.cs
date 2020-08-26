@@ -75,6 +75,14 @@ namespace AElf.OS.Network.Grpc
                 "localhost", new CallOptions().WithHeaders(oneRetryMetadata), ""));
             
             Assert.Equal(2, callCount);
+            
+            callCount = 0;
+
+            await Assert.ThrowsAsync<AggregateException>(async () => await callInvoker.AsyncUnaryCall(new Method<string, string>(MethodType.Unary, 
+                    MockServiceBuilder.ServiceName, "Unary", Marshallers.StringMarshaller, Marshallers.StringMarshaller), 
+                "localhost", new CallOptions(), ""));
+            
+            Assert.Equal(2, callCount);
         }
         
         public override void Dispose()
