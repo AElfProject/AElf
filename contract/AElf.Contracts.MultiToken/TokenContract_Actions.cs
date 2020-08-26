@@ -507,22 +507,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty AddTokenWhiteList(AddTokeWhiteListInput input)
-        {
-            var tokenInfo = State.TokenInfos[input.TokenSymbol];
-            Assert(tokenInfo != null && input.Address != null, "Invalid input.");
-
-            Assert(input.TokenSymbol == Context.Variables.NativeSymbol ||
-                   input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value, "No permission.");
-            var sender = Context.Sender;
-            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
-            var isSystemContractAddress = systemContractAddresses.Contains(sender);
-            Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-
-            State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
-            return new Empty();
-        }
-
         public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
