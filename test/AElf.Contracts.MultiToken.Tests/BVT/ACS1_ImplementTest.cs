@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
@@ -5,9 +6,11 @@ using Acs3;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
@@ -100,8 +103,17 @@ namespace AElf.Contracts.MultiToken
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(proposalId);
-                approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+                try
+                {
+                    var approveResult = await tester.Approve.SendAsync(proposalId);
+                    approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+                }
+                catch(Exception e)
+                {
+                    var blockchainService = ServiceProvider.GetRequiredService<IBlockchainService>();
+                    var chain = await blockchainService.GetChainAsync();
+                    throw new Exception($"{e.Message}, Chain: {chain}/");
+                }
             }
         }
 

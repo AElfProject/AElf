@@ -7,9 +7,12 @@ using AElf.Contracts.Parliament;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;
 using AElf.CSharp.Core.Utils;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 using ProposalCreated = Acs3.ProposalCreated;
@@ -943,6 +946,19 @@ namespace AElf.Contracts.MultiToken
             var result = await RegisterSideChainTokenContractAsync(TokenContractAddress, validateTransaction,
                 merklePath,
                 boundParentChainHeightAndMerklePath, sideChainId);
+            if (result.Status != TransactionResultStatus.Mined)
+            {
+                var blockchainService = ServiceProvider.GetRequiredService<IBlockchainService>();
+                var transactions = await blockchainService.GetTransactionsAsync(new[] {result.TransactionId});
+                var hash = Hash.Parser.ParseFrom(transactions[0].Params);
+                var proposal = await ParliamentContractStub.GetProposal.CallAsync(hash);
+                
+                var minerList = await AEDPoSContractStub.GetCurrentMinerList.CallAsync(new Empty());
+                var addresses = minerList.Pubkeys.Select(p => Address.FromPublicKey(p.ToByteArray()).ToBase58()).JoinAsString("/");
+                var accounts = SampleAccount.Accounts.Take(5).Select(a => a.Address.ToBase58()).JoinAsString("/");
+                var error = $"proposal: {proposal}, miners: {addresses},accounts: {accounts}";
+                result.Status.ShouldBe(TransactionResultStatus.Mined, error);
+            }
             result.Status.ShouldBe(TransactionResultStatus.Mined, result.Error);
         }
 
