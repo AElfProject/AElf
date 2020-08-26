@@ -55,6 +55,12 @@ namespace AElf.Kernel.SmartContract.Domain
            
             isInStore = await CheckExecutedDataInStoreAsync(blockStateSet, chainKey, dictionary[chainKey]);
             isInStore.ShouldBeTrue();
+            
+            // BlockStateSet is not exist
+            var notExistHash = HashHelper.ComputeFrom("NotExist");
+            await _blockchainExecutedDataManager.AddBlockExecutedCacheAsync(notExistHash, dictionary);
+            var stateSet = await _blockStateSetManger.GetBlockStateSetAsync(notExistHash);
+            stateSet.ShouldBeNull();
         }
 
         private async Task<BlockStateSet> AddBlockStateSetAsync(BlockStateSet previousBlockStateSet)

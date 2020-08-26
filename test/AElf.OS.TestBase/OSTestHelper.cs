@@ -71,7 +71,7 @@ namespace AElf.OS
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        public List<Block> NotLinkedBlockList { get; set; }
 
         public OSTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -97,7 +97,7 @@ namespace AElf.OS
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
-            UnlinkedBranchBlockList = new List<Block>();
+            NotLinkedBlockList = new List<Block>();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
+                NotLinkedBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();
