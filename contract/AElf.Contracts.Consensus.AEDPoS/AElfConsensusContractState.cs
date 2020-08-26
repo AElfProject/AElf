@@ -57,6 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
         public SingletonState<AuthorityInfo> MaximumMinersCountController { get; set; }
+        public SingletonState<AuthorityInfo> SideChainConsensusInformationController { get; set; }
 
         public MappedState<long, Hash> RandomHashes { get; set; }
 

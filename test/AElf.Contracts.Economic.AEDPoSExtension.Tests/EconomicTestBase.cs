@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -9,6 +10,7 @@ using AElf.Contracts.Profit;
 using AElf.ContractTestKit;
 using AElf.Contracts.Treasury;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.Cryptography.ECDSA;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
@@ -17,6 +19,7 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
@@ -60,6 +63,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             GetTester<ProfitContractContainer.ProfitContractStub>(
                 ContractAddresses[ProfitSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
+        
+        internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
+            new List<ParliamentContractContainer.ParliamentContractStub>();
 
         public EconomicTestBase()
         {
@@ -128,6 +134,36 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
 
             return issueTransactions;
+        }
+        
+        internal async Task ParliamentReachAnAgreementAsync(CreateProposalInput createProposalInput)
+        {
+            var createProposalTx = ParliamentStubs.First().CreateProposal.GetTransaction(createProposalInput);
+            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            {
+                createProposalTx
+            });
+            var proposalId = new Hash();
+            proposalId.MergeFrom(TransactionTraceProvider.GetTransactionTrace(createProposalTx.GetHash()).ReturnValue);
+            var approvals = new List<Transaction>();
+            foreach (var stub in ParliamentStubs)
+            {
+                approvals.Add(stub.Approve.GetTransaction(proposalId));
+            }
+            
+            await BlockMiningService.MineBlockAsync(approvals);
+
+            await ParliamentStubs.First().Release.SendAsync(proposalId);
+        }
+        
+        internal void UpdateParliamentStubs(IEnumerable<ECKeyPair> keyPairs)
+        {
+            ParliamentStubs.Clear();
+            foreach (var initialKeyPair in keyPairs)
+            {
+                ParliamentStubs.Add(GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                    ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
+            }
         }
     }
 }

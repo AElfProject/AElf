@@ -22,6 +22,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [InlineData(3)]
         public async Task SetMaximumMinersCountTest(int targetMinersCount)
         {
+            InitialContracts();
             await BlockMiningService.MineBlockToNextTermAsync();
 
             InitialAcs3Stubs();
@@ -55,12 +56,14 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
             
             var maxMinersCount = await ConsensusStub.GetMaximumMinersCount.CallAsync(new Empty());
-
+            maxMinersCount.Value.ShouldBe(targetMinersCount);
         }
 
         [Fact]
         public async Task ChangeMaximumMinersCountControllerTest()
         {
+            InitialContracts();
+
             await BlockMiningService.MineBlockToNextTermAsync();
 
             InitialAcs3Stubs();

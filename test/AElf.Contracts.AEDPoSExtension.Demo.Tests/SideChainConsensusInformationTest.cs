@@ -5,13 +5,14 @@ using Xunit;
 
 namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 {
-    public class SideChainConsensusTest : AEDPoSExtensionDemoTestBase
+    public class SideChainConsensusInformationTest : AEDPoSExtensionDemoTestBase
     {
         [Fact]
         public async Task SideChainDividendPoolTest()
         {
-            await ConsensusStub.SetSymbolList.SendWithExceptionAsync(new SymbolList());
+            InitialContracts();
 
+            await ConsensusStub.SetSymbolList.SendWithExceptionAsync(new SymbolList());
             await ConsensusStub.GetDividends.CallAsync(new Int64Value {Value = 1});
         }
     }
