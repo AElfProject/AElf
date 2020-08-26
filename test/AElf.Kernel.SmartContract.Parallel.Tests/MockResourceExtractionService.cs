@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Types;
 
@@ -30,12 +29,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             throw new System.NotImplementedException();
         }
-
-        public Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
-        {
-            throw new System.NotImplementedException();
-        }
-
+        
         public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             throw new System.NotImplementedException();
