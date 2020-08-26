@@ -92,6 +92,7 @@ namespace AElf.Contracts.Referendum
             if (string.IsNullOrEmpty(organization.TokenSymbol) || organization.OrganizationAddress == null ||
                 organization.OrganizationHash == null || organization.ProposerWhiteList.Empty())
                 return false;
+            Assert(GetTokenInfo(organization.TokenSymbol) != null, "Token not exists.");
 
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             return proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
@@ -126,6 +127,15 @@ namespace AElf.Contracts.Referendum
             Assert(proposal != null, "Invalid proposal id.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
+        }
+        
+        private TokenInfo GetTokenInfo(string symbol)
+        {
+            RequireTokenContractStateSet();
+            return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
         }
 
         private long GetAllowance(Address owner, string tokenSymbol, Hash proposalId)
