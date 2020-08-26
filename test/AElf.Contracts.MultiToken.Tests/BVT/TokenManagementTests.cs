@@ -15,6 +15,11 @@ namespace AElf.Contracts.MultiToken
     {
         private const long TotalSupply = 1000_000_000_00000000;
         private readonly int _chainId;
+        
+        public MultiTokenContractTests()
+        {
+            _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
+        }
 
         private TokenInfo NativeTokenInfo => new TokenInfo
         {
@@ -102,11 +107,6 @@ namespace AElf.Contracts.MultiToken
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = false
         };
-
-        public MultiTokenContractTests()
-        {
-            _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-        }
 
         private async Task CreateNativeTokenAsync()
         {
@@ -385,8 +385,16 @@ namespace AElf.Contracts.MultiToken
                 });
                 tx.TransactionResult.Error.ShouldContain("No permission.");
             }
+            {
+                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
+                {
+                    TokenSymbol = NativeTokenInfo.Symbol,
+                    Address = BasicFunctionContractAddress
+                });
+                tx.TransactionResult.Error.ShouldContain("No permission");
+            }
         }
-        
+
         [Fact]
         public async Task AddChainPrimaryTokenWhiteList_Test()
         {
