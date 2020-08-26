@@ -60,7 +60,10 @@ namespace AElf.Contracts.Association
 
         private bool Validate(Organization organization)
         {
-            if (organization.ProposerWhiteList.Empty() || organization.OrganizationMemberList.Empty())
+            if (organization.ProposerWhiteList.Empty() || 
+                organization.ProposerWhiteList.AnyDuplicate() ||
+                organization.OrganizationMemberList.Empty() ||
+                organization.OrganizationMemberList.AnyDuplicate())
                 return false;
             if (organization.OrganizationAddress == null || organization.OrganizationHash == null)
                 return false;
@@ -109,8 +112,12 @@ namespace AElf.Contracts.Association
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress =
-                Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+
+            var organizationAddress = createOrganizationInput.CreationToken == null
+                ? Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash)
+                : Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                    HashHelper.ConcatAndCompute(organizationHash, createOrganizationInput.CreationToken));
+            
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
