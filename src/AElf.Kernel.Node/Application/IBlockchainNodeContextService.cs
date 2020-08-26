@@ -56,11 +56,7 @@ namespace AElf.Kernel.Node.Application
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
         {
             _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(dto.ZeroSmartContractType);
-
-            var context = new BlockchainNodeContext
-            {
-                ChainId = dto.ChainId,
-            };
+            
             var chain = await _blockchainService.GetChainAsync();
             chain = chain == null
                 ? await _chainCreationService.CreateNewChainAsync(dto.Transactions)
@@ -72,7 +68,10 @@ namespace AElf.Kernel.Node.Application
                 BlockHeight = chain.BestChainHeight
             });
 
-            return context;
+            return new BlockchainNodeContext
+            {
+                ChainId = chain.Id,
+            };
         }
 
         public async Task FinishInitialSyncAsync()

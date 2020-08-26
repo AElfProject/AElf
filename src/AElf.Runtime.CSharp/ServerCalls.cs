@@ -16,7 +16,9 @@
 
 #endregion
 
-namespace AElf.CSharp.Core
+using AElf.CSharp.Core;
+
+namespace AElf.Runtime.CSharp
 {
     internal static class ServerCalls
     {
