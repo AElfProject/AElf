@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
@@ -82,6 +83,12 @@ namespace AElf.Kernel.FeeCalculation
                     }
                 }
             };
+        }
+        private const decimal Precision = 100000000;
+        protected long GetFeeForTx(int count)
+        {
+            count = count > 10 ? 10 : count;
+            return (long) ((decimal) Math.Pow(count,1) * 2 / 3 * Precision);
         }
     }
 }
