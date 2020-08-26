@@ -49,10 +49,6 @@ namespace AElf.Kernel.CodeCheck.Tests
             // use default auditor
             logEventsMap[transactionResult] = new List<LogEvent>{new LogEvent()};
             await _logEventProcessor.ProcessAsync(new Block(), logEventsMap);
-            await Task.Delay(10);
-            var allProposals = _proposalProvider.GetAllProposals();
-            allProposals.Count.ShouldBe(1);
-            allProposals[0].ShouldBe(proposalCreated.ProposalId);
         }
     }
 }
