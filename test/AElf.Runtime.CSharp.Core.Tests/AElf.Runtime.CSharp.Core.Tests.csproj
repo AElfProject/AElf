@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
         <IsPackable>false</IsPackable>
-        <RootNamespace>AElf.Kernel.Node</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.3.0" />
@@ -13,8 +13,10 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
+
 </Project>
