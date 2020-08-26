@@ -83,7 +83,8 @@ namespace AElf.Contracts.Referendum
                 OrganizationAddress = organizationAddress,
                 TokenSymbol = input.TokenSymbol,
                 OrganizationHash = organizationHash,
-                ProposerWhiteList = input.ProposerWhiteList
+                ProposerWhiteList = input.ProposerWhiteList,
+                CreationToken = input.CreationToken
             };
             Assert(Validate(organization), "Invalid organization data.");
 

@@ -178,7 +178,11 @@ namespace AElf.Contracts.Referendum
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress = createOrganizationInput.CreationToken == null
+                ? Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash)
+                : Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                    HashHelper.ConcatAndCompute(organizationHash, createOrganizationInput.CreationToken));
+            
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
