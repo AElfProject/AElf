@@ -77,8 +77,6 @@ namespace AElf.Runtime.CSharp
             transactionContext.Trace.ReturnValue.ShouldBe((new Int32Output {Int32Value = -5}).ToByteString());
             transactionContext.Trace.StateSet.Reads.Count.ShouldBe(1);
             transactionContext.Trace.StateSet.Writes.Count.ShouldBe(1);
-            transactionContext.Trace.ExecutionBranchCount.ShouldBe(0);
-            transactionContext.Trace.ExecutionCallCount.ShouldBe(0);
         }
         
         [Fact]
@@ -99,8 +97,6 @@ namespace AElf.Runtime.CSharp
             transactionContext.Trace.Error.ShouldBeNullOrEmpty();
             transactionContext.Trace.ReturnValue.ShouldBe((new Int32Output {Int32Value = 1}).ToByteString());
             transactionContext.Trace.StateSet.Reads.Count.ShouldBe(0);
-            transactionContext.Trace.ExecutionBranchCount.ShouldBe(0);
-            transactionContext.Trace.ExecutionCallCount.ShouldBe(0);
         }
         
         [Fact]
@@ -126,8 +122,6 @@ namespace AElf.Runtime.CSharp
             transactionContext.Trace.ReturnValue.ShouldBe((new Int32Output {Int32Value = -5}).ToByteString());
             transactionContext.Trace.StateSet.Reads.Count.ShouldBe(1);
             transactionContext.Trace.StateSet.Writes.Count.ShouldBe(1);
-            transactionContext.Trace.ExecutionBranchCount.ShouldBeGreaterThan(0);
-            transactionContext.Trace.ExecutionCallCount.ShouldBeGreaterThan(0);
         }
 
         [Fact]
