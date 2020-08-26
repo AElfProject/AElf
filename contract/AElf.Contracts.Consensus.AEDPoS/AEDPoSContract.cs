@@ -194,9 +194,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(
                 Context.Sender ==
-                Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName) ||
-                Context.Sender == GetSideChainConsensusInformationController().OwnerAddress,
-                "Only Cross Chain Contract or side chain consensus information controller can call this method.");
+                Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                "Only Cross Chain Contract can call this method.");
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
 
@@ -254,35 +253,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
-        }
-
-        private AuthorityInfo GetSideChainConsensusInformationController()
-        {
-            if (State.SideChainConsensusInformationController.Value != null)
-                return State.SideChainConsensusInformationController.Value;
-            EnsureParliamentContractAddressSet();
-            var defaultAuthority = new AuthorityInfo
-            {
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
-                ContractAddress = State.ParliamentContract.Value
-            };
-
-            State.SideChainConsensusInformationController.Value = defaultAuthority;
-
-            return State.SideChainConsensusInformationController.Value;
-        }
-
-        public override Empty ChangeSideChainConsensusInformationController(AuthorityInfo input)
-        {
-            Assert(!State.IsMainChain.Value, "Only side chain can set consensus information controller.");
-
-            var currentController = GetSideChainConsensusInformationController();
-            AssertSenderAddressWith(currentController.OwnerAddress);
-            var organizationExist = CheckOrganizationExist(input);
-            Assert(organizationExist, "Invalid authority input.");
-
-            State.SideChainConsensusInformationController.Value = input;
-            return new Empty();
         }
 
         #endregion

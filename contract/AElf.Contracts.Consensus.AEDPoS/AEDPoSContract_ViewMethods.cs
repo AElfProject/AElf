@@ -557,11 +557,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return result;
         }
 
-        public override AuthorityInfo GetSideChainConsensusInformationController(Empty input)
-        {
-            return GetSideChainConsensusInformationController();
-        }
-
         public override MinerList GetMainChainCurrentMinerList(Empty input)
         {
             return State.MainChainCurrentMinerList.Value;

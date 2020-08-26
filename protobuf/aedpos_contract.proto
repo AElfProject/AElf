@@ -35,8 +35,6 @@ service AEDPoSContract {
 
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
-    rpc ChangeSideChainConsensusInformationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -100,9 +98,6 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetSideChainConsensusInformationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetMainChainCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
