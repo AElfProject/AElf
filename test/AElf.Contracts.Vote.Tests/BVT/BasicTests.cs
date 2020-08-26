@@ -653,5 +653,13 @@ namespace AElf.Contracts.Vote
             });
             voteIds.ActiveVotes.Count.ShouldBe(1);
         }
+        
+        [Fact]
+        public async Task VoteContract_GetVotedItems_Default_Return_Test()
+        {
+            var address = Accounts[0].Address;
+            var votedItem = await GetVotedItems(address);
+            votedItem.ShouldBe(new VotedItems());
+        }
     }
 }

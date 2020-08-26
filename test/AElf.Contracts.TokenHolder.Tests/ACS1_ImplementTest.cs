@@ -90,6 +90,29 @@ namespace AElf.Contracts.TokenHolder
         }
         
         [Fact]
+        public async Task SetMethodFee_With_Invalid_Input_Test()
+        {
+            var methodFees = new MethodFees
+            {
+                MethodName = "Test",
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        BasicFee = 100,
+                        Symbol = "NOTEXIST"
+                    }
+                }
+            };
+            var setMethodFeeRet = await TokenHolderContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found");
+            methodFees.Fees[0].Symbol = "ELF";
+            methodFees.Fees[0].BasicFee = -1;
+            setMethodFeeRet = await TokenHolderContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Invalid amount");
+        }
+        
+        [Fact]
         public async Task SetMethodFee_Test()
         {
             var testMethodName = "Test";

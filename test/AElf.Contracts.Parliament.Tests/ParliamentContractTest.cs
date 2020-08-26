@@ -7,6 +7,9 @@ using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -18,8 +21,14 @@ namespace AElf.Contracts.Parliament
 {
     public class ParliamentContractTest : ParliamentContractTestBase
     {
+        private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractAddressNameProvider _smartContractAddressNameProvider;
         public ParliamentContractTest()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _smartContractAddressNameProvider = GetRequiredService<ISmartContractAddressNameProvider>();
             InitializeContracts();
         }
 
@@ -1168,6 +1177,35 @@ namespace AElf.Contracts.Parliament
                     new CreateOrganizationBySystemContractInput());
             createOrganizationRet.TransactionResult.Error.ShouldContain("Unauthorized");
         }
+        
+        [Fact]
+        public async Task CreateOrganizationBySystemContract_Success_Test()
+        {
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+
+            var createOrganizationInput = new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000,
+                    }
+                },
+                OrganizationAddressFeedbackMethod = string.Empty
+            };
+            var createOrganizationRet =
+                await ParliamentContractStub.CreateOrganizationBySystemContract.SendAsync(createOrganizationInput);
+            createOrganizationRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
 
         [Fact]
         public async Task ValidateOrganizationExist_Test()
@@ -1206,6 +1244,80 @@ namespace AElf.Contracts.Parliament
             isProposerInWhitelist =
                 await ParliamentContractStub.ValidateProposerInWhiteList.CallAsync(new ValidateProposerInWhiteListInput());
             isProposerInWhitelist.Value.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_Fail_Test()
+        {
+            // not be authorized
+            {
+                var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(
+                    new CreateProposalBySystemContractInput());
+                ret.TransactionResult.Error.ShouldContain("Unauthorized to propose");
+            }
+            
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            
+            // invalid organization
+            {
+                var invalidInput = new CreateProposalBySystemContractInput
+                {
+                    ProposalInput = new CreateProposalInput
+                    {
+                        OrganizationAddress = ParliamentContractAddress
+                    },
+                    OriginProposer = DefaultSender,
+                };
+                var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(
+                    invalidInput);
+                ret.TransactionResult.Error.ShouldContain("No registered organization");
+            }
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_Success_Test()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                PrivilegedProposer = DefaultSender
+            });
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            var input = new CreateProposalBySystemContractInput
+            {
+                ProposalInput = new CreateProposalInput
+                {
+                    OrganizationAddress = defaultParliamentAddress,
+                    ToAddress = TokenContractAddress,
+                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    Params = new TransferInput
+                    {
+                        Amount = 100,
+                        Symbol = "ELF",
+                        To = DefaultSender
+                    }.ToByteString(),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+                },
+                OriginProposer = DefaultSender
+            };
+            var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendAsync(
+                input);
+            ret.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]

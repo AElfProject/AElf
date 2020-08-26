@@ -125,6 +125,24 @@ namespace AElf.Contracts.TokenHolder
         }
         
         [Fact]
+        public async Task AddBeneficiary_Repeatedly_Test()
+        {
+            await AddBeneficiaryTest();
+            var tokenHolderProfitScheme = await TokenHolderContractStub.GetScheme.CallAsync(Starter);
+            var newShare = 2;
+            await TokenHolderContractStub.AddBeneficiary.SendAsync(new AddTokenHolderBeneficiaryInput
+            {
+                Beneficiary = UserAddresses.First(),
+                Shares = newShare
+            });
+            
+            {
+                var originScheme = await ProfitContractStub.GetScheme.CallAsync(tokenHolderProfitScheme.SchemeId);
+                originScheme.TotalShares.ShouldBe(newShare);
+            }
+        }
+        
+        [Fact]
         public async Task RemoveBeneficiaryTest()
         {
             await AddBeneficiaryTest();
@@ -446,6 +464,43 @@ namespace AElf.Contracts.TokenHolder
                 Owner = Starter
             })).Balance;
             afterUnLockBalance.ShouldBe(beforeUnLockBalance.Add(amount));
+        }
+
+        [Fact]
+        public async Task GetProfitsMap_Test()
+        {
+            var amount = 1000L;
+            var nativeTokenSymbol = TokenHolderContractTestConstants.NativeTokenSymbol;
+            var tokenA = "AUG";
+            await StarterCreateIssueAndApproveTokenAsync(tokenA, 1000000L, 100000L);
+            await TokenHolderContractStub.CreateScheme.SendAsync(new CreateTokenHolderProfitSchemeInput
+            {
+                Symbol = nativeTokenSymbol,
+                AutoDistributeThreshold =
+                {
+                    {nativeTokenSymbol, amount},
+                    {tokenA, amount}
+                }
+            });
+            await TokenHolderContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+            {
+                SchemeManager = Starter,
+                Amount = amount,
+                Symbol = nativeTokenSymbol
+            });
+            await TokenHolderContractStub.RegisterForProfits.SendAsync(new RegisterForProfitsInput
+            {
+                Amount = amount,
+                SchemeManager = Starter
+            });
+            var profitMap = await TokenHolderContractStub.GetProfitsMap.CallAsync(new ClaimProfitsInput
+            {
+                Beneficiary = Starter,
+                SchemeManager = Starter
+            });
+            profitMap.Value.Count.ShouldBe(1);
+            profitMap.Value.ContainsKey(nativeTokenSymbol).ShouldBeTrue();
+            profitMap.Value[nativeTokenSymbol].ShouldBe(amount);
         }
         
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
