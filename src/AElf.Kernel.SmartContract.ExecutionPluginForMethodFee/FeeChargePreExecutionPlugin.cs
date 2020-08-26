@@ -115,9 +115,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             }
         }
 
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation)
         {
-            return !BoolValue.Parser.ParseFrom(txReturnValue).Value;
+            var chargeTransactionFeesOutput = new ChargeTransactionFeesOutput();
+            chargeTransactionFeesOutput.MergeFrom(txReturnValue);
+            preExecutionInformation = chargeTransactionFeesOutput.ChargingInformation;
+            return !chargeTransactionFeesOutput.Success;
         }
     }
 }

@@ -2562,7 +2562,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
@@ -2602,7 +2602,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
@@ -2642,7 +2642,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
@@ -2682,7 +2682,7 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
             CheckValueNotExisted(value);
