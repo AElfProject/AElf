@@ -735,48 +735,6 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
-        public async Task Change_OrganizationMember_Test()
-        {
-            var minimalApproveThreshold = 1;
-            var minimalVoteThreshold = 1;
-            var maximalAbstentionThreshold = 1;
-            var maximalRejectionThreshold = 1;
-            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
-                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
-
-            {
-                var organizationMember = new OrganizationMemberList
-                {
-                    OrganizationMembers = {Reviewer1}
-                };
-
-                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                    nameof(associationContractStub.ChangeOrganizationMember), organizationAddress);
-                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-                var releaseResult = await associationContractStub.Release.SendWithExceptionAsync(changeProposalId);
-                releaseResult.TransactionResult.Error.ShouldContain("Invalid organization.");
-            }
-
-            {
-                var organizationMember = new OrganizationMemberList
-                {
-                    OrganizationMembers = {Reviewer1, Reviewer2}
-                };
-
-                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                    nameof(associationContractStub.ChangeOrganizationMember), organizationAddress);
-                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-                var releaseResult = await associationContractStub.Release.SendAsync(changeProposalId);
-                releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var organizationInfo = await associationContractStub.GetOrganization.CallAsync(organizationAddress);
-                organizationInfo.OrganizationMemberList.ShouldBe(organizationMember);
-            }
-        }
-
-        [Fact]
         public async Task Change_OrganizationProposalWhitelist_Test()
         {
             var minimalApproveThreshold = 1;

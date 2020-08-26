@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs3;
 using AElf.Types;
 
@@ -14,22 +15,32 @@ namespace AElf.Contracts.Association
         {
             return organizationMemberList.OrganizationMembers.Count;
         }
-        
+
         public static bool Empty(this ProposerWhiteList proposerWhiteList)
         {
             return proposerWhiteList.Count() == 0;
         }
-        
+
+        public static bool AnyDuplicate(this ProposerWhiteList proposerWhiteList)
+        {
+            return proposerWhiteList.Proposers.GroupBy(p => p).Any(g => g.Count() > 1);
+        }
+
         public static bool Empty(this OrganizationMemberList organizationMemberList)
         {
             return organizationMemberList.Count() == 0;
+        }
+
+        public static bool AnyDuplicate(this OrganizationMemberList organizationMemberList)
+        {
+            return organizationMemberList.OrganizationMembers.GroupBy(m => m).Any(g => g.Count() > 1);
         }
 
         public static bool Contains(this ProposerWhiteList proposerWhiteList, Address address)
         {
             return proposerWhiteList.Proposers.Contains(address);
         }
-        
+
         public static bool Contains(this OrganizationMemberList organizationMemberList, Address address)
         {
             return organizationMemberList.OrganizationMembers.Contains(address);

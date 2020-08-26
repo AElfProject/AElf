@@ -236,7 +236,8 @@ namespace AElf.Contracts.Parliament
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash,
                 ProposerAuthorityRequired = input.ProposerAuthorityRequired,
-                ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
+                ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed,
+                CreationToken = input.CreationToken
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organizations[organizationAddress] != null)
@@ -255,8 +256,10 @@ namespace AElf.Contracts.Parliament
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress =
-                Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress = createOrganizationInput.CreationToken == null
+                ? Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash)
+                : Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                    HashHelper.ConcatAndCompute(organizationHash, createOrganizationInput.CreationToken));
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
