@@ -7,6 +7,9 @@ using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -18,18 +21,29 @@ namespace AElf.Contracts.Parliament
 {
     public class ParliamentContractTest : ParliamentContractTestBase
     {
+        private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractAddressNameProvider _smartContractAddressNameProvider;
         public ParliamentContractTest()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _smartContractAddressNameProvider = GetRequiredService<ISmartContractAddressNameProvider>();
             InitializeContracts();
         }
 
         [Fact]
-        public async Task Get_DefaultOrganizationAddressFailed_Test()
+        public async Task Get_DefaultOrganizationAddress_Test()
         {
             var transactionResult =
                 await ParliamentContractStub.GetDefaultOrganizationAddress.SendWithExceptionAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
+            
+            await InitializeParliamentContracts();
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            defaultParliamentAddress.ShouldNotBeNull();
         }
 
         [Fact]
@@ -122,6 +136,16 @@ namespace AElf.Contracts.Parliament
             transferParam.Symbol.ShouldBe(transferInput.Symbol);
             transferParam.Amount.ShouldBe(transferInput.Amount);
             transferParam.To.ShouldBe(transferInput.To);
+        }
+        
+        [Fact]
+        public async Task ApproveMultiProposals_Without_Authority_Test()
+        {
+            var invalidSenderStub =
+                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, TesterKeyPair);
+            var approveRet =
+                await invalidSenderStub.ApproveMultiProposals.SendWithExceptionAsync(new ProposalIdList());
+            approveRet.TransactionResult.Error.ShouldContain("No permission");
         }
 
         [Fact]
@@ -409,6 +433,172 @@ namespace AElf.Contracts.Parliament
         }
 
         [Fact]
+        public async Task Reject_Without_Authority_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
+            var transactionResult1 =
+                await ParliamentContractStub.Reject.SendWithExceptionAsync(proposalId);
+            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized member");
+        }
+        
+        [Fact]
+        public async Task Reject_With_Invalid_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            
+            // proposal does not exist
+            {
+                var transactionResult1 = await ParliamentContractStub.Reject.SendWithExceptionAsync(new Hash());
+                transactionResult1.TransactionResult.Error.ShouldContain("Proposal not found");
+            }
+            
+            //proposal expired
+            {
+                var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+                var transactionResult1 =
+                    await ParliamentContractStub.Reject.SendWithExceptionAsync(proposalId);
+                transactionResult1.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+        }
+
+        [Fact]
+        public async Task Reject_Approved_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await ParliamentContractStub.Approve.SendAsync(proposalId);
+            var transactionResult1 =
+                await ParliamentContractStub.Reject.SendWithExceptionAsync(proposalId);
+            transactionResult1.TransactionResult.Error.ShouldContain("Already approved");
+        }
+        
+        [Fact]
+        public async Task Reject_Success_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await ParliamentContractStub.Reject.SendAsync(proposalId);
+            var proposal = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
+            proposal.RejectionCount.ShouldBe(1);
+        }
+        
+        [Fact]
+        public async Task Abstain_Without_Authority_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
+            var transactionResult1 =
+                await ParliamentContractStub.Abstain.SendWithExceptionAsync(proposalId);
+            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized member");
+        }
+        
+        [Fact]
+        public async Task Abstain_With_Invalid_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            
+            // proposal does not exist
+            {
+                var transactionResult1 = await ParliamentContractStub.Abstain.SendWithExceptionAsync(new Hash());
+                transactionResult1.TransactionResult.Error.ShouldContain("Proposal not found");
+            }
+            
+            //proposal expired
+            {
+                var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+                var transactionResult1 =
+                    await ParliamentContractStub.Abstain.SendWithExceptionAsync(proposalId);
+                transactionResult1.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+        }
+
+        [Fact]
+        public async Task Abstain_Approved_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await ParliamentContractStub.Approve.SendAsync(proposalId);
+            var transactionResult1 =
+                await ParliamentContractStub.Abstain.SendWithExceptionAsync(proposalId);
+            transactionResult1.TransactionResult.Error.ShouldContain("Already approved");
+        }
+        
+        [Fact]
+        public async Task Abstain_Success_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await ParliamentContractStub.Abstain.SendAsync(proposalId);
+            var proposal = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
+            proposal.AbstentionCount.ShouldBe(1);
+        }
+
+        [Fact]
         public async Task Check_Proposal_ToBeReleased()
         {
             await InitializeParliamentContracts();
@@ -532,6 +722,23 @@ namespace AElf.Contracts.Parliament
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("No permission.").ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task Release_Expired_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
+            BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+            var result = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+            result.TransactionResult.Error.ShouldContain("Invalid proposal");
+        }
 
         [Fact]
         public async Task Release_Proposal_Test()
@@ -560,6 +767,9 @@ namespace AElf.Contracts.Parliament
                 Owner = Tester
             }).Result.Balance;
             getBalance.ShouldBe(100);
+
+            var proposalInfo = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
+            proposalInfo.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -593,6 +803,15 @@ namespace AElf.Contracts.Parliament
                 await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
             transactionResult3.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult3.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Change_OrganizationThreshold_With_Invalid_Sender_Test()
+        {
+            var changeOrganizationThresholdRet =
+                await ParliamentContractStub.ChangeOrganizationThreshold.SendWithExceptionAsync(
+                    new ProposalReleaseThreshold());
+            changeOrganizationThresholdRet.TransactionResult.Error.ShouldContain("Organization not found");
         }
         
         [Fact]
@@ -650,6 +869,10 @@ namespace AElf.Contracts.Parliament
                 await ApproveAsync(InitialMinersKeyPairs[0], changeProposalId);
                 var result = await ParliamentContractStub.Release.SendAsync(changeProposalId);
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var organizationInfo = await ParliamentContractStub.GetOrganization.CallAsync(organizationAddress);
+                organizationInfo.ProposalReleaseThreshold.MinimalVoteThreshold.ShouldBe(proposalReleaseThresholdInput.MinimalVoteThreshold);
+                organizationInfo.ProposalReleaseThreshold.MinimalApprovalThreshold.ShouldBe(minimalApprovalThreshold);
             }
         }
 
@@ -702,6 +925,26 @@ namespace AElf.Contracts.Parliament
         }
 
         [Fact]
+        public async Task Clear_NotExpiredProposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var miner = InitialMinersKeyPairs[1];
+            // proposal does not exist
+            {
+                var clearProposalRet = await ParliamentContractStub.ClearProposal.SendWithExceptionAsync(new Hash());
+                clearProposalRet.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+            
+            // proposal is not expired
+            {  var proposalId = await CreateProposalAsync(miner, defaultParliamentAddress);
+                var clearProposalRet = await ParliamentContractStub.ClearProposal.SendWithExceptionAsync(proposalId);
+                clearProposalRet.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+        }
+
+        [Fact]
         public async Task Clear_ExpiredProposal_Test()
         {
             await InitializeParliamentContracts();
@@ -721,6 +964,8 @@ namespace AElf.Contracts.Parliament
 
             var clear = await ParliamentContractStub.ClearProposal.SendAsync(proposalId);
             clear.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposal = await ParliamentContractStub.GetProposal.CallAsync(proposalId);
+            proposal.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -784,6 +1029,295 @@ namespace AElf.Contracts.Parliament
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Authority_Test()
+        {
+            await InitializeParliamentContracts();
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+           
+          
+            var methodFeeController = await parliamentContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName = nameof(parliamentContractStub.ChangeMethodFeeController);
+            var proposalId = await CreateFeeProposalAsync(ParliamentContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
+                {
+                    OwnerAddress = ParliamentContractAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+            await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[2], proposalId);
+
+            var releaseResult = await parliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
+        public async Task SetMethodFee_With_Invalid_Input_Test()
+        {
+            // token symbol does not exist
+            {
+                var tokenSymbol = "NOTEXIST";
+                var setMethodFeeRet = await ParliamentContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+                {
+                    MethodName = nameof(ParliamentContractStub.Abstain),
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = tokenSymbol,
+                            BasicFee = 100
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("token is not found");
+            }
+            
+            // amount < 0
+            {
+                var invalidAmount = -1;
+                var setMethodFeeRet = await ParliamentContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+                {
+                    MethodName = nameof(ParliamentContractStub.Abstain),
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "ELF",
+                            BasicFee = invalidAmount
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Invalid amount");
+            }
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Without_Authority_Test()
+        {
+            await InitializeParliamentContracts();
+            var setMethodFeeRet = await ParliamentContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+            {
+                MethodName = nameof(ParliamentContractStub.Abstain),
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = "ELF",
+                        BasicFee = 100
+                    }
+                }
+            });
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Unauthorized to set method fee");
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Success_Test()
+        {
+            await InitializeParliamentContracts();
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var methodFeeController = await parliamentContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var methodFeeName = nameof(parliamentContractStub.Abstain);
+            var tokenSymbol = "ELF";
+            var fee = 100;
+            var methodFees = new MethodFees
+            {
+                MethodName = methodFeeName,
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = tokenSymbol,
+                        BasicFee = fee
+                    }
+                }
+            };
+            const string proposalCreationMethodName = nameof(parliamentContractStub.SetMethodFee);
+            var proposalId = await CreateFeeProposalAsync(ParliamentContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, methodFees);
+            await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[2], proposalId);
+            await parliamentContractStub.Release.SendAsync(proposalId);
+            var methodFee = await parliamentContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = methodFeeName
+            });
+            methodFee.MethodName.ShouldBe(methodFeeName);
+            methodFee.Fees.Count.ShouldBe(1);
+            methodFee.Fees[0].Symbol.ShouldBe(tokenSymbol);
+            methodFee.Fees[0].BasicFee.ShouldBe(fee);
+            
+            // method name = ApproveMultiProposals
+            var specialMethodName = nameof(parliamentContractStub.ApproveMultiProposals);
+            methodFees.MethodName = specialMethodName;
+            proposalId = await CreateFeeProposalAsync(ParliamentContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, methodFees);
+            await ApproveAsync(InitialMinersKeyPairs[0], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[1], proposalId);
+            await ApproveAsync(InitialMinersKeyPairs[2], proposalId);
+            await parliamentContractStub.Release.SendAsync(proposalId);
+            methodFee = await parliamentContractStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = specialMethodName
+            });
+            methodFee.Fees.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task CreateOrganizationBySystemContract_Fail_Test()
+        {
+            var createOrganizationRet =
+                await ParliamentContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(
+                    new CreateOrganizationBySystemContractInput());
+            createOrganizationRet.TransactionResult.Error.ShouldContain("Unauthorized");
+        }
+        
+        [Fact]
+        public async Task CreateOrganizationBySystemContract_Success_Test()
+        {
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+
+            var createOrganizationInput = new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = new CreateOrganizationInput
+                {
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1000,
+                        MinimalVoteThreshold = 1000,
+                    }
+                },
+                OrganizationAddressFeedbackMethod = string.Empty
+            };
+            var createOrganizationRet =
+                await ParliamentContractStub.CreateOrganizationBySystemContract.SendAsync(createOrganizationInput);
+            createOrganizationRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task ValidateOrganizationExist_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var isOrganizationExist =
+                await ParliamentContractStub.ValidateOrganizationExist.CallAsync(organizationAddress);
+            isOrganizationExist.Value.ShouldBeTrue();
+            
+            isOrganizationExist =
+                await ParliamentContractStub.ValidateOrganizationExist.CallAsync(ParliamentContractAddress);
+            isOrganizationExist.Value.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task ValidateProposerInWhiteList_Test()
+        {
+            var proposer = DefaultSender;
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                PrivilegedProposer = proposer
+            });
+            var isProposerInWhitelist =
+                await ParliamentContractStub.ValidateProposerInWhiteList.CallAsync(new ValidateProposerInWhiteListInput
+                {
+                    Proposer = proposer
+                });
+            isProposerInWhitelist.Value.ShouldBeTrue();
+            
+            isProposerInWhitelist =
+                await ParliamentContractStub.ValidateProposerInWhiteList.CallAsync(new ValidateProposerInWhiteListInput());
+            isProposerInWhitelist.Value.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_Fail_Test()
+        {
+            // not be authorized
+            {
+                var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(
+                    new CreateProposalBySystemContractInput());
+                ret.TransactionResult.Error.ShouldContain("Unauthorized to propose");
+            }
+            
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            
+            // invalid organization
+            {
+                var invalidInput = new CreateProposalBySystemContractInput
+                {
+                    ProposalInput = new CreateProposalInput
+                    {
+                        OrganizationAddress = ParliamentContractAddress
+                    },
+                    OriginProposer = DefaultSender,
+                };
+                var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(
+                    invalidInput);
+                ret.TransactionResult.Error.ShouldContain("No registered organization");
+            }
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_Success_Test()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                PrivilegedProposer = DefaultSender
+            });
+            var defaultParliamentAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            var input = new CreateProposalBySystemContractInput
+            {
+                ProposalInput = new CreateProposalInput
+                {
+                    OrganizationAddress = defaultParliamentAddress,
+                    ToAddress = TokenContractAddress,
+                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    Params = new TransferInput
+                    {
+                        Amount = 100,
+                        Symbol = "ELF",
+                        To = DefaultSender
+                    }.ToByteString(),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+                },
+                OriginProposer = DefaultSender
+            };
+            var ret = await ParliamentContractStub.CreateProposalBySystemContract.SendAsync(
+                input);
+            ret.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
