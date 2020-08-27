@@ -19,6 +19,7 @@ namespace AElf.Contracts.Association
         protected ECKeyPair Reviewer1KeyPair => Accounts[1].KeyPair;
         protected ECKeyPair Reviewer2KeyPair => Accounts[2].KeyPair;
         protected ECKeyPair Reviewer3KeyPair => Accounts[3].KeyPair;
+        protected Address DefaultSender => Accounts[0].Address;
         protected Address Reviewer1 => Accounts[1].Address;
         protected Address Reviewer2 => Accounts[2].Address;
         protected Address Reviewer3 => Accounts[3].Address;
