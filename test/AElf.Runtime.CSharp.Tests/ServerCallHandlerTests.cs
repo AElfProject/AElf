@@ -1,6 +1,6 @@
 using System;
-using AElf.Runtime.CSharp.Tests.TestContract;
 using AElf.CSharp.Core;
+using AElf.Runtime.CSharp.Tests.TestContract;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -9,34 +9,31 @@ namespace AElf.Runtime.CSharp
 {
     public class ServerCallHandlerTests : CSharpRuntimeTestBase
     {
-        private IServerCallHandler _callHandler;
-
-        public ServerCallHandlerTests()
-        {
-            var method = CreateMethod();
-            var handler = CreateHandler();
-            _callHandler = ServerCalls.UnaryCall(method, handler);
-        }
-
         [Fact]
         public void Method_Type_Test()
         {
-            var isView = _callHandler.IsView();
+            var callHandler = CreateServerCallHandler();
+            var isView = callHandler.IsView();
             isView.ShouldBeFalse();
+            
+            callHandler = CreateServerCallHandler(true);
+            isView = callHandler.IsView();
+            isView.ShouldBeTrue();
         }
 
         [Fact]
         public void Execute_Test()
         {
+            var callHandler = CreateServerCallHandler();
             var input = new StringInput
             {
                 StringValue = "test"
             };
             var inputArray = input.ToByteArray();
-            var result = _callHandler.Execute(inputArray);
+            var result = callHandler.Execute(inputArray);
             result.ShouldNotBeNull();
 
-            var objectInfo = _callHandler.ReturnBytesToObject(result);
+            var objectInfo = callHandler.ReturnBytesToObject(result);
             var outValue = (StringOutput) objectInfo;
             outValue.StringValue.ShouldBe("test");
         }
@@ -44,13 +41,14 @@ namespace AElf.Runtime.CSharp
         [Fact]
         public void InputBytesToObject_Test()
         {
+            var callHandler = CreateServerCallHandler();
             var input = new StringInput
             {
                 StringValue = "test1"
             };
-            var objInfo = _callHandler.InputBytesToObject(input.ToByteArray());
+            var objInfo = callHandler.InputBytesToObject(input.ToByteArray());
             objInfo.ShouldNotBeNull();
-            
+
             var input1 = (StringInput) objInfo;
             input1.ShouldBe(input);
         }
@@ -58,22 +56,24 @@ namespace AElf.Runtime.CSharp
         [Fact]
         public void InputBytesToString_Test()
         {
+            var callHandler = CreateServerCallHandler();
             var input = new StringInput
             {
                 StringValue = "test1"
             };
-            var objString = _callHandler.InputBytesToString(input.ToByteArray());
-            objString.ShouldNotBeNullOrEmpty();
-            objString.Contains("test1").ShouldBeTrue();
+            var objString = callHandler.InputBytesToString(input.ToByteArray());
+            objString.ShouldBe("{ \"stringValue\": \"test1\" }");
         }
+
         [Fact]
         public void ReturnBytesToObject_Test()
         {
+            var callHandler = CreateServerCallHandler();
             var output = new StringOutput
             {
                 StringValue = "test-out"
             };
-            var objInfo = _callHandler.ReturnBytesToObject(output.ToByteArray());
+            var objInfo = callHandler.ReturnBytesToObject(output.ToByteArray());
             objInfo.ShouldNotBeNull();
 
             var output1 = (StringOutput) objInfo;
@@ -83,30 +83,39 @@ namespace AElf.Runtime.CSharp
         [Fact]
         public void ReturnBytesToString_Test()
         {
+            var callHandler = CreateServerCallHandler();
             var output = new StringOutput()
             {
                 StringValue = "test-out"
             };
-            var objString = _callHandler.ReturnBytesToString(output.ToByteArray());
-            objString.ShouldNotBeNullOrEmpty();
-            objString.Contains("test-out").ShouldBeTrue();
+            var objString = callHandler.ReturnBytesToString(output.ToByteArray());
+            objString.ShouldBe("{ \"stringValue\": \"test-out\" }");
         }
 
-        private Method<StringInput, StringOutput> CreateMethod()
+        private IServerCallHandler CreateServerCallHandler(bool isView = false)
+        {
+            var method = CreateMethod(isView);
+            var handler = CreateHandler();
+            return ServerCalls.UnaryCall(method, handler);
+        }
+
+        private Method<StringInput, StringOutput> CreateMethod(bool isView)
         {
             Func<StringInput, byte[]> serializer = input => input.ToByteArray();
             Func<byte[], StringInput> deserializer = input => StringInput.Parser.ParseFrom(input);
-            
+
             Func<StringOutput, byte[]> serializer1 = input => input.ToByteArray();
             Func<byte[], StringOutput> deserializer1 = input => StringOutput.Parser.ParseFrom(input);
-            
-            return new Method<StringInput, StringOutput>(MethodType.Action, nameof(TestContract), nameof(TestContract.TestStringState),
-                new Marshaller<StringInput>(serializer, deserializer), new Marshaller<StringOutput>(serializer1, deserializer1));
+
+            return new Method<StringInput, StringOutput>(isView ? MethodType.View : MethodType.Action,
+                nameof(TestContract), nameof(TestContract.TestStringState),
+                new Marshaller<StringInput>(serializer, deserializer),
+                new Marshaller<StringOutput>(serializer1, deserializer1));
         }
 
         private UnaryServerMethod<StringInput, StringOutput> CreateHandler()
         {
-            UnaryServerMethod<StringInput, StringOutput> handler = 
+            UnaryServerMethod<StringInput, StringOutput> handler =
                 input => new StringOutput
                 {
                     StringValue = input.StringValue

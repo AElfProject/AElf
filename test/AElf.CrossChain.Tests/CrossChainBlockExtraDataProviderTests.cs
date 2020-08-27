@@ -46,18 +46,6 @@ namespace AElf.CrossChain
             var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
             Assert.Empty(bytes);
         }
-    
-        [Fact]
-        public async Task FillExtraData__NotApproved_Test()
-        {
-            var header = new BlockHeader
-            {
-                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
-                Height = 2
-            };
-            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
-            Assert.Empty(bytes);
-        }
 
         [Fact]
         public async Task FIllExtraData_TransactionPackingDisabled()

@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.SmartContract.Domain
 {
     public sealed class BlockchainStateManagerTests : AElfKernelTestBase
     {
@@ -371,6 +370,21 @@ namespace AElf.Kernel
 
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(_tv[1].BlockHash);
             blockStateSet.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task MergeBlockState_ShouldThrowInvalidOperationException()
+        {
+            var chainStateInfo = new ChainStateInfo
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                MergingBlockHash = null,
+                Status = ChainStateMergingStatus.Common
+            };
+            
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _blockStateSetManger.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash));
         }
     }
 }
