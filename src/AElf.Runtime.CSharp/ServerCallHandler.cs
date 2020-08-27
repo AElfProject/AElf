@@ -19,9 +19,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.CSharp.Core
+namespace AElf.Runtime.CSharp
 {
     internal interface IServerCallHandler
     {

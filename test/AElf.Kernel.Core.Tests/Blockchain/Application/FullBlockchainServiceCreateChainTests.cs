@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -22,7 +23,13 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction>());
+            var transactions = new List<Transaction>
+            {
+                _kernelTestHelper.GenerateTransaction(),
+                _kernelTestHelper.GenerateTransaction()
+            };
+                
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();
@@ -30,7 +37,7 @@ namespace AElf.Kernel.Blockchain.Application
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
-            var createChainResult = await _fullBlockchainService.CreateChainAsync(block, new List<Transaction>());
+            var createChainResult = await _fullBlockchainService.CreateChainAsync(block, transactions);
 
             chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldNotBeNull();
@@ -38,6 +45,10 @@ namespace AElf.Kernel.Blockchain.Application
 
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.GetHash().ShouldBe(block.GetHash());
+
+            var existTransactions = await _fullBlockchainService.GetTransactionsAsync(transactions.Select(t => t.GetHash()));
+            existTransactions.ShouldContain(transactions[0]);
+            existTransactions.ShouldContain(transactions[1]);
         }
     }
 }
