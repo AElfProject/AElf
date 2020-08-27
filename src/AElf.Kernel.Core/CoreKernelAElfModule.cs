@@ -50,8 +50,6 @@ namespace AElf.Kernel
             
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-            
-            context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

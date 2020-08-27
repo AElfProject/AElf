@@ -22,8 +22,4 @@ namespace AElf.Kernel
     public class AElfMinerTestBase : AElfIntegratedTest<KernelMinerTestAElfModule>
     {
     }
-    
-    public class LogEventTestBase : AElfIntegratedTest<LogEventTestAElfModule>
-    {
-    }
 }

@@ -60,7 +60,7 @@ namespace AElf.Contracts.Association
 
         private bool Validate(Organization organization)
         {
-            if (organization.ProposerWhiteList.Empty() || 
+            if (organization.ProposerWhiteList.Empty() ||
                 organization.ProposerWhiteList.AnyDuplicate() ||
                 organization.OrganizationMemberList.Empty() ||
                 organization.OrganizationMemberList.AnyDuplicate())
@@ -99,7 +99,7 @@ namespace AElf.Contracts.Association
                           && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
             return result;
         }
-        
+
         private ProposalInfo GetValidProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
@@ -113,16 +113,22 @@ namespace AElf.Contracts.Association
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
 
-            var organizationAddress = createOrganizationInput.CreationToken == null
-                ? Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash)
-                : Context.ConvertVirtualAddressToContractAddressWithContractHashName(
-                    HashHelper.ConcatAndCompute(organizationHash, createOrganizationInput.CreationToken));
-            
+            var organizationAddress =
+                Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                    CalculateVirtualHash(organizationHash, createOrganizationInput.CreationToken));
+
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
+        }
+
+        private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
+        {
+            return creationToken == null
+                ? organizationHash
+                : HashHelper.ConcatAndCompute(organizationHash, creationToken);
         }
 
         private void AssertProposalNotYetVotedBySender(ProposalInfo proposal, Address sender)

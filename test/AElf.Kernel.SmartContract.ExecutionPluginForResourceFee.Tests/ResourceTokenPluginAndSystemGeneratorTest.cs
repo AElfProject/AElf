@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -258,20 +259,25 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
-
-            var transactions = (await plugin.GetPostTransactionsAsync(TestContract.ContractContainer.Descriptors,
-                new TransactionContext
+            var transactionContext = new TransactionContext
+            {
+                Transaction = new Transaction
                 {
-                    Transaction = new Transaction
-                    {
-                        From = TestContractAddress,
-                        To = TokenConverterAddress,
-                        MethodName = nameof(TestContractStub.CpuConsumingMethod)
-                    },
-                    BlockHeight = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Trace = new TransactionTrace()
-                })).ToList();
+                    From = TestContractAddress,
+                    To = TokenConverterAddress,
+                    MethodName = nameof(TestContractStub.CpuConsumingMethod)
+                },
+                BlockHeight = chain.BestChainHeight + 1,
+                PreviousBlockHash = chain.BestChainHash
+            };
+            transactionContext.Trace = new TransactionTrace
+            {
+                StateSet = new TransactionExecutingStateSet()
+            };
+            var stateCounts = transactionContext.Trace.StateSet;
+            stateCounts.Reads["read"] = true;
+            var transactions = (await plugin.GetPostTransactionsAsync(TestContract.ContractContainer.Descriptors,
+                transactionContext)).ToList();
 
             transactions.Count.ShouldBe(1);
             var postTransaction = transactions[0];
