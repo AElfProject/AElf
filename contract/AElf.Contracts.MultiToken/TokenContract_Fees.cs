@@ -227,18 +227,18 @@ namespace AElf.Contracts.MultiToken
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
             Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
-            foreach (var tokenInfo in input.SymbolsToPayTxSizeFee)
+            foreach (var tokenWeightInfo in input.SymbolsToPayTxSizeFee)
             {
-                if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
+                if (tokenWeightInfo.TokenSymbol == primaryTokenSymbol.Value)
                 {
                     isPrimaryTokenExist = true;
-                    Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
-                        $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
+                    Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
+                        $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
 
-                AssertSymbolToPayTxFeeIsValid(tokenInfo);
-                Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
-                symbolList.Add(tokenInfo.TokenSymbol);
+                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
+                Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol), $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
+                symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
@@ -682,12 +682,15 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenWeightInfo)
         {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
-                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+            Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
+                $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
+            var tokenInfo = State.TokenInfos[tokenWeightInfo.TokenSymbol];
+            Assert(tokenInfo != null && tokenInfo.IsProfitable, $"Token is not found. {tokenWeightInfo.TokenSymbol}");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(tokenInfo.IsProfitable, $"Token {tokenWeightInfo.TokenSymbol} is not Profitable");
+            
         }
 
         private void AssertTransactionGeneratedByPlugin()

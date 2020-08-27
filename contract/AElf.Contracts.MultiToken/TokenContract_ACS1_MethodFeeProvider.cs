@@ -57,7 +57,7 @@ namespace AElf.Contracts.MultiToken
         {
             foreach (var symbolToAmount in input.Fees)
             {
-                AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
+                AssertValidFeeToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
 
             RequiredMethodFeeControllerSet();
@@ -120,6 +120,15 @@ namespace AElf.Contracts.MultiToken
             return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
                 authorityInfo.OwnerAddress).Value;
+        }
+        
+        private void AssertValidFeeToken(string symbol, long amount)
+        {
+            AssertValidSymbolAndAmount(symbol, amount);
+            var tokenInfo = State.TokenInfos[symbol];
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
         }
 
         #endregion

@@ -1015,6 +1015,23 @@ namespace AElf.Contracts.Association
                 ret.TransactionResult.Error.ShouldContain("Token is not found");
             }
             
+            // token is not profitable
+            {
+                var tokenSymbol = "DLS";
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].Symbol = tokenSymbol;
+                await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = tokenSymbol,
+                    TokenName = "name",
+                    Issuer = DefaultSender,
+                    TotalSupply = 1000_000,
+                    IsProfitable = false
+                });
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} is not Profitable");
+            }
+            
             // without authority
             {
                 var invalidMethodFees = GetValidMethodFees();

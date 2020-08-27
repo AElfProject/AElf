@@ -4,6 +4,7 @@ using Acs3;
 using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.CodeCheck;
 using AElf.Kernel.Configuration;
@@ -334,6 +335,33 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     });
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Invalid amount").ShouldBeTrue();
+            }
+            
+            // token is not profitable
+            {
+                var tokenSymbol = "DLS";
+                await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+                    {
+                        Symbol = tokenSymbol,
+                        TokenName = "name",
+                        Issuer = TokenContractAddress,
+                        TotalSupply = 1000_000,
+                        IsProfitable = false
+                    });
+                
+                var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
+                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    new MethodFees
+                    {
+                        MethodName = methodName,
+                        Fees = {new MethodFee
+                        {
+                            Symbol =tokenSymbol ,BasicFee = 2
+                        }}
+                    });
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.Error.Contains($"Token {tokenSymbol} is not Profitable").ShouldBeTrue();
             }
             
             // unauthorized

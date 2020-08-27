@@ -208,6 +208,29 @@ namespace AElf.Contracts.MultiToken
                 var ret = await TokenContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
                 ret.TransactionResult.Error.ShouldContain("Token is not found");
             }
+            
+            // token is not profitable
+            {
+                var tokenNotProfitable = "DLS";
+                await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = tokenSymbol,
+                    TokenName = "name",
+                    Issuer = DefaultAddress,
+                    TotalSupply = 1000_000,
+                    IsProfitable = false
+                });
+                var methodFees = new MethodFees
+                {
+                    MethodName = methodName,
+                    Fees =
+                    {
+                        new MethodFee{Symbol = tokenNotProfitable, BasicFee = 100}
+                    }
+                };
+                var ret = await TokenContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} is not Profitable");
+            }
         }
 
         [Theory]
