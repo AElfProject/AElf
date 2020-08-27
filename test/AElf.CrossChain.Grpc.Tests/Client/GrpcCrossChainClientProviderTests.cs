@@ -1,4 +1,5 @@
 using AElf.CrossChain.Communication.Infrastructure;
+using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Grpc.Client
@@ -37,6 +38,9 @@ namespace AElf.CrossChain.Grpc.Client
 
             var expectedUriStr = string.Concat(host, ":", "5000");
             Assert.Equal(expectedUriStr, client.TargetUriString);
+            
+            var sameClient = _grpcCrossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
+            sameClient.ShouldBe(client);
         }
         
         
