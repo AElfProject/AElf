@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 
 namespace AElf.CrossChain
 {
@@ -102,13 +103,20 @@ namespace AElf.CrossChain
                 return dict.ToByteArray();
             }
             
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight))
+            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedSideChainBlockDataByHeight))
             {
                 long height = Int64Value.Parser.ParseFrom(transaction.Params).Value;
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return crossChainBlockData.ToByteArray();
+                {
+                    var indexedSideChainBlockData = new IndexedSideChainBlockData
+                    {
+                        SideChainBlockDataList = {crossChainBlockData.SideChainBlockDataList}
+                    };
+                    return indexedSideChainBlockData.ToByteArray();
+                }
+                
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new CrossChainBlockData().ToByteArray();
+                return new IndexedSideChainBlockData().ToByteArray();
             }
 
             if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIndexingInformationList))
