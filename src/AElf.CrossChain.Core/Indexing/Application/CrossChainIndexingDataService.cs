@@ -201,23 +201,6 @@ namespace AElf.CrossChain.Indexing.Application
             return parentChainBlockDataList;
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-        {
-            var crossChainBlockData = await _contractReaderFactory
-                .Create(new ContractReaderContext
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight,
-                    ContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight
-                    })
-                })
-                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new Int64Value {Value = blockHeight});
-            return crossChainBlockData;
-        }
-
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var indexedSideChainBlockData = await _contractReaderFactory
@@ -253,7 +236,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
             if (indexingProposalStatusList == null)
-                return true; // cross chain contract not updated
+                return true; // cross chain contract not updated, deprecated if re-run from zero
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
             return toBeReleasedChainIdList.Count > 0;
         }
@@ -263,7 +246,7 @@ namespace AElf.CrossChain.Indexing.Application
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
             if (indexingProposalStatusList == null)
-                return ByteString.Empty;
+                return ByteString.Empty; // cross chain contract not updated, deprecated if rerun from zero
             
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
