@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -11,12 +14,16 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly KernelTestHelper _kernelTestHelper;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
+        private readonly ITransactionBlockIndexProvider _transactionBlockIndexProvider;
 
         public TransactionBlockIndexServiceTests()
         {
             _transactionBlockIndexService = GetRequiredService<ITransactionBlockIndexService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _blockchainService = GetRequiredService<IBlockchainService>();
+            _transactionBlockIndexManager = GetRequiredService<ITransactionBlockIndexManager>();
+            _transactionBlockIndexProvider = GetRequiredService<ITransactionBlockIndexProvider>();
         }
 
         [Fact]
@@ -206,13 +213,18 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task GetTransactionBlockIndexBelowLibTest()
         {
             var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
-            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block1 =
+                _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
             var block2 =
                 _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, previousBlockHeader.PreviousBlockHash);
 
             var txId = HashHelper.ComputeFrom("Transaction");
             var chain = await _blockchainService.GetChainAsync();
             await AddBlockAsync(chain, block1);
+
+            var blockIndex =
+                await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
+            blockIndex.ShouldBeNull();
 
             var blockIndex1 = new BlockIndex
             {
@@ -237,6 +249,21 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionBlockIndexService.ValidateTransactionBlockIndexExistsInBranchAsync(txId,
                         block1.GetHash());
                 Assert.True(existsOnForkBranch);
+
+                var actualBlockIndexOnBestChain =
+                    await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
+                Assert.Equal(blockIndex2, actualBlockIndexOnBestChain);
+
+                var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+                transactionBlockIndex.BlockHash.ShouldBe(blockIndex2.BlockHash);
+                transactionBlockIndex.BlockHeight.ShouldBe(blockIndex2.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Count.ShouldBe(1);
+                transactionBlockIndex.PreviousExecutionBlockIndexList[0].BlockHash.ShouldBe(blockIndex1.BlockHash);
+                transactionBlockIndex.PreviousExecutionBlockIndexList[0].BlockHeight.ShouldBe(blockIndex1.BlockHeight);
+
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndexCache)
+                    .ShouldBeTrue();
+                transactionBlockIndexCache.ShouldBe(transactionBlockIndex);
             }
 
             var i = 0;
@@ -252,6 +279,8 @@ namespace AElf.Kernel.Blockchain.Application
             await _blockchainService.SetIrreversibleBlockAsync(chain, currentBlock.Height, currentBlock.GetHash());
             await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(currentBlock.Height);
             {
+                _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out _).ShouldBeFalse();
+
                 var existsOnForkBranch =
                     await _transactionBlockIndexService.ValidateTransactionBlockIndexExistsInBranchAsync(txId,
                         block1.GetHash());
@@ -259,6 +288,104 @@ namespace AElf.Kernel.Blockchain.Application
                 var actualBlockIndexOnBestChain =
                     await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
                 Assert.Equal(blockIndex2, actualBlockIndexOnBestChain);
+
+                var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+                transactionBlockIndex.BlockHash.ShouldBe(blockIndex2.BlockHash);
+                transactionBlockIndex.BlockHeight.ShouldBe(blockIndex2.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Count.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task AddBlockIndex_Repeated_Test()
+        {
+            var previousBlockHeader = _kernelTestHelper.BestBranchBlockList.Last().Header;
+            var block1 = _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block2 =
+                _kernelTestHelper.GenerateBlock(previousBlockHeader.Height, previousBlockHeader.PreviousBlockHash);
+
+            var txId = HashHelper.ComputeFrom("Transaction");
+
+            var blockIndex1 = new BlockIndex
+            {
+                BlockHash = block1.GetHash(),
+                BlockHeight = block1.Height
+            };
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
+
+            var blockIndex2 = new BlockIndex
+            {
+                BlockHash = block2.GetHash(),
+                BlockHeight = block2.Height
+            };
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
+            
+            var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+            
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
+            var txBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+            txBlockIndex.ShouldBe(transactionBlockIndex);
+            
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
+            txBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+            txBlockIndex.ShouldBe(transactionBlockIndex);
+        }
+
+        [Fact]
+        public async Task AddBlockIndex_Replace_Test()
+        {
+            var block1 = _kernelTestHelper.GenerateBlock(11, HashHelper.ComputeFrom("PreBlockHash1"));
+            var block2 = _kernelTestHelper.GenerateBlock(12, HashHelper.ComputeFrom("PreBlockHash2"));
+            var block3 = _kernelTestHelper.GenerateBlock(13, HashHelper.ComputeFrom("PreBlockHash3"));
+            
+            var txId = HashHelper.ComputeFrom("Transaction");
+            
+            var blockIndex1 = new BlockIndex
+            {
+                BlockHash = block1.GetHash(),
+                BlockHeight = block1.Height
+            };
+            
+            var blockIndex2 = new BlockIndex
+            {
+                BlockHash = block2.GetHash(),
+                BlockHeight = block2.Height
+            };
+            
+            var blockIndex3 = new BlockIndex
+            {
+                BlockHash = block3.GetHash(),
+                BlockHeight = block3.Height
+            };
+            
+            {
+                await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
+
+                var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+                transactionBlockIndex.BlockHash.ShouldBe(blockIndex2.BlockHash);
+                transactionBlockIndex.BlockHeight.ShouldBe(blockIndex2.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Count.ShouldBe(0);
+            }
+
+            {
+                await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
+                
+                var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+                transactionBlockIndex.BlockHash.ShouldBe(blockIndex2.BlockHash);
+                transactionBlockIndex.BlockHeight.ShouldBe(blockIndex2.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Count.ShouldBe(1);
+                transactionBlockIndex.PreviousExecutionBlockIndexList[0].BlockHash.ShouldBe(blockIndex1.BlockHash);
+                transactionBlockIndex.PreviousExecutionBlockIndexList[0].BlockHeight.ShouldBe(blockIndex1.BlockHeight);
+            }
+
+            {
+                await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex3);
+                var transactionBlockIndex = await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+                transactionBlockIndex.BlockHash.ShouldBe(blockIndex3.BlockHash);
+                transactionBlockIndex.BlockHeight.ShouldBe(blockIndex3.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Count.ShouldBe(2);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.ShouldContain(blockIndex1);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.ShouldContain(blockIndex2);
             }
         }
 

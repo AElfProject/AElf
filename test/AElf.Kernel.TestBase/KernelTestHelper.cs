@@ -6,6 +6,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -17,6 +18,7 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
+        private readonly IBlockStateSetManger _blockStateSetManger;
 
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -36,20 +38,21 @@ namespace AElf.Kernel
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        public List<Block> NotLinkedBlockList { get; set; }
 
         public KernelTestHelper(IBlockchainService blockchainService,
             ITransactionResultService transactionResultService,
-            IChainManager chainManager)
+            IChainManager chainManager, IBlockStateSetManger blockStateSetManger)
         {
             BestBranchBlockList = new List<Block>();
             LongestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
-            UnlinkedBranchBlockList = new List<Block>();
+            NotLinkedBlockList = new List<Block>();
 
             _blockchainService = blockchainService;
             _transactionResultService = transactionResultService;
             _chainManager = chainManager;
+            _blockStateSetManger = blockStateSetManger;
         }
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace AElf.Kernel
             ForkBranchBlockList =
                 await AddForkBranch(BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
-            UnlinkedBranchBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
+            NotLinkedBlockList = await AddForkBranch(9, HashHelper.ComputeFrom("UnlinkBlock"));
             // Set lib
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
@@ -236,7 +239,14 @@ namespace AElf.Kernel
         {
             var chain = await _blockchainService.GetChainAsync();
             var block = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transactions, transactionResults);
-
+            var blockStateSet = new BlockStateSet
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height,
+                PreviousHash = block.Header.PreviousBlockHash
+            };
+            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
+            
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
 
@@ -256,10 +266,8 @@ namespace AElf.Kernel
                 BlockHeight = chain.BestChainHeight
             };
         }
-
-        #region private methods
-
-        private async Task<Chain> CreateChain()
+        
+        public async Task<Chain> CreateChain()
         {
             var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
 
@@ -267,6 +275,8 @@ namespace AElf.Kernel
 
             return chain;
         }
+
+        #region private methods
 
         private async Task<List<Block>> AddBestBranch()
         {

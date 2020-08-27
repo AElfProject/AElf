@@ -1,23 +1,21 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
-using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingServiceExecuteFailedTests : ExecuteFailedTestBase
+    public sealed class FullBlockchainExecutingServiceValidateBeforeFailedTests : ValidateBeforeFailedTestBase
     {
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainManager _chainManager;
         private readonly KernelTestHelper _kernelTestHelper;
 
-        public FullBlockchainExecutingServiceExecuteFailedTests()
+        public FullBlockchainExecutingServiceValidateBeforeFailedTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
@@ -26,7 +24,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         [Fact]
-        public async Task ExecuteBlock_ExecuteFailed()
+        public async Task ExecuteBlock_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
 

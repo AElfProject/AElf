@@ -38,6 +38,9 @@ service TestContract {
     rpc TestArrayIterateForeach(google.protobuf.Empty) returns (StringOutput) {
         option (aelf.is_view) = true;
     }
+    rpc TestViewMethod(google.protobuf.Empty) returns (Int32Output) {
+        option (aelf.is_view) = true;
+    }
 }
 
 //Input

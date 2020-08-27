@@ -1,4 +1,3 @@
-using System.Linq;
 using Acs1;
 using Acs3;
 using AElf.Contracts.MultiToken;
@@ -21,13 +20,14 @@ namespace AElf.Contracts.CrossChain
             State.IndexingPendingProposal.Value = new ProposedCrossChainIndexing();
 
             CreateInitialOrganizationForInitialControllerAddress();
+            State.Initialized.Value = true;
+
             if (Context.CurrentHeight != AElfConstants.GenesisBlockHeight)
                 return new Empty();
 
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
             State.GenesisContract.SetContractProposerRequiredState.Send(
                 new BoolValue {Value = input.IsPrivilegePreserved});
-            State.Initialized.Value = true;
             return new Empty();
         }
 
@@ -217,7 +217,6 @@ namespace AElf.Contracts.CrossChain
             Assert(info != null && info.SideChainStatus != SideChainStatus.Terminated,
                 "Side chain not found or incorrect side chain status.");
             Assert(input.IndexingFee >= 0, "Invalid side chain fee price.");
-            var sideChainCreator = info.Proposer;
             var expectedOrganizationAddress = info.IndexingFeeController.OwnerAddress;
             Assert(expectedOrganizationAddress == Context.Sender, "No permission.");
             info.IndexingPrice = input.IndexingFee;
@@ -266,6 +265,7 @@ namespace AElf.Contracts.CrossChain
             Context.LogDebug(() => "Releasing cross chain data..");
             EnsureTransactionOnlyExecutedOnceInOneBlock();
             AssertAddressIsCurrentMiner(Context.Sender);
+            Assert(input.ChainIdList.Count > 0, "Empty input not allowed.");
             ReleaseIndexingProposal(input.ChainIdList);
             RecordCrossChainData(input.ChainIdList);
             return new Empty();
@@ -287,7 +287,7 @@ namespace AElf.Contracts.CrossChain
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             Assert(
                 input.ContractAddress == State.ParliamentContract.Value &&
-                ValidateParliamentOrganization(input.OwnerAddress, true), "Invalid authority input.");
+                ValidateParliamentOrganization(input.OwnerAddress), "Invalid authority input.");
             State.CrossChainIndexingController.Value = input;
             Context.Fire(new CrossChainIndexingControllerChanged
             {

@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainExecutedDataService _blockchainExecutedDataService;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public BlockchainStateServiceTests()
         {
@@ -23,6 +24,7 @@ namespace AElf.Kernel.SmartContract.Application
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockchainExecutedDataService = GetRequiredService<IBlockchainExecutedDataService>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
@@ -54,61 +56,44 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_MergeBlock_Normal_Test()
+        public async Task BlockState_MergeBlock_Test()
         {
-            var blockStateSet1 = new BlockStateSet()
+            for (var i = 0; i < 5; i++)
             {
-                BlockHeight = 1,
-                BlockHash = HashHelper.ComputeFrom("hash"),
-                PreviousHash = Hash.Empty
-            };
-            var blockStateSet2 = new BlockStateSet()
-            {
-                BlockHeight = 2,
-                BlockHash = HashHelper.ComputeFrom("hash2"),
-                PreviousHash = blockStateSet1.BlockHash
-            };
-            var blockStateSet3 = new BlockStateSet()
-            {
-                BlockHeight = 3,
-                BlockHash = HashHelper.ComputeFrom("hash3"),
-                PreviousHash = blockStateSet2.BlockHash
-            };
-
-            //test merge block height 1
-            {
-                await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet1);
-
-                await _blockchainStateService.MergeBlockStateAsync(blockStateSet1.BlockHeight,
-                    blockStateSet1.BlockHash);
-
-                var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
-                chainStateInfo.BlockHeight.ShouldBe(1);
-                chainStateInfo.BlockHash.ShouldBe(blockStateSet1.BlockHash);
+                await AddBlockStateSetAsync(_kernelTestHelper.BestBranchBlockList[i]);
             }
 
-            //test merge block height 2
             {
-                await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet2);
-                await _blockchainStateService.MergeBlockStateAsync(blockStateSet2.BlockHeight,
-                    blockStateSet2.BlockHash);
+                await _blockchainStateService.MergeBlockStateAsync(_kernelTestHelper.BestBranchBlockList[0].Height,
+                    _kernelTestHelper.BestBranchBlockList[0].GetHash());
 
                 var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
-                chainStateInfo.BlockHeight.ShouldBe(2);
-                chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
+                chainStateInfo.BlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[0].Height);
+                chainStateInfo.BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[0].GetHash());
             }
 
-            //test merge height 3 without block state set before
             {
-                await Should.ThrowAsync<InvalidOperationException>(()=> _blockchainStateService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
-                    blockStateSet3.BlockHash));
+                await _blockchainStateService.MergeBlockStateAsync(_kernelTestHelper.BestBranchBlockList[4].Height,
+                    _kernelTestHelper.BestBranchBlockList[4].GetHash());
 
                 var chainStateInfo = await _blockStateSetManger.GetChainStateInfoAsync();
-                chainStateInfo.BlockHeight.ShouldBe(2);
-                chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
+                chainStateInfo.BlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[4].Height);
+                chainStateInfo.BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
             }
         }
-        
+
+        private async Task AddBlockStateSetAsync(Block block)
+        {
+            var blockStateSet = new BlockStateSet()
+            {
+                BlockHeight = block.Height,
+                BlockHash = block.GetHash(),
+                PreviousHash = block.Header.PreviousBlockHash
+            };
+            
+            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
+        }
+
         [Fact]
         public async Task BlockExecutedData_Test()
         {

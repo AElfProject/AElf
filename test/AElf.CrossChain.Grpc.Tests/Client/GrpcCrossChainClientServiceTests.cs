@@ -41,9 +41,9 @@ namespace AElf.CrossChain.Grpc.Client
             
             await client.ConnectAsync();
             Assert.True(client.IsConnected);
-            
-            await _crossChainClientService.CloseClientsAsync();
-            Server.Dispose();
+
+            await client.CloseAsync();
+            Assert.False(client.IsConnected);
         }
     }
 }

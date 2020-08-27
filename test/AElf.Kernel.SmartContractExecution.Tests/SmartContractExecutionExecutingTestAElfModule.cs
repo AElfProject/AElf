@@ -92,7 +92,7 @@ namespace AElf.Kernel.SmartContractExecution
     [DependsOn(
         typeof(SmartContractExecutionExecutingTestAElfModule)
     )]
-    public class ExecuteFailedTestAElfModule : AElfModule
+    public class ValidateBeforeFailedTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -149,6 +149,9 @@ namespace AElf.Kernel.SmartContractExecution
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
                     .Returns<IBlock>(
                         (block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
+
+                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
+                    .ReturnsAsync(true);
 
                 return mockProvider.Object;
             });

@@ -18,9 +18,10 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using AElf.CSharp.Core;
 using Google.Protobuf.Reflection;
 
-namespace AElf.CSharp.Core
+namespace AElf.Runtime.CSharp
 {
     internal static class ServerServiceDefinitionExtensions
     {
