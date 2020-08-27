@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class BlockGenerationServiceTests : AElfKernelTestBase
+    public class BlockGenerationServiceTests : AElfMinerTestBase
     {
         private readonly BlockGenerationService _blockGenerationService;
 
@@ -37,6 +37,7 @@ namespace AElf.Kernel.Blockchain.Application
             block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
             block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
             block.Header.Time.ShouldBe(generateBlockDto.BlockTime);
+            block.Header.ExtraData.Count.ShouldBe(1);
         }
     }
 }
