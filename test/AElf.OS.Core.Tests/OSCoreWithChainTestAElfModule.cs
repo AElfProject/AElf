@@ -70,7 +70,7 @@ namespace AElf.OS
                 return new UnitTestCSharpSmartContractRunner(
                     option.Value.SdkDir);
             });
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, Kernel.UnitTestContractZeroCodeProvider>();
             context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
             context.Services
                 .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();
