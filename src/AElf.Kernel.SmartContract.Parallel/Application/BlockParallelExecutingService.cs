@@ -24,7 +24,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             if (executionReturnSetCollection.Conflict.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                    blockHeader, executionReturnSetCollection.Executed.Concat(executionReturnSetCollection.Unexecutable).ToList(),
+                    blockHeader, executionReturnSetCollection.Executed.ToList(),
                     executionReturnSetCollection.Conflict
                 ));
             }

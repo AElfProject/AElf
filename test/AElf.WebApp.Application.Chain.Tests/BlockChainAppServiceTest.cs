@@ -27,6 +27,7 @@ using AElf.WebApp.Application.Chain.Dto;
 using AElf.WebApp.Application.Chain.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
@@ -395,7 +396,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
 
             var chain = await _blockchainService.GetChainAsync();
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
@@ -537,7 +538,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             responseTransactionIds.Count.ShouldBe(2);
 
             var chain = await _blockchainService.GetChainAsync();
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[0]);
             existTransaction.Transactions.Select(x => x.GetHash().ToHex()).ShouldContain(responseTransactionIds[1]);
 
@@ -681,16 +682,36 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.BroadcastTransactions(transactionList);
 
             var block = await _osTestHelper.MinedOneBlock();
+            var txResult = await _osTestHelper.GetTransactionResultsAsync(transactionList[0].GetHash());
 
             // After executed
             var transactionHex = transactionList[1].GetHash().ToHex();
-            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+            {
+                var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                    $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
-            response.TransactionId.ShouldBe(transactionHex);
-            response.BlockNumber.ShouldBe(block.Height);
-            response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
-            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                response.TransactionId.ShouldBe(transactionHex);
+                response.BlockNumber.ShouldBe(block.Height);
+                response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
+                response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                var errorInResponse = response.Error;
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult.Error, false));
+            }
+
+            var optionMonitor = GetRequiredService<IOptionsMonitor<WebAppOptions>>();
+            optionMonitor.CurrentValue.IsDebugMode = true;
+            
+            {
+                var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                    $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+
+                response.TransactionId.ShouldBe(transactionHex);
+                response.BlockNumber.ShouldBe(block.Height);
+                response.BlockHash.ShouldBe(block.Header.GetHash().ToHex());
+                response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+                var errorInResponse = response.Error;
+                errorInResponse.ShouldBe(TransactionErrorResolver.TakeErrorMessage(txResult.Error, true));
+            }
         }
 
         [Fact]
@@ -1260,7 +1281,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldBeNull();
 
-            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            var existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
 
             parameters = new Dictionary<string, string>
@@ -1285,7 +1306,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(chain.BestChainHash).ToBase64());
             sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
 
-            existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash);
+            existTransaction = await _txHub.GetExecutableTransactionSetAsync(chain.BestChainHash, int.MaxValue);
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }
 
@@ -1576,14 +1597,10 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     await _smartContractAddressService.GetAddressByContractNameAsync(await _osTestHelper.GetChainContextAsync(), TokenSmartContractAddressNameProvider.StringName),
-                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), new CrossChainReceiveTokenInput
                     {
-                        Symbol = "ELF",
-                        TokenName = $"elf token {i}",
-                        TotalSupply = 1000_0000,
-                        Decimals = 2,
-                        Issuer = SampleAddress.AddressList[0],
-                        IsBurnable = true
+                        FromChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
+                        ParentChainHeight = i
                     });
 
                 var signature =

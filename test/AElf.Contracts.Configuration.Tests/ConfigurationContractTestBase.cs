@@ -55,7 +55,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             return new SetConfigurationInput
             {
-                Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                Key = "BlockTransactionLimit",
                 Value = new Int32Value{Value = amount}.ToByteString()
             };
         }
