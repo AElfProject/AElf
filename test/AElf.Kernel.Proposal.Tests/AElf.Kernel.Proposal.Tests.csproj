@@ -29,5 +29,4 @@
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    
 </Project>
