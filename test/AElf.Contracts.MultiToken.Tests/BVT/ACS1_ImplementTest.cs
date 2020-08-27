@@ -214,7 +214,7 @@ namespace AElf.Contracts.MultiToken
                 var tokenNotProfitable = "DLS";
                 await TokenContractStub.Create.SendAsync(new CreateInput
                 {
-                    Symbol = tokenSymbol,
+                    Symbol = tokenNotProfitable,
                     TokenName = "name",
                     Issuer = DefaultAddress,
                     TotalSupply = 1000_000,
@@ -229,7 +229,7 @@ namespace AElf.Contracts.MultiToken
                     }
                 };
                 var ret = await TokenContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
-                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} is not Profitable");
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenNotProfitable} is not Profitable");
             }
         }
 

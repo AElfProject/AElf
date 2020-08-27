@@ -477,9 +477,9 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             var txResult = await ReleaseProposalAsync(proposalId);
             txResult.Error.ShouldContain("Invalid authority input");
         }
-        
-                [Fact(DisplayName = "[MultiToken] validate the input")]
-        public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Input_Test()
+
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Weight_Test()
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
@@ -491,71 +491,120 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000
             });
-            //primary token weights both should be set to 1
+            var newSymbolList = new SymbolListToPayTxSizeFee();
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
             {
-                var newSymbolList = new SymbolListToPayTxSizeFee();
-                newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
-                {
-                    TokenSymbol = primaryTokenSymbol,
-                    AddedTokenWeight = 2,
-                    BaseTokenWeight = 1
-                });
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
-            }
+                TokenSymbol = primaryTokenSymbol,
+                AddedTokenWeight = 2,
+                BaseTokenWeight = 1
+            });
+            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
 
-            // include the repeated token.
+            newSymbolList.SymbolsToPayTxSizeFee[0].AddedTokenWeight = 1;
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
             {
-                var newSymbolList = new SymbolListToPayTxSizeFee
+                TokenSymbol = FeeToken,
+                AddedTokenWeight = 0,
+                BaseTokenWeight = 1
+            });
+            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+        }
+
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_With_Repeat_Token_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee
+            {
+                SymbolsToPayTxSizeFee =
                 {
-                    SymbolsToPayTxSizeFee =
+                    new SymbolToPayTxSizeFee
                     {
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = primaryTokenSymbol,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        },
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = FeeToken,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        },
-                        new SymbolToPayTxSizeFee
-                        {
-                            TokenSymbol = FeeToken,
-                            AddedTokenWeight = 1,
-                            BaseTokenWeight = 1
-                        }
+                        TokenSymbol = primaryTokenSymbol,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
                     }
-                };
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
-            }
-            
-            // include invalid weright
-            {
-                {
-                    var newSymbolList = new SymbolListToPayTxSizeFee
-                    {
-                        SymbolsToPayTxSizeFee =
-                        {
-                            new SymbolToPayTxSizeFee
-                            {
-                                TokenSymbol = primaryTokenSymbol,
-                                AddedTokenWeight = 1,
-                                BaseTokenWeight = 1
-                            },
-                            new SymbolToPayTxSizeFee
-                            {
-                                TokenSymbol = FeeToken,
-                                AddedTokenWeight = 1,
-                                BaseTokenWeight = 0
-                            }
-                        }
-                    };
-                    await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
                 }
-            }
+            };
+            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_Without_PrimaryToken_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee();
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
+            {
+                TokenSymbol = FeeToken,
+                AddedTokenWeight = 2,
+                BaseTokenWeight = 1
+            });
+            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_Without_Profitable_Token_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000,
+                IsProfitable = false
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee
+            {
+                SymbolsToPayTxSizeFee =
+                {
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = primaryTokenSymbol,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    }
+                }
+            };
+            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
         }
 
         [Fact]

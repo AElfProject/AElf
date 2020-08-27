@@ -235,8 +235,8 @@ namespace AElf.Contracts.MultiToken
                     Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
-
-                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
+                else
+                    AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
                 Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol), $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
