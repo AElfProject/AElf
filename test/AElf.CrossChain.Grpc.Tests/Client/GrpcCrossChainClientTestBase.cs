@@ -16,4 +16,16 @@ namespace AElf.CrossChain.Grpc.Client
             Server = GetRequiredService<IGrpcCrossChainServer>();
         }
     }
+    
+    public class GrpcCrossChainClientWithoutParentChainTestBase : AElfIntegratedTest<GrpcCrossChainClientWithoutParentChainTestModule>
+    {
+        protected ChainOptions ChainOptions;
+        protected IGrpcCrossChainServer Server;
+        
+        public GrpcCrossChainClientWithoutParentChainTestBase()
+        {
+            ChainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+            Server = GetRequiredService<IGrpcCrossChainServer>();
+        }
+    }
 }

@@ -36,7 +36,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
-            var hash = HashHelper.ComputeFrom(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
+            var hash = HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(txId.ToByteArray(), txResultStatusRawBytes));
             return path.ComputeRootWithLeafNode(hash);
         }
 
@@ -649,13 +649,11 @@ namespace AElf.Contracts.CrossChain
                 authorityInfo.OwnerAddress).Value;
         }
 
-        private bool ValidateParliamentOrganization(Address organizationAddress,
-            bool isParliamentMemberProposingRequired)
+        private bool ValidateParliamentOrganization(Address organizationAddress)
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             var organization = State.ParliamentContract.GetOrganization.Call(organizationAddress);
-            return organization != null &&
-                   (!isParliamentMemberProposingRequired || organization.ParliamentMemberProposingAllowed);
+            return organization != null && organization.ParliamentMemberProposingAllowed;
         }
 
         private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData,
