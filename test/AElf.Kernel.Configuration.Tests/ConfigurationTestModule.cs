@@ -8,7 +8,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Configuration.Tests
 {
     [DependsOn(typeof(ContractTestModule),
-        typeof(ConfigurationAElfModule))]
+        typeof(ConfigurationAElfModule),
+        typeof(KernelAElfModule))]
     public class ConfigurationTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
