@@ -92,7 +92,7 @@ namespace AElf.Contracts.Referendum
             if (string.IsNullOrEmpty(organization.TokenSymbol) || organization.OrganizationAddress == null ||
                 organization.OrganizationHash == null || organization.ProposerWhiteList.Empty())
                 return false;
-            Assert(GetTokenInfo(organization.TokenSymbol) != null, "Token not exists.");
+            Assert(!string.IsNullOrEmpty(GetTokenInfo(organization.TokenSymbol).Symbol), "Token not exists.");
 
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             return proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
@@ -188,16 +188,21 @@ namespace AElf.Contracts.Referendum
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress = createOrganizationInput.CreationToken == null
-                ? Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash)
-                : Context.ConvertVirtualAddressToContractAddressWithContractHashName(
-                    HashHelper.ConcatAndCompute(organizationHash, createOrganizationInput.CreationToken));
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                CalculateVirtualHash(organizationHash, createOrganizationInput.CreationToken));
             
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
+        }
+        
+        private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
+        {
+            return creationToken == null
+                ? organizationHash
+                : HashHelper.ConcatAndCompute(organizationHash, creationToken);
         }
     }
 }
