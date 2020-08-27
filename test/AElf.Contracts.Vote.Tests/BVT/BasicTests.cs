@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
         public async Task VoteContract_Register_Test()
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.Register.SendWithExceptionAsync(input)).TransactionResult;
             transactionResult.Error.ShouldContain("Invalid active time.");
         }
-        
+
         [Fact]
         public async Task Register_With_Zero_Total_Snapshot_Test()
         {
@@ -106,7 +106,7 @@ namespace AElf.Contracts.Vote
                     await VoteWithException(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
-            
+
             //vote option length is over the limit 1024
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Vote
                 var afterBalance = GetUserBalance(voteAddress);
                 beforeBalance.ShouldBe(afterBalance); // Stay same
             }
-            
+
             //Without lock token and withdrawn by other person
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, false, DefaultSender, 1);
@@ -255,7 +255,7 @@ namespace AElf.Contracts.Vote
             });
             await TakeSnapshot(voteItemId, 1);
 
-           
+
             var beforeBalance = GetUserBalance(voteAddress);
             var transactionResult = await Withdraw(voteUser, currentVoteId);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -411,7 +411,7 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
             }
-            
+
             //option length exceed 1024
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -621,6 +621,14 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
+        public async Task VoteContract_GetVotedItems_Default_Return_Test()
+        {
+            var address = Address.FromPublicKey(Accounts[1].KeyPair.PublicKey);
+            var votedItem = await GetVotedItems(address);
+            votedItem.ShouldBe(new VotedItems());
+        }
+
+        [Fact]
         public async Task VoteContract_GetVotingRecords_Test()
         {
             var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -632,7 +640,7 @@ namespace AElf.Contracts.Vote
             var currentVoteId = voteIds.ActiveVotes.First();
             var voteRecord = await VoteContractStub.GetVotingRecords.CallAsync(new GetVotingRecordsInput
             {
-                Ids = {currentVoteId }
+                Ids = {currentVoteId}
             });
             voteRecord.Records.Count.ShouldBe(1);
             voteRecord.Records[0].Amount.ShouldBe(voteAmount);
@@ -652,14 +660,6 @@ namespace AElf.Contracts.Vote
                 VotingItemId = registerItem.VotingItemId
             });
             voteIds.ActiveVotes.Count.ShouldBe(1);
-        }
-        
-        [Fact]
-        public async Task VoteContract_GetVotedItems_Default_Return_Test()
-        {
-            var address = Accounts[0].Address;
-            var votedItem = await GetVotedItems(address);
-            votedItem.ShouldBe(new VotedItems());
         }
     }
 }

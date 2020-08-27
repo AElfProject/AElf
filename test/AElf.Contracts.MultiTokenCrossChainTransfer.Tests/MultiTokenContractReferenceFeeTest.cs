@@ -492,7 +492,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             txResult.Error.ShouldContain("Invalid authority input");
         }
         
-                [Fact(DisplayName = "[MultiToken] validate the input")]
+        [Fact(DisplayName = "[MultiToken] validate the input")]
         public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Input_Test()
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
@@ -514,7 +514,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     AddedTokenWeight = 2,
                     BaseTokenWeight = 1
                 });
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                result.ShouldBe(false);
             }
 
             // include the repeated token.
@@ -543,7 +544,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                         }
                     }
                 };
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                result.ShouldBe(false);
             }
             
             // include invalid weright
@@ -567,9 +569,45 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                             }
                         }
                     };
-                    await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                    var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                    result.ShouldBe(false);
                 }
             }
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_Success_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee
+            {
+                SymbolsToPayTxSizeFee =
+                {
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = primaryTokenSymbol,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 2
+                    }
+                }
+            };
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(true);
         }
 
         [Fact]
@@ -837,7 +875,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             return primaryTokenSymbol.Value;
         }
 
-        private async Task VerifyTheInvalidSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
+        private async Task<bool> VerifyTheSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
         {
             var createProposalInput = new CreateProposalInput
             {
@@ -850,7 +888,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             var symbolListToPayTxSizeFee = await TokenContractStub.GetSymbolsToPayTxSizeFee.CallAsync(new Empty());
-            symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count.ShouldBe(0);
+            return symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count != 0;
         }
     }
 }

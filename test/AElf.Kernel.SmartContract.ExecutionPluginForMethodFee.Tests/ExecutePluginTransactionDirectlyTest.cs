@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         [Fact]
         public async Task ChargeTransactionFees_Invalid_Input_Test()
         {
-            // method name should not be null
+            // contract address should not be null
             {
                 var ret =
                     await TokenContractStub.ChargeTransactionFees.SendWithExceptionAsync(new ChargeTransactionFeesInput
