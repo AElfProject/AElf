@@ -13,19 +13,6 @@ namespace AElf.Contracts.CrossChain
 
     public partial class CrossChainContract
     {
-        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(Int64Value input)
-        {
-            var crossChainBlockData = new CrossChainBlockData();
-            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockDataList.AddRange(indexedParentChainBlockData
-                    .ParentChainBlockDataList);
-
-            var indexedSideChainBlockData = GetIndexedSideChainBlockDataByHeight(input);
-            crossChainBlockData.SideChainBlockDataList.AddRange(indexedSideChainBlockData.SideChainBlockDataList);
-            return crossChainBlockData;
-        }
-
         public override IndexedSideChainBlockData GetIndexedSideChainBlockDataByHeight(Int64Value input)
         {
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
@@ -58,8 +45,7 @@ namespace AElf.Contracts.CrossChain
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = ComputeRootWithTransactionStatusMerklePath(input.TransactionId, input.Path);
 
-            //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
-            return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
+            return new BoolValue {Value = merkleTreeRoot == rootCalculated};
         }
 
         public override GetChainStatusOutput GetChainStatus(Int32Value input)
@@ -79,6 +65,8 @@ namespace AElf.Contracts.CrossChain
 
         public override Int64Value GetParentChainHeight(Empty input)
         {
+            var parentChainId = State.ParentChainId.Value;
+            Assert(parentChainId != 0, "Parent chain not exist.");
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             return new Int64Value
             {
@@ -89,7 +77,7 @@ namespace AElf.Contracts.CrossChain
         public override Int32Value GetParentChainId(Empty input)
         {
             var parentChainId = State.ParentChainId.Value;
-            Assert(parentChainId != 0);
+            Assert(parentChainId != 0, "Parent chain not exist.");
             return new Int32Value() {Value = parentChainId};
         }
 
@@ -210,25 +198,31 @@ namespace AElf.Contracts.CrossChain
 
             return res;
         }
-
-        public override GetPendingCrossChainIndexingProposalOutput GetPendingCrossChainIndexingProposal(Empty input)
+        
+        public override GetIndexingProposalStatusOutput GetIndexingProposalStatus(Empty input)
         {
-            var res = new GetPendingCrossChainIndexingProposalOutput();
-            var exists = TryGetProposalWithStatus(CrossChainIndexingProposalStatus.Pending,
-                out var pendingCrossChainIndexingProposal);
-            Assert(exists, "Cross chain indexing with Pending status not found.");
+            var res = new GetIndexingProposalStatusOutput();
+            var pendingCrossChainIndexingProposal = State.IndexingPendingProposal.Value;
+            if (pendingCrossChainIndexingProposal == null)
+                return res;
+            
             var crossChainIndexingController = GetCrossChainIndexingController();
-
-            res.Proposer = pendingCrossChainIndexingProposal.Proposer;
-            res.ProposalId = pendingCrossChainIndexingProposal.ProposalId;
-            var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
-                nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
-                pendingCrossChainIndexingProposal.ProposalId);
-
-            res.ToBeReleased = proposalInfo.ToBeReleased &&
-                               proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
-            res.ExpiredTime = proposalInfo.ExpiredTime;
-            res.ProposedCrossChainBlockData = pendingCrossChainIndexingProposal.ProposedCrossChainBlockData;
+            foreach (var chainIndexingProposal in pendingCrossChainIndexingProposal.ChainIndexingProposalCollections.Values)
+            {
+                var pendingChainIndexingProposalStatus = new PendingChainIndexingProposalStatus();
+                var proposalInfo = Context.Call<ProposalOutput>(crossChainIndexingController.ContractAddress,
+                    nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.GetProposal),
+                    chainIndexingProposal.ProposalId);
+                pendingChainIndexingProposalStatus.Proposer = chainIndexingProposal.Proposer;
+                pendingChainIndexingProposalStatus.ProposalId = chainIndexingProposal.ProposalId;
+                pendingChainIndexingProposalStatus.ToBeReleased =
+                    proposalInfo.ToBeReleased &&
+                    proposalInfo.OrganizationAddress == crossChainIndexingController.OwnerAddress;
+                pendingChainIndexingProposalStatus.ExpiredTime = proposalInfo.ExpiredTime;
+                pendingChainIndexingProposalStatus.ProposedCrossChainBlockData = chainIndexingProposal.ProposedCrossChainBlockData;
+                res.ChainIndexingProposalStatus[chainIndexingProposal.ChainId] = pendingChainIndexingProposalStatus;
+            }
+            
             return res;
         }
 
@@ -255,6 +249,7 @@ namespace AElf.Contracts.CrossChain
         public override AuthorityInfo GetSideChainIndexingFeeController(Int32Value input)
         {
             var sideChainInfo = State.SideChainInfo[input.Value];
+            Assert(sideChainInfo != null, "Side chain not found.");
             return sideChainInfo.IndexingFeeController;
         }
     }

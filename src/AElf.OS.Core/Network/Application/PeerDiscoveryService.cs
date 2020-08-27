@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
+using AElf.OS.Network.Extensions;
 
 namespace AElf.OS.Network.Application
 {
@@ -15,83 +13,78 @@ namespace AElf.OS.Network.Application
     {
         private readonly IPeerPool _peerPool;
         private readonly INodeManager _nodeManager;
-        private readonly IAccountService _accountService;
+        private readonly IDiscoveredNodeCacheProvider _discoveredNodeCacheProvider;
+        private readonly IAElfNetworkServer _aelfNetworkServer;
+        private readonly IPeerDiscoveryJobProcessor _peerDiscoveryJobProcessor;
 
         public ILogger<PeerDiscoveryService> Logger { get; set; }
-        
-        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager, IAccountService accountService)
+
+        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager,
+            IDiscoveredNodeCacheProvider discoveredNodeCacheProvider, IAElfNetworkServer aelfNetworkServer,
+            IPeerDiscoveryJobProcessor peerDiscoveryJobProcessor)
         {
             _peerPool = peerPool;
             _nodeManager = nodeManager;
-            _accountService = accountService;
+            _discoveredNodeCacheProvider = discoveredNodeCacheProvider;
+            _aelfNetworkServer = aelfNetworkServer;
+            _peerDiscoveryJobProcessor = peerDiscoveryJobProcessor;
 
             Logger = NullLogger<PeerDiscoveryService>.Instance;
         }
-        
-        public async Task<NodeList> DiscoverNodesAsync()
+
+        public async Task DiscoverNodesAsync()
         {
             var peers = _peerPool.GetPeers()
                 .OrderBy(x => RandomHelper.GetRandom())
                 .Take(NetworkConstants.DefaultDiscoveryPeersToRequestCount)
                 .ToList();
 
-            var result = new NodeList();
-            var discoveredNodes = new Dictionary<string, NodeInfo>();
-            
             foreach (var peer in peers)
             {
-                try
+                var result = await _peerDiscoveryJobProcessor.SendDiscoveryJobAsync(peer);
+                if (!result)
+                    Logger.LogWarning($"Send discovery job failed: {peer}");
+            }
+        }
+
+        public async Task RefreshNodeAsync()
+        {
+            var endpoint = await TakeEndpointFromDiscoveredNodeCacheAsync();
+            if (endpoint != null)
+            {
+                if (await _aelfNetworkServer.CheckEndpointAvailableAsync(endpoint))
                 {
-                    var nodes = await peer.GetNodesAsync();
-                    
-                    if (nodes != null && nodes.Nodes.Count > 0)
-                    {
-                        Logger.LogDebug($"Discovery: {peer} responded with the following nodes: {nodes}.");
-                        
-                        await _nodeManager.AddOrUpdateNodesAsync(nodes);
-
-                        foreach (var node in nodes.Nodes)
-                        {
-                            var nodePubkey = node.Pubkey.ToHex();
-                            if (_peerPool.FindPeerByPublicKey(nodePubkey) != null)
-                                continue;
-
-                            if (!discoveredNodes.ContainsKey(nodePubkey))
-                            {
-                                discoveredNodes.Add(nodePubkey, node);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Logger.LogDebug($"Discovery: {peer} responded with no nodes.");
-                    }
+                    _discoveredNodeCacheProvider.Add(endpoint);
+                    Logger.LogDebug($"Refresh node successfully: {endpoint}");
                 }
-                catch (NetworkException ex)
+                else
                 {
-                    Logger.LogWarning(ex, $"Error during discover - {peer}.");
+                    await _nodeManager.RemoveNodeAsync(endpoint);
+                    Logger.LogDebug($"Clean unavailable node: {endpoint}");
                 }
             }
-
-            if (discoveredNodes.Count <= 0)
-                return result;
-            
-            // Check that a peer did not send us this node
-            var localPubKey = await _accountService.GetPublicKeyAsync();
-            var hexPubkey = localPubKey.ToHex();
-            discoveredNodes.Remove(hexPubkey);
-            result.Nodes.AddRange(discoveredNodes.Values);
-            return result;
         }
 
         public async Task AddNodeAsync(NodeInfo nodeInfo)
         {
-            await _nodeManager.AddOrUpdateNodeAsync(nodeInfo);
+            if (await _nodeManager.AddNodeAsync(nodeInfo))
+                _discoveredNodeCacheProvider.Add(nodeInfo.Endpoint);
         }
 
         public Task<NodeList> GetNodesAsync(int maxCount)
         {
             return _nodeManager.GetRandomNodesAsync(maxCount);
+        }
+
+        private async Task<string> TakeEndpointFromDiscoveredNodeCacheAsync()
+        {
+            while (_discoveredNodeCacheProvider.TryTake(out var endpoint))
+            {
+                if (await _nodeManager.GetNodeAsync(endpoint) != null)
+                    return endpoint;
+            }
+
+            return null;
         }
     }
 }
