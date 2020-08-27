@@ -91,6 +91,26 @@ namespace AElf.OS.Network.Application
         }
 
         [Fact]
+        public async Task BroadcastBlock_PeerNotReady_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Throws<NetworkException>();
+
+            var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
+            var blockWithTx = new BlockWithTransactions {Header = blockHeader};
+
+            await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTx);
+            
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueBlock(blockWithTx, It.IsAny<Action<NetworkException>>()), Times.Once());
+
+            _testContext.MockedPeers[0].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Never);
+            _testContext.MockedPeers[1].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+            _testContext.MockedPeers[2].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+        }
+
+        [Fact]
         public async Task BroadcastAnnouncement_OldBlock_Test()
         {
             var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
@@ -162,6 +182,26 @@ namespace AElf.OS.Network.Application
         }
 
         [Fact]
+        public async Task BroadcastAnnouncement_PeerNotReady_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Throws<NetworkException>();
+
+            var blockHeader = OsCoreTestHelper.CreateFakeBlockHeader(chainId: 1, height: 2);
+
+            await _networkService.BroadcastAnnounceAsync(blockHeader);
+            
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueAnnouncement(It.Is<BlockAnnouncement>(ba => ba.BlockHash == blockHeader.GetHash()), 
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+            
+            _testContext.MockedPeers[0].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Never);
+            _testContext.MockedPeers[1].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+            _testContext.MockedPeers[2].Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
+        }
+
+        [Fact]
         public async Task BroadcastTransaction_Test()
         {
             var transaction = OsCoreTestHelper.CreateFakeTransaction();
@@ -204,6 +244,22 @@ namespace AElf.OS.Network.Application
             
             _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
                 Times.Once());
+        }
+        
+        [Fact]
+        public async Task BroadcastTransaction_PeerNotReady_Test()
+        {
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Throws<NetworkException>();
+
+            var transaction = OsCoreTestHelper.CreateFakeTransaction();
+            
+            await _networkService.BroadcastTransactionAsync(transaction);
+
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueTransaction(It.Is<Transaction>(tx => tx.GetHash() == transaction.GetHash()),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
         }
 
         [Fact]

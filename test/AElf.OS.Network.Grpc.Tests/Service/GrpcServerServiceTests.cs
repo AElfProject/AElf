@@ -272,7 +272,12 @@ namespace AElf.OS.Network.Grpc
             var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("block1"), 1, 
                 (await _osTestHelper.GenerateTransferTransactions(1)).ToList());
 
-            var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
+            var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement> {null});
+            await _serverService.AnnouncementBroadcastStream(requestStream, BuildServerCallContext(metadata));
+            received.Count.ShouldBe(0);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            
+            requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
             {
                 new BlockAnnouncement()
             });
