@@ -11,5 +11,7 @@ namespace AElf.Kernel.SmartContract
     {
     }
 
-    
+    public class LogEventTestBase : AElfIntegratedTest<LogEventTestAElfModule>
+    {
+    }
 }
