@@ -293,7 +293,7 @@ namespace AElf.Contracts.Genesis
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = HashHelper.ComputeFrom(code);
-            Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
+            Assert(oldCodeHash != newCodeHash, "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
@@ -341,7 +341,7 @@ namespace AElf.Contracts.Genesis
                 "Genesis owner already initialized");
             var parliamentContractAddress =
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
-            Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
+            Assert(Context.Sender == parliamentContractAddress, "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
             var defaultAuthority = new AuthorityInfo
             {
