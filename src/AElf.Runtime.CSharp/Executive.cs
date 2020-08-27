@@ -104,7 +104,7 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                // no need to check for new system contracts
+                // no need to check for new system contracts. [deprecated]
                 if (!IsSystemContract)
                     _smartContractProxy.SetExecutionObserver(observer);
                 
@@ -141,6 +141,19 @@ namespace AElf.Runtime.CSharp
             }
 
             return handler.InputBytesToString(paramsBytes);
+        }
+
+        public bool IsView(string methodName)
+        {
+            if (!_callHandlers.TryGetValue(methodName, out var handler))
+            {
+                throw new RuntimeException(
+                    $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                    string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+                );
+            }
+
+            return handler.IsView();
         }
 
         private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,

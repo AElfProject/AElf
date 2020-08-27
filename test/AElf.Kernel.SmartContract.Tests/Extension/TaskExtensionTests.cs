@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract.Extension
         }
 
         [Fact]
-        public async Task Task_Extensions_Test_Two_Cancellations_NotCanceled()
+        public async Task Task_Extensions_Test_Two_CancellationTask_Extensions_Test_Two_Cancellations_NotCanceleds_NotCanceled()
         {
             var ct1 = new CancellationTokenSource(10000);
             var ct2 = new CancellationTokenSource(10000);
