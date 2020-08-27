@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,12 +7,10 @@ using Acs1;
 using Acs3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
-using AElf.CSharp.CodeOps;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -29,18 +28,44 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task Initialize_AlreadyExist_Test()
         {
-            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
-                new AuthorityInfo()
-                {
-                    OwnerAddress = SampleAddress.AddressList[0],
-                    ContractAddress = BasicContractZeroAddress
-                });
+            {
+                var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.Initialize), new InitializeInput
+                    {
+                        ContractDeploymentAuthorityRequired = false
+                    });
+                
+                txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                txResult.Error.ShouldContain("Contract zero already initialized.");
+            }
 
-            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.ShouldContain("Unauthorized behavior.");
+            {
+                var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                    new AuthorityInfo()
+                    {
+                        OwnerAddress = SampleAddress.AddressList[0],
+                        ContractAddress = BasicContractZeroAddress
+                    });
+
+                txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                txResult.Error.ShouldContain("Unauthorized behavior.");
+            }
         }
 
+        [Fact]
+        public async Task DeploySystemContract_Test()
+        {
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress, nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract), new SystemContractDeploymentInput()
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+            });
+            
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("System contract deployment failed.");
+        }
+        
         [Fact]
         public async Task DeploySmartContracts_Test()
         {
@@ -64,6 +89,44 @@ namespace AElf.Contracts.Genesis
                 .ProposedContractInputHash;
             await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
 
+            {
+                var noPermissionCodeCheckProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ProposeContractCodeCheck), new ContractCodeCheckInput
+                    {
+                        ProposedContractInputHash = proposedContractInputHash
+                    });
+                noPermissionCodeCheckProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                noPermissionCodeCheckProposingTxResult.Error.ShouldContain("Unauthorized behavior.");
+            }
+
+            {
+                // not proposed
+                var releaseNotExistApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+                    {
+                        ProposalId = proposalId,
+                        ProposedContractInputHash = HashHelper.ComputeFrom("Random")
+                    });
+                releaseNotExistApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                releaseNotExistApprovedContractTxResult.Error.ShouldContain("Invalid contract proposing status.");
+            }
+            
+            {
+                // wrong sender
+                var releaseApprovedContractWithWrongSenderTx = await Tester.GenerateTransactionAsync(BasicContractZeroAddress, 
+                    nameof(BasicContractZero.ReleaseApprovedContract), AnotherMinerKeyPair, new ReleaseContractInput
+                    {
+                        ProposalId = proposalId,
+                        ProposedContractInputHash = proposedContractInputHash
+                    });
+                var blockReturnSet = await Tester.MineAsync(new List<Transaction>
+                    {releaseApprovedContractWithWrongSenderTx});
+                var noPermissionProposingTxResult =
+                    blockReturnSet.TransactionResultMap[releaseApprovedContractWithWrongSenderTx.GetHash()];
+                noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                noPermissionProposingTxResult.Error.ShouldContain("Invalid contract proposing status.");
+            }
+            
             // release contract code and trigger code check proposal
             var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
@@ -76,8 +139,79 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
                     .NonIndexed).ProposalId;
             codeCheckProposalId.ShouldNotBeNull();
+            
+            {
+                var releaseAlreadyApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+                    {
+                        ProposalId = proposalId,
+                        ProposedContractInputHash = proposedContractInputHash
+                    });
+                releaseAlreadyApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                releaseAlreadyApprovedContractTxResult.Error.ShouldContain("Invalid contract proposing status.");
+            }
 
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
+
+            {
+                var releaseNotProposedContract = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                    new ReleaseContractInput
+                    {
+                        ProposedContractInputHash = HashHelper.ComputeFrom("Random"), 
+                        ProposalId = codeCheckProposalId
+                    });
+                releaseNotProposedContract.Status.ShouldBe(TransactionResultStatus.Failed);   
+                releaseNotProposedContract.Error.ShouldContain("Invalid contract proposing status.");
+            }
+
+            {
+                var contractCodeCheckController = await GetContractCodeCheckController(Tester, BasicContractZeroAddress);
+
+                var deploymentProposalId = await CreateProposalAsync(Tester, ParliamentAddress,
+                    contractCodeCheckController.OwnerAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySmartContract),
+                    contractDeploymentInput);
+                await ApproveWithMinersAsync(Tester, ParliamentAddress, deploymentProposalId);
+                var releaseTx = await ReleaseProposalAsync(Tester, ParliamentAddress, deploymentProposalId);
+                releaseTx.Status.ShouldBe(TransactionResultStatus.Failed);
+                releaseTx.Error.ShouldContain("Invalid contract proposing status.");
+            }
+
+            {
+                var incorrectContractDeploymentInput = new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory, // test the default runner
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+                };
+                
+                var contractCodeCheckController = await GetContractCodeCheckController(Tester, BasicContractZeroAddress);
+
+                var deploymentProposalId = await CreateProposalAsync(Tester, ParliamentAddress,
+                    contractCodeCheckController.OwnerAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySmartContract),
+                    incorrectContractDeploymentInput);
+                await ApproveWithMinersAsync(Tester, ParliamentAddress, deploymentProposalId);
+                var releaseTx = await ReleaseProposalAsync(Tester, ParliamentAddress, deploymentProposalId);
+                releaseTx.Status.ShouldBe(TransactionResultStatus.Failed);
+                releaseTx.Error.ShouldContain("Contract proposing data not found.");
+            }
+            
+
+            {
+                var releaseCodeCheckWithWrongSenderTx = await Tester.GenerateTransactionAsync(BasicContractZeroAddress, 
+                    nameof(BasicContractZero.ReleaseCodeCheckedContract), AnotherMinerKeyPair, new ReleaseContractInput
+                    {
+                        ProposalId = proposalId,
+                        ProposedContractInputHash = proposedContractInputHash
+                    });
+                var blockReturnSet = await Tester.MineAsync(new List<Transaction>
+                    {releaseCodeCheckWithWrongSenderTx});
+                var noPermissionProposingTxResult =
+                    blockReturnSet.TransactionResultMap[releaseCodeCheckWithWrongSenderTx.GetHash()];
+                noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                noPermissionProposingTxResult.Error.ShouldContain("Invalid contract proposing status.");
+            }
 
             // release code check proposal and deployment completes
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -97,6 +231,18 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), deployAddress));
             contractInfo.Version.ShouldBe(1);
             contractInfo.Author.ShouldBe(BasicContractZeroAddress);
+            
+            {
+                var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                    new ReleaseContractInput
+                    {
+                        ProposedContractInputHash = proposedContractInputHash, 
+                        ProposalId = codeCheckProposalId
+                    });
+                releaseContractAlreadyFinished.Status.ShouldBe(TransactionResultStatus.Failed);   
+                releaseContractAlreadyFinished.Error.ShouldContain("Invalid contract proposing status.");
+            }
         }
 
         [Fact]
@@ -175,6 +321,120 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
+        public async Task UpdateSmartContract_SameCode_Test()
+        {
+            var contractDeploymentInput = new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            };
+
+            var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+            var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+            contractInfo.Version.ShouldBe(1);
+            var contractUpdateInput = new ContractUpdateInput
+            {
+                Address = newAddress,
+                Code = contractDeploymentInput.Code
+            };
+
+            var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+            proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var proposalId = ProposalCreated.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
+                .ProposalId;
+            proposalId.ShouldNotBeNull();
+            var proposedContractInputHash = ContractProposed.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
+                .ProposedContractInputHash;
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            
+            var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+                {
+                    ProposalId = proposalId,
+                    ProposedContractInputHash = proposedContractInputHash
+                });
+            releaseApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var codeCheckProposalId = ProposalCreated.Parser
+                .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                    .NonIndexed).ProposalId;
+            codeCheckProposalId.ShouldNotBeNull();
+
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
+            var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                new ReleaseContractInput
+                    {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
+            updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            updateResult.Error.ShouldContain("Code is not changed.");
+        }
+        
+        [Fact]
+        public async Task UpdateSmartContract_NewCodeExists_Test()
+        {
+            var contractDeploymentInput = new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value)
+            };
+            
+            
+            var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
+            var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+            contractInfo.Version.ShouldBe(1);
+            
+            var contractDeploymentInput2 = new ContractDeploymentInput
+            {
+                Category = KernelConstants.DefaultRunnerCategory, // test the default runner
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Genesis")).Value)
+            };
+            await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput2);
+            var contractUpdateInput = new ContractUpdateInput
+            {
+                Address = newAddress,
+                Code = contractDeploymentInput2.Code
+            };
+
+            var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+            proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var proposalId = ProposalCreated.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
+                .ProposalId;
+            proposalId.ShouldNotBeNull();
+            var proposedContractInputHash = ContractProposed.Parser
+                .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
+                .ProposedContractInputHash;
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+            
+            var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
+                {
+                    ProposalId = proposalId,
+                    ProposedContractInputHash = proposedContractInputHash
+                });
+            releaseApprovedContractTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var codeCheckProposalId = ProposalCreated.Parser
+                .ParseFrom(releaseApprovedContractTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                    .NonIndexed).ProposalId;
+            codeCheckProposalId.ShouldNotBeNull();
+
+            await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
+            var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                new ReleaseContractInput
+                    {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
+            updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            updateResult.Error.ShouldContain("Same code has been deployed before.");
+        }
+
+        [Fact]
         public async Task UpdateSmartContract_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput
@@ -194,10 +454,25 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(code)
             };
 
+            {
+                var addressNotExistProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ProposeUpdateContract), new ContractUpdateInput
+                    {
+                        Address = AnotherMinerAddress,
+                        Code = ByteString.CopyFrom(code)
+                    });
+                addressNotExistProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                addressNotExistProposingTxResult.Error.ShouldContain("Contract not found.");
+            }
+
             var proposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
             proposingTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
+            var secondTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput);
+            secondTxProposingResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
             var proposalId = ProposalCreated.Parser
                 .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
                 .ProposalId;
@@ -206,7 +481,7 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ContractProposed))).NonIndexed)
                 .ProposedContractInputHash;
             await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-
+            
             var releaseApprovedContractTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(BasicContractZero.ReleaseApprovedContract), new ReleaseContractInput
                 {
@@ -239,6 +514,11 @@ namespace AElf.Contracts.Genesis
             var updateContractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
             updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
+
+            var thirdTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZero.ProposeUpdateContract), contractUpdateInput,
+                TimestampHelper.GetUtcNow().AddSeconds(86400));
+            thirdTxProposingResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact(Skip = "Skip due to need very long task delay.")]
@@ -271,12 +551,7 @@ namespace AElf.Contracts.Genesis
                     ProposedContractInputHash = proposedContractInputHash
                 });
 
-            // Wait for contract code check event handler to finish its job
-            // await Task.Run(async () => 
-            // {
-            //     await Task.Delay(15000);
-            // });
-            
+
             // Mine a block, should include approval transaction
             var block = await Tester.MineEmptyBlockAsync();
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
@@ -662,6 +937,14 @@ namespace AElf.Contracts.Genesis
                 repeatedProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 repeatedProposingTxResult.Error.Contains("Already proposed.").ShouldBeTrue();
             }
+            
+            {
+                // propose contract code
+                var repeatedProposingTxResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZero.ProposeNewContract), contractDeploymentInput);
+                repeatedProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                repeatedProposingTxResult.Error.Contains("Already proposed.").ShouldBeTrue();
+            }
 
             var proposalId = ProposalCreated.Parser
                 .ParseFrom(proposingTxResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated))).NonIndexed)
@@ -834,6 +1117,20 @@ namespace AElf.Contracts.Genesis
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
 
             author.ShouldBe(SideChainTester.GetCallOwnerAddress());
+            
+            {
+                var noPermissionProposingTx = await SideChainTester.GenerateTransactionAsync(SideBasicContractZeroAddress, 
+                    nameof(BasicContractZero.ProposeUpdateContract), AnotherMinerKeyPair, new ContractUpdateInput
+                    {
+                        Address = deployAddress,
+                        Code = ByteString.Empty
+                    });
+                var blockReturnSet = await SideChainTester.MineAsync(new List<Transaction> {noPermissionProposingTx});
+                var noPermissionProposingTxResult =
+                    blockReturnSet.TransactionResultMap[noPermissionProposingTx.GetHash()];
+                noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                noPermissionProposingTxResult.Error.ShouldContain("No permission.");
+            }
         }
 
         [Fact]
@@ -985,24 +1282,62 @@ namespace AElf.Contracts.Genesis
             
             const string proposalCreationMethodName =
                 nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeCodeCheckController);
-            var proposalId = await CreateProposalAsync(Tester, codeCheckController.ContractAddress,
-                codeCheckController.OwnerAddress, proposalCreationMethodName,
-                new AuthorityInfo
-                {
-                    OwnerAddress = organizationAddress,
-                    ContractAddress = ParliamentAddress
-                });
-            await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
-            var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
-            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            {
+                // organization address not exists
+                var proposalId = await CreateProposalAsync(Tester, codeCheckController.ContractAddress,
+                    codeCheckController.OwnerAddress, proposalCreationMethodName,
+                    new AuthorityInfo
+                    {
+                        OwnerAddress = TokenContractAddress,
+                        ContractAddress = ParliamentAddress
+                    });
+                await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+                var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+                txResult2.Status.ShouldBe(TransactionResultStatus.Failed);
+                txResult2.Error.ShouldContain("Invalid authority input.");
+            }
+            
+            {
+                var proposalId = await CreateProposalAsync(Tester, codeCheckController.ContractAddress,
+                    codeCheckController.OwnerAddress, proposalCreationMethodName,
+                    new AuthorityInfo
+                    {
+                        OwnerAddress = organizationAddress,
+                        ContractAddress = ParliamentAddress
+                    });
+                await ApproveWithMinersAsync(Tester, ParliamentAddress, proposalId);
+                var txResult2 = await ReleaseProposalAsync(Tester, ParliamentAddress, proposalId);
+                txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
-                new Empty());
-            var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
-            Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
+                byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
+                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                    new Empty());
+                var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
+                Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
+            }
+        }
+        
+        #endregion
+        
+        [Fact]
+        public async Task SetInitialController_Failed_Test()
+        {
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.SetInitialControllerAddress),
+                ParliamentAddress);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("Genesis owner already initialized");
         }
 
-        #endregion
+        [Fact]
+        public async Task SetContractProposerRequiredState_Failed_Test()
+        {
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.SetContractProposerRequiredState),
+                ParliamentAddress);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.ShouldContain("Genesis contract already initialized");
+        }
     }
 }
