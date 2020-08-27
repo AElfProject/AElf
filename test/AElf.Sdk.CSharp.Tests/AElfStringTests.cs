@@ -29,12 +29,25 @@ namespace AElf.Sdk.CSharp.Tests
             var info1 = "test1";
             var info2 = "test2";
             var info3 = "test3";
+            var info4 = "test4";
 
             var result1 = AElfString.Concat(info1, info2);
             result1.ShouldBe("test1test2");
 
             var result2 = AElfString.Concat(info1, info2, info3);
             result2.ShouldBe("test1test2test3");
+            
+            var result3 = AElfString.Concat(info1, info2, info3,info4);
+            result3.ShouldBe("test1test2test3test4");
+
+#if !DEBUG
+            var result4 = result3;
+            while (result4.Length < SmartContractConstants.AElfStringLengthLimitInContract)
+            {
+                result4 = result4 + info1;
+            }
+            Assert.Throws<AssertionException>(() => { AElfString.Concat(result4, result1);});
+#endif
         }
 
         [Fact]
@@ -53,6 +66,15 @@ namespace AElf.Sdk.CSharp.Tests
 
             var result3 = AElfString.Concat(info1, info2, info3, info4);
             result3.ShouldBe("24test" + info3 + info4);
+        }
+
+        [Fact]
+        public void StringExtensions_Test()
+        {
+            var str1 = "test1";
+            var str2 = "test2";
+            str1.Append(str2).ShouldBe("test1test2");
+            str1.AppendLine(str2).ShouldBe("test1\ntest2");
         }
     }
 }

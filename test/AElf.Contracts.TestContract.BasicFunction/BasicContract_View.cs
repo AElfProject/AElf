@@ -47,5 +47,13 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 Int64Value = State.LoserHistory[address]
             };
         }
+
+        public override OtherResourceInfo GetResourceInfo(Transaction input)
+        {
+            return new OtherResourceInfo
+            {
+                Address = Context.Self
+            };
+        }
     }
 }

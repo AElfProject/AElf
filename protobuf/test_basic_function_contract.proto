@@ -48,6 +48,9 @@ service BasicFunctionContract {
     rpc GetLockedAmount(GetLockedTokenAmountInput) returns(GetLockedTokenAmountOutput){
         option (aelf.is_view) = true;
     }
+    rpc GetResourceInfo (aelf.Transaction) returns (OtherResourceInfo) {
+        option (aelf.is_view) = true;
+    }
 }
 
 //Input
@@ -110,4 +113,8 @@ message TransferTokenToContractInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
+}
+
+message OtherResourceInfo{
+    aelf.Address address = 1;
 }

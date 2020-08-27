@@ -359,7 +359,7 @@ namespace AElf.Contracts.Referendum
             var maximalRejectionThreshold = 10000;
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
-                maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender}, "ABC");
+                maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
             var keyPair = Accounts[1].KeyPair;
