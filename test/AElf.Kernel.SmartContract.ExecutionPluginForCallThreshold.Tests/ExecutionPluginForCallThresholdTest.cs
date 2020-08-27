@@ -195,6 +195,31 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests
                 dummy.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold.");
             }
         }
+
+        [Fact]
+        public async Task GetPreTransactions_Token_CheckThreshold_Test()
+        {
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
+                .ToLookup(p => p.GetType()).Select(coll => coll.First());
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(MethodCallingThresholdPreExecutionPlugin));
+            plugin.ShouldNotBeNull();
+         
+            var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var chain = await bcs.GetChainAsync();
+            var transactions = (await plugin.GetPreTransactionsAsync(TestContract.ContractContainer.Descriptors,
+                new TransactionContext
+                {
+                    Transaction = new Transaction
+                    {
+                        From = DefaultSender,
+                        To = TokenContractAddress,
+                        MethodName = nameof(TokenContractContainer.TokenContractStub.CheckThreshold)
+                    },
+                    BlockHeight = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash
+                })).ToList();
+            transactions.Count.ShouldBe(0);
+        }
         
         private async Task SetThresholdFee(long callingFee)
         {

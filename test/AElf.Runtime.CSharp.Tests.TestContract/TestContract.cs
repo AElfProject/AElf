@@ -163,16 +163,24 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         {
             // Iterating array via foreach loop causes unchecked arithmetic opcodes
             // This is to be used for contract policy tests
-            
-            var words = new[] { "TEST", "FOREACH", "LOOP" };
+
+            var words = new[] {"TEST", "FOREACH", "LOOP"};
             var merged = "";
-            
+
             foreach (var word in words)
             {
                 merged += $" {word}";
             }
 
             return new StringOutput {StringValue = merged};
+        }
+
+        public override Int32Output TestViewMethod(Empty input)
+        {
+            return new Int32Output()
+            {
+                Int32Value = State.Int32Info.Value + 1
+            };
         }
 
         // for test cases
