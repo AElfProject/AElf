@@ -18,6 +18,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -41,6 +42,7 @@ namespace AElf.WebApp.Application.Chain
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainService _blockchainService;
+        private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;
         private readonly ITransactionResultStatusCacheProvider _transactionResultStatusCacheProvider;
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -48,10 +50,12 @@ namespace AElf.WebApp.Application.Chain
         public ILogger<TransactionAppService> Logger { get; set; }
 
         public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            IBlockchainService blockchainService, ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
+            IBlockchainService blockchainService, IObjectMapper<ChainApplicationWebAppAElfModule> objectMapper, 
+            ITransactionResultStatusCacheProvider transactionResultStatusCacheProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
+            _objectMapper = objectMapper;
             _transactionResultStatusCacheProvider = transactionResultStatusCacheProvider;
 
             LocalEventBus = NullLocalEventBus.Instance;
@@ -196,7 +200,7 @@ namespace AElf.WebApp.Application.Chain
 
             if (!input.ReturnTransaction) return output;
 
-            var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            var transactionDto = _objectMapper.Map<Transaction, TransactionDto>(transaction);
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
             if (contractMethodDescriptor == null)
@@ -300,10 +304,17 @@ namespace AElf.WebApp.Application.Chain
         }
 
         private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
-            string methodName)
+            string methodName, bool throwException = true)
         {
-            return await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                _transactionReadOnlyExecutionService, contractAddress, methodName);
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetContractMethodDescriptorAsync(chainContext,
+                contractAddress, methodName, throwException);
         }
 
         private async Task<byte[]> CallReadOnlyAsync(Transaction tx)

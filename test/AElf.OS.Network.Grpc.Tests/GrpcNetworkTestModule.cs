@@ -1,20 +1,14 @@
 using System;
-using System.Net;
-using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Network.Protocol;
 using AElf.OS.Network.Protocol.Types;
-using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -39,8 +33,6 @@ namespace AElf.OS.Network
                 mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
                 return mockService.Object;
             });
-            
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
