@@ -438,6 +438,30 @@ namespace AElf.Kernel.Blockchain.Application
             }
         }
 
+        [Fact]
+        public async Task UpdateTransactionBlockIndicesByLibHeight_Test()
+        {
+            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+
+            var txId = HashHelper.ComputeFrom("Transaction");
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height
+            };
+            await _transactionBlockIndexService.AddBlockIndexAsync(new List<Hash> {txId}, blockIndex);
+
+            await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(blockHeader.Height);
+            _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndex);
+            transactionBlockIndex.BlockHash.ShouldBe(blockHeader.GetHash());
+            transactionBlockIndex.BlockHeight.ShouldBe(blockHeader.Height);
+
+            await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(
+                blockHeader.Height + KernelConstants.ReferenceBlockValidPeriod);
+            _transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out transactionBlockIndex);
+            transactionBlockIndex.ShouldBeNull();
+        }
+
         private async Task AddBlockAsync(Chain chain, Block block)
         {
             await _blockchainService.AddBlockAsync(block);
