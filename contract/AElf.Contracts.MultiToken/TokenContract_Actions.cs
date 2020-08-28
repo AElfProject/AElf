@@ -533,5 +533,7 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }
+        
+        
     }
 }

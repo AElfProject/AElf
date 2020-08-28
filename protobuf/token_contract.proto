@@ -35,6 +35,8 @@ service TokenContract {
     }
     rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
     }
+    rpc ChangeTokenProfitable (ChangeTokenProfitableInput) returns (google.protobuf.Empty) {
+    }
 
     //   Cross Chain Exchange
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
@@ -411,6 +413,12 @@ message ChangeTokenIssuerInput
 {
     string symbol = 1;
     aelf.Address new_token_Issuer = 2;
+}
+
+message ChangeTokenProfitableInput
+{
+    string symbol = 1;
+    bool is_profitable = 2;
 }
 
 // Events
