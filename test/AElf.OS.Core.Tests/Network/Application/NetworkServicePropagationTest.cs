@@ -305,6 +305,24 @@ namespace AElf.OS.Network.Application
             _testContext.MockAElfNetworkServer.Verify(s => s.TrySchedulePeerReconnectionAsync(It.IsAny<IPeer>()),
                 Times.Once());
         }
+        
+        [Fact]
+        public async Task BroadcastLibAnnouncement_PeerNotReady_Test()
+        {
+            var libHash = HashHelper.ComputeFrom("LibHash");
+            var libHeight = 2;
+            
+            _testContext.MockedPeers[0]
+                .Setup(p => p.EnqueueLibAnnouncement(It.IsAny<LibAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Throws<NetworkException>();
+            
+            await _networkService.BroadcastLibAnnounceAsync(libHash, libHeight);
+
+            foreach (var peer in _testContext.MockedPeers)
+                peer.Verify(p => p.EnqueueLibAnnouncement(
+                    It.Is<LibAnnouncement>(a => a.LibHash == libHash && a.LibHeight == libHeight),
+                    It.IsAny<Action<NetworkException>>()), Times.Once());
+        }
 
         [Fact]
         public async Task BroadcastBlock_OnePeerKnowsBlock_Test()
