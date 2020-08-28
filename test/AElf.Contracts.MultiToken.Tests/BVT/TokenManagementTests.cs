@@ -118,6 +118,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
                 IsBurnable = NativeTokenInfo.IsBurnable,
+                IsProfitable = true,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -137,7 +138,8 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = NativeTokenInfo.TotalSupply,
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
-                IsBurnable = NativeTokenInfo.IsBurnable
+                IsBurnable = NativeTokenInfo.IsBurnable,
+                IsProfitable = true
             });
 
 
