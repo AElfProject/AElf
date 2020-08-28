@@ -66,7 +66,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(votingRegisterInput),
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(
+                HashHelper.ComputeFrom(votingRegisterInput),
                 HashHelper.ComputeFrom(Context.Self));
 
             State.VotingEventRegistered.Value = true;
@@ -225,7 +226,9 @@ namespace AElf.Contracts.Election
         public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
         {
             Assert(
-                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) ==
+                Context.Sender ||
+                Context.Sender == GetParliamentDefaultOrganizationAddress(),
                 "Only consensus contract can update candidate information.");
 
             foreach (var updateCandidateInformationInput in input.Value)
@@ -257,6 +260,17 @@ namespace AElf.Contracts.Election
             State.ReElectionRewardHash.Value = input.ReElectionRewardHash;
             State.VotesRewardHash.Value = input.VotesRewardHash;
             return new Empty();
+        }
+
+        private Address GetParliamentDefaultOrganizationAddress()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
         }
     }
 }

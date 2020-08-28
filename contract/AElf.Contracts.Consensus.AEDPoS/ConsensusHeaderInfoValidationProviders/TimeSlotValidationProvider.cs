@@ -27,8 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // It is maybe failing due to using too much time producing previous tiny blocks.
                 if (!CheckMinerTimeSlot(validationContext))
                 {
-                    validationResult.Message =
-                        $"Time slot already passed before execution.{validationContext.SenderPubkey}";
+                    validationResult.Message = $"Time slot already passed before execution.{validationContext.SenderPubkey}";
                     validationResult.IsReTrigger = true;
                     return validationResult;
                 }

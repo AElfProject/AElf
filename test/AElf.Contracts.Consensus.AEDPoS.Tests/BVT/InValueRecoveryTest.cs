@@ -64,44 +64,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             decryptResult.ShouldBe(message);
         }
-
-        /// <summary>
-        /// Generate encrypted messages and put them to round information.
-        /// </summary>
-        /// <returns></returns>
-        private async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessagesAsync()
-        {
-            var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-
-            var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => HashHelper.ComputeFrom("randomHashes")).ToList();
-            var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
-                new AElfConsensusTriggerInformation
-                {
-                    Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
-                    InValue = randomHashes[i]
-                }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
-
-            foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
-            {
-                var currentKeyPair = InitialCoreDataCenterKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
-
-                KeyPairProvider.SetKeyPair(currentKeyPair);
-
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
-
-                var tester = GetAEDPoSContractStub(currentKeyPair);
-                var headerInformation = new AElfConsensusHeaderInformation();
-                headerInformation.MergeFrom(
-                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
-                        .ToBytesValue())).Value);
-
-                // Update consensus information.
-                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
-                await tester.UpdateValue.SendAsync(toUpdate);
-            }
-
-            return triggers;
-        }
     }
 }

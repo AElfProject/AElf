@@ -140,12 +140,12 @@ namespace AElf.CrossChain
                 return mockCrossChainClientProvider.Object;
             });
 
-            context.Services.AddSingleton<IConsensusExtraDataKeyProvider, MockConsensusExtraDataProvider>();
+            context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
         }
 
         delegate void TryGetClientCallback(int chainId, out ICrossChainClient crossChainClient);
 
-        public class MockConsensusExtraDataProvider : IConsensusExtraDataKeyProvider
+        public class MockConsensusExtraDataProvider : IConsensusExtraDataProvider
         {
             public Task<ByteString> GetBlockHeaderExtraDataAsync(BlockHeader blockHeader)
             {

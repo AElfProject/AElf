@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -192,7 +193,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
             Assert(
-                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
+                Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName),
                 "Only Cross Chain Contract can call this method.");
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
@@ -225,11 +227,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void DistributeResourceTokensToPreviousMiners()
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            EnsureTokenContractAddressSet();
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
             foreach (var symbol in Context.Variables.GetStringArray(AEDPoSContractConstants.PayTxFeeSymbolListName)

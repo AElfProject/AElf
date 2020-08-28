@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Election;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -313,12 +314,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToGetPreviousRoundInformation(out var previousRound);
             if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
             {
-                Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
                 nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
                 nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
-                Context.LogDebug(() => "Round of new miners generated.");
                 return;
             }
 
@@ -373,12 +372,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
-            Context.LogDebug(() => $"MainChainCurrentMinerList: \n{State.MainChainCurrentMinerList.Value}");
-            var result = State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
-                         GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                         GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
-            Context.LogDebug(() => $"IsMainChainMinerListChanged: {result}");
-            return result;
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
+                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
         }
 
         private static Hash GetMinerListHash(IEnumerable<string> minerList)
@@ -559,6 +555,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return result;
+        }
+
+        public override MinerList GetMainChainCurrentMinerList(Empty input)
+        {
+            return State.MainChainCurrentMinerList.Value;
         }
     }
 }

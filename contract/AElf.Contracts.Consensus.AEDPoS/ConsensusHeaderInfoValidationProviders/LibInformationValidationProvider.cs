@@ -16,9 +16,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
                  baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber))
             {
-                validationResult.Message = "Incorrect lib information.\n" +
-                                           $"{baseRound.ConfirmedIrreversibleBlockHeight} > {providedRound.ConfirmedIrreversibleBlockHeight}\n" +
-                                           $"{baseRound.ConfirmedIrreversibleBlockRoundNumber} > {providedRound.ConfirmedIrreversibleBlockRoundNumber}";
+                validationResult.Message = "Incorrect lib information.";
                 return validationResult;
             }
 
