@@ -29,7 +29,6 @@ namespace AElf.OS.Handlers
                 BlockHeight = 100,
                 PeerPubkey = "NormalPeer"
             });
-            await Task.Delay(500);
             
             _blackListedPeerProvider.IsIpBlackListed(peerHost).ShouldBeTrue();
         }

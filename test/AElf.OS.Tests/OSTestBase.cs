@@ -60,12 +60,4 @@ namespace AElf.OS
     public class AbnormalPeerEventHandlerTestBase : AElfIntegratedTest<AbnormalPeerEventHandlerTestAElfModule>
     {
     }
-    
-    public class NetworkBroadcastTestBase : AElfIntegratedTest<NetworkBroadcastTestAElfModule>
-    {
-    }
-    
-    public class TransactionValidationFailedEventHandlerTestBase : AElfIntegratedTest<TransactionValidationFailedEventHandlerTestAElfModule>
-    {
-    }
 }

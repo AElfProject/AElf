@@ -11,20 +11,4 @@ namespace AElf.OS.Handlers
     {
 
     }
-    
-    [DependsOn(
-        typeof(NetworkServicePropagationTestModule),
-        typeof(OSTestAElfModule))]
-    public class NetworkBroadcastTestAElfModule : AElfModule
-    {
-
-    }
-    
-    [DependsOn(
-        typeof(PeerInvalidTransactionTestModule),
-        typeof(OSTestAElfModule))]
-    public class TransactionValidationFailedEventHandlerTestAElfModule : AElfModule
-    {
-
-    }
 }
