@@ -1202,7 +1202,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        [Fact]
+        [Fact] 
         public async Task GetPrimaryToken_Test()
         {
             var primaryTokenSymbol = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
@@ -1213,11 +1213,10 @@ namespace AElf.Contracts.MultiToken
             tokenSymbol = await primaryTokenService.GetPrimaryTokenSymbol();
             tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
             tokenSymbol = primaryTokenProvider.GetPrimaryTokenSymbol();
-            tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
+            tokenSymbol.ShouldBe(primaryTokenSymbol.Value); 
         }
 
-        private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply,
-            long issueAmount,
+        private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,
             Address to = null, params string[] otherParameters)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
