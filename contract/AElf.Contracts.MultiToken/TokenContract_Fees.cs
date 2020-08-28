@@ -684,7 +684,7 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
         {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) && tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
