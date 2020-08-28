@@ -73,7 +73,7 @@ namespace AElf.OS.Network.Grpc
                 using (var cts = new CancellationTokenSource())
                 {
                     // Ensure that under normal circumstances, the timeout is no earlier than on the server side.
-                    cts.CancelAfter(timeout.Add(TimeSpan.FromMilliseconds(200)));
+                    cts.CancelAfter(timeout.Add(TimeSpan.FromSeconds(1)));
                     return await responseContinuation.ResponseAsync.WithCancellation(cts.Token);
                 }
             }
