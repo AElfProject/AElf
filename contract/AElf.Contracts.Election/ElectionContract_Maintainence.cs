@@ -187,10 +187,8 @@ namespace AElf.Contracts.Election
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             Assert(
-                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) ==
-                Context.Sender ||
-                Context.Sender == GetParliamentDefaultOrganizationAddress(),
-                "Only consensus contract or parliament can update candidate information.");
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only consensus contract can update candidate information.");
 
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
             if (candidateInformation == null)
