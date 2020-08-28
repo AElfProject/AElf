@@ -100,5 +100,23 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
         }
+
+        public async Task<bool> IsViewTransactionAsync(IChainContext chainContext, Transaction transaction)
+        {
+            var address = transaction.To;
+            IExecutive executive = null;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+                return executive.IsView(transaction.MethodName);
+            }
+            finally
+            {
+                if (executive != null)
+                {
+                    await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+                }
+            }
+        }
     }
 }
