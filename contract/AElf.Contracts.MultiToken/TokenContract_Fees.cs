@@ -235,8 +235,7 @@ namespace AElf.Contracts.MultiToken
                     Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
-                else
-                    AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
+                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
                 Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol), $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
                 symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
@@ -687,7 +686,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
             var tokenInfo = State.TokenInfos[tokenWeightInfo.TokenSymbol];
-            Assert(tokenInfo != null && tokenInfo.IsProfitable, $"Token is not found. {tokenWeightInfo.TokenSymbol}");
+            Assert(tokenInfo != null, $"Token is not found. {tokenWeightInfo.TokenSymbol}");
             // ReSharper disable once PossibleNullReferenceException
             Assert(tokenInfo.IsProfitable, $"Token {tokenWeightInfo.TokenSymbol} is not Profitable");
             

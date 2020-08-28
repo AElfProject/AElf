@@ -91,10 +91,8 @@ namespace AElf.Contracts.Association
             var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
-            var primaryTokenSymbol = (State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty())).Value;
             // ReSharper disable once PossibleNullReferenceException
-            if(primaryTokenSymbol != symbol)
-                Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
+            Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
         }
 
         #endregion
