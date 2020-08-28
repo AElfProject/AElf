@@ -71,10 +71,6 @@ namespace AElf.Kernel.SmartContract
 
         IStateProvider StateProvider { get; }
 
-        byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
-
-        byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
-
         Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes);
 
         Hash GetRandomHash(Hash fromHash);

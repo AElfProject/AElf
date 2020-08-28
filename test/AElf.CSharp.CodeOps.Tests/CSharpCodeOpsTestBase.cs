@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using AElf.TestBase;
+using Mono.Cecil;
 
 namespace AElf.CSharp.CodeOps
 {
@@ -27,11 +28,32 @@ namespace AElf.CSharp.CodeOps
             return ReadCode(ContractPatchedDllDir + contractType.Module + ".patched");
         }
 
-        private byte[] ReadCode(string path)
+        protected ModuleDefinition GetContractModule(Type contractType)
+        {
+            var code = ReadContractCode(contractType);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
+        }
+        
+        protected ModuleDefinition GetPatchedContractModule(Type contractType)
+        {
+            var code = ReadPatchedContractCode(contractType);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
+        }
+        
+        protected ModuleDefinition GetModule(Type type)
+        {
+            var code = ReadCode(Assembly.GetAssembly(type).Location);
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            return modDef;
+        }
+
+        protected byte[] ReadCode(string path)
         {
             return File.Exists(path)
                 ? File.ReadAllBytes(path)
-                : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
+                : throw new FileNotFoundException("DLL cannot be found. " + path);
         }
     }
 }
