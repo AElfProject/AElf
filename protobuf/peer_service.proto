@@ -8,12 +8,10 @@ import "aelf/core.proto";
 service PeerService {
 
     rpc Ping (PingRequest) returns (PongReply) {}
+    rpc CheckHealth (HealthCheckRequest) returns (HealthCheckReply) {}
     
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
-
-    rpc SendAnnouncement (BlockAnnouncement) returns (VoidReply) {}
-    rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
     rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
     

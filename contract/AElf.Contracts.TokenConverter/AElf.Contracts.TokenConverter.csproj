@@ -4,7 +4,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TokenConverter</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>TokenConverter is a contract that enables buying and selling tokens based on connector 
             pairs.</Description>
     </PropertyGroup>
@@ -41,6 +40,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_converter_contract_impl.proto">
             <Link>Protobuf\Proto\token_converter_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

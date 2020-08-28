@@ -43,7 +43,7 @@ namespace AElf.OS.BlockSync.Application
             var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!blockValid)
             {
-                Logger.LogWarning(
+                Logger.LogDebug(
                     $"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
                 await LocalEventBus.PublishAsync(new AbnormalPeerFoundEventData
                 {

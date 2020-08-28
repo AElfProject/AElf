@@ -136,7 +136,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.ToByteString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = updatedRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -182,7 +182,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.ToByteString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = currentRound.GetTinyBlockRound(pubkey),
                 Behaviour = triggerInformation.Behaviour
             };
@@ -193,11 +193,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound);
 
+            nextRound.ExtraBlockProducerOfPreviousRound = pubkey;
+
             if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {
                 return new AElfConsensusHeaderInformation
                 {
-                    SenderPubkey = pubkey.ToByteString(),
+                    SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                     Round = nextRound,
                     Behaviour = triggerInformation.Behaviour
                 };
@@ -208,15 +210,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks =
                 nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
-            nextRound.ExtraBlockProducerOfPreviousRound = pubkey;
-
             nextRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = 1;
             nextRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.ToByteString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = nextRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = pubkey.ToByteString(),
+                SenderPubkey = ByteStringHelper.FromHexString(pubkey),
                 Round = firstRoundOfNextTerm,
                 Behaviour = triggerInformation.Behaviour
             };

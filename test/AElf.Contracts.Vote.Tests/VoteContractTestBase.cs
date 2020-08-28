@@ -6,7 +6,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
@@ -34,7 +34,7 @@ namespace AElf.Contracts.Vote
         protected Address ParliamentContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address ConsensusContractAddress { get; set; }
-        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub { get; set; }
+        internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal VoteContractImplContainer.VoteContractImplStub VoteContractStub { get; set; }
         internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
@@ -94,9 +94,9 @@ namespace AElf.Contracts.Vote
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
         }
 
-        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
+        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
+            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)

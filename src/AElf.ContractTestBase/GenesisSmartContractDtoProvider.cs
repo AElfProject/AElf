@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS0;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Node.Application;
 
 namespace AElf.ContractTestBase
@@ -35,16 +35,12 @@ namespace AElf.ContractTestBase
                     var genesisSmartContractDto = new GenesisSmartContractDto
                     {
                         Code = code,
-                        SystemSmartContractName = p.SystemSmartContractName
+                        SystemSmartContractName = p.SystemSmartContractName,
+                        ContractInitializationMethodCallList = new List<ContractInitializationMethodCall>()
                     };
                     foreach (var method in methodList)
                     {
-                        genesisSmartContractDto.TransactionMethodCallList.Value.Add(
-                            new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
-                            {
-                                MethodName = method.MethodName,
-                                Params = method.Params
-                            });
+                        genesisSmartContractDto.AddGenesisTransactionMethodCall(method);
                     }
 
                     return genesisSmartContractDto;

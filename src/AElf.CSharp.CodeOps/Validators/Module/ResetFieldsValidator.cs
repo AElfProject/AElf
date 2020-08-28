@@ -5,11 +5,14 @@ using AElf.CSharp.CodeOps.Patchers.Module;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ResetFieldsValidator : IValidator<ModuleDefinition>
+    public class ResetFieldsValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
+        public bool SystemContactIgnored => false;
+        
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
             var errors = module.Types
@@ -117,7 +120,10 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             {
                 // Skip first instruction in ResetFields method, this is supposed to be CallCount call
                 // and validation of this is handled in ObserverProxyValidator
-                if (instruction.Offset == 0) 
+                if (instruction.Offset == 0 && 
+                    instruction.OpCode == OpCodes.Call && 
+                    instruction.Operand is MethodReference methodRef && 
+                    methodRef.Name == nameof(ExecutionObserverProxy.CallCount)) 
                     continue;
                 
                 // If ret, assume end of the method and exit the loop

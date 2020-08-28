@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.Kernel;
@@ -22,8 +21,6 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly AssemblyLoadContext _assemblyLoadContext;
-        private readonly Assembly _contractAssembly;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly ServerServiceDefinition _serverServiceDefinition;
@@ -45,13 +42,11 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, AssemblyLoadContext assemblyLoadContext)
+        public Executive(Assembly assembly)
         {
-            //TODO Check whether need to keep assemblyLoadContext in Executive
-            _assemblyLoadContext = assemblyLoadContext;
-            _contractAssembly = assembly;
             _contractInstance = Activator.CreateInstance(assembly.FindContractType());
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverType());
+            _smartContractProxy =
+                new CSharpSmartContractProxy(_contractInstance, assembly.FindExecutionObserverProxyType());
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             Descriptors = _serverServiceDefinition.GetDescriptors();
@@ -95,10 +90,9 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            var observer = IsSystemContract ? 
-                new ExecutionObserver(-1, -1) : // Counters are active but no threshold
-                new ExecutionObserver(CurrentTransactionContext.ExecutionCallThreshold, 
-                    CurrentTransactionContext.ExecutionBranchThreshold);
+            var observer =
+                new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
+                    CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
             
             try
             {
@@ -110,7 +104,9 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                _smartContractProxy.SetExecutionObserver(observer);
+                // no need to check for new system contracts. [deprecated]
+                if (!IsSystemContract)
+                    _smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 
@@ -130,8 +126,6 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                CurrentTransactionContext.Trace.ExecutionCallCount = observer.GetCallCount();
-                CurrentTransactionContext.Trace.ExecutionBranchCount = observer.GetBranchCount();
                 Cleanup();
             }
 
@@ -147,6 +141,19 @@ namespace AElf.Runtime.CSharp
             }
 
             return handler.InputBytesToString(paramsBytes);
+        }
+
+        public bool IsView(string methodName)
+        {
+            if (!_callHandlers.TryGetValue(methodName, out var handler))
+            {
+                throw new RuntimeException(
+                    $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                    string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+                );
+            }
+
+            return handler.IsView();
         }
 
         private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
@@ -194,15 +201,10 @@ namespace AElf.Runtime.CSharp
 
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
             }
-            catch (TargetInvocationException ex)
-            {
-                CurrentTransactionContext.Trace.Error += ex;
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-            }
             catch (Exception ex)
             {
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                CurrentTransactionContext.Trace.Error += "\n" + ex;
+                CurrentTransactionContext.Trace.Error += ex + "\n";
             }
         }
         

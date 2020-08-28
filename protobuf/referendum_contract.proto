@@ -26,6 +26,7 @@ service ReferendumContract {
     rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
         option (aelf.is_view) = true;
     }
+    rpc GetProposalVirtualAddress(aelf.Hash) returns (aelf.Address){}
 }
 
 message CreateOrganizationInput {

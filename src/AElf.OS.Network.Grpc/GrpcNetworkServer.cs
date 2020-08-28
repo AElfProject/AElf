@@ -123,7 +123,7 @@ namespace AElf.OS.Network.Grpc
                     }
                     catch (Exception e)
                     {
-                        Logger.LogInformation(e, $"Connect peer failed {node}.");
+                        Logger.LogWarning(e, $"Connect peer failed {node}.");
                     }
 
                     if (!dialed)
@@ -165,6 +165,11 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning($"NTP clock drift is more that {NetworkConstants.DefaultNtpDriftThreshold} ms : " +
                                   $"{offset.Duration().TotalMilliseconds} ms");
             }
+        }
+
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _connectionService.CheckEndpointAvailableAsync(endpoint);
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

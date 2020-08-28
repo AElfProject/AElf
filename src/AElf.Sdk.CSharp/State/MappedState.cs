@@ -4,7 +4,7 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public class MappedStateBase : StateBase
+    public class MappedState : StateBase
     {
         internal StatePath GetSubStatePath(string key)
         {
@@ -19,7 +19,7 @@ namespace AElf.Sdk.CSharp.State
     /// </summary>
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TEntity">The type of the value.</typeparam>
-    public class MappedState<TKey, TEntity> : MappedStateBase
+    public class MappedState<TKey, TEntity> : MappedState
     {
         internal class ValuePair
         {
@@ -119,7 +119,7 @@ namespace AElf.Sdk.CSharp.State
         }
     }
 
-    public class MappedState<TKey1, TKey2, TEntity> : MappedStateBase
+    public class MappedState<TKey1, TKey2, TEntity> : MappedState
     {
         internal Dictionary<TKey1, MappedState<TKey2, TEntity>> Cache =
             new Dictionary<TKey1, MappedState<TKey2, TEntity>>();
@@ -181,7 +181,7 @@ namespace AElf.Sdk.CSharp.State
         }
     }
 
-    public class MappedState<TKey1, TKey2, TKey3, TEntity> : MappedStateBase
+    public class MappedState<TKey1, TKey2, TKey3, TEntity> : MappedState
     {
         internal Dictionary<TKey1, MappedState<TKey2, TKey3, TEntity>> Cache =
             new Dictionary<TKey1, MappedState<TKey2, TKey3, TEntity>>();
@@ -243,7 +243,7 @@ namespace AElf.Sdk.CSharp.State
         }
     }
 
-    public class MappedState<TKey1, TKey2, TKey3, TKey4, TEntity> : MappedStateBase
+    public class MappedState<TKey1, TKey2, TKey3, TKey4, TEntity> : MappedState
     {
         internal Dictionary<TKey1, MappedState<TKey2, TKey3, TKey4, TEntity>> Cache =
             new Dictionary<TKey1, MappedState<TKey2, TKey3, TKey4, TEntity>>();

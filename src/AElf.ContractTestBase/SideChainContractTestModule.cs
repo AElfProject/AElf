@@ -1,15 +1,14 @@
 using System.Collections.Generic;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.ContractTestBase
@@ -22,7 +21,7 @@ namespace AElf.ContractTestBase
         typeof(EconomicSystemAElfModule),
         typeof(GovernmentSystemAElfModule)
     )]
-    public class SideChainContractTestModule : ContractTestModule
+    public class SideChainContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -46,14 +45,6 @@ namespace AElf.ContractTestBase
                 SideChainTokenContractInitializationDataProvider>();
             services.AddTransient<ICrossChainContractInitializationDataProvider,
                 SideChainCrossChainContractInitializationDataProvider>();
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
         }
     }
 }

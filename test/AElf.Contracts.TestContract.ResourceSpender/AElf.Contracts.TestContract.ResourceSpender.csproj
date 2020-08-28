@@ -18,13 +18,15 @@
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\acs8.proto">
             <Link>Protobuf\Proto\reference\acs8.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\reference\acs10.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
         </ContractBase>
     </ItemGroup>
     <ItemGroup>

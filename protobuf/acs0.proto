@@ -49,8 +49,7 @@ service ACS0 {
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
-    // TODO: Change name to GetSmartContractRegistrationByCodeHash
-    rpc GetSmartContractRegistration (aelf.Hash) returns (aelf.SmartContractRegistration) {
+    rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
 }
@@ -97,6 +96,7 @@ message ContractCodeCheckInput{
     string code_check_release_method = 3;
     aelf.Hash proposed_contract_input_hash = 4;
     sint32 category = 5;
+    bool is_system_contract = 6;
 }
 
 // Events
@@ -122,6 +122,7 @@ message CodeCheckRequired
     bytes code = 1;
     aelf.Hash proposed_contract_input_hash = 2;
     sint32 category = 3;
+    bool is_system_contract = 4;
 }
 
 message CodeUpdated

@@ -4,6 +4,7 @@ package AEDPoS;
 
 import "aelf/options.proto";
 import "aelf/core.proto";
+import "authority_info.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
@@ -34,8 +35,7 @@ service AEDPoSContract {
     
     rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
-
-    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+    rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -91,6 +91,15 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     rpc GetRandomHash (google.protobuf.Int64Value) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS0;
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Kernel.Consensus;

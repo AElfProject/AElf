@@ -13,35 +13,32 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         private readonly IBlockStateSetManger _blockStateSetManger;
-        private readonly KernelTestHelper _kernelTestHelper;
+        private readonly SmartContractHelper _smartContractHelper;
 
         public SmartContractRegistrationProviderTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractRegistrationProvider = GetRequiredService<ISmartContractRegistrationProvider>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
-            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _smartContractHelper = GetRequiredService<SmartContractHelper>();
         }
         
         [Fact]
         public async Task SmartContractRegistrationSetAndGet_Test()
         {
-            var genesisBlock = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction>());
-            var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
-            var blockStateSet = new BlockStateSet
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-            await _blockStateSetManger.SetBlockStateSetAsync(blockStateSet);
+            var chain = await _smartContractHelper.CreateChainAsync();
             var blockExecutedDataKey = $"BlockExecutedData/SmartContractRegistration/{SampleAddress.AddressList[0]}";
-            blockStateSet.BlockExecutedData.ShouldNotContainKey(blockExecutedDataKey);
             
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
+            
+            var smartContractRegistrationFromProvider =
+                await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext,
+                    SampleAddress.AddressList[0]);
+            smartContractRegistrationFromProvider.ShouldBeNull();
             
             var smartContractRegistration = new SmartContractRegistration
             {
@@ -52,13 +49,13 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractRegistrationProvider.SetSmartContractRegistrationAsync(chainContext,
                 SampleAddress.AddressList[0], smartContractRegistration);
             
-            blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
+            var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(chain.BestChainHash);
             blockStateSet.BlockExecutedData.ShouldContainKey(blockExecutedDataKey);
 
-            var smartContractRegistrationFromState =
+            smartContractRegistrationFromProvider =
                 await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext,
                     SampleAddress.AddressList[0]);
-            smartContractRegistrationFromState.ShouldBe(smartContractRegistration);
+            smartContractRegistrationFromProvider.ShouldBe(smartContractRegistration);
         }
     }
 }

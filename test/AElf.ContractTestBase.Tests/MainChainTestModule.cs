@@ -1,4 +1,4 @@
-using AElf.Contracts.Deployer;
+using AElf.ContractDeployer;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;

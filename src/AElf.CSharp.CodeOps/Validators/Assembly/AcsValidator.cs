@@ -2,11 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.CSharp.CodeOps.Validators.Assembly
 {
-    public class AcsValidator
+    public interface IAcsValidator
+    {
+        IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcs requiredAcs);
+    }
+    
+    public class AcsValidator : IAcsValidator
     {
         public IEnumerable<ValidationResult> Validate(System.Reflection.Assembly assembly, RequiredAcs requiredAcs)
         {

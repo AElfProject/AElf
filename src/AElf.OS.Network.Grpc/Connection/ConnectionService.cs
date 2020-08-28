@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.OS.Network.Grpc.Connection
+namespace AElf.OS.Network.Grpc
 {
     public class ConnectionService : IConnectionService
     {
@@ -41,9 +41,6 @@ namespace AElf.OS.Network.Grpc.Connection
 
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
-            if (peer == null)
-                throw new ArgumentNullException(nameof(peer));
-
             // clean the pool
             if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
                 Logger.LogWarning($"{peer} was not found in pool.");
@@ -54,7 +51,7 @@ namespace AElf.OS.Network.Grpc.Connection
             // dispose the peer
             await peer.DisconnectAsync(sendDisconnect);
             
-            Logger.LogDebug($"Removed peer {peer}");
+            Logger.LogInformation($"Removed peer {peer}");
         }
 
         public Task<bool> SchedulePeerReconnection(DnsEndPoint endpoint)
@@ -111,7 +108,7 @@ namespace AElf.OS.Network.Grpc.Connection
             GrpcPeer currentPeer = dialedPeer;
             if (inboundPeer != null)
             {
-                Logger.LogWarning("Duplicate peer connection detected: " +
+                Logger.LogDebug("Duplicate peer connection detected: " +
                                   $"{inboundPeer} ({inboundPeer.LastReceivedHandshakeTime}) " +
                                   $"vs {dialedPeer} ({dialedPeer.LastSentHandshakeTime}).");
 
@@ -123,7 +120,7 @@ namespace AElf.OS.Network.Grpc.Connection
                     
                     await inboundPeer.DisconnectAsync(false);
 
-                    Logger.LogWarning($"Replaced the inbound connection with the dialed peer {inboundPeer} .");
+                    Logger.LogDebug($"Replaced the inbound connection with the dialed peer {inboundPeer} .");
                 }
                 else
                 {
@@ -131,7 +128,7 @@ namespace AElf.OS.Network.Grpc.Connection
                     await dialedPeer.DisconnectAsync(false);
                     currentPeer = inboundPeer;
                     
-                    Logger.LogWarning($"Disconnected dialed peer {dialedPeer}.");
+                    Logger.LogDebug($"Disconnected dialed peer {dialedPeer}.");
                 }
             }
             else
@@ -152,7 +149,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (Exception e)
             {
-                Logger.LogInformation(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
+                Logger.LogDebug(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
                 _peerPool.RemovePeer(currentPeer.Info.Pubkey);
                 await currentPeer.DisconnectAsync(false);
                 throw;
@@ -173,7 +170,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString()};
+            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = ByteStringHelper.FromHexString(peer.Info.Pubkey)};
             var bestChainHash = peer.CurrentBlockHash;
             var bestChainHeight = peer.CurrentBlockHeight;
 
@@ -182,15 +179,24 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private async Task<GrpcPeer> GetDialedPeerWithEndpointAsync(DnsEndPoint endpoint)
         {
-            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
+            var peer = _peerPool.FindPeerByEndpoint(endpoint);
+            if (peer != null)
             {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
-                return null;
+                if (peer.IsInvalid)
+                {
+                    _peerPool.RemovePeer(peer.Info.Pubkey);
+                    await peer.DisconnectAsync(false);
+                }
+                else
+                {
+                    Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
+                    return null; 
+                }
             }
 
             if (_peerPool.IsPeerBlackListed(endpoint.Host))
             {
-                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
+                Logger.LogDebug($"Peer with endpoint {endpoint} is blacklisted.");
                 return null;
             }
 
@@ -198,7 +204,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
             if (dialedPeer == null)
             {
-                Logger.LogWarning($"Error dialing {endpoint}.");
+                Logger.LogDebug($"Error dialing {endpoint}.");
                 return null;
             }
 
@@ -248,7 +254,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 // add the new peer to the pool
                 if (!_peerPool.TryAddPeer(grpcPeer))
                 {
-                    Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                    Logger.LogDebug($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
                     await grpcPeer.DisconnectAsync(false);
                     return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
                 }
@@ -328,9 +334,16 @@ namespace AElf.OS.Network.Grpc.Connection
             }
         }
 
-        public void RemovePeer(string pubkey)
+        public async Task RemovePeerAsync(string pubkey)
         {
-            _peerPool.RemovePeer(pubkey);
+            var peer = _peerPool.RemovePeer(pubkey);
+            if (peer != null)
+                await peer.DisconnectAsync(false);
+        }
+
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint endpoint)
+        {
+            return await _peerDialer.CheckEndpointAvailableAsync(endpoint);
         }
     }
 }

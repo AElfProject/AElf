@@ -7,6 +7,8 @@ using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.Token;
+using AElf.Kernel.Token.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
@@ -30,8 +32,6 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
-
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
@@ -70,7 +70,7 @@ namespace AElf.OS
                 return new UnitTestCSharpSmartContractRunner(
                     option.Value.SdkDir);
             });
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, Kernel.UnitTestContractZeroCodeProvider>();
             context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
             context.Services
                 .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();

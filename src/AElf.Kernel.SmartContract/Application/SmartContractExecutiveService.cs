@@ -20,23 +20,22 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
         private readonly ISmartContractRegistrationProvider _smartContractRegistrationProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
-        
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-
+        private readonly ITransactionContextFactory _transactionContextFactory;
         public ILogger<SmartContractExecutiveService> Logger { get; set; }
 
         public SmartContractExecutiveService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService, 
             ISmartContractRegistrationProvider smartContractRegistrationProvider,
-            ISmartContractExecutiveProvider smartContractExecutiveProvider)
+            ISmartContractExecutiveProvider smartContractExecutiveProvider, ITransactionContextFactory transactionContextFactory)
         {
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _smartContractRegistrationProvider = smartContractRegistrationProvider;
-             _smartContractExecutiveProvider = smartContractExecutiveProvider;
-             
+            _smartContractExecutiveProvider = smartContractExecutiveProvider;
+            _transactionContextFactory = transactionContextFactory;
+
             Logger = NullLogger<SmartContractExecutiveService>.Instance;
         }
 
@@ -122,7 +121,7 @@ namespace AElf.Kernel.SmartContract.Application
             return executive;
         }
         
-        public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
             var smartContractRegistration =
@@ -173,38 +172,24 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var transaction = new Transaction()
             {
-                From = FromAddress,
+                From = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = address.ToByteString()
             };
+            
 
-            var trace = new TransactionTrace
-            {
-                TransactionId = transaction.GetHash()
-            };
+            var txContext = _transactionContextFactory.Create(transaction, chainContext);
 
-            var txCtxt = new TransactionContext
-            {
-                PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = TimestampHelper.GetUtcNow(),
-                Transaction = transaction,
-                BlockHeight = chainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = 0,
-                StateCache = chainContext.StateCache
-            };
-
-            await executiveZero.ApplyAsync(txCtxt);
-            var returnBytes = txCtxt.Trace?.ReturnValue;
+            await executiveZero.ApplyAsync(txContext);
+            var returnBytes = txContext.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {
                 return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
             throw new SmartContractFindRegistrationException(
-                $"failed to find registration from zero contract {txCtxt.Trace.Error}");
+                $"failed to find registration from zero contract {txContext.Trace.Error}");
         }
-
     }
 }

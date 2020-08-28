@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
-    public class UncheckedMathValidator : IValidator<MethodDefinition>
+    public class UncheckedMathValidator : IValidator<MethodDefinition>, ITransientDependency
     {
         private readonly HashSet<OpCode> _uncheckedOpCodes = new HashSet<OpCode>
         {
@@ -15,6 +16,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             OpCodes.Mul
         };
         
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)

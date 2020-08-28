@@ -41,10 +41,10 @@ namespace AElf.Parallel.Tests
 
             switch (transactionContext.Transaction.MethodName)
             {
-                case nameof(BasicFunctionWithParallelContract.RemoveValueFromInlineWithPlugin):
-                case nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin):
-                case nameof(BasicFunctionWithParallelContract.RemoveValueWithPlugin):
-                case nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValueFromInlineWithPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValueFromPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValueWithPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValueParallelFromPostPlugin):
                 {
                     var input = RemoveValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
                     transactions.Add(new Transaction
@@ -56,7 +56,7 @@ namespace AElf.Parallel.Tests
                             Key = input.Key,
                             Memo = Guid.NewGuid().ToString()
                         }.ToByteString(),
-                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
+                        MethodName = nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
                             BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
@@ -64,7 +64,7 @@ namespace AElf.Parallel.Tests
                     break;
                 }
 
-                case nameof(BasicFunctionWithParallelContract.RemoveValueFromPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValueFromPrePlugin):
                 {
                     var input = RemoveValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
                     transactions.Add(new Transaction
@@ -72,28 +72,28 @@ namespace AElf.Parallel.Tests
                         From = transactionContext.Transaction.From,
                         To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                         Params = input.ToByteString(),
-                        MethodName = nameof(BasicFunctionWithParallelContract.RemoveValue),
+                        MethodName = nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.RemoveValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
                             BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
                     });
                     break;
                 }
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPlugin): 
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedParallelWithInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPrePlugin): 
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithFailedInlineAndPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePluginAndFailedPostPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithInlineAndPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueParallelWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailedWithPlugin): 
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailedWithPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailedWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailedParallelWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailedWithInlineAndPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithFailedInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithFailedInlineAndPrePlugin): 
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueParallelWithFailedInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithPrePluginAndFailedPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin):
                 {
                     var input = IncreaseValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
                     transactions.Add(new Transaction
@@ -105,7 +105,7 @@ namespace AElf.Parallel.Tests
                             Key = input.Key,
                             Memo = Guid.NewGuid().ToString()
                         }.ToByteString(),
-                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
+                        MethodName = nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValue),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
                             BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
@@ -113,10 +113,10 @@ namespace AElf.Parallel.Tests
                     break;
                 }
 
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPrePlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPrePluginAndPostPlugin):
-                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithFailedPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithInlineAndFailedPrePlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithFailedPrePluginAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin):
                 {
                     var input = IncreaseValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
                     transactions.Add(new Transaction
@@ -128,7 +128,7 @@ namespace AElf.Parallel.Tests
                             Key = input.Key,
                             Memo = Guid.NewGuid().ToString()
                         }.ToByteString(),
-                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValueFailed),
+                        MethodName = nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub.IncreaseValueFailed),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
                             BlockHelper.GetRefBlockPrefix(transactionContext.PreviousBlockHash)
@@ -140,8 +140,9 @@ namespace AElf.Parallel.Tests
             return Task.FromResult(transactions.AsEnumerable());
         }
         
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string executionInformation)
         {
+            executionInformation = string.Empty;
             return false;
         }
     }

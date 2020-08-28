@@ -3,7 +3,6 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
@@ -29,7 +28,7 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
@@ -54,6 +53,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\stub\acs3.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>
         </ContractStub>

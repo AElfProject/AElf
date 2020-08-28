@@ -6,9 +6,10 @@ using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Indexing.Application;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Indexing
@@ -27,7 +28,7 @@ namespace AElf.CrossChain.Indexing
         #region Side chain
 
         [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithIndex_Test()
+        public async Task GetIndexedSideChainBlockData_WithIndex_Test()
         {
             var chainId = _chainOptions.ChainId;
             var fakeMerkleTreeRoot1 = HashHelper.ComputeFrom("fakeMerkleTreeRoot1");
@@ -56,14 +57,14 @@ namespace AElf.CrossChain.Indexing
                 }
             });
 
-            var res = await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(
+            var res = await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(
                 fakeSideChainBlockData.BlockHeaderHash, 1);
             Assert.True(res.SideChainBlockDataList[0].Height == fakeSideChainBlockData.Height);
             Assert.True(res.SideChainBlockDataList[0].ChainId == chainId);
         }
 
         [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithoutIndex_Test()
+        public async Task GetIndexedSideChainBlockData_WithoutIndex_Test()
         {
             var chainId = _chainOptions.ChainId;
             var fakeSideChainBlockData = new SideChainBlockData
@@ -75,7 +76,7 @@ namespace AElf.CrossChain.Indexing
             var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
             fakeIndexedCrossChainBlockData.SideChainBlockDataList.AddRange(new[] {fakeSideChainBlockData});
 
-            var res = await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(
+            var res = await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(
                 fakeSideChainBlockData.BlockHeaderHash, 1);
             Assert.True(res == null);
         }
@@ -137,11 +138,52 @@ namespace AElf.CrossChain.Indexing
                 await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
-
+            crossChainTransactionInput.MethodName.ShouldBe(nameof(CrossChainContractImplContainer.CrossChainContractImplStub
+                .ProposeCrossChainIndexing));
             Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
                 crossChainBlockData.SideChainBlockDataList.Count);
         }
+        
+        [Fact]
+        public async Task PrepareExtraDataForNextMiningAsync_NoProposal_NoCache_Test()
+        {
+            var sideChainId = 123;
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
 
+            var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
+            res.ShouldBeEmpty();
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
+            crossChainTransactionInput.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task CheckExtraDataIsNeeded_ToBeReleased_Test()
+        {
+            var sideChainId = 123;
+            var utcNow = TimestampHelper.GetUtcNow();
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"),
+                    new CrossChainBlockData(), true, utcNow.AddSeconds(1)));
+            var res = await _crossChainIndexingDataService.CheckExtraDataIsNeededAsync(Hash.Empty, 1, utcNow);
+            res.ShouldBe(true);
+        }
+        
+        [Fact]
+        public async Task CheckExtraDataIsNeeded_NotToBeReleased_Test()
+        {
+            var sideChainId = 123;
+
+            var utcNow = TimestampHelper.GetUtcNow();
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"),
+                    new CrossChainBlockData(), false));
+            var res = await _crossChainIndexingDataService.CheckExtraDataIsNeededAsync(Hash.Empty, 1, utcNow);
+            res.ShouldBe(false);
+        }
+        
         [Fact]
         public async Task PrepareExtraDataForNextMiningAsync_NotApproved_Test()
         {
@@ -150,7 +192,7 @@ namespace AElf.CrossChain.Indexing
             var cachingCount = 5;
             for (int i = 0; i < cachingCount + CrossChainConstants.DefaultBlockCacheEntityCount; i++)
             {
-                sideChainBlockInfoCache.Add(new SideChainBlockData()
+                sideChainBlockInfoCache.Add(new SideChainBlockData
                 {
                     ChainId = sideChainId,
                     Height = (i + 1),
@@ -158,22 +200,23 @@ namespace AElf.CrossChain.Indexing
                 });
             }
 
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = new CrossChainBlockData
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"),
+                    new CrossChainBlockData
                     {
                         SideChainBlockDataList = {sideChainBlockInfoCache}
                     },
-                    ToBeReleased = false,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-                });
+                    false)
+            );
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
+            
+            var crossChainTransactionInput =
+                await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
+            crossChainTransactionInput.ShouldBeNull();
         }
-
+        
         [Fact]
         public async Task PrepareExtraDataForNextMiningAsync_Test()
         {
@@ -194,15 +237,10 @@ namespace AElf.CrossChain.Indexing
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = crossChainBlockData,
-                    ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-                });
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), crossChainBlockData)
+            );
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             var crossChainExtraData = CrossChainExtraData.Parser.ParseFrom(res);
@@ -237,15 +275,10 @@ namespace AElf.CrossChain.Indexing
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = crossChainBlockData,
-                    ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(-1)
-                });
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId, 
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), crossChainBlockData, true,
+                    TimestampHelper.GetUtcNow().AddSeconds(-1)));
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
@@ -283,15 +316,10 @@ namespace AElf.CrossChain.Indexing
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = crossChainBlockData,
-                    ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
-                });
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), crossChainBlockData, true,
+                    TimestampHelper.GetUtcNow().AddMilliseconds(500)));
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             var crossChainExtraData = CrossChainExtraData.Parser.ParseFrom(res);
@@ -326,15 +354,11 @@ namespace AElf.CrossChain.Indexing
             {
                 SideChainBlockDataList = {sideChainBlockInfoCache}
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = crossChainBlockData,
-                    ToBeReleased = false,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(500)
-                });
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), crossChainBlockData, false,
+                    TimestampHelper.GetUtcNow().AddMilliseconds(500)
+                ));
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(Hash.Empty, 1);
             Assert.Empty(res);
@@ -495,21 +519,15 @@ namespace AElf.CrossChain.Indexing
                 sideChainBlockInfoCache.Add(sideChainBlockData);
             }
 
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                new PendingChainIndexingProposalStatus());
             _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
             AddFakeCacheData(new Dictionary<int, List<ICrossChainBlockEntity>>
                 {{sideChainId, sideChainBlockInfoCache}});
 
-            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
-            {
-                Proposer = SampleAddress.AddressList[0],
-                ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                ProposedCrossChainBlockData = new CrossChainBlockData(),
-                ToBeReleased = true,
-                ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-            };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData()));
 
 
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
@@ -520,11 +538,11 @@ namespace AElf.CrossChain.Indexing
                 await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(previousBlockHash,
                     previousBlockHeight);
 
-            Assert.Equal(crossChainTransactionInput.MethodName,
-                nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseCrossChainIndexing));
+            Assert.Equal(nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseCrossChainIndexingProposal),
+                crossChainTransactionInput.MethodName);
 
-            var proposalIdInParam = Hash.Parser.ParseFrom(crossChainTransactionInput.Value);
-            Assert.Equal(pendingProposal.ProposalId, proposalIdInParam);
+            var sideChainIdListInParam = ReleaseCrossChainIndexingProposalInput.Parser.ParseFrom(crossChainTransactionInput.Value).ChainIdList;
+            sideChainIdListInParam.ShouldContain(sideChainId);
         }
 
         [Fact]
@@ -547,21 +565,15 @@ namespace AElf.CrossChain.Indexing
                 sideChainBlockInfoCache.Add(sideChainBlockData);
             }
 
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput());
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                new PendingChainIndexingProposalStatus());
             _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 1);
             AddFakeCacheData(new Dictionary<int, List<ICrossChainBlockEntity>>
                 {{sideChainId, sideChainBlockInfoCache}});
 
-            var pendingProposal = new GetPendingCrossChainIndexingProposalOutput
-            {
-                Proposer = SampleAddress.AddressList[0],
-                ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                ProposedCrossChainBlockData = new CrossChainBlockData(),
-                ToBeReleased = false,
-                ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-            };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(pendingProposal);
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(sideChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData(), false));
             var res = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(previousBlockHash,
                 previousBlockHeight);
             Assert.Empty(res);
@@ -593,18 +605,13 @@ namespace AElf.CrossChain.Indexing
                 PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
                 Height = 2
             };
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = new CrossChainBlockData
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(parentChainId,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData
                     {
                         ParentChainBlockDataList = {parentChainBlockDataList}
-                    },
-                    ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-                });
+                    }
+                ));
             var bytes = await _crossChainIndexingDataService.PrepareExtraDataForNextMiningAsync(header.PreviousBlockHash,
                 header.Height - 1);
             Assert.Empty(bytes);
@@ -672,18 +679,27 @@ namespace AElf.CrossChain.Indexing
                 });
             }
 
-            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(
-                new GetPendingCrossChainIndexingProposalOutput
-                {
-                    Proposer = SampleAddress.AddressList[0],
-                    ProposalId = HashHelper.ComputeFrom("ProposalId"),
-                    ProposedCrossChainBlockData = new CrossChainBlockData
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(chainId1,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData
                     {
-                        SideChainBlockDataList = {list1, list2, list3}
-                    },
-                    ToBeReleased = true,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddSeconds(10)
-                });
+                        SideChainBlockDataList = {list1}
+                    }));
+            
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(chainId2,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData
+                    {
+                        SideChainBlockDataList = {list2}
+                    }));
+
+            _crossChainTestHelper.AddFakePendingCrossChainIndexingProposal(chainId3,
+                CreatePendingChainIndexingProposalStatus(SampleAddress.AddressList[0],
+                    HashHelper.ComputeFrom("ProposalId"), new CrossChainBlockData
+                    {
+                        SideChainBlockDataList = {list3}
+                    })
+            );
 
             _crossChainTestHelper.SetFakeLibHeight(1);
             var header = new BlockHeader
@@ -702,6 +718,51 @@ namespace AElf.CrossChain.Indexing
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);
         }
 
+        [Fact]
+        public async Task GetAllChainIdHeightPairsAtLibAsync_Test()
+        {
+            {
+                var allChainIdAndHeightResult =
+                    await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
+                allChainIdAndHeightResult.ShouldBe(new SideChainIdAndHeightDict());
+            }
+            
+            _crossChainTestHelper.SetFakeLibHeight(2);
+            
+            {
+                var allChainIdAndHeightResult =
+                    await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
+                allChainIdAndHeightResult.ShouldBe(new SideChainIdAndHeightDict());
+            }
+            
+            var parentChainId = ChainHelper.GetChainId(10);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(parentChainId, 1);
+            
+            var sideChainId = ChainHelper.GetChainId(100);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(sideChainId, 0);
+            
+            {
+                var allChainIdAndHeightResult =
+                    await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
+                allChainIdAndHeightResult.IdHeightDict[parentChainId].ShouldBe(1);
+                allChainIdAndHeightResult.IdHeightDict[sideChainId].ShouldBe(0);
+            }
+        }
+
         #endregion
+
+        private PendingChainIndexingProposalStatus CreatePendingChainIndexingProposalStatus(Address proposer,
+            Hash proposalId, CrossChainBlockData proposedCrossChainBlockData, bool toBeReleased = true,
+            Timestamp expiredTimeStamp = null)
+        {
+            return new PendingChainIndexingProposalStatus
+            {
+                Proposer = proposer,
+                ProposalId = proposalId,
+                ProposedCrossChainBlockData = proposedCrossChainBlockData,
+                ToBeReleased = toBeReleased,
+                ExpiredTime = expiredTimeStamp ?? TimestampHelper.GetUtcNow().AddSeconds(10)
+            };
+        }
     }
 }

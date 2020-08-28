@@ -1,22 +1,23 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.TestKit;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
 namespace AElf.ContractTestBase.Tests
 {
-    public class MainChainTests : MainChainTestBase
+    public sealed class MainChainTests : MainChainTestBase
     {
         private readonly IBlockchainService _blockchainService;
-
+        
         public MainChainTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();

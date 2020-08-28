@@ -1,13 +1,15 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using AElf.CSharp.CodeOps.Patchers.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ObserverProxyValidator : IValidator<ModuleDefinition>
+    public class ObserverProxyValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
         private readonly TypeDefinition _counterProxyTypeRef;
         private TypeDefinition _injProxyType;
@@ -21,6 +23,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             var module = AssemblyDefinition.ReadAssembly(typeof(ExecutionObserverProxy).Assembly.Location).MainModule;
             _counterProxyTypeRef = ExecutionObserverInjector.ConstructCounterProxy(module, "AElf.Reference");
         }
+
+        public bool SystemContactIgnored => true;
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
@@ -125,17 +129,19 @@ namespace AElf.CSharp.CodeOps.Validators.Module
             // Should be a call placed before each branching opcode
             foreach (var instruction in method.Body.Instructions)
             {
-                if (Constants.JumpingOpCodes.Contains(instruction.OpCode))
+                if (Constants.JumpingOpCodes.Contains(instruction.OpCode) 
+                    && instruction.Operand is Instruction targetInstruction 
+                    && targetInstruction.Offset < instruction.Offset)
                 {
-                    var proxyCallInstruction = instruction.Previous; // Previous instruction should be proxy call
+                    var proxyCallInstruction = targetInstruction.Next; 
 
                     if (!(proxyCallInstruction.OpCode == OpCodes.Call && proxyCallInstruction.Operand == _injProxyBranchCount))
                     {
-                        errors.Add(new ObserverProxyValidationResult($"Missing execution observer branch count call detected. " +
+                        errors.Add(new ObserverProxyValidationResult("Missing execution observer branch count call detected. " +
                                                                      $"[{method.DeclaringType.Name} > {method.Name}]"));
-                    }                    
+                    }
                 }
-
+                
                 // Calling SetObserver method within contract is a breach
                 if (instruction.OpCode == OpCodes.Call && instruction.Operand == _injProxySetObserver)
                 {

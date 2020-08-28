@@ -25,11 +25,10 @@ namespace AElf.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
             context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
-            context.Services.AddSingleton<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
+            // context.Services.AddSingleton<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

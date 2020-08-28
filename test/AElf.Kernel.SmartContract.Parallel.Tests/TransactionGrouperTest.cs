@@ -109,18 +109,87 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             grouped.NonParallelizables.Count.ShouldBe(1);
         }
 
-        private Transaction GetTransaction(string methodName, int from, int to)
+        [Fact]
+        public async Task Group_With_InvalidContractAddress_Test()
+        {
+            var groupResources = new[] {(0, 1)};
+            var group =
+                groupResources.Select(r => new {Resource = r, Transaction = GetTransaction("g1", r.Item1, r.Item2,ParallelType.InvalidContractAddress)})
+                    .ToList();
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = HashHelper.ComputeFrom("blockHash")
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, group.Select(g => g.Transaction).ToList());
+
+            grouped.TransactionsWithoutContract.Count.ShouldBe(1);
+            grouped.Parallelizables.Count.ShouldBe(0);
+            grouped.NonParallelizables.Count.ShouldBe(0);
+        }
+        
+        [Fact]
+        public async Task Group_With_NonParallelizable_Test()
+        {
+            var groupResources = new[] {(0, 1)};
+            var group =
+                groupResources.Select(r => new {Resource = r, Transaction = GetTransaction("g1", r.Item1, r.Item2,ParallelType.NonParallelizable)})
+                    .ToList();
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = HashHelper.ComputeFrom("blockHash")
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, group.Select(g => g.Transaction).ToList());
+
+            grouped.NonParallelizables.Count.ShouldBe(1);
+            grouped.TransactionsWithoutContract.Count.ShouldBe(0);
+            grouped.Parallelizables.Count.ShouldBe(0);
+        }
+        
+        [Fact]
+        public async Task Group_Without_Paths_Test()
+        {
+            var groupResources = new[] {(0, 1)};
+            var group =
+                groupResources.Select(r => new {Resource = r, Transaction = GetTransactionWithoutPaths("g1", r.Item1, r.Item2)})
+                    .ToList();
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = HashHelper.ComputeFrom("blockHash")
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, group.Select(g => g.Transaction).ToList());
+
+            grouped.NonParallelizables.Count.ShouldBe(1);
+            grouped.TransactionsWithoutContract.Count.ShouldBe(0);
+            grouped.Parallelizables.Count.ShouldBe(0);
+        }
+
+        private Transaction GetTransaction(string methodName, int from, int to, ParallelType parallelType = ParallelType.Parallelizable)
         {
             var tx = new Transaction
             {
                 MethodName = methodName,
                 Params = new TransactionResourceInfo
                 {
-                    Paths =
+                    WritePaths =
                     {
                         GetPath(from), GetPath(to)
-                    }
+                    },
+                    ParallelType = parallelType
+                    
                 }.ToByteString()
+            };
+            return tx;
+        }
+        
+        private Transaction GetTransactionWithoutPaths(string methodName, int from, int to)
+        {
+            var tx = new Transaction
+            {
+                MethodName = methodName,
+                Params = new TransactionResourceInfo().ToByteString()
             };
             return tx;
         }

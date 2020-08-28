@@ -189,23 +189,31 @@ namespace AElf.Contracts.TokenHolder
             // Check auto-distribute threshold.
             if (scheme.AutoDistributeThreshold != null && scheme.AutoDistributeThreshold.Any())
             {
+                var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
+                var virtualAddress = originScheme.VirtualAddress;
+                Profit.DistributeProfitsInput distributedInput = null;
                 foreach (var threshold in scheme.AutoDistributeThreshold)
                 {
-                    var originScheme = State.ProfitContract.GetScheme.Call(scheme.SchemeId);
                     var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                     {
-                        Owner = originScheme.VirtualAddress,
+                        Owner = virtualAddress,
                         Symbol = threshold.Key
                     }).Balance;
                     if (balance < threshold.Value) continue;
-                    State.ProfitContract.DistributeProfits.Send(new Profit.DistributeProfitsInput
-                    {
-                        SchemeId = scheme.SchemeId,
-                        Period = scheme.Period.Add(1)
-                    });
-                    scheme.Period = scheme.Period.Add(1);
-                    State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
+                    if (distributedInput == null)
+                        distributedInput = new Profit.DistributeProfitsInput
+                        {
+                            SchemeId = scheme.SchemeId,
+                            Period = scheme.Period
+                        };
+                    distributedInput.AmountsMap[threshold.Key] = 0;
+                    break;
                 }
+
+                if (distributedInput == null) return new Empty();
+                State.ProfitContract.DistributeProfits.Send(distributedInput);
+                scheme.Period = scheme.Period.Add(1);
+                State.TokenHolderProfitSchemes[input.SchemeManager] = scheme;
             }
 
             return new Empty();
@@ -220,14 +228,15 @@ namespace AElf.Contracts.TokenHolder
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var lockId = State.LockIds[input][Context.Sender];
+            Assert(lockId != null, "Sender didn't register for profits.");
             var amount = State.TokenContract.GetLockedAmount.Call(new GetLockedAmountInput
             {
                 Address = Context.Sender,
-                LockId = State.LockIds[input][Context.Sender],
+                LockId = lockId,
                 Symbol = scheme.Symbol
             }).Amount;
 
-            var lockId = State.LockIds[input][Context.Sender];
             Assert(State.LockTimestamp[lockId].AddMinutes(scheme.MinimumLockMinutes) < Context.CurrentBlockTime,
                 "Cannot withdraw.");
 

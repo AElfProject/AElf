@@ -1,65 +1,26 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
-using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Network.Protocol.Types;
-using AElf.Types;
-using Grpc.Core;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServerBootNodesTests : GrpcNetworkWithBootNodesTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
         private readonly ILocalEventBus _eventBus;
-
+        private readonly IReconnectionService _reconnectionService;
 
         public GrpcNetworkServerBootNodesTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _eventBus = GetRequiredService<ILocalEventBus>();
-        }
-
-        [Fact]
-        public async Task Calling_DisposedPeer_ThrowsUnrecoverableNEtException()
-        {
-            await _networkServer.StartAsync();
-            
-            Channel channel = new Channel("localhost", 2001, ChannelCredentials.Insecure);
-            PeerService.PeerServiceClient peerClient = new PeerService.PeerServiceClient(channel);
-            
-            GrpcClient grpcClient = new GrpcClient(channel, peerClient);
-
-            AElfPeerEndpointHelper.TryParse("127.0.0.1:2001", out var endpoint);
-            
-            GrpcPeer peer = new GrpcPeer(grpcClient, endpoint, new PeerConnectionInfo
-            {
-                SessionId = new byte[] { 1,2,3 }
-            });
-
-            await peer.DisconnectAsync(false);
-
-            var exHealthCheck = await Assert.ThrowsAsync<NetworkException>(async () => await peer.PingAsync());
-            exHealthCheck.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
-            
-            var exGetBlocks = await Assert.ThrowsAsync<NetworkException>(
-                async () => await peer.GetBlocksAsync(HashHelper.ComputeFrom("blockHash"), 10));
-            exGetBlocks.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
-            
-            var exGetBlock = await Assert.ThrowsAsync<NetworkException>(
-                async () => await peer.GetBlockByHashAsync(HashHelper.ComputeFrom("blockHash")));
-            exGetBlock.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
-            
-            var exGetNodes = await Assert.ThrowsAsync<NetworkException>(
-                async () => await peer.GetNodesAsync());
-            exGetNodes.ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
-            
-            await _networkServer.StopAsync();
+            _reconnectionService = GetRequiredService<IReconnectionService>();
         }
 
         [Fact]
@@ -71,11 +32,15 @@ namespace AElf.OS.Network
                 received = a;
                 return Task.CompletedTask;
             });
-            
+
             await _networkServer.StartAsync();
-            
+
             received.ShouldNotBeNull();
-            
+
+            var reconnections = _reconnectionService.GetPeersReadyForReconnection(null);
+            reconnections.Count.ShouldBe(1);
+            reconnections.First().Endpoint.ShouldBe("127.0.0.1:2018");
+
             await _networkServer.StopAsync();
         }
     }

@@ -1,16 +1,17 @@
 syntax = "proto3";
 
-package Token;
+package token;
 
-import "aelf/options.proto";
 import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
+    // Actions
+
     //   Multiple Token
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -32,6 +33,8 @@ service TokenContract {
     }
     rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
     }
+    rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
+    }
 
     //   Cross Chain Exchange
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
@@ -45,14 +48,10 @@ service TokenContract {
     rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
     }
 
-    // ACS1 Related - Charge Transaction Fees
+    // ACS1 - Charge Transaction Fees
     rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.BoolValue) {
-    }
-    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
-    }
-    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
     }
 
     // ACS5 - Contract Method Call Threshold
@@ -68,41 +67,13 @@ service TokenContract {
     }
     rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+    }
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    }
     rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
     }
     rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
-    }
-    
-    // ACS8 Related - Resource Token Charge & Deposit
-    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
-    }
-    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
-    }
-
-    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
-    }
-    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
-    }
-
-    // Exclusive Side Chain Rental Stuff.
-    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
-    }
-    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
-    }
-
-    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeSideChainRentalController (AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo) returns (google.protobuf.Empty){
-    }
-    rpc ChangeCrossChainTokenContractRegistrationController (AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeUserFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -147,37 +118,6 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
-        option (aelf.is_view) = true;
-    }
-
-    rpc GetFeeReceiver (google.protobuf.Empty) returns (aelf.Address){
-        option (aelf.is_view) = true;
-    }
-    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (AuthorityInfo){
-        option (aelf.is_view) = true;
-    }
-    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (AuthorityInfo) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){
-        option (aelf.is_view) = true;
-    }
-    rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -359,6 +299,11 @@ message ChargeTransactionFeesInput {
     repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 5;
 }
 
+message ChargeTransactionFeesOutput {
+    bool success = 1;
+    string charging_information = 2;
+}
+
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
     SymbolListToPayTxSizeFee symbol_list_to_pay_tx_size_fee = 1;
@@ -460,6 +405,12 @@ message ContractTotalResourceTokens {
 message TotalResourceTokensMap
 {
     map<string, int64> value = 1;
+}
+
+message ChangeTokenIssuerInput
+{
+    string symbol = 1;
+    aelf.Address new_token_Issuer = 2;
 }
 
 // Events
@@ -566,91 +517,4 @@ message CrossChainReceived {
     int32 from_chain_id = 6;
     int32 issue_chain_id = 7;
     int64 parent_chain_height = 8;
-}
-
-message AdvanceResourceTokenInput {
-    aelf.Address contract_address = 1;
-    string resource_token_symbol = 2;
-    int64 amount = 3;
-}
-
-message TakeResourceTokenBackInput {
-    aelf.Address contract_address = 1;
-    string resource_token_symbol = 2;
-    int64 amount = 3;
-}
-
-message RegisterCrossChainTokenContractAddressInput{
-    int32 from_chain_id = 1;
-    int64 parent_chain_height = 2;
-    bytes transaction_bytes = 3;
-    aelf.MerklePath merkle_path = 4;
-    aelf.Address token_contract_address = 5;
-}
-
-message ValidateTokenInfoExistsInput{
-    string symbol = 1;
-    string token_name = 2;
-    int64 total_supply = 3;
-    int32 decimals = 4;
-    aelf.Address issuer = 5;
-    bool is_burnable = 6;
-    int32 issue_chain_id = 7;
-    bool is_profitable = 8;
-}
-
-message UpdateRentalInput {
-    map<string, int64> rental = 1;
-}
-
-message UpdateRentedResourcesInput {
-    map<string, int32> resource_amount = 1;
-}
-
-message TransferToContractInput {
-    string symbol = 1;
-    int64 amount = 2;
-    string memo = 3;
-}
-
-message ResourceUsage {
-    map<string, int32> value = 1;
-}
-
-message GetVirtualAddressForLockingInput {
-    aelf.Address address = 1;
-    aelf.Hash lock_id = 2;
-}
-
-message OwningRental {
-    map<string, int64> resource_amount = 1;
-}
-
-message OwningRentalUnitValue {
-    map<string, int64> resource_unit_value = 1;
-}
-
-message ProfitReceivingInformation {
-    aelf.Address contract_address = 1;
-    aelf.Address profit_receiver_address = 2;
-    int32 donation_parts_per_hundred = 3;
-}
-
-message ReceiveProfitsInput {
-    aelf.Address contract_address = 1;
-    string symbol = 2;
-    int64 amount = 3;
-}
-
-// about authority
-message UserFeeController{
-    AuthorityInfo root_controller = 1;
-    AuthorityInfo parliament_controller = 2;
-    AuthorityInfo referendum_controller = 3;
-}
-
-message DeveloperFeeController {
-    AuthorityInfo root_controller = 1;
-    AuthorityInfo parliament_controller = 2;
-    AuthorityInfo developer_controller = 3;
 }

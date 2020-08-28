@@ -22,7 +22,7 @@ using Volo.Abp.Threading;
 namespace AElf.Contracts.Genesis
 {
     public class
-        AuthorityNotRequiredBasicContractZeroTestBase : TestKit.ContractTestBase<
+        AuthorityNotRequiredBasicContractZeroTestBase : ContractTestKit.ContractTestBase<
             AuthorityNotRequiredBasicContractZeroTestModule>
     {
         protected new ISmartContractAddressService ContractAddressService =>
@@ -268,6 +268,14 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
                 nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractDeploymentController), new Empty());
             return AuthorityInfo.Parser.ParseFrom(contractDeploymentControllerByteString);
+        }
+        
+        internal async Task<AuthorityInfo> GetContractCodeCheckController<T>(
+            ContractTester<T> tester, Address genesisContractAddress) where T : ContractTestAElfModule
+        {
+            var contractCodeCheckControllerByteString = await tester.CallContractMethodAsync(genesisContractAddress,
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetCodeCheckController), new Empty());
+            return AuthorityInfo.Parser.ParseFrom(contractCodeCheckControllerByteString);
         }
 
         internal async Task<AuthorityInfo> GetMethodFeeController<T>(

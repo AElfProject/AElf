@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Database.RedisProtocol;
 using Xunit;
 
 namespace AElf.Database.Tests
@@ -33,7 +34,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            await _database.SetAsync(key, Helper.StringToBytes(value));
+            await _database.SetAsync(key, value.ToUtf8Bytes());
         }
 
         [Fact]
@@ -42,10 +43,10 @@ namespace AElf.Database.Tests
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            await _database.SetAsync(key, Helper.StringToBytes(value));
+            await _database.SetAsync(key, value.ToUtf8Bytes());
             var getResult = await _database.GetAsync(key);
 
-            Assert.Equal(value, Helper.BytesToString(getResult));
+            Assert.Equal(value, getResult.FromUtf8Bytes());
         }
 
         [Fact]
@@ -64,6 +65,36 @@ namespace AElf.Database.Tests
             Assert.False(exists);
         }
 
+        [Fact]
+        public async Task GetAllAsync_With_Invalid_Key_Test()
+        {
+            var invalidKey1 = "";
+            Assert.Throws<ArgumentException>(() =>
+            {
+                _database.GetAllAsync(new List<string> {invalidKey1});
+            });
+        }
+
+        [Fact]
+        public async Task SetAllAsync_With_Invalid_Key_Test()
+        {
+            var key1 = "";
+            var value1 = Guid.NewGuid().ToString();
+            Assert.Throws<ArgumentException>(() =>
+            {
+                _database.SetAllAsync(new Dictionary<string, byte[]>
+                {
+                    {key1, Encoding.UTF8.GetBytes(value1)},
+                });
+            });
+        }
+        
+        [Fact]
+        public async Task RemoveAllAsync_With_Invalid_Key_Test()
+        {
+            Assert.Throws<ArgumentException>(() => { _database.RemoveAllAsync(new List<string> {null}); });
+        }
+        
         [Fact]
         public async Task Multiple_Test()
         {
@@ -104,7 +135,7 @@ namespace AElf.Database.Tests
         {
             var key = string.Empty;
             var value = Guid.NewGuid().ToString();
-            Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, Helper.StringToBytes(value)); });
+            Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, value.ToUtf8Bytes()); });
         }
 
         [Fact]

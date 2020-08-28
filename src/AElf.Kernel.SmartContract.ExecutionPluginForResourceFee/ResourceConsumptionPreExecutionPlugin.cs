@@ -76,8 +76,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
         }
 
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation)
         {
+            preExecutionInformation = string.Empty;
             return false;
         }
     }

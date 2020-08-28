@@ -20,10 +20,10 @@
 
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

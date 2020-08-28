@@ -5,7 +5,7 @@ using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;

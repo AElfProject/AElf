@@ -16,6 +16,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
             State.InitializedFromParentChain.Value = true;
+            Assert(input.Creator != null, "creator should not be null");
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
@@ -52,7 +53,7 @@ namespace AElf.Contracts.MultiToken
             });
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
-                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid input.");
+                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid native token input.");
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
@@ -125,7 +126,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -299,7 +300,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
@@ -519,6 +520,17 @@ namespace AElf.Contracts.MultiToken
             Assert(isSystemContractAddress && sender == input.Address, "No permission.");
 
             State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
+            return new Empty();
+        }
+
+        public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
+            // ReSharper disable once PossibleNullReferenceException
+            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            tokenInfo.Issuer = input.NewTokenIssuer;
+            State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }
     }

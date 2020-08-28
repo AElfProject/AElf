@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
@@ -74,8 +75,9 @@ namespace AElf.CrossChain.Indexing.Application
                     {
                         Logger.LogDebug(
                             $"Valid cross chain indexing proposal found, block height {block.Height}, block hash {block.GetHash()} ");
-                        var proposalId = ProposalCreated.Parser
-                            .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                        var proposalId = crossChainIndexingDataProposedEvent.ProposalId ?? ProposalCreated.Parser
+                            .ParseFrom(transactionResult.Logs
+                                .First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
                             .ProposalId;
                         _proposalService.AddNotApprovedProposal(proposalId, block.Height);
                     }

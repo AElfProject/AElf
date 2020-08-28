@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Trigger.");
+            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Trigger.");
 
             var triggerInformation =
                 _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
@@ -92,7 +92,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
 
-            Logger.LogTrace($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
+            Logger.LogDebug($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate Before.");
+            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate Before.");
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -118,13 +118,13 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogWarning("Validation of consensus failed before execution.");
+                Logger.LogDebug("Validation of consensus failed before execution.");
                 return false;
             }
 
             if (!validationResult.Success)
             {
-                Logger.LogWarning($"Consensus validating before execution failed: {validationResult.Message}");
+                Logger.LogDebug($"Consensus validating before execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
                     ValidationResultMessage = validationResult.Message,
@@ -147,7 +147,7 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate After.");
+            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate After.");
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -158,13 +158,13 @@ namespace AElf.Kernel.Consensus.Application
 
             if (validationResult == null)
             {
-                Logger.LogWarning("Validation of consensus failed after execution.");
+                Logger.LogDebug("Validation of consensus failed after execution.");
                 return false;
             }
 
             if (!validationResult.Success)
             {
-                Logger.LogWarning($"Consensus validating after execution failed: {validationResult.Message}");
+                Logger.LogDebug($"Consensus validating after execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
                     ValidationResultMessage = validationResult.Message,
@@ -185,7 +185,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
 
             var contractReaderContext =
@@ -207,7 +207,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Txs.");
 
             var contractReaderContext =
@@ -227,7 +227,7 @@ namespace AElf.Kernel.Consensus.Application
                 generatedTransaction.RefBlockNumber = chainContext.BlockHeight;
                 generatedTransaction.RefBlockPrefix =
                     BlockHelper.GetRefBlockPrefix(chainContext.BlockHash);
-                Logger.LogInformation($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
+                Logger.LogDebug($"Consensus transaction generated: \n{generatedTransaction.GetHash()}");
             }
 
             return generatedTransactions;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS1;
@@ -16,36 +17,129 @@ using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInpu
 
 namespace AElf.Contracts.CrossChain.Tests
 {
-    public class SideChainLifeTimeManagementTest : CrossChainContractTestBase
+    public class ChangeCrossChainIndexingControllerSideChainLifeTimeManagementTest : CrossChainContractTestBase<CrossChainContractTestAElfModule>
     {
         #region Side Chain Action
+
+        [Fact]
+        public async Task Initialize_Test()
+        {
+            await InitializeCrossChainContractAsync(0, 0, false);
+            // initialize twice
+            await InitializeCrossChainContractAsync(0, 0, true);
+        }
+
+        [Fact]
+        public async Task SetController_Test()
+        {
+            {
+                // no permission
+                var txResult = await CrossChainContractStub.SetInitialSideChainLifetimeControllerAddress
+                    .SendWithExceptionAsync(
+                        DefaultSender);
+                txResult.TransactionResult.Error.ShouldContain("No permission.");
+            }
+            {
+                // no permission
+                var txResult = await CrossChainContractStub.SetInitialIndexingControllerAddress.SendWithExceptionAsync(
+                    DefaultSender);
+                txResult.TransactionResult.Error.ShouldContain("No permission.");
+            }
+
+            await InitializeCrossChainContractAsync();
+
+            {
+                // no permission
+                var txResult = await CrossChainContractStub.SetInitialSideChainLifetimeControllerAddress
+                    .SendWithExceptionAsync(
+                        DefaultSender);
+                txResult.TransactionResult.Error.ShouldContain("Already initialized.");
+            }
+            {
+                // no permission
+                var txResult = await CrossChainContractStub.SetInitialIndexingControllerAddress.SendWithExceptionAsync(
+                    DefaultSender);
+                txResult.TransactionResult.Error.ShouldContain("Already initialized.");
+            }
+        }
 
         [Fact]
         public async Task Create_SideChain()
         {
             await InitializeCrossChainContractAsync();
+            
+            {
+                // not PrivilegeReserved
+                
+                // Create proposal and approve
+                var proposalId = await CreateSideChainProposalAsync(0, 0);
+
+                await CrossChainContractStub.ReleaseSideChainCreation.SendWithExceptionAsync(
+                    new ReleaseSideChainCreationInput
+                        {ProposalId = proposalId});
+
+                await ApproveWithMinersAsync(proposalId);
+                var releaseTx =
+                    await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                        {ProposalId = proposalId});
+
+                var sideChainCreatedEvent = SideChainCreatedEvent.Parser
+                    .ParseFrom(releaseTx.TransactionResult.Logs
+                        .First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
+                        .NonIndexed);
+                var chainId = sideChainCreatedEvent.ChainId;
+                var creator = sideChainCreatedEvent.Creator;
+                creator.ShouldBe(DefaultSender);
+
+                var chainStatus =
+                    await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
+                chainStatus.Status .ShouldBe(SideChainStatus.Active);
+                
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(TokenCreated))).ShouldBeFalse();
+            }
+
+            {
+                // PrivilegeReserved
+
+                long lockedTokenAmount = 10;
+                await ApproveBalanceAsync(lockedTokenAmount);
+                var proposalId =
+                    await CreateSideChainProposalAsync(1, lockedTokenAmount, null, GetValidResourceAmount(), true);
+                
+                await ApproveWithMinersAsync(proposalId);
+                var releaseTx =
+                    await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                        {ProposalId = proposalId});
+                var tokenCreatedEvent = TokenCreated.Parser
+                    .ParseFrom(releaseTx.TransactionResult.Logs
+                        .First(l => l.Name.Contains(nameof(TokenCreated)))
+                        .NonIndexed);
+                tokenCreatedEvent.Symbol.ShouldBe("TE");
+            }
+        }
+        
+        [Fact]
+        public async Task Release_SideChain_Expired()
+        {
+            await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
             await ApproveBalanceAsync(lockedTokenAmount);
 
+            var utcNow = TimestampHelper.GetUtcNow();
+            BlockTimeProvider.SetBlockTime(utcNow);
+            
             // Create proposal and approve
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount);
             await ApproveWithMinersAsync(proposalId);
-            var releaseTx =
-                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
-                    {ProposalId = proposalId});
-
-            var sideChainCreatedEvent = SideChainCreatedEvent.Parser
-                .ParseFrom(releaseTx.TransactionResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
-                    .NonIndexed);
-            var chainId = sideChainCreatedEvent.ChainId;
-            var creator = sideChainCreatedEvent.Creator;
-            Assert.True(creator == DefaultSender);
-
-            var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
-            Assert.True(chainStatus.Status == SideChainStatus.Active);
-
-            var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
-            Assert.True(parentChain.Equals(new Int32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
+            
+            BlockTimeProvider.SetBlockTime(utcNow.AddSeconds(86400));
+            {
+                var releaseTx =
+                    await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                        {ProposalId = proposalId});
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
+                    .ShouldBeFalse();
+            }
         }
 
         [Fact]
@@ -126,8 +220,8 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
 
             {
-                var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
-                    GetValidResourceAmount(), new[]
+                var createProposalInput = CreateSideChainCreationRequest(10, 0, GetValidResourceAmount(),
+                    new[]
                     {
                         new SideChainTokenInitialIssue
                         {
@@ -141,9 +235,9 @@ namespace AElf.Contracts.CrossChain.Tests
                 requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 requestSideChainCreation.TransactionResult.Error.ShouldContain("Invalid chain creation request.");
             }
-
+            
             {
-                var createProposalInput = CreateSideChainCreationRequest(10, 0, GetValidResourceAmount(),
+                var createProposalInput = CreateSideChainCreationRequest(-1, 10, GetValidResourceAmount(),
                     new[]
                     {
                         new SideChainTokenInitialIssue
@@ -202,9 +296,41 @@ namespace AElf.Contracts.CrossChain.Tests
                             createProposalInput);
 
                     requestSideChainCreation.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                    requestSideChainCreation.TransactionResult.Error.ShouldContain(
-                        "Invalid side chain resource token request.");
                 }
+            }
+            
+            {
+                var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
+                    GetValidResourceAmount(), new SideChainTokenInitialIssue[0], true);
+                var requestSideChainCreation =
+                    await CrossChainContractStub.RequestSideChainCreation.SendWithExceptionAsync(createProposalInput);
+                requestSideChainCreation.TransactionResult.Error.ShouldContain(
+                    "Invalid side chain token initial issue list.");
+            }
+            
+            var utcNow = TimestampHelper.GetUtcNow();
+
+            BlockTimeProvider.SetBlockTime(utcNow);
+            {
+                var createProposalInput = CreateSideChainCreationRequest(lockedTokenAmount, lockedTokenAmount,
+                    GetValidResourceAmount(), new[]
+                    {
+                        new SideChainTokenInitialIssue
+                        {
+                            Address = DefaultSender,
+                            Amount = 100
+                        }
+                    }, true);
+                var requestSideChainCreation =
+                    await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
+            }
+            
+            BlockTimeProvider.SetBlockTime(utcNow.AddSeconds(86400));
+            {
+                var createProposalInput = CreateSideChainCreationRequest(0, 0,
+                    new Dictionary<string, int>(), new SideChainTokenInitialIssue[0]);
+                var requestSideChainCreation =
+                    await CrossChainContractStub.RequestSideChainCreation.SendAsync(createProposalInput);
             }
         }
 
@@ -336,15 +462,8 @@ namespace AElf.Contracts.CrossChain.Tests
             var creator = sideChainCreatedEvent.Creator;
             Assert.True(creator == organizationAddress);
 
-            var chainLockedBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {Symbol = "ELF", Owner = CrossChainContractAddress});
-            Assert.True(chainLockedBalance.Balance == lockedTokenAmount);
-
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
             Assert.True(chainStatus.Status == SideChainStatus.Active);
-
-            var parentChain = await CrossChainContractStub.GetParentChainId.CallAsync(new Empty());
-            Assert.True(parentChain.Equals(new Int32Value {Value = ChainHelper.ConvertBase58ToChainId("AELF")}));
         }
 
         [Fact]
@@ -447,6 +566,11 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
 
+            (await CrossChainContractStub.GetSideChainCreator.CallWithExceptionAsync(new Int32Value
+            {
+                Value = 0
+            })).Value.ShouldContain("Side chain not found.");
+            
             var address = await CrossChainContractStub.GetSideChainCreator.CallAsync(new Int32Value
             {
                 Value = sideChainId
@@ -579,41 +703,54 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveBalanceAsync(lockedTokenAmount);
             var chainId = await InitAndCreateSideChainAsync(withException: true);
 
-            var balanceAfterCreate = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = CrossChainContractAddress,
-                Symbol = "ELF"
-            });
-            Assert.True(balanceAfterCreate.Balance == lockedTokenAmount);
-
-            var proposalId = await DisposeSideChainProposalAsync(new Int32Value
+                // no permission
+                var disposeTx =
+                    await CrossChainContractStub.DisposeSideChain.SendWithExceptionAsync(new Int32Value
+                        {Value = chainId});
+                disposeTx.TransactionResult.Error.ShouldContain("Unauthorized behavior.");
+            }
             {
-                Value = chainId
-            });
-            await ApproveWithMinersAsync(proposalId);
-            var transactionResult = await ReleaseProposalAsync(proposalId);
-            var status = transactionResult.Status;
-            Assert.True(status == TransactionResultStatus.Mined);
-
-            var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
-            Assert.True(chainStatus.Status == SideChainStatus.Terminated);
-
-            var balanceAfterDisposal = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = CrossChainContractAddress,
-                Symbol = "ELF"
-            });
-            Assert.True(balanceAfterDisposal.Balance == 0);
-
-            // try to adjust indexing fee after disposal
-            var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
-                new AdjustIndexingFeeInput
+                var proposalId = await DisposeSideChainProposalAsync(new Int32Value
                 {
-                    SideChainId = chainId,
-                    IndexingFee = lockedTokenAmount - 1
+                    Value = chainId
                 });
-            indexingFeeAdjustingTx.TransactionResult.Error.ShouldContain(
-                "Side chain not found or incorrect side chain status.");
+                await ApproveWithMinersAsync(proposalId);
+                var balanceBeforeDisposal = await GetBalance(DefaultSender);
+                var transactionResult = await ReleaseProposalAsync(proposalId);
+                var status = transactionResult.Status;
+                status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = chainId});
+                chainStatus.Status.ShouldBe(SideChainStatus.Terminated);
+
+                var sideChainBalance =
+                    await CrossChainContractStub.GetSideChainBalance.CallAsync(new Int32Value {Value = chainId});
+                sideChainBalance.Value.ShouldBe(0);
+                
+                var balanceAfterDisposal = await GetBalance(DefaultSender);
+                balanceAfterDisposal.ShouldBe(balanceBeforeDisposal + lockedTokenAmount);
+
+                // try to adjust indexing fee after disposal
+                var indexingFeeAdjustingTx = await CrossChainContractStub.AdjustIndexingFeePrice.SendWithExceptionAsync(
+                    new AdjustIndexingFeeInput
+                    {
+                        SideChainId = chainId,
+                        IndexingFee = lockedTokenAmount - 1
+                    });
+                indexingFeeAdjustingTx.TransactionResult.Error.ShouldContain(
+                    "Side chain not found or incorrect side chain status.");
+            }
+            
+            {
+                var proposalId = await DisposeSideChainProposalAsync(new Int32Value
+                {
+                    Value = chainId
+                });
+                await ApproveWithMinersAsync(proposalId);
+                var transactionResult = await ReleaseProposalWithExceptionAsync(proposalId);
+                transactionResult.Error.ShouldContain("Incorrect chain status.");
+            }
         }
 
         [Fact]
@@ -767,50 +904,89 @@ namespace AElf.Contracts.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("Unauthorized behavior.", res.Error);
         }
-        
+
         [Fact]
         public async Task ChangeIndexingController_InvalidOrganization()
         {
             await InitializeCrossChainContractAsync();
-            var newOrganizationCreationInput = new Association.CreateOrganizationInput
-            {
-                OrganizationMemberList = new OrganizationMemberList
-                {
-                    OrganizationMembers = {DefaultSender}
-                },
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = 1,
-                    MinimalVoteThreshold = 1,
-                    MaximalRejectionThreshold = 0,
-                    MaximalAbstentionThreshold = 0
-                },
-                ProposerWhiteList = new ProposerWhiteList
-                {
-                    Proposers = {DefaultSender}
-                }
-            };
-            var newOrganizationAddress =
-                (await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput)).Output;
             var oldOrganizationAddress =
                 (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
-            var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            
             {
-                ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new AuthorityInfo
+                var newOrganizationCreationInput = new Association.CreateOrganizationInput
                 {
-                    ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
-                }.ToByteString(),
-                ToAddress = CrossChainContractAddress,
-                OrganizationAddress = oldOrganizationAddress
-            });
+                    OrganizationMemberList = new OrganizationMemberList
+                    {
+                        OrganizationMembers = {DefaultSender}
+                    },
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerWhiteList = new ProposerWhiteList
+                    {
+                        Proposers = {DefaultSender}
+                    }
+                };
+                var newOrganizationAddress =
+                    (await AssociationContractStub.CreateOrganization.SendAsync(newOrganizationCreationInput)).Output;
+                var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                {
+                    ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = new AuthorityInfo
+                    {
+                        ContractAddress = AssociationContractAddress, OwnerAddress = newOrganizationAddress
+                    }.ToByteString(),
+                    ToAddress = CrossChainContractAddress,
+                    OrganizationAddress = oldOrganizationAddress
+                });
 
-            var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
-            await ApproveWithMinersAsync(proposalId);
-            var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId))
-                .TransactionResult;
-            releaseResult.Error.ShouldContain("Invalid authority input.");
+                var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
+                await ApproveWithMinersAsync(proposalId);
+                var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId))
+                    .TransactionResult;
+                releaseResult.Error.ShouldContain("Invalid authority input.");
+            }
+
+            {
+                var newParliamentOrganizationCreationInput = new CreateOrganizationInput
+                {
+                    ParliamentMemberProposingAllowed = false,
+                    ProposalReleaseThreshold = new ProposalReleaseThreshold
+                    {
+                        MinimalApprovalThreshold = 1,
+                        MinimalVoteThreshold = 1,
+                        MaximalRejectionThreshold = 0,
+                        MaximalAbstentionThreshold = 0
+                    },
+                    ProposerAuthorityRequired = true
+                };
+                var newOrganizationAddress =
+                    (await ParliamentContractStub.CreateOrganization.SendAsync(newParliamentOrganizationCreationInput))
+                    .Output;
+                
+                var proposalRes = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+                {
+                    ContractMethodName = nameof(CrossChainContractStub.ChangeCrossChainIndexingController),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = new AuthorityInfo
+                    {
+                        ContractAddress = ParliamentContractAddress, OwnerAddress = newOrganizationAddress
+                    }.ToByteString(),
+                    ToAddress = CrossChainContractAddress,
+                    OrganizationAddress = oldOrganizationAddress
+                });
+
+                var proposalId = Hash.Parser.ParseFrom(proposalRes.TransactionResult.ReturnValue);
+                await ApproveWithMinersAsync(proposalId);
+                var releaseResult = (await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId))
+                    .TransactionResult;
+                releaseResult.Error.ShouldContain("Invalid authority input.");
+            }
         }
 
         [Fact]
@@ -960,6 +1136,29 @@ namespace AElf.Contracts.CrossChain.Tests
                 .ParseFrom(releaseTx.TransactionResult.Logs.First(l => l.Name.Contains(nameof(SideChainCreatedEvent)))
                     .NonIndexed);
             var sideChainId = sideChainCreatedEvent.ChainId;
+
+            {
+                var newIndexingFeePrice = 1;
+                var indexingFeeAdjustProposalId = await CreateAssociationProposalAsync(
+                    nameof(CrossChainContractStub.AdjustIndexingFeePrice),
+                    organizationAddress, CrossChainContractAddress, new AdjustIndexingFeeInput
+                    {
+                        IndexingFee = newIndexingFeePrice,
+                        SideChainId = sideChainId + 1
+                    });
+
+                var parliamentOrganizationAddress =
+                    (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
+                var approveProposalId = await CreateParliamentProposalAsync(nameof(AssociationContractStub.Approve),
+                    parliamentOrganizationAddress, indexingFeeAdjustProposalId, AssociationContractAddress);
+                await ApproveWithMinersAsync(approveProposalId);
+                await ParliamentContractStub.Release.SendAsync(approveProposalId);
+                await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);
+                var txResult =
+                    (await AssociationContractStub.Release.SendWithExceptionAsync(indexingFeeAdjustProposalId))
+                    .TransactionResult;
+                txResult.Error.ShouldContain("Side chain not found or incorrect side chain status.");
+            }
             
             {
                 var newIndexingFeePrice = -1;
@@ -1011,7 +1210,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task AdjustCrossChainIndexingFeePriceTest_InsufficientBalance_Dispose()
+        public async Task AdjustCrossChainIndexingFeePriceTest_IndexingFeeDebt_Dispose()
         {
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
@@ -1054,6 +1253,9 @@ namespace AElf.Contracts.CrossChain.Tests
                     await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new Int32Value()
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
+
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
             }
 
             {
@@ -1075,14 +1277,16 @@ namespace AElf.Contracts.CrossChain.Tests
                 await AssociationContractStub.Approve.SendAsync(indexingFeeAdjustProposalId);
                 await AssociationContractStub.Release.SendAsync(indexingFeeAdjustProposalId);
 
+                (await CrossChainContractStub.GetSideChainIndexingFeePrice.CallWithExceptionAsync(new Int32Value()
+                    {Value = sideChainId + 1})).Value.ShouldContain("Side chain not found.");
+                
                 var indexingFeePriceCheck =
                     await CrossChainContractStub.GetSideChainIndexingFeePrice.SendAsync(new Int32Value()
                         {Value = sideChainId});
                 indexingFeePriceCheck.Output.Value.ShouldBe(newIndexingFeePrice);
 
-                var sideChainStatus =
-                    await CrossChainContractStub.GetChainStatus.CallAsync(new Int32Value {Value = sideChainId});
-                sideChainStatus.Status.ShouldBe(SideChainStatus.InsufficientBalance);
+                var sideChainStatus = await GetSideChainStatusAsync(sideChainId);
+                sideChainStatus.ShouldBe(SideChainStatus.Active);
 
                 var disposalProposalId = await DisposeSideChainProposalAsync(new Int32Value
                 {
@@ -1142,6 +1346,12 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var indexingController =
                 await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty());
+
+            (await CrossChainContractStub.GetSideChainIndexingFeeController.CallWithExceptionAsync(new Int32Value
+            {
+                Value = sideChainId + 1
+            })).Value.ShouldContain("Side chain not found.");
+                
             var oldSideChainFeeController =
                 await CrossChainContractStub.GetSideChainIndexingFeeController.CallAsync(new Int32Value
                 {
@@ -1161,8 +1371,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 });
             // creator approve
             await AssociationContractStub.Approve.SendAsync(sideChainIndexingFeeControllerChangeProposalId);
-            
-            
+
+
             var parliamentApprovalProposalId = await CreateParliamentProposalAsync(
                 nameof(AssociationContractStub.Approve),
                 indexingController.OwnerAddress, sideChainIndexingFeeControllerChangeProposalId
@@ -1177,7 +1387,7 @@ namespace AElf.Contracts.CrossChain.Tests
                     Value = sideChainId
                 });
             newSideChainFeeController.OwnerAddress.ShouldBe(newSideChainFeeControllerAddress);
-            
+
             var newIndexingFeePrice = 2;
             var crossChainIndexingController =
                 (await CrossChainContractStub.GetCrossChainIndexingController.CallAsync(new Empty())).OwnerAddress;
@@ -1380,16 +1590,21 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task GetSideChainInitializationDataTest()
         {
+            (await CrossChainContractStub.GetChainInitializationData.CallWithExceptionAsync(new Int32Value
+            {
+                Value = 0
+            })).Value.ShouldContain("Side chain not found.");
+            
             {
                 long lockedTokenAmount = 10;
                 await ApproveBalanceAsync(lockedTokenAmount * 2);
                 // Create proposal and approve
-                var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+                // var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
                 var txResult =
-                    await CreateSideChainByDefaultSenderAsync(true, 0, parentChainId, lockedTokenAmount, 1, true);
+                    await CreateSideChainAsync(true, 0, 0, lockedTokenAmount, 1, true);
                 var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(txResult.Logs
                     .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
-                
+
                 var sideChainId = sideChainCreatedEvent.ChainId;
                 var chainInitializationData =
                     await CrossChainContractStub.GetChainInitializationData.CallAsync(new Int32Value
@@ -1414,7 +1629,8 @@ namespace AElf.Contracts.CrossChain.Tests
                 // Create proposal and approve
                 var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
                 var txResult =
-                    await CreateSideChainByDefaultSenderAsync(false, 0, parentChainId, lockedTokenAmount, 1, false);
+                    await CreateSideChainAsync(false, 0, parentChainId, lockedTokenAmount, 1, false);
+
                 var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(txResult.Logs
                     .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
                 var sideChainId = sideChainCreatedEvent.ChainId;
@@ -1433,6 +1649,51 @@ namespace AElf.Contracts.CrossChain.Tests
                 chainInitializationData.ChainPrimaryTokenInfo.ShouldBeNull();
                 chainInitializationData.ResourceTokenInfo.ShouldNotBeNull();
             }
+        }
+
+        [Fact]
+        public async Task SecondarySideChainCreationTest()
+        {
+            var parentChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+            await InitializeCrossChainContractAsync(0, parentChainId);
+
+            // initialize as side chain
+            var organizationAddress =
+                await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalId = await CreateParliamentProposalAsync(nameof(TokenContractStub.InitializeFromParentChain),
+                organizationAddress, new InitializeFromParentChainInput
+                {
+                    Creator = DefaultSender
+                }, TokenContractAddress);
+            await ApproveWithMinersAsync(proposalId);
+            await ReleaseProposalAsync(proposalId);
+
+            long lockedTokenAmount = 10;
+            await ApproveBalanceAsync(lockedTokenAmount);
+
+            // Create proposal and approve
+            var sideChainCreationProposalId =
+                await CreateSideChainProposalAsync(1, lockedTokenAmount, null, null, true);
+            await ApproveWithMinersAsync(sideChainCreationProposalId);
+            var releaseTx =
+                await CrossChainContractStub.ReleaseSideChainCreation.SendAsync(new ReleaseSideChainCreationInput
+                    {ProposalId = sideChainCreationProposalId});
+            var sideChainCreatedEventFired =
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(SideChainCreatedEvent)));
+            sideChainCreatedEventFired.ShouldBeTrue();
+
+            var tokenCreatedEventFired =
+                releaseTx.TransactionResult.Logs.Any(l => l.Name.Contains(nameof(TokenCreated)));
+            tokenCreatedEventFired.ShouldBeFalse();
+
+            var sideChainCreatedEvent = SideChainCreatedEvent.Parser.ParseFrom(releaseTx.TransactionResult.Logs
+                .First(l => l.Name.Contains(nameof(SideChainCreatedEvent))).NonIndexed);
+
+            var sideChainId = sideChainCreatedEvent.ChainId;
+            var chainInitializationData =
+                await CrossChainContractStub.GetChainInitializationData.CallAsync(new Int32Value {Value = sideChainId});
+            chainInitializationData.ChainCreatorPrivilegePreserved.ShouldBeTrue();
+            chainInitializationData.ChainPrimaryTokenInfo.ShouldBeNull();
         }
     }
 }

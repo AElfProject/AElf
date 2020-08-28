@@ -1,4 +1,4 @@
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation;
 using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
@@ -16,8 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
-            context.Services.AddTransient(typeof(ILogEventListeningService<>), typeof(LogEventListeningService<>));
-            context.Services.AddSingleton<IChargeFeeStrategy, TokenContractChargeFeeStrategy>();
+            context.Services.AddTransient(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.AddSingleton<ICalculateFunctionProvider, MockCalculateFunctionProvider>();
         }
     }

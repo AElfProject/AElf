@@ -11,20 +11,23 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <NoWarn>0436</NoWarn>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf/Proto/acs4.proto</Link>
+            <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    
+
 </Project>

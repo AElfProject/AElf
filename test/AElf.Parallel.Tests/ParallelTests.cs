@@ -22,6 +22,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.EventBus.Local;
 using Xunit;
 
 namespace AElf.Parallel.Tests
@@ -42,6 +43,7 @@ namespace AElf.Parallel.Tests
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
         private readonly IBlockStateSetManger _blockStateSetManger;
+        private readonly ILocalEventBus _localEventBus;
 
         private int _groupCount = 10;
         private int _transactionCount = 20;
@@ -62,6 +64,7 @@ namespace AElf.Parallel.Tests
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
             _nonparallelContractCodeProvider = GetRequiredService<INonparallelContractCodeProvider>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
+            _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
         [Fact]
@@ -70,7 +73,7 @@ namespace AElf.Parallel.Tests
             var chain = await _blockchainService.GetChainAsync();
             var tokenAmount = _transactionCount / _groupCount;
             var (prepareTransactions, keyPairs) =
-                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, tokenAmount);
+                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, 1000000000);
             await _parallelTestHelper.BroadcastTransactions(prepareTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 prepareTransactions);
@@ -293,7 +296,7 @@ namespace AElf.Parallel.Tests
             var transferTransactions =  await _parallelTestHelper.GenerateTransferTransactions(16);
             await _parallelTestHelper.BroadcastTransactions(transferTransactions);
 
-            var poolSize = await _txHub.GetAllTransactionCountAsync();
+            var poolSize = (await _txHub.GetTransactionPoolStatusAsync()).AllTransactionCount;
             poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count);
 
             var groupedTransactions = await _grouper.GroupAsync(
@@ -319,6 +322,13 @@ namespace AElf.Parallel.Tests
             groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
             groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
 
+            _localEventBus.Subscribe<ConflictingTransactionsFoundInParallelGroupsEvent>(e =>
+            {
+                e.ConflictingSets.Count.ShouldBe(_groupCount + 1);
+                e.ExistingSets.Count.ShouldBe(_groupCount);
+                return Task.CompletedTask;
+            });
+            
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             block = (await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions)).Block;
             block.TransactionIds.Count().ShouldBe(_transactionCount + 1);
@@ -420,7 +430,7 @@ namespace AElf.Parallel.Tests
             groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
             groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
             
-            poolSize = await _txHub.GetAllTransactionCountAsync();
+            poolSize = (await _txHub.GetTransactionPoolStatusAsync()).AllTransactionCount;
 
             poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count - block.TransactionIds.Count());
         }

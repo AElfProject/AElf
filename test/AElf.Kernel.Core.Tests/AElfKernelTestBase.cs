@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Kernel.SmartContract;
 using AElf.TestBase;
 using Google.Protobuf;
 

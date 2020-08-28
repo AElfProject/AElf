@@ -21,6 +21,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
+using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
-        
+
         typeof(GovernmentSystemAElfModule),
         typeof(EconomicSystemAElfModule),
 
@@ -65,7 +66,8 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            var contentRootPath = context.Services.GetHostingEnvironment().ContentRootPath;
+            var hostingEnvironment = context.Services.GetHostingEnvironment();
+            var contentRootPath = hostingEnvironment.ContentRootPath;
             var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
             var chainType = configuration.GetValue("ChainType", ChainType.MainChain);
@@ -73,6 +75,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .AddJsonFile($"appsettings.{hostingEnvironment.EnvironmentName}.json", true)
                 .SetBasePath(contentRootPath)
                 .Build();
 
@@ -101,6 +104,7 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.GenesisContractDir = Path.Combine(contentRootPath, "genesis");
             });
+            Configure<WebAppOptions>(newConfig.GetSection("WebApp"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

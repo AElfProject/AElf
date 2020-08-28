@@ -18,7 +18,7 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task ChangeMethodFeeController_Test()
         {
-            await InitializeParliamentContractAsync();
+            //await InitializeParliamentContractAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput
@@ -56,7 +56,7 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
-            await InitializeParliamentContractAsync();
+            //await InitializeParliamentContractAsync();
             var createOrganizationResult =
                 await ParliamentContractStub.CreateOrganization.SendAsync(
                     new CreateOrganizationInput
@@ -77,6 +77,116 @@ namespace AElf.Contracts.TokenConverter
 
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetMethodFeeController_Test()
+        {
+            var defaultController = await DefaultStub.GetMethodFeeController.CallAsync(new Empty());
+            defaultController.ContractAddress.ShouldBe(ParliamentContractAddress);
+            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            defaultController.OwnerAddress.ShouldBe(defaultParliament);
+        }
+        
+        [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Organization_Test()
+        {
+            var releaseResult = await ExecuteProposalForParliamentTransactionWithException(
+                TokenConverterContractAddress, nameof(DefaultStub.ChangeMethodFeeController), new AuthorityInfo
+                {
+                    OwnerAddress = DefaultSender,
+                    ContractAddress = ParliamentContractAddress
+                });
+            releaseResult.Error.ShouldContain("Invalid authority input");
+        }
+
+        [Fact]
+        public async Task SetMethodFee_With_Invalid_Input_Test()
+        {
+            // Invalid amount
+            {
+                var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+                {
+                    MethodName = "Test",
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "NOTEXIST",
+                            BasicFee = -111
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Invalid amount.");
+            }
+            
+            // token does not exist
+            {
+                var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+                {
+                    MethodName = "Test",
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = "NOTEXIST",
+                            BasicFee = 111
+                        }
+                    }
+                });
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+            }
+        }
+        
+        [Fact]
+        public async Task SetMethodFee_Without_Authority_Test()
+        {
+            var tokenSymbol = "KYO";
+            var methodName = "Test";
+            var basicFee = 111;
+            await CreateTokenAsync(tokenSymbol);
+            var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
+            {
+                MethodName = methodName,
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        Symbol = tokenSymbol,
+                        BasicFee = basicFee
+                    }
+                }
+            });
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
+        }
+
+        [Fact]
+        public async Task SetMethodFee_Success_Test()
+        {
+            var tokenSymbol = "KYO";
+            var methodName = "Test";
+            var basicFee = 111;
+            await CreateTokenAsync(tokenSymbol);
+            await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetMethodFee), new MethodFees
+                {
+                    MethodName = methodName,
+                    Fees =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = tokenSymbol,
+                            BasicFee = basicFee
+                        }
+                    }
+                });
+            var getMethodFee = await DefaultStub.GetMethodFee.CallAsync(new StringValue
+            {
+                Value = methodName
+            });
+            getMethodFee.Fees.Count.ShouldBe(1);
+            getMethodFee.Fees[0].Symbol.ShouldBe(tokenSymbol);
+            getMethodFee.Fees[0].BasicFee.ShouldBe(basicFee);
         }
 
         private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,

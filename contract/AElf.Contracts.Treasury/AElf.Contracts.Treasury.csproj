@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Treasury</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Treasury is a contract used to manage the finances of the system (dividend pool for 
             example).</Description>
     </PropertyGroup>
@@ -29,19 +28,19 @@
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
-            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\election_contract.proto">
-            <Link>Protobuf/Proto/election_contract.proto</Link>
+            <Link>Protobuf\Proto\election_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
@@ -49,18 +48,19 @@
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs10.proto">
-            <Link>Protobuf/Proto/acs10.proto</Link>
+            <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\treasury_contract.proto">
-            <Link>Protobuf/Proto/treasury_contract.proto</Link>
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
         </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\treasury_contract_impl.proto">
-            <Link>Protobuf/Proto/treasury_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\treasury_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 

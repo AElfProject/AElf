@@ -8,7 +8,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -22,7 +22,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Parliament
 {
-    public class ParliamentContractTestBase : TestKit.ContractTestBase<ParliamentContractTestAElfModule>
+    public class ParliamentContractTestBase : ContractTestKit.ContractTestBase<ParliamentContractTestAElfModule>
     {
         protected const int MinersCount = 3;
         protected const int MiningInterval = 4000;
@@ -138,7 +138,7 @@ namespace AElf.Contracts.Parliament
                 IsTermStayOne = true
             });
             var minerList = new MinerList
-                {Pubkeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
+                {Pubkeys = {InitialMinersKeyPairs.Select(m => ByteStringHelper.FromHexString(m.PublicKey.ToHex()))}};
             await ConsensusContractStub.FirstRound.SendAsync(
                 minerList.GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
         }

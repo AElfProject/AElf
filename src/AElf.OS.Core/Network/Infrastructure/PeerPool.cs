@@ -72,7 +72,7 @@ namespace AElf.OS.Network.Infrastructure
         {
             if (IsPeerBlackListed(host))
             {
-                Logger.LogWarning($"{host} - peer pool is blacklisted.");
+                Logger.LogDebug($"{host} - peer pool is blacklisted.");
                 return false;
             }
 
@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Infrastructure
                     if (!handshakes.TryAdd(pubkey, pubkey))
                     {
                         added = false;
-                        Logger.LogWarning($"{host} - pubkey {pubkey} is already handshaking.");
+                        Logger.LogDebug($"{host} - pubkey {pubkey} is already handshaking.");
                     }
                     
                     return handshakes;
@@ -164,33 +164,12 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
-            CleanInvalidPeers();
             return Peers.TryAdd(peer.Info.Pubkey, peer);
         }
         
         public bool TryReplace(string pubKey, IPeer oldPeer, IPeer newPeer)
         {
             return Peers.TryUpdate(pubKey, newPeer, oldPeer);
-        }
-
-        private void CleanInvalidPeers()
-        {
-            var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
-
-            foreach (var invalidPeer in invalidPeers)
-            {
-                var removedPeer = RemovePeer(invalidPeer.Key);
-
-                if (removedPeer != null)
-                {
-                    removedPeer.DisconnectAsync(false);
-                    Logger.LogDebug($"Removed invalid peer {invalidPeer}.");
-                }
-                else
-                {
-                    Logger.LogDebug($"Could not find invalid peer {invalidPeer}.");
-                }
-            }
         }
     }
 }

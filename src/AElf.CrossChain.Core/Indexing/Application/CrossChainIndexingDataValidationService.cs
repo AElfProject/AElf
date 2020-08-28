@@ -95,14 +95,14 @@ namespace AElf.CrossChain.Indexing.Application
                     _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
                 {
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"Side chain data not found. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                     return false;
                 }
 
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                 {
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"Incorrect side chain data. ChainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                     return false;
                 }
@@ -152,14 +152,14 @@ namespace AElf.CrossChain.Indexing.Application
                     _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
                 {
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"Parent chain data not found. Parent chain height: {targetHeight}.");
                     return false;
                 }
 
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
                 {
-                    Logger.LogWarning(
+                    Logger.LogDebug(
                         $"Incorrect parent chain data. Parent chain height: {targetHeight}.");
                     return false;
                 }

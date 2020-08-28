@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /* Privilege check. */
             if (!PreCheck())
             {
-                return;
+                Assert(false, "No permission.");
             }
 
             State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
@@ -160,8 +160,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
-
-            ClearExpiredRandomNumberTokens();
         }
 
         private void ProcessNextTerm(Round nextRound)
@@ -190,7 +188,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Update miners list.
             var miners = new MinerList();
-            miners.Pubkeys.AddRange(nextRound.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+            miners.Pubkeys.AddRange(nextRound.RealTimeMinersInformation.Keys.Select(ByteStringHelper.FromHexString));
             if (!SetMinerList(miners, nextRound.TermNumber))
             {
                 Assert(false, "Failed to update miner list.");
@@ -235,7 +233,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MinedMinerListMap.Set(currentRound.RoundNumber, new MinerList
             {
-                Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
+                Pubkeys = {currentRound.GetMinedMiners().Select(m => ByteStringHelper.FromHexString(m.Pubkey))}
             });
         }
 

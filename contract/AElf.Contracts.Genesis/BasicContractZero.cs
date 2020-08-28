@@ -58,7 +58,7 @@ namespace AElf.Contracts.Genesis
             return State.SmartContractRegistrations[info.CodeHash];
         }
         
-        public override SmartContractRegistration GetSmartContractRegistration(Hash input)
+        public override SmartContractRegistration GetSmartContractRegistrationByCodeHash(Hash input)
         {
             return State.SmartContractRegistrations[input];
         }
@@ -127,7 +127,8 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(DeploySmartContract),
                         ProposedContractInputHash = proposedContractInputHash,
-                        Category = input.Category
+                        Category = input.Category,
+                        IsSystemContract = false
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod)
@@ -169,7 +170,8 @@ namespace AElf.Contracts.Genesis
                         ContractInput = input.ToByteString(),
                         CodeCheckReleaseMethod = nameof(UpdateSmartContract),
                         ProposedContractInputHash = proposedContractInputHash,
-                        Category = info.Category
+                        Category = info.Category,
+                        IsSystemContract = info.IsSystemContract
                     }.ToByteString(),
                     OrganizationAddress = State.ContractDeploymentController.Value.OwnerAddress,
                     ExpiredTime = Context.CurrentBlockTime.AddSeconds(ContractProposalExpirationTimePeriod),
@@ -224,7 +226,8 @@ namespace AElf.Contracts.Genesis
             {
                 Code = ExtractCodeFromContractCodeCheckInput(input),
                 ProposedContractInputHash = proposedContractInputHash,
-                Category = input.Category
+                Category = input.Category,
+                IsSystemContract = input.IsSystemContract
             });
 
             return proposedContractInputHash;
@@ -290,7 +293,7 @@ namespace AElf.Contracts.Genesis
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = HashHelper.ComputeFrom(code);
-            Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
+            Assert(oldCodeHash != newCodeHash, "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
@@ -338,7 +341,7 @@ namespace AElf.Contracts.Genesis
                 "Genesis owner already initialized");
             var parliamentContractAddress =
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
-            Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
+            Assert(Context.Sender == parliamentContractAddress, "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
             var defaultAuthority = new AuthorityInfo
             {

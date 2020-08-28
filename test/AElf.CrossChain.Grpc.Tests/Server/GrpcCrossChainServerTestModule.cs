@@ -62,13 +62,15 @@ namespace AElf.CrossChain.Grpc.Server
                             return Task.FromResult(parentChanBlockData);
                         });
                 mockCrossChainResponseService
-                    .Setup(c => c.ResponseSideChainBlockDataAsync(It.IsAny<long>())).Returns(
-                        () =>
+                    .Setup(c => c.ResponseSideChainBlockDataAsync(It.IsAny<long>())).Returns<long>(
+                        (height) =>
                         {
+                            if (height > 100)
+                                return Task.FromResult<SideChainBlockData>(null);
                             var sideChanBlockData = new SideChainBlockData()
                             {
                                 ChainId = ChainHelper.GetChainId(1),
-                                Height = 10,
+                                Height = height,
                             };
                             return Task.FromResult(sideChanBlockData);
                         });

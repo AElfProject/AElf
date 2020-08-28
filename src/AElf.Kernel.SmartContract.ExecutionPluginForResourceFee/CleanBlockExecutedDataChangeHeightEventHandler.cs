@@ -6,7 +6,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
 {
-    public class CleanBlockExecutedDataChangeHeightEventHandler :
+    internal class CleanBlockExecutedDataChangeHeightEventHandler :
         CleanBlockExecutedDataChangeHeightBaseEventHandler<TotalResourceTokensMaps>,
         ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>, ITransientDependency
     {

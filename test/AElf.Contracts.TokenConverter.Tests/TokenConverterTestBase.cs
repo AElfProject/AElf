@@ -4,13 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKet.AEDPoSExtension;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
 using AElf.EconomicSystem;
-using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -41,20 +38,13 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub TokenContractStub =>
             GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-        internal TokenContractContainer.TokenContractStub AuthorizedTokenContractStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, ManagerKeyPair);
-
         internal TokenConverterContractImplContainer.TokenConverterContractImplStub DefaultStub =>
             GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 DefaultSenderKeyPair);
-
-        internal TokenConverterContractImplContainer.TokenConverterContractImplStub AuthorizedTokenConvertStub =>
-            GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
-                ManagerKeyPair);
-
+        
         internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultSenderKeyPair);
-
+        
         internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {

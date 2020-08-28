@@ -4,11 +4,14 @@ using System.Linq;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
-    public class GetHashCodeValidator : IValidator<MethodDefinition>
+    public class GetHashCodeValidator : IValidator<MethodDefinition>, ITransientDependency
     {
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)

@@ -15,9 +15,7 @@ service ACS7 {
     
     rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc ReleaseCrossChainIndexing(aelf.Hash) returns (google.protobuf.Empty) {
-    }
-    rpc RecordCrossChainData (RecordCrossChainDataInput) returns (google.protobuf.Empty) {
+    rpc ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput) returns (google.protobuf.Empty) {
     }
     rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
     }
@@ -42,9 +40,6 @@ service ACS7 {
         option (aelf.is_view) = true;
     }
     rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData) {
         option (aelf.is_view) = true;
     }
     rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {
@@ -190,6 +185,10 @@ message IndexedSideChainBlockData{
     repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
 }
 
+message ReleaseCrossChainIndexingProposalInput{
+    repeated int32 chain_id_list = 1;
+}
+
 message RecordCrossChainDataInput{
     CrossChainBlockData proposed_cross_chain_data = 1;
     aelf.Address proposer = 2;
@@ -211,6 +210,12 @@ message AdjustIndexingFeeInput{
 
 message SideChainBlockDataIndexed{
     option (aelf.is_event) = true;
+}
+
+message CrossChainIndexingDataProposedEvent{
+    option (aelf.is_event) = true;
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+    aelf.Hash proposal_id = 2;
 }
 
 message VerifyTransactionInput {

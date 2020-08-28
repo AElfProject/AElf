@@ -132,6 +132,26 @@ namespace AElf.OS.Network.Grpc
 
             return handshakeReply;
         }
+        
+        public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint remoteEndpoint)
+        {
+            var client = await CreateClientAsync(remoteEndpoint);
+
+            if (client == null)
+                return false;
+
+            try
+            {
+                await PingNodeAsync(client, remoteEndpoint);
+                await client.Channel.ShutdownAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e, $"Could not ping peer {remoteEndpoint}.");
+                return false;
+            }
+        }
 
         public async Task<GrpcPeer> DialBackPeerAsync(DnsEndPoint remoteEndpoint, Handshake handshake)
         {
@@ -156,6 +176,7 @@ namespace AElf.OS.Network.Grpc
             return peer;
         }
 
+
         /// <summary>
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
@@ -176,7 +197,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                Logger.LogInformation(ex, $"Could not ping {peerEndpoint}.");
+                Logger.LogWarning(ex, $"Could not ping {peerEndpoint}.");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -260,7 +281,7 @@ namespace AElf.OS.Network.Grpc
             {
                 // swallow exception because it's currently not a hard requirement to 
                 // upgrade the connection.
-                Logger.LogInformation(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
+                Logger.LogWarning(ex, $"Could not retrieve certificate from {remoteEndpoint}.");
             }
             finally
             {

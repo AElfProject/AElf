@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Method
 {
-    public class FloatOpsValidator : IValidator<MethodDefinition>
+    public class FloatOpsValidator : IValidator<MethodDefinition>, ITransientDependency
     {
         private static readonly HashSet<OpCode> FloatOpCodes = new HashSet<OpCode>
         {
@@ -25,6 +26,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             OpCodes.Stind_R8
         };
         
+        public bool SystemContactIgnored => false;
+
         public IEnumerable<ValidationResult> Validate(MethodDefinition method, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)

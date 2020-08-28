@@ -6,22 +6,24 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
+        <!--Conflict with contract-->
         <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.2.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
     <ItemGroup>
+        <!-- TODO Remove reference to contract projects -->
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Parliament\AElf.Contracts.Parliament.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
@@ -29,33 +31,35 @@
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
             <Link>Protobuf\Proto\authority_info.proto</Link>
         </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </CommonMessage>
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
         <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
-            <Link>Protobuf/Proto/parliament_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractMessage Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\profit_contract_impl.proto">
-            <Link>Protobuf/Proto/profit_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\profit_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
         <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\basic_contract_zero_impl.proto">
-            <Link>Protobuf/Proto/basic_contract_zero_impl.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero_impl.proto</Link>
         </ContractStub>
-
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>

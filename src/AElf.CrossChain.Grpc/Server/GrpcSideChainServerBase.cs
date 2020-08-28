@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Grpc.Server
         public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest,
             IServerStreamWriter<SideChainBlockData> responseStream, ServerCallContext context)
         {
-            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
+            Logger.LogTrace("Side Chain Server received IndexedInfo message.");
             var requestedHeight = crossChainRequest.NextHeight;
             while (requestedHeight - crossChainRequest.NextHeight < GrpcCrossChainConstants.MaximalIndexingCount)
             {

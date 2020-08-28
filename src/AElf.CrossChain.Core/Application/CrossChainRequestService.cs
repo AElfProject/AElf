@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Application
             foreach (var chainIdHeightPair in chainIdHeightDict)
             {
                 var chainIdBased58 = ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key);
-                Logger.LogInformation(
+                Logger.LogDebug(
                     $"Try to request from chain {chainIdBased58}, from height {chainIdHeightPair.Value}");
                 try
                 {
@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Application
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            Logger.LogInformation("Request chain initialization data.");
+            Logger.LogDebug("Request chain initialization data.");
             var client = await _crossChainClientService.CreateChainInitializationClientAsync(chainId);
             return await client.RequestChainInitializationDataAsync(chainId);
         }

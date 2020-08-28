@@ -28,17 +28,29 @@ service BasicSecurityContract {
     }
     rpc TestStringState(StringInput) returns (google.protobuf.Empty) {
     }
+    rpc TestEnumState(Int32Input) returns (google.protobuf.Empty) {
+    }
     rpc TestBytesState(BytesInput) returns (google.protobuf.Empty) {
     }
+    rpc TestInt32SingletonState(Int32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestBytesSingletonState(BytesInput) returns (google.protobuf.Empty) {
+    }
     rpc TestProtobufState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestSingletonState(ProtobufInput) returns (google.protobuf.Empty) {
     }
     rpc TestComplex1State(Complex1Input) returns (google.protobuf.Empty) {
     }
     rpc TestComplex2State(Complex2Input) returns (google.protobuf.Empty) {
     }
+    rpc TestMappedState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
     rpc TestMapped1State(ProtobufInput) returns (google.protobuf.Empty) {
     }
-    rpc TestMapped2State(Complex3Input) returns (google.protobuf.Empty) {
+    rpc TestMapped2State(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped3State(Complex3Input) returns (google.protobuf.Empty) {
     }
     rpc TestExecuteExternalMethod(Int64Input) returns (google.protobuf.Empty) {
     }
@@ -50,12 +62,24 @@ service BasicSecurityContract {
     }
     rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
     }
-    
+    rpc TestWhileInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestWhileInfiniteLoopWithState(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForeachInfiniteLoop(StringInput) returns (Int32Output) {
+    }
+    rpc TestInfiniteRecursiveCall (Int32Input) returns (google.protobuf.Empty) { }
+
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
         option (aelf.is_view) = true;
     }
     rpc QueryBoolState(google.protobuf.Empty) returns (BoolOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryInt32SingletonState(google.protobuf.Empty) returns (Int32Output){
         option (aelf.is_view) = true;
     }
     rpc QueryInt32State(google.protobuf.Empty) returns (Int32Output){
@@ -76,6 +100,9 @@ service BasicSecurityContract {
     rpc QueryBytesState(google.protobuf.Empty) returns (BytesOutput) {
         option (aelf.is_view) = true;
     }
+    rpc QueryBytesSingletonState(google.protobuf.Empty) returns (BytesOutput) {
+        option (aelf.is_view) = true;
+    }
     rpc QueryProtobufState(google.protobuf.Empty) returns (ProtobufOutput) {
         option (aelf.is_view) = true;
     }
@@ -85,10 +112,16 @@ service BasicSecurityContract {
     rpc QueryComplex2State(google.protobuf.Empty) returns (Complex2Output) {
         option (aelf.is_view) = true;
     }
+    rpc QueryMappedState(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
+    }
     rpc QueryMappedState1(ProtobufInput) returns (ProtobufMessage) {
         option (aelf.is_view) = true;
     }
-    rpc QueryMappedState2(Complex3Input) returns (TradeMessage) {
+    rpc QueryMappedState2(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMappedState3(Complex3Input) returns (TradeMessage) {
         option (aelf.is_view) = true;
     }
     rpc QueryExternalMethod1(aelf.Address) returns (Int64Output) {
@@ -98,13 +131,16 @@ service BasicSecurityContract {
         option (aelf.is_view) = true;
     }
     rpc QueryFields(google.protobuf.Empty) returns (ResetOutput) {
-             option (aelf.is_view) = true;
+        option (aelf.is_view) = true;
     }
     rpc QueryConst(google.protobuf.Empty) returns (ConstOutput) {
         option (aelf.is_view) = true;
     }
     rpc QueryNestedFields(google.protobuf.Empty) returns (ResetNestedOutput) {
-             option (aelf.is_view) = true;
+        option (aelf.is_view) = true;
+    }
+    rpc QueryEnumState(google.protobuf.Empty) returns (google.protobuf.Int32Value){
+        option (aelf.is_view) = true;
     }
     rpc CheckNonContractTypesStaticFieldsReset(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
@@ -176,6 +212,7 @@ message TradeMessage {
     int64 from_amount = 1;
     int64 to_amount = 2;
     google.protobuf.Timestamp timestamp = 3;
+    string memo = 4;
 }
 
 message ProtobufMessage {
@@ -259,4 +296,10 @@ message ResetOtherTypeNestedOutput {
     int32 type_number = 3;
     int32 type_const = 4;
     string string_value = 5;
+}
+
+enum StateEnum{
+    FOO = 0;
+    BAR = 1;
+    BAZ = 2;
 }

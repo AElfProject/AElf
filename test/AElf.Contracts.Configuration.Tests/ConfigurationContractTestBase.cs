@@ -55,7 +55,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             return new SetConfigurationInput
             {
-                Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                Key = "BlockTransactionLimit",
                 Value = new Int32Value{Value = amount}.ToByteString()
             };
         }
@@ -130,7 +130,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 new CreateProposalInput
                 {
-                    ContractMethodName = nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
+                    ContractMethodName = nameof(ConfigurationImplContainer.ConfigurationImplStub.ChangeConfigurationController),
                     ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     Params = authorityInfo.ToByteString(),
                     ToAddress = ConfigurationContractAddress,

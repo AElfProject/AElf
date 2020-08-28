@@ -10,10 +10,11 @@ using Google.Protobuf.Collections;
 using Google.Protobuf.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CSharp.CodeOps.Validators.Module
 {
-    public class ContractStructureValidator : IValidator<ModuleDefinition>
+    public class ContractStructureValidator : IValidator<ModuleDefinition>, ITransientDependency
     {
         public ContractStructureValidator()
         {
@@ -24,6 +25,8 @@ namespace AElf.CSharp.CodeOps.Validators.Module
                 _allowedStaticFieldInitOnlyTypes.Add(typeName.Replace("+", "/"));
             }
         }
+
+        public bool SystemContactIgnored => false;
 
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module, CancellationToken ct)
         {
@@ -149,7 +152,7 @@ namespace AElf.CSharp.CodeOps.Validators.Module
 
         private IEnumerable<ValidationResult> ValidateRegularType(TypeDefinition type)
         {
-            // Skip if ExecutionObserver (validated in a separate validator)
+            // Skip if ExecutionObserverThreshold (validated in a separate validator)
             if (type.Name == typeof(ExecutionObserverProxy).Name)
                 return Enumerable.Empty<ValidationResult>();
 

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS5;
 using AElf.Contracts.MultiToken;
@@ -89,8 +89,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold
             };
         }
 
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation)
         {
+            preExecutionInformation = string.Empty;
             return false;
         }
     }

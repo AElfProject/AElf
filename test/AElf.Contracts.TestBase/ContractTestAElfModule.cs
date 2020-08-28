@@ -41,10 +41,6 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
 
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
-
-            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
-
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 
             context.Services.AddTransient(o =>
@@ -66,7 +62,7 @@ namespace AElf.Contracts.TestBase
                 return new UnitTestCSharpSmartContractRunner(
                     option.Value.SdkDir);
             });
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, UnitTestContractZeroCodeProvider>();
+            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, Kernel.UnitTestContractZeroCodeProvider>();
             context.Services.AddSingleton<ISmartContractAddressService, UnitTestSmartContractAddressService>();
             context.Services
                 .AddSingleton<ISmartContractAddressNameProvider, ParliamentSmartContractAddressNameProvider>();

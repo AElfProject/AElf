@@ -6,6 +6,7 @@
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
         </ContractBase>
         <ContractCode Include="..\..\protobuf\parallel_execution_resource_testcontract.proto">
             <Link>Protobuf\Proto\parallel_execution_resource_testcontract.proto</Link>

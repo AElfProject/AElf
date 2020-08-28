@@ -157,6 +157,10 @@ namespace AElf.Kernel.Blockchain.Domain
             var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
             await _chainBlockLinks.SetAllAsync(chainBlockLinks.ToDictionary(l => prefix + l.BlockHash.ToStorageKey(),
                 l => l));
+            foreach (var chainBlockLink in chainBlockLinks)
+            {
+                _chainBlockLinkCacheProvider.SetChainBlockLink(chainBlockLink);
+            }
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
@@ -201,7 +205,7 @@ namespace AElf.Kernel.Blockchain.Domain
             bool isLinkedToLongestChain = chainBlockLink.PreviousBlockHash == chain.LongestChainHash &&
                                           chainBlockLink.Height == chain.LongestChainHeight + 1;
 
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Start attach block hash {chainBlockLink.BlockHash}, height {chainBlockLink.Height}");
             
             while (true)
@@ -266,7 +270,6 @@ namespace AElf.Kernel.Blockchain.Domain
 
             Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
                                   $"longest chain height: {chain.LongestChainHeight}, longest chain hash: {chain.LongestChainHash}");
-//            Logger.LogTrace($"Not linked blocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
 
             return status;
         }
@@ -277,13 +280,12 @@ namespace AElf.Kernel.Blockchain.Domain
 
             while (true)
             {
-                if (irreversibleBlockHash == null)
-                    break;
                 var chainBlockLink = await GetChainBlockLinkAsync(irreversibleBlockHash);
-                if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
+                if (chainBlockLink == null || !chainBlockLink.IsLinked)
+                    throw new InvalidOperationException(
+                        $"should not set an unlinked block as irreversible block, height: {chainBlockLink?.Height}, hash: {chainBlockLink?.BlockHash}");
+                if (chainBlockLink.IsIrreversibleBlock)
                     break;
-                if (!chainBlockLink.IsLinked)
-                    throw new InvalidOperationException($"should not set an unlinked block as irreversible block, height: {chainBlockLink.Height}, hash: {chainBlockLink.BlockHash}");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Add(chainBlockLink);
                 irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
@@ -291,18 +293,21 @@ namespace AElf.Kernel.Blockchain.Domain
 
             if (links.Count > 0)
             {
-                if(links.Last().Height<= chain.LastIrreversibleBlockHeight) 
+                if (links.Last().Height <= chain.LastIrreversibleBlockHeight)
                     return false;
                 await SetChainBlockIndexesAsync(links.ToDictionary(l => l.Height, l => l.BlockHash));
                 await SetChainBlockLinksAsync(links);
                 chain.LastIrreversibleBlockHash = links.First().BlockHash;
                 chain.LastIrreversibleBlockHeight = links.First().Height;
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
-                
-                Logger.LogInformation($"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
+
+                Logger.LogDebug(
+                    $"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
+
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash)
@@ -400,7 +405,7 @@ namespace AElf.Kernel.Blockchain.Domain
                     var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                     if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                     {
-                        Logger.LogTrace($"Remove incorrect branch: {branch.Key}");
+                        Logger.LogDebug($"Remove incorrect branch: {branch.Key}");
                         toCleanBranchKeys.Add(branch.Key);
                         continue;
                     }
@@ -496,7 +501,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.NotLinkedBlocks.Remove(key);
             }
 
-            Logger.LogInformation(
+            Logger.LogDebug(
                 $"Clean chain branch, Branches: [{discardedBranch.BranchKeys.JoinAsString(",")}], NotLinkedBlocks: [{discardedBranch.NotLinkedKeys.JoinAsString(",")}]");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);

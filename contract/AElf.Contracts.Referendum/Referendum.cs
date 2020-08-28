@@ -63,6 +63,11 @@ namespace AElf.Contracts.Referendum
             };
         }
 
+        public override Address GetProposalVirtualAddress(Hash input)
+        {
+            return Context.ConvertVirtualAddressToContractAddress(input);
+        }
+        
         #endregion
 
         public override Address CreateOrganization(CreateOrganizationInput input)
@@ -128,7 +133,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = GetValidProposal(input);
             var organization = State.Organizations[proposal.OrganizationAddress];
-            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol, input);
 
             proposal.ApprovalCount = proposal.ApprovalCount.Add(allowance);
             State.Proposals[input] = proposal;
@@ -142,7 +147,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = GetValidProposal(input);
             var organization = State.Organizations[proposal.OrganizationAddress];
-            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol, input);
 
             proposal.RejectionCount = proposal.RejectionCount.Add(allowance);
             State.Proposals[input] = proposal;
@@ -156,7 +161,7 @@ namespace AElf.Contracts.Referendum
         {
             var proposal = GetValidProposal(input);
             var organization = State.Organizations[proposal.OrganizationAddress];
-            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol);
+            var allowance = GetAllowance(Context.Sender, organization.TokenSymbol, input);
 
             proposal.AbstentionCount = proposal.AbstentionCount.Add(allowance);
             State.Proposals[input] = proposal;

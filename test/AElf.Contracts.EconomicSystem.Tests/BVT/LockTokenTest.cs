@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using AElf.Contracts.Election;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using Volo.Abp.Threading;
 

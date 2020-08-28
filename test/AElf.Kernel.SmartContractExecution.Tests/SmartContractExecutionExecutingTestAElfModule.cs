@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m =>
-                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         var block = new Block
@@ -92,7 +92,7 @@ namespace AElf.Kernel.SmartContractExecution
     [DependsOn(
         typeof(SmartContractExecutionExecutingTestAElfModule)
     )]
-    public class ExecuteFailedTestAElfModule : AElfModule
+    public class ValidateBeforeFailedTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -112,7 +112,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m =>
-                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>()))
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;
@@ -149,6 +149,9 @@ namespace AElf.Kernel.SmartContractExecution
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
                     .Returns<IBlock>(
                         (block) => Task.FromResult(block.Header.Height == AElfConstants.GenesisBlockHeight));
+
+                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
+                    .ReturnsAsync(true);
 
                 return mockProvider.Object;
             });

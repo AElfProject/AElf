@@ -4,19 +4,18 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>AElf.Contract.Vote</RootNamespace>
         <IsPackable>false</IsPackable>
-        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="1.2.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
@@ -25,14 +24,11 @@
         </CommonMessage>
     </ItemGroup>
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
-            <Link>Protobuf/Proto/vote_contract.proto</Link>
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>

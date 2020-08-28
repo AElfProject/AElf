@@ -33,7 +33,7 @@ namespace AElf
         public static int ConvertBase58ToChainId(string base58String)
         {
             // Use int type to save chain id (4 base58 chars, default is 3 bytes)
-            var bytes = base58String.DecodeBase58();
+            var bytes = Base58CheckEncoding.DecodePlain(base58String);
             if (bytes.Length < 4)
                 Array.Resize(ref bytes, 4);
 

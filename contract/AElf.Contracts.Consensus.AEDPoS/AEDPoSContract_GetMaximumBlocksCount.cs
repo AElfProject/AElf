@@ -31,9 +31,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() =>
                 $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
-            if (libRoundNumber == 0 || currentRound.IsMinerListJustChanged)
+            if (libRoundNumber == 0)
             {
-                Context.LogDebug(() => $"Current blockchain mining status: {BlockchainMiningStatus.Normal}");
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
@@ -67,8 +66,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
                 });
+                State.IsPreviousBlockInSevereStatus.Value = true;
                 return 1;
             }
+
+            if (!State.IsPreviousBlockInSevereStatus.Value)
+                return AEDPoSContractConstants.MaximumTinyBlocksCount;
+
+            Context.Fire(new IrreversibleBlockHeightUnacceptable
+            {
+                DistanceToIrreversibleBlockHeight = 0
+            });
+            State.IsPreviousBlockInSevereStatus.Value = false;
 
             return AEDPoSContractConstants.MaximumTinyBlocksCount;
         }

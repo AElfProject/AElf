@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -16,19 +18,19 @@ namespace AElf.OS.Network.Grpc
         public AuthInterceptor(IPeerPool peerPool)
         {
             _peerPool = peerPool;
+            Logger = NullLogger<AuthInterceptor>.Instance;
         }
 
-        public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
+        public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request,
+            ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
             try
             {
-                if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
+                if (IsNeedAuth(context.Method))
                 {
-                    // a method other than DoHandshake is being called
-                
                     var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
-                    if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                    if (peer == null)
                     {
                         Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
@@ -36,25 +38,26 @@ namespace AElf.OS.Network.Grpc
 
                     // check that the peers session is equal to one announced in the headers
                     var sessionId = context.GetSessionId();
-                    
-                    if (peer != null && !peer.InboundSessionId.BytesEqual(sessionId))
+
+                    if (!peer.InboundSessionId.BytesEqual(sessionId))
                     {
                         if (peer.InboundSessionId == null)
                         {
                             Logger.LogWarning($"Wrong inbound session id {context.Peer}, {context.Method}");
                             return Task.FromResult<TResponse>(null);
                         }
-                        
+
                         if (sessionId == null)
                         {
                             Logger.LogWarning($"Wrong context session id {context.Peer}, {context.Method}, {peer}");
                             return Task.FromResult<TResponse>(null);
                         }
 
-                        Logger.LogWarning($"Unequal session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
+                        Logger.LogWarning(
+                            $"Unequal session id, {context.Peer} ({peer.InboundSessionId.ToHex()} vs {sessionId.ToHex()}) {context.GetPublicKey()}");
                         return Task.FromResult<TResponse>(null);
                     }
-                
+
                     context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
                 }
             }
@@ -63,8 +66,14 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, $"Auth interceptor error {context.Peer}, {context.Method}: ");
                 throw;
             }
-            
+
             return continuation(request, context);
+        }
+
+        private bool IsNeedAuth(string methodName)
+        {
+            return methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)) &&
+                   methodName != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake));
         }
 
         private string GetFullMethodName(string methodName)

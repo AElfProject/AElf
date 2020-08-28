@@ -20,6 +20,8 @@ service ParliamentContract {
     }
     rpc ApproveMultiProposals(ProposalIdList) returns (google.protobuf.Empty){
     }
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
@@ -28,8 +30,6 @@ service ParliamentContract {
     }
     rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
-    }
-    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
     rpc GetProposerWhiteList(google.protobuf.Empty) returns (acs3.ProposerWhiteList){
         option (aelf.is_view) = true;

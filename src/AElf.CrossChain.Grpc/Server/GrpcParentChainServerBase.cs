@@ -55,11 +55,11 @@ namespace AElf.CrossChain.Grpc.Server
         public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChain(
             SideChainInitializationRequest request, ServerCallContext context)
         {
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Received initialization data request from chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             var sideChainInitializationResponse =
                 await _crossChainResponseService.ResponseChainInitializationDataFromParentChainAsync(request.ChainId);
-            Logger.LogTrace(
+            Logger.LogDebug(
                 $"Response initialization data for chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             return sideChainInitializationResponse;
         }

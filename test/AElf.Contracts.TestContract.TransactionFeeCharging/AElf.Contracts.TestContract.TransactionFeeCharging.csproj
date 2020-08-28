@@ -19,6 +19,7 @@
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\reference\acs1.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
         </ContractBase>
     </ItemGroup>
     <ItemGroup>

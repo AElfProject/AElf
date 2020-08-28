@@ -1,24 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
-using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
-    public class ExecutionPluginForMethodFeeTestBase : ContractTestBase<ExecutionPluginForMethodFeeTestModule>
+    public class ExecutionPluginForMethodFeeTestBase : ContractTestKit.ContractTestBase<ExecutionPluginForMethodFeeTestModule>
     {
     }
 
@@ -109,6 +110,148 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
                 nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Release), proposalId);
+        }
+    }
+
+    public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTestKit.ContractTestBase<
+        ExecutionPluginTransactionDirectlyForMethodFeeTestModule>
+    {
+        protected string NativeTokenSymbol = "ELF";
+        internal Address TokenContractAddress { get; set; }
+        internal Address TreasuryContractAddress { get; set; }
+        internal Address ConsensusContractAddress { get; set; }
+        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
+        internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
+            Accounts.Take(1).Select(a => a.KeyPair).ToList();
+        internal Address DefaultSender => Accounts[0].Address;
+        protected ExecutePluginTransactionDirectlyForMethodFeeTestBase()
+        {
+            AsyncHelper.RunSync(InitializeContracts);
+        }
+        private async Task InitializeContracts()
+        {
+            await DeployContractsAsync();
+            await InitializeAElfConsensus();
+            await InitializedParliament();
+            await CreateNativeTokenAsync();
+        }
+
+        private async Task InitializedParliament()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                ProposerAuthorityRequired = false,
+                PrivilegedProposer = DefaultSender
+            });
+        }
+        
+        private async Task DeployContractsAsync()
+        {
+            const int category = KernelConstants.CodeCoverageRunnerCategory;
+            // Token contract
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+                TokenContractAddress = await DeploySystemSmartContract(category, code,
+                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                TokenContractStub =
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+            }
+            
+            // Parliament
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
+                var parliamentContractAddress = await DeploySystemSmartContract(category, code,
+                    ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                ParliamentContractStub =
+                    GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentContractAddress,
+                        DefaultSenderKeyPair);
+            }
+            
+            //Consensus
+            {
+                 var code = Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
+                 ConsensusContractAddress = await DeploySystemSmartContract(category, code,
+                     HashHelper.ComputeFrom("AElf.ContractNames.Consensus"), DefaultSenderKeyPair);
+                 AEDPoSContractStub =
+                     GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress,
+                         DefaultSenderKeyPair);
+            }
+            
+            // Treasury
+            {
+                var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+                TreasuryContractAddress = await DeploySystemSmartContract(category, code,
+                    HashHelper.ComputeFrom("Treasury"), DefaultSenderKeyPair);
+            }
+        }
+
+        private async Task CreateNativeTokenAsync()
+        {
+            const long totalSupply = 1_000_000_000_00000000;
+            //init elf token
+            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = "ELF",
+                Decimals = 8,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply,
+                Issuer = DefaultSender,
+            });
+            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task InitializeAElfConsensus()
+        {
+            {
+                await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        PeriodSeconds = 604800L,
+                        MinerIncreaseInterval = 31536000
+                    });
+            }
+            {
+                await AEDPoSContractStub.FirstRound.SendAsync(
+                    GenerateFirstRoundOfNewTerm(
+                        new MinerList
+                            {Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}},
+                        4000, TimestampHelper.GetUtcNow()));
+            }
+        }
+        private Round GenerateFirstRoundOfNewTerm(MinerList minerList, int miningInterval,
+            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+        {
+            var sortedMiners = minerList.Pubkeys.Select(x => x.ToHex()).ToList();
+            var round = new Round();
+        
+            for (var i = 0; i < sortedMiners.Count; i++)
+            {
+                var minerInRound = new MinerInRound();
+        
+                // The third miner will be the extra block producer of first round of each term.
+                if (i == 0)
+                {
+                    minerInRound.IsExtraBlockProducer = true;
+                }
+        
+                minerInRound.Pubkey = sortedMiners[i];
+                minerInRound.Order = i + 1;
+                minerInRound.ExpectedMiningTime = currentBlockTime.AddMilliseconds(i * miningInterval + miningInterval);
+                // Should be careful during validation.
+                minerInRound.PreviousInValue = Hash.Empty;
+                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
+            }
+        
+            round.RoundNumber = currentRoundNumber + 1;
+            round.TermNumber = currentTermNumber + 1;
+            round.IsMinerListJustChanged = true;
+            round.ExtraBlockProducerOfPreviousRound = sortedMiners[0];
+        
+            return round;
         }
     }
 

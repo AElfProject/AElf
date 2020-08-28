@@ -23,13 +23,13 @@ namespace AElf.Contracts.TokenConverter
         /// <returns></returns>
         public override Empty Initialize(InitializeInput input)
         {
-            Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
+            Assert(IsValidBaseSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.FeeReceiverAddress.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
+            State.BaseTokenSymbol.Value = !string.IsNullOrEmpty(input.BaseTokenSymbol)
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
             var feeRate = AssertedDecimal(input.FeeRate);
@@ -38,9 +38,15 @@ namespace AElf.Contracts.TokenConverter
             foreach (var connector in input.Connectors)
             {
                 if (connector.IsDepositAccount)
+                {
+                    Assert(!string.IsNullOrEmpty(connector.Symbol),"Invalid connector symbol.");
                     AssertValidConnectorWeight(connector);
+                }
                 else
-                    AssertValidConnectorAndNormalizeWeight(connector);
+                {
+                    Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
+                    AssertValidConnectorWeight(connector);
+                }
                 State.Connectors[connector.Symbol] = connector;
             }
 
@@ -53,7 +59,7 @@ namespace AElf.Contracts.TokenConverter
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can not find target connector.");
-            Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been actived");
+            Assert(!targetConnector.IsPurchaseEnabled, "connector can not be updated because it has been activated");
             if (!string.IsNullOrEmpty(input.Weight))
             {
                 var weight = AssertedDecimal(input.Weight);
@@ -75,7 +81,7 @@ namespace AElf.Contracts.TokenConverter
                 "resource token symbol should not be empty");
             var nativeConnectorSymbol = NtTokenPrefix.Append(input.ResourceConnectorSymbol);
             Assert(State.Connectors[input.ResourceConnectorSymbol] == null,
-                "resource token symbol has been existed");
+                "resource token symbol has existed");
             var resourceConnector = new Connector
             {
                 Symbol = input.ResourceConnectorSymbol,
@@ -83,7 +89,8 @@ namespace AElf.Contracts.TokenConverter
                 RelatedSymbol = nativeConnectorSymbol,
                 Weight = input.ResourceWeight
             };
-            AssertValidConnectorAndNormalizeWeight(resourceConnector);
+            Assert(IsValidSymbol(resourceConnector.Symbol), "Invalid symbol.");
+            AssertValidConnectorWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
             {
                 Symbol = nativeConnectorSymbol,
@@ -102,7 +109,6 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty Buy(BuyInput input)
         {
-            Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "[Buy]Can't find to connector.");
             Assert(toConnector.IsPurchaseEnabled, "can't purchase");
@@ -155,11 +161,9 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty Sell(SellInput input)
         {
-            Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "[Sell]Can't find from connector.");
             Assert(fromConnector.IsPurchaseEnabled, "can't purchase");
-            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "[Sell]Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
@@ -256,10 +260,9 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
-            Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.TokenSymbol];
-            Assert(fromConnector != null, "[EnableConnector]Can't find from connector.");
-            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
+            Assert(fromConnector != null && !fromConnector.IsDepositAccount,
+                "[EnableConnector]Can't find from connector.");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "[EnableConnector]Can't find to connector.");
             var needDeposit = GetNeededDeposit(input);
@@ -305,27 +308,26 @@ namespace AElf.Contracts.TokenConverter
 
         #region Helpers
 
-        private static decimal AssertedDecimal(string number)
+        private decimal AssertedDecimal(string number)
         {
-            try
-            {
-                return decimal.Parse(number);
-            }
-            catch (FormatException)
-            {
-                throw new InvalidValueException($@"Invalid decimal ""{number}""");
-            }
+            Assert(decimal.TryParse(number, out var decimalNumber), $@"Invalid decimal ""{number}""");
+            return decimalNumber;
         }
 
         private static bool IsBetweenZeroAndOne(decimal number)
         {
             return number > decimal.Zero && number < decimal.One;
         }
-
+        
         private static bool IsValidSymbol(string symbol)
         {
             return symbol.Length > 0 &&
-                   symbol.All(c => c >= 'A' && c <= 'Z');
+                symbol.All(c => c >= 'A' && c <= 'Z');
+        }
+
+        private static bool IsValidBaseSymbol(string symbol)
+        {
+            return string.IsNullOrEmpty(symbol) || IsValidSymbol(symbol);
         }
 
         private decimal GetFeeRate()
@@ -388,18 +390,7 @@ namespace AElf.Contracts.TokenConverter
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
         }
-
-        private void AssertValidConnectorAndNormalizeWeight(Connector connector)
-        {
-            AssertValidConnectorSymbol(connector);
-            AssertValidConnectorWeight(connector);
-        }
-
-        private void AssertValidConnectorSymbol(Connector connector)
-        {
-            Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
-        }
-
+        
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);

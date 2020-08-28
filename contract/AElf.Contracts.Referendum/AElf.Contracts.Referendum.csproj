@@ -5,7 +5,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Referendum</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <IsContract>true</IsContract>
         <Description>Referendum is a contract that enables the creation of organizations and approvals. The created 
             proposals can be voted for and eventually released.</Description>
     </PropertyGroup>
@@ -46,6 +45,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\referendum_contract_impl.proto">
             <Link>Protobuf\Proto\referendum_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 

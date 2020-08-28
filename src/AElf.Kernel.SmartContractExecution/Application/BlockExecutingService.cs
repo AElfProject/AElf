@@ -4,9 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -22,22 +23,30 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
-            ITransactionResultService transactionResultService)
+            ITransactionResultService transactionResultService, 
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             _transactionResultService = transactionResultService;
+            _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
             EventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
-            IEnumerable<Transaction> nonCancellableTransactions)
+            List<Transaction> nonCancellableTransactions)
         {
+            if (_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
+                out var systemTransactionCount))
+                return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
+                    nonCancellableTransactions.Skip(systemTransactionCount),
+                    CancellationToken.None);
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
@@ -55,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     CancellationToken.None);
             Logger.LogTrace("Executed non-cancellable txs");
 
-            var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
+            var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
 
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
@@ -101,17 +110,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
-            IEnumerable<Transaction> transactions, ReturnSetCollection returnSetCollection, BlockStateSet blockStateSet)
+            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection, BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
-            foreach (var returnSet in returnSetCollection.Executed)
+            foreach (var returnSet in executionReturnSetCollection.Executed)
             {
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
             
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var orderedReturnSets = returnSetCollection.GetExecutionReturnSetList()
+            var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
 
             var block = new Block
@@ -133,14 +142,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return Task.FromResult(block);
         }
 
-        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ReturnSetCollection returnSetCollection)
+        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            if (returnSetCollection.Unexecutable.Count > 0)
-            {
-                await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader,
-                        returnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
-            }
+            return Task.CompletedTask;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
@@ -203,20 +207,20 @@ namespace AElf.Kernel.SmartContractExecution.Application
             TransactionResultStatus executionReturnStatus)
         {
             // combine tx result status
-            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
+            var rawBytes = ByteArrayHelper.ConcatArrays(txId.ToByteArray(),
+                EncodingHelper.EncodeUtf8(executionReturnStatus.ToString()));
             return HashHelper.ComputeFrom(rawBytes);
         }
 
         private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,
-            ReturnSetCollection returnSetCollection)
+            ExecutionReturnSetCollection executionReturnSetCollection)
         {
             var blockStateSet = new BlockStateSet
             {
                 BlockHeight = blockHeight,
                 PreviousHash = previousBlockHash
             };
-            foreach (var returnSet in returnSetCollection.Executed)
+            foreach (var returnSet in executionReturnSetCollection.Executed)
             {
                 foreach (var change in returnSet.StateChanges)
                 {
@@ -234,13 +238,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return blockStateSet;
         }
 
-        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ReturnSetCollection returnSetCollection, BlockHeader blockHeader)
+        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
         {
             //save all transaction results
-            var results = returnSetCollection.GetExecutionReturnSetList()
+            var results = executionReturnSetCollection.GetExecutionReturnSetList()
                 .Select(p =>
                 {
                     p.TransactionResult.BlockHash = blockHeader.GetHash();
+                    p.TransactionResult.BlockNumber = blockHeader.Height;
                     return p.TransactionResult;
                 }).ToList();
 

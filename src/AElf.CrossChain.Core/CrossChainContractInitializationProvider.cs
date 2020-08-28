@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.CrossChain;
-using AElf.Kernel.SmartContractInitialization;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -20,12 +20,12 @@ namespace AElf.CrossChain
             _crossChainContractInitializationDataProvider = crossChainContractInitializationDataProvider;
         }
 
-        public List<InitializeMethod> GetInitializeMethodList(byte[] contractCode)
+        public List<ContractInitializationMethodCall> GetInitializeMethodList(byte[] contractCode)
         {
             var initializationData = _crossChainContractInitializationDataProvider.GetContractInitializationData();
-            return new List<InitializeMethod>
+            return new List<ContractInitializationMethodCall>
             {
-                new InitializeMethod{
+                new ContractInitializationMethodCall{
                     MethodName = nameof(CrossChainContractImplContainer.CrossChainContractImplStub.Initialize),
                     Params = new InitializeInput
                     {

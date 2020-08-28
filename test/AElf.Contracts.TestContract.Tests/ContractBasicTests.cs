@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
-using AElf.Contracts.TestKit;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -377,7 +377,8 @@ namespace AElf.Contract.TestContract
                 new RequestMiningDto
                 {
                     PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
                 },
                 transactionList,
                 DateTime.UtcNow.ToTimestamp())).Block;

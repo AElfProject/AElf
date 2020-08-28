@@ -5,7 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    public static class BytesValueExtensions
+    internal static class BytesValueExtensions
     {
         internal static ConsensusCommand ToConsensusCommand(this BytesValue bytesValue)
         {

@@ -5,9 +5,8 @@ using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Node.Events;
 using AElf.Kernel.Node.Domain;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Volo.Abp.EventBus.Local;
 
@@ -35,7 +34,6 @@ namespace AElf.Kernel.Node.Application
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
-        private readonly ITxHub _txHub;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -44,12 +42,11 @@ namespace AElf.Kernel.Node.Application
         public ILocalEventBus EventBus { get; set; }
 
         public BlockchainNodeContextService(
-            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
+            IBlockchainService blockchainService, IChainCreationService chainCreationService,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
-            _txHub = txHub;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
 
@@ -59,12 +56,7 @@ namespace AElf.Kernel.Node.Application
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
         {
             _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(dto.ZeroSmartContractType);
-
-            var context = new BlockchainNodeContext
-            {
-                ChainId = dto.ChainId,
-                TxHub = _txHub,
-            };
+            
             var chain = await _blockchainService.GetChainAsync();
             chain = chain == null
                 ? await _chainCreationService.CreateNewChainAsync(dto.Transactions)
@@ -76,7 +68,10 @@ namespace AElf.Kernel.Node.Application
                 BlockHeight = chain.BestChainHeight
             });
 
-            return context;
+            return new BlockchainNodeContext
+            {
+                ChainId = chain.Id,
+            };
         }
 
         public async Task FinishInitialSyncAsync()

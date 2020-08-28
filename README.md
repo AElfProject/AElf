@@ -18,22 +18,22 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 
 For more information you can follow these links:
 * [Official website](https://aelf.io)
-* [Documentation](https://docs.aelf.io/v/dev/)
-    * [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)
-    * [Running a node](https://docs.aelf.io/v/dev/main/main/docker)
-    * [Smart contract development](https://docs.aelf.io/v/dev/main/main-1)
-    * [Web Api](https://docs.aelf.io/v/dev/reference)
-    * [Testnet](https://docs.aelf.io/v/dev/resources/testnet)
-* [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
+* [Documentation](https://docs.aelf.io/en/latest/)
+    * [Environment setup](https://docs.aelf.io/en/latest/getting-started/development-environment/environment-setup.html)
+    * [Running a node](https://docs.aelf.io/en/latest/getting-started/development-environment/docker.html)
+    * [Smart contract development](https://docs.aelf.io/en/latest/getting-started/smart-contract-development/index.html)
+    * [Web Api](https://docs.aelf.io/en/latest/reference/web-api/web-api.html)
+    * [Testnet](https://docs.aelf.io/en/latest/tutorials/testnet.html)
+* [White Paper](https://aelf.io/gridcn/aelf_whitepaper_EN.pdf) 
 
 This repository contains the code that runs an AElf node, you'll find bellow other important repositories in the AElf 
 ecosystem:
 
 TOOL/LIBRARY | description
 -------------|-------------
-[aelf-sdk.js](https://github.com/AElfProject/aelf-sdk.js) | Javascript development kit for interacting with an AElf node, useful for dApp developers. 
-[aelf-command](https://github.com/AElfProject/aelf-command) | CLI tool for interacting with an AElf node and wallet.
-[aelf-boilerplate](https://github.com/AElfProject/aelf-boilerplate) | framework for smart contract and dApp development.
+[aelf-sdk.js](https://docs.aelf.io/en/latest/reference/chain-sdk/javascript/js-sdk.html) | Javascript development kit for interacting with an AElf node, useful for dApp developers. 
+[aelf-command](https://docs.aelf.io/en/latest/reference/cli/methods.html) | CLI tool for interacting with an AElf node and wallet.
+[aelf-boilerplate](https://aelf-boilerplate-docs.readthedocs.io/en/latest/) | framework for smart contract and dApp development.
 
 ## Getting Started
 
@@ -45,8 +45,8 @@ This repo is where you will find the code that can use to run an AElf node. It a
 
 We strongly recommend you follow official documentation that will guide you through installing dependencies and running the node, 
 these two guides will get you started:  
-* [Environment setup](https://docs.aelf.io/v/dev/main/main/setup)  
-* [Running a node](https://docs.aelf.io/v/dev/main/main/run-node)  
+* [Environment setup](https://docs.aelf.io/en/latest/getting-started/development-environment/environment-setup.html)  
+* [Running a node](https://docs.aelf.io/en/latest/getting-started/development-environment/docker.html)  
 
 ## Contributing
 

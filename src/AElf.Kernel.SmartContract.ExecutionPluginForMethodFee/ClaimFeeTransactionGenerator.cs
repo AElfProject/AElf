@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    public class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
+    internal class ClaimFeeTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITotalTransactionFeesMapProvider _totalTransactionFeesMapProvider;
@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             if (totalTxFeesMap == null || !totalTxFeesMap.Value.Any() || totalTxFeesMap.BlockHeight != preBlockHeight ||
                 totalTxFeesMap.BlockHash != preBlockHash)
             {
-                Logger.LogInformation(
+                Logger.LogDebug(
                     "Won't generate ClaimTransactionFees because no tx fee charged in previous block.");
                 // If previous block doesn't contain logEvent named TransactionFeeCharged, won't generate this tx.
                 return new List<Transaction>();
@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                 }
             });
 
-            Logger.LogInformation("Tx ClaimTransactionFees generated.");
+            Logger.LogTrace("Tx ClaimTransactionFees generated.");
             return generatedTransactions;
         }
     }

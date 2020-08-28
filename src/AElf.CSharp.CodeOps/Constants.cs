@@ -7,7 +7,7 @@ namespace AElf.CSharp.CodeOps
     {
         public const int DefaultAuditTimeoutDuration = 60000;
         public const int MaxInheritanceThreshold = 5;
-        
+
         public static readonly HashSet<OpCode> JumpingOpCodes = new HashSet<OpCode>
         {
             OpCodes.Beq,
@@ -22,6 +22,7 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Ble_S,
             OpCodes.Ble_Un,
             OpCodes.Blt,
+            OpCodes.Blt_S,
             OpCodes.Bne_Un,
             OpCodes.Bne_Un_S,
             OpCodes.Br,
@@ -31,7 +32,7 @@ namespace AElf.CSharp.CodeOps
             OpCodes.Brtrue_S,
             OpCodes.Br_S
         };
-        
+
         public static readonly HashSet<string> PrimitiveTypes = new HashSet<string>
         {
             typeof(bool).FullName,

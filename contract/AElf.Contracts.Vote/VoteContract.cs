@@ -232,7 +232,7 @@ namespace AElf.Contracts.Vote
 
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
 
-            Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
+            Assert(votingItem.CurrentSnapshotNumber - 1 < votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");
 
             // Update previous voting going information.
@@ -270,7 +270,7 @@ namespace AElf.Contracts.Vote
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             AssertOption(votingItem, input.Option);
-            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
+            Assert(votingItem.Options.Count < VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
@@ -321,6 +321,7 @@ namespace AElf.Contracts.Vote
             foreach (var option in input.Options)
             {
                 Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
+                Assert(option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
                 votingItem.Options.Remove(option);
             }
 

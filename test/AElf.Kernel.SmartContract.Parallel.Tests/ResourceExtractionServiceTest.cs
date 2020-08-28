@@ -1,8 +1,16 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Standards.ACS2;
+using AElf.ContractTestKit;
+using AElf.Kernel.Blockchain;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Parallel.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +28,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 
         private ISmartContractExecutiveService SmartContractExecutiveService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractExecutiveService>();
+
+        private ParallelExecutionInterestedEventsHandler ParallelExecutionInterestedEventsHandler =>
+            Application.ServiceProvider.GetRequiredService<ParallelExecutionInterestedEventsHandler>();
 
         [Fact]
         public async Task GetResourcesAsync_NonAcs2_Test()
@@ -42,24 +53,60 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
+                }
+            });
+            var otherTxn = GetAcs2Transaction(new ResourceInfo
+            {
+                WritePaths =
+                {
+                    GetPath(6789)
+                },
+                ReadPaths =
+                {
+                    GetPath(12345),
+                    GetPath(123)
                 }
             });
             var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn,otherTxn}, CancellationToken.None))
                 .ToList();
-
+            var readOnlyPaths = resourceInfos.GetReadOnlyPaths();
+            readOnlyPaths.Count.ShouldBe(1);
+            readOnlyPaths.ShouldContain(GetPath(123));
             var executive =
                 await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
-            resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().TransactionResourceInfo.ShouldBe(new TransactionResourceInfo()
+            resourceInfos.Count.ShouldBe(2);
+            resourceInfos[0].TransactionResourceInfo.ShouldBe(new TransactionResourceInfo
             {
                 TransactionId = txn.GetHash(),
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
+                },
+                ReadPaths =
+                {
+                    GetPath(123)
+                },
+                ContractHash = executive.ContractHash
+            });
+            resourceInfos[1].TransactionResourceInfo.ShouldBe(new TransactionResourceInfo
+            {
+                TransactionId = otherTxn.GetHash(),
+                WritePaths =
+                {
+                    GetPath(6789)
+                },
+                ReadPaths =
+                {
+                    GetPath(12345),
+                    GetPath(123)
                 },
                 ContractHash = executive.ContractHash
             });
@@ -72,7 +119,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             cancelTokenSource.Cancel();
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Paths =
+                WritePaths =
                 {
                     GetPath(12345)
                 }
@@ -108,6 +155,104 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 ContractHash = executive.ContractHash
             });
         }
+        
+        [Fact]
+        public async Task GetResourcesAsync_WithNonParallelCode_Test()
+        {
+            var txn = GetNonParallelCodeTransaction(new ResourceInfo());
+            await Service.HandleTransactionAcceptedEvent(new TransactionAcceptedEvent
+            {
+                Transaction = txn
+            });
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
+
+            resourceInfos.Count.ShouldBe(1);
+            var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly
+                .Location;
+            var code = File.ReadAllBytes(testContractFile);
+            var transactionResourceInfo = new TransactionResourceInfo
+            {
+                TransactionId = txn.GetHash(),
+                ParallelType = ParallelType.NonParallelizable,
+                IsNonparallelContractCode = true,
+                ContractHash = HashHelper.ComputeFrom(code)
+            };
+            resourceInfos.First().TransactionResourceInfo.ShouldBe(transactionResourceInfo);
+        }
+        
+        [Fact]
+        public async Task GetResourcesAsync_WithCache_Test()
+        {
+            var txn = GetNonAcs2Transaction(new ResourceInfo());
+            await Service.HandleTransactionAcceptedEvent(new TransactionAcceptedEvent
+            {
+                Transaction = txn
+            });
+            var otherTxn = GetNonAcs2Transaction(new ResourceInfo());
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn,otherTxn}, CancellationToken.None))
+                .ToList();
+
+            resourceInfos.Count.ShouldBe(2);
+            var transactionResourceInfo = new TransactionResourceInfo
+            {
+                TransactionId = txn.GetHash(),
+                ParallelType = ParallelType.NonParallelizable
+            };
+            resourceInfos.First().TransactionResourceInfo.ShouldBe(transactionResourceInfo);
+            resourceInfos[1].TransactionResourceInfo.ShouldBe(transactionResourceInfo);
+        }
+
+        [Fact]
+        public async Task HandleNewIrreversibleBlockFoundAsync_Test()
+        {
+            var txn = GetNonAcs2Transaction(new ResourceInfo());
+            await Service.HandleTransactionAcceptedEvent(new TransactionAcceptedEvent
+            {
+                Transaction = txn
+            });
+            await Service.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
+            {
+                BlockHeight = 600
+            });
+        }
+
+        [Fact]
+        public async Task ClearConflictingTransactionsResourceCache_Test()
+        {
+            var txn = GetNonAcs2Transaction(new ResourceInfo());
+            await Service.HandleTransactionAcceptedEvent(new TransactionAcceptedEvent
+            {
+                Transaction = txn
+            });
+            Service.ClearConflictingTransactionsResourceCache(new []{txn.GetHash()});
+        }
+
+        [Fact]
+        public async Task HandleBlockAcceptedAsync_Test()
+        {
+            var txn = GetNonAcs2Transaction(new ResourceInfo());
+            await Service.HandleTransactionAcceptedEvent(new TransactionAcceptedEvent
+            {
+                Transaction = txn
+            });
+            await Service.HandleBlockAcceptedAsync(
+                new BlockAcceptedEvent
+                {
+                    BlockExecutedSet = new BlockExecutedSet
+                    {
+                        Block = new Block
+                        {
+                            Body = new BlockBody
+                            {
+                                TransactionIds = {txn.GetHash()}
+                            }
+                        }
+                    }
+                });
+        }
 
         private Transaction GetAcs2Transaction(ResourceInfo resourceInfo)
         {
@@ -127,6 +272,18 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 From = Address.FromBase58("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
                 To = Address.FromBase58(InternalConstants.NonAcs2),
+                MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
+                Params = resourceInfo.ToByteString(),
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
+            };
+        }
+        
+        private Transaction GetNonParallelCodeTransaction(ResourceInfo resourceInfo)
+        {
+            return new Transaction
+            {
+                From = Address.FromBase58("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
+                To = Address.FromBase58(InternalConstants.NonParallel),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)

@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
-using Google.Protobuf;
+using AElf.Kernel.SmartContract.Domain;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class PlainTransactionExecutingService : IPlainTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IInlineTransactionValidationService _inlineTransactionValidationService;
+        private readonly ITransactionContextFactory _transactionContextFactory;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         public ILogger<PlainTransactionExecutingService> Logger { get; set; }
@@ -28,13 +26,13 @@ namespace AElf.Kernel.SmartContract.Application
         public ILocalEventBus LocalEventBus { get; set; }
 
         public PlainTransactionExecutingService(ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IInlineTransactionValidationService inlineTransactionValidationService)
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins, 
+            ITransactionContextFactory transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            _inlineTransactionValidationService = inlineTransactionValidationService;
-            _prePlugins = GetUniquePrePlugins(prePlugins);
-            _postPlugins = GetUniquePostPlugins(postPlugins);
+            _transactionContextFactory = transactionContextFactory;
+            _prePlugins = GetUniquePlugins(prePlugins);
+            _postPlugins = GetUniquePlugins(postPlugins);
             Logger = NullLogger<PlainTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -44,15 +42,11 @@ namespace AElf.Kernel.SmartContract.Application
         {
             try
             {
-                var groupStateCache = transactionExecutingDto.PartialBlockStateSet == null
-                    ? new TieredStateCache()
-                    : new TieredStateCache(
-                        new StateCacheFromPartialBlockStateSet(transactionExecutingDto.PartialBlockStateSet));
+                var groupStateCache = transactionExecutingDto.PartialBlockStateSet.ToTieredStateCache();
                 var groupChainContext = new ChainContextWithTieredStateCache(
                     transactionExecutingDto.BlockHeader.PreviousBlockHash,
                     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
-                var transactionResults = new List<TransactionResult>();
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
@@ -83,46 +77,16 @@ namespace AElf.Kernel.SmartContract.Application
                         continue;
                     }
 
-                    if (trace == null)
+
+                    if (!TryUpdateStateCache(trace, groupStateCache))
                         break;
-
-                    if (!trace.IsSuccessful())
-                    {
-                        // Do not package this transaction if any of his inline transactions canceled.
-                        if (IsTransactionCanceled(trace))
-                        {
-                            break;
-                        }
-
-                        var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
-                        foreach (var preTrace in trace.PreTraces)
-                        {
-                            if (preTrace.IsSuccessful())
-                                transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
-                        }
-
-                        foreach (var postTrace in trace.PostTraces)
-                        {
-                            if (postTrace.IsSuccessful())
-                                transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
-                        }
-
-                        groupStateCache.Update(transactionExecutingStateSets);
-                        trace.SurfaceUpError();
-                    }
-                    else
-                    {
-                        groupStateCache.Update(trace.GetStateSets());
-                    }
 #if DEBUG
-                    if (trace.Error != string.Empty)
+                    if (!string.IsNullOrEmpty(trace.Error))
                     {
-                        Logger.LogError(trace.Error);
+                        Logger.LogInformation(trace.Error);
                     }
 #endif
                     var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
-
-                    transactionResults.Add(result);
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
@@ -137,19 +101,45 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        private static bool IsTransactionCanceled(TransactionTrace trace)
+        private static bool TryUpdateStateCache(TransactionTrace trace, TieredStateCache groupStateCache)
         {
-            return trace.ExecutionStatus == ExecutionStatus.Canceled || trace.PreTraces.Any(IsTransactionCanceled) ||
-                   trace.InlineTraces.Any(IsTransactionCanceled) || trace.PostTraces.Any(IsTransactionCanceled);
+            if (trace == null)
+                return false;
+
+            if (!trace.IsSuccessful())
+            {
+                var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+
+                AddToTransactionStateSets(transactionExecutingStateSets, trace.PreTraces);
+                AddToTransactionStateSets(transactionExecutingStateSets, trace.PostTraces);
+
+                groupStateCache.Update(transactionExecutingStateSets);
+                trace.SurfaceUpError();
+            }
+            else
+            {
+                groupStateCache.Update(trace.GetStateSets());
+            }
+
+            return true;
         }
 
-        protected virtual async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
+        private static void AddToTransactionStateSets(List<TransactionExecutingStateSet> transactionExecutingStateSets,
+            RepeatedField<TransactionTrace> traces)
+        {
+            transactionExecutingStateSets.AddRange(traces.Where(p => p.IsSuccessful())
+                .SelectMany(p => p.GetStateSets()));
+        }
+
+        protected virtual async Task<TransactionTrace> ExecuteOneAsync(
+            SingleTransactionExecutingDto singleTxExecutingDto,
             CancellationToken cancellationToken)
         {
             if (singleTxExecutingDto.IsCancellable)
                 cancellationToken.ThrowIfCancellationRequested();
 
-            var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
+            var txContext = CreateTransactionContext(singleTxExecutingDto);
+            var trace = txContext.Trace;
 
             var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
             var internalChainContext =
@@ -246,10 +236,6 @@ namespace AElf.Kernel.SmartContract.Application
                     OriginTransactionId = originTransactionId
                 };
 
-                // Only system contract can send TransferFrom tx as inline tx.
-                if (!_inlineTransactionValidationService.Validate(inlineTx))
-                    break;
-
                 var inlineTrace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
 
                 if (inlineTrace == null)
@@ -302,9 +288,10 @@ namespace AElf.Kernel.SmartContract.Application
                     var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
 
-                    if (!plugin.IsStopExecuting(preTrace.ReturnValue)) continue;
-
+                    if (!plugin.IsStopExecuting(preTrace.ReturnValue, out var error)) continue;
+                    
                     // If pre-tx fails, still commit the changes, but return false to notice outside to stop the execution.
+                    preTrace.Error = error;
                     preTrace.ExecutionStatus = ExecutionStatus.Executed;
                     return false;
                 }
@@ -369,79 +356,42 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
+            var txResult = new TransactionResult
+            {
+                TransactionId = trace.TransactionId,
+                BlockNumber = blockHeight,
+            };
+            
             if (!trace.IsSuccessful())
             {
+                // Is failed.
+                txResult.Status = TransactionResultStatus.Failed;
                 if (trace.ExecutionStatus == ExecutionStatus.Undefined)
                 {
                     // Cannot find specific contract method.
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Unexecutable,
-                        BlockNumber = blockHeight,
-                        Error = ExecutionStatus.Undefined.ToString()
-                    };
+                    txResult.Error = ExecutionStatus.Undefined.ToString();
                 }
-
-                // Show log events if pre-txs executed successfully.
-                var isContainLogEvents = trace.PreTraces.All(pt => pt.ExecutionStatus == ExecutionStatus.Executed);
-
-                if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
+                else
                 {
-                    if (isContainLogEvents)
+                    txResult.Error = trace.Error;
+                    if (trace.ExecutionStatus != ExecutionStatus.Prefailed || IsExecutionStoppedByPrePlugin(trace))
                     {
-                        // All pre-txs succeeded, but one plugin stopped tx execution.
-                        // Need to add log events to tx result, as well as show the error message in this situation.
-                        var txResult = new TransactionResult
-                        {
-                            TransactionId = trace.TransactionId,
-                            Status = TransactionResultStatus.Failed,
-                            ReturnValue = trace.ReturnValue,
-                            BlockNumber = blockHeight,
-                            Logs = {trace.GetPluginLogs()},
-                            Error = ExecutionStatus.ExecutionStoppedByPrePlugin.ToString()
-                        };
+                        txResult.Logs.AddRange(trace.GetPluginLogs());
                         txResult.UpdateBloom();
-                        return txResult;
                     }
-
-                    return new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Unexecutable,
-                        BlockNumber = blockHeight,
-                        Error = trace.Error
-                    };
-                }
-
-                // Just failed.
-                {
-                    var txResult = new TransactionResult
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        BlockNumber = blockHeight,
-                        Error = trace.Error,
-                        Logs = {trace.GetPluginLogs()}
-                    };
-                    txResult.UpdateBloom();
-                    return txResult;
                 }
             }
-
+            else
             {
                 // Is successful.
-                var txResult = new TransactionResult
-                {
-                    TransactionId = trace.TransactionId,
-                    Status = TransactionResultStatus.Mined,
-                    ReturnValue = trace.ReturnValue,
-                    BlockNumber = blockHeight,
-                    Logs = {trace.FlattenedLogs}
-                };
+                txResult.Status = TransactionResultStatus.Mined;
+                txResult.ReturnValue = trace.ReturnValue;
+                txResult.Logs.AddRange(trace.FlattenedLogs);
+                
                 txResult.UpdateBloom();
-                return txResult;
             }
+
+            return txResult;
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
@@ -465,7 +415,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
                 foreach (var preTrace in trace.PreTraces)
                 {
-                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                    if (preTrace.IsSuccessful())
+                        transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
                 }
 
                 foreach (var postTrace in trace.PostTraces)
@@ -506,44 +457,33 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSet;
         }
 
-        private static List<IPreExecutionPlugin> GetUniquePrePlugins(IEnumerable<IPreExecutionPlugin> plugins)
+        private static List<T> GetUniquePlugins<T>(IEnumerable<T> plugins)
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        private static List<IPostExecutionPlugin> GetUniquePostPlugins(IEnumerable<IPostExecutionPlugin> plugins)
+        private bool IsExecutionStoppedByPrePlugin(TransactionTrace trace)
         {
-            // One instance per type
-            return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+            return _prePlugins.Any(prePlugin =>
+                trace.PreTraces.Any(preTrace => prePlugin.IsStopExecuting(preTrace.ReturnValue, out _)));
         }
 
-        private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,
-            out TransactionTrace trace)
+        protected ITransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto)
         {
             if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
             {
                 throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
             }
 
-            trace = new TransactionTrace
-            {
-                TransactionId = singleTxExecutingDto.Transaction.GetHash()
-            };
-            var txContext = new TransactionContext
-            {
-                OriginTransactionId = singleTxExecutingDto.OriginTransactionId,
-                PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
-                CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
-                Transaction = singleTxExecutingDto.Transaction,
-                BlockHeight = singleTxExecutingDto.ChainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = singleTxExecutingDto.Depth,
-                StateCache = singleTxExecutingDto.ChainContext.StateCache,
-                Origin = singleTxExecutingDto.Origin != null
-                    ? singleTxExecutingDto.Origin
-                    : singleTxExecutingDto.Transaction.From
-            };
+
+            var origin = singleTxExecutingDto.Origin != null
+                ? singleTxExecutingDto.Origin
+                : singleTxExecutingDto.Transaction.From;
+            
+            var txContext = _transactionContextFactory.Create(singleTxExecutingDto.Transaction,
+                singleTxExecutingDto.ChainContext, singleTxExecutingDto.OriginTransactionId, origin,
+                singleTxExecutingDto.Depth, singleTxExecutingDto.CurrentBlockTime);
 
             return txContext;
         }

@@ -53,7 +53,7 @@ message Dividends {
 message DonationReceived {
     option (aelf.is_event) = true;
     aelf.Address from = 1;
-    string symbol = 2;
-    int64 amount = 3;
-    aelf.Address pool_contract = 4;
+    aelf.Address pool_contract = 2;
+    string symbol = 3;
+    int64 amount = 4;
 }
