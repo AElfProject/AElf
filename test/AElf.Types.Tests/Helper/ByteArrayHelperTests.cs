@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xunit;
 using Shouldly;
 
@@ -44,6 +45,18 @@ namespace AElf.Types.Tests.Helper
 
             var result2 = ByteArrayHelper.BytesEqual(byteArray1, byteArray3);
             result2.ShouldBe(false);
+            
+            byte[] byteArray4 = new byte[10];
+            for (int i = 0; i < 10; i++)
+            {
+                byteArray4[i] = byteArray1[i];
+            }
+            var result3=   byteArray1.BytesEqual(byteArray4);
+            result3.ShouldBe(true);
+            
+            byte[] byteArray5 = null;
+            var result4 = byteArray5.BytesEqual(byteArray4);
+            result4.ShouldBe(false);
         }
 
         [Fact]
@@ -57,6 +70,46 @@ namespace AElf.Types.Tests.Helper
 
             result1.ShouldBe(expectBytes);
             result2.ShouldBe(bytes);
+        }
+
+        [Fact]
+        public void ConcatArrays_Test()
+        {
+            var bytes1 = new byte[] {1, 2, 3, 4};
+            var bytes2 = new byte[] {5, 6, 7, 8};
+            var concatBytes = ByteArrayHelper.ConcatArrays(bytes1, bytes2);
+            concatBytes.Length.ShouldBe(8);
+            for(var i =0; i < bytes1.Length; i ++)
+                concatBytes[i].ShouldBe(bytes1[i]);
+            for(var i = bytes1.Length; i < concatBytes.Length; i ++)
+                concatBytes[i].ShouldBe(bytes2[i - bytes1.Length]);
+        }
+
+        [Theory]
+        [InlineData( new byte[]{1,2,3}, 1 , 1)]
+        [InlineData( new byte[]{1,2,3}, 1 , 2)]
+        [InlineData( new byte[]{1,2,3}, 1 , 0)]
+        [InlineData( new byte[]{1,2,3}, 2 , 0)]
+        public void SubArray_Test(byte[] array, int startIndex, int length)
+        {
+            if (length > 0)
+            {
+                var subArray = ByteArrayHelper.SubArray(array, startIndex, length);
+                subArray.Length.ShouldBe(length);
+                for (var i = 0; i < length; i++)
+                {
+                    subArray[i].ShouldBe(array[startIndex + i]);
+                }
+            }
+            else
+            {
+                var subArray = ByteArrayHelper.SubArray(array, startIndex);
+                subArray.Length.ShouldBe(array.Length - startIndex);
+                for (var i = 0; i < length; i++)
+                {
+                    subArray[i].ShouldBe(array[startIndex + i]);
+                }
+            }
         }
     }
 }
