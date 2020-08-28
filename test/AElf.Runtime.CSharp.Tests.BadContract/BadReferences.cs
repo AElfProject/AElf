@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel.Blockchain.Domain;
@@ -29,9 +31,15 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
         private int ThreadId { get; } = Environment.CurrentManagedThreadId; // type denied, member allowed
         private DateTime DateTime { get; } = DateTime.Today; // type allowed, member denied
 
+        private string[] _strings = new string[(40 * 1024) / 128 + 1];
+        
+        private object[] _objects = new object[6];
+
+        private int[] _ints = new int[long.MaxValue];
+        
         private void TestSecretSharing()
         {
             SecretSharingHelper.DecodeSecret(new List<byte[]>(), new List<int>(), 2);
-        } 
+        }
     }
 }
