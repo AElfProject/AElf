@@ -461,11 +461,19 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            State.TreasuryContract.Donate.Send(new DonateInput
-                            {
-                                Symbol = symbol,
-                                Amount = amount
-                            });
+                            var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
+                            if(tokenInfo.IsProfitable)
+                                State.TreasuryContract.Donate.Send(new DonateInput
+                                {
+                                    Symbol = symbol,
+                                    Amount = amount
+                                });
+                            else
+                                Context.SendInline(Context.Self, nameof(Burn), new BurnInput
+                                {
+                                    Symbol = symbol,
+                                    Amount = amount
+                                });
                         }
                         else
                         {
@@ -626,7 +634,12 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
+            var tokenInfo = GetTokenInfo(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
+            if (tokenInfo.IsProfitable &&
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
