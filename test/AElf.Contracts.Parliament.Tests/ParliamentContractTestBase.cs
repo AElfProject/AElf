@@ -121,6 +121,7 @@ namespace AElf.Contracts.Parliament
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                IsProfitable = true
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {

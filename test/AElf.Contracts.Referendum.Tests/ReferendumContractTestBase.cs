@@ -139,7 +139,8 @@ namespace AElf.Contracts.Referendum
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
-                Issuer = DefaultSender
+                Issuer = DefaultSender,
+                IsProfitable = true
             });
 
             //issue default user

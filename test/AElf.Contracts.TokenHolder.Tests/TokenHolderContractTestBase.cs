@@ -201,6 +201,7 @@ namespace AElf.Contracts.TokenHolder
                 TokenName = "elf token",
                 TotalSupply = TokenHolderContractTestConstants.NativeTokenTotalSupply,
                 Issuer = Starter,
+                IsProfitable = true,
                 LockWhiteList =
                 {
                     ProfitContractAddress,
