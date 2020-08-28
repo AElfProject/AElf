@@ -972,7 +972,7 @@ namespace AElf.Contracts.Referendum
             var maximalRejectionThreshold = 1;
             var createOrganizationInput = new CreateOrganizationInput
             {
-                TokenSymbol = "Elf",
+                TokenSymbol = "ELF",
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
                     MinimalApprovalThreshold = minimalApproveThreshold,
