@@ -45,6 +45,7 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\configuration_contract_impl.proto">
             <Link>Protobuf\Proto\configuration_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

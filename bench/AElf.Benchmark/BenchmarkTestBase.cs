@@ -56,7 +56,6 @@ namespace AElf.Benchmark
         public MiningWithTransactionsBenchmarkBase()
         {
             TransactionPoolService = GetRequiredService<ITransactionPoolService>();
-            ;
             _osBlockchainNodeContextService = GetRequiredService<IOsBlockchainNodeContextService>();
             _accountService = GetRequiredService<IAccountService>();
             BlockchainService = GetRequiredService<IBlockchainService>();
