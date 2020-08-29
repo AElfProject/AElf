@@ -475,7 +475,7 @@ namespace AElf.Contracts.Election
                 })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Only consensus contract or parliament can update candidate information.");
+            transactionResult.Error.ShouldContain("Only consensus contract can update candidate information.");
         }
         
         [Fact]
