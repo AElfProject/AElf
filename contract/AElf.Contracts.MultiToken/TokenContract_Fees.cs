@@ -461,8 +461,7 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
-                            if(tokenInfo.IsProfitable)
+                            if(IsTokenDonateToTreasury(symbol))
                                 State.TreasuryContract.Donate.Send(new DonateInput
                                 {
                                     Symbol = symbol,
@@ -486,6 +485,12 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             }
+        }
+
+        private bool IsTokenDonateToTreasury(string symbol)
+        {
+            var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
+            return tokenInfo.IsProfitable || State.LockWhiteLists[symbol][State.TreasuryContract.Value];
         }
 
         private void PayRental()
@@ -634,12 +639,8 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            var tokenInfo = GetTokenInfo(new GetTokenInfoInput
-            {
-                Symbol = symbol
-            });
-            if (tokenInfo.IsProfitable &&
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
+            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null &&
+                IsTokenDonateToTreasury(symbol))
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
