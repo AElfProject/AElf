@@ -132,7 +132,7 @@ message TokenInfo {
     bool is_burnable = 7;
     bool is_profitable = 8;
     int32 issue_chain_id = 9;
-    int64 burned = 10;
+//    int64 burned = 10; //deprecated
 }
 
 message CreateInput {

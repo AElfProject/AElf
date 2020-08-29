@@ -108,13 +108,13 @@ namespace AElf.Contracts.Profit.BVT
             var beforeBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
-            })).Burned;
+            })).Supply;
             await ContributeAndDistribute(creator, contributeAmountEachTime, period);
             var afterBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
-            })).Burned;
-            afterBurnToken.Sub(beforeBurnToken).ShouldBe(contributeAmountEachTime);
+            })).Supply;
+            beforeBurnToken.Sub(afterBurnToken).ShouldBe(contributeAmountEachTime);
         }
 
         [Fact]

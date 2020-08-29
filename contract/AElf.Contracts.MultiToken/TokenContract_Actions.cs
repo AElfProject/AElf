@@ -111,7 +111,6 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
             Context.Fire(new Issued
@@ -395,7 +394,6 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
             {
                 Burner = Context.Sender,
