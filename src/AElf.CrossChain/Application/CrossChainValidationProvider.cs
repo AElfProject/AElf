@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;

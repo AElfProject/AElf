@@ -1,8 +1,9 @@
 using System.Threading.Tasks;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -37,7 +38,7 @@ namespace AElf.Contracts.TokenConverter
                     await DefaultStub.ChangeConnectorController.SendWithExceptionAsync(new AuthorityInfo());
                 changeControllerRet.TransactionResult.Error.ShouldContain("Only manager can perform this action.");
             }
-            
+
             //invalid authority
             {
                 var newAuthority = new AuthorityInfo
@@ -47,7 +48,8 @@ namespace AElf.Contracts.TokenConverter
                 };
                 var changeControllerRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController),
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub
+                        .ChangeConnectorController),
                     newAuthority);
                 changeControllerRet.Error.ShouldContain("new controller does not exist");
             }
@@ -59,7 +61,7 @@ namespace AElf.Contracts.TokenConverter
             var newParliament = new Parliament.CreateOrganizationInput
             {
                 ProposerAuthorityRequired = false,
-                ProposalReleaseThreshold = new Acs3.ProposalReleaseThreshold
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
                     MaximalAbstentionThreshold = 1,
                     MaximalRejectionThreshold = 1,
@@ -73,13 +75,13 @@ namespace AElf.Contracts.TokenConverter
             createNewParliament.Status.ShouldBe(TransactionResultStatus.Mined);
             var calculatedNewParliamentAddress =
                 await ParliamentContractStub.CalculateOrganizationAddress.CallAsync(newParliament);
-            var newAuthority = new Acs1.AuthorityInfo
+            var newAuthority = new AuthorityInfo
             {
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress
             };
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.ChangeConnectorController),
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.ChangeConnectorController),
                 newAuthority);
             var controller = await DefaultStub
                 .GetControllerForManageConnector.CallAsync(new Empty());
@@ -101,7 +103,7 @@ namespace AElf.Contracts.TokenConverter
                 var writeConnector = GetLegalPairConnectorParam(tokenSymbol);
                 await ExecuteProposalForParliamentTransaction(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector),
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
                     writeConnector);
             }
 
@@ -110,7 +112,8 @@ namespace AElf.Contracts.TokenConverter
             pairConnector.ResourceWeight = resourceWeight;
             var addPairConnectorRet = await ExecuteProposalForParliamentTransactionWithException(
                 TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
+                pairConnector);
             addPairConnectorRet.Error.ShouldContain(errorMessage);
         }
 
@@ -133,7 +136,8 @@ namespace AElf.Contracts.TokenConverter
             var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
             await ExecuteProposalForParliamentTransaction(
                 TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
+                pairConnector);
             var getPairConnector =
                 await DefaultStub.GetPairConnector.CallAsync(
                     new TokenSymbol
@@ -189,7 +193,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 var updateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector),
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
                     updateConnectorInput);
                 updateRet.Error.ShouldContain(error);
             }
@@ -197,7 +201,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 await ExecuteProposalForParliamentTransaction(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector),
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
                     updateConnectorInput);
                 var afterUpdatePairConnector =
                     await DefaultStub.GetPairConnector.CallAsync(
@@ -257,7 +261,7 @@ namespace AElf.Contracts.TokenConverter
                 invalidRate.Value = "asd";
                 var setFeeRateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), invalidRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), invalidRate);
                 setFeeRateRet.Error.ShouldContain("Invalid decimal");
             }
 
@@ -266,7 +270,7 @@ namespace AElf.Contracts.TokenConverter
                 invalidRate.Value = "1";
                 var setFeeRateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), invalidRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), invalidRate);
                 setFeeRateRet.Error.ShouldContain("Fee rate has to be a decimal between 0 and 1.");
             }
 
@@ -278,13 +282,13 @@ namespace AElf.Contracts.TokenConverter
                 };
                 await ExecuteProposalForParliamentTransaction(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.SetFeeRate), validRate);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetFeeRate), validRate);
                 var getFeeRate =
                     await DefaultStub.GetFeeRate.CallAsync(new Empty());
                 getFeeRate.Value.ShouldBe(validRate.Value);
             }
         }
-        
+
         [Fact]
         public async Task Set_Connector_Test()
         {
@@ -308,7 +312,8 @@ namespace AElf.Contracts.TokenConverter
                     NativeVirtualBalance = 1_000_000_00000000,
                 };
                 await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
+                    pairConnector);
                 var ramNewInfo =
                     (await DefaultStub.GetPairConnector.CallAsync(
                         new TokenSymbol()
@@ -341,7 +346,8 @@ namespace AElf.Contracts.TokenConverter
                 NativeVirtualBalance = 1_0000_0000,
             };
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
+                pairConnector);
             var updateConnector = new Connector
             {
                 Symbol = token,
@@ -352,7 +358,8 @@ namespace AElf.Contracts.TokenConverter
                 RelatedSymbol = "change"
             };
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector), updateConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
+                updateConnector);
             var resourceConnector =
                 (await DefaultStub.GetPairConnector.CallAsync(
                     new TokenSymbol {Symbol = token})).ResourceConnector;
@@ -363,37 +370,39 @@ namespace AElf.Contracts.TokenConverter
         public async Task EnableConnector_With_Invalid_Input_Test()
         {
             var tokenSymbol = "TEST";
-            
+
             // connector does not exist
             {
-                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                {
-                    TokenSymbol = tokenSymbol,
-                    AmountToTokenConvert = 100,
-                });
+                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = tokenSymbol,
+                        AmountToTokenConvert = 100,
+                    });
                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
             }
-            
+
             // invalid connector（deposit）
             {
                 await AddPairConnectorAsync(tokenSymbol);
-                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                {
-                    TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
-                    AmountToTokenConvert = 100,
-                });
+                var enableConnectorRet = await DefaultStub.EnableConnector.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
+                        AmountToTokenConvert = 100,
+                    });
                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
             }
 
         }
 
-        [Fact] 
-         public async Task EnableConnector_Success_Test()
-         {
-             await DefaultStub.Initialize.SendAsync(new InitializeInput
-             {
-                 FeeRate =  "0.005"
-             });
+        [Fact]
+        public async Task EnableConnector_Success_Test()
+        {
+            await DefaultStub.Initialize.SendAsync(new InitializeInput
+            {
+                FeeRate = "0.005"
+            });
             string tokenSymbol = "NETT";
             await CreateTokenAsync(tokenSymbol);
             await AddPairConnectorAsync(tokenSymbol);
@@ -407,13 +416,15 @@ namespace AElf.Contracts.TokenConverter
             {
                 TokenSymbol = tokenSymbol,
                 AmountToTokenConvert = 99_9999_0000
-            }; 
+            };
             var deposit = await DefaultStub.GetNeededDeposit.CallAsync(toBeBuildConnectorInfo);
             deposit.NeedAmount.ShouldBe(100);
             await DefaultStub.EnableConnector.SendAsync(toBeBuildConnectorInfo);
             var tokenInTokenConvert = await GetBalanceAsync(tokenSymbol, TokenConverterContractAddress);
             tokenInTokenConvert.ShouldBe(99_9999_0000);
-            var resourceConnector = (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol})).ResourceConnector;
+            var resourceConnector =
+                (await DefaultStub.GetPairConnector.CallAsync(new TokenSymbol {Symbol = tokenSymbol}))
+                .ResourceConnector;
             resourceConnector.ShouldNotBeNull();
             resourceConnector.IsPurchaseEnabled.ShouldBe(true);
 
@@ -432,82 +443,86 @@ namespace AElf.Contracts.TokenConverter
                 (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
                 (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
             }
-            
+
             // after enable connector update connector 
             {
                 var updateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
-                    nameof(TokenConverterContractContainer.TokenConverterContractStub.UpdateConnector),
+                    nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
                     resourceConnector);
                 updateRet.Error.ShouldContain("onnector can not be updated because it has been activated");
             }
-         }
+        }
 
-         [Fact]
-         public async Task GetNeededDeposit_With_Invalid_Input_Test()
-         {
-             var tokenSymbol = "TEST";
-            
-             // connector does not exist
-             {
-                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                 {
-                     TokenSymbol = tokenSymbol,
-                     AmountToTokenConvert = 100,
-                 });
-                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
-             }
-            
-             // invalid connector（deposit）
-             {
-                 await AddPairConnectorAsync(tokenSymbol);
-                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                 {
-                     TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
-                     AmountToTokenConvert = 100,
-                 });
-                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
-             }
-         }
-         
-         
-         [Fact]
-         public async Task GetNeededDeposit_Success_Test()
-         {
-             var tokenSymbol = "TEST";
-            
-             // connector does not exist
-             {
-                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                 {
-                     TokenSymbol = tokenSymbol,
-                     AmountToTokenConvert = 100,
-                 });
-                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
-             }
-            
-             // invalid connector（deposit）
-             {
-                 await AddPairConnectorAsync(tokenSymbol);
-                 var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(new ToBeConnectedTokenInfo
-                 {
-                     TokenSymbol = "nt" + tokenSymbol,   // deposit connector symbol
-                     AmountToTokenConvert = 100,
-                 });
-                 enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
-             }
-         }
+        [Fact]
+        public async Task GetNeededDeposit_With_Invalid_Input_Test()
+        {
+            var tokenSymbol = "TEST";
 
-         [Fact]
-         public async Task GetFeeReceiverAddress_Test()
-         {
-             await DefaultStub.Initialize.SendAsync(new InitializeInput
-             {
-                 FeeRate =  "0.005"
-             });
-             var receiver = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
-             receiver.ShouldBe(TreasuryContractAddress);
-         }
+            // connector does not exist
+            {
+                var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = tokenSymbol,
+                        AmountToTokenConvert = 100,
+                    });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+            }
+
+            // invalid connector（deposit）
+            {
+                await AddPairConnectorAsync(tokenSymbol);
+                var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
+                        AmountToTokenConvert = 100,
+                    });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+            }
+        }
+
+
+        [Fact]
+        public async Task GetNeededDeposit_Success_Test()
+        {
+            var tokenSymbol = "TEST";
+
+            // connector does not exist
+            {
+                var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = tokenSymbol,
+                        AmountToTokenConvert = 100,
+                    });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+            }
+
+            // invalid connector（deposit）
+            {
+                await AddPairConnectorAsync(tokenSymbol);
+                var enableConnectorRet = await DefaultStub.GetNeededDeposit.SendWithExceptionAsync(
+                    new ToBeConnectedTokenInfo
+                    {
+                        TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
+                        AmountToTokenConvert = 100,
+                    });
+                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+            }
+        }
+
+        [Fact]
+        public async Task GetFeeReceiverAddress_Test()
+        {
+            await DefaultStub.Initialize.SendAsync(new InitializeInput
+            {
+                FeeRate = "0.005"
+            });
+            var receiver = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
+            receiver.ShouldBe(TreasuryContractAddress);
+        }
 
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
             string resourceWeight = "0.05", string nativeWeight = "0.05")
@@ -539,7 +554,8 @@ namespace AElf.Contracts.TokenConverter
             var pairConnector = GetLegalPairConnectorParam(tokenSymbol);
             await ExecuteProposalForParliamentTransaction(
                 TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.AddPairConnector), pairConnector);
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
+                pairConnector);
         }
 
         private async Task ApproveByParliamentMembers(Hash proposalId)
@@ -557,7 +573,7 @@ namespace AElf.Contracts.TokenConverter
             if (parliamentOrganization == null)
                 parliamentOrganization =
                     await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposal = new Acs3.CreateProposalInput
+            var proposal = new CreateProposalInput
             {
                 OrganizationAddress = parliamentOrganization,
                 ContractMethodName = method,

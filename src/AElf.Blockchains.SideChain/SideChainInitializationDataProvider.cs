@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain;
 using AElf.CrossChain.Application;
 using AElf.CrossChain.Communication;

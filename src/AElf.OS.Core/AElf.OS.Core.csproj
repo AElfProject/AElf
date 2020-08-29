@@ -13,17 +13,17 @@
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\network_types.proto">
-            <Link>Protobuf/Proto/network_types.proto</Link>
+            <Link>Protobuf\Proto\network_types.proto</Link>
         </CommonMessage>
-
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
         <ContractMessage Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractMessage>
-        
-        <ContractBase Include="..\..\protobuf\acs0.proto">
+        <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
-        </ContractBase>
-        
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>

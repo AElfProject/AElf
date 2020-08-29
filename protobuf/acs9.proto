@@ -6,6 +6,7 @@ import public "aelf/options.proto";
 import public "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs9";
+option csharp_namespace = "AElf.Standards.ACS9";
 
 service ContractProfitsContract {
     // Actions

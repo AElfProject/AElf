@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
 {
-    public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
+    public partial class ElectionContract : ElectionContractImplContainer.ElectionContractImplBase
     {
         /// <summary>
         /// Initialize the ElectionContract and corresponding contract states.
@@ -114,13 +114,13 @@ namespace AElf.Contracts.Election
                 UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
-            if (State.TreasuryContract.Value == null)
+            if (State.DividendPoolContract.Value == null)
             {
-                State.TreasuryContract.Value =
+                State.DividendPoolContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            var symbolList = State.TreasuryContract.GetSymbolList.Call(new Empty());
+            var symbolList = State.DividendPoolContract.GetSymbolList.Call(new Empty());
             var amountsMap = symbolList.Value.ToDictionary(s => s, s => 0L);
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {

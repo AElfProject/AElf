@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -22,14 +22,14 @@ namespace AElf.Contracts.Parliament
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized to propose.").ShouldBeTrue();
             
             //verify with view method
             var byteString = await otherTester.CallContractMethodAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateProposerInWhiteList),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ValidateProposerInWhiteList),
                 new ValidateProposerInWhiteListInput
                 {
                     OrganizationAddress = organizationAddress,
@@ -49,7 +49,7 @@ namespace AElf.Contracts.Parliament
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Parliament
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Parliament
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
 
             var result = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
         }
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Parliament
         public async Task ChangeOrganizationProposerWhiteList_Without_Authority_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.ChangeOrganizationProposerWhiteList),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ChangeOrganizationProposerWhiteList),
                 new ProposerWhiteList());
             result.Error.ShouldContain("No permission");
         }
@@ -97,7 +97,7 @@ namespace AElf.Contracts.Parliament
         {
             var organizationAddress = await GetDefaultOrganizationAddressAsync();
             var result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteList), new Empty());
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetProposerWhiteList), new Empty());
             var proposers = ProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
 
             proposers.Count.ShouldBe(1);
@@ -110,17 +110,17 @@ namespace AElf.Contracts.Parliament
             };
             var proposalInput = CreateParliamentProposalInput(proposerWhiteList, organizationAddress);
             var createResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 proposalInput);
             createResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var proposalId = Hash.Parser.ParseFrom(createResult.ReturnValue);
             await ParliamentMemberApprove(proposalId);
             var releaseResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Release), proposalId);
             releaseResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             result = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetProposerWhiteList), new Empty());
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetProposerWhiteList), new Empty());
             proposers = ProposerWhiteList.Parser.ParseFrom(result.ReturnValue).Proposers;
             proposers.Count.ShouldBe(1);
             proposers.Contains(Tester.GetAddress(ecKeyPair)).ShouldBeTrue();
@@ -132,7 +132,7 @@ namespace AElf.Contracts.Parliament
             //miner member
             var byteResult = await Tester.CallContractMethodAsync(
                 ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ValidateAddressIsParliamentMember),
                 Address.FromPublicKey(Tester.InitialMinerList[0].PublicKey));
             var checkMinerResult = BoolValue.Parser.ParseFrom(byteResult);
             checkMinerResult.Value.ShouldBeTrue();
@@ -141,7 +141,7 @@ namespace AElf.Contracts.Parliament
             var tester = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey);
             byteResult = await Tester.CallContractMethodAsync(
                 ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.ValidateAddressIsParliamentMember),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ValidateAddressIsParliamentMember),
                 tester);
             var checkTesterResult = BoolValue.Parser.ParseFrom(byteResult);
             checkTesterResult.Value.ShouldBeFalse();
@@ -166,7 +166,7 @@ namespace AElf.Contracts.Parliament
             };
             var transactionResult =
                 await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                     createOrganizationInput);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -177,7 +177,7 @@ namespace AElf.Contracts.Parliament
         {
             var result = (await Tester.ExecuteContractWithMiningAsync(
                 ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress),
                 new Empty()));
             return Address.Parser.ParseFrom(result.ReturnValue);
         }
@@ -186,15 +186,15 @@ namespace AElf.Contracts.Parliament
         {
             var miner = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
             (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), proposalId)).Status
                 .ShouldBe(TransactionResultStatus.Mined);
             miner = Tester.CreateNewContractTester(Tester.InitialMinerList[1]);
             (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), proposalId)).Status
                 .ShouldBe(TransactionResultStatus.Mined);
             miner = Tester.CreateNewContractTester(Tester.InitialMinerList[2]);
             (await miner.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.Approve), proposalId)).Status
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), proposalId)).Status
                 .ShouldBe(TransactionResultStatus.Mined);
         }
     }

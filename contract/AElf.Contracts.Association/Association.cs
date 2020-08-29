@@ -1,13 +1,13 @@
 using System.Linq;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using CreateProposalInput = Acs3.CreateProposalInput;
+using CreateProposalInput = AElf.Standards.ACS3.CreateProposalInput;
 
 namespace AElf.Contracts.Association
 {
-    public partial class AssociationContract : AssociationContractContainer.AssociationContractBase
+    public partial class AssociationContract : AssociationContractImplContainer.AssociationContractImplBase
     {
         #region View
 

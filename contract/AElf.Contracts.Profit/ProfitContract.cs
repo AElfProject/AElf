@@ -30,7 +30,7 @@ namespace AElf.Contracts.Profit
     /// 9. Balance of PI_FOO's virtual address of first period is 500L.
     /// 10. Anil can only get his profits by calling Profit (SchemeId: PI_BAR's profit id, Symbol: "ELF")
     /// </summary>
-    public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
+    public partial class ProfitContract : ProfitContractImplContainer.ProfitContractImplBase
     {
         /// <summary>
         /// Create a Scheme of profit distribution.

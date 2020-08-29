@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
@@ -68,7 +68,7 @@ namespace AElf.ContractTestKit
 
         protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash name, ECKeyPair senderKey)
         {
-            var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
+            var zeroStub = GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = category,
@@ -80,7 +80,7 @@ namespace AElf.ContractTestKit
         protected async Task<Address> DeploySystemSmartContract(int category, byte[] code, Hash name,
             ECKeyPair senderKey)
         {
-            var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
+            var zeroStub = GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
             {
                 Category = category,

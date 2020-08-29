@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -32,7 +32,7 @@ namespace AElf.Benchmark
         where TModule : IAbpModule
     {
         protected readonly IBlockchainStore<TransactionResult> TransactionResultStore;
-        
+
         public BenchmarkTestBase()
         {
             TransactionResultStore = GetRequiredService<IBlockchainStore<TransactionResult>>();
@@ -55,7 +55,7 @@ namespace AElf.Benchmark
 
         public MiningWithTransactionsBenchmarkBase()
         {
-            TransactionPoolService = GetRequiredService<ITransactionPoolService>();;
+            TransactionPoolService = GetRequiredService<ITransactionPoolService>();
             _osBlockchainNodeContextService = GetRequiredService<IOsBlockchainNodeContextService>();
             _accountService = GetRequiredService<IAccountService>();
             BlockchainService = GetRequiredService<IBlockchainService>();
@@ -89,7 +89,7 @@ namespace AElf.Benchmark
         private async Task StartNodeAsync()
         {
             var ownAddress = await _accountService.GetAccountAsync();
-            List<ContractInitializationMethodCall> callList = new List<ContractInitializationMethodCall> ();
+            var callList = new List<ContractInitializationMethodCall>();
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = _nativeSymbol,

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -49,15 +50,15 @@ namespace AElf.Contract.TestContract
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
+        internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
+        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<Acs0.ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
+            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub GetTestBasicFunctionContractStub(

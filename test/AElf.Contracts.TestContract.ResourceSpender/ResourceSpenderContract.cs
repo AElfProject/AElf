@@ -1,4 +1,4 @@
-using Acs8;
+using AElf.Standards.ACS8;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.ResourceSpender

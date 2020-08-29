@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
@@ -433,7 +433,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var associationProposalId = new Hash();
             associationProposalId.MergeFrom(associationProposalRet.ReturnValue);
             await ParliamentReachAnAgreementAsync(AssociationContractAddress, defaultParliamentAddress,
-                nameof(AssociationContractContainer.AssociationContractStub.Approve), associationProposalId);
+                nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve), associationProposalId);
             await AssociationContractStub.Approve.SendAsync(associationProposalId);
             return associationProposalId;
         }

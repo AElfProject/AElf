@@ -40,23 +40,28 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf/Proto/acs0.proto</Link>
+            <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractReference>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
-            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs5.proto">
-            <Link>Protobuf/Proto/acs5.proto</Link>
+            <Link>Protobuf\Proto\acs5.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs5_plugin_test_contract.proto">
-            <Link>Protobuf/Proto/acs5_plugin_test_contract.proto</Link>
+            <Link>Protobuf\Proto\acs5_plugin_test_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

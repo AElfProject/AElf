@@ -22,10 +22,14 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
     </ItemGroup>
-
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/stub/token_contract.proto</Link>
+            <Link>Protobuf\Proto\stub/token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

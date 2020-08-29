@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
-using Acs7;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Genesis;
@@ -27,40 +27,40 @@ namespace AElf.Contracts.MultiToken
 {
     public class MultiTokenContractCrossChainTestBase : ContractTestBase<MultiTokenContractCrossChainTestAElfModule>
     {
-        internal CrossChainContractContainer.CrossChainContractStub CrossChainContractStub;
+        internal CrossChainContractImplContainer.CrossChainContractImplStub CrossChainContractStub;
 
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub;
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub;
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub;
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
         
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
 
-        internal ReferendumContractContainer.ReferendumContractStub ReferendumContractStub;
+        internal ReferendumContractImplContainer.ReferendumContractImplStub ReferendumContractStub;
 
         protected Address SideBasicContractZeroAddress;
-        internal BasicContractZeroContainer.BasicContractZeroStub SideChainBasicContractZeroStub;
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub SideChainBasicContractZeroStub;
 
         protected Address SideCrossChainContractAddress;
-        internal CrossChainContractContainer.CrossChainContractStub SideChainCrossChainContractStub;
+        internal CrossChainContractImplContainer.CrossChainContractImplStub SideChainCrossChainContractStub;
 
         protected Address SideTokenContractAddress;
         internal TokenContractImplContainer.TokenContractImplStub SideChainTokenContractStub;
 
         protected Address SideParliamentAddress;
-        internal ParliamentContractContainer.ParliamentContractStub SideChainParliamentContractStub;
+        internal ParliamentContractImplContainer.ParliamentContractImplStub SideChainParliamentContractStub;
 
         protected Address SideConsensusAddress;
         internal AEDPoSContractContainer.AEDPoSContractStub SideChainAEDPoSContractStub;
 
         protected Address Side2BasicContractZeroAddress;
         protected Address Side2CrossChainContractAddress;
-        internal CrossChainContractContainer.CrossChainContractStub SideChain2CrossChainContractStub;
+        internal CrossChainContractImplContainer.CrossChainContractImplStub SideChain2CrossChainContractStub;
         protected Address Side2TokenContractAddress;
         internal TokenContractImplContainer.TokenContractImplStub SideChain2TokenContractStub;
         protected Address Side2ParliamentAddress;
-        internal ParliamentContractContainer.ParliamentContractStub SideChain2ParliamentContractStub;
+        internal ParliamentContractImplContainer.ParliamentContractImplStub SideChain2ParliamentContractStub;
         protected Address Side2ConsensusAddress;
         internal AEDPoSContractContainer.AEDPoSContractStub SideChain2AEDPoSContractStub;
 
@@ -80,11 +80,11 @@ namespace AElf.Contracts.MultiToken
             MainChainId = Application.ServiceProvider.GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value
                 .ChainId;
             BasicContractZeroStub =
-                GetTester<BasicContractZeroContainer.BasicContractZeroStub>(BasicContractZeroAddress,
+                GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(BasicContractZeroAddress,
                     DefaultAccount.KeyPair);
 
             CrossChainContractStub =
-                GetTester<CrossChainContractContainer.CrossChainContractStub>(CrossChainContractAddress,
+                GetTester<CrossChainContractImplContainer.CrossChainContractImplStub>(CrossChainContractAddress,
                     DefaultAccount.KeyPair);
 
             TokenContractStub =
@@ -92,13 +92,13 @@ namespace AElf.Contracts.MultiToken
                     DefaultAccount.KeyPair);
 
             ParliamentContractStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                     DefaultAccount.KeyPair);
 
             AEDPoSContractStub = GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress);
 
             ReferendumContractStub =
-                GetTester<ReferendumContractContainer.ReferendumContractStub>(ReferendumContractAddress,
+                GetTester<ReferendumContractImplContainer.ReferendumContractImplStub>(ReferendumContractAddress,
                     DefaultAccount.KeyPair);
 
             ResourceTokenSymbolList = Application.ServiceProvider
@@ -121,13 +121,13 @@ namespace AElf.Contracts.MultiToken
                 });
             SideBasicContractZeroAddress = SideChainTestKit.ContractZeroAddress;
             SideChainBasicContractZeroStub =
-                SideChainTestKit.GetTester<BasicContractZeroContainer.BasicContractZeroStub>(
+                SideChainTestKit.GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(
                     SideBasicContractZeroAddress);
 
             SideCrossChainContractAddress =
                 SideChainTestKit.SystemContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
             SideChainCrossChainContractStub =
-                SideChainTestKit.GetTester<CrossChainContractContainer.CrossChainContractStub>(
+                SideChainTestKit.GetTester<CrossChainContractImplContainer.CrossChainContractImplStub>(
                     SideCrossChainContractAddress);
 
             SideTokenContractAddress =
@@ -137,7 +137,7 @@ namespace AElf.Contracts.MultiToken
             SideParliamentAddress =
                 SideChainTestKit.SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
             SideChainParliamentContractStub =
-                SideChainTestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(SideParliamentAddress);
+                SideChainTestKit.GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(SideParliamentAddress);
 
             SideConsensusAddress =
                 SideChainTestKit.SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
@@ -161,7 +161,7 @@ namespace AElf.Contracts.MultiToken
             Side2CrossChainContractAddress =
                 SideChain2TestKit.SystemContractAddresses[CrossChainSmartContractAddressNameProvider.Name];
             SideChain2CrossChainContractStub =
-                SideChain2TestKit.GetTester<CrossChainContractContainer.CrossChainContractStub>(
+                SideChain2TestKit.GetTester<CrossChainContractImplContainer.CrossChainContractImplStub>(
                     Side2CrossChainContractAddress);
             Side2TokenContractAddress =
                 SideChain2TestKit.SystemContractAddresses[TokenSmartContractAddressNameProvider.Name];
@@ -170,7 +170,7 @@ namespace AElf.Contracts.MultiToken
             Side2ParliamentAddress =
                 SideChain2TestKit.SystemContractAddresses[ParliamentSmartContractAddressNameProvider.Name];
             SideChain2ParliamentContractStub =
-                SideChain2TestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(Side2ParliamentAddress);
+                SideChain2TestKit.GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(Side2ParliamentAddress);
             Side2ConsensusAddress =
                 SideChain2TestKit.SystemContractAddresses[ConsensusSmartContractAddressNameProvider.Name];
             SideChain2AEDPoSContractStub =
@@ -215,7 +215,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal async Task<long> GetParentChainHeight(
-            CrossChainContractContainer.CrossChainContractStub crossChainContractStub)
+            CrossChainContractImplContainer.CrossChainContractImplStub crossChainContractStub)
         {
             return (await crossChainContractStub.GetParentChainHeight.CallAsync(new Empty())).Value;
         }
@@ -263,7 +263,7 @@ namespace AElf.Contracts.MultiToken
                 foreach (var account in SampleAccount.Accounts.Take(5))
                 {
                     var parliamentContractStub =
-                        GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+                        GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                             account.KeyPair);
                     transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
                 }
@@ -275,7 +275,7 @@ namespace AElf.Contracts.MultiToken
                 foreach (var account in SampleAccount.Accounts.Take(5))
                 {
                     var parliamentContractStub =
-                        SideChainTestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                        SideChainTestKit.GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                             SideParliamentAddress, account.KeyPair);
                     transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
                 }
@@ -292,7 +292,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal async Task<Hash> CreateProposalAsync(
-            ParliamentContractContainer.ParliamentContractStub parliamentContractStub, string method,
+            ParliamentContractImplContainer.ParliamentContractImplStub parliamentContractStub, string method,
             ByteString input, Address contractAddress)
         {
             var organizationAddress = await parliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());

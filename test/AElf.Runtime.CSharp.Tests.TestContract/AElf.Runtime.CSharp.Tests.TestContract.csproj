@@ -10,7 +10,7 @@
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\test_contract.proto">
-            <Link>Protobuf/proto/test_contract.proto</Link>
+            <Link>Protobuf\Proto\test_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

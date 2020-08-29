@@ -36,7 +36,11 @@
         </ProjectReference>
         <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
-
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
@@ -89,11 +93,14 @@
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf\Proto\economic_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs6.proto">
             <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
     

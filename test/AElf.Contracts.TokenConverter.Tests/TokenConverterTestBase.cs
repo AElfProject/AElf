@@ -38,17 +38,17 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub TokenContractStub =>
             GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-        internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub =>
-            GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub DefaultStub =>
+            GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 DefaultSenderKeyPair);
         
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultSenderKeyPair);
         
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
