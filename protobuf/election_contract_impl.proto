@@ -13,12 +13,4 @@ service ElectionContractImpl {
     
     option (aelf.base) = "acs1.proto";
     option (aelf.base) = "election_contract.proto";
-    
-    
 }
-
-
-
-
-
-
