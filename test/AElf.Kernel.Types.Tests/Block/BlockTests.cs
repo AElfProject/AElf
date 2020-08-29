@@ -136,6 +136,19 @@ namespace AElf.Kernel.Types.Tests
             Should.Throw<InvalidOperationException>(() => { blockHeader3.GetHash(); });
         }
 
+        [Fact]
+        public void BlockIndex_ToDiagnosticString_Test()
+        {
+            var hash = HashHelper.ComputeFrom("test");
+            var height = 10;
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = hash,
+                BlockHeight = height
+            };
+            blockIndex.ToDiagnosticString().ShouldBe($"[{hash}: {height}]");
+        }
+
         private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);

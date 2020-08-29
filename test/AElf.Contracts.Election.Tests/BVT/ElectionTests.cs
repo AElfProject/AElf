@@ -277,7 +277,7 @@ namespace AElf.Contracts.Election
             voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
             {
-                Value = validCandidatePublicKeyStr
+                Value = validCandidatePublicKeyStr       
             });
             candidateVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(1);
             candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
