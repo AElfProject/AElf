@@ -1,6 +1,7 @@
 using System;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -15,10 +16,12 @@ namespace AElf.Sdk.CSharp.Tests
         public Action<int> Action1 { get; set; }
         public Action<int, int> Action2 { get; set; }
         
+        public int NotAction { get; set; }
         public Func<bool> Func1 { get; set; }
         public Func<int, bool> Func2 { get; set; }
         public Func<int, int, int> Func3 { get; set; }
              
+        internal MethodReference<Address,Empty> MethodReference { get; set; }
     }
 
     public class MockContractState : ContractState

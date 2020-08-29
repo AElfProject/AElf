@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
         Task ApplyAsync(ITransactionContext transactionContext);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
+        bool IsView(string methodName);
         byte[] GetFileDescriptorSet();
         IEnumerable<FileDescriptor> GetFileDescriptors();
         
