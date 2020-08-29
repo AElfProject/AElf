@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -230,14 +232,21 @@ namespace AElf.OS.Network.Grpc
         [Fact]
         public async Task DisconnectAsync_Test()
         {
-            var isReady = _grpcPeer.IsReady;
-            isReady.ShouldBeTrue();
-            
+            _grpcPeer.IsReady.ShouldBeTrue();
+            _grpcPeer.IsShutdown.ShouldBeFalse();
+            _grpcPeer.IsConnected.ShouldBeTrue();
+            _grpcPeer.IsInvalid.ShouldBeFalse();
+
             await _grpcPeer.DisconnectAsync(false);
             
             _grpcPeer.IsShutdown.ShouldBeTrue();
             _grpcPeer.IsConnected.ShouldBeFalse();
+            _grpcPeer.IsReady.ShouldBeFalse();
+            _grpcPeer.IsInvalid.ShouldBeFalse();
             _grpcPeer.ConnectionStatus.ShouldBe("Shutdown");
+
+            _grpcPeer.Info.ConnectionTime = TimestampHelper.GetUtcNow().AddSeconds(-11);
+            _grpcPeer.IsInvalid.ShouldBeTrue();
         }
 
         [Fact]
@@ -362,24 +371,41 @@ namespace AElf.OS.Network.Grpc
         [Fact]
         public async Task HandleRpcException_Test()
         {
-            var mockClient = new Mock<PeerService.PeerServiceClient>();
-            mockClient.Setup(c =>
-                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
-                        CancellationToken.None))
-                .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
-            var grpcPeer = CreatePeer(mockClient.Object);
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
+                var grpcPeer = CreatePeer(mockClient.Object);
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
 
-            grpcPeer.CheckHealthAsync()
-                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
-            mockClient = new Mock<PeerService.PeerServiceClient>();
-            mockClient.Setup(c =>
-                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
-                        CancellationToken.None))
-                .Throws(new AggregateException());
-            grpcPeer = CreatePeer(mockClient.Object);
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException());
+                var grpcPeer = CreatePeer(mockClient.Object);
 
-            grpcPeer.CheckHealthAsync()
-                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
+            
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
+                var grpcPeer = CreatePeer(mockClient.Object);
+                await grpcPeer.DisconnectAsync(false);
+
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
         }
 
         private GrpcPeer CreatePeer(PeerService.PeerServiceClient client)

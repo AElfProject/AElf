@@ -173,7 +173,6 @@ namespace AElf.Runtime.CSharp
             executive.IsView("TestViewMethod").ShouldBeTrue();
             executive.IsView("TestBoolState").ShouldBeFalse();
             Should.Throw<RuntimeException>(() => executive.IsView("NotExistMethod"));
-
         }
 
         private Executive CreateExecutive()
