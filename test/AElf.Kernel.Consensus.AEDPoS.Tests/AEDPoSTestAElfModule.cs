@@ -15,6 +15,7 @@ using Moq;
 using Volo.Abp.Modularity;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Txn.Application;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
@@ -170,6 +171,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
                 return mockService.Object;
             });
+
+            context.Services.AddSingleton<IrreversibleBlockHeightUnacceptableLogEventProcessor>();
+            context.Services.AddSingleton<ITransactionPackingOptionProvider, MockTransactionPackingOptionProvider>();
         }
     }
 }
