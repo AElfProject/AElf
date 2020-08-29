@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using Acs1;
 using AElf.Cryptography;
 using Xunit;
 using Google.Protobuf;
@@ -216,14 +215,6 @@ namespace AElf.Types.Tests.Extensions
             ((int)littleEndianBytes.Last()).ShouldBe(255);
             numberFromBigEndianBytes = BitConverter.ToUInt32(BitConverter.IsLittleEndian ? littleEndianBytes: littleEndianBytes.Reverse().ToArray());
             numberFromBigEndianBytes.ShouldBe(number);
-        }
-
-        [Fact]
-        public void FileDescriptorExtensions_GetIdentity()
-        {
-            var services = Acs1Reflection.Descriptor.Services;
-            var identityList = services.Select(x => x.File.GetIdentity() == "acs1").ToList();
-            identityList.Count.ShouldBe(1);
         }
 
         [Fact]
