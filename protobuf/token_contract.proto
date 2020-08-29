@@ -122,6 +122,9 @@ service TokenContract {
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
+    rpc GetIsTokenProfitable (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -135,6 +138,7 @@ message TokenInfo {
     bool is_profitable = 8;
     int32 issue_chain_id = 9;
     int64 burned = 10;
+    map<string, string> meta_data = 11;
 }
 
 message CreateInput {
@@ -147,6 +151,7 @@ message CreateInput {
     repeated aelf.Address lock_white_list = 7;
     bool is_profitable = 8;
     int32 issue_chain_id = 9;
+    map<string, string> meta_data = 10;
 }
 
 message RegisterNativeTokenInfoInput {

@@ -168,6 +168,7 @@ message SideChainTokenInfo {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     bool is_profitable = 7;
+    map<string, string> meta_data = 8;
 }
 
 message RequestChainCreationOutput {

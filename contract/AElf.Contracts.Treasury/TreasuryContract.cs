@@ -286,7 +286,7 @@ namespace AElf.Contracts.Treasury
                     Address = Context.Self
                 }).Value;
                 var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
-                Assert(tokenInfo.IsProfitable || isTreasuryInWhiteList, "Symbol need to be profitable.");
+                Assert(State.TokenContract.GetIsTokenProfitable.Call(new StringValue {Value = symbol}).Value || isTreasuryInWhiteList, "Symbol need to be profitable.");
                 Assert(!IsTokenCanExchangeWithNativeSymbol(symbol),
                     $"Token {symbol} don't need to set to symbol list because it would become native token after donation.");
             }

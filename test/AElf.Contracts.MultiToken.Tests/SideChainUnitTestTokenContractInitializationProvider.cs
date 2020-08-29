@@ -12,7 +12,8 @@ namespace AElf.Contracts.MultiToken
         private readonly ITokenContractInitializationDataProvider _tokenContractInitializationDataProvider;
 
         public SideChainUnitTestTokenContractInitializationProvider(
-            ITokenContractInitializationDataProvider tokenContractInitializationDataProvider) : base(tokenContractInitializationDataProvider)
+            ITokenContractInitializationDataProvider tokenContractInitializationDataProvider) : base(
+            tokenContractInitializationDataProvider)
         {
             _tokenContractInitializationDataProvider = tokenContractInitializationDataProvider;
         }
@@ -97,7 +98,7 @@ namespace AElf.Contracts.MultiToken
                 });
             }
 
-            if (initializationData.RegisteredOtherTokenContractAddresses.Values.All(v=>v != null))
+            if (initializationData.RegisteredOtherTokenContractAddresses.Values.All(v => v != null))
             {
                 methodList.Add(new ContractInitializationMethodCall
                 {
@@ -135,10 +136,9 @@ namespace AElf.Contracts.MultiToken
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,
                 TotalSupply = tokenInfo.TotalSupply,
-                IsProfitable = tokenInfo.IsProfitable
+                IsProfitable = tokenInfo.IsProfitable,
+                MetaData = {tokenInfo.MetaData}
             };
         }
-        
-        
     }
 }

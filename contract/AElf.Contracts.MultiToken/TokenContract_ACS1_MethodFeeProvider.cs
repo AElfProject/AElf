@@ -128,7 +128,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[symbol];
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
+            Assert(IsTokenProfitable(tokenInfo), $"Token {symbol} is not Profitable");
         }
 
         #endregion

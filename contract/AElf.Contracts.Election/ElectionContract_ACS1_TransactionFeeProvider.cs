@@ -95,7 +95,7 @@ namespace AElf.Contracts.Election
             var primaryTokenSymbol = (State.TokenContract.GetPrimaryTokenSymbol.Call(new Empty())).Value;
             // ReSharper disable once PossibleNullReferenceException
             if(primaryTokenSymbol != symbol)
-                Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
+                Assert(State.TokenContract.GetIsTokenProfitable.Call(new StringValue {Value = symbol}).Value, $"Token {symbol} is not Profitable");
         }
 
         #endregion

@@ -490,7 +490,7 @@ namespace AElf.Contracts.MultiToken
         private bool IsTokenDonateToTreasury(string symbol)
         {
             var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
-            return tokenInfo.IsProfitable || State.LockWhiteLists[symbol][State.TreasuryContract.Value];
+            return IsTokenProfitable(tokenInfo) || State.LockWhiteLists[symbol][State.TreasuryContract.Value];
         }
 
         private void PayRental()
@@ -702,7 +702,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[tokenWeightInfo.TokenSymbol];
             Assert(tokenInfo != null, $"Token is not found. {tokenWeightInfo.TokenSymbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable, $"Token {tokenWeightInfo.TokenSymbol} is not Profitable");
+            Assert(IsTokenProfitable(tokenInfo), $"Token {tokenWeightInfo.TokenSymbol} is not Profitable");
             
         }
 

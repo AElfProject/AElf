@@ -201,7 +201,8 @@ namespace AElf.Contracts.CrossChain
                 IssueChainId = chainId,
                 Symbol = sideChainTokenInfo.Symbol,
                 TotalSupply = sideChainTokenInfo.TotalSupply,
-                IsProfitable = sideChainTokenInfo.IsProfitable
+                IsProfitable = sideChainTokenInfo.IsProfitable,
+                MetaData = {sideChainTokenInfo.MetaData}
             });
         }
 

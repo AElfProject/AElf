@@ -25,7 +25,7 @@ namespace AElf.Kernel.Token
         {
             var methodList = new List<ContractInitializationMethodCall>();
             var initializationData = _tokenContractInitializationDataProvider.GetContractInitializationData();
-            
+
             // For the main chain, we use the economic contract to initialize the token contract.
             // So no initialization methods are required in here.
             // But for the side chain, which has no economic contract, we need initialize token contract.
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Token
                         }.ToByteString()
                     });
                 }
-                
+
                 methodList.Add(new ContractInitializationMethodCall
                 {
                     MethodName = nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
@@ -143,7 +143,7 @@ namespace AElf.Kernel.Token
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,
                 TotalSupply = tokenInfo.TotalSupply,
-                IsProfitable = tokenInfo.IsProfitable
+                MetaData = {tokenInfo.MetaData}
             };
         }
     }

@@ -23,14 +23,16 @@ namespace AElf.Contracts.MultiToken
         public override TokenInfoList GetResourceTokenInfo(Empty input)
         {
             var tokenInfoList = new TokenInfoList();
-            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Where(symbol =>
-                State.TokenInfos[symbol] != null))
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName)
+                .Where(symbol =>
+                    State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
             }
 
-            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName).Where(symbol =>
-                State.TokenInfos[symbol] != null))
+            foreach (var symbol in Context.Variables.GetStringArray(TokenContractConstants.PayRentalSymbolListName)
+                .Where(symbol =>
+                    State.TokenInfos[symbol] != null))
             {
                 tokenInfoList.Value.Add(State.TokenInfos[symbol]);
             }
@@ -124,7 +126,7 @@ namespace AElf.Contracts.MultiToken
         {
             var targetTokenCoefficient =
                 State.AllCalculateFeeCoefficients.Value.Value.First(x =>
-                    x.FeeTokenType == (int)FeeTypeEnum.Tx);
+                    x.FeeTokenType == (int) FeeTypeEnum.Tx);
             return targetTokenCoefficient;
         }
 
@@ -165,21 +167,21 @@ namespace AElf.Contracts.MultiToken
         {
             return State.SymbolListToPayTxSizeFee.Value;
         }
-        
+
         public override UserFeeController GetUserFeeController(Empty input)
         {
             Assert(State.UserFeeController.Value != null,
                 "controller does not initialize, call InitializeAuthorizedController first");
             return State.UserFeeController.Value;
         }
-        
+
         public override DeveloperFeeController GetDeveloperFeeController(Empty input)
         {
             Assert(State.DeveloperFeeController.Value != null,
                 "controller does not initialize, call InitializeAuthorizedController first");
             return State.DeveloperFeeController.Value;
         }
-        
+
         public override AuthorityInfo GetSideChainRentalControllerCreateInfo(Empty input)
         {
             Assert(State.SideChainCreator.Value != null, "side chain creator dose not exist");
@@ -190,18 +192,38 @@ namespace AElf.Contracts.MultiToken
 
         public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
         {
-            if(State.SymbolToPayTxFeeController.Value == null)
+            if (State.SymbolToPayTxFeeController.Value == null)
                 return GetDefaultSymbolToPayTxFeeController();
             return State.SymbolToPayTxFeeController.Value;
         }
-        
+
         public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)
         {
             if (State.CrossChainTokenContractRegistrationController.Value == null)
             {
                 return GetCrossChainTokenContractRegistrationController();
             }
+
             return State.CrossChainTokenContractRegistrationController.Value;
+        }
+
+        private bool IsTokenProfitable(string symbol)
+        {
+            var tokenInfo = State.TokenInfos[symbol];
+            return IsTokenProfitable(tokenInfo);
+        }
+
+        private bool IsTokenProfitable(TokenInfo tokenInfo)
+        {
+            if (tokenInfo == null) return false;
+            if (!tokenInfo.MetaData.TryGetValue(TokenContractConstants.IsProfitable, out var isProfitableStr))
+                return false;
+            return bool.TryParse(isProfitableStr, out var isProfitable) && isProfitable;
+        }
+
+        public override BoolValue GetIsTokenProfitable(StringValue input)
+        {
+            return new BoolValue {Value = IsTokenProfitable(input.Value)};
         }
     }
 }
