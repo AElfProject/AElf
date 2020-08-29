@@ -112,7 +112,7 @@ namespace AElf.CrossChain.Application
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];
-                if (!info.ChainId.Equals(sideChainId))
+                if (info.ChainId != sideChainId)
                     continue;
 
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
