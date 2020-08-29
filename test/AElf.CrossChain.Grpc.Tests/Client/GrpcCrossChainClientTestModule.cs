@@ -12,7 +12,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Grpc.Client
 {
-    [DependsOn(typeof(GrpcCrossChainAElfModule))]
+    [DependsOn(typeof(GrpcCrossChainTestModule))]
     public class GrpcCrossChainClientTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
