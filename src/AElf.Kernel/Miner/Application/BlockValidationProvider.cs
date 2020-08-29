@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.Miner.Application
 {
@@ -10,12 +12,14 @@ namespace AElf.Kernel.Miner.Application
     {
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly int _systemTransactionCount;
+        private readonly ForkHeightOptions _forkHeightOptions;
 
         public BlockValidationProvider(IBlockTransactionLimitProvider blockTransactionLimitProvider, 
-            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
+            IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators,IOptionsSnapshot<ForkHeightOptions> forkHeightOptions)
         {
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
             _systemTransactionCount = systemTransactionGenerators.Count();
+            _forkHeightOptions = forkHeightOptions.Value;
         }
 
 
@@ -25,7 +29,8 @@ namespace AElf.Kernel.Miner.Application
         }
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
-        {
+        { 
+            if (block.Header.Height < _forkHeightOptions.BlockTransactionLimitValidationForkHeight) return true; 
             var txCountLimit = await _blockTransactionLimitProvider.GetLimitAsync(new ChainContext
             {
                 BlockHash = block.Header.PreviousBlockHash,
