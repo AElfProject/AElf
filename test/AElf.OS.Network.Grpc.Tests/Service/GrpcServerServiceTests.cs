@@ -476,6 +476,15 @@ namespace AElf.OS.Network.Grpc
             var lastLibHash = peer.LastKnownLibHash;
             var requestStream = new TestAsyncStreamReader<LibAnnouncement>(new List<LibAnnouncement>
             {
+                null
+            });
+            await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            peer.LastKnownLibHash.ShouldBe(lastLibHash);
+            peer.LastKnownLibHeight.ShouldBe(lastLibHeight);
+            
+            requestStream = new TestAsyncStreamReader<LibAnnouncement>(new List<LibAnnouncement>
+            {
                 new LibAnnouncement()
             });
             await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
