@@ -211,9 +211,11 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
-            var targetCandidate = State.CandidateInformationMap[input.CandidatePubkey];
-            Assert( targetCandidate != null && targetCandidate.IsCurrentCandidate,
-                $"Candidate: {input.CandidatePubkey} dose not exist");
+            // var targetCandidate = State.CandidateInformationMap[input.CandidatePubkey];
+            // Assert( targetCandidate != null && targetCandidate.IsCurrentCandidate,
+            //     $"Candidate: {input.CandidatePubkey} dose not exist");
+            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
+            AssertValidCandidateInformation(targetInformation);
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);

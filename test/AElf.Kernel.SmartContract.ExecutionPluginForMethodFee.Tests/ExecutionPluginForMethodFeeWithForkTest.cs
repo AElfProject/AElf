@@ -170,10 +170,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             blockchainExecutedDataCacheProvider.SetChangeHeight("test3", 3);
             blockchainExecutedDataCacheProvider.SetChangeHeight("test4", 4);
 
-            var cleanHandlers =
-                GetRequiredService<IEnumerable<ILocalEventHandler<CleanBlockExecutedDataChangeHeightEventData>>>();
-            var cleanHandler = cleanHandlers.Single(x =>
-                x.GetType() == typeof(CleanBlockExecutedDataChangeHeightEventHandler));
+            var cleanHandler =
+                GetRequiredService<CleanBlockExecutedDataChangeHeightEventHandler>();
             await cleanHandler.HandleEventAsync(new CleanBlockExecutedDataChangeHeightEventData
             {
                 IrreversibleBlockHeight = 3

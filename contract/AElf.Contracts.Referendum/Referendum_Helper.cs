@@ -92,6 +92,7 @@ namespace AElf.Contracts.Referendum
             if (string.IsNullOrEmpty(organization.TokenSymbol) || organization.OrganizationAddress == null ||
                 organization.OrganizationHash == null || organization.ProposerWhiteList.Empty())
                 return false;
+            Assert(!string.IsNullOrEmpty(GetTokenInfo(organization.TokenSymbol).Symbol), "Token not exists.");
 
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             return proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
@@ -126,6 +127,15 @@ namespace AElf.Contracts.Referendum
             Assert(proposal != null, "Invalid proposal id.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
+        }
+        
+        private TokenInfo GetTokenInfo(string symbol)
+        {
+            RequireTokenContractStateSet();
+            return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
         }
 
         private long GetAllowance(Address owner, string tokenSymbol, Hash proposalId)
@@ -178,12 +188,21 @@ namespace AElf.Contracts.Referendum
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                CalculateVirtualHash(organizationHash, createOrganizationInput.CreationToken));
+            
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
+        }
+        
+        private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
+        {
+            return creationToken == null
+                ? organizationHash
+                : HashHelper.ConcatAndCompute(organizationHash, creationToken);
         }
     }
 }

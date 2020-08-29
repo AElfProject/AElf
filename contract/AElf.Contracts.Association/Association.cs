@@ -79,7 +79,8 @@ namespace AElf.Contracts.Association
                 OrganizationAddress = organizationAddress,
                 ProposerWhiteList = input.ProposerWhiteList,
                 OrganizationMemberList = input.OrganizationMemberList,
-                OrganizationHash = organizationHash
+                OrganizationHash = organizationHash,
+                CreationToken = input.CreationToken
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organizations[organizationAddress] == null)
@@ -189,7 +190,7 @@ namespace AElf.Contracts.Association
             Assert(Context.Sender == proposalInfo.Proposer, "No permission.");
             var organization = State.Organizations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
-            Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposalInfo.ToAddress,
+            Context.SendVirtualInlineBySystemContract(CalculateVirtualHash(organization.OrganizationHash, organization.CreationToken), proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
 
             Context.Fire(new ProposalReleased
@@ -216,22 +217,7 @@ namespace AElf.Contracts.Association
             });
             return new Empty();
         }
-
-        public override Empty ChangeOrganizationMember(OrganizationMemberList input)
-        {
-            var organization = State.Organizations[Context.Sender];
-            Assert(organization != null, "Organization not found.");
-            organization.OrganizationMemberList = input;
-            Assert(Validate(organization), "Invalid organization.");
-            State.Organizations[Context.Sender] = organization;
-            Context.Fire(new OrganizationMemberChanged
-            {
-                OrganizationAddress = Context.Sender,
-                OrganizationMemberList = input
-            });
-            return new Empty();
-        }
-
+        
         public override Empty ChangeOrganizationProposerWhiteList(ProposerWhiteList input)
         {
             var organization = State.Organizations[Context.Sender];

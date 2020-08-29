@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.Runtime.CSharp.Tests.BadContract;
 using Shouldly;
@@ -52,6 +53,9 @@ namespace AElf.CSharp.CodeOps.whitelist
             validationResults.ShouldContain(v => v.Info != null &&
                                                  v.Info.Namespace == "System.Reflection" &&
                                                  v.Info.Type.Contains(nameof(Assembly)));
+            
+            validationResults.ShouldContain(v =>
+                v.Info != null && v.Info.Member == nameof(SecretSharingHelper.DecodeSecret) && v.Info.Type == (nameof(SecretSharingHelper)));
         }
     }
 }

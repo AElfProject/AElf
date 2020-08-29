@@ -1,5 +1,8 @@
 using System;
-using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
+using AElf.Kernel.FeeCalculation.Extensions;
+using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -24,7 +27,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         [InlineData( 10, 100, 1000, 500, 409010)] // 10 + （100 - 10）* 100 +（500 -100）* 1000
         [InlineData( 10, 100, 1000, 1000, 909010)] //10 + （100 - 10）* 100 +（1000 -100）* 1000
         [InlineData( 10, 100, 1000, 1001, 909010)] //10 + （100 - 10）* 100 +（1000 -100）* 1000
-        public async Task CalculateFunction_Piece_Wise_Test(int piece1, int piece2, int piece3, int input, long outCome)
+        public void CalculateFunction_Piece_Wise_Test(int piece1, int piece2, int piece3, int input, long outCome)
         {
             _calculateFunction.AddFunction(new []{piece1}, Calculate1);
             _calculateFunction.AddFunction(new []{piece2}, Calculate2);
@@ -35,7 +38,7 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
         }
         
         [Fact]
-        public async Task CalculateFunction_With_Miss_Match_Functions_Test()
+        public void CalculateFunction_With_Miss_Match_Functions_Test()
         {
             _calculateFunction.AddFunction(new []{1}, Calculate1);
             _calculateFunction.AddFunction(new []{10}, Calculate2);
@@ -51,6 +54,51 @@ namespace AElf.Kernel.FeeCalculation.Infrastructure
                 errorMsg = ex.Message;
             }
             errorMsg.ShouldContain("Coefficients count not match");
+        }
+
+        [Fact]
+        public void GetChargedTransactionFees_Test()
+        {
+            var transactionResult = new TransactionResult();
+            var feeDic = transactionResult.GetChargedTransactionFees();
+            feeDic.Count.ShouldBe(0);
+        }
+        
+        [Fact]
+        public void GetConsumedResourceTokens_Test()
+        {
+            var transactionResult = new TransactionResult();
+            var resourceTokenFeeDic = transactionResult.GetConsumedResourceTokens();
+            resourceTokenFeeDic.Count.ShouldBe(0);
+        }
+        
+        [Fact]
+        public void GetOwningResourceTokens_Test()
+        {
+            {
+                var transactionResult = new TransactionResult();
+                var owningTokenFeeDic = transactionResult.GetOwningResourceTokens();
+                owningTokenFeeDic.Count.ShouldBe(0);
+            }
+
+            {
+                var symbol = "ELF";
+                var amount = 100;
+                var transactionResult = new TransactionResult();
+                transactionResult.Logs.Add(new LogEvent
+                {
+                    Name = "ResourceTokenOwned",
+                    NonIndexed = new ResourceTokenOwned
+                    {
+                        Symbol = symbol,
+                        Amount = amount
+                    }.ToByteString()
+                });
+                var owningTokenFeeDic = transactionResult.GetOwningResourceTokens();
+                owningTokenFeeDic.Count.ShouldBe(1);
+                owningTokenFeeDic[symbol].ShouldBe(amount);
+            }
+            
         }
 
         private long Calculate1(int count)
