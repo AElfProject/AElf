@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -240,8 +242,11 @@ namespace AElf.OS.Network.Grpc
             _grpcPeer.IsShutdown.ShouldBeTrue();
             _grpcPeer.IsConnected.ShouldBeFalse();
             _grpcPeer.IsReady.ShouldBeFalse();
-            _grpcPeer.IsInvalid.ShouldBeTrue();
+            _grpcPeer.IsInvalid.ShouldBeFalse();
             _grpcPeer.ConnectionStatus.ShouldBe("Shutdown");
+
+            _grpcPeer.Info.ConnectionTime = TimestampHelper.GetUtcNow().AddSeconds(-11);
+            _grpcPeer.IsInvalid.ShouldBeTrue();
         }
 
         [Fact]
