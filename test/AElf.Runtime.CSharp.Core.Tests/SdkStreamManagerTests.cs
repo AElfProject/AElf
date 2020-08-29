@@ -47,6 +47,17 @@ namespace AElf.Runtime.CSharp.Core
             }
         }
 
+        [Fact]
+        public void ExceptionTest()
+        {
+            var message = "message";
+            Should.Throw<InvalidMethodNameException>(() => throw new InvalidMethodNameException());
+            Should.Throw<InvalidMethodNameException>(() => throw new InvalidMethodNameException(message));
+            Should.Throw<RuntimeException>(() => throw new RuntimeException());
+            Should.Throw<RuntimeException>(() => throw new RuntimeException(message));
+            
+        }
+
         private void CheckGetStreamResult(Stream stream)
         {
             var loader = new AssemblyLoadContext(null);

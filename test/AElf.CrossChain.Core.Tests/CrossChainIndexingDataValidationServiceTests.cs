@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
@@ -415,6 +416,15 @@ namespace AElf.CrossChain
                     Hash.Empty, 2);
                 Assert.True(res);
             }
+        }
+
+        [Fact]
+        public void CrossChainRequestExceptionTest()
+        {
+            var message = "message";
+            Should.Throw<CrossChainRequestException>(() => throw new CrossChainRequestException(message));
+            Should.Throw<CrossChainRequestException>(() =>
+                throw new CrossChainRequestException(message, new Exception()));
         }
 
         private CrossChainBlockData FakeCrossChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockDataList,

@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Runtime.CSharp.Core;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -163,6 +164,16 @@ namespace AElf.Runtime.CSharp
 
             var fileDescriptorSet = executive.GetFileDescriptorSet();
             fileDescriptorSet.ShouldBe(set.ToByteArray());
+        }
+
+        [Fact]
+        public void IsViewTest()
+        {
+            var executive = CreateExecutive();
+            executive.IsView("TestViewMethod").ShouldBeTrue();
+            executive.IsView("TestBoolState").ShouldBeFalse();
+            Should.Throw<RuntimeException>(() => executive.IsView("NotExistMethod"));
+
         }
 
         private Executive CreateExecutive()
