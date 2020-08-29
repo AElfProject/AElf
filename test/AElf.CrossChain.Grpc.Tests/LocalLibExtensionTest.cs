@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.CrossChain.Grpc.Client;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
@@ -79,6 +81,15 @@ namespace AElf.CrossChain.Grpc
             irreversibleBlock = await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
             var expectedBlock = new Block {Header = new BlockHeader {Height = height}};
             irreversibleBlock.Equals(expectedBlock).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void GrpcCrossChainRequestExceptionTest()
+        {
+            var message = "message";
+            Should.Throw<GrpcCrossChainRequestException>(() => throw new GrpcCrossChainRequestException(message));
+            Should.Throw<GrpcCrossChainRequestException>(() =>
+                throw new GrpcCrossChainRequestException(message, new Exception()));
         }
     }
 }

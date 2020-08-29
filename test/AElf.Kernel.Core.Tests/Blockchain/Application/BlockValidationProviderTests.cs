@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -198,6 +199,20 @@ namespace AElf.Kernel.Blockchain.Application
 
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(repackagedBlock);
             validateResult.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void ExceptionTest()
+        {
+            var message = "message";
+            var exception = new Exception();
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException());
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException(message));
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException(message, exception));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException());
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(message));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(message, exception));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(Hash.Empty));
         }
     }
 }

@@ -88,6 +88,8 @@ namespace AElf.Kernel.Types.Tests
             blockIndex.ToString().ShouldBe(blockIndex1.ToString());
             blockIndex.ToString().Contains(Hash.Empty.ToString()).ShouldBeTrue();
             blockIndex.ToString().Contains("1").ShouldBeTrue();
+            
+            blockIndex.ToDiagnosticString().ShouldBe($"[{blockIndex.BlockHash}: {blockIndex.BlockHeight}]");
         }
 
         [Fact]
