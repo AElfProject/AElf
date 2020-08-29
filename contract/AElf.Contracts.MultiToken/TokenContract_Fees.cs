@@ -691,7 +691,7 @@ namespace AElf.Contracts.MultiToken
             return State.FeeReceiver.Value;
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
+        private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
