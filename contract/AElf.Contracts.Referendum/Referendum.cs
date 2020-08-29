@@ -83,7 +83,8 @@ namespace AElf.Contracts.Referendum
                 OrganizationAddress = organizationAddress,
                 TokenSymbol = input.TokenSymbol,
                 OrganizationHash = organizationHash,
-                ProposerWhiteList = input.ProposerWhiteList
+                ProposerWhiteList = input.ProposerWhiteList,
+                CreationToken = input.CreationToken
             };
             Assert(Validate(organization), "Invalid organization data.");
 
@@ -228,7 +229,8 @@ namespace AElf.Contracts.Referendum
             Assert(Context.Sender.Equals(proposal.Proposer), "No permission.");
             var organization = State.Organizations[proposal.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposal, organization), "Not approved.");
-            Context.SendVirtualInlineBySystemContract(organization.OrganizationHash, proposal.ToAddress,
+            Context.SendVirtualInlineBySystemContract(
+                CalculateVirtualHash(organization.OrganizationHash, organization.CreationToken), proposal.ToAddress,
                 proposal.ContractMethodName, proposal.Params);
 
             Context.Fire(new ProposalReleased {ProposalId = input});
