@@ -209,7 +209,7 @@ namespace AElf.Contracts.Election
             });
             var amount = voteTokenInfo.TotalSupply.Div(10).Mul(5);
             var voterKeyPair = VoterKeyPairs.First();
-            var issueRet = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+            var issueRet = await EconomicContractStub.IssueNativeToken.SendAsync(new Economic.IssueNativeTokenInput
             {
                 Amount = amount,
                 To = Address.FromPublicKey(voterKeyPair.PublicKey)

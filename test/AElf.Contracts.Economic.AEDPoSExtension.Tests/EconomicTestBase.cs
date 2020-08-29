@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -39,8 +39,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
-            GetTester<ParliamentContractContainer.ParliamentContractStub>(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
+            GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                 ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
 
@@ -64,8 +64,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ContractAddresses[ProfitSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
         
-        internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
-            new List<ParliamentContractContainer.ParliamentContractStub>();
+        internal readonly List<ParliamentContractImplContainer.ParliamentContractImplStub> ParliamentStubs =
+            new List<ParliamentContractImplContainer.ParliamentContractImplStub>();
 
         public EconomicTestBase()
         {
@@ -161,7 +161,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             ParliamentStubs.Clear();
             foreach (var initialKeyPair in keyPairs)
             {
-                ParliamentStubs.Add(GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                ParliamentStubs.Add(GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                     ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
             }
         }

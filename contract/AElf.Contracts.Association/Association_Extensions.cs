@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Standards.ACS3;
 using AElf.Types;
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Election;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
