@@ -16,5 +16,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address);
 
         Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction);
+
+        Task<bool> IsViewTransactionAsync(IChainContext chainContext, Transaction transaction);
     }
 }

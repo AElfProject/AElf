@@ -105,5 +105,38 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             fileDescriptor.Count.ShouldBeGreaterThan(0);
             fileDescriptor.ShouldAllBe(o => o.Name.Contains("proto"));
         }
+        
+        [Fact]
+        public async Task IsViewTransactionAsync_Test()
+        {
+            var chain = await BlockchainService.GetChainAsync();
+            var context = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+            var transaction = OsTestHelper.GenerateTransaction(SampleAddress.AddressList[0],
+                await SmartContractAddressService.GetAddressByContractNameAsync(context, TokenSmartContractAddressNameProvider.StringName),
+                "GetBalance", new GetBalanceInput
+                {
+                    Owner = SampleAddress.AddressList[0],
+                    Symbol = "ELF"
+                });
+
+            var result = await TransactionReadOnlyExecutionService.IsViewTransactionAsync(context, transaction);
+            result.ShouldBeTrue();
+
+            transaction = OsTestHelper.GenerateTransaction(SampleAddress.AddressList[0],
+                await SmartContractAddressService.GetAddressByContractNameAsync(context,
+                    TokenSmartContractAddressNameProvider.StringName),
+                "Transfer", new TransferInput
+                {
+                    To = SampleAddress.AddressList[1],
+                    Symbol = "ELF",
+                    Amount = 10
+                });
+            result = await TransactionReadOnlyExecutionService.IsViewTransactionAsync(context, transaction);
+            result.ShouldBeFalse();
+        }
     }
 }

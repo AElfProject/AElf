@@ -30,6 +30,16 @@ namespace AElf.Types.Tests
             //Generate from xor
             var hash6 = HashHelper.XorAndCompute(hash1, hash2);
             hash6.ShouldNotBe(null);
+
+            //Generate from long
+            long longtype = 1;
+            var hash7 = HashHelper.ComputeFrom(longtype);
+            hash7.ShouldNotBe(null);
+            
+            //Generate from Message
+            var message= new Transaction();
+            var hash8 = HashHelper.ComputeFrom(message);
+            hash8.ShouldNotBe(null);
         }
 
         [Fact]
