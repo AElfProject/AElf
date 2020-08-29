@@ -230,6 +230,9 @@ namespace AElf.Contracts.Election
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockDays = State.LockTimeMap[input.VoteId];
             Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
+            
+            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
+            AssertValidCandidateInformation(targetInformation);
 
             // Withdraw old votes
             State.VoteContract.Withdraw.Send(new WithdrawInput
