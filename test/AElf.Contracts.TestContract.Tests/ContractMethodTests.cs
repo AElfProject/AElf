@@ -95,6 +95,15 @@ namespace AElf.Contract.TestContract
             transaction2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        [Fact]
+        public async Task BasicContract_GenerateId_Test()
+        {
+            var result = await TestBasicFunctionContractStub.TestGenerateId.SendAsync(new Empty());
+            var hashList = new HashList();
+            hashList.MergeFrom(result.TransactionResult.ReturnValue);
+            hashList.Values.Count.ShouldBe(5);
+        }
+
         #endregion 
         
         #region BasicSecurity methods Test

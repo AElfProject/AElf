@@ -25,6 +25,8 @@ service BasicFunctionContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc TestGenerateId (google.protobuf.Empty) returns (HashList) {
+    }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -117,4 +119,8 @@ message TransferTokenToContractInput {
 
 message OtherResourceInfo{
     aelf.Address address = 1;
+}
+
+message HashList {
+    repeated aelf.Hash values = 1;
 }

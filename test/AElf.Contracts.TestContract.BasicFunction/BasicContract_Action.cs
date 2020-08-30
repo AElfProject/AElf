@@ -1,8 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
+using AElf.Kernel.SmartContract;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 namespace AElf.Contracts.TestContract.BasicFunction
 {
@@ -145,6 +150,21 @@ namespace AElf.Contracts.TestContract.BasicFunction
             });
 
             return new Empty();
+        }
+
+        public override HashList TestGenerateId(Empty input)
+        {
+            return new HashList
+            {
+                Values =
+                {
+                    Context.GenerateId(new List<byte> {0, 1, 2, 3}),
+                    Context.GenerateId("Test"),
+                    Context.GenerateId(HashHelper.ComputeFrom("Test")),
+                    Context.GenerateId(),
+                    Context.GenerateId(Context.Sender, HashHelper.ComputeFrom("Test"))
+                }
+            };
         }
     }
 }
