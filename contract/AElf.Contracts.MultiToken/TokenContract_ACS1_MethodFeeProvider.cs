@@ -121,14 +121,12 @@ namespace AElf.Contracts.MultiToken
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
                 authorityInfo.OwnerAddress).Value;
         }
-        
+
         private void AssertValidFeeToken(string symbol, long amount)
         {
             AssertValidSymbolAndAmount(symbol, amount);
-            var tokenInfo = State.TokenInfos[symbol];
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable, $"Token {symbol} is not Profitable");
+            Assert(State.TokenInfos[symbol].IsBurnable && State.TokenInfos[symbol].IsProfitable,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

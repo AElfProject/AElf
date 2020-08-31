@@ -229,7 +229,7 @@ namespace AElf.Contracts.MultiToken
                     }
                 };
                 var ret = await TokenContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
-                ret.TransactionResult.Error.ShouldContain($"Token {tokenNotProfitable} is not Profitable");
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenNotProfitable} cannot set as method fee.");
             }
         }
 

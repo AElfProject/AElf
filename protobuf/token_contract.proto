@@ -122,6 +122,9 @@ service TokenContract {
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
+    rpc GetMethodFeeAvailability (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {

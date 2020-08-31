@@ -636,6 +636,12 @@ namespace AElf.Contracts.MultiToken
 
             if (totalAmount <= 0) return;
 
+            var tokenInfo = State.TokenInfos[symbol];
+            if (!tokenInfo.IsBurnable || !tokenInfo.IsProfitable)
+            {
+                return;
+            }
+
             var burnAmount = totalAmount.Div(10);
             if (burnAmount > 0)
                 Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -708,7 +714,7 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[tokenSymbol];
             Assert(tokenInfo != null, $"Token is not found. {tokenSymbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable, $"Token {tokenSymbol} is not Profitable");
+            Assert(tokenInfo.IsProfitable, $"Token {tokenSymbol} cannot set as method fee.");
             totalSupply = tokenInfo.TotalSupply;
         }
 

@@ -155,7 +155,7 @@ namespace AElf.Contracts.TokenConverter
                         }
                     }
                 });
-                setMethodFeeRet.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} is not Profitable");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");
             }
         }
         
