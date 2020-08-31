@@ -53,6 +53,9 @@
         <ContractBase Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractBase>
         <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractBase>

@@ -28,9 +28,6 @@ service AEDPoSContract {
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
     
-    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
-    }
-    
     rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
     rpc ChangeMaximumMinersCountController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
