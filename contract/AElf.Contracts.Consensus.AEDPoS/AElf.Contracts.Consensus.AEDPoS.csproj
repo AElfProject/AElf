@@ -67,11 +67,5 @@
             <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
-    
-    <ItemGroup>
-      <Reference Include="AElf.Contracts.Consensus.AEDPoS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\test\AElf.CSharp.CodeOps.Tests\bin\Debug\netcoreapp3.1\AElf.Contracts.Consensus.AEDPoS.dll</HintPath>
-      </Reference>
-    </ItemGroup>
 
 </Project>
