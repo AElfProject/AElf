@@ -53,6 +53,9 @@
         <ContractBase Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractBase>
         <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractBase>
@@ -63,6 +66,12 @@
             <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
             <SystemContract>true</SystemContract>
         </ContractCode>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Reference Include="AElf.Contracts.Consensus.AEDPoS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\test\AElf.CSharp.CodeOps.Tests\bin\Debug\netcoreapp3.1\AElf.Contracts.Consensus.AEDPoS.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

@@ -228,16 +228,16 @@ namespace AElf.Contracts.CrossChain
 
         private MinerListWithRoundNumber GetCurrentMiners()
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
-            return miners;
+            SetContractStateRequired(State.CrossChainInteractionContract, SmartContractConstants.ConsensusContractSystemName);
+            var miners = State.CrossChainInteractionContract.GetChainInitializationInformation.Call(new BytesValue());
+            return MinerListWithRoundNumber.Parser.ParseFrom(miners.Value.ToByteArray());
         }
 
         // only for side chain
         private void UpdateCurrentMiners(ByteString bytes)
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
+            SetContractStateRequired(State.CrossChainInteractionContract, SmartContractConstants.ConsensusContractSystemName);
+            State.CrossChainInteractionContract.UpdateInformationFromCrossChain.Send(new ConsensusInformation {Value = bytes}.ToBytesValue());
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
@@ -298,8 +298,8 @@ namespace AElf.Contracts.CrossChain
 
         private void AssertAddressIsCurrentMiner(Address address)
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(address).Value;
+            SetContractStateRequired(State.CrossChainInteractionContract, SmartContractConstants.ConsensusContractSystemName);
+            var isCurrentMiner = State.CrossChainInteractionContract.CheckCrossChainIndexingPermission.Call(address).Value;
             Assert(isCurrentMiner, "No permission.");
         }
 
