@@ -73,7 +73,7 @@ namespace AElf.Contracts.Genesis
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            Assert(State.TokenContract.GetMethodFeeAvailability.Call(new StringValue {Value = symbol}).Value,
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
                 $"Token {symbol} cannot set as method fee.");
         }
 

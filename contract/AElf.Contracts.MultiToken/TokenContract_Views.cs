@@ -207,7 +207,7 @@ namespace AElf.Contracts.MultiToken
             return State.CrossChainTokenContractRegistrationController.Value;
         }
 
-        public override BoolValue GetMethodFeeAvailability(StringValue input)
+        public override BoolValue IsTokenAvailableForMethodFee(StringValue input)
         {
             var tokenInfo = State.TokenInfos[input.Value];
             if (tokenInfo == null) throw new AssertionException("Token not found.");
