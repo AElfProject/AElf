@@ -204,7 +204,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
         public override Empty CheckResourceToken(Empty input)
         {
             AssertTransactionGeneratedByPlugin();
@@ -469,18 +468,11 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            if(IsTokenDonateToTreasury(symbol))
-                                State.TreasuryContract.Donate.Send(new DonateInput
-                                {
-                                    Symbol = symbol,
-                                    Amount = amount
-                                });
-                            else
-                                Context.SendInline(Context.Self, nameof(Burn), new BurnInput
-                                {
-                                    Symbol = symbol,
-                                    Amount = amount
-                                });
+                            State.TreasuryContract.Donate.Send(new DonateInput
+                            {
+                                Symbol = symbol,
+                                Amount = amount
+                            });
                         }
                         else
                         {
@@ -493,12 +485,6 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             }
-        }
-
-        private bool IsTokenDonateToTreasury(string symbol)
-        {
-            var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
-            return tokenInfo.IsProfitable || State.LockWhiteLists[symbol][State.TreasuryContract.Value];
         }
 
         private void PayRental()
@@ -653,8 +639,9 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null &&
-                IsTokenDonateToTreasury(symbol))
+            var isMainChain = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) !=
+                              null;
+            if (isMainChain)
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
