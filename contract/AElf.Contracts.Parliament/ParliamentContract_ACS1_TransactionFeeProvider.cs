@@ -94,8 +94,8 @@ namespace AElf.Contracts.Parliament
             var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable && tokenInfo.IsBurnable, $"Token {symbol} cannot set as method fee.");
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion
