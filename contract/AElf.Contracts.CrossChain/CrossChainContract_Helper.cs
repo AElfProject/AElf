@@ -226,7 +226,7 @@ namespace AElf.Contracts.CrossChain
             return State.TokenContract.GetResourceTokenInfo.Call(new Empty());
         }
 
-        private MinerListWithRoundNumber GetCurrentMiners()
+        private MinerListWithRoundNumber GetInitialConsensusInformation()
         {
             SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
@@ -234,7 +234,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         // only for side chain
-        private void UpdateCurrentMiners(ByteString bytes)
+        private void UpdateConsensusInformation(ByteString bytes)
         {
             SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
@@ -753,7 +753,7 @@ namespace AElf.Contracts.CrossChain
                     blockInfo.ExtraData.TryGetValue(ConsensusExtraDataName, out var bytes))
                 {
                     Context.LogDebug(() => "Updating consensus information..");
-                    UpdateCurrentMiners(bytes);
+                    UpdateConsensusInformation(bytes);
                 }
 
                 if (blockInfo.CrossChainExtraData != null)
