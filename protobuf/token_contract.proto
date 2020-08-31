@@ -35,8 +35,6 @@ service TokenContract {
     }
     rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeTokenProfitable (ChangeTokenProfitableInput) returns (google.protobuf.Empty) {
-    }
 
     //   Cross Chain Exchange
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
