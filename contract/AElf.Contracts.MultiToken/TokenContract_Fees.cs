@@ -241,8 +241,10 @@ namespace AElf.Contracts.MultiToken
                 Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
                     $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
                 AssertSymbolToPayTxFeeIsValid(tokenWeightInfo.TokenSymbol, out var addedTokenTotalSupply);
-                addedTokenTotalSupply.Mul(tokenWeightInfo.BaseTokenWeight);
-                primaryTokenInfo.TotalSupply.Mul(tokenWeightInfo.AddedTokenWeight);
+                CheckIsWeightOverflow(primaryTokenSymbol.Value, tokenWeightInfo.BaseTokenWeight,
+                    addedTokenTotalSupply);
+                CheckIsWeightOverflow(tokenWeightInfo.TokenSymbol, tokenWeightInfo.AddedTokenWeight,
+                    primaryTokenInfo.TotalSupply);
                 symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
@@ -254,7 +256,7 @@ namespace AElf.Contracts.MultiToken
             });
             return new Empty();
         }
-
+        
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}

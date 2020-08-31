@@ -653,14 +653,23 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             };
             var result = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.ShouldContain("overflow");
+            result.Error.ShouldContain($"the weight of token {primaryToken.Value} is set too large");
 
             invalidBaseTokenWeight = (int) long.MaxValue.Div(primaryTokenInfo.TotalSupply).Add(1);
             newSymbolList.SymbolsToPayTxSizeFee[1].BaseTokenWeight = 1;
             newSymbolList.SymbolsToPayTxSizeFee[1].AddedTokenWeight = invalidBaseTokenWeight;
+            createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newSymbolList.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
+                    .SetSymbolsToPayTxSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
             result = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.ShouldContain("overflow");
+            result.Error.ShouldContain($"the weight of token {feeToken} is set too large");
         }
 
         [Fact]
