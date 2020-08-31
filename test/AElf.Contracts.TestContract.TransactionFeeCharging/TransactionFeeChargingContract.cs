@@ -21,6 +21,7 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
                 Decimals = 2,
                 Issuer = Context.Self,
                 IsBurnable = true,
+                IsProfitable = true,
                 TotalSupply = TransactionFeeChargingContractConstants.TotalSupply,
                 LockWhiteList =
                 {

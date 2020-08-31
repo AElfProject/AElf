@@ -280,7 +280,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = tokenSymbol,
                 TokenName = "TEST name",
                 TotalSupply = 1_0000_0000,
-                Issuer = BootMinerAddress
+                Issuer = BootMinerAddress,
+                IsBurnable = true,
+                IsProfitable = true
             };
             var createTokenRet = await TokenContractStub.Create.SendAsync(tokenCreateInput);
             createTokenRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
