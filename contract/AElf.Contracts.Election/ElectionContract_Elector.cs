@@ -500,7 +500,7 @@ namespace AElf.Contracts.Election
                 {
                     Symbol = symbol
                 });
-                if (tokenInfo.TotalSupply.Sub(tokenInfo.Supply) <= amount) // Which means remain tokens not enough.
+                if (tokenInfo.TotalSupply.Sub(tokenInfo.Issued) <= amount) // Which means remain tokens not enough.
                 {
                     State.TokenContract.Transfer.Send(new TransferInput
                     {

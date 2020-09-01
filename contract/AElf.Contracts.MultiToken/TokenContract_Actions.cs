@@ -110,7 +110,8 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
-            tokenInfo.Issued = Math.Max(tokenInfo.Issued, tokenInfo.Burned + tokenInfo.Supply);
+            tokenInfo.Issued = Math.Max(tokenInfo.Issued,
+                Math.Min(tokenInfo.Burned + tokenInfo.Supply, tokenInfo.TotalSupply)); // deprecated
             tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             

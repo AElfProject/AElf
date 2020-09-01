@@ -528,7 +528,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         private ChainInitializationData GetChainInitializationData(SideChainInfo sideChainInfo,
-            SideChainCreationRequest sideChainCreationRequest, ByteString consensusInformation)
+            SideChainCreationRequest sideChainCreationRequest)
         {
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var res = new ChainInitializationData
@@ -540,8 +540,10 @@ namespace AElf.Contracts.CrossChain
                 ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
                 ParentChainTokenContractAddress = State.TokenContract.Value
             };
+            
+            var initialConsensusInfo = GetInitialConsensusInformation();
             res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
-                {InitialMinerListData = consensusInformation};
+                {InitialMinerListData = initialConsensusInfo};
 
             ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
             res.NativeTokenInfoData = nativeTokenInformation;

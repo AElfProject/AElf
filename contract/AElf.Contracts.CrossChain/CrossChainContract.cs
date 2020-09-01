@@ -74,9 +74,15 @@ namespace AElf.Contracts.CrossChain
             var sideChainCreationRequest = State.ProposedSideChainCreationRequestState[Context.Sender];
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
+            {
+                var serialNumber = State.SideChainSerialNumber.Value;
+                var chainId = GetChainId(serialNumber);
+                CreateSideChainToken(sideChainCreationRequest.SideChainCreationRequest, chainId, sideChainCreationRequest.Proposer);
                 Context.SendInline(State.SideChainLifetimeController.Value.ContractAddress,
                     nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.Release),
                     input.ProposalId);
+            }
+            
             return new Empty();
         }
 
@@ -106,7 +112,6 @@ namespace AElf.Contracts.CrossChain
 
             // lock token
             ChargeSideChainIndexingFee(input.Proposer, sideChainCreationRequest.LockedTokenAmount, chainId);
-            CreateSideChainToken(sideChainCreationRequest, chainId, input.Proposer);
 
             var sideChainInfo = new SideChainInfo
             {
@@ -122,9 +127,8 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfo[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 
-            var initialConsensusInfo = GetInitialConsensusInformation();
             var chainInitializationData =
-                GetChainInitializationData(sideChainInfo, sideChainCreationRequest, initialConsensusInfo);
+                GetChainInitializationData(sideChainInfo, sideChainCreationRequest);
             State.SideChainInitializationData[sideChainInfo.SideChainId] = chainInitializationData;
 
             Context.Fire(new SideChainCreatedEvent
