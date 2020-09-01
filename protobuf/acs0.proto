@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package acs0;
+option csharp_namespace = "AElf.Standards.ACS0";
 
 import public "aelf/core.proto";
 import "aelf/options.proto";

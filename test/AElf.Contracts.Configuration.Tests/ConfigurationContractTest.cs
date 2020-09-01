@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Kernel;
 using AElf.Types;
 using AElf.Contracts.Configuration;
@@ -44,7 +44,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.SetConfiguration),
                     new SetConfigurationInput
                     {
                         Key = "BlockTransactionLimit",
@@ -60,7 +60,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.GetConfiguration),
                     new StringValue {Value = "BlockTransactionLimit"});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
             transactionResult.ReturnValue.Length.ShouldBe(0);
@@ -75,7 +75,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.GetConfiguration),
                     new StringValue {Value = "BlockTransactionLimit"});
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
             var limitFromResult = new Int32Value();
@@ -110,7 +110,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult2 =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.GetConfigurationController),
                     new Empty());
             var authorityInfo = AuthorityInfo.Parser.ParseFrom(transactionResult2.ReturnValue);
             Assert.True(newOrganization == authorityInfo.OwnerAddress);
@@ -121,7 +121,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.ChangeConfigurationController),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.ChangeConfigurationController),
                     new AuthorityInfo
                     {
                         ContractAddress = ParliamentAddress,
@@ -150,7 +150,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetConfigurationController),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.GetConfigurationController),
                     new Empty());
             var defaultAuthority = AuthorityInfo.Parser.ParseFrom(transactionResult.ReturnValue);
             var defaultParliament = await GetParliamentDefaultOrganizationAddressAsync();
@@ -162,7 +162,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         public async Task SetRequiredAcsInContracts_NoPermission()
         {
             var transactionResult = await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration),
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.SetConfiguration),
                 new SetConfigurationInput
                 {
                     Key = "RequiredAcsInContracts",
@@ -186,7 +186,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 Value = parameter
             };
             var proposalId = await CreateProposalAsync(organizationAddress, inputWithInvalidKey,
-                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             var releaseTxResult = await ReleaseProposalAsync(proposalId);
@@ -198,7 +198,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 Key = "key1"
             };
             proposalId = await CreateProposalAsync(organizationAddress, inputWithInvalidValue,
-                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             releaseTxResult = await ReleaseProposalAsync(proposalId);
@@ -219,13 +219,13 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     Key = "RequiredAcsInContracts",
                     Value = contractFeeChargingPolicy.ToByteString()
                 },
-                nameof(ConfigurationContainer.ConfigurationStub.SetConfiguration));
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.SetConfiguration));
             proposalId.ShouldNotBeNull();
             await ApproveWithMinersAsync(proposalId);
             var releaseTxResult = await ReleaseProposalAsync(proposalId);
             releaseTxResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var actual = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetConfiguration),
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.GetConfiguration),
                 new StringValue
                 {
                     Value = "RequiredAcsInContracts"
@@ -252,7 +252,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
             const string proposalCreationMethodName =
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -272,7 +272,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController),
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController),
                 new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
@@ -285,7 +285,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             // Invalid organization address
             var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
             const string proposalCreationMethodName =
-                nameof(ConfigurationContainer.ConfigurationStub.ChangeMethodFeeController);
+                nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -306,7 +306,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             {
                 var invalidToken = "NOTEXIST";
                 var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.SetMethodFee),
                     new MethodFees
                     {
                         MethodName = methodName,
@@ -323,7 +323,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             {
                 var invalidAmount = -1;
                 var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.SetMethodFee),
                     new MethodFees
                     {
                         MethodName = methodName,
@@ -339,7 +339,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             // unauthorized
             {
                 var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.SetMethodFee),
                     new MethodFees
                     {
                         MethodName = methodName,
@@ -370,7 +370,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
             var methodFeeController = await GetMethodFeeController(ConfigurationContractAddress);
             const string proposalCreationMethodName =
-                nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee);
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.SetMethodFee);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new MethodFees
@@ -386,7 +386,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             //GetMethodFee Test
             var methodFeeByteString = await Tester.CallContractMethodAsync(ConfigurationContractAddress,
-                nameof(ConfigurationContainer.ConfigurationStub.GetMethodFee), new StringValue
+                nameof(ConfigurationImplContainer.ConfigurationImplStub.GetMethodFee), new StringValue
                 {
                     Value = methodName
                 });

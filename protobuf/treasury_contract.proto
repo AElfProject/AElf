@@ -1,17 +1,17 @@
 syntax = "proto3";
 
-package treasury;
+package Treasury;
 
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
-import "acs1.proto";
-import "acs10.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
-    option (aelf.base) = "acs1.proto";
-    option (aelf.base) = "acs10.proto";
 
     // Action
     rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -20,15 +20,15 @@ service TreasuryContract {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeTreasuryController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
     rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){
     }
     rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){
     }
     rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
     }
-
+    rpc ChangeTreasuryController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
     // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -36,13 +36,13 @@ service TreasuryContract {
     rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
-    rpc GetTreasuryController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
-        option (aelf.is_view) = true;
-    }
     rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTreasuryController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

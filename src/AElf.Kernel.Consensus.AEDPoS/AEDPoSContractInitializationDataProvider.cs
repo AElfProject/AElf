@@ -1,8 +1,7 @@
-using AElf.Kernel.Consensus.AEDPoS;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Kernel.Consensus.AEDPoS
 {
     public class AEDPoSContractInitializationDataProvider : IAEDPoSContractInitializationDataProvider,
         ITransientDependency

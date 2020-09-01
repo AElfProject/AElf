@@ -1,6 +1,6 @@
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
-using Acs1;
+using AElf.Standards.ACS1;
 
 namespace AElf.Contracts.Association
 {

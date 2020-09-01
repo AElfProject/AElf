@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation.Extensions;

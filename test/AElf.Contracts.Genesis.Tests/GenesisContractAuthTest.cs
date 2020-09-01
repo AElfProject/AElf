@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
@@ -17,7 +17,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 using CreateOrganizationInput = AElf.Contracts.Parliament.CreateOrganizationInput;
-using ProposalCreated = Acs3.ProposalCreated;
+using ProposalCreated = AElf.Standards.ACS3.ProposalCreated;
 
 namespace AElf.Contracts.Genesis
 {
@@ -30,7 +30,7 @@ namespace AElf.Contracts.Genesis
         {
             {
                 var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.Initialize), new InitializeInput
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.Initialize), new InitializeInput
                     {
                         ContractDeploymentAuthorityRequired = false
                     });
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Genesis
 
             {
                 var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeContractDeploymentController),
                     new AuthorityInfo()
                     {
                         OwnerAddress = SampleAddress.AddressList[0],
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task DeploySystemContract_Test()
         {
-            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress, nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract), new SystemContractDeploymentInput()
+            var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress, nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.DeploySystemSmartContract), new SystemContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Genesis
 
             {
                 var releaseNotProposedContract = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                     new ReleaseContractInput
                     {
                         ProposedContractInputHash = HashHelper.ComputeFrom("Random"), 
@@ -170,7 +170,7 @@ namespace AElf.Contracts.Genesis
 
                 var deploymentProposalId = await CreateProposalAsync(Tester, ParliamentAddress,
                     contractCodeCheckController.OwnerAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySmartContract),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.DeploySmartContract),
                     contractDeploymentInput);
                 await ApproveWithMinersAsync(Tester, ParliamentAddress, deploymentProposalId);
                 var releaseTx = await ReleaseProposalAsync(Tester, ParliamentAddress, deploymentProposalId);
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Genesis
 
                 var deploymentProposalId = await CreateProposalAsync(Tester, ParliamentAddress,
                     contractCodeCheckController.OwnerAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySmartContract),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.DeploySmartContract),
                     incorrectContractDeploymentInput);
                 await ApproveWithMinersAsync(Tester, ParliamentAddress, deploymentProposalId);
                 var releaseTx = await ReleaseProposalAsync(Tester, ParliamentAddress, deploymentProposalId);
@@ -215,7 +215,7 @@ namespace AElf.Contracts.Genesis
 
             // release code check proposal and deployment completes
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             deploymentResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -228,13 +228,13 @@ namespace AElf.Contracts.Genesis
             var contractVersion = ContractDeployed.Parser.ParseFrom(deploymentResult.Logs[1].NonIndexed).Version;
             contractVersion.ShouldBe(1);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), deployAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), deployAddress));
             contractInfo.Version.ShouldBe(1);
             contractInfo.Author.ShouldBe(BasicContractZeroAddress);
             
             {
                 var releaseContractAlreadyFinished = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                     new ReleaseContractInput
                     {
                         ProposedContractInputHash = proposedContractInputHash, 
@@ -295,7 +295,7 @@ namespace AElf.Contracts.Genesis
                 var address = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
                 address.ShouldNotBeNull();
                 var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), address));
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), address));
                 contractInfo.Version.ShouldBe(1);
             }
 
@@ -331,7 +331,7 @@ namespace AElf.Contracts.Genesis
 
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
             contractInfo.Version.ShouldBe(1);
             var contractUpdateInput = new ContractUpdateInput
             {
@@ -366,7 +366,7 @@ namespace AElf.Contracts.Genesis
 
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
             var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -385,7 +385,7 @@ namespace AElf.Contracts.Genesis
             
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
             contractInfo.Version.ShouldBe(1);
             
             var contractDeploymentInput2 = new ContractDeploymentInput
@@ -427,7 +427,7 @@ namespace AElf.Contracts.Genesis
 
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
             var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             updateResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -445,7 +445,7 @@ namespace AElf.Contracts.Genesis
 
             var newAddress = await DeployAsync(Tester, ParliamentAddress, contractDeploymentInput);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
             contractInfo.Version.ShouldBe(1);
             var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
             var contractUpdateInput = new ContractUpdateInput
@@ -497,7 +497,7 @@ namespace AElf.Contracts.Genesis
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
 
             var updateResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
             updateResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -512,7 +512,7 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(updateResult.Logs.First(l => l.Name.Contains(nameof(CodeUpdated))).NonIndexed).Version;
             version.ShouldBe(contractInfo.Version + 1);
             var updateContractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), newAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), newAddress));
             updateContractInfo.Version.ShouldBe(contractInfo.Version + 1);
 
             var thirdTxProposingResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -557,7 +557,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
             var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
             parliamentTxs[0].MethodName
-                .ShouldBe(nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals));
+                .ShouldBe(nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ApproveMultiProposals));
         }
 
         [Fact(Skip = "Skip due to need task delay.")]
@@ -610,7 +610,7 @@ namespace AElf.Contracts.Genesis
             var txs = await Tester.GetTransactionsAsync(block.TransactionIds);
             var parliamentTxs = txs.Where(tx => tx.To == ParliamentAddress).ToList();
             parliamentTxs[0].MethodName
-                .ShouldBe(nameof(ParliamentContractContainer.ParliamentContractStub.ApproveMultiProposals));
+                .ShouldBe(nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ApproveMultiProposals));
         }
 
         [Fact]
@@ -658,7 +658,7 @@ namespace AElf.Contracts.Genesis
             await ApproveWithMinersAsync(Tester, ParliamentAddress, codeCheckProposalId);
 
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
@@ -671,7 +671,7 @@ namespace AElf.Contracts.Genesis
             var contractVersion = CodeUpdated.Parser.ParseFrom(result.Logs[1].NonIndexed).Version;
             contractVersion.ShouldBe(2);
             var contractInfo = ContractInfo.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractInfo), BasicContractZeroAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractInfo), BasicContractZeroAddress));
             contractInfo.Version.ShouldBe(2);
         }
 
@@ -681,7 +681,7 @@ namespace AElf.Contracts.Genesis
             var address = Tester.GetCallOwnerAddress();
             var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -698,7 +698,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -712,7 +712,7 @@ namespace AElf.Contracts.Genesis
 
             var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -762,7 +762,7 @@ namespace AElf.Contracts.Genesis
 
             // release code check proposal and deployment completes
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
@@ -779,7 +779,7 @@ namespace AElf.Contracts.Genesis
             deployAddress.ShouldNotBeNull();
 
             var author = Address.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractAuthor), deployAddress));
 
             author.ShouldBe(BasicContractZeroAddress);
         }
@@ -788,7 +788,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwnerByAssociation_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(AssociationContractAddress,
-                nameof(AssociationContractContainer.AssociationContractStub.CreateOrganization),
+                nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateOrganization),
                 new Association.CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -810,7 +810,7 @@ namespace AElf.Contracts.Genesis
 
             var contractDeploymentController = await GetContractDeploymentController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeContractDeploymentController);
             var proposalId = await CreateProposalAsync(Tester, contractDeploymentController.ContractAddress,
                 contractDeploymentController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -868,7 +868,7 @@ namespace AElf.Contracts.Genesis
 
             // release code check proposal and deployment completes
             var deploymentResult = await anotherMinerTester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
@@ -882,7 +882,7 @@ namespace AElf.Contracts.Genesis
                 .ParseFrom(deploymentResult.Logs.First(l => l.Name.Contains(nameof(ContractDeployed))).NonIndexed)
                 .Address;
             var author = Address.Parser.ParseFrom(await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractAuthor), deployAddress));
 
             author.ShouldBe(AnotherMinerAddress);
         }
@@ -979,7 +979,7 @@ namespace AElf.Contracts.Genesis
 
             // release code check proposal and deployment completes
             var deploymentResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
@@ -1011,7 +1011,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeContractDeploymentController),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeContractDeploymentController),
                 new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
@@ -1102,7 +1102,7 @@ namespace AElf.Contracts.Genesis
 
             // release code check proposal and deployment completes
             var deploymentResult = await SideChainTester.ExecuteContractWithMiningAsync(SideBasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ReleaseCodeCheckedContract),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ReleaseCodeCheckedContract),
                 new ReleaseContractInput
                     {ProposedContractInputHash = proposedContractInputHash, ProposalId = codeCheckProposalId});
 
@@ -1114,7 +1114,7 @@ namespace AElf.Contracts.Genesis
 
             var author = Address.Parser.ParseFrom(await SideChainTester.CallContractMethodAsync(
                 SideBasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetContractAuthor), deployAddress));
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetContractAuthor), deployAddress));
 
             author.ShouldBe(SideChainTester.GetCallOwnerAddress());
             
@@ -1154,7 +1154,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeMethodFeeController_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -1168,7 +1168,7 @@ namespace AElf.Contracts.Genesis
 
             var methodFeeController = await GetMethodFeeController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -1188,7 +1188,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeMethodFeeController_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController),
                 new AuthorityInfo()
                 {
                     OwnerAddress = Tester.GetCallOwnerAddress(),
@@ -1201,7 +1201,7 @@ namespace AElf.Contracts.Genesis
             // Invalid organization address
             var methodFeeController = await GetMethodFeeController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -1219,7 +1219,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeMethodFeeControllerByAssociation_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(AssociationContractAddress,
-                nameof(AssociationContractContainer.AssociationContractStub.CreateOrganization),
+                nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateOrganization),
                 new Association.CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -1241,7 +1241,7 @@ namespace AElf.Contracts.Genesis
 
             var methodFeeController = await GetMethodFeeController(Tester, BasicContractZeroAddress);
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController);
             var proposalId = await CreateProposalAsync(Tester, methodFeeController.ContractAddress,
                 methodFeeController.OwnerAddress, proposalCreationMethodName,
                 new AuthorityInfo
@@ -1264,7 +1264,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeCodeCheckController_Test()
         {
             var createOrganizationResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateOrganization),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateOrganization),
                 new CreateOrganizationInput
                 {
                     ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -1276,12 +1276,12 @@ namespace AElf.Contracts.Genesis
             var organizationAddress = Address.Parser.ParseFrom(createOrganizationResult.ReturnValue);
 
             var byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetCodeCheckController),
                 new Empty());
             var codeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
             
             const string proposalCreationMethodName =
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeCodeCheckController);
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeCodeCheckController);
             
             {
                 // organization address not exists
@@ -1311,7 +1311,7 @@ namespace AElf.Contracts.Genesis
                 txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 byteResult = await Tester.CallContractMethodAsync(BasicContractZeroAddress,
-                    nameof(BasicContractZeroContainer.BasicContractZeroStub.GetCodeCheckController),
+                    nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.GetCodeCheckController),
                     new Empty());
                 var newCodeCheckController = AuthorityInfo.Parser.ParseFrom(byteResult);
                 Assert.True(newCodeCheckController.OwnerAddress == organizationAddress);
@@ -1324,7 +1324,7 @@ namespace AElf.Contracts.Genesis
         public async Task SetInitialController_Failed_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.SetInitialControllerAddress),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.SetInitialControllerAddress),
                 ParliamentAddress);
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.ShouldContain("Genesis owner already initialized");
@@ -1334,7 +1334,7 @@ namespace AElf.Contracts.Genesis
         public async Task SetContractProposerRequiredState_Failed_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroStub.SetContractProposerRequiredState),
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.SetContractProposerRequiredState),
                 ParliamentAddress);
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.ShouldContain("Genesis contract already initialized");

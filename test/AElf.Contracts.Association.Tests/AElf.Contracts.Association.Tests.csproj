@@ -22,20 +22,40 @@
         <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\acs2.proto">
+            <Link>Protobuf\Proto\acs2.proto</Link>
+        </CommonMessage>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\association_contract.proto">
+        <ContractMessage Include="..\..\protobuf\association_contract.proto">
             <Link>Protobuf\Proto\association_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\association_contract_impl.proto">
+            <Link>Protobuf\Proto\association_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_contract.proto">
+        <ContractMessage Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
+            <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>

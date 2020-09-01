@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp;
+using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
@@ -70,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 From = SampleAddress.AddressList[0],
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
-                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetSmartContractRegistrationByAddress),
+                MethodName = nameof(ACS0Container.ACS0Stub.GetSmartContractRegistrationByAddress),
                 Params = _defaultContractZeroCodeProvider.ContractZeroAddress.ToByteString()
             };
             trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
@@ -179,7 +180,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 From = SampleAddress.AddressList[0],
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
-                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetSmartContractRegistrationByAddress),
+                MethodName = nameof(ACS0Container.ACS0Stub.GetSmartContractRegistrationByAddress),
                 Params = _defaultContractZeroCodeProvider.ContractZeroAddress.ToByteString()
             };
             parameters = await _transactionReadOnlyExecutionService.GetTransactionParametersAsync(chainContext, transaction);

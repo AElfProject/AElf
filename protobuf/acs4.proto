@@ -8,6 +8,7 @@ import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs4";
+option csharp_namespace = "AElf.Standards.ACS4";
 
 service ConsensusContract {
     rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
