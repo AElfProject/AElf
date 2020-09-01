@@ -1,5 +1,5 @@
 using System.Linq;
-using Acs10;
+using AElf.Standards.ACS10;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenHolder;

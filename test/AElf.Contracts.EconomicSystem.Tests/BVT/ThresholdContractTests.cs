@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs5;
+using AElf.Standards.ACS5;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

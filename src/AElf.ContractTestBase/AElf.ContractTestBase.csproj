@@ -21,17 +21,23 @@
     </ItemGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractMessage>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractMessage>
         <ContractMessage Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractStub>
     </ItemGroup>
 

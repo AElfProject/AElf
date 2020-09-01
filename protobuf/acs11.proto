@@ -7,6 +7,7 @@ import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs11";
+option csharp_namespace = "AElf.Standards.ACS11";
 
 service CrossChainInteractionContract {
     rpc UpdateInformationFromCrossChain (google.protobuf.BytesValue) returns (google.protobuf.Empty) {

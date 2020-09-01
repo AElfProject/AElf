@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using AElf.Standards.ACS1;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 

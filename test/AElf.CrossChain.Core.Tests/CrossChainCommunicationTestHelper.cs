@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Types;
 

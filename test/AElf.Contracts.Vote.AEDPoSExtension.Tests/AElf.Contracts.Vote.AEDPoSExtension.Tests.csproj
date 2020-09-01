@@ -19,14 +19,19 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs11.proto">
             <Link>Protobuf\Proto\acs11.proto</Link>
         </ContractBase>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
-            <Link>Protobuf/Proto/vote_contract.proto</Link>
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>

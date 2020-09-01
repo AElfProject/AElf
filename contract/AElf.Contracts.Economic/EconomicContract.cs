@@ -11,7 +11,7 @@ using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Contracts.Economic
 {
-    public partial class EconomicContract : EconomicContractContainer.EconomicContractBase
+    public partial class EconomicContract : EconomicContractImplContainer.EconomicContractImplBase
     {
         public override Empty InitialEconomicSystem(InitialEconomicSystemInput input)
         {

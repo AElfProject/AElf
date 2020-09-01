@@ -36,8 +36,13 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
@@ -60,8 +65,5 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
-        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf\Proto\transaction_fee.proto</Link>
-        </ContractMessage>
     </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 using System;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.Election;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;

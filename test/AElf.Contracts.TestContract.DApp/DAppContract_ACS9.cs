@@ -1,5 +1,5 @@
-using Acs9;
-using Acs10;
+using AElf.Standards.ACS9;
+using AElf.Standards.ACS10;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.CSharp.Core;

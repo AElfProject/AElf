@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs4;
+using AElf.Standards.ACS4;
 using AElf.CSharp.Core;
 
 namespace AElf.Contracts.Consensus.AEDPoS

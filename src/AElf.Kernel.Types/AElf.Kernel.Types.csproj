@@ -13,10 +13,10 @@
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\kernel.proto">
-            <Link>Protobuf/Proto/kernel.proto</Link>
+            <Link>Protobuf\Proto\kernel.proto</Link>
         </CommonMessage>
         <CommonMessage Include="..\..\protobuf\metadata.proto">
-            <Link>Protobuf/Proto/metadata.proto</Link>
+            <Link>Protobuf\Proto\metadata.proto</Link>
         </CommonMessage>
     </ItemGroup>
 </Project>

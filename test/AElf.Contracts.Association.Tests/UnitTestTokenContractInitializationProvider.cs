@@ -33,7 +33,7 @@ namespace AElf.Contracts.Association
             {
                 new ContractInitializationMethodCall
                 {
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.Create),
+                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Create),
                     Params = new CreateInput
                     {
                         Decimals = _economicOptions.Decimals,
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Association
                 },
                 new ContractInitializationMethodCall
                 {
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.Issue),
+                    MethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Issue),
                     Params = new IssueInput
                     {
                         Symbol = _economicOptions.Symbol,
