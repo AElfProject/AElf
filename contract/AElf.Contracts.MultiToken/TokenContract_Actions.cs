@@ -110,8 +110,11 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
+            tokenInfo.Issued = Math.Max(tokenInfo.Issued, tokenInfo.Burned + tokenInfo.Supply);
+            tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
+            
+            Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
             Context.Fire(new Issued
@@ -527,7 +530,8 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[input.Symbol];
             Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            Assert(tokenInfo.Issuer == Context.Sender && tokenInfo.IssueChainId == Context.ChainId,
+                "Permission denied");
             tokenInfo.Issuer = input.NewTokenIssuer;
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();

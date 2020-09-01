@@ -123,10 +123,13 @@
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs6.proto">
-            <Link>Protobuf\Proto\acs6.proto</Link>
+            <Link>Protobuf\Proto\base\acs6.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs10.proto">
-            <Link>Protobuf\Proto\acs10.proto</Link>
+            <Link>Protobuf\Proto\base\acs10.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
         </ContractBase>
     </ItemGroup>
 </Project>

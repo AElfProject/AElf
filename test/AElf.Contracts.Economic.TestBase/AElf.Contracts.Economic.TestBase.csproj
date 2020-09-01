@@ -96,19 +96,22 @@
 
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf/Proto/base/acs1.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf/Proto/acs3.proto</Link>
+            <Link>Protobuf/Proto/base/acs3.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf/Proto/acs4.proto</Link>
+            <Link>Protobuf/Proto/base/acs4.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs5.proto">
-            <Link>Protobuf/Proto/acs5.proto</Link>
+            <Link>Protobuf/Proto/base/acs5.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs6.proto">
-            <Link>Protobuf/Proto/acs6.proto</Link>
+            <Link>Protobuf/Proto/base/acs6.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf/Proto/base/acs11.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\reference\acs10.proto</Link>

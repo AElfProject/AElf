@@ -123,10 +123,9 @@ namespace AElf.Contracts.CrossChain
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = GetInitialConsensusInformation();
-            State.SideChainInitialConsensusInfo[chainId] = new BytesValue {Value = initialConsensusInfo.ToByteString()};
-            Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
-                                   string.Join(",",
-                                       initialConsensusInfo.MinerList.Pubkeys));
+            var chainInitializationData =
+                GetChainInitializationData(sideChainInfo, sideChainCreationRequest, initialConsensusInfo);
+            State.SideChainInitializationData[sideChainInfo.SideChainId] = chainInitializationData;
 
             Context.Fire(new SideChainCreatedEvent
             {

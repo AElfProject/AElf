@@ -17,6 +17,9 @@
     <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>

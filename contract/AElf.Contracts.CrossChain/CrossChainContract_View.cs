@@ -156,13 +156,17 @@ namespace AElf.Contracts.CrossChain
 
         public override ChainInitializationData GetChainInitializationData(Int32Value input)
         {
+            var res = State.SideChainInitializationData[input.Value];
+            if (res != null)
+                return res;
+            
             var sideChainInfo = State.SideChainInfo[input.Value];
             var sideChainCreationRequest = State.AcceptedSideChainCreationRequest[input.Value];
 
             Assert(sideChainInfo != null && sideChainCreationRequest != null, "Side chain not found.");
 
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-            var res = new ChainInitializationData
+            res = new ChainInitializationData
             {
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
                 ChainId = input.Value,
