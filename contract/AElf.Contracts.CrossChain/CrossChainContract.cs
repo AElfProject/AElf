@@ -76,7 +76,7 @@ namespace AElf.Contracts.CrossChain
             Assert(sideChainCreationRequest != null, "Release side chain creation failed.");
             if (!TryClearExpiredSideChainCreationRequestProposal(input.ProposalId, Context.Sender))
             {
-                var serialNumber = State.SideChainSerialNumber.Value;
+                var serialNumber = State.SideChainSerialNumber.Value.Add(1);
                 var chainId = GetChainId(serialNumber);
                 CreateSideChainToken(sideChainCreationRequest.SideChainCreationRequest, chainId, sideChainCreationRequest.Proposer);
                 Context.SendInline(State.SideChainLifetimeController.Value.ContractAddress,
