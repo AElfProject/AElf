@@ -416,12 +416,6 @@ message ChangeTokenIssuerInput
     aelf.Address new_token_Issuer = 2;
 }
 
-message ChangeTokenProfitableInput
-{
-    string symbol = 1;
-    bool is_profitable = 2;
-}
-
 // Events
 
 message Transferred {

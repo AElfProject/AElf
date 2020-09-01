@@ -699,8 +699,10 @@ namespace AElf.Contracts.MultiToken
         private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
         {
             var tokenInfo = State.TokenInfos[tokenSymbol];
-            Assert(tokenInfo != null, $"Token is not found. {tokenSymbol}");
-            // ReSharper disable once PossibleNullReferenceException
+            if (tokenInfo == null)
+            {
+                throw new AssertionException($"Token is not found. {tokenSymbol}");
+            }
             Assert(tokenInfo.IsProfitable && tokenInfo.IsBurnable, $"Token {tokenSymbol} cannot set as method fee.");
             totalSupply = tokenInfo.TotalSupply;
         }

@@ -210,7 +210,7 @@ namespace AElf.Contracts.MultiToken
         public override BoolValue IsTokenAvailableForMethodFee(StringValue input)
         {
             var tokenInfo = State.TokenInfos[input.Value];
-            if (tokenInfo == null) throw new AssertionException("Token not found.");
+            if (tokenInfo == null) throw new AssertionException("Token is not found.");
             return new BoolValue
             {
                 Value = tokenInfo.IsProfitable && tokenInfo.IsBurnable

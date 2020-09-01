@@ -567,7 +567,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 });
                 setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("cannot set as method fee ");
             }
         }
 
