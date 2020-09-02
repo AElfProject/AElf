@@ -134,7 +134,7 @@ namespace AElf.Contracts.TokenConverter
                         }
                     }
                 });
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
             
             // token is not profitable

@@ -281,8 +281,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TokenName = "TEST name",
                 TotalSupply = 1_0000_0000,
                 Issuer = BootMinerAddress,
-                IsBurnable = true,
-                IsProfitable = true
+                IsBurnable = true
             };
             var createTokenRet = await TokenContractStub.Create.SendAsync(tokenCreateInput);
             createTokenRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -567,7 +566,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 });
                 setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("cannot set as method fee ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
         }
 
