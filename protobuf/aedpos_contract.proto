@@ -102,6 +102,9 @@ service AEDPoSContract {
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentRoundMinedBlockBonus (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {

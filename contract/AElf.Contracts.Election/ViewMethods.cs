@@ -200,19 +200,6 @@ namespace AElf.Contracts.Election
             };
         }
 
-        public override Int64Value GetCurrentMiningReward(Empty input)
-        {
-            if (State.AEDPoSContract.Value == null)
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            return new Int64Value
-            {
-                Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation
-                    .Values.Sum(minerInRound => minerInRound.ProducedBlocks)
-                    .Mul(ElectionContractConstants.ElfTokenPerBlock)
-            };
-        }
-
         public override GetPageableCandidateInformationOutput GetPageableCandidateInformation(PageInformation input)
         {
             var output = new GetPageableCandidateInformationOutput();

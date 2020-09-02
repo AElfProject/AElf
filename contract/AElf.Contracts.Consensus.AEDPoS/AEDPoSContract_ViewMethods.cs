@@ -163,6 +163,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Value = IsCurrentMiner(pubkey)
             };
         }
+        
+        public override Int64Value GetCurrentRoundMinedBlockBonus(Empty input)
+        {
+            var currentRoundInformation = TryToGetCurrentRoundInformation(out var currentRound) ? currentRound : null;
+            if(currentRoundInformation == null)
+                return new Int64Value();
+            var blocksCount = currentRoundInformation.RealTimeMinersInformation
+                .Values.Sum(minerInRound => minerInRound.ProducedBlocks);
+            return new Int64Value
+            {
+                Value = GetMiningRewardPerBlock().Mul(blocksCount)
+            };
+        }
 
         /// <summary>
         /// The address must in miner list.

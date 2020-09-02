@@ -93,9 +93,6 @@ service ElectionContract {
     rpc GetVotesAmount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
