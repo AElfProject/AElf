@@ -52,8 +52,8 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
 
-            var currentMiners = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
+            var currentMiners = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                .Select(k => k.ToHex()).ToList();
             return new PubkeyList {Value = {GetVictories(currentMiners)}};
         }
 

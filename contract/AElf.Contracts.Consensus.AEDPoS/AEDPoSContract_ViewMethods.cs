@@ -560,5 +560,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return result;
         }
+
+        public override PubkeyList GetPreviousTermMinerPubkeyList(Empty input)
+        {
+            var lastRoundNumber = State.FirstRoundNumberOfEachTerm[State.CurrentTermNumber.Value].Sub(1);
+            var lastRound = State.Rounds[lastRoundNumber];
+            if (lastRound == null || lastRound.RoundId == 0) return new PubkeyList();
+            return new PubkeyList
+            {
+                Pubkeys = {lastRound.RealTimeMinersInformation.Keys}
+            };
+        }
     }
 }

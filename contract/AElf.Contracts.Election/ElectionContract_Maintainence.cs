@@ -66,7 +66,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(votingRegisterInput),
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(
+                HashHelper.ComputeFrom(votingRegisterInput),
                 HashHelper.ComputeFrom(Context.Self));
 
             State.VotingEventRegistered.Value = true;
@@ -105,8 +106,7 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
-            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
+            var previousMiners = State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
 
             foreach (var pubkey in previousMiners)
             {
