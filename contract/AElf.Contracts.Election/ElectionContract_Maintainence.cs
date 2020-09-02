@@ -106,11 +106,11 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
-            var previousMiners = State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
+            var previousTermMinerList = State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
 
-            foreach (var pubkey in previousMiners)
+            foreach (var pubkey in previousTermMinerList)
             {
-                UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
+                UpdateCandidateInformation(pubkey, input.TermNumber, previousTermMinerList);
             }
 
             if (State.DividendPoolContract.Value == null)
