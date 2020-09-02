@@ -24,7 +24,7 @@ namespace AElf.Kernel.Miner
                 Header = new BlockHeader()
             };
             var validateResult = await _systemTransactionValidationProvider.ValidateBeforeAttachAsync(block);
-            validateResult.ShouldBeTrue();
+            validateResult.ShouldBeFalse();
         }
         
         [Fact]

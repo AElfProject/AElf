@@ -17,6 +17,6 @@ service ACS2Base {
 
 message ResourceInfo {
     repeated aelf.ScopedStatePath write_paths = 1;
-    bool non_parallelizable = 2;
-    repeated aelf.ScopedStatePath read_paths = 3;
+    repeated aelf.ScopedStatePath read_paths = 2;
+    bool non_parallelizable = 3;
 }

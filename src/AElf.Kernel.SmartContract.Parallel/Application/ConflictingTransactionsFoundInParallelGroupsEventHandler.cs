@@ -1,11 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Parallel.Domain;
-using AElf.Types;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.SmartContract.Parallel
+namespace AElf.Kernel.SmartContract.Parallel.Application
 {
     public class ConflictingTransactionsFoundInParallelGroupsEventHandler :
         ILocalEventHandler<ConflictingTransactionsFoundInParallelGroupsEvent>, ITransientDependency
