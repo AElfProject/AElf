@@ -155,6 +155,7 @@ namespace AElf.Contracts.CrossChain
         public override ChainInitializationData GetChainInitializationData(Int32Value input)
         {
             var res = State.SideChainInitializationData[input.Value];
+            Assert(res!=null, "Side chain not found.");
             return res;
         }
         
