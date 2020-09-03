@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Txn.Application
@@ -16,6 +17,8 @@ namespace AElf.Kernel.Txn.Application
     {
         private const string BlockExecutedDataName = nameof(TransactionPackingOptionProvider);
 
+        public ILogger<TransactionPackingOptionProvider> Logger { get; set; }
+        
         public TransactionPackingOptionProvider(
             ICachedBlockchainExecutedDataService<BoolValue> cachedBlockchainExecutedDataService) : base(
             cachedBlockchainExecutedDataService)
@@ -29,6 +32,7 @@ namespace AElf.Kernel.Txn.Application
 
         public async Task SetTransactionPackingOptionAsync(IBlockIndex blockIndex, bool isTransactionPackable)
         {
+            Logger.LogDebug($"TransactionPackingOption changed to {isTransactionPackable}");
             await AddBlockExecutedDataAsync(blockIndex, new BoolValue {Value = isTransactionPackable});
         }
 

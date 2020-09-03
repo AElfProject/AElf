@@ -244,10 +244,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await DeployTestContractAsync();
 
+            var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
             var feeAmount = 7;
             await SetMethodFee_Successful(feeAmount);
 
-            var tokenContractStub = await GetTokenContractStubAsync();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
@@ -286,9 +287,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task ChargeFee_TxFee_FailedTest()
         {
             await DeployTestContractAsync();
-            
             var issueAmount = 99999;
             var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
+
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
@@ -319,6 +321,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             transactionFeeDic["ELF"].ShouldBe(issueAmount);
         }
 
+        private async Task SetPrimaryTokenSymbolAsync(TokenContractContainer.TokenContractStub tokenContractStub)
+        {
+            await tokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+                {Symbol = "ELF"});
+        }
+
         [Theory]
         [InlineData(100000000, 0, 3, 10, 1, 2, "ELF", 20260010, true)]
         [InlineData(9, 0, 1, 10, 1, 2, "ELF", 9, false)]
@@ -333,6 +341,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             await DeployTestContractAsync();
 
             var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
