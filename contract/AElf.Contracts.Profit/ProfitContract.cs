@@ -6,6 +6,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -435,13 +436,13 @@ namespace AElf.Contracts.Profit
                 var amount = profits.Value;
                 if (amount > 0)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = Context.Self,
-                        Amount = amount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = Context.Self,
+                            Amount = amount,
+                            Symbol = symbol
+                        }.ToByteString());
                     State.TokenContract.Burn.Send(new BurnInput
                     {
                         Amount = amount,
@@ -492,13 +493,13 @@ namespace AElf.Contracts.Profit
                 // Transfer remain amount to individuals' receiving profits address.
                 if (remainAmount != 0)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = profitsReceivingVirtualAddress,
-                        Amount = remainAmount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = profitsReceivingVirtualAddress,
+                            Amount = amount,
+                            Symbol = symbol
+                        }.ToByteString());
                 }
             }
         }
@@ -523,13 +524,13 @@ namespace AElf.Contracts.Profit
                 var distributeAmount = SafeCalculateProfits(subSchemeShares.Shares, totalAmount, totalShares);
                 if (distributeAmount != 0)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = subItemVirtualAddress,
-                        Amount = distributeAmount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = subItemVirtualAddress,
+                            Amount = distributeAmount,
+                            Symbol = symbol
+                        }.ToByteString());
                 }
 
                 remainAmount = remainAmount.Sub(distributeAmount);
@@ -742,6 +743,7 @@ namespace AElf.Contracts.Profit
                                 State.TokenContract.Value =
                                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                             }
+                            // TODO: Tune to Transfer
                             State.TokenContract.TransferFrom.Send(new TransferFromInput
                             {
                                 From = distributedPeriodProfitsVirtualAddress,
