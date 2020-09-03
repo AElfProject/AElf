@@ -38,30 +38,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var methodName = nameof(TokenContractContainer.TokenContractStub.Create);
             
             // input With Primary Token
+            await SetPrimaryTokenSymbolAsync();
+            var beforeChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
+            var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                var beforeChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
-                var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
-                {
-                    ContractAddress = TokenContractAddress,
-                    MethodName = methodName,
-                });
-                chargeFeeRet.Output.Success.ShouldBe(true);
-                var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
-                afterChargeBalance.ShouldBeLessThan(beforeChargeBalance);
-            }
-            
-            // input WithOut Primary Token
-            {
-                var beforeChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
-                var chargeFeeRet = await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
-                {
-                    ContractAddress = TokenContractAddress,
-                    MethodName = methodName
-                });
-                chargeFeeRet.Output.Success.ShouldBe(true);
-                var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
-                afterChargeBalance.ShouldBe(beforeChargeBalance);
-            }
+                ContractAddress = TokenContractAddress,
+                MethodName = methodName,
+            });
+            chargeFeeRet.Output.Success.ShouldBe(true);
+            var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
+            afterChargeBalance.ShouldBeLessThan(beforeChargeBalance);
         }
 
         // 1 => ELF  2 => CWJ  3 => YPA   method fee : native token: 1000
@@ -75,6 +61,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task ChargeTransactionFees_With_Different_Transaction_Size_Fee_Token(int[] order, long[] balance,
             int[] baseWeight, int[] tokenWeight, long sizeFee, string chargeSymbol, long chargeAmount, bool isSuccess)
         {
+            await SetPrimaryTokenSymbolAsync();
+
             var methodName = nameof(TokenContractContainer.TokenContractStub.Transfer);
             var basicMethodFee = 1000;
             var methodFee = new MethodFees

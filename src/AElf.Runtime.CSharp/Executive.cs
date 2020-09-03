@@ -104,9 +104,7 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                // no need to check for new system contracts. [deprecated]
-                if (!IsSystemContract)
-                    _smartContractProxy.SetExecutionObserver(observer);
+                _smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 
