@@ -2,7 +2,6 @@ using AElf.Standards.ACS1;
 using AElf.Standards.ACS7;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -19,8 +18,6 @@ namespace AElf.Contracts.CrossChain
         
         public SingletonState<ProposedCrossChainIndexing> IndexingPendingProposal { get; set; }
         
-        public MappedState<Address, long> BannedMinerHeight { get; set; }
-        
         public MappedState<Address, SideChainCreationRequestState> ProposedSideChainCreationRequestState { get; set; }
 
         public MappedState<int, SideChainCreationRequest> AcceptedSideChainCreationRequest { get; set; }
@@ -33,7 +30,6 @@ namespace AElf.Contracts.CrossChain
         public MappedState<int, SideChainInfo> SideChainInfo { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
         
-        internal MappedState<int, BytesValue> SideChainInitialConsensusInfo { get; set; }
         internal MappedState<int, ChainInitializationData> SideChainInitializationData { get; set; }
 
         public MappedState<long, IndexedSideChainBlockData> IndexedSideChainBlockData { get; set; }

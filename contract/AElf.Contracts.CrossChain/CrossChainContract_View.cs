@@ -1,10 +1,8 @@
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Standards.ACS7;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -157,49 +155,6 @@ namespace AElf.Contracts.CrossChain
         public override ChainInitializationData GetChainInitializationData(Int32Value input)
         {
             var res = State.SideChainInitializationData[input.Value];
-            if (res != null)
-                return res;
-            
-            var sideChainInfo = State.SideChainInfo[input.Value];
-            var sideChainCreationRequest = State.AcceptedSideChainCreationRequest[input.Value];
-
-            Assert(sideChainInfo != null && sideChainCreationRequest != null, "Side chain not found.");
-
-            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-            res = new ChainInitializationData
-            {
-                CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
-                ChainId = input.Value,
-                Creator = sideChainInfo.Proposer,
-                CreationTimestamp = sideChainInfo.CreationTimestamp,
-                ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
-                ParentChainTokenContractAddress = State.TokenContract.Value
-            };
-            ByteString consensusInformation = State.SideChainInitialConsensusInfo[input.Value].Value;
-            res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
-                {InitialMinerListData = consensusInformation};
-
-            ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
-            res.NativeTokenInfoData = nativeTokenInformation;
-
-            ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
-            res.ResourceTokenInfo = new ResourceTokenInfo
-            {
-                ResourceTokenListData = resourceTokenInformation,
-                InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount}
-            };
-            
-            if (IsPrimaryTokenNeeded(sideChainCreationRequest))
-            {
-                ByteString sideChainTokenInformation =
-                    GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
-                res.ChainPrimaryTokenInfo = new ChainPrimaryTokenInfo
-                {
-                    ChainPrimaryTokenData = sideChainTokenInformation,
-                    SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList},
-                };
-            }
-
             return res;
         }
         

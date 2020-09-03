@@ -23,8 +23,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if (input == null || input.Value.IsEmpty) return new Empty();
 
-            var info = ConsensusInformation.Parser.ParseFrom(input.Value);
-            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(info.Value.ToByteArray());
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)

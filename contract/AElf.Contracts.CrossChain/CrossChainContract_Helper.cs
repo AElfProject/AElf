@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Standards.ACS7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
@@ -239,8 +237,11 @@ namespace AElf.Contracts.CrossChain
         {
             SetContractStateRequired(State.CrossChainInteractionContract,
                 SmartContractConstants.ConsensusContractSystemName);
-            State.CrossChainInteractionContract.UpdateInformationFromCrossChain.Send(new ConsensusInformation
-                {Value = bytes}.ToBytesValue());
+            Context.SendInline(State.CrossChainInteractionContract.Value,
+                nameof(State.CrossChainInteractionContract.UpdateInformationFromCrossChain),
+                new BytesValue {Value = bytes}.ToBytesValue());
+            // State.CrossChainInteractionContract.UpdateInformationFromCrossChain.Send(new ConsensusInformation
+            //     {Value = bytes}.ToBytesValue());
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
