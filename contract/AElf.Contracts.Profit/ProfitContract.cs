@@ -575,14 +575,14 @@ namespace AElf.Contracts.Profit
                         Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                 }
 
-                Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
-                    nameof(State.TokenContract.Transfer), new TransferInput
-                    {
-                        To = Context.Self,
-                        Amount = input.Amount,
-                        Symbol = input.Symbol,
-                        Memo = $"Add {input.Amount} dividends."
-                    }.ToByteString());
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = virtualAddress,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    Memo = $"Add {input.Amount} dividends."
+                });
             }
             else
             {
@@ -606,15 +606,13 @@ namespace AElf.Contracts.Profit
                         distributedProfitsInformation.AmountsMap[input.Symbol].Add(input.Amount);
                 }
 
-                Context.SendVirtualInlineBySystemContract(
-                    GeneratePeriodVirtualAddressFromHash(scheme.SchemeId, scheme.CurrentPeriod),
-                    State.TokenContract.Value,
-                    nameof(State.TokenContract.Transfer), new TransferInput
-                    {
-                        To = Context.Self,
-                        Amount = input.Amount,
-                        Symbol = input.Symbol
-                    }.ToByteString());
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = distributedPeriodProfitsVirtualAddress,
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                });
 
                 State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress] = distributedProfitsInformation;
             }
