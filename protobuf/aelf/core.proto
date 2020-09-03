@@ -28,7 +28,7 @@ enum TransactionResultStatus {
     PENDING = 1;
     FAILED = 2;
     MINED = 3;
-    UNEXECUTABLE = 4; // deprecated
+//    UNEXECUTABLE = 4; // deprecated
     CONFLICT = 5;
     PENDING_VALIDATION = 6;
     NODE_VALIDATION_FAILED = 7;

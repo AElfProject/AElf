@@ -29,5 +29,9 @@
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Infrastructure" />
+    </ItemGroup>
 
 </Project>

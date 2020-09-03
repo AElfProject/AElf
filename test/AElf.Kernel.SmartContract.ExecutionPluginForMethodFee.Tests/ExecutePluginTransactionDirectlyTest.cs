@@ -44,7 +44,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 {
                     ContractAddress = TokenContractAddress,
                     MethodName = methodName,
-                    PrimaryTokenSymbol = nativeTokenSymbol
                 });
                 chargeFeeRet.Output.Success.ShouldBe(true);
                 var afterChargeBalance = await GetBalanceAsync(address, nativeTokenSymbol);
@@ -125,7 +124,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             {
                 MethodName = methodName,
                 ContractAddress = TokenContractAddress,
-                PrimaryTokenSymbol = NativeTokenSymbol,
                 TransactionSizeFee = sizeFee,
             };
             chargeTransactionFeesInput.SymbolsToPayTxSizeFee.AddRange(sizeFeeSymbolList.SymbolsToPayTxSizeFee);

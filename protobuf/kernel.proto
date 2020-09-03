@@ -38,7 +38,7 @@ enum ExecutionStatus {
     //   Contract reasons
     CONTRACT_ERROR = -10;
     EXCEEDED_MAX_CALL_DEPTH = -11;
-    EXECUTION_STOPPED_BY_PRE_PLUGIN = -12; // deprecated
+//    EXECUTION_STOPPED_BY_PRE_PLUGIN = -12; // deprecated
 
     // Pre-failed
     PREFAILED = -99;
