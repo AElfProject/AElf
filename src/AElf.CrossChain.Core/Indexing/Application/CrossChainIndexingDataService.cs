@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Indexing.Application
         private readonly ITransactionInputForBlockMiningDataProvider _transactionInputForBlockMiningDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
 
-        private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
+        private readonly IContractReaderFactory<CrossChainContractImplContainer.CrossChainContractImplStub>
             _contractReaderFactory;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -38,7 +38,7 @@ namespace AElf.CrossChain.Indexing.Application
         public CrossChainIndexingDataService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
             ITransactionInputForBlockMiningDataProvider transactionInputForBlockMiningDataProvider,
             IIrreversibleBlockStateProvider irreversibleBlockStateProvider,
-            IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
+            IContractReaderFactory<CrossChainContractImplContainer.CrossChainContractImplStub> contractReaderFactory,
             ISmartContractAddressService smartContractAddressService)
         {
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
@@ -201,23 +201,6 @@ namespace AElf.CrossChain.Indexing.Application
             return parentChainBlockDataList;
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
-        {
-            var crossChainBlockData = await _contractReaderFactory
-                .Create(new ContractReaderContext
-                {
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight,
-                    ContractAddress = await GetCrossChainContractAddressAsync(new ChainContext
-                    {
-                        BlockHash = blockHash,
-                        BlockHeight = blockHeight
-                    })
-                })
-                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new Int64Value {Value = blockHeight});
-            return crossChainBlockData;
-        }
-
         public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var indexedSideChainBlockData = await _contractReaderFactory
@@ -253,7 +236,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
             if (indexingProposalStatusList == null)
-                return true; // cross chain contract not updated
+                return true; // cross chain contract not updated, deprecated if re-run from zero
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
             return toBeReleasedChainIdList.Count > 0;
         }
@@ -263,7 +246,7 @@ namespace AElf.CrossChain.Indexing.Application
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
             if (indexingProposalStatusList == null)
-                return ByteString.Empty;
+                return ByteString.Empty; // cross chain contract not updated, deprecated if rerun from zero
             
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
@@ -275,7 +258,7 @@ namespace AElf.CrossChain.Indexing.Application
                     {
                         PreviousBlockHeight = blockHeight,
                         MethodName =
-                            nameof(CrossChainContractContainer.CrossChainContractStub
+                            nameof(CrossChainContractImplContainer.CrossChainContractImplStub
                                 .ReleaseCrossChainIndexingProposal),
                         Value = new ReleaseCrossChainIndexingProposalInput {ChainIdList = {toBeReleasedChainIdList}}
                             .ToByteString()
@@ -297,7 +280,7 @@ namespace AElf.CrossChain.Indexing.Application
                     {
                         PreviousBlockHeight = blockHeight,
                         MethodName =
-                            nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
+                            nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ProposeCrossChainIndexing),
                         Value = crossChainBlockData.ToByteString()
                     });
             return ByteString.Empty;

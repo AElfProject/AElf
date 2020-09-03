@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package economic;
+package Economic;
 
 import "aelf/core.proto";
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Economic";
 
 service EconomicContract {
     option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
-    option (aelf.base) = "acs1.proto";
     rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty) {

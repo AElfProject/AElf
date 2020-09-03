@@ -88,6 +88,8 @@ namespace AElf.Kernel.Blockchain.Application
                 .Header, new[] {tx});
 
             var result = results.First();
+            
+            (await _transactionResultService.GetTransactionResultAsync(tx.GetHash())).ShouldBeNull();
             // Complete block
             await AddTransactionResultsWithPostMiningAsync(block, new[] {result});
 

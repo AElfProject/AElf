@@ -28,6 +28,12 @@
     <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
         <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractMessage>
@@ -55,20 +61,29 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+        <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero_impl.proto">
+            <Link>Protobuf\Proto\basic_contract_zero_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\association_contract.proto">
-            <Link>Protobuf\Proto\association.proto</Link>
+        <ContractMessage Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\association_contract_impl.proto">
+            <Link>Protobuf\Proto\association_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\random_number_provider_contract.proto">
             <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>

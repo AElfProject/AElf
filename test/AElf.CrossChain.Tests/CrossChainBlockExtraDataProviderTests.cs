@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Txn.Application;
@@ -37,18 +37,6 @@ namespace AElf.CrossChain
     
         [Fact]
         public async Task FillExtraData__NoPendingProposal_Test()
-        {
-            var header = new BlockHeader
-            {
-                PreviousBlockHash = HashHelper.ComputeFrom("PreviousHash"),
-                Height = 2
-            };
-            var bytes = await _crossChainBlockExtraDataProvider.GetBlockHeaderExtraDataAsync(header);
-            Assert.Empty(bytes);
-        }
-    
-        [Fact]
-        public async Task FillExtraData__NotApproved_Test()
         {
             var header = new BlockHeader
             {

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Types;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Blockchain.Domain
@@ -17,21 +18,6 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
         [Fact]
-        public async Task AddBlockHeaderTest()
-        {
-            var header = _kernelTestHelper.GenerateBlock(0, Hash.Empty).Header;
-            await _blockManager.AddBlockHeaderAsync(header);
-        }
-
-        [Fact]
-        public async Task AddBlockBody_Test()
-        {
-            var hash = HashHelper.ComputeFrom("hash");
-            var body = new BlockBody();
-            await _blockManager.AddBlockBodyAsync(hash, body);
-        }
-
-        [Fact]
         public async Task GetBlock_Header_And_Body_Test()
         {
             var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty);
@@ -40,11 +26,24 @@ namespace AElf.Kernel.Blockchain.Domain
             var blockHeader = await _blockManager.GetBlockHeaderAsync(blockHash);
             Assert.Equal(blockHeader, block.Header);
             
+            var storedBlock = await _blockManager.GetBlockAsync(blockHash);
+            storedBlock.ShouldBeNull();
+            
             await _blockManager.AddBlockBodyAsync(blockHash, block.Body);
 
-            var storedBlock = await _blockManager.GetBlockAsync(blockHash);
+            storedBlock = await _blockManager.GetBlockAsync(blockHash);
             Assert.Equal(storedBlock.Header, block.Header);
             Assert.Equal(storedBlock.Body, block.Body);
+            
+            (await _blockManager.HasBlockAsync(blockHash)).ShouldBeTrue();
+
+            await _blockManager.RemoveBlockAsync(blockHash);
+            await _blockManager.AddBlockBodyAsync(blockHash, block.Body);
+            
+            storedBlock = await _blockManager.GetBlockAsync(blockHash);
+            storedBlock.ShouldBeNull();
+            
+            (await _blockManager.HasBlockAsync(blockHash)).ShouldBeFalse();
         }
     }
 }

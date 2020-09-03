@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
 using AElf.Types;
@@ -10,8 +10,6 @@ namespace AElf.CrossChain.Indexing.Application
 {
     public interface ICrossChainIndexingDataService
     {
-        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight);
-
         Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight);
 
         Task<CrossChainTransactionInput> GetCrossChainTransactionInputForNextMiningAsync(Hash blockHash,

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 
 namespace AElf.CrossChain
 {
@@ -61,7 +62,7 @@ namespace AElf.CrossChain
 
         private byte[] CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
         {
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetParentChainId))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetParentChainId))
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
                 if (parentChainId != 0)
@@ -70,14 +71,14 @@ namespace AElf.CrossChain
                 return null;
             }
             
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetParentChainHeight))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetParentChainHeight))
             {
                 return _parentChainIdHeight.Count == 0
                     ? null
                     : new Int64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainHeight))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetSideChainHeight))
             {
                 int sideChainId = Int32Value.Parser.ParseFrom(transaction.Params).Value;
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
@@ -87,7 +88,7 @@ namespace AElf.CrossChain
                 return new Int64Value().ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetAllChainsIdAndHeight))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetAllChainsIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeightDict.Add(_sideChainIdHeights);
@@ -95,23 +96,30 @@ namespace AElf.CrossChain
                 return dict.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIdAndHeight))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetSideChainIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeightDict.Add(_sideChainIdHeights);
                 return dict.ToByteArray();
             }
             
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexedCrossChainBlockDataByHeight))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetIndexedSideChainBlockDataByHeight))
             {
                 long height = Int64Value.Parser.ParseFrom(transaction.Params).Value;
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return crossChainBlockData.ToByteArray();
+                {
+                    var indexedSideChainBlockData = new IndexedSideChainBlockData
+                    {
+                        SideChainBlockDataList = {crossChainBlockData.SideChainBlockDataList}
+                    };
+                    return indexedSideChainBlockData.ToByteArray();
+                }
+                
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return new CrossChainBlockData().ToByteArray();
+                return new IndexedSideChainBlockData().ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainIndexingInformationList))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetSideChainIndexingInformationList))
             {
                 var sideChainIndexingInformationList = new SideChainIndexingInformationList();
                 foreach (var kv in _sideChainIdHeights)
@@ -126,7 +134,8 @@ namespace AElf.CrossChain
                 return sideChainIndexingInformationList.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContractContainer.CrossChainContractStub.GetIndexingProposalStatus))
+            if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub
+                    .GetIndexingProposalStatus))
             {
                 return _pendingCrossChainIndexingProposalOutput?.ToByteArray();
             }

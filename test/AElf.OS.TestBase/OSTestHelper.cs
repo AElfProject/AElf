@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -71,7 +71,7 @@ namespace AElf.OS
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        public List<Block> NotLinkedBlockList { get; set; }
 
         public OSTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -97,7 +97,7 @@ namespace AElf.OS
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
-            UnlinkedBranchBlockList = new List<Block>();
+            NotLinkedBlockList = new List<Block>();
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace AElf.OS
                 ForkBranchBlockList =
                     await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-                UnlinkedBranchBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
+                NotLinkedBlockList = await AddForkBranch(HashHelper.ComputeFrom("UnlinkBlock"), 9);
 
                 // Set lib
                 chain = await _blockchainService.GetChainAsync();
@@ -356,7 +356,7 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             
             var transaction = GenerateTransaction(accountAddress, basicContractZero,
-                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))

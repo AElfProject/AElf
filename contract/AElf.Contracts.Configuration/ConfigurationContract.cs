@@ -1,5 +1,5 @@
 using System.Linq;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -7,12 +7,12 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Configuration
 {
-    public partial class ConfigurationContract : ConfigurationContainer.ConfigurationBase
+    public partial class ConfigurationContract : ConfigurationImplContainer.ConfigurationImplBase
     {
         public override Empty SetConfiguration(SetConfigurationInput input)
         {
             AssertPerformedByConfigurationControllerOrZeroContract();
-            Assert(input.Key.Any() && input.Value != null, "Invalid set config input.");
+            Assert(input.Key.Any() && input.Value != ByteString.Empty, "Invalid set config input.");
             State.Configurations[input.Key] = new BytesValue {Value = input.Value};
             Context.Fire(new ConfigurationSet
             {

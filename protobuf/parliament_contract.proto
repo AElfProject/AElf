@@ -1,15 +1,17 @@
 syntax = "proto3";
 
-import "acs1.proto";
+package Parliament;
+
 import "acs3.proto";
+import public "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Parliament";
 
 service ParliamentContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
     
     // Actions
     rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
@@ -17,6 +19,8 @@ service ParliamentContract {
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     rpc ApproveMultiProposals(ProposalIdList) returns (google.protobuf.Empty){
+    }
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
@@ -26,8 +30,6 @@ service ParliamentContract {
     }
     rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
          option (aelf.is_view) = true;
-    }
-    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
     rpc GetProposerWhiteList(google.protobuf.Empty) returns (acs3.ProposerWhiteList){
         option (aelf.is_view) = true;

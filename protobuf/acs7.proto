@@ -9,6 +9,7 @@ import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
+option csharp_namespace = "AElf.Standards.ACS7";
 
 service ACS7 {
     
@@ -39,9 +40,6 @@ service ACS7 {
         option (aelf.is_view) = true;
     }
     rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetIndexedCrossChainBlockDataByHeight (google.protobuf.Int64Value) returns (CrossChainBlockData) {
         option (aelf.is_view) = true;
     }
     rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {

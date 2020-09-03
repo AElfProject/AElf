@@ -1,11 +1,13 @@
 syntax = "proto3";
 
 package acs6;
+
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs6";
+option csharp_namespace = "AElf.Standards.ACS6";
 
 service RandomNumberProviderContract {
     rpc GetRandomBytes (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {

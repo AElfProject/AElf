@@ -28,7 +28,6 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton(typeof(ILogEventProcessingService<>), typeof(LogEventProcessingService<>));
             context.Services.AddTransient(typeof(IConfigurationProcessor),
                 typeof(BlockTransactionLimitConfigurationProcessor));
         }

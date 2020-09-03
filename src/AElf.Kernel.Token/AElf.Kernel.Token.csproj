@@ -17,6 +17,11 @@
         <PackageReference Include="Volo.Abp.Core" Version="2.9.0" />
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>

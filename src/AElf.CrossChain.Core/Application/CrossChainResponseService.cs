@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -112,7 +112,7 @@ namespace AElf.CrossChain.Application
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];
-                if (!info.ChainId.Equals(sideChainId))
+                if (info.ChainId != sideChainId)
                     continue;
 
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);

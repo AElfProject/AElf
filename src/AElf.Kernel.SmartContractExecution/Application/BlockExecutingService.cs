@@ -4,10 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -207,8 +207,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             TransactionResultStatus executionReturnStatus)
         {
             // combine tx result status
-            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
+            var rawBytes = ByteArrayHelper.ConcatArrays(txId.ToByteArray(),
+                EncodingHelper.EncodeUtf8(executionReturnStatus.ToString()));
             return HashHelper.ComputeFrom(rawBytes);
         }
 

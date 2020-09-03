@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using AElf.Standards.ACS0;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.ContractDeployer;
 using AElf.CrossChain.Application;

@@ -2,14 +2,14 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Acs0;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.CSharp.Core.Extension;
 
 namespace AElf.Contracts.Genesis
 {
-    public partial class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
+    public partial class BasicContractZero : BasicContractZeroImplContainer.BasicContractZeroImplBase
     {
         #region Views
 
@@ -121,7 +121,7 @@ namespace AElf.Contracts.Genesis
                 {
                     ToAddress = Context.Self,
                     ContractMethodName =
-                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                        nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ProposeContractCodeCheck),
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
@@ -164,7 +164,7 @@ namespace AElf.Contracts.Genesis
                 {
                     ToAddress = Context.Self,
                     ContractMethodName =
-                        nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeContractCodeCheck),
+                        nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.ProposeContractCodeCheck),
                     Params = new ContractCodeCheckInput
                     {
                         ContractInput = input.ToByteString(),
@@ -293,7 +293,7 @@ namespace AElf.Contracts.Genesis
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = HashHelper.ComputeFrom(code);
-            Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
+            Assert(oldCodeHash != newCodeHash, "Code is not changed.");
             
             Assert(State.SmartContractRegistrations[newCodeHash] == null, "Same code has been deployed before.");
 
@@ -341,7 +341,7 @@ namespace AElf.Contracts.Genesis
                 "Genesis owner already initialized");
             var parliamentContractAddress =
                 GetContractAddressByName(SmartContractConstants.ParliamentContractSystemHashName);
-            Assert(Context.Sender.Equals(parliamentContractAddress), "Unauthorized to initialize genesis contract.");
+            Assert(Context.Sender == parliamentContractAddress, "Unauthorized to initialize genesis contract.");
             Assert(input != null, "Genesis Owner should not be null.");
             var defaultAuthority = new AuthorityInfo
             {
