@@ -226,9 +226,7 @@ namespace AElf.Contracts.Election
         public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
         {
             Assert(
-                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) ==
-                Context.Sender ||
-                Context.Sender == GetParliamentDefaultOrganizationAddress(),
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update candidate information.");
 
             foreach (var updateCandidateInformationInput in input.Value)
