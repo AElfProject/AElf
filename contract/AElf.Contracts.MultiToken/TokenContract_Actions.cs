@@ -539,16 +539,5 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }
-
-        public override Empty ChangeTokenProfitable(ChangeTokenProfitableInput input)
-        {
-            var tokenInfo = State.TokenInfos[input.Symbol];
-            Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
-            tokenInfo.MetaData[TokenContractConstants.IsProfitable] = input.IsProfitable.ToString();
-            State.TokenInfos[input.Symbol] = tokenInfo;
-            return new Empty();
-        }
     }
 }

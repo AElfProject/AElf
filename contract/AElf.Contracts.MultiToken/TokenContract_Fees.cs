@@ -204,7 +204,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
         public override Empty CheckResourceToken(Empty input)
         {
             AssertTransactionGeneratedByPlugin();
@@ -226,6 +225,7 @@ namespace AElf.Contracts.MultiToken
             bool isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
+            var primaryTokenInfo = State.TokenInfos[primaryTokenSymbol.Value];
             Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
             foreach (var tokenWeightInfo in input.SymbolsToPayTxSizeFee)
             {
@@ -235,8 +235,15 @@ namespace AElf.Contracts.MultiToken
                     Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
-                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo);
-                Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol), $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
+                Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
+                    $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
+                Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
+                    $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
+                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo.TokenSymbol, out var addedTokenTotalSupply);
+                CheckIsWeightOverflow(primaryTokenSymbol.Value, tokenWeightInfo.BaseTokenWeight,
+                    addedTokenTotalSupply);
+                CheckIsWeightOverflow(tokenWeightInfo.TokenSymbol, tokenWeightInfo.AddedTokenWeight,
+                    primaryTokenInfo.TotalSupply);
                 symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
@@ -248,7 +255,7 @@ namespace AElf.Contracts.MultiToken
             });
             return new Empty();
         }
-
+        
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -461,18 +468,11 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            if(IsTokenDonateToTreasury(symbol))
-                                State.DividendPoolContract.Donate.Send(new DonateInput
-                                {
-                                    Symbol = symbol,
-                                    Amount = amount
-                                });
-                            else
-                                Context.SendInline(Context.Self, nameof(Burn), new BurnInput
-                                {
-                                    Symbol = symbol,
-                                    Amount = amount
-                                });
+                            State.DividendPoolContract.Donate.Send(new DonateInput
+                            {
+                                Symbol = symbol,
+                                Amount = amount
+                            });
                         }
                         else
                         {
@@ -485,12 +485,6 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             }
-        }
-
-        private bool IsTokenDonateToTreasury(string symbol)
-        {
-            var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
-            return IsTokenProfitable(tokenInfo) || State.LockWhiteLists[symbol][State.DividendPoolContract.Value];
         }
 
         private void PayRental()
@@ -628,6 +622,12 @@ namespace AElf.Contracts.MultiToken
 
             if (totalAmount <= 0) return;
 
+            var tokenInfo = State.TokenInfos[symbol];
+            if (!tokenInfo.IsBurnable || !tokenInfo.IsProfitable)
+            {
+                return;
+            }
+
             var burnAmount = totalAmount.Div(10);
             if (burnAmount > 0)
                 Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -641,7 +641,8 @@ namespace AElf.Contracts.MultiToken
                 return;
             var treasuryContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            if (treasuryContractAddress != null && IsTokenDonateToTreasury(symbol))
+            var isMainChain = treasuryContractAddress != null;
+            if (isMainChain)
             {
                 // Main chain would donate tx fees to dividend pool.
                 if (State.DividendPoolContract.Value == null)
@@ -688,7 +689,7 @@ namespace AElf.Contracts.MultiToken
             return State.FeeReceiver.Value;
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
+        private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -698,15 +699,15 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenWeightInfo)
+        private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
         {
-            Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
-                $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
-            var tokenInfo = State.TokenInfos[tokenWeightInfo.TokenSymbol];
-            Assert(tokenInfo != null, $"Token is not found. {tokenWeightInfo.TokenSymbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(IsTokenProfitable(tokenInfo), $"Token {tokenWeightInfo.TokenSymbol} is not Profitable");
-            
+            var tokenInfo = State.TokenInfos[tokenSymbol];
+            if (tokenInfo == null)
+            {
+                throw new AssertionException($"Token is not found. {tokenSymbol}");
+            }
+            Assert(IsTokenAvailableForMethodFee(new StringValue{Value = tokenSymbol}).Value, $"Token {tokenSymbol} cannot set as method fee.");
+            totalSupply = tokenInfo.TotalSupply;
         }
 
         private void AssertTransactionGeneratedByPlugin()

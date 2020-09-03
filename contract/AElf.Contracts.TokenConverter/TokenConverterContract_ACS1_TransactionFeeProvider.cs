@@ -90,11 +90,8 @@ namespace AElf.Contracts.TokenConverter
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol),$"Token is not found. {symbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(State.TokenContract.GetIsTokenProfitable.Call(new StringValue {Value = symbol}).Value, $"Token {symbol} is not Profitable");
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

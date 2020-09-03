@@ -42,6 +42,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = input.Symbol});
+            if (!tokenInfo.IsProfitable)
+            {
+                return new Empty();
+            }
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,

@@ -35,8 +35,6 @@ service TokenContract {
     }
     rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeTokenProfitable (ChangeTokenProfitableInput) returns (google.protobuf.Empty) {
-    }
 
     //   Cross Chain Exchange
     rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
@@ -122,7 +120,7 @@ service TokenContract {
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
-    rpc GetIsTokenProfitable (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+    rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
 }
@@ -418,12 +416,6 @@ message ChangeTokenIssuerInput
 {
     string symbol = 1;
     aelf.Address new_token_Issuer = 2;
-}
-
-message ChangeTokenProfitableInput
-{
-    string symbol = 1;
-    bool is_profitable = 2;
 }
 
 // Events

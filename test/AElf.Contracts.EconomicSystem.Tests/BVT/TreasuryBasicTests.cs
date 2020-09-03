@@ -280,7 +280,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = tokenSymbol,
                 TokenName = "TEST name",
                 TotalSupply = 1_0000_0000,
-                Issuer = BootMinerAddress
+                Issuer = BootMinerAddress,
+                IsBurnable = true
             };
             var createTokenRet = await TokenContractStub.Create.SendAsync(tokenCreateInput);
             createTokenRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -565,7 +566,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     }
                 });
                 setMethodFeeRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
         }
 

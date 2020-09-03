@@ -207,23 +207,14 @@ namespace AElf.Contracts.MultiToken
             return State.CrossChainTokenContractRegistrationController.Value;
         }
 
-        private bool IsTokenProfitable(string symbol)
+        public override BoolValue IsTokenAvailableForMethodFee(StringValue input)
         {
-            var tokenInfo = State.TokenInfos[symbol];
-            return IsTokenProfitable(tokenInfo);
-        }
-
-        private bool IsTokenProfitable(TokenInfo tokenInfo)
-        {
-            if (tokenInfo == null) return false;
-            if (!tokenInfo.MetaData.TryGetValue(TokenContractConstants.IsProfitable, out var isProfitableStr))
-                return false;
-            return bool.TryParse(isProfitableStr, out var isProfitable) && isProfitable;
-        }
-
-        public override BoolValue GetIsTokenProfitable(StringValue input)
-        {
-            return new BoolValue {Value = IsTokenProfitable(input.Value)};
+            var tokenInfo = State.TokenInfos[input.Value];
+            if (tokenInfo == null) throw new AssertionException("Token is not found.");
+            return new BoolValue
+            {
+                Value = tokenInfo.IsProfitable && tokenInfo.IsBurnable
+            };
         }
     }
 }

@@ -1029,7 +1029,7 @@ namespace AElf.Contracts.Association
                     IsProfitable = false
                 });
                 var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
-                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} is not Profitable");
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");
             }
             
             // without authority

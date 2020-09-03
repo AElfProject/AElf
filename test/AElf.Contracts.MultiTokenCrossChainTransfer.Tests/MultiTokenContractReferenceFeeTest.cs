@@ -7,6 +7,7 @@ using AElf.Contracts.Association;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Referendum;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
@@ -483,13 +484,15 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
-            var FeeToken = "FEETOKEN";
+            var feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = FeeToken,
+                Symbol = feeToken,
                 TokenName = "name",
                 Issuer = TokenContractAddress,
-                TotalSupply = 100_000
+                TotalSupply = 100_000,
+                IsProfitable = true,
+                IsBurnable = true
             });
             var newSymbolList = new SymbolListToPayTxSizeFee();
             newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
@@ -503,7 +506,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             newSymbolList.SymbolsToPayTxSizeFee[0].AddedTokenWeight = 1;
             newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
             {
-                TokenSymbol = FeeToken,
+                TokenSymbol = feeToken,
                 AddedTokenWeight = 0,
                 BaseTokenWeight = 1
             });
@@ -515,10 +518,10 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
-            var FeeToken = "FEETOKEN";
+            var feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = FeeToken,
+                Symbol = feeToken,
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000
@@ -535,13 +538,13 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     },
                     new SymbolToPayTxSizeFee
                     {
-                        TokenSymbol = FeeToken,
+                        TokenSymbol = feeToken,
                         AddedTokenWeight = 1,
                         BaseTokenWeight = 1
                     },
                     new SymbolToPayTxSizeFee
                     {
-                        TokenSymbol = FeeToken,
+                        TokenSymbol = feeToken,
                         AddedTokenWeight = 1,
                         BaseTokenWeight = 1
                     }
@@ -554,10 +557,10 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         public async Task SetSymbolsToPayTxSizeFee_Without_PrimaryToken_Test()
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
-            var FeeToken = "FEETOKEN";
+            var feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = FeeToken,
+                Symbol = feeToken,
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000
@@ -565,7 +568,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             var newSymbolList = new SymbolListToPayTxSizeFee();
             newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
             {
-                TokenSymbol = FeeToken,
+                TokenSymbol = feeToken,
                 AddedTokenWeight = 2,
                 BaseTokenWeight = 1
             });
@@ -577,10 +580,10 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
-            var FeeToken = "FEETOKEN";
+            var feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = FeeToken,
+                Symbol = feeToken,
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000,
@@ -598,13 +601,78 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     },
                     new SymbolToPayTxSizeFee
                     {
-                        TokenSymbol = FeeToken,
+                        TokenSymbol = feeToken,
                         AddedTokenWeight = 1,
                         BaseTokenWeight = 1
                     }
                 }
             };
             await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_With_Overflow_Input_Test()
+        {
+            var primaryToken = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
+            var primaryTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = primaryToken.Value
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee();
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
+            {
+                TokenSymbol = primaryToken.Value,
+                AddedTokenWeight = 1,
+                BaseTokenWeight = 1
+            });
+            var feeToken = "FEETOKEN";
+            var newTokenTotalSupply = 1000_000_00000;
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = feeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = newTokenTotalSupply,
+                IsProfitable = true,
+                IsBurnable = true
+            });
+            var invalidBaseTokenWeight = (int)long.MaxValue.Div(newTokenTotalSupply).Add(1);
+            newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
+            {
+                TokenSymbol = feeToken,
+                AddedTokenWeight = 1,
+                BaseTokenWeight = invalidBaseTokenWeight
+            });
+            
+            var defaultParliamentAddress = await GetDefaultParliamentAddressAsync();
+            var createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newSymbolList.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
+                    .SetSymbolsToPayTxSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            var result = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.ShouldContain($"the weight of token {primaryToken.Value} is set too large");
+
+            invalidBaseTokenWeight = (int) long.MaxValue.Div(primaryTokenInfo.TotalSupply).Add(1);
+            newSymbolList.SymbolsToPayTxSizeFee[1].BaseTokenWeight = 1;
+            newSymbolList.SymbolsToPayTxSizeFee[1].AddedTokenWeight = invalidBaseTokenWeight;
+            createProposalInput = new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = newSymbolList.ToByteString(),
+                OrganizationAddress = defaultParliamentAddress,
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub
+                    .SetSymbolsToPayTxSizeFee),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
+            };
+            result = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.ShouldContain($"the weight of token {feeToken} is set too large");
         }
 
         [Fact]

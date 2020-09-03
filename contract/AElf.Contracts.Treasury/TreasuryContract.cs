@@ -153,6 +153,12 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = input.Symbol});
+            if (!tokenInfo.IsProfitable)
+            {
+                return new Empty();
+            }
+
             if (State.TokenConverterContract.Value == null)
             {
                 State.TokenConverterContract.Value =

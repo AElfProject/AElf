@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
@@ -163,6 +164,18 @@ namespace AElf.Contracts.MultiToken
             if (State.CrossChainTokenContractRegistrationController.Value == null)
                 State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
             Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
+        }
+        
+        private static void CheckIsWeightOverflow(string tokenSymbol, int weight, long tokenTotalSupply)
+        {
+            try
+            {
+                tokenTotalSupply.Mul(weight);
+            }
+            catch (OverflowException)
+            {
+                throw new AssertionException($"the weight of token {tokenSymbol} is set too large");
+            }
         }
     }
 }
