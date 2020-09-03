@@ -358,9 +358,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.RealTimeMinersInformation.Remove(evilMinerPubkey);
                         currentRound.RealTimeMinersInformation.Add(alternativeCandidatePubkey, minerInRound);
                     }
-                }
 
-                isMinerListChanged = true;
+                    isMinerListChanged = true;
+                }
             }
 
             currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound,

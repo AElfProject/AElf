@@ -377,6 +377,11 @@ namespace AElf.Contracts.Election
         {
             var evilMinersPubKey = new List<string>();
 
+            if (State.Candidates.Value == null || !State.Candidates.Value.Value.Any())
+            {
+                return evilMinersPubKey;
+            }
+
             // If one miner is not a candidate anymore.
             var candidates = State.Candidates.Value.Value.Select(p => p.ToHex())
                 .ToList();
