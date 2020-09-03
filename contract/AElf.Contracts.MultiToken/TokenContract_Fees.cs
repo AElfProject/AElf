@@ -204,7 +204,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
         public override Empty CheckResourceToken(Empty input)
         {
             AssertTransactionGeneratedByPlugin();
@@ -494,13 +493,13 @@ namespace AElf.Contracts.MultiToken
                 }
             }
         }
-
+        
         private bool IsTokenDonateToTreasury(string symbol)
         {
             var tokenInfo = GetTokenInfo(new GetTokenInfoInput {Symbol = symbol});
             return tokenInfo.IsProfitable || State.LockWhiteLists[symbol][State.DividendPoolContract.Value];
         }
-
+        
         private void PayRental()
         {
             var creator = State.SideChainCreator.Value;
@@ -636,6 +635,12 @@ namespace AElf.Contracts.MultiToken
 
             if (totalAmount <= 0) return;
 
+            var tokenInfo = State.TokenInfos[symbol];
+            if (!tokenInfo.IsBurnable || !tokenInfo.IsProfitable)
+            {
+                return;
+            }
+
             var burnAmount = totalAmount.Div(10);
             if (burnAmount > 0)
                 Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -709,9 +714,11 @@ namespace AElf.Contracts.MultiToken
         private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
         {
             var tokenInfo = State.TokenInfos[tokenSymbol];
-            Assert(tokenInfo != null, $"Token is not found. {tokenSymbol}");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.IsProfitable, $"Token {tokenSymbol} is not Profitable");
+            if (tokenInfo == null)
+            {
+                throw new AssertionException($"Token is not found. {tokenSymbol}");
+            }
+            Assert(tokenInfo.IsProfitable && tokenInfo.IsBurnable, $"Token {tokenSymbol} cannot set as method fee.");
             totalSupply = tokenInfo.TotalSupply;
         }
 

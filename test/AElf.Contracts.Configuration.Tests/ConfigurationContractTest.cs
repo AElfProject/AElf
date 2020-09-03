@@ -361,7 +361,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                         }}
                     });
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.Error.Contains($"Token {tokenSymbol} is not Profitable").ShouldBeTrue();
+                result.Error.Contains($"Token {tokenSymbol} cannot set as method fee.").ShouldBeTrue();
             }
             
             // unauthorized

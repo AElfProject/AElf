@@ -176,7 +176,6 @@ namespace AElf.Contracts.MultiToken
             {
                 throw new AssertionException($"the weight of token {tokenSymbol} is set too large");
             }
-            
         }
     }
 }

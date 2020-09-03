@@ -1031,68 +1031,6 @@ namespace AElf.Contracts.MultiToken
             tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
         }
         
-        [Fact]
-        public async Task ChangeTokenProfitable_Without_Authorization_Test()
-        {
-            await CreateNativeTokenAsync();
-            const string tokenSymbol = "PO";
-            await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = tokenSymbol,
-                TokenName = "Name",
-                TotalSupply = 100_000_000_000L,
-                Decimals = 10,
-                IsBurnable = true,
-                Issuer = Accounts[1].Address,
-                IsProfitable = false
-            });
-            var changeIssuerRet = await TokenContractStub.ChangeTokenProfitable.SendWithExceptionAsync(
-                new ChangeTokenProfitableInput
-                {
-                    Symbol = tokenSymbol,
-                    IsProfitable = true
-                    
-                });
-            changeIssuerRet.TransactionResult.Error.ShouldContain("permission denied");
-        }
-
-        [Fact]
-        public async Task ChangeTokenProfitable_Success_Test()
-        {
-            await CreateNativeTokenAsync();
-            const string tokenSymbol = "PO";
-            var tokenCreator = Accounts[1];
-            await TokenContractStub.Create.SendAsync(new CreateInput
-            {
-                Symbol = tokenSymbol,
-                TokenName = "Name",
-                TotalSupply = 100_000_000_000L,
-                Decimals = 10,
-                IsBurnable = true,
-                Issuer = tokenCreator.Address,
-                IsProfitable = false
-            });
-            var beforeTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
-            {
-                Symbol = tokenSymbol
-            });
-            beforeTokenInfo.IsProfitable.ShouldBeFalse();
-            var tokenStub =
-                GetTester<TokenContractImplContainer.TokenContractImplStub>(
-                    TokenContractAddress, tokenCreator.KeyPair);
-            var changeIssuerRet = await tokenStub.ChangeTokenProfitable.SendAsync(
-                new ChangeTokenProfitableInput
-                {
-                    Symbol = tokenSymbol,
-                    IsProfitable = true
-                });
-            var afterTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
-            {
-                Symbol = tokenSymbol
-            });
-            afterTokenInfo.IsProfitable.ShouldBeTrue();
-        }
-        
         private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,
             Address to = null, params string[] otherParameters)
         {
