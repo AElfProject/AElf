@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -45,15 +45,15 @@ namespace AElf.Contracts.TokenHolder
         protected Address DAppContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub { get; set; }
 
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; set; }
 
-        internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
+        internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub { get; set; }
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
-        internal TokenHolderContractContainer.TokenHolderContractStub TokenHolderContractStub { get; set; }
+        internal TokenHolderContractImplContainer.TokenHolderContractImplStub TokenHolderContractStub { get; set; }
 
         internal DAppContainer.DAppStub DAppContractStub { get; set; }
 
@@ -149,9 +149,9 @@ namespace AElf.Contracts.TokenHolder
                 UserKeyPairs.First());
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
@@ -159,22 +159,22 @@ namespace AElf.Contracts.TokenHolder
             return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
 
-        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        internal ProfitContractImplContainer.ProfitContractImplStub GetProfitContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
+            return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
-        internal TokenHolderContractContainer.TokenHolderContractStub GetTokenHolderContractTester(
+        internal TokenHolderContractImplContainer.TokenHolderContractImplStub GetTokenHolderContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
+            return GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress,
                 keyPair);
         }
 

@@ -29,35 +29,52 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf/Proto/parliament_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\profit_contract_impl.proto">
+            <Link>Protobuf\Proto\profit_contract_impl.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\transaction_fee.proto">
-            <Link>Protobuf/Proto/transaction_fee.proto</Link>
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
         <ContractStub Include="..\..\protobuf\token_contract_impl.proto">
-            <Link>Protobuf/Proto/token_contract_impl.proto</Link>
+            <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero_impl.proto">
+            <Link>Protobuf\Proto\basic_contract_zero_impl.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\token_holder_contract.proto">
-            <Link>Protobuf/Proto/token_holder_contract.proto</Link>
+        <ContractMessage Include="..\..\protobuf\token_holder_contract.proto">
+            <Link>Protobuf\Proto\token_holder_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\token_holder_contract_impl.proto">
+            <Link>Protobuf\Proto\token_holder_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\dapp_contract.proto">
-            <Link>Protobuf/Proto/dapp_contract.proto</Link>
+            <Link>Protobuf\Proto\dapp_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>

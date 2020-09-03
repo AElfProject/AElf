@@ -1,4 +1,8 @@
 using System.Threading.Tasks;
+using AElf.Standards.ACS2;
+using AElf.Contracts.Parliament;
+using AElf.Contracts.Profit;
+using AElf.Contracts.Referendum;
 using AElf.Contracts.TokenConverter;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;

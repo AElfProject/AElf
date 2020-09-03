@@ -1,15 +1,16 @@
 syntax = "proto3";
 
-package profit;
+package Profit;
 
-import "acs1.proto";
 import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Profit";
 
 service ProfitContract {
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
-    option (aelf.base) = "acs1.proto";
 
     // Actions
     rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash) {

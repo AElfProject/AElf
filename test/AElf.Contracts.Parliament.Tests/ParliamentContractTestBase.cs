@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -46,10 +46,10 @@ namespace AElf.Contracts.Parliament
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractStub { get; set; }
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
-        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
         
 
         protected void InitializeContracts()
@@ -87,9 +87,9 @@ namespace AElf.Contracts.Parliament
         }
 
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
         }
 
         internal AEDPoSContractContainer.AEDPoSContractStub GetConsensusContractTester(ECKeyPair keyPair)
@@ -97,15 +97,15 @@ namespace AElf.Contracts.Parliament
             return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
         }
 
-        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
         {
-            return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
+            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Parliament
         {
             var createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                 ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
                 Params = input.ToByteString(),
                 ToAddress = TokenContractAddress,
@@ -202,7 +202,7 @@ namespace AElf.Contracts.Parliament
         {
             var createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = nameof(ParliamentContractContainer.ParliamentContractStub.ChangeOrganizationProposerWhiteList),
+                ContractMethodName = nameof(ParliamentContractImplContainer.ParliamentContractImplStub.ChangeOrganizationProposerWhiteList),
                 ToAddress = ParliamentAddress,
                 Params = input.ToByteString(),
                 ExpiredTime =  DateTime.UtcNow.AddDays(1).ToTimestamp(),

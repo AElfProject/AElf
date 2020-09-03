@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
@@ -19,7 +19,7 @@ namespace AElf.CrossChain.Indexing.Application
         public ILogger<CrossChainIndexingDataValidationService> Logger { get; set; }
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
 
-        private readonly IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub>
+        private readonly IContractReaderFactory<CrossChainContractImplContainer.CrossChainContractImplStub>
             _contractReaderFactory;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -31,7 +31,7 @@ namespace AElf.CrossChain.Indexing.Application
         }
 
         public CrossChainIndexingDataValidationService(IBlockCacheEntityConsumer blockCacheEntityConsumer,
-            IContractReaderFactory<CrossChainContractContainer.CrossChainContractStub> contractReaderFactory,
+            IContractReaderFactory<CrossChainContractImplContainer.CrossChainContractImplStub> contractReaderFactory,
             ISmartContractAddressService smartContractAddressService)
         {
             _blockCacheEntityConsumer = blockCacheEntityConsumer;

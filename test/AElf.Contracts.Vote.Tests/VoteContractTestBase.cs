@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -34,10 +34,10 @@ namespace AElf.Contracts.Vote
         protected Address ParliamentContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address ConsensusContractAddress { get; set; }
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
+        internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal VoteContractImplContainer.VoteContractImplStub VoteContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
 
         protected const string TestTokenSymbol = "ELF";
@@ -94,9 +94,9 @@ namespace AElf.Contracts.Vote
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
@@ -104,14 +104,14 @@ namespace AElf.Contracts.Vote
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
+        internal VoteContractImplContainer.VoteContractImplStub GetVoteContractTester(ECKeyPair keyPair)
         {
-            return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
+            return GetTester<VoteContractImplContainer.VoteContractImplStub>(VoteContractAddress, keyPair);
         }
         
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
         }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)

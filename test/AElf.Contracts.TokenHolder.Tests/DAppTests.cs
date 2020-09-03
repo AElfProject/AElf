@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs9;
+using AElf.Standards.ACS9;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.DApp;
@@ -21,7 +21,7 @@ namespace AElf.Contracts.TokenHolder
             var userTokenStub =
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, UserKeyPairs[0]);
             var userTokenHolderStub =
-                GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
+                GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress,
                     UserKeyPairs[0]);
 
             await DAppContractStub.SignUp.SendAsync(new Empty());

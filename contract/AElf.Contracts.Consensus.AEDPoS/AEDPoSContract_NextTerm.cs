@@ -1,6 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Election;
-using Acs10;
+using AElf.Standards.ACS10;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -58,7 +58,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         protected async Task SetMethodFeeWithProposalAsync(ByteString methodFee)
         {
             var proposal = await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.CreateProposal),
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.CreateProposal),
                 new CreateProposalInput
                 {
                     ContractMethodName = nameof(MethodFeeProviderContractContainer.MethodFeeProviderContractStub.SetMethodFee),
@@ -76,7 +76,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     _parliamentAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractStub.GetDefaultOrganizationAddress),
+                    nameof(ParliamentContractImplContainer.ParliamentContractImplStub.GetDefaultOrganizationAddress),
                     new Empty()))
                 .ReturnValue);
             return organizationAddress;
@@ -84,13 +84,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private async Task ApproveWithMinersAsync(Hash proposalId)
         {
             var approveTransaction1 = await GenerateTransactionAsync(_parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[0],
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), Tester.InitialMinerList[0],
                 proposalId);
             var approveTransaction2 = await GenerateTransactionAsync(_parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[1],
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), Tester.InitialMinerList[1],
                 proposalId);
             var approveTransaction3 = await GenerateTransactionAsync(_parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Approve), Tester.InitialMinerList[2],
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Approve), Tester.InitialMinerList[2],
                 proposalId);
 
             // Mine a block with given normal txs and system txs.
@@ -109,7 +109,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         private async Task ReleaseProposalAsync(Hash proposalId)
         {
             await Tester.ExecuteContractWithMiningAsync(_parliamentAddress,
-                nameof(ParliamentContractContainer.ParliamentContractStub.Release), proposalId);
+                nameof(ParliamentContractImplContainer.ParliamentContractImplStub.Release), proposalId);
         }
     }
 
@@ -121,7 +121,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         internal Address TreasuryContractAddress { get; set; }
         internal Address ConsensusContractAddress { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; set; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
         internal ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
@@ -166,7 +166,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 var parliamentContractAddress = await DeploySystemSmartContract(category, code,
                     ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 ParliamentContractStub =
-                    GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
+                    GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentContractAddress,
                         DefaultSenderKeyPair);
             }
             

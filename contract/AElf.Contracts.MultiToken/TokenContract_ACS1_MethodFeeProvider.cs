@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using Acs1;
-using Acs3;
+using System.Linq;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

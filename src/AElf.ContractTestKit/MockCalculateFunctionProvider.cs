@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
-using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
