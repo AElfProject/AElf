@@ -239,9 +239,7 @@ namespace AElf.Contracts.CrossChain
                 SmartContractConstants.ConsensusContractSystemName);
             Context.SendInline(State.CrossChainInteractionContract.Value,
                 nameof(State.CrossChainInteractionContract.UpdateInformationFromCrossChain),
-                new BytesValue {Value = bytes}.ToBytesValue());
-            // State.CrossChainInteractionContract.UpdateInformationFromCrossChain.Send(new ConsensusInformation
-            //     {Value = bytes}.ToBytesValue());
+                new BytesValue {Value = bytes});
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
