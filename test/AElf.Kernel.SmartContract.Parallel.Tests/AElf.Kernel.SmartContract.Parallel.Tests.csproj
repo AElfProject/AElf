@@ -66,7 +66,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Autofac" Version="2.9.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="3.1.0" />
         <PackageReference Include="Volo.Abp.TestBase" Version="2.9.0" />
     </ItemGroup>
 </Project>
