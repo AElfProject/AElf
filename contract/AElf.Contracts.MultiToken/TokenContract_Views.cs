@@ -213,8 +213,27 @@ namespace AElf.Contracts.MultiToken
             if (tokenInfo == null) throw new AssertionException("Token is not found.");
             return new BoolValue
             {
-                Value = tokenInfo.IsProfitable && tokenInfo.IsBurnable
+                Value = IsTokenProfitable(tokenInfo) && tokenInfo.IsBurnable
             };
+        }
+
+        private bool IsTokenProfitable(string symbol)
+        {
+            var tokenInfo = State.TokenInfos[symbol];
+            if (tokenInfo == null ||
+                !tokenInfo.MetaData.TryGetValue(TokenContractConstants.IsProfitable, out var isProfitable))
+                return false;
+            return isProfitable == true.ToString();
+        }
+
+        private bool IsTokenProfitable(TokenInfo tokenInfo)
+        {
+            if (tokenInfo.MetaData.TryGetValue(TokenContractConstants.IsProfitable, out var isProfitable))
+            {
+                return isProfitable == true.ToString();
+            }
+
+            return false;
         }
     }
 }

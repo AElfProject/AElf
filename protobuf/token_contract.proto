@@ -133,7 +133,6 @@ message TokenInfo {
     int32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
-    bool is_profitable = 8;
     int32 issue_chain_id = 9;
     int64 burned = 10;
     map<string, string> meta_data = 11;
@@ -159,8 +158,8 @@ message RegisterNativeTokenInfoInput {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
+    map<string, string> meta_data = 8;
 }
 
 message SetPrimaryTokenSymbolInput {
@@ -489,8 +488,7 @@ message TokenCreated {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
 }
 
 message Issued {

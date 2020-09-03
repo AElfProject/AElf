@@ -335,11 +335,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         private bool IsContributingProfits(TransferFromInput input)
         {
-            var tokenInfo = Context.Call<TokenInfo>(Context.Self, nameof(GetTokenInfo), new GetTokenInfoInput
-            {
-                Symbol = input.Symbol
-            }.ToByteString());
-            if (!IsTokenProfitable(tokenInfo)) return false;
+            if (!IsTokenProfitable(input.Symbol)) return false;
 
             if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
                 Context.Sender ==
