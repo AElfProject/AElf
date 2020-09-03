@@ -57,7 +57,11 @@ namespace AElf.Contracts.MultiToken
             IsBurnable = true,
             Issuer = Accounts[0].Address,
             Supply = 0,
-            IssueChainId = _chainId
+            IssueChainId = _chainId,
+            MetaData =
+            {
+                {"IsProfitable", false.ToString()}
+            }
         };
 
         /// <summary>

@@ -128,7 +128,7 @@ namespace AElf.Contracts.MultiToken
             AssertValidSymbolAndAmount(symbol, amount);
             if (State.TokenInfos[symbol] == null)
                 throw new AssertionException("Token is not found");
-            Assert(State.TokenInfos[symbol].IsBurnable && State.TokenInfos[symbol].IsProfitable,
+            Assert(State.TokenInfos[symbol].IsBurnable && IsTokenProfitable(symbol),
                 $"Token {symbol} cannot set as method fee.");
         }
 

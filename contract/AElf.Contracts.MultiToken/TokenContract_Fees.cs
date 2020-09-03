@@ -623,7 +623,7 @@ namespace AElf.Contracts.MultiToken
             if (totalAmount <= 0) return;
 
             var tokenInfo = State.TokenInfos[symbol];
-            if (!tokenInfo.IsBurnable || !tokenInfo.IsProfitable)
+            if (!tokenInfo.IsBurnable || !IsTokenProfitable(symbol))
             {
                 return;
             }

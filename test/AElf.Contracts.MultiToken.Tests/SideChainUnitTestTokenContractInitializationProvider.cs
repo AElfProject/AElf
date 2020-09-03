@@ -136,7 +136,6 @@ namespace AElf.Contracts.MultiToken
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,
                 TotalSupply = tokenInfo.TotalSupply,
-                IsProfitable = tokenInfo.IsProfitable,
                 MetaData = {tokenInfo.MetaData}
             };
         }
