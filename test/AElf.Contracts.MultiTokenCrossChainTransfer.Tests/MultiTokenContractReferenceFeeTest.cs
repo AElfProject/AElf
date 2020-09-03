@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -375,7 +375,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         [Fact]
         public async Task MethodFeeController_Test_Fail()
         {
-            var updateMethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
+            var updateMethodName = nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController);
             // no authority
             var newAuthority = await CreateNewParliamentAddressAsync();
             //invalid new organization
@@ -424,7 +424,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = TokenContractAddress,
                 Params = newController.ToByteString(),
                 OrganizationAddress = defaultController.OwnerAddress,
-                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController),
+                ContractMethodName = nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
@@ -643,7 +643,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
 
@@ -662,7 +662,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveProposalInput);
@@ -676,7 +676,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             return await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(releaseProposalInput);
@@ -690,7 +690,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.DeveloperController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var approveLeafProposalInput = new CreateProposalInput
@@ -698,7 +698,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = approveMidProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var newCreateProposalRet =
@@ -717,7 +717,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveLeafProposalInput);
@@ -727,7 +727,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveLeafProposalInput);
@@ -750,7 +750,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var releaseRet = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
@@ -769,7 +769,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveProposalInput);
@@ -784,7 +784,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ReferendumController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             
@@ -793,7 +793,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = ReferendumContractAddress,
                 Params = referendumProposal.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.CreateProposal),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);
@@ -815,7 +815,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = ReferendumContractAddress,
                 Params = referendumProposalId.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.Release),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);
@@ -829,7 +829,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             return await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);

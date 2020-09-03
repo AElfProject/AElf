@@ -9,6 +9,7 @@ import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
+option csharp_namespace = "AElf.Standards.ACS7";
 
 service ACS7 {
     

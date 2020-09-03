@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs2;
-using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Standards.ACS2;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using AElf.Contracts.Treasury;
@@ -21,57 +21,62 @@ namespace AElf.Contracts.MultiToken
         protected Address User1Address => Accounts[10].Address;
         protected Address User2Address => Accounts[11].Address;
         protected const string DefaultSymbol = "ELF";
-        
+
         protected const string SymbolForTest = "ELF";
 
         protected const long Amount = 100;
-        
+
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             Accounts.Take(InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
-        
+
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
         internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
-        
-        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub;
-        internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
-        
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
-        
+
+        internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub;
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub;
+
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
+
         protected Hash BasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.BasicFunction");
         protected Address BasicFunctionContractAddress { get; set; }
         internal BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
 
-        protected Hash OtherBasicFunctionContractName => HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
+        protected Hash OtherBasicFunctionContractName =>
+            HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction");
+
         protected Address OtherBasicFunctionContractAddress { get; set; }
         internal BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
-        
+
         public MultiTokenContractTestBase()
         {
-            TokenContractStub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
+            TokenContractStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
             Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
-            TreasuryContractStub = GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
+            TreasuryContractStub = GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(
+                TreasuryContractAddress,
                 DefaultKeyPair);
-            
-            TokenConverterContractStub =  GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+
+            TokenConverterContractStub = GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(
+                TokenConverterContractAddress,
                 DefaultKeyPair);
 
             BasicFunctionContractAddress = SystemContractAddresses[BasicFunctionContractName];
             BasicFunctionContractStub = GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                 BasicFunctionContractAddress, DefaultKeyPair);
-           
+
             OtherBasicFunctionContractAddress = SystemContractAddresses[OtherBasicFunctionContractName];
             OtherBasicFunctionContractStub = GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                 OtherBasicFunctionContractAddress, DefaultKeyPair);
 
-            ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(
+            ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                 ParliamentContractAddress, DefaultKeyPair);
         }
-        
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
     }

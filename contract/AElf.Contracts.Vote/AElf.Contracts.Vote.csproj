@@ -15,7 +15,11 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
-
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\reference\acs3.proto</Link>
@@ -31,10 +35,13 @@
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\vote_contract.proto">
-            <Link>Protobuf\Proto\vote_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\vote_contract_impl.proto">
+            <Link>Protobuf\Proto\vote_contract_impl.proto</Link>
             <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>

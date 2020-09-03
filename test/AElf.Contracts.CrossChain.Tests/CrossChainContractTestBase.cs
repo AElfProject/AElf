@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
-using Acs7;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
 using AElf.Contracts.Association;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -46,49 +46,48 @@ namespace AElf.Contracts.CrossChain.Tests
 
         #region Token
 
-        internal TokenContractContainer.TokenContractStub TokenContractStub =>
-            GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub =>
+            GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, DefaultKeyPair);
         
         #endregion
 
         #region Paliament
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
-            GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, DefaultKeyPair);
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
+            GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, DefaultKeyPair);
 
-        internal AssociationContractContainer.AssociationContractStub AssociationContractStub =>
-            GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, DefaultKeyPair);
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub =>
+            GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, DefaultKeyPair);
  
-
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
-        internal AssociationContractContainer.AssociationContractStub GetAssociationContractStub(ECKeyPair keyPair)
+        internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractStub(ECKeyPair keyPair)
         {
-            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress,
+            return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress,
                 keyPair);
         }
 
         #endregion
 
-        internal CrossChainContractContainer.CrossChainContractStub CrossChainContractStub =>
+        internal CrossChainContractImplContainer.CrossChainContractImplStub CrossChainContractStub =>
             GetCrossChainContractStub(DefaultKeyPair);
 
-        internal CrossChainContractContainer.CrossChainContractStub GetCrossChainContractStub(
+        internal CrossChainContractImplContainer.CrossChainContractImplStub GetCrossChainContractStub(
             ECKeyPair keyPair)
         {
-            return GetTester<CrossChainContractContainer.CrossChainContractStub>(
+            return GetTester<CrossChainContractImplContainer.CrossChainContractImplStub>(
                 CrossChainContractAddress,
                 keyPair);
         }
 
-        internal TokenContractContainer.TokenContractStub GetTokenContractStub(ECKeyPair keyPair)
+        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractStub(ECKeyPair keyPair)
         {
-            return GetTester<TokenContractContainer.TokenContractStub>(
+            return GetTester<TokenContractImplContainer.TokenContractImplStub>(
                 TokenContractAddress,
                 keyPair);
         }
@@ -301,7 +300,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
         internal async Task<Hash> CreateAssociationProposalAsync(string method, Address organizationAddress,
             Address toAddress,
-            IMessage input, AssociationContractContainer.AssociationContractStub authorizationContractStub = null)
+            IMessage input, AssociationContractImplContainer.AssociationContractImplStub authorizationContractStub = null)
         {
             var proposalId = (await (authorizationContractStub ?? AssociationContractStub).CreateProposal.SendAsync(
                 new CreateProposalInput

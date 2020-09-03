@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs4;
+using AElf.Standards.ACS4;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;

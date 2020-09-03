@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -44,7 +44,6 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenContractStub;
 using ParliamentContractStub = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
-using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
 namespace AElf.Contracts.TestBase

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;

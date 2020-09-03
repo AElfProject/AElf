@@ -8,6 +8,7 @@ import public "google/protobuf/wrappers.proto";
 import "aelf/core.proto";
 
 option (aelf.identity) = "acs10";
+option csharp_namespace = "AElf.Standards.ACS10";
 
 service DividendPoolContract {
     // Actions

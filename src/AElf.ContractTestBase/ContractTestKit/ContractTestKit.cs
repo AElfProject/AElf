@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;

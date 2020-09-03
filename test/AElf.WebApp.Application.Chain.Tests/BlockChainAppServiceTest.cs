@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -35,7 +35,6 @@ using Xunit.Abstractions;
 using SampleAddress = AElf.Kernel.SampleAddress;
 using Volo.Abp.EventBus;
 using Xunit.Sdk;
-
 
 namespace AElf.WebApp.Application.Chain.Tests
 {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Kernel.Proposal.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;

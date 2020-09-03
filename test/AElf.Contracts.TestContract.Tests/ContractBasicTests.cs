@@ -11,6 +11,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -63,7 +64,7 @@ namespace AElf.Contract.TestContract
             //branch one
             {
                 var t = (await BasicContractZeroStub.DeploySmartContract.SendAsync(
-                    new Acs0.ContractDeploymentInput
+                    new ContractDeploymentInput
                     {
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel"))
                             .Value),
@@ -139,7 +140,7 @@ namespace AElf.Contract.TestContract
             //update with same code
             {
                 var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendWithExceptionAsync(
-                    new Acs0.ContractUpdateInput
+                    new ContractUpdateInput
                     {
                         Address = BasicFunctionContractAddress,
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value)
@@ -153,7 +154,7 @@ namespace AElf.Contract.TestContract
             //different code
             {
                 var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                    new Acs0.ContractUpdateInput
+                    new ContractUpdateInput
                     {
                         Address = BasicFunctionContractAddress,
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
@@ -179,7 +180,7 @@ namespace AElf.Contract.TestContract
         public async Task UpdateContract_And_Call_Old_Method_Test()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new Acs0.ContractUpdateInput
+                new ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
@@ -229,7 +230,7 @@ namespace AElf.Contract.TestContract
             var blockHeight = chain.BestChainHeight;
             var blockHash = chain.BestChainHash;
 
-            var input = new Acs0.ContractUpdateInput
+            var input = new ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
@@ -268,7 +269,7 @@ namespace AElf.Contract.TestContract
             var startBlockHash = blockHeader.GetHash();
 
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new Acs0.ContractUpdateInput
+                new ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
@@ -306,7 +307,7 @@ namespace AElf.Contract.TestContract
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Failed to find handler for UpdateStopBet.");
 
-            input = new Acs0.ContractUpdateInput
+            input = new ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value)
@@ -322,7 +323,7 @@ namespace AElf.Contract.TestContract
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
 
-            input = new Acs0.ContractUpdateInput
+            input = new ContractUpdateInput
             {
                 Address = BasicFunctionContractAddress,
                 Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)

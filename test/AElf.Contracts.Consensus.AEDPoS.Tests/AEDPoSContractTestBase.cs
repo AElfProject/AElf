@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
         
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(BootMinerKeyPair);
         
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
@@ -124,9 +124,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
         
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
         }
         
         protected async Task InitializeCandidates(int take = EconomicContractsTestConstants.ValidateDataCenterCount)

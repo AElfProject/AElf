@@ -1,5 +1,5 @@
-﻿using Acs0;
-using Acs8;
+﻿using AElf.Standards.ACS0;
+using AElf.Standards.ACS8;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 

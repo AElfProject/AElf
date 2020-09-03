@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.TokenHolder;
@@ -156,12 +156,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             await ExecuteProposalForParliamentTransaction(Tester, TokenHolderContractAddress, MethodName, new MethodFees
             {
-                MethodName = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw),
+                MethodName = nameof(TokenHolderContractImplContainer.TokenHolderContractImplStub.Withdraw),
                 Fees = { TokenAmount}
             });
             var result = await TokenHolderStub.GetMethodFee.CallAsync(new StringValue
             {
-                Value = nameof(TokenHolderContractContainer.TokenHolderContractStub.Withdraw)
+                Value = nameof(TokenHolderContractImplContainer.TokenHolderContractImplStub.Withdraw)
             });
             result.Fees.First().ShouldBe(TokenAmount);
         }
