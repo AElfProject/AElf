@@ -65,6 +65,7 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
+                    CanRemoveBeneficiaryDirectly = i == 2
                 });
             }
 
