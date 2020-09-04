@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;

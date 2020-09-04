@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

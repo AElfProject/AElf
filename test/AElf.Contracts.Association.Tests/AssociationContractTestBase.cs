@@ -4,9 +4,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.GovernmentSystem;
-using AElf.Kernel.Proposal;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -29,33 +26,35 @@ namespace AElf.Contracts.Association
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-        
-        internal TokenContractContainer.TokenContractStub TokenContractStub { get; }
-        internal AssociationContractContainer.AssociationContractStub AssociationContractStub { get; }
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub { get; }
+
+        internal TokenContractImplContainer.TokenContractImplStub TokenContractStub { get; }
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationContractStub { get; }
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; }
 
         public AssociationContractTestBase()
         {
             AssociationContractStub = GetAssociationContractTester(DefaultSenderKeyPair);
-            
+
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
 
-            ParliamentContractStub =GetParliamentContractTester(DefaultSenderKeyPair);
+            ParliamentContractStub = GetParliamentContractTester(DefaultSenderKeyPair);
         }
-        
-        internal AssociationContractContainer.AssociationContractStub GetAssociationContractTester(ECKeyPair keyPair)
+
+        internal AssociationContractImplContainer.AssociationContractImplStub GetAssociationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<AssociationContractContainer.AssociationContractStub>(AssociationContractAddress, keyPair);
+            return GetTester<AssociationContractImplContainer.AssociationContractImplStub>(AssociationContractAddress, keyPair);
         }
-        
-        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+
+        internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
         {
-            return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
+            return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
-        
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(ECKeyPair keyPair)
+
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
+            ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
+                keyPair);
         }
     }
 }

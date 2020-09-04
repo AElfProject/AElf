@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
-using AElf.ContractTestKit;
+using AElf.Standards.ACS3;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;

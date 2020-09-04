@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Acs0;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
@@ -84,7 +84,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =
-                _contractTesterFactory.Create<BasicContractZeroContainer.BasicContractZeroStub>(
+                _contractTesterFactory.Create<ACS0Container.ACS0Stub>(
                     _smartContractAddressService.GetZeroSmartContractAddress(),
                     MissionedECKeyPairs.InitialKeyPairs.First());
             if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name) && deployConsensusContract)

@@ -1,31 +1,31 @@
 syntax = "proto3";
 
-package zero;
+package Zero;
 
-import "acs0.proto";
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
-    option (aelf.base) = "acs0.proto";
-    option (aelf.base) = "acs1.proto";
-
-    rpc ChangeContractDeploymentController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-    rpc ChangeCodeCheckController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
-    }
+    
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-    
-    rpc GetContractDeploymentController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc ChangeContractDeploymentController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeCodeCheckController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetCodeCheckController(google.protobuf.Empty) returns (acs1.AuthorityInfo){
+    rpc GetCodeCheckController(google.protobuf.Empty) returns (AuthorityInfo){
         option (aelf.is_view) = true;
     }
 }

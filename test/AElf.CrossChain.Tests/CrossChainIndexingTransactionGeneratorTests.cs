@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Indexing.Infrastructure;
 using AElf.Kernel;
@@ -56,7 +56,7 @@ namespace AElf.CrossChain
             var crossChainTransactionInput = new CrossChainTransactionInput
             {
                 Value = crossChainBlockData.ToByteString(),
-                MethodName = nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing),
+                MethodName = nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ProposeCrossChainIndexing),
                 PreviousBlockHeight = previousBlockHeight
             };
             _crossChainTestHelper.AddFakeCrossChainTransactionInput(previousBlockHash, crossChainTransactionInput);
@@ -79,7 +79,7 @@ namespace AElf.CrossChain
             
             transactions[0].RefBlockPrefix.ShouldBe(BlockHelper.GetRefBlockPrefix(previousBlockHash));
             transactions[0].MethodName
-                .ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub.ProposeCrossChainIndexing));
+                .ShouldBe(nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ProposeCrossChainIndexing));
 
             var crossChainBlockDataInParam = CrossChainBlockData.Parser.ParseFrom(transactions[0].Params);
             Assert.Equal(crossChainBlockData, crossChainBlockDataInParam);

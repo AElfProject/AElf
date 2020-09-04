@@ -19,10 +19,13 @@
     </ItemGroup>
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
         </ContractMessage>
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractMessage>
     </ItemGroup>
 </Project>

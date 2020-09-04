@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using AElf.Contracts.Genesis;
-// using AElf.Contracts.Genesis;
+using AElf.Standards.ACS0;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -111,7 +110,7 @@ namespace AElf.OS.Node.Application
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.DeploySystemSmartContract),
+                MethodName = nameof(ACS0Container.ACS0Stub.DeploySystemSmartContract),
                 Params = new SystemContractDeploymentInput()
                 {
                     Name = systemContractName,
