@@ -26,14 +26,18 @@ namespace AElf.OS.BlockSync.Infrastructure
             getResult.ShouldBeTrue();
             senderPubKey.ShouldBe(pubkey);
             
-            for (var i = 1; i < 100; i++)
+            getResult = _announcementCacheProvider.TryGetAnnouncementNextSender(blockHash, out senderPubKey);
+            getResult.ShouldBeFalse();
+            senderPubKey.ShouldBeNull();
+            
+            for (var i = 0; i < 101; i++)
             {
                 var hash = HashHelper.ComputeFrom("BlockHash" + i);
                 addResult = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(hash, blockHeight, pubkey);
                 addResult.ShouldBeTrue();
             }
             
-            getResult = _announcementCacheProvider.TryGetAnnouncementNextSender(blockHash, out senderPubKey);
+            getResult = _announcementCacheProvider.TryGetAnnouncementNextSender(HashHelper.ComputeFrom("BlockHash" + 0), out senderPubKey);
             getResult.ShouldBeFalse();
             senderPubKey.ShouldBeNull();
         }
