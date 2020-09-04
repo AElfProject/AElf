@@ -343,7 +343,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TokenName = "CWJ name",
                 TotalSupply = 1_0000_0000,
                 Issuer = BootMinerAddress,
-                IsProfitable = true
+                IsProfitable = true,
+                IsBurnable = true
             };
             await TokenContractStub.Create.SendAsync(tokenCreateInput);
             var newSymbolList = new SymbolList
@@ -363,7 +364,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Treasury_SetDividendPoolWeightSetting_Fail_Test()
         {
-            //without authority
+            // No permission
             {
                 var setRet =
                     await TreasuryContractStub.SetDividendPoolWeightSetting.SendAsync(new DividendPoolWeightSetting());
@@ -371,7 +372,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 setRet.TransactionResult.Error.ShouldContain("no permission");
             }
             
-            //invalid Inpout
+            // Invalid input
             {
                 var methodName = nameof(TreasuryContractStub.SetDividendPoolWeightSetting);
                 var newDividendSetting = new DividendPoolWeightSetting

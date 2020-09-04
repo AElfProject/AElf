@@ -436,7 +436,7 @@ namespace AElf.Contracts.Profit
                 var amount = profits.Value;
                 if (amount > 0)
                 {
-                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
                         nameof(State.TokenContract.Transfer), new TransferInput
                         {
                             To = Context.Self,
@@ -493,11 +493,11 @@ namespace AElf.Contracts.Profit
                 // Transfer remain amount to individuals' receiving profits address.
                 if (remainAmount != 0)
                 {
-                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
                         nameof(State.TokenContract.Transfer), new TransferInput
                         {
                             To = profitsReceivingVirtualAddress,
-                            Amount = amount,
+                            Amount = remainAmount,
                             Symbol = symbol
                         }.ToByteString());
                 }
@@ -524,7 +524,7 @@ namespace AElf.Contracts.Profit
                 var distributeAmount = SafeCalculateProfits(subSchemeShares.Shares, totalAmount, totalShares);
                 if (distributeAmount != 0)
                 {
-                    Context.SendVirtualInlineBySystemContract(scheme.SchemeId, State.TokenContract.Value,
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
                         nameof(State.TokenContract.Transfer), new TransferInput
                         {
                             To = subItemVirtualAddress,
@@ -745,8 +745,8 @@ namespace AElf.Contracts.Profit
                                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                             }
 
-                            Context.SendVirtualInlineBySystemContract(
-                                GeneratePeriodVirtualAddressFromHash(scheme.SchemeId, scheme.CurrentPeriod),
+                            Context.SendVirtualInline(
+                                GeneratePeriodVirtualAddressFromHash(scheme.SchemeId, period),
                                 State.TokenContract.Value,
                                 nameof(State.TokenContract.Transfer), new TransferInput
                                 {
