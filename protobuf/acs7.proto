@@ -167,7 +167,6 @@ message SideChainTokenInfo {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    map<string, string> meta_data = 8;
 }
 
 message RequestChainCreationOutput {

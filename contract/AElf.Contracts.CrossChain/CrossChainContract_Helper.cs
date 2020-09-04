@@ -199,8 +199,7 @@ namespace AElf.Contracts.CrossChain
                 Issuer = creator,
                 IssueChainId = chainId,
                 Symbol = sideChainTokenInfo.Symbol,
-                TotalSupply = sideChainTokenInfo.TotalSupply,
-                MetaData = {sideChainTokenInfo.MetaData}
+                TotalSupply = sideChainTokenInfo.TotalSupply
             });
         }
 

@@ -305,8 +305,7 @@ namespace AElf.Contracts.MultiToken
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
             {
-                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value ||
-                    IsContributingProfits(input))
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
@@ -320,36 +319,6 @@ namespace AElf.Contracts.MultiToken
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
-        }
-
-        /// <summary>
-        /// Because Profit Contract Addresses in different chains are different,
-        /// so we use a property (is_profitable) in TokenInfo in order to indicate whether
-        /// Profit Contract Address of current chain should be in the white list or not.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private bool IsContributingProfits(TransferFromInput input)
-        {
-            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
-                Context.Sender ==
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
-            )
-            {
-                // Sender is Profit Contract, wants to transfer tokens from general ledger virtual address
-                // to period virtual address or sub schemes.
-                return true;
-            }
-
-            var tokenHolderContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-            if (Context.Sender == tokenHolderContractAddress && input.To == tokenHolderContractAddress)
-            {
-                // Sender is Token Holder Contract, wants to transfer tokens from DApp Contract to himself.
-                return true;
-            }
-
-            return false;
         }
 
         public override Empty Approve(ApproveInput input)

@@ -647,6 +647,8 @@ namespace AElf.Contracts.MultiToken
                 // Main chain would donate tx fees to dividend pool.
                 if (State.DividendPoolContract.Value == null)
                     State.DividendPoolContract.Value = treasuryContractAddress;
+                State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol] =
+                    State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol].Add(transferAmount);
                 State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,

@@ -142,8 +142,7 @@ namespace AElf.Kernel.Token
                 IsBurnable = tokenInfo.IsBurnable,
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,
-                TotalSupply = tokenInfo.TotalSupply,
-                MetaData = {tokenInfo.MetaData}
+                TotalSupply = tokenInfo.TotalSupply
             };
         }
     }

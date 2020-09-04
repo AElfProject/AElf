@@ -136,8 +136,7 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = tokenInfo.IsBurnable,
                 Symbol = tokenInfo.Symbol,
                 TokenName = tokenInfo.TokenName,
-                TotalSupply = tokenInfo.TotalSupply,
-                MetaData = {tokenInfo.MetaData}
+                TotalSupply = tokenInfo.TotalSupply
             };
         }
     }
