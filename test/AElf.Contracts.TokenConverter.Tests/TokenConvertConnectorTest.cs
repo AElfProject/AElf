@@ -536,7 +536,7 @@ namespace AElf.Contracts.TokenConverter
             };
         }
 
-        private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000, bool isProfitable = false)
+        private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -545,7 +545,6 @@ namespace AElf.Contracts.TokenConverter
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
                 IsBurnable = true,
-                IsProfitable = isProfitable,
                 LockWhiteList = {TokenConverterContractAddress}
             });
         }

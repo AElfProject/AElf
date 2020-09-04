@@ -200,7 +200,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                IsProfitable = true
             });
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

@@ -491,7 +491,6 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000,
-                IsProfitable = true,
                 IsBurnable = true
             });
             var newSymbolList = new SymbolListToPayTxSizeFee();
@@ -587,7 +586,6 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = 100_000,
-                IsProfitable = false
             });
             var newSymbolList = new SymbolListToPayTxSizeFee
             {
@@ -633,7 +631,6 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 TokenName = "name",
                 Issuer = TokenContractAddress,
                 TotalSupply = newTokenTotalSupply,
-                IsProfitable = true,
                 IsBurnable = true
             });
             var invalidBaseTokenWeight = (int)long.MaxValue.Div(newTokenTotalSupply).Add(1);

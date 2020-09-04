@@ -724,7 +724,6 @@ namespace AElf.Contracts.TestBase
                 Decimals = 8,
                 Issuer = issuer,
                 IsBurnable = true,
-                IsProfitable = true
             });
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
                 new SetPrimaryTokenSymbolInput {Symbol = "ELF"});

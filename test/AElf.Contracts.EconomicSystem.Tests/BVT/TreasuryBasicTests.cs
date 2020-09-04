@@ -300,21 +300,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 setSymbolRet.Error.ShouldContain("Need to contain native symbol");
             }
             
-            // without profitable and treasury contract is not in whitelist
-            {
-                var newSymbolList = new SymbolList
-                {
-                    Value =
-                    {
-                        nativeTokenSymbol, tokenSymbol
-                    }
-                };
-                var setSymbolRet =
-                    await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
-                        newSymbolList);
-                setSymbolRet.Error.ShouldContain("Symbol need to be profitable");
-            }
-            
             //not valid connector
             {
                 var newSymbolList = new SymbolList
@@ -343,7 +328,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TokenName = "CWJ name",
                 TotalSupply = 1_0000_0000,
                 Issuer = BootMinerAddress,
-                IsProfitable = true,
                 IsBurnable = true
             };
             await TokenContractStub.Create.SendAsync(tokenCreateInput);

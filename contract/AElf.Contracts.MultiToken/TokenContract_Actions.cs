@@ -51,7 +51,6 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             };
-            tokenInfo.MetaData.Add(TokenContractConstants.IsProfitable, input.IsProfitable.ToString());
             RegisterTokenInfo(tokenInfo);
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
@@ -157,8 +156,6 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
             };
-            tokenInfo.MetaData.Add(TokenContractConstants.IsProfitable,
-                validateTokenInfoExistsInput.IsProfitable.ToString());
             RegisterTokenInfo(tokenInfo);
             return new Empty();
         }
@@ -334,8 +331,6 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         private bool IsContributingProfits(TransferFromInput input)
         {
-            if (!IsTokenProfitable(input.Symbol)) return false;
-
             if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
                 Context.Sender ==
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
@@ -502,8 +497,7 @@ namespace AElf.Contracts.MultiToken
             bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
                                     tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId &&
-                                    IsTokenProfitable(tokenInfo) == input.IsProfitable;
+                                    tokenInfo.IssueChainId == input.IssueChainId;
             Assert(validationResult, "Token validation failed.");
             return new Empty();
         }

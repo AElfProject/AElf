@@ -12,13 +12,5 @@ namespace AElf.Contracts.MultiToken
 
         public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
         public const string PayRentalSymbolListName = "SymbolListToPayRental";
-
-        public const string IsProfitable = "IsProfitable";
-
-        public static readonly ReadOnlyCollection<string> TokenMetaDataKeys = new ReadOnlyCollection<string>(
-            new List<string>
-            {
-                TokenContractConstants.IsProfitable
-            });
     }
 }

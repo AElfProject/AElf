@@ -218,7 +218,6 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "name",
                     Issuer = DefaultAddress,
                     TotalSupply = 1000_000,
-                    IsProfitable = false
                 });
                 var methodFees = new MethodFees
                 {

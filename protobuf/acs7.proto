@@ -151,7 +151,6 @@ message SideChainCreationRequest {
     int64 side_chain_token_total_supply = 6;
     int32 side_chain_token_decimals = 7;
     bool is_side_chain_token_burnable = 8;
-    bool is_side_chain_token_profitable = 9;
     repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
     map<string, int32> initial_resource_amount = 11;
 }
@@ -168,7 +167,6 @@ message SideChainTokenInfo {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
     map<string, string> meta_data = 8;
 }
 

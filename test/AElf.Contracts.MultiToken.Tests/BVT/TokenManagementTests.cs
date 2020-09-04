@@ -57,11 +57,7 @@ namespace AElf.Contracts.MultiToken
             IsBurnable = true,
             Issuer = Accounts[0].Address,
             Supply = 0,
-            IssueChainId = _chainId,
-            MetaData =
-            {
-                {"IsProfitable", false.ToString()}
-            }
+            IssueChainId = _chainId
         };
 
         /// <summary>
@@ -126,7 +122,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
                 IsBurnable = NativeTokenInfo.IsBurnable,
-                IsProfitable = true,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -147,9 +142,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
                 IsBurnable = NativeTokenInfo.IsBurnable,
-                IsProfitable = true
             });
-
 
             await TokenContractStub.Create.SendAsync(new CreateInput
             {

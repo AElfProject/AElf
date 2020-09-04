@@ -275,7 +275,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 TotalSupply = 1000_00000000,
                 IsBurnable = isBurned,
                 Issuer = creator,
-                IsProfitable = isProfitable
             });
         }
 

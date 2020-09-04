@@ -193,7 +193,6 @@ namespace AElf.Contracts.CrossChain.Tests
                     TokenName = "elf token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
-                    IsProfitable = true
                 }),
                 TokenContractStub.Issue.GetTransaction(new IssueInput
                 {

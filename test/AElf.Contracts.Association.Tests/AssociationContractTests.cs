@@ -1026,7 +1026,6 @@ namespace AElf.Contracts.Association
                     TokenName = "name",
                     Issuer = DefaultSender,
                     TotalSupply = 1000_000,
-                    IsProfitable = false
                 });
                 var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
                 ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");

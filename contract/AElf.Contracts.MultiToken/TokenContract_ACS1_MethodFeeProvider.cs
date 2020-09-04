@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Sdk.CSharp;
@@ -128,8 +127,7 @@ namespace AElf.Contracts.MultiToken
             AssertValidSymbolAndAmount(symbol, amount);
             if (State.TokenInfos[symbol] == null)
                 throw new AssertionException("Token is not found");
-            Assert(State.TokenInfos[symbol].IsBurnable && IsTokenProfitable(symbol),
-                $"Token {symbol} cannot set as method fee.");
+            Assert(State.TokenInfos[symbol].IsBurnable, $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

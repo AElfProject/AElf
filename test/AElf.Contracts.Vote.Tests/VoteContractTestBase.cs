@@ -137,7 +137,6 @@ namespace AElf.Contracts.Vote
                 TokenName = "elf token for testing",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                IsProfitable = true,
                 LockWhiteList =
                 {
                      VoteContractAddress
