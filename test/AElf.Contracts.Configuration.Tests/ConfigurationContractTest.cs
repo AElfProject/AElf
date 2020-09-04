@@ -351,7 +351,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                     });
                 
                 var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetMethodFee),
+                    nameof(ConfigurationImplContainer.ConfigurationImplStub.SetMethodFee),
                     new MethodFees
                     {
                         MethodName = methodName,
