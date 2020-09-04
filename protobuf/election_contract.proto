@@ -302,3 +302,9 @@ message MinerReplacementInformation {
     repeated string alternative_candidate_pubkeys = 1;
     repeated string evil_miner_pubkeys = 2;
 }
+
+// Events
+message EvilMinerDetected {
+    option (aelf.is_event) = true;
+    string pubkey = 1;
+}
