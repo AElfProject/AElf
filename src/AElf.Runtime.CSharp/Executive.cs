@@ -31,7 +31,6 @@ namespace AElf.Runtime.CSharp
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
-        public bool IsSystemContract { get; set; }
         public string ContractVersion { get; set; }
         public Timestamp LastUsedTime { get; set; }
 
