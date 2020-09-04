@@ -7,6 +7,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractState : ContractState
     {
         public BoolState Initialized { get; set; }
+        public BoolState IsVoteAndShareTokenIssued { get; set; }
         public BoolState VotingEventRegistered { get; set; }
 
         public SingletonState<Hash> TreasuryHash { get; set; }
