@@ -12,4 +12,9 @@ namespace AElf.OS.Network
     {
         
     }
+    
+    public class NetworkPeerPoolNotLimitMaxPeerTestBase : AElfIntegratedTest<NetworkPeerPoolNotLimitMaxPeerTestModule>
+    {
+        
+    }
 }

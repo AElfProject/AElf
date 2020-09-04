@@ -51,4 +51,16 @@ namespace AElf.OS.Network
             });
         }
     }
+    
+    [DependsOn(typeof(NetworkInfrastructureTestModule))]
+    public class NetworkPeerPoolNotLimitMaxPeerTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<NetworkOptions>(o =>
+            {
+                o.MaxPeers = 0;
+            });
+        }
+    }
 }
