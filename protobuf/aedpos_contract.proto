@@ -290,3 +290,8 @@ message MiningRewardGenerated {
     int64 term_number = 1 [(aelf.is_indexed) = true];
     int64 amount = 2;
 }
+
+message MinerReplaced {
+    option (aelf.is_event) = true;
+    string new_miner_pubkey = 1;
+}

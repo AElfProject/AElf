@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Contracts.Election;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -344,6 +345,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             currentRound.RealTimeMinersInformation[evilMinerPubkey].ProducedBlocks,
                             currentRound.RealTimeMinersInformation[evilMinerPubkey].MissedTimeSlots, true);
 
+                        Context.Fire(new MinerReplaced
+                        {
+                            NewMinerPubkey = alternativeCandidatePubkey
+                        });
                         // Transfer evil node's consensus information to the chosen backup.
                         var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinerPubkey];
                         var minerInRound = new MinerInRound
