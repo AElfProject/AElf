@@ -348,8 +348,7 @@ namespace AElf.Contracts.Election
                             ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(cs.Key))))
                     // Except current miners.
                     .Where(cs => !input.CurrentMinerList.Contains(cs.Key))
-                    .OrderByDescending(s => s.Value)
-                    .Where(c => !input.CurrentMinerList.Contains(c.Key)).ToList();
+                    .OrderByDescending(s => s.Value).ToList();
                 var take = Math.Min(evilMinersPubKeys.Count, maybeNextCandidates.Count);
                 alternativeCandidates.AddRange(maybeNextCandidates.Select(c => c.Key).Take(take));
                 Context.LogDebug(() =>
