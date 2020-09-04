@@ -1,29 +1,31 @@
 syntax = "proto3";
 
-package configuration;
+package Configuration;
 
 import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Configuration";
 
 service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
-    option (aelf.base) = "acs1.proto";
     // Actions
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeConfigurationController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-
+    
     // Views
     rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetConfigurationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetConfigurationController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    
 }
 
 message SetConfigurationInput {

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
+    public partial class TokenConverterContract : TokenConverterContractImplContainer.TokenConverterContractImplBase
     {
         private const string NtTokenPrefix = "nt";
 

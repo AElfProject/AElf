@@ -1,4 +1,4 @@
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Types;
 
 namespace AElf.Contracts.Association

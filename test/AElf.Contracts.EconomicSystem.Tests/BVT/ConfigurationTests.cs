@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Miner;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

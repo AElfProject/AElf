@@ -1,5 +1,5 @@
-using Acs0;
-using Acs5;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS5;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract

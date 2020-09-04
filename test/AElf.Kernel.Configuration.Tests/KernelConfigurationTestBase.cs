@@ -17,7 +17,7 @@ namespace AElf.Kernel.Configuration.Tests
     {
         protected Address ConfigurationContractAddress { get; set; }
         internal ConfigurationContainer.ConfigurationStub ConfigurationStub;
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub;
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
         private ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         
         protected async Task DeployContractsAsync()
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Configuration.Tests
             var parliamentContractCode = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Parliament")).Value;
             var parliamentContractAddress = await DeploySystemSmartContract(category, parliamentContractCode,
                 ParliamentSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-            ParliamentContractStub = GetTester<ParliamentContractContainer.ParliamentContractStub>(parliamentContractAddress,
+            ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(parliamentContractAddress,
                 DefaultSenderKeyPair);
             
             await ParliamentContractStub.Initialize.SendAsync(new InitializeInput

@@ -1,11 +1,13 @@
 syntax = "proto3";
 
+package AEDPoS;
+
 import "aelf/options.proto";
 import "aelf/core.proto";
+import "authority_info.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 
@@ -33,7 +35,7 @@ service AEDPoSContract {
     
     rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
-    rpc ChangeMaximumMinersCountController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -97,7 +99,7 @@ service AEDPoSContract {
     rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
 }

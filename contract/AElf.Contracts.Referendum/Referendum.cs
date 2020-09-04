@@ -1,5 +1,5 @@
 using System.Linq;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Referendum
 {
-    public partial class ReferendumContract : ReferendumContractContainer.ReferendumContractBase
+    public partial class ReferendumContract : ReferendumContractImplContainer.ReferendumContractImplBase
     {
         #region View
 

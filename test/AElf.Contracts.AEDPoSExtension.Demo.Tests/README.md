@@ -40,7 +40,7 @@ In Demo project, we choose these proto files.
 ```MSBUILD
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
 
         <ContractMessage Include="..\..\protobuf\acs4.proto">

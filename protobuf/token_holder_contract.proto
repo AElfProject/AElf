@@ -1,14 +1,17 @@
 syntax = "proto3";
 
+package TokenHolder;
+
 import "aelf/core.proto";
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenHolder";
 
 service TokenHolderContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.TokenHolder.TokenHolderContractState";
-    option (aelf.base) = "acs1.proto";
     
     // Actions
     rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty) {

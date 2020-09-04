@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Mono.Cecil.Cil;
@@ -55,8 +56,8 @@ namespace AElf.Kernel.SmartContract
             {
                 From = address,
                 To = address,
-                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.DeploySystemSmartContract),
-                Params = new Acs0.SystemContractDeploymentInput
+                MethodName = nameof(ACS0Container.ACS0Stub.DeploySystemSmartContract),
+                Params = new SystemContractDeploymentInput
                 {
                     Category = 0,
                     Code = ByteString.CopyFrom(contractCode),

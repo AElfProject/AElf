@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs2;
+using AElf.Standards.ACS2;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 

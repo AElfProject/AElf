@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Economic.TestBase
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -190,10 +190,10 @@ namespace AElf.Contracts.Economic.TestBase
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 

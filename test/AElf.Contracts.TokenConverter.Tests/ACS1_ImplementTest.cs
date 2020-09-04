@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Parliament;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -168,7 +168,7 @@ namespace AElf.Contracts.TokenConverter
             var basicFee = 111;
             await CreateTokenAsync(tokenSymbol);
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.SetMethodFee), new MethodFees
+                nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetMethodFee), new MethodFees
                 {
                     MethodName = methodName,
                     Fees =

@@ -12,8 +12,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
+            <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\acs5.proto">
             <Link>Protobuf\Proto\reference\acs5.proto</Link>

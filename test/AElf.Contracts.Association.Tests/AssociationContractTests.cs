@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Association
                 SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name]
                     .ShouldNotBe(testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name]);
                 var otherChainAssociationContractStub =
-                    testKit.GetTester<AssociationContractContainer.AssociationContractStub>(
+                    testKit.GetTester<AssociationContractImplContainer.AssociationContractImplStub>(
                         testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name],
                         DefaultSenderKeyPair);
                 var executionResult =
