@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Standards.ACS0;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Node.Application;
 

@@ -1,6 +1,6 @@
 using AElf.CrossChain;
 
-namespace Acs7
+namespace AElf.Standards.ACS7
 {
     public partial class SideChainBlockData : ICrossChainBlockEntity
     {

@@ -9,6 +9,7 @@ import public "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs3";
+option csharp_namespace = "AElf.Standards.ACS3";
 
 service AuthorizationContract {
     rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {

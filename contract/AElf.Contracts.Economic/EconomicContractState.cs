@@ -1,11 +1,12 @@
-﻿using Acs0;
-using Acs1;
+﻿using AElf.Standards.ACS0;
+using AElf.Standards.ACS1;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.Economic
 {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
-using Acs7;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS7;
 using AElf.Contracts.Parliament;
 using AElf.ContractTestBase.ContractTestKit;
 using AElf.CrossChain;
@@ -12,8 +12,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
-using ProposalCreated = Acs3.ProposalCreated;
-using ProposalReleased = Acs3.ProposalReleased;
+using ProposalCreated = AElf.Standards.ACS3.ProposalCreated;
+using ProposalReleased = AElf.Standards.ACS3.ProposalReleased;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -1055,7 +1055,7 @@ namespace AElf.Contracts.MultiToken
             foreach (var account in SampleAccount.Accounts.Take(5))
             {
                 var parliamentContractStub =
-                    SideChain2TestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                    SideChain2TestKit.GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                         Side2ParliamentAddress, account.KeyPair);
                 transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
             }
@@ -1154,7 +1154,7 @@ namespace AElf.Contracts.MultiToken
             foreach (var account in SampleAccount.Accounts.Take(4))
             {
                 var parliamentContractStub =
-                    SideChain2TestKit.GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                    SideChain2TestKit.GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                         Side2ParliamentAddress, account.KeyPair);
                 transactionList.Add(parliamentContractStub.Approve.GetTransaction(proposalId));
             }

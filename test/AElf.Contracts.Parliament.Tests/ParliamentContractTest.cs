@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Parliament
         public async Task ApproveMultiProposals_Without_Authority_Test()
         {
             var invalidSenderStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, TesterKeyPair);
+                GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, TesterKeyPair);
             var approveRet =
                 await invalidSenderStub.ApproveMultiProposals.SendWithExceptionAsync(new ProposalIdList());
             approveRet.TransactionResult.Error.ShouldContain("No permission");
@@ -1304,7 +1304,7 @@ namespace AElf.Contracts.Parliament
                 {
                     OrganizationAddress = defaultParliamentAddress,
                     ToAddress = TokenContractAddress,
-                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                     Params = new TransferInput
                     {
                         Amount = 100,

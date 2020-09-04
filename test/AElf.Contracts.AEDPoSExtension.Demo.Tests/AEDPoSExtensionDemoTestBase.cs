@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.ContractDeployer;
+using AElf.Contracts.Association;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -24,8 +25,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionDemoTestBase : AEDPoSExtensionTestBase
     {
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
+            GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(
                 ContractZeroAddress, Accounts[0].KeyPair);
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
@@ -38,8 +39,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 ContractAddresses[TokenSmartContractAddressNameProvider.Name],
                 Accounts[0].KeyPair);
 
-        internal readonly List<ParliamentContractContainer.ParliamentContractStub> ParliamentStubs =
-            new List<ParliamentContractContainer.ParliamentContractStub>();
+        internal AssociationContractImplContainer.AssociationContractImplStub AssociationStub =>
+            GetTester<AssociationContractImplContainer.AssociationContractImplStub>(
+                ContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                Accounts[0].KeyPair);
+
+        internal readonly List<ParliamentContractImplContainer.ParliamentContractImplStub> ParliamentStubs =
+            new List<ParliamentContractImplContainer.ParliamentContractImplStub>();
 
         public AEDPoSExtensionDemoTestBase()
         {
@@ -58,7 +64,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
             {
-                ParliamentStubs.Add(GetTester<ParliamentContractContainer.ParliamentContractStub>(
+                ParliamentStubs.Add(GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                     ContractAddresses[ParliamentSmartContractAddressNameProvider.Name], initialKeyPair));
             }
         }

@@ -26,7 +26,7 @@
 
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\descriptor_equivalent.proto">
-            <Link>Protobuf/Proto/descriptor_equivalent.proto</Link>
+            <Link>Protobuf\Proto\descriptor_equivalent.proto</Link>
         </CommonMessage>
     </ItemGroup>
 </Project>

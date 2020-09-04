@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
