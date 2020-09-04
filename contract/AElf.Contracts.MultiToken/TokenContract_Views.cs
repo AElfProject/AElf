@@ -123,7 +123,7 @@ namespace AElf.Contracts.MultiToken
         public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForSender(Empty input)
         {
             var targetTokenCoefficient =
-                State.AllCalculateFeeCoefficients.Value.Value.First(x =>
+                State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
                     x.FeeTokenType == (int)FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
             return targetTokenCoefficient;
         }
