@@ -70,7 +70,9 @@ namespace AElf.Contracts.Profit
 
             // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+                d.LastProfitPeriod < profitItem.CurrentPeriod && (d.LastProfitPeriod == 0
+                    ? d.EndPeriod >= d.StartPeriod
+                    : d.EndPeriod >= d.LastProfitPeriod)
             ).ToList();
 
             var amount = 0L;
@@ -109,7 +111,9 @@ namespace AElf.Contracts.Profit
 
             // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < scheme.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+                d.LastProfitPeriod < scheme.CurrentPeriod && (d.LastProfitPeriod == 0
+                    ? d.EndPeriod >= d.StartPeriod
+                    : d.EndPeriod >= d.LastProfitPeriod)
             ).ToList();
 
             var profitsDict = new Dictionary<string, long>();
