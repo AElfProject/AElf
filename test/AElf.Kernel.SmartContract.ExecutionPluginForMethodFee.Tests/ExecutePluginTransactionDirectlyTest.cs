@@ -246,7 +246,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var tokenSymbol = "JAN";
             var feeAmount = 10000;
             await CreateTokenAsync(DefaultSender, tokenSymbol);
-            var beforeBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var beforeBurned = await GetTokenSupplyAmount(tokenSymbol);
             var claimFeeInput = new TotalTransactionFeesMap
             {
                 Value =
@@ -255,8 +255,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 }
             };
             await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
-            var afterBurned = await GetBurnedTokenAmount(tokenSymbol);
-            (afterBurned - beforeBurned).ShouldBe(feeAmount);
+            var afterBurned = await GetTokenSupplyAmount(tokenSymbol);
+            (beforeBurned - afterBurned).ShouldBe(feeAmount);
         }
         
         [Fact]
@@ -274,7 +274,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain), input);
             await SubmitAndPassProposalOfDefaultParliamentAsync(TokenContractAddress,
                 nameof(TokenContractImplContainer.TokenContractImplStub.SetFeeReceiver), receiver);
-            var beforeBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var beforeBurned = await GetTokenSupplyAmount(tokenSymbol);
             var beforeBalance = await GetBalanceAsync(receiver, tokenSymbol);
             var claimFeeInput = new TotalTransactionFeesMap
             {
@@ -284,20 +284,20 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 }
             };
             await TokenContractStub.ClaimTransactionFees.SendAsync(claimFeeInput);
-            var afterBurned = await GetBurnedTokenAmount(tokenSymbol);
+            var afterBurned = await GetTokenSupplyAmount(tokenSymbol);
             var afterBalance = await GetBalanceAsync(receiver, tokenSymbol);
             var shouldBurned = feeAmount.Div(10);
-            (afterBurned - beforeBurned).ShouldBe(shouldBurned);
+            (beforeBurned - afterBurned).ShouldBe(shouldBurned);
             (afterBalance - beforeBalance).ShouldBe(feeAmount - shouldBurned);
         }
 
-        private async Task<long> GetBurnedTokenAmount(string tokenSymbol)
+        private async Task<long> GetTokenSupplyAmount(string tokenSymbol)
         {
             var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
                 Symbol = tokenSymbol
             });
-            return tokenInfo.Burned;
+            return tokenInfo.Supply;
         }
 
         private async Task<List<long>> GetDefaultBalancesAsync(string[] tokenSymbolList)
