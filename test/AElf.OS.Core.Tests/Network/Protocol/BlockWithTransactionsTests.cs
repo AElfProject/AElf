@@ -41,6 +41,11 @@ namespace AElf.OS.Network.Protocol
             
             blockWithTransactions.FullTransactionList.ShouldBe(transactions);
             blockWithTransactions.TransactionIds.ShouldBe(transactions.Select(o=>o.GetHash()));
+            blockWithTransactions.Height.ShouldBe(block.Height);
+            blockWithTransactions.Body.ShouldBe(new BlockBody
+            {
+                TransactionIds = {transactions.Select(tx => tx.GetHash()).ToList()}
+            });
         }
     }
 }

@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
@@ -226,7 +226,7 @@ namespace AElf.Contracts.TokenHolder
             }
 
             var userProfitStub =
-                GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, UserKeyPairs.First());
+                GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, UserKeyPairs.First());
             await userProfitStub.ClaimProfits.SendAsync(new Profit.ClaimProfitsInput
             {
                 SchemeId = tokenHolderProfitScheme.SchemeId,
@@ -263,7 +263,7 @@ namespace AElf.Contracts.TokenHolder
             }
 
             var userTokenHolderStub =
-                GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress, UserKeyPairs.First());
+                GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress, UserKeyPairs.First());
             await userTokenHolderStub.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeManager = Starter,
@@ -299,7 +299,7 @@ namespace AElf.Contracts.TokenHolder
                 Symbol = "Test"
             });
             var senderWithoutAuthority =
-                GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
+                GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress,
                     UserKeyPairs.First());
             var distributeRet = await senderWithoutAuthority.DistributeProfits.SendWithExceptionAsync(
                 new DistributeProfitsInput

@@ -1,16 +1,17 @@
-using Acs1;
-using Acs3;
+using System.Linq;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Acs7;
 using AElf.CSharp.Core;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
-    public partial class CrossChainContract : CrossChainContractContainer.CrossChainContractBase
+    public partial class CrossChainContract : CrossChainContractImplContainer.CrossChainContractImplBase
     {
         public override Empty Initialize(InitializeInput input)
         {

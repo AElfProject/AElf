@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
-using Acs10;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Treasury
     /// 2. tx fees.
     /// 3. resource consumption of developer's contracts.
     /// </summary>
-    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryContractImplBase
     {
         public override Empty InitialTreasuryContract(Empty input)
         {
@@ -65,6 +65,7 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
+                    CanRemoveBeneficiaryDirectly = i == 2
                 });
             }
 

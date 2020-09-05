@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
-using Acs7;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.CSharp.Core.Extension;

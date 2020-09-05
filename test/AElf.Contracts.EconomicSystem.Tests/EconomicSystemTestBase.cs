@@ -14,6 +14,7 @@ using AElf.Contracts.TokenHolder;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.Standards.ACS1;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.EconomicSystem.Tests
@@ -35,7 +36,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
             AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
         }
         
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub =>
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub BasicContractZeroStub =>
             GetBasicContractTester(BootMinerKeyPair);
 
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
@@ -43,18 +44,18 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TokenContractImplContainer.TokenContractImplStub TokenContractImplStub =>
             GetTokenContractImplTester(BootMinerKeyPair);
 
-        internal TokenHolderContractContainer.TokenHolderContractStub TokenHolderStub =>
+        internal TokenHolderContractImplContainer.TokenHolderContractImplStub TokenHolderStub =>
             GetTokenHolderTester(BootMinerKeyPair);
         
-        internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub =>
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub TokenConverterContractStub =>
             GetTokenConverterContractTester(BootMinerKeyPair);
 
-        internal VoteContractContainer.VoteContractStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
+        internal VoteContractImplContainer.VoteContractImplStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
 
-        internal ProfitContractContainer.ProfitContractStub ProfitContractStub =>
+        internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub =>
             GetProfitContractTester(BootMinerKeyPair);
 
-        internal ElectionContractContainer.ElectionContractStub ElectionContractStub =>
+        internal ElectionContractImplContainer.ElectionContractImplStub ElectionContractStub =>
             GetElectionContractTester(BootMinerKeyPair);
 
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub =>
@@ -63,10 +64,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AedPoSContractImplStub =>
             GetAEDPoSImplContractTester(BootMinerKeyPair);
 
-        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
+        internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
 
-        internal ParliamentContractContainer.ParliamentContractStub ParliamentContractStub =>
+        internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(BootMinerKeyPair);
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -75,15 +76,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal MethodCallThresholdContractContainer.MethodCallThresholdContractStub MethodCallThresholdContractStub =>
             GetMethodCallThresholdContractTester(BootMinerKeyPair);
 
-        internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
+        internal EconomicContractImplContainer.EconomicContractImplStub EconomicContractStub =>
             GetEconomicContractTester(BootMinerKeyPair);
 
-        internal ConfigurationContainer.ConfigurationStub ConfigurationContractStub =>
+        internal ConfigurationImplContainer.ConfigurationImplStub ConfigurationContractStub =>
             GetConfigurationContractTester(BootMinerKeyPair);
-        
-        internal BasicContractZeroContainer.BasicContractZeroStub GetBasicContractTester(ECKeyPair keyPair)
+
+        internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetBasicContractTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroImplContainer.BasicContractZeroImplStub>(ContractZeroAddress, keyPair);
         }
 
         internal TokenContractImplContainer.TokenContractImplStub GetTokenContractTester(ECKeyPair keyPair)
@@ -96,31 +97,31 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, keyPair);
         }
 
-        internal TokenHolderContractContainer.TokenHolderContractStub GetTokenHolderTester(ECKeyPair keyPair)
+        internal TokenHolderContractImplContainer.TokenHolderContractImplStub GetTokenHolderTester(ECKeyPair keyPair)
         {
-            return GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress, keyPair);
+            return GetTester<TokenHolderContractImplContainer.TokenHolderContractImplStub>(TokenHolderContractAddress, keyPair);
         }
         
-        internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
+        internal TokenConverterContractImplContainer.TokenConverterContractImplStub GetTokenConverterContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+            return GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 keyPair);
         }
 
-        internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
+        internal VoteContractImplContainer.VoteContractImplStub GetVoteContractTester(ECKeyPair keyPair)
         {
-            return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
+            return GetTester<VoteContractImplContainer.VoteContractImplStub>(VoteContractAddress, keyPair);
         }
 
-        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        internal ProfitContractImplContainer.ProfitContractImplStub GetProfitContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
+            return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
         }
 
-        internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
+        internal ElectionContractImplContainer.ElectionContractImplStub GetElectionContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
+            return GetTester<ElectionContractImplContainer.ElectionContractImplStub>(ElectionContractAddress, keyPair);
         }
 
         internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
@@ -133,15 +134,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
-        internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractTester(ECKeyPair keyPair)
+        internal TreasuryContractImplContainer.TreasuryContractImplStub GetTreasuryContractTester(ECKeyPair keyPair)
         {
-            return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
+            return GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress, keyPair);
         }
 
-        internal ParliamentContractContainer.ParliamentContractStub GetParliamentContractTester(
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress,
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
                 keyPair);
         }
 
@@ -161,14 +162,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 keyPair);
         }
 
-        internal EconomicContractContainer.EconomicContractStub GetEconomicContractTester(ECKeyPair keyPair)
+        internal EconomicContractImplContainer.EconomicContractImplStub GetEconomicContractTester(ECKeyPair keyPair)
         {
-            return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
+            return GetTester<EconomicContractImplContainer.EconomicContractImplStub>(EconomicContractAddress, keyPair);
         }
         
-        internal ConfigurationContainer.ConfigurationStub GetConfigurationContractTester(ECKeyPair keyPair)
+        internal ConfigurationImplContainer.ConfigurationImplStub GetConfigurationContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationAddress, keyPair);
+            return GetTester<ConfigurationImplContainer.ConfigurationImplStub>(ConfigurationAddress, keyPair);
         }
+
     }
 }

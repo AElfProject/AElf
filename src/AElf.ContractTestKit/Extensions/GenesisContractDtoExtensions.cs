@@ -1,4 +1,4 @@
-using Acs0;
+using AElf.Standards.ACS0;
 using Google.Protobuf;
 
 namespace AElf.ContractTestKit

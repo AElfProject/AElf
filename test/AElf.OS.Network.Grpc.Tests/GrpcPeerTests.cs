@@ -1,8 +1,12 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Extension;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Moq;
@@ -14,15 +18,15 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeerTests : GrpcNetworkWithChainTestBase
     {
-        private IAElfNetworkServer _networkServer;
-        
-        private IPeerPool _pool;
+        private readonly IPeerPool _pool;
+        private readonly OSTestHelper _osTestHelper;
+
         private GrpcPeer _grpcPeer;
         private GrpcPeer _nonInterceptedPeer;
 
         public GrpcPeerTests()
         {
-            _networkServer = GetRequiredService<IAElfNetworkServer>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
             _pool = GetRequiredService<IPeerPool>();
 
             _grpcPeer = GrpcTestPeerHelper.CreateNewPeer();
@@ -30,11 +34,6 @@ namespace AElf.OS.Network.Grpc
             _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
             _pool.TryAddPeer(_grpcPeer);
-        }
-
-        public override void Dispose()
-        {
-            AsyncHelper.RunSync(() => _networkServer.StopAsync(false));
         }
 
         [Fact]
@@ -231,29 +230,189 @@ namespace AElf.OS.Network.Grpc
         }
 
         [Fact]
-        public void GetRequestMetrics_Test()
-        {
-            var result = _grpcPeer.GetRequestMetrics();
-            
-            result.Count.ShouldBe(3);
-            result.Keys.ShouldContain("GetBlock");
-            result.Keys.ShouldContain("GetBlocks");
-            result.Keys.ShouldContain("Announce");
-        }
-        
-        [Fact]
         public async Task DisconnectAsync_Test()
         {
-            var isReady = _grpcPeer.IsReady;
-            isReady.ShouldBeTrue();
-            
+            _grpcPeer.IsReady.ShouldBeTrue();
+            _grpcPeer.IsShutdown.ShouldBeFalse();
+            _grpcPeer.IsConnected.ShouldBeTrue();
+            _grpcPeer.IsInvalid.ShouldBeFalse();
+
             await _grpcPeer.DisconnectAsync(false);
             
             _grpcPeer.IsShutdown.ShouldBeTrue();
             _grpcPeer.IsConnected.ShouldBeFalse();
+            _grpcPeer.IsReady.ShouldBeFalse();
+            _grpcPeer.IsInvalid.ShouldBeFalse();
             _grpcPeer.ConnectionStatus.ShouldBe("Shutdown");
+
+            _grpcPeer.Info.ConnectionTime = TimestampHelper.GetUtcNow().AddSeconds(-11);
+            _grpcPeer.IsInvalid.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task CheckHealth_Test()
+        {
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall<HealthCheckReply>(new HealthCheckReply()));
+            var grpcPeer = CreatePeer(mockClient.Object);
+            await grpcPeer.CheckHealthAsync();
+        }
+
+        [Fact]
+        public async Task GetBlockByHash_Test()
+        {
+            var block = new BlockWithTransactions
+                {Header = _osTestHelper.GenerateBlock(HashHelper.ComputeFrom("PreBlockHash"), 100).Header};
+
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.RequestBlockAsync(It.IsAny<BlockRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall(new BlockReply {Block = block}));
+            var grpcPeer = CreatePeer(mockClient.Object);
+            
+            var result = await grpcPeer.GetBlockByHashAsync(block.GetHash());
+            result.ShouldBe(block);
+
+            var metrics = grpcPeer.GetRequestMetrics();
+            metrics["GetBlock"].Count.ShouldBe(1);
+            metrics["GetBlock"][0].MethodName.ShouldContain("GetBlock");
+            metrics["GetBlock"][0].Info.ShouldContain("Block request for");
         }
         
+        [Fact]
+        public async Task GetBlocks_Test()
+        {
+            var block = new BlockWithTransactions
+                {Header = _osTestHelper.GenerateBlock(HashHelper.ComputeFrom("PreBlockHash"), 100).Header};
+            var blockList = new BlockList();
+            blockList.Blocks.Add(block);
+
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.RequestBlocksAsync(It.IsAny<BlocksRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall(blockList));
+            var grpcPeer = CreatePeer(mockClient.Object);
+
+            var result = await grpcPeer.GetBlocksAsync(block.Header.PreviousBlockHash, 1);
+            result.ShouldBe(blockList.Blocks);
+
+            var metrics = grpcPeer.GetRequestMetrics();
+            metrics["GetBlocks"].Count.ShouldBe(1);
+            metrics["GetBlocks"][0].MethodName.ShouldContain("GetBlocks");
+            metrics["GetBlocks"][0].Info.ShouldContain("Get blocks for");
+        }
+        
+        [Fact]
+        public async Task GetNodes_Test()
+        {
+            var nodeList = new NodeList();
+            nodeList.Nodes.Add(new NodeInfo {Endpoint = "127.0.0.1:123", Pubkey = ByteString.Empty});
+
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.GetNodesAsync(It.IsAny<NodesRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall(nodeList));
+            var grpcPeer = CreatePeer(mockClient.Object);
+
+            var result = await grpcPeer.GetNodesAsync();
+            result.ShouldBe(nodeList);
+        }
+
+        [Fact]
+        public async Task RecordMetric_Test()
+        {
+            var block = new BlockWithTransactions
+                {Header = _osTestHelper.GenerateBlock(HashHelper.ComputeFrom("PreBlockHash"), 100).Header};
+
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.RequestBlockAsync(It.IsAny<BlockRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall(new BlockReply {Block = block}));
+            
+            var blockList = new BlockList();
+            blockList.Blocks.Add(block);
+
+            mockClient.Setup(c =>
+                    c.RequestBlocksAsync(It.IsAny<BlocksRequest>(), It.IsAny<Metadata>(), null,
+                        CancellationToken.None))
+                .Returns(MockAsyncUnaryCall(blockList));
+            var grpcPeer = CreatePeer(mockClient.Object);
+
+            for (var i = 0; i < 101; i++)
+            {
+                await grpcPeer.GetBlockByHashAsync(block.GetHash());
+                await grpcPeer.GetBlocksAsync(block.Header.PreviousBlockHash, 1);
+            }
+
+            var metrics = grpcPeer.GetRequestMetrics();
+            metrics["GetBlocks"].Count.ShouldBe(100);
+            metrics["GetBlock"].Count.ShouldBe(100);
+        }
+
+        [Fact]
+        public async Task HandleObjectDisposedException_Test()
+        {
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            mockClient.Setup(c =>
+                    c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Throws(new ObjectDisposedException("ObjectDisposedException"));
+            var grpcPeer = CreatePeer(mockClient.Object);
+            grpcPeer.CheckHealthAsync()
+                .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+        }
+        
+        [Fact]
+        public async Task HandleRpcException_Test()
+        {
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
+                var grpcPeer = CreatePeer(mockClient.Object);
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
+
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException());
+                var grpcPeer = CreatePeer(mockClient.Object);
+
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
+            
+            {
+                var mockClient = new Mock<PeerService.PeerServiceClient>();
+                mockClient.Setup(c =>
+                        c.CheckHealthAsync(It.IsAny<HealthCheckRequest>(), It.IsAny<Metadata>(), null,
+                            CancellationToken.None))
+                    .Throws(new AggregateException(new RpcException(new Status(StatusCode.Cancelled, ""))));
+                var grpcPeer = CreatePeer(mockClient.Object);
+                await grpcPeer.DisconnectAsync(false);
+
+                grpcPeer.CheckHealthAsync()
+                    .ShouldThrow<NetworkException>().ExceptionType.ShouldBe(NetworkExceptionType.Unrecoverable);
+            }
+        }
+
+        private GrpcPeer CreatePeer(PeerService.PeerServiceClient client)
+        {
+            return GrpcTestPeerHelper.CreatePeerWithClient("127.0.0.1:2000", NetworkTestConstants.FakePubkey, client);
+        }
+
         private GrpcPeer MockServiceClient(string ipAddress)
         {
             var mockClient = new Mock<PeerService.PeerServiceClient>();
@@ -295,6 +454,14 @@ namespace AElf.OS.Network.Grpc
                 .Returns(replyTask);
             
             var call = TestCalls.AsyncClientStreamingCall(mockRequestStream.Object, Task.FromResult(new TResp()),
+                Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+
+            return call;
+        }
+        
+        private AsyncUnaryCall<TResponse> MockAsyncUnaryCall<TResponse>(TResponse reply) where TResponse : new()
+        {
+            var call = TestCalls.AsyncUnaryCall(Task.FromResult(reply),
                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
 
             return call;

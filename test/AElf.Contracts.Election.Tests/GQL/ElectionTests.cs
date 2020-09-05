@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
+using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -25,6 +26,31 @@ namespace AElf.Contracts.Election
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task ElectionContract_RegisterElectionVotingEvent_Register_Twice_Test()
+        {
+            var registerAgainRet =
+                await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
+            registerAgainRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            registerAgainRet.TransactionResult.Error.ShouldContain("Already registered.");
+        }
+        
+        [Fact]
+        public async Task ElectionContract_SetTreasurySchemeIds_SetTwice_Test()
+        {
+            var setSchemeIdRet = await ElectionContractStub.SetTreasurySchemeIds.SendAsync(new SetTreasurySchemeIdsInput
+            {
+                SubsidyHash = HashHelper.ComputeFrom("Subsidy"),
+                TreasuryHash = HashHelper.ComputeFrom("Treasury"),
+                WelfareHash = HashHelper.ComputeFrom("Welfare"),
+                VotesRewardHash = HashHelper.ComputeFrom("VotesReward"),
+                ReElectionRewardHash = HashHelper.ComputeFrom("ReElectionReward")
+            });
+            setSchemeIdRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            setSchemeIdRet.TransactionResult.Error.ShouldContain("Treasury profit ids already set.");
+        }
+
 
         #region AnnounceElection
 
@@ -63,6 +89,15 @@ namespace AElf.Contracts.Election
             s.Stop();
             _testOutputHelper.WriteLine(s.ElapsedMilliseconds.ToString());
         }
+        
+        [Fact]
+        public async Task ElectionContract_AnnounceElection_MinerAnnounce_Test()
+        {
+            var miner = InitialCoreDataCenterKeyPairs[0];
+            var minerAnnounceRet = await AnnounceElectionAsync(miner);
+            minerAnnounceRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            minerAnnounceRet.Error.ShouldContain("Initial miner cannot announce election.");
+        }
 
         #endregion
 
@@ -76,6 +111,24 @@ namespace AElf.Contracts.Election
             var transactionResult = await QuitElectionAsync(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task ElectionContract_QuitElection_MinerQuit_Test()
+        {
+            await NextRound(BootMinerKeyPair);
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
+            victories.Value.Contains(ByteStringHelper.FromHexString(candidate.PublicKey.ToHex())).ShouldBeTrue();
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            var quitElectionRet = await QuitElectionAsync(candidate);
+            quitElectionRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            quitElectionRet.Error.ShouldContain("Current miners cannot quit election");
         }
 
         #endregion
@@ -121,6 +174,94 @@ namespace AElf.Contracts.Election
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("lock time");
             }
+        }
+
+        #endregion
+
+        #region Withdraw
+
+        [Fact]
+        public async Task Election_Withdraw_In_LockTime_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            var voteId = voteIdOfVoter.ActiveVotes[0];
+            var withdrawRet = await WithdrawVotes(voter, voteId);
+            withdrawRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            withdrawRet.Error.ShouldContain("days to unlock your token");
+        }
+        #endregion
+
+        #region ChangeVotingOption
+
+        [Fact]
+        public async Task Election_ChangeVotingOption_Not_Voter_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            var voteId = voteIdOfVoter.ActiveVotes[0];
+            var changeOptionRet = await ElectionContractStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = candidate.PublicKey.ToHex(),
+                VoteId = voteId
+            });
+            changeOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeOptionRet.TransactionResult.Error.ShouldContain("No permission to change current vote's option.");
+        }
+        
+        [Fact]
+        public async Task Election_ChangeVotingOption_With_Expire_Vote_Test()
+        {
+            var voter = VoterKeyPairs.First();
+            var voteAmount = 100;
+            var lockTime = 120 * 60 * 60 * 24;
+            var candidate = ValidationDataCenterKeyPairs.First();
+            await AnnounceElectionAsync(candidate);
+            await VoteToCandidate(voter,candidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteIdOfVoter = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
+            {
+                Voter = Address.FromPublicKey(voter.PublicKey),
+                VotingItemId = electionVoteItemId
+            });
+            var voteId = voteIdOfVoter.ActiveVotes[0];
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
+            var changeOptionRet = await ChangeVoteOption(voter, voteId, candidate.PublicKey.ToHex());
+            changeOptionRet.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeOptionRet.Error.ShouldContain("This vote already expired");
+        }
+        
+        [Fact]
+        public async Task ElectionContract_ChangeVoting_To_Invalid_Target()
+        {
+            var invalidCandidateKeyPair = "invalid key";
+            var ret = await ElectionContractStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = invalidCandidateKeyPair,
+                VoteId = new Hash()
+            });
+            var errorMsg = "Candidate not found.";
+            ret.TransactionResult.Error.ShouldContain(errorMsg);
         }
 
         #endregion
@@ -208,7 +349,7 @@ namespace AElf.Contracts.Election
             var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
             victories.Value.Select(o=>o.ToHex()).ShouldContain(newCandidate.PublicKey.ToHex());
         }
-        
+
         [Fact]
         public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough_Test()
         {
@@ -320,5 +461,69 @@ namespace AElf.Contracts.Election
 
         #endregion
 
+        [Fact]
+        public async Task Election_TakeSnapshot_Without_Authority_Test()
+        {
+            var takeSnapshot = await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput
+            {
+                TermNumber = 1
+            });
+            takeSnapshot.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            takeSnapshot.TransactionResult.Error.ShouldContain("No permission");
+        }
+
+        [Fact]
+        public async Task Election_UpdateCandidateInformation_Without_Authority_Test()
+        {
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
+                new UpdateCandidateInformationInput
+                {
+                    IsEvilNode = true,
+                    Pubkey = pubkey,
+                    RecentlyProducedBlocks = 10,
+                    RecentlyMissedTimeSlots = 100
+                })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update candidate information");
+        }
+        
+        [Fact]
+        public async Task Election_UpdateMultipleCandidateInformation_Without_Authority_Test()
+        {
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var updateInfo = new UpdateMultipleCandidateInformationInput
+            {
+                Value =
+                {
+                    new UpdateCandidateInformationInput
+                    {
+                        IsEvilNode = true,
+                        Pubkey = pubkey,
+                        RecentlyProducedBlocks = 10,
+                        RecentlyMissedTimeSlots = 100
+                    }
+                }
+            };
+            
+            var transactionResult = (await ElectionContractStub.UpdateMultipleCandidateInformation.SendAsync(updateInfo)
+                ).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update candidate information");
+        }
+        
+        [Fact]
+        public async Task Election_UpdateMinersCount_Without_Authority_Test()
+        {
+            var transactionResult = (await ElectionContractStub.UpdateMinersCount.SendAsync(new UpdateMinersCountInput
+                    {
+                        MinersCount = 10
+                    })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only consensus contract can update miners count");
+        }
     }
 }

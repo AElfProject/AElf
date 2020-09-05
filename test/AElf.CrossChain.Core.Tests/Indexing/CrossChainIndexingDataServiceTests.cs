@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Indexing.Application;
 using AElf.CSharp.Core.Extension;
@@ -138,7 +138,7 @@ namespace AElf.CrossChain.Indexing
                 await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(Hash.Empty, 1);
             Assert.NotNull(crossChainTransactionInput);
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(crossChainTransactionInput.Value);
-            crossChainTransactionInput.MethodName.ShouldBe(nameof(CrossChainContractContainer.CrossChainContractStub
+            crossChainTransactionInput.MethodName.ShouldBe(nameof(CrossChainContractImplContainer.CrossChainContractImplStub
                 .ProposeCrossChainIndexing));
             Assert.Equal(CrossChainConstants.DefaultBlockCacheEntityCount,
                 crossChainBlockData.SideChainBlockDataList.Count);
@@ -538,8 +538,8 @@ namespace AElf.CrossChain.Indexing
                 await _crossChainIndexingDataService.GetCrossChainTransactionInputForNextMiningAsync(previousBlockHash,
                     previousBlockHeight);
 
-            Assert.Equal(crossChainTransactionInput.MethodName,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ReleaseCrossChainIndexingProposal));
+            Assert.Equal(nameof(CrossChainContractImplContainer.CrossChainContractImplStub.ReleaseCrossChainIndexingProposal),
+                crossChainTransactionInput.MethodName);
 
             var sideChainIdListInParam = ReleaseCrossChainIndexingProposalInput.Parser.ParseFrom(crossChainTransactionInput.Value).ChainIdList;
             sideChainIdListInParam.ShouldContain(sideChainId);

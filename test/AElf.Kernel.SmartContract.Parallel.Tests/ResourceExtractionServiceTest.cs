@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs2;
+using AElf.Standards.ACS2;
 using AElf.ContractTestKit;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Events;

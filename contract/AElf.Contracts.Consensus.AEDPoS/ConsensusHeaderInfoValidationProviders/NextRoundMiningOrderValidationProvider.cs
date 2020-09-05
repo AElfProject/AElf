@@ -1,5 +1,5 @@
 using System.Linq;
-using Acs4;
+using AElf.Standards.ACS4;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS

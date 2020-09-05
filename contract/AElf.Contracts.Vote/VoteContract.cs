@@ -10,7 +10,7 @@ namespace AElf.Contracts.Vote
     /// <summary>
     /// Comments and documents see README.md of current project.
     /// </summary>
-    public partial class VoteContract : VoteContractContainer.VoteContractBase
+    public partial class VoteContract : VoteContractImplContainer.VoteContractImplBase
     {
         /// <summary>
         /// To register a new voting item while filling up with details.
@@ -121,19 +121,21 @@ namespace AElf.Contracts.Vote
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();
-            if (votedItems.VotedItemVoteIds.ContainsKey(votingItem.VotingItemId.ToHex()))
+            var voterItemIndex = votingItem.VotingItemId.ToHex();
+            if (votedItems.VotedItemVoteIds.ContainsKey(voterItemIndex))
             {
-                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Add(voteId);
+                votedItems.VotedItemVoteIds[voterItemIndex].ActiveVotes.Add(voteId);
             }
             else
             {
-                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()] =
+                votedItems.VotedItemVoteIds[voterItemIndex] =
                     new VotedIds
                     {
                         ActiveVotes = {voteId}
                     };
             }
 
+            votedItems.VotedItemVoteIds[voterItemIndex].WithdrawnVotes.Remove(voteId);
             State.VotedItemsMap[voter] = votedItems;
         }
 

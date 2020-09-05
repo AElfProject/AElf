@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package VoteImp;
+
+import "acs1.proto";
+import "vote_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Vote";
+
+service VoteContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "vote_contract.proto";
+}
