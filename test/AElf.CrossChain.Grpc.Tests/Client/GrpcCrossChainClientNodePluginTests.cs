@@ -7,12 +7,12 @@ namespace AElf.CrossChain.Grpc.Client
 {
     public sealed class GrpcCrossChainClientNodePluginTests : GrpcCrossChainClientTestBase
     {
-        private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
+        private readonly IGrpcClientPlugin _grpcCrossChainClientNodePlugin;
         private readonly ICrossChainClientProvider _crossChainClientProvider;
 
         public GrpcCrossChainClientNodePluginTests()
         {
-            _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
+            _grpcCrossChainClientNodePlugin = GetRequiredService<IGrpcClientPlugin>();
             _crossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
@@ -31,12 +31,12 @@ namespace AElf.CrossChain.Grpc.Client
     
     public sealed class GrpcCrossChainClientNodePluginWithoutParentChainTests : GrpcCrossChainClientWithoutParentChainTestBase
     {
-        private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
+        private readonly IGrpcClientPlugin _grpcCrossChainClientNodePlugin;
         private readonly ICrossChainClientProvider _crossChainClientProvider;
 
         public GrpcCrossChainClientNodePluginWithoutParentChainTests()
         {
-            _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
+            _grpcCrossChainClientNodePlugin = GetRequiredService<IGrpcClientPlugin>();
             _crossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
