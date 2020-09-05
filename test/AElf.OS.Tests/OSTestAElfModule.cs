@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Org.BouncyCastle.Crypto;
 using Volo.Abp;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -59,6 +60,8 @@ namespace AElf.OS
             });
 
             context.Services.AddTransient<AccountService>();
+            
+            Configure<AbpBackgroundWorkerOptions>(o => { o.IsEnabled = false; });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
