@@ -120,6 +120,9 @@ service ElectionContract {
     rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinerReplacementInformation (GetMinerReplacementInformationInput) returns (MinerReplacementInformation) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
@@ -289,4 +292,19 @@ message VoteWeightProportion {
 message VoteInformation{
     int64 amount = 1;
     int64 lock_time = 2;
+}
+
+message GetMinerReplacementInformationInput {
+    repeated string current_miner_list = 1;
+}
+
+message MinerReplacementInformation {
+    repeated string alternative_candidate_pubkeys = 1;
+    repeated string evil_miner_pubkeys = 2;
+}
+
+// Events
+message EvilMinerDetected {
+    option (aelf.is_event) = true;
+    string pubkey = 1;
 }
