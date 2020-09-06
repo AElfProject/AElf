@@ -71,9 +71,7 @@ namespace AElf.Contracts.MultiToken
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
-            result.ShouldBe(new ResourceInfo {NonParallelizable = true});
+            result.NonParallelizable.ShouldBeTrue();
         }
-        
-       
     }
 }

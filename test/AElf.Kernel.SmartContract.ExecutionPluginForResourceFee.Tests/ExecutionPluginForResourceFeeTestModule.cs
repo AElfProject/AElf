@@ -1,9 +1,13 @@
+using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation;
-using AElf.Kernel.FeeCalculation.Application;
 using AElf.Kernel.FeeCalculation.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Events;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
