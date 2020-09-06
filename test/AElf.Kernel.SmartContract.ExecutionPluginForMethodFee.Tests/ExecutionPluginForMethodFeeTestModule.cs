@@ -67,6 +67,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             
                 return mockService.Object;
             });
+            context.Services
+                .AddTransient<CleanBlockExecutedDataChangeHeightEventHandler>();
         }
     }
     

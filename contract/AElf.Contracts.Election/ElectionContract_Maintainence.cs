@@ -66,7 +66,8 @@ namespace AElf.Contracts.Election
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
-            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(votingRegisterInput),
+            State.MinerElectionVotingItemId.Value = HashHelper.ConcatAndCompute(
+                HashHelper.ComputeFrom(votingRegisterInput),
                 HashHelper.ComputeFrom(Context.Self));
 
             State.VotingEventRegistered.Value = true;
@@ -105,12 +106,11 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
-            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
+            var previousTermMinerList = State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
 
-            foreach (var pubkey in previousMiners)
+            foreach (var pubkey in previousTermMinerList)
             {
-                UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
+                UpdateCandidateInformation(pubkey, input.TermNumber, previousTermMinerList);
             }
 
             if (State.DividendPoolContract.Value == null)
@@ -208,6 +208,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
+                Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
                 State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));

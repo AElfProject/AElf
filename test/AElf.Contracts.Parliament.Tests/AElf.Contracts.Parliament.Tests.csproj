@@ -39,6 +39,9 @@
         </ContractMessage>
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\stub\basic_contract_zero.proto</Link>
         </ContractStub>
