@@ -352,7 +352,7 @@ namespace AElf.CrossChain.Cache
             {
                 var targetHeight = blockInfoCache.TargetChainHeight();
                 blockInfoCache.ClearOutOfDateCacheByHeight(targetHeight);
-                Assert.True(targetHeight == blockInfoCache.TargetChainHeight());
+                Assert.True(targetHeight + 1 == blockInfoCache.TargetChainHeight());
                 for (int j = 0; j < targetHeight; j++)
                 {
                     var res = blockInfoCache.TryTake(j, out _, false);

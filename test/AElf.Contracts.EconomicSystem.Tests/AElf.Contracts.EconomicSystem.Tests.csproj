@@ -127,6 +127,9 @@
         <ContractBase Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\acs10.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractBase>
         <ContractMessage Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf\Proto\vote_contract.proto</Link>
         </ContractMessage>

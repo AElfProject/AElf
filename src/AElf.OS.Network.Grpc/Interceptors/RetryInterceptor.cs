@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
@@ -18,7 +20,9 @@ namespace AElf.OS.Network.Grpc
             var timeoutSpan = TimeSpan.FromMilliseconds(timeout);
 
             string headerRetryCount = context.GetHeaderStringValue(GrpcConstants.RetryCountMetadataKey, true);
-            int retryCount = headerRetryCount == null ? NetworkConstants.DefaultRequestRetryCount : int.Parse(headerRetryCount);
+            int retryCount = headerRetryCount == null
+                ? NetworkConstants.DefaultRequestRetryCount
+                : int.Parse(headerRetryCount);
 
             async Task<TResponse> RetryCallback(Task<TResponse> responseTask)
             {
@@ -35,20 +39,23 @@ namespace AElf.OS.Network.Grpc
                 {
                     return response.Result;
                 }
-                
+
                 currentRetry++;
-                
+
                 // try again
                 var retryContext = BuildNewContext(context, timeoutSpan);
-                var result = continuation(request, retryContext).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
-                
+
+                var result = GetResponseAsync(continuation(request, retryContext), timeoutSpan)
+                    .ContinueWith(RetryCallback).Unwrap();
+
                 return await result;
             }
 
             var newContext = BuildNewContext(context, timeoutSpan);
             var responseContinuation = continuation(request, newContext);
-            
-            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback).Unwrap();
+
+            var responseAsync = GetResponseAsync(responseContinuation, timeoutSpan).ContinueWith(RetryCallback)
+                .Unwrap();
 
             return new AsyncUnaryCall<TResponse>(
                 responseAsync,
@@ -58,8 +65,26 @@ namespace AElf.OS.Network.Grpc
                 responseContinuation.Dispose);
         }
 
+        private async Task<TResponse> GetResponseAsync<TResponse>(AsyncUnaryCall<TResponse> responseContinuation,
+            TimeSpan timeout)
+        {
+            try
+            {
+                using (var cts = new CancellationTokenSource())
+                {
+                    // Ensure that under normal circumstances, the timeout is no earlier than on the server side.
+                    cts.CancelAfter(timeout.Add(TimeSpan.FromSeconds(1)));
+                    return await responseContinuation.ResponseAsync.WithCancellation(cts.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw new RpcException(new Status(StatusCode.Cancelled, "The server is not responding."));
+            }
+        }
+
         private ClientInterceptorContext<TRequest, TResponse> BuildNewContext<TRequest, TResponse>(
-            ClientInterceptorContext<TRequest, TResponse> oldContext, TimeSpan timeout)  
+            ClientInterceptorContext<TRequest, TResponse> oldContext, TimeSpan timeout)
             where TRequest : class
             where TResponse : class
         {

@@ -40,7 +40,6 @@ namespace AElf.OS.Network.Grpc
 
         private enum MetricNames
         {
-            Announce,
             GetBlocks,
             GetBlock
         };
@@ -129,7 +128,6 @@ namespace AElf.OS.Network.Grpc
             RecentRequestsRoundtripTimes =
                 new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
 

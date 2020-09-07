@@ -260,7 +260,7 @@ namespace AElf.Contracts.Election
                 CandidatePubkey = invalidCandidateKeyPair,
                 VoteId = new Hash()
             });
-            var errorMsg = "Candidate: " + invalidCandidateKeyPair + " dose not exist";
+            var errorMsg = "Candidate not found.";
             ret.TransactionResult.Error.ShouldContain(errorMsg);
         }
 

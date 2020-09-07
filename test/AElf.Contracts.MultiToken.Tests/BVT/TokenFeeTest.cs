@@ -172,7 +172,6 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SetReceiver_Test()
         {
-            
             // without authorized
             {
                 var setReceiverRet = await TokenContractStub.SetFeeReceiver.SendWithExceptionAsync(new Address());
@@ -182,7 +181,8 @@ namespace AElf.Contracts.MultiToken
             var methodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain);
             var initialInput = new InitializeFromParentChainInput
             {
-                Creator = DefaultAddress
+                Creator = DefaultAddress,
+                RegisteredOtherTokenContractAddresses = { {1, TokenContractAddress}}
             };
             await SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress, methodName, initialInput);
             await TokenContractStub.SetFeeReceiver.SendAsync(DefaultAddress);
