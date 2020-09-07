@@ -54,6 +54,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task Set_Repeat_Token_Test()
         {
             await IssueTokenAsync(NativeTokenSymbol, 100000_00000000);
+            await SetPrimaryTokenSymbolAsync();
             var address = DefaultSender;
             var methodName = nameof(TokenContractContainer.TokenContractStub.Transfer);
             var basicMethodFee = 1000;
