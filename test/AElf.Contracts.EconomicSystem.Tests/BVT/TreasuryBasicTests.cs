@@ -184,7 +184,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var nativeTokenCost = depositBeforeDonate.Value.Sub(startResourceTokenDeposit.Value);
             var treasuryVirtualAddress = await GetTreasurySchemeVirtualAddressAsync();
             var balanceOfTreasuryBeforeDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            
             //donate
             var donateRet = await TreasuryContractStub.Donate.SendAsync(new DonateInput
             {
@@ -200,9 +199,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             depositBeforeDonate.Value.Sub(depositAfterDonate.Value).ShouldBe(nativeTokenCost);
             var feeRateString = EconomicContractsTestConstants.TokenConverterFeeRate;
             var feeRate = decimal.Parse(feeRateString);
-            var donateFee = (long)(nativeTokenCost * feeRate / 2);
             var balanceOfTreasuryAfterDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            balanceOfTreasuryAfterDonate.Sub(balanceOfTreasuryBeforeDonate).ShouldBe(nativeTokenCost.Add(donateFee));
+            balanceOfTreasuryAfterDonate.ShouldBe(nativeTokenCost.Add(balanceOfTreasuryBeforeDonate));
         }
 
         [Fact]

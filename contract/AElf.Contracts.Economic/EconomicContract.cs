@@ -119,9 +119,16 @@ namespace AElf.Contracts.Economic
                     TokenName = $"{symbol} Token",
                     TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
                     Decimals = EconomicContractConstants.ElectionTokenDecimals,
-                    Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Issuer = Context.Self,
                     IsBurnable = true,
                     LockWhiteList = {lockWhiteList}
+                });
+                State.TokenContract.Issue.Send(new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = EconomicContractConstants.ElectionTokenTotalSupply,
+                    To = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Memo = "Issue all election tokens to Election Contract."
                 });
             }
         }

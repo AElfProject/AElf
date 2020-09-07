@@ -8,11 +8,6 @@ namespace AElf.Contracts.TokenConverter
 {
     public partial class TokenConverterContract
     {
-        public override Address GetFeeReceiverAddress(Empty input)
-        {
-            return State.FeeReceiverAddress.Value;
-        }
-
         public override StringValue GetFeeRate(Empty input)
         {
             return new StringValue()

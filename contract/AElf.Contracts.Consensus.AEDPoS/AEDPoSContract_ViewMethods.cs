@@ -431,6 +431,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Int64Value {Value = 0};
         }
 
+        public override Int64Value GetCurrentMiningRewardPerBlock(Empty input)
+        {
+            return new Int64Value {Value = GetMiningRewardPerBlock()};
+        }
+
         /// <summary>
         /// Get left seconds to next election takes effects.
         /// Return 0 for side chain and single node.
@@ -492,7 +497,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             return State.MainChainCurrentMinerList.Value;
         }
-        
+
         public override PubkeyList GetPreviousTermMinerPubkeyList(Empty input)
         {
             var lastRoundNumber = State.FirstRoundNumberOfEachTerm[State.CurrentTermNumber.Value].Sub(1);
