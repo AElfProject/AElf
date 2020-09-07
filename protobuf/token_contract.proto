@@ -118,6 +118,9 @@ service TokenContract {
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
+    rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -128,7 +131,6 @@ message TokenInfo {
     int32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
-    bool is_profitable = 8;
     int32 issue_chain_id = 9;
     int64 issued = 10;
 }
@@ -141,8 +143,7 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
-    bool is_profitable = 8;
-    int32 issue_chain_id = 9;
+    int32 issue_chain_id = 8;
 }
 
 message RegisterNativeTokenInfoInput {
@@ -152,8 +153,7 @@ message RegisterNativeTokenInfoInput {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
 }
 
 message SetPrimaryTokenSymbolInput {
@@ -477,8 +477,7 @@ message TokenCreated {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
 }
 
 message Issued {

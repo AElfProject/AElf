@@ -38,6 +38,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             EnsureTokenContractAddressSet();
 
+            if (!State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = input.Symbol}).Value)
+            {
+                return new Empty();
+            }
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,

@@ -308,8 +308,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             return balances;
         }
 
-        private async Task CreateTokenAsync(Address creator, string tokenSymbol, bool isBurned = true,
-            bool isProfitable = true)
+        private async Task CreateTokenAsync(Address creator, string tokenSymbol, bool isBurned = true)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -318,7 +317,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 TotalSupply = 1000_00000000,
                 IsBurnable = isBurned,
                 Issuer = creator,
-                IsProfitable = isProfitable
             });
         }
 

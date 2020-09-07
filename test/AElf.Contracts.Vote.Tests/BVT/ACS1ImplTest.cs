@@ -125,7 +125,7 @@ namespace AElf.Contracts.Vote
                         }
                     }
                 });
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
         }
 

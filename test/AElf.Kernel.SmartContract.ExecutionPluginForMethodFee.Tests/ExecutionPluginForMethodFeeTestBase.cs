@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
     public class ExecutePluginTransactionDirectlyForMethodFeeTestBase : ContractTestKit.ContractTestBase<
         ExecutionPluginTransactionDirectlyForMethodFeeTestModule>
     {
-        protected string NativeTokenSymbol = "ELF";
+        protected const string NativeTokenSymbol = "ELF";
         internal Address TokenContractAddress { get; set; }
         internal Address TreasuryContractAddress { get; set; }
         internal Address ConsensusContractAddress { get; set; }
@@ -194,7 +194,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             //init elf token
             var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = "ELF",
+                Symbol = NativeTokenSymbol,
                 Decimals = 8,
                 IsBurnable = true,
                 TokenName = "elf token",

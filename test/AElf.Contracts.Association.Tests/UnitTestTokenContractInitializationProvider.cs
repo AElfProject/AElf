@@ -42,7 +42,6 @@ namespace AElf.Contracts.Association
                         Symbol = _economicOptions.Symbol,
                         TokenName = _economicOptions.TokenName,
                         TotalSupply = _economicOptions.TotalSupply,
-                        IsProfitable = true
                     }.ToByteString(),
                 },
                 new ContractInitializationMethodCall

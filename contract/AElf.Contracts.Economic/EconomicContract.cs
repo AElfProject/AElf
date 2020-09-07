@@ -60,7 +60,6 @@ namespace AElf.Contracts.Economic
                 Decimals = input.NativeTokenDecimals,
                 IsBurnable = input.IsNativeTokenBurnable,
                 Issuer = Context.Self,
-                IsProfitable = true,
                 LockWhiteList = {lockWhiteList}
             });
 
@@ -89,7 +88,6 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
-                    IsProfitable = true,
                     LockWhiteList = {lockWhiteList},
                     IsBurnable = true
                 });

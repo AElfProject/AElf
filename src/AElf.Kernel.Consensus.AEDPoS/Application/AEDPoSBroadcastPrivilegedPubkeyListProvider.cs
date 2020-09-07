@@ -17,8 +17,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IAccountService _accountService;
         private readonly IConsensusExtraDataProvider _consensusExtraDataProvider;
 
-        private readonly List<string> _cachedPubkeyList = new List<string>();
-
         public ILogger<AEDPoSBroadcastPrivilegedPubkeyListProvider> Logger { get; set; }
 
         public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
@@ -38,11 +36,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     blockHeader);
             if (consensusExtraData == null) return new List<string>();
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
-            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock && _cachedPubkeyList.Any())
+            if (consensusInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
                 // The orders changed every round, and the orders can be updated during every behaviour of UPDATE_VALUE or NEXT_ROUND,
                 // so we can skip the update for TINY_BLOCK.
-                return _cachedPubkeyList;
+                return new List<string>();
             }
 
             var round = consensusInformation.Round;

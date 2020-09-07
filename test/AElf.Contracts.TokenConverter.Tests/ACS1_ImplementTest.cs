@@ -134,7 +134,7 @@ namespace AElf.Contracts.TokenConverter
                         }
                     }
                 });
-                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found. ");
+                setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
         }
         
@@ -144,7 +144,7 @@ namespace AElf.Contracts.TokenConverter
             var tokenSymbol = "KYO";
             var methodName = "Test";
             var basicFee = 111;
-            await CreateTokenAsync(tokenSymbol);
+            await CreateTokenAsync(tokenSymbol, 1000_000L);
             var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
             {
                 MethodName = methodName,
@@ -166,7 +166,7 @@ namespace AElf.Contracts.TokenConverter
             var tokenSymbol = "KYO";
             var methodName = "Test";
             var basicFee = 111;
-            await CreateTokenAsync(tokenSymbol);
+            await CreateTokenAsync(tokenSymbol, 1000_000L);
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetMethodFee), new MethodFees
                 {
