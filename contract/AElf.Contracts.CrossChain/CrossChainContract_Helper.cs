@@ -186,8 +186,7 @@ namespace AElf.Contracts.CrossChain
                 Symbol = sideChainCreationRequest.SideChainTokenSymbol,
                 TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
                 Decimals = sideChainCreationRequest.SideChainTokenDecimals,
-                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
-                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
             };
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
@@ -198,8 +197,7 @@ namespace AElf.Contracts.CrossChain
                 Issuer = creator,
                 IssueChainId = chainId,
                 Symbol = sideChainTokenInfo.Symbol,
-                TotalSupply = sideChainTokenInfo.TotalSupply,
-                IsProfitable = sideChainTokenInfo.IsProfitable
+                TotalSupply = sideChainTokenInfo.TotalSupply
             });
         }
 

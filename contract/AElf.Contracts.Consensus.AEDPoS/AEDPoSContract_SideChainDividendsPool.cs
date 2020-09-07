@@ -36,10 +36,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty Donate(DonateInput input)
         {
-            if (State.TokenContract.Value == null)
+            EnsureTokenContractAddressSet();
+
+            if (!State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = input.Symbol}).Value)
             {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                return new Empty();
             }
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput

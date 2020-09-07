@@ -6,6 +6,7 @@ using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -391,7 +392,7 @@ namespace AElf.Contracts.Profit
                 $"Invalid period. When release scheme {input.SchemeId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
-                GetDistributedPeriodProfitsVirtualAddress(scheme.VirtualAddress, releasingPeriod);
+                GetDistributedPeriodProfitsVirtualAddress(scheme.SchemeId, releasingPeriod);
 
             if (input.Period < 0 || totalShares <= 0)
             {
@@ -422,7 +423,6 @@ namespace AElf.Contracts.Profit
         private Empty BurnProfits(long period, Dictionary<string, long> profitsMap, Scheme scheme,
             Address profitsReceivingVirtualAddress)
         {
-            Context.LogDebug(() => "going to Burn Profits.");
             scheme.CurrentPeriod = period.Add(1);
 
             var distributedProfitsInfo = new DistributedProfitsInfo
@@ -442,13 +442,13 @@ namespace AElf.Contracts.Profit
                     });
                     if(balanceOfToken.Balance < amount)
                         continue;
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = Context.Self,
-                        Amount = amount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = Context.Self,
+                            Amount = amount,
+                            Symbol = symbol
+                        }.ToByteString());
                     State.TokenContract.Burn.Send(new BurnInput
                     {
                         Amount = amount,
@@ -499,13 +499,13 @@ namespace AElf.Contracts.Profit
                 // Transfer remain amount to individuals' receiving profits address.
                 if (remainAmount != 0)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = profitsReceivingVirtualAddress,
-                        Amount = remainAmount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = profitsReceivingVirtualAddress,
+                            Amount = remainAmount,
+                            Symbol = symbol
+                        }.ToByteString());
                 }
             }
         }
@@ -530,13 +530,13 @@ namespace AElf.Contracts.Profit
                 var distributeAmount = SafeCalculateProfits(subSchemeShares.Shares, totalAmount, totalShares);
                 if (distributeAmount != 0)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
-                    {
-                        From = scheme.VirtualAddress,
-                        To = subItemVirtualAddress,
-                        Amount = distributeAmount,
-                        Symbol = symbol
-                    });
+                    Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
+                        nameof(State.TokenContract.Transfer), new TransferInput
+                        {
+                            To = subItemVirtualAddress,
+                            Amount = distributeAmount,
+                            Symbol = symbol
+                        }.ToByteString());
                 }
 
                 remainAmount = remainAmount.Sub(distributeAmount);
@@ -549,7 +549,7 @@ namespace AElf.Contracts.Profit
                 }
 
                 State.ProfitDetailsMap[scheme.SchemeId][subItemVirtualAddress] = subItemDetail;
-                
+
                 // Update sub scheme.
                 var subScheme = State.SchemeInfos[subSchemeShares.SchemeId];
                 if (!subScheme.ReceivedTokenSymbols.Contains(symbol))
@@ -569,7 +569,7 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-            
+
             // ReSharper disable once PossibleNullReferenceException
             var virtualAddress = scheme.VirtualAddress;
 
@@ -580,6 +580,7 @@ namespace AElf.Contracts.Profit
                     State.TokenContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                 }
+
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
@@ -593,7 +594,7 @@ namespace AElf.Contracts.Profit
             {
                 Assert(input.Period >= scheme.CurrentPeriod, "Invalid contributing period.");
                 var distributedPeriodProfitsVirtualAddress =
-                    GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                    GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
 
                 var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
                 if (distributedProfitsInformation == null)
@@ -695,7 +696,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary);
+                ProfitAllPeriods(scheme, profitDetail, beneficiary);
             }
 
             State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
@@ -703,8 +704,8 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail,
-            Address profitVirtualAddress, Address beneficiary, bool isView = false, string targetSymbol = null)
+        private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary,
+            bool isView = false, string targetSymbol = null)
         {
             var profitsMap = new Dictionary<string, long>();
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
@@ -725,7 +726,7 @@ namespace AElf.Contracts.Profit
                     var periodToPrint = period;
                     var detailToPrint = profitDetail;
                     var distributedPeriodProfitsVirtualAddress =
-                        GetDistributedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                        GetDistributedPeriodProfitsVirtualAddress(scheme.SchemeId, period);
                     var distributedProfitsInformation =
                         State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
                     if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0 ||
@@ -750,13 +751,16 @@ namespace AElf.Contracts.Profit
                                 State.TokenContract.Value =
                                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                             }
-                            State.TokenContract.TransferFrom.Send(new TransferFromInput
-                            {
-                                From = distributedPeriodProfitsVirtualAddress,
-                                To = beneficiary,
-                                Symbol = symbol,
-                                Amount = amount
-                            });
+
+                            Context.SendVirtualInline(
+                                GeneratePeriodVirtualAddressFromHash(scheme.SchemeId, period),
+                                State.TokenContract.Value,
+                                nameof(State.TokenContract.Transfer), new TransferInput
+                                {
+                                    To = beneficiary,
+                                    Symbol = symbol,
+                                    Amount = amount
+                                }.ToByteString());
                         }
 
                         lastProfitPeriod = period + 1;
@@ -809,7 +813,7 @@ namespace AElf.Contracts.Profit
         private Hash GenerateSchemeId(CreateSchemeInput createSchemeInput)
         {
             var manager = createSchemeInput.Manager ?? Context.Sender;
-            if (createSchemeInput.Token != null) 
+            if (createSchemeInput.Token != null)
                 return Context.GenerateId(Context.Self, createSchemeInput.Token);
             var createdSchemeCount = State.ManagingSchemeIds[manager]?.SchemeIds.Count ?? 0;
             return Context.GenerateId(Context.Self, createdSchemeCount.ToBytes(false));

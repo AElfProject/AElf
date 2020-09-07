@@ -45,9 +45,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var revealedInValue =
                     HashHelper.ComputeFrom(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
-                Context.LogDebug(() =>
-                    $"Revealed in value of {publicKeyOfAnotherMiner} of round {previousRound.RoundNumber}: {revealedInValue}");
-
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue = revealedInValue;
             }
         }

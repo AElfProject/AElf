@@ -196,7 +196,6 @@ namespace AElf.Contracts.TestContract.DApp
                 Decimals = DAppConstants.Decimal,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                IsProfitable = true,
                 TotalSupply = DAppConstants.TotalSupply,
                 LockWhiteList =
                 {

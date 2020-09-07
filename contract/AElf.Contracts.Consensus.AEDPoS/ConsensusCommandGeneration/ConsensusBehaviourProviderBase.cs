@@ -40,10 +40,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             public AElfConsensusBehaviour GetConsensusBehaviour()
             {
                 // The most simple situation: provided pubkey isn't a miner.
-                if (!CurrentRound.IsInMinerList(_pubkey))
-                {
-                    return AElfConsensusBehaviour.Nothing;
-                }
+                // Already checked in GetConsensusCommand.
+//                if (!CurrentRound.IsInMinerList(_pubkey))
+//                {
+//                    return AElfConsensusBehaviour.Nothing;
+//                }
 
                 // If out value is null, it means provided pubkey hasn't mine any block during current round period.
                 if (_minerInRound.OutValue == null)

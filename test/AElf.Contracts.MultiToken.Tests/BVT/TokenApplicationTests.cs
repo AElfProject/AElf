@@ -365,34 +365,7 @@ namespace AElf.Contracts.MultiToken
             afterTransferFromBalance.Balance.ShouldBe(beforeTransferFromBalance.Balance.Sub(transferAmount));
         }
 
-        [Fact(DisplayName = "[MultiToken] token is not profitable")]
-        public async Task MultiTokenContract_TransferFrom_Without_Profitable_Token_Test()
-        {
-            await CreateTokenAndIssue(false, new List<Address>());
-            var transferAmount = Amount.Div(3);
-            var donateResult = await TreasuryContractStub.Donate.SendWithExceptionAsync(new DonateInput
-            {
-                Symbol = SymbolForTest,
-                Amount = transferAmount
-            });
-            donateResult.TransactionResult.Error.ShouldContain("TransferFrom]Insufficient allowance");
-        }
-
-        [Fact(DisplayName = "[MultiToken] token is profitable")]
-        public async Task MultiTokenContract_TransferFrom_With_Profitable_Token_Test()
-        {
-            await CreateTokenAndIssue(true, new List<Address>());
-            var transferAmount = Amount.Div(3);
-            var donateResult = await TreasuryContractStub.Donate.SendAsync(new DonateInput
-            {
-                Symbol = SymbolForTest,
-                Amount = transferAmount
-            });
-            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-
-        private async Task CreateTokenAndIssue(bool isProfitable = false, List<Address> whitelist = null,
-            Address issueTo = null)
+        private async Task CreateTokenAndIssue(List<Address> whitelist = null, Address issueTo = null)
         {
             if (whitelist == null)
                 whitelist = new List<Address>
@@ -408,7 +381,6 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = true,
                 Issuer = DefaultAddress,
                 TokenName = "elf test token",
-                IsProfitable = isProfitable,
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 1000000,
                 LockWhiteList =
                 {
@@ -935,7 +907,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] sender is in whitelist, without approve, Token TransferToContract test")]
         public async Task TransferToContract_Out_Whitelist_Without_Approve_Test()
         {
-            await CreateTokenAndIssue(false, new List<Address>());
+            await CreateTokenAndIssue(new List<Address>());
             var transferAmount = Amount.Div(2);
             var transferResult = await BasicFunctionContractStub.TransferTokenToContract.SendWithExceptionAsync(
                 new TransferTokenToContractInput
@@ -1215,7 +1187,7 @@ namespace AElf.Contracts.MultiToken
             tokenSymbol = primaryTokenProvider.GetPrimaryTokenSymbol();
             tokenSymbol.ShouldBe(primaryTokenSymbol.Value); 
         }
-
+        
         private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,
             Address to = null, params string[] otherParameters)
         {

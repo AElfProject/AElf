@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
-using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -44,6 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
@@ -68,11 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            EnsureParliamentContractAddressSet();
 
             var defaultAuthority = new AuthorityInfo
             {
@@ -98,15 +94,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void AssertValidToken(string symbol, long amount)
         {
             Assert(amount >= 0, "Invalid amount.");
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
-            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
+            EnsureTokenContractAddressSet();
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion
