@@ -90,15 +90,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool TryToUpdateRoundNumber(long roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumber.Value;
-            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
-            {
-                return false;
-            }
-
+            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber) return false;
             State.CurrentRoundNumber.Value = roundNumber;
             return true;
         }
-        
+
         /// <summary>
         /// Will force to generate a `Change` to tx executing result.
         /// </summary>
@@ -133,14 +129,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool TryToUpdateRoundInformation(Round round)
         {
             var ri = State.Rounds[round.RoundNumber];
-            if (ri == null)
-            {
-                Context.LogDebug(() => "Round information not found");
-                return false;
-            }
-
+            if (ri == null) return false;
             State.Rounds[round.RoundNumber] = round;
-
             return true;
         }
 
@@ -148,6 +138,33 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
+        }
+
+        private void EnsureTokenContractAddressSet()
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+        }
+
+        private void EnsureElectionContractAddressSet()
+        {
+            if (State.ElectionContract.Value == null)
+            {
+                State.ElectionContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+            }
+        }
+
+        private void EnsureParliamentContractAddressSet()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
         }
     }
 }

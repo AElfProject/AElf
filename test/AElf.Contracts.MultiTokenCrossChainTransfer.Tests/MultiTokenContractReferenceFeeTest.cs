@@ -167,6 +167,9 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         [InlineData(true, 0, new []{3}, new []{int.MaxValue, 2, 8, 2, 6, 300})]
         [InlineData(true, 0, new []{3,2}, new []{1000, 4, 3, 2}, new []{int.MaxValue, 4, 3, 2})]
         [InlineData(true, 0, new []{2,3}, new []{100, 4, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, -1, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, -1, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, 3, 0})]
         public async Task Update_Coefficient_For_Contract_Test(bool isFail, int feeType, int[] pieceNumber, 
             params int[][] newPieceFunctions)
         {
@@ -211,6 +214,17 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                         .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
                 }
             }
+        }
+
+        [Fact]
+        public async Task GetCalculateFeeCoefficientsForContract_With_Invalid_FeeType_Test()
+        {
+            var invalidFeeType = -1;
+            var ret = await TokenContractStub.GetCalculateFeeCoefficientsForContract.CallAsync(new Int32Value
+            {
+                Value = invalidFeeType
+            });
+            ret.ShouldBe(new CalculateFeeCoefficients());
         }
         
         [Fact]
@@ -500,7 +514,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 AddedTokenWeight = 2,
                 BaseTokenWeight = 1
             });
-            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(false);
 
             newSymbolList.SymbolsToPayTxSizeFee[0].AddedTokenWeight = 1;
             newSymbolList.SymbolsToPayTxSizeFee.Add(new SymbolToPayTxSizeFee
@@ -509,7 +524,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 AddedTokenWeight = 0,
                 BaseTokenWeight = 1
             });
-            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+            result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(false);
         }
 
         [Fact]
@@ -549,7 +565,9 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     }
                 }
             };
-            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+            
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(false);
         }
         
         [Fact]
@@ -571,7 +589,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 AddedTokenWeight = 2,
                 BaseTokenWeight = 1
             });
-            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(false);
         }
         
         [Fact]
@@ -579,7 +598,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
-            var feeToken = "FEETOKEN";
+            const string feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = feeToken,
@@ -605,7 +624,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     }
                 }
             };
-            await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(false);
         }
         
         [Fact]
@@ -670,6 +690,41 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             result = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.ShouldContain($"the weight of token {feeToken} is set too large");
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_Success_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee
+            {
+                SymbolsToPayTxSizeFee =
+                {
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = primaryTokenSymbol,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 2
+                    }
+                }
+            };
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(true);
         }
 
         [Fact]
@@ -937,7 +992,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             return primaryTokenSymbol.Value;
         }
 
-        private async Task VerifyTheInvalidSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
+        private async Task<bool> VerifyTheSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
         {
             var createProposalInput = new CreateProposalInput
             {
@@ -950,7 +1005,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             var symbolListToPayTxSizeFee = await TokenContractStub.GetSymbolsToPayTxSizeFee.CallAsync(new Empty());
-            symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count.ShouldBe(0);
+            return symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count != 0;
         }
     }
 }

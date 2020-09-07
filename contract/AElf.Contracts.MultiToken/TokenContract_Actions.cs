@@ -110,8 +110,11 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
+
+            tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
+            
+            Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
             Context.Fire(new Issued
@@ -358,7 +361,6 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
             {
                 Burner = Context.Sender,
@@ -471,28 +473,13 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty AddTokenWhiteList(AddTokeWhiteListInput input)
-        {
-            var tokenInfo = State.TokenInfos[input.TokenSymbol];
-            Assert(tokenInfo != null && input.Address != null, "Invalid input.");
-
-            Assert(input.TokenSymbol == Context.Variables.NativeSymbol ||
-                   input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value, "No permission.");
-            var sender = Context.Sender;
-            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
-            var isSystemContractAddress = systemContractAddresses.Contains(sender);
-            Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-
-            State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
-            return new Empty();
-        }
-
         public override Empty ChangeTokenIssuer(ChangeTokenIssuerInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
             Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            Assert(tokenInfo.Issuer == Context.Sender && tokenInfo.IssueChainId == Context.ChainId,
+                "Permission denied");
             tokenInfo.Issuer = input.NewTokenIssuer;
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();

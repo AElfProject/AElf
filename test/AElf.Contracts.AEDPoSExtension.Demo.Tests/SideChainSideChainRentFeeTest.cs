@@ -377,6 +377,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 Symbol = symbol
             })).Balance;
         }
+
         private async Task ParliamentReachAnAgreementAsync(Address contractAddress, Address organizationAddress,
             string methodName, IMessage input)
         {
@@ -384,6 +385,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
         }
+
         private async Task<Hash> CreateFeeProposalAsync(Address contractAddress, Address organizationAddress,
             string methodName, IMessage input)
         {

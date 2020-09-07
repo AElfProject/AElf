@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             _consensusExtraDataExtractor = GetRequiredService<IConsensusExtraDataExtractor>();
             _blockchainService = GetRequiredService<IBlockchainService>();
         }
-        
+
         [Fact]
         public async Task ExtractConsensusExtraData_Test()
         {
@@ -33,10 +33,18 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             };
             var result = _consensusExtraDataExtractor.ExtractConsensusExtraData(header);
             result.ShouldBeNull();
-            
+
             header.SignerPubkey = ByteString.CopyFromUtf8("real-pubkey");
             result = _consensusExtraDataExtractor.ExtractConsensusExtraData(header);
             result.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void ExtractConsensusExtraData_Test_Null()
+        {
+            var extraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(new BlockHeader
+                {Height = AElfConstants.GenesisBlockHeight});
+            extraData.ShouldBeNull();
         }
     }
 }

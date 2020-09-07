@@ -27,16 +27,16 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var result =
                 _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
-                    consensusCommandBytes: new BytesValue());
-            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(data: result.Value);
-            triggerInformation.Behaviour.ShouldBe(expected: AElfConsensusBehaviour.UpdateValue);
+                    new BytesValue());
+            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
+            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
 
             result = _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
-                consensusCommandBytes: new ConsensusCommand
+                new ConsensusCommand
                         {Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString()}
                     .ToBytesValue());
-            triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(data: result.Value);
-            triggerInformation.Behaviour.ShouldBe(expected: AElfConsensusBehaviour.Nothing);
+            triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
+            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.Nothing);
             return Task.CompletedTask;
         }
 
@@ -45,6 +45,24 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var result = await _aedpoSInformationProvider.GetCurrentMinerList(new ChainContext());
             result.Count().ShouldBe(3);
+        }
+
+        [Fact]
+        public void GetTriggerInformationForBlockHeaderExtraData_CommandIsNull_Test()
+        {
+            var result =
+                _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(null);
+            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
+            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
+        }
+
+        [Fact]
+        public void GetTriggerInformationForConsensusTransactions_CommandIsNull_Test()
+        {
+            var result =
+                _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(null);
+            var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
+            triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
         }
     }
 }

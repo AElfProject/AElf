@@ -423,7 +423,6 @@ namespace AElf.Contracts.Profit
         private Empty BurnProfits(long period, Dictionary<string, long> profitsMap, Scheme scheme,
             Address profitsReceivingVirtualAddress)
         {
-            Context.LogDebug(() => "Entered BurnProfits.");
             scheme.CurrentPeriod = period.Add(1);
 
             var distributedProfitsInfo = new DistributedProfitsInfo
@@ -436,6 +435,13 @@ namespace AElf.Contracts.Profit
                 var amount = profits.Value;
                 if (amount > 0)
                 {
+                    var balanceOfToken = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = scheme.VirtualAddress,
+                        Symbol = symbol
+                    });
+                    if(balanceOfToken.Balance < amount)
+                        continue;
                     Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
                         nameof(State.TokenContract.Transfer), new TransferInput
                         {

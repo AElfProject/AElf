@@ -15,7 +15,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        
+
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
@@ -27,7 +27,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
-        
+
         public override async Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
         {
             if (InterestedEvent != null)
@@ -35,12 +35,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var smartContractAddressDto = await _smartContractAddressService.GetSmartContractAddressAsync(
                 chainContext, ConsensusSmartContractAddressNameProvider.StringName);
             if (smartContractAddressDto == null) return null;
-            
+
             var interestedEvent =
                 GetInterestedEvent<IrreversibleBlockHeightUnacceptable>(smartContractAddressDto.SmartContractAddress
                     .Address);
-            if (!smartContractAddressDto.Irreversible)return interestedEvent;
-            
+            if (!smartContractAddressDto.Irreversible) return interestedEvent;
+
             InterestedEvent = interestedEvent;
             return InterestedEvent;
         }
