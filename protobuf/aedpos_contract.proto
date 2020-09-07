@@ -105,6 +105,9 @@ service AEDPoSContract {
     rpc GetPreviousTermMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentMiningRewardPerBlock (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {

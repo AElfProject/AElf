@@ -38,7 +38,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 if (connector.IsDepositAccount)
                 {
-                    Assert(!string.IsNullOrEmpty(connector.Symbol),"Invalid connector symbol.");
+                    Assert(!string.IsNullOrEmpty(connector.Symbol), "Invalid connector symbol.");
                     AssertValidConnectorWeight(connector);
                 }
                 else
@@ -46,6 +46,7 @@ namespace AElf.Contracts.TokenConverter
                     Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
                     AssertValidConnectorWeight(connector);
                 }
+
                 State.Connectors[connector.Symbol] = connector;
             }
 
@@ -233,6 +234,12 @@ namespace AElf.Contracts.TokenConverter
             if (State.DividendPoolContract.Value == null)
                 State.DividendPoolContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Symbol = State.BaseTokenSymbol.Value,
+                Spender = State.DividendPoolContract.Value,
+                Amount = donateFee
+            });
             State.DividendPoolContract.Donate.Send(new DonateInput
             {
                 Symbol = State.BaseTokenSymbol.Value,
@@ -325,11 +332,11 @@ namespace AElf.Contracts.TokenConverter
         {
             return number > decimal.Zero && number < decimal.One;
         }
-        
+
         private static bool IsValidSymbol(string symbol)
         {
             return symbol.Length > 0 &&
-                symbol.All(c => c >= 'A' && c <= 'Z');
+                   symbol.All(c => c >= 'A' && c <= 'Z');
         }
 
         private static bool IsValidBaseSymbol(string symbol)
@@ -397,7 +404,7 @@ namespace AElf.Contracts.TokenConverter
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
         }
-        
+
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);

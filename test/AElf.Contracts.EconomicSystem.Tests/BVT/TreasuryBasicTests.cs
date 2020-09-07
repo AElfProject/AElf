@@ -184,7 +184,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var nativeTokenCost = depositBeforeDonate.Value.Sub(startResourceTokenDeposit.Value);
             var treasuryVirtualAddress = await GetTreasurySchemeVirtualAddressAsync();
             var balanceOfTreasuryBeforeDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            
             //donate
             var donateRet = await TreasuryContractStub.Donate.SendAsync(new DonateInput
             {
