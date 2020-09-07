@@ -211,7 +211,7 @@ namespace AElf.Contracts.Election
             //basic value
             {
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward = await AEDPoSContractStub.GetCurrentWelfareReward.CallAsync(new Empty());
                 miningReward.Value.ShouldBeGreaterThanOrEqualTo(ElectionContractConstants.ElfTokenPerBlock * 10);
             }
 
@@ -219,11 +219,11 @@ namespace AElf.Contracts.Election
             {
                 await NextTerm(BootMinerKeyPair);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward1 = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward1 =  await AEDPoSContractStub.GetCurrentWelfareReward.CallAsync(new Empty());
 
                 await NextTerm(BootMinerKeyPair);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward2 = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward2 =  await AEDPoSContractStub.GetCurrentWelfareReward.CallAsync(new Empty());
 
                 miningReward1.ShouldBe(miningReward2);
             }
