@@ -26,10 +26,12 @@
         </CommonMessage>
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\acs11.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
-
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractMessage>
@@ -45,15 +47,12 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
-
         <ContractStub Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf\Proto\election_contract.proto</Link>
         </ContractStub>
-
         <ContractStub Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf\Proto\treasury_contract.proto</Link>
         </ContractStub>
-
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf\Proto\economic_contract.proto</Link>
         </ContractStub>

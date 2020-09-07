@@ -27,11 +27,11 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\reference\acs11.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>

@@ -75,4 +75,15 @@ namespace AElf.Kernel
         {
         }
     }
+
+    [DependsOn(
+        typeof(KernelCoreTestAElfModule))]
+    public class AccountTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddSingleton<IAccountService,AccountService>();
+        }
+    }
 }

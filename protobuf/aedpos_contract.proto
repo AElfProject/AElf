@@ -29,13 +29,10 @@ service AEDPoSContract {
     }
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
-
+    
     rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
     rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
-    }
-
-    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -103,6 +100,9 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     rpc GetMainChainCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPreviousTermMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
 }
@@ -289,4 +289,9 @@ message MiningRewardGenerated {
     option (aelf.is_event) = true;
     int64 term_number = 1 [(aelf.is_indexed) = true];
     int64 amount = 2;
+}
+
+message MinerReplaced {
+    option (aelf.is_event) = true;
+    string new_miner_pubkey = 1;
 }
