@@ -5,6 +5,7 @@ using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Standards.ACS10;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -27,8 +28,6 @@ namespace AElf.Contracts.TokenConverter
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            State.FeeReceiverAddress.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             State.BaseTokenSymbol.Value = !string.IsNullOrEmpty(input.BaseTokenSymbol)
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
@@ -222,15 +221,23 @@ namespace AElf.Contracts.TokenConverter
             var donateFee = fee.Div(2);
             var burnFee = fee.Sub(donateFee);
 
-            // Transfer to fee receiver.
+            // Donate 0.5% fees to Treasury
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
-                    To = State.FeeReceiverAddress.Value,
+                    To = Context.Self,
                     Amount = donateFee
                 });
+            if (State.DividendPoolContract.Value == null)
+                State.DividendPoolContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.DividendPoolContract.Donate.Send(new DonateInput
+            {
+                Symbol = State.BaseTokenSymbol.Value,
+                Amount = donateFee
+            });
 
             // Transfer to self contract then burn
             State.TokenContract.TransferFrom.Send(
