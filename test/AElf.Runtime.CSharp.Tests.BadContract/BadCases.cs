@@ -48,4 +48,13 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             collection = Array.AsReadOnly(new[] { new BadCase3() });
         }
     }
+
+    public class BadCase6
+    {
+        public BadCase6()
+        {
+            var array = new int[0][]; // multi dim array
+            int length = array.Length;
+        }
+    }
 }

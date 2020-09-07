@@ -60,7 +60,7 @@ namespace AElf.CSharp.CodeOps
         {
             var validator = new MultiDimArrayValidator();
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
-            validateResult1.Count.ShouldBe(0); //no error sample
+            validateResult1.Count.ShouldBe(1);
 
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
