@@ -29,5 +29,4 @@
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-
 </Project>

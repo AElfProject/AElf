@@ -200,6 +200,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         public async Task GenerateTransactions_Transaction_Success_Test()
         {
             await DeployTestContractAsync();
+            
+            var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
             var feeAmount = 7;
             await SetMethodFee_Successful(feeAmount);
             var dummy = await _testContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
@@ -246,10 +249,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
         {
             await DeployTestContractAsync();
 
+            var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
             var feeAmount = 7;
             await SetMethodFee_Successful(feeAmount);
 
-            var tokenContractStub = await GetTokenContractStubAsync();
             var before = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
@@ -291,6 +295,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             
             var issueAmount = 99999;
             var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
+
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
@@ -335,6 +341,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             await DeployTestContractAsync();
 
             var tokenContractStub = await GetTokenContractStubAsync();
+            await SetPrimaryTokenSymbolAsync(tokenContractStub);
             await tokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = "ELF",
@@ -465,6 +472,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             });
             before.Balance.ShouldBe(after.Balance);
         }
+        
+        private async Task SetPrimaryTokenSymbolAsync(TokenContractContainer.TokenContractStub tokenContractStub)
+        {
+            await tokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+                {Symbol = "ELF"});
+        }
+        
         
         [Fact]
         public async Task IBlockValidationProvider_ValidateBeforeAttachAsync_Test()

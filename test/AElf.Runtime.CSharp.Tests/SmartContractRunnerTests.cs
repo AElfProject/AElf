@@ -28,7 +28,6 @@ namespace AElf.Runtime.CSharp
             executive.ShouldNotBe(null);
             executive.ContractHash.ShouldBe(smartContractRegistration.CodeHash);
             executive.ContractVersion.ShouldBe("1.0.0.0");
-            executive.IsSystemContract.ShouldBe(smartContractRegistration.IsSystemContract);
             
             smartContractRunner.ContractVersion.ShouldBe("1.0.0.0");
         }
