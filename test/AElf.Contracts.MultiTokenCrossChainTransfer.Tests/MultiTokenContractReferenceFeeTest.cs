@@ -697,13 +697,14 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
             var primaryTokenSymbol = await GetThePrimaryTokenAsync();
-            var FeeToken = "FEETOKEN";
+            const string feeToken = "FEETOKEN";
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
-                Symbol = FeeToken,
+                Symbol = feeToken,
                 TokenName = "name",
                 Issuer = TokenContractAddress,
-                TotalSupply = 100_000
+                TotalSupply = 100_000,
+                IsBurnable = true
             });
             var newSymbolList = new SymbolListToPayTxSizeFee
             {
@@ -717,7 +718,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     },
                     new SymbolToPayTxSizeFee
                     {
-                        TokenSymbol = FeeToken,
+                        TokenSymbol = feeToken,
                         AddedTokenWeight = 1,
                         BaseTokenWeight = 2
                     }
