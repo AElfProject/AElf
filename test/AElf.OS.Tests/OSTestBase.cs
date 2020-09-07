@@ -1,5 +1,6 @@
 using AElf.OS.Account;
 using AElf.OS.BlockSync;
+using AElf.OS.Handlers;
 using AElf.OS.Worker;
 using AElf.TestBase;
 
@@ -53,6 +54,10 @@ namespace AElf.OS
     }
     
     public class PeerReconnectionTestBase : AElfIntegratedTest<PeerReconnectionTestAElfModule>
+    {
+    }
+    
+    public class AbnormalPeerEventHandlerTestBase : AElfIntegratedTest<AbnormalPeerEventHandlerTestAElfModule>
     {
     }
 }

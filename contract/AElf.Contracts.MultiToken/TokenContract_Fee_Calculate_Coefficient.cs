@@ -15,8 +15,6 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty UpdateCoefficientsForContract(UpdateCoefficientsInput input)
         {
-            if (input == null)
-                return new Empty();
             Assert(input.Coefficients.FeeTokenType != (int) FeeTypeEnum.Tx, "Invalid fee type.");
             AssertDeveloperFeeController();
             UpdateCoefficients(input);
@@ -25,8 +23,6 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty UpdateCoefficientsForSender(UpdateCoefficientsInput input)
         {
-            if (input == null)
-                return new Empty();
             AssertUserFeeController();
             input.Coefficients.FeeTokenType = (int) FeeTypeEnum.Tx; // The only possible for now.
             UpdateCoefficients(input);

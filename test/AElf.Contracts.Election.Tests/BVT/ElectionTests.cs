@@ -381,6 +381,49 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_ChangeVotingTarget_With_Invalid_Target_Test()
+        {
+            const long amount = 500;
+            const int lockTime = 100 * 60 * 60 * 24;
+            var validCandidate = ValidationDataCenterKeyPairs.First();
+            var validCandidatePublicKeyStr = validCandidate.PublicKey.ToHex();
+            var invalidCandidate = ValidationDataCenterKeyPairs.Last();
+            var invalidCandidatePublicKeyStr = invalidCandidate.PublicKey.ToHex();
+            await AnnounceElectionAsync(validCandidate);
+            var voterKeyPair = VoterKeyPairs[0];
+            var electionStub = GetElectionContractTester(voterKeyPair);
+            var voteResult = await VoteToCandidate(voterKeyPair, validCandidate.PublicKey.ToHex(), lockTime, amount);
+            voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
+            {
+                Value = validCandidatePublicKeyStr       
+            });
+            candidateVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(1);
+            candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
+            var voteId = candidateVote.ObtainedActiveVotingRecordIds[0];
+            
+            // change to a candidate that does not exist
+            var changeVoteOptionRet = await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                VoteId = voteId,
+                CandidatePubkey = invalidCandidatePublicKeyStr,
+            });
+            changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeVoteOptionRet.TransactionResult.Error.ShouldContain("Candidate not found");
+            
+            // change to a candidate that quits election
+            await AnnounceElectionAsync(invalidCandidate);
+            await QuitElectionAsync(invalidCandidate);
+            changeVoteOptionRet = await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                VoteId = voteId,
+                CandidatePubkey = invalidCandidatePublicKeyStr,
+            });
+            changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            changeVoteOptionRet.TransactionResult.Error.ShouldContain("Candidate quited election");
+        }
+        
+        [Fact]
         public async Task ElectionContract_Vote_DataCenter_Amount_Test()
         {
             const long amount = 500;
@@ -400,7 +443,7 @@ namespace AElf.Contracts.Election
             dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenter.DataCenters[candidateStringKey].ShouldBe(amount * 2);
         }
-
+        
         [Fact]
         public async Task ElectionContract_ChangeVotingTarget()
         {

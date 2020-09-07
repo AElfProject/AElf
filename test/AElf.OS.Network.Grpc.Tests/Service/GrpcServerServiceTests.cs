@@ -138,6 +138,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             });
             
+            requestStream = new TestAsyncStreamReader<BlockWithTransactions>(new List<BlockWithTransactions> { block });
             await _serverService.BlockBroadcastStream(requestStream, BuildServerCallContext(metadata));
             
             received.Count.ShouldBe(0);
@@ -240,6 +241,14 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             });
             
+            requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
+            {
+                new BlockAnnouncement
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }
+            });
             await _serverService.AnnouncementBroadcastStream(requestStream, BuildServerCallContext(metadata));
             
             received.Count.ShouldBe(0);
@@ -263,7 +272,20 @@ namespace AElf.OS.Network.Grpc
             var block = _osTestHelper.GenerateBlockWithTransactions(HashHelper.ComputeFrom("block1"), 1, 
                 (await _osTestHelper.GenerateTransferTransactions(1)).ToList());
 
-            var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
+            var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement> {null});
+            await _serverService.AnnouncementBroadcastStream(requestStream, BuildServerCallContext(metadata));
+            received.Count.ShouldBe(0);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            
+            requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
+            {
+                new BlockAnnouncement()
+            });
+            await _serverService.AnnouncementBroadcastStream(requestStream, BuildServerCallContext(metadata));
+            received.Count.ShouldBe(0);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            
+            requestStream = new TestAsyncStreamReader<BlockAnnouncement>(new List<BlockAnnouncement>
             {
                 new BlockAnnouncement
                 {
@@ -343,6 +365,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             });
             
+            requestStream = new TestAsyncStreamReader<Transaction>(new List<Transaction> { transaction });
             await _serverService.TransactionBroadcastStream(requestStream, BuildServerCallContext(metadata));
             
             received.Count.ShouldBe(0);
@@ -447,16 +470,36 @@ namespace AElf.OS.Network.Grpc
             peer.SyncState.ShouldNotBe(SyncState.Finished);
             var pubkey = peer.Info.Pubkey;
             var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
-            
+            var context = BuildServerCallContext(metadata);
+
+            var lastLibHeight = peer.LastKnownLibHeight;
+            var lastLibHash = peer.LastKnownLibHash;
             var requestStream = new TestAsyncStreamReader<LibAnnouncement>(new List<LibAnnouncement>
+            {
+                null
+            });
+            await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            peer.LastKnownLibHash.ShouldBe(lastLibHash);
+            peer.LastKnownLibHeight.ShouldBe(lastLibHeight);
+            
+            requestStream = new TestAsyncStreamReader<LibAnnouncement>(new List<LibAnnouncement>
+            {
+                new LibAnnouncement()
+            });
+            await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
+            peer.SyncState.ShouldNotBe(SyncState.Finished);
+            peer.LastKnownLibHash.ShouldBe(lastLibHash);
+            peer.LastKnownLibHeight.ShouldBe(lastLibHeight);
+
+            requestStream = new TestAsyncStreamReader<LibAnnouncement>(new List<LibAnnouncement>
             {
                 new LibAnnouncement
                 {
                     LibHeight = libHeight,
                     LibHash = libHash
                 }
-            });            
-            var context = BuildServerCallContext(metadata);
+            });
             await _serverService.LibAnnouncementBroadcastStream(requestStream, context);
 
             peer.SyncState.ShouldBe(SyncState.Finished);

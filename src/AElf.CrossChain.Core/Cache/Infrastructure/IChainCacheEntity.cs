@@ -66,6 +66,11 @@ namespace AElf.CrossChain.Cache.Infrastructure
             {
                 _cache.TryRemove(h, out _);
             }
+
+            if (_cache.Count == 0)
+            {
+                _targetHeight = height + 1;
+            }
         }
 
         private bool ValidateBlockCacheEntity(ICrossChainBlockEntity crossChainBlockEntity)

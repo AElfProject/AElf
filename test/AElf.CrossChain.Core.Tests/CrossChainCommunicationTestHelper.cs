@@ -40,7 +40,7 @@ namespace AElf.CrossChain
         
         public bool CheckClientConnected(int chainId)
         {
-            return _clientConnected[chainId];
+            return _clientConnected.TryGetValue(chainId, out var res) && res;
         }
 
         public void SetClientConnected(int chainId, bool isConnected)

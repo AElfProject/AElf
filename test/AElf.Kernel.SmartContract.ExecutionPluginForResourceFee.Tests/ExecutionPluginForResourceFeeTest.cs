@@ -7,12 +7,16 @@ using AElf.Standards.ACS8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.FeeCalculation.Extensions;
+using AElf.Kernel.SmartContract.Events;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.EventBus;
 using Volo.Abp.Threading;
 using Xunit;
 
@@ -370,6 +374,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
         {
             var resourceToken = await TokenContractStub.GetResourceTokenInfo.CallAsync(new Empty());
             resourceToken.Value.Count.ShouldBe(4);
+        }
+
+        [Fact]
+        async Task DonateResourceTokenValidationProvider_ValidateBeforeAttachAsync_Test()
+        {
+            var validator = GetRequiredService<IBlockValidationProvider>();
+            var result = await validator.ValidateBeforeAttachAsync(null);
+            result.ShouldBeTrue();
         }
     }
 }
