@@ -145,3 +145,10 @@ message UpdateConnectorInput {
     int64 virtual_balance = 2;
     string weight = 3;
 }
+
+message TradeInformation{
+    string symbol = 1;
+    int64 buy_times = 2;
+    int64 sell_times = 3;
+    int64 prepare_amount = 4;
+}

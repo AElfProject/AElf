@@ -117,9 +117,14 @@ namespace AElf.Contracts.TokenConverter
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
-
-            amountToPay = amountToPay.Add(1); // avoid buying multiple times and selling all one time
-            
+            var tradeInformation = State.TradeInformation[input.Symbol] ?? new TradeInformation();
+            if (tradeInformation.BuyTimes >= tradeInformation.SellTimes)
+            {
+                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Add(1);
+                amountToPay = amountToPay.Add(1); // avoid buying multiple times and selling all one time
+            }
+            tradeInformation.BuyTimes = tradeInformation.BuyTimes.Add(1);
+            State.TradeInformation[input.Symbol] = tradeInformation;
             var fee = Convert.ToInt64(amountToPay * GetFeeRate());
             Assert(fee > 0, $"purchase not enough token: {input.Symbol}");
             
@@ -172,7 +177,15 @@ namespace AElf.Contracts.TokenConverter
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
             );
-
+            var tradeInformation = State.TradeInformation[input.Symbol];
+            Assert(tradeInformation != null, "invalid operation");
+            if (tradeInformation.PrepareAmount > 0 && tradeInformation.SellTimes > tradeInformation.BuyTimes)
+            {
+                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Sub(1);
+                amountToReceive = amountToReceive.Add(1);
+            }
+            tradeInformation.SellTimes = tradeInformation.SellTimes.Add(1);
+            State.TradeInformation[input.Symbol] = tradeInformation;
             var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
             var dividendSender = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             if (fee == 0)
