@@ -152,7 +152,7 @@ namespace AElf.Contracts.TokenConverter
         {
             var tokenSymbol = "CWJ";
             await AddPairConnectorAsync(tokenSymbol);
-            var updateConnector = new Connector
+            var updateConnector = new UpdateConnectorInput
             {
                 Symbol = tokenSymbol,
                 Weight = "0.3"
@@ -182,12 +182,19 @@ namespace AElf.Contracts.TokenConverter
                     {
                         Symbol = creatConnectorTokenSymbol
                     });
-            var updateConnectorInput =
+            var updateConnector =
                 isUpdateResourceToken ? pairConnector.ResourceConnector : pairConnector.DepositConnector;
             if (isUpdateResourceToken)
-                updateConnectorInput.Symbol = inputTokenSymbol;
-            updateConnectorInput.Weight = weight;
-            updateConnectorInput.VirtualBalance = virtualBalance;
+                updateConnector.Symbol = inputTokenSymbol;
+            updateConnector.Weight = weight;
+            updateConnector.VirtualBalance = virtualBalance;
+
+            var updateConnectorInput = new UpdateConnectorInput
+            {
+                Symbol = updateConnector.Symbol,
+                Weight = updateConnector.Weight,
+                VirtualBalance = updateConnector.VirtualBalance
+            };
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -348,18 +355,15 @@ namespace AElf.Contracts.TokenConverter
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
                 pairConnector);
-            var updateConnector = new Connector
+            var updateConnectorInput = new UpdateConnectorInput
             {
                 Symbol = token,
                 VirtualBalance = 1000_000,
-                IsVirtualBalanceEnabled = false,
-                IsPurchaseEnabled = true,
-                Weight = "0.49",
-                RelatedSymbol = "change"
+                Weight = "0.49"
             };
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
-                updateConnector);
+                updateConnectorInput);
             var resourceConnector =
                 (await DefaultStub.GetPairConnector.CallAsync(
                     new TokenSymbol {Symbol = token})).ResourceConnector;
@@ -443,7 +447,11 @@ namespace AElf.Contracts.TokenConverter
                 var updateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
                     nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
-                    resourceConnector);
+                    new UpdateConnectorInput
+                    {
+                        Symbol = tokenSymbol,
+                        Weight = "0.2"
+                    });
                 updateRet.Error.ShouldContain("connector can not be updated because it has been activated");
             }
         }

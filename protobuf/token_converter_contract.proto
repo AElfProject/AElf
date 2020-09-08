@@ -17,15 +17,13 @@ service TokenConverterContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc SetConnector (Connector) returns (google.protobuf.Empty) {
-    }
     rpc Buy (BuyInput) returns (google.protobuf.Empty) {
     }
     rpc Sell (SellInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
+    rpc UpdateConnector(UpdateConnectorInput) returns (google.protobuf.Empty){
     }
     rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }
@@ -119,6 +117,7 @@ message TokenSold {
     int64 base_amount = 3;
     int64 fee_amount =4;    
 }
+
 message PairConnectorParam {
     string resource_connector_symbol = 1;
     string resource_weight = 2;
@@ -130,11 +129,19 @@ message ToBeConnectedTokenInfo{
     string token_symbol = 1;
     int64 amount_to_token_convert = 2;
 }
+
 message DepositInfo{
     int64 need_amount = 1;
     int64 amount_out_of_token_convert = 2;
 }
+
 message PairConnector{
     Connector resource_connector = 1;
     Connector deposit_connector = 2;
+}
+
+message UpdateConnectorInput {
+    string symbol = 1;
+    int64 virtual_balance = 2;
+    string weight = 3;
 }

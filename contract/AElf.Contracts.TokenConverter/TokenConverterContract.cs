@@ -53,7 +53,7 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        public override Empty UpdateConnector(Connector input)
+        public override Empty UpdateConnector(UpdateConnectorInput input)
         {
             AssertPerformedByConnectorController();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
