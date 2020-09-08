@@ -112,15 +112,17 @@ namespace AElf.Contracts.TokenConverter
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "[Buy]Can't find to connector.");
             Assert(toConnector.IsPurchaseEnabled, "can't purchase");
-            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
-            Assert(fromConnector != null, "[Buy]Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
-            var fee = Convert.ToInt64(amountToPay * GetFeeRate());
 
+            amountToPay = amountToPay.Add(1); // avoid buying multiple times and selling all one time
+            
+            var fee = Convert.ToInt64(amountToPay * GetFeeRate());
+            Assert(fee > 0, $"purchase not enough token: {input.Symbol}");
+            
             var amountToPayPlusFee = amountToPay.Add(fee);
             Assert(input.PayLimit == 0 || amountToPayPlusFee <= input.PayLimit, "Price not good.");
 
@@ -132,7 +134,7 @@ namespace AElf.Contracts.TokenConverter
 
             // Transfer base token
             State.TokenContract.TransferFrom.Send(
-                new TransferFromInput()
+                new TransferFromInput
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
@@ -165,7 +167,6 @@ namespace AElf.Contracts.TokenConverter
             Assert(fromConnector != null, "[Sell]Can't find from connector.");
             Assert(fromConnector.IsPurchaseEnabled, "can't purchase");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
-            Assert(toConnector != null, "[Sell]Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -173,8 +174,11 @@ namespace AElf.Contracts.TokenConverter
             );
 
             var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
+            var dividendSender = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            if (fee == 0)
+                Assert(Context.Sender == dividendSender, $"sell not enough token: {input.Symbol}");
 
-            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName))
+            if (Context.Sender == dividendSender)
             {
                 fee = 0;
             }

@@ -155,11 +155,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             // donate resource token
             var resourceTokenSymbol = ResourceTokenSymbol;
             var nativeTokenSymbol = EconomicContractsTestConstants.NativeTokenSymbol;
-            var startResourceTokenDeposit = await TokenConverterContractStub.GetDepositConnectorBalance.CallAsync(
-                new StringValue
-                {
-                    Value = resourceTokenSymbol
-                });
             var balanceOfResourceTokenSymbol = await GetBalanceAsync(resourceTokenSymbol, BootMinerAddress);
             balanceOfResourceTokenSymbol.ShouldBe(0);
             var buyAmount = 1_00000000;
@@ -181,10 +176,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = ResourceTokenSymbol
                 });
-            var nativeTokenCost = depositBeforeDonate.Value.Sub(startResourceTokenDeposit.Value);
-            var treasuryVirtualAddress = await GetTreasurySchemeVirtualAddressAsync();
-            var balanceOfTreasuryBeforeDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            
+
             //donate
             var donateRet = await TreasuryContractStub.Donate.SendAsync(new DonateInput
             {
@@ -197,12 +189,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = ResourceTokenSymbol
                 });
-            depositBeforeDonate.Value.Sub(depositAfterDonate.Value).ShouldBe(nativeTokenCost);
-            var feeRateString = EconomicContractsTestConstants.TokenConverterFeeRate;
-            var feeRate = decimal.Parse(feeRateString);
-            var donateFee = (long)(nativeTokenCost * feeRate / 2);
-            var balanceOfTreasuryAfterDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            balanceOfTreasuryAfterDonate.Sub(balanceOfTreasuryBeforeDonate).ShouldBe(nativeTokenCost.Add(donateFee));
+            depositBeforeDonate.Value.ShouldBeGreaterThan(depositAfterDonate.Value);
         }
 
         [Fact]

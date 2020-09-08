@@ -170,6 +170,7 @@ namespace AElf.Contracts.TokenConverter
 
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance, fromConnectorWeight,
                 toConnectorBalance, toConnectorWeight, 1000L);
+            amountToPay += 1;
             var depositAmountBeforeBuy = await DefaultStub.GetDepositConnectorBalance.CallAsync(new StringValue
             {
                 Value = WriteConnector.Symbol
@@ -210,6 +211,55 @@ namespace AElf.Contracts.TokenConverter
 
             var balanceOfTesterToken = await GetBalanceAsync(NativeSymbol, DefaultSender);
             balanceOfTesterToken.ShouldBe(100_0000L - amountToPay - fee);
+        }
+
+        [Theory]
+        [InlineData("0.5", "0.05", "0.05", 10_00000000L, 1, 1)]
+        [InlineData("0.5", "0.05", "0.05", 10_00000000L, 100, 1)]
+        [InlineData("0.5", "0.05", "0.05", 10_00000000L, 1, 100)]
+        [InlineData("0.5", "0.05", "0.2", 10_00000000L, 1, 1)]
+        [InlineData("0.5", "0.05", "0.2", 10_00000000L, 100, 1)]
+        [InlineData("0.5", "0.05", "0.2", 10_00000000L, 1, 100)]
+        [InlineData("0.5", "0.2", "0.05", 10_00000000L, 1, 1)]
+        [InlineData("0.5", "0.2", "0.05", 10_00000000L, 100, 1)]
+        [InlineData("0.5", "0.2", "0.05", 10_00000000L, 1, 100)]
+        public async Task Buy_Sell_Composite_With_Same_Weight_Test(string feeRate, string writeWeight,
+            string ntWriteWeight, long totalAmount, int buyTimes, int sellTimes)
+        {
+            const long totalSupply = 1000_0000_0000L;
+            await CreateRamToken(totalSupply);
+            WriteConnector.Weight = writeWeight;
+            NtWriteConnector.Weight = ntWriteWeight;
+            await InitializeTokenConverterContract(feeRate);
+            const long issueAmount = 100_0000_0000;
+            await TokenContractStub.Issue.SendAsync(new IssueInput()
+            {
+                Symbol = "ELF",
+                Amount = issueAmount,
+                To = DefaultSender,
+            });
+
+            var buyAmountOneTime = totalAmount / buyTimes;
+            while (buyTimes-- > 0)
+            {
+                var buyRet = await DefaultStub.Buy.SendAsync(new BuyInput
+                {
+                    Symbol = WriteSymbol,
+                    Amount = buyAmountOneTime
+                });
+                buyRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            var sellAmountOneTime = totalAmount / sellTimes;
+            while (sellTimes-- > 0)
+            {
+                var sellRet = await DefaultStub.Sell.SendAsync(new SellInput
+                {
+                    Symbol = WriteSymbol,
+                    Amount = sellAmountOneTime
+                });
+                sellRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
@@ -356,17 +406,18 @@ namespace AElf.Contracts.TokenConverter
             };
         }
         
-        private async Task CreateRamToken()
+        private async Task CreateRamToken(long totalSupply = 100_0000L)
         {
             var createResult = (await TokenContractStub.Create.SendAsync(
-                new CreateInput()
+                new CreateInput
                 {
                     Symbol = WriteConnector.Symbol,
                     Decimals = 2,
                     IsBurnable = true,
                     Issuer = DefaultSender,
                     TokenName = "Write Resource",
-                    TotalSupply = 100_0000L
+                    TotalSupply = totalSupply,
+                    LockWhiteList = { TokenConverterContractAddress}
                 })).TransactionResult;
             createResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -374,20 +425,20 @@ namespace AElf.Contracts.TokenConverter
                 new IssueInput
                 {
                     Symbol = WriteConnector.Symbol,
-                    Amount = 100_0000L,
+                    Amount = totalSupply,
                     Memo = "Issue WRITE token",
                     To = TokenConverterContractAddress
                 })).TransactionResult;
             issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        private async Task<TransactionResult> InitializeTokenConverterContract()
+        private async Task<TransactionResult> InitializeTokenConverterContract(string feeRate = "0.005")
         {
             //init token converter
             var input = new InitializeInput
             {
                 BaseTokenSymbol = "ELF",
-                FeeRate = "0.005",
+                FeeRate = feeRate,
                 Connectors = {ELFConnector, WriteConnector, NtWriteConnector}
             };
             return (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
