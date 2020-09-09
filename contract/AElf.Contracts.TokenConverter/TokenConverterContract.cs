@@ -177,8 +177,7 @@ namespace AElf.Contracts.TokenConverter
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
             );
-            var tradeInformation = State.TradeInformation[input.Symbol];
-            Assert(tradeInformation != null, "invalid operation");
+            var tradeInformation = State.TradeInformation[input.Symbol] ?? new TradeInformation();
             if (tradeInformation.PrepareAmount > 0 && tradeInformation.SellTimes > tradeInformation.BuyTimes)
             {
                 tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Sub(1);
