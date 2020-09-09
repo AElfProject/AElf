@@ -86,7 +86,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
-            ret.Error.ShouldContain("new controller does not exist");
+            ret.Error.ShouldContain("New Controller organization does not exist.");
         }
 
         [Fact]

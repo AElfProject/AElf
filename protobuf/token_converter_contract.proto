@@ -23,7 +23,7 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc UpdateConnector(UpdateConnectorInput) returns (google.protobuf.Empty){
+    rpc UpdateConnector (UpdateConnectorInput) returns (google.protobuf.Empty){
     }
     rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
     }

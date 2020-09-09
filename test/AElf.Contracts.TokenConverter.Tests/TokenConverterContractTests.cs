@@ -277,7 +277,7 @@ namespace AElf.Contracts.TokenConverter
                     PayLimit = 1010L
                 })).TransactionResult;
             buyResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Failed);
-            buyResultNotExistConnector.Error.Contains("Can't find to connector.").ShouldBeTrue();
+            buyResultNotExistConnector.Error.Contains("To connector not found").ShouldBeTrue();
 
             var buyResultPriceNotGood = (await DefaultStub.Buy.SendWithExceptionAsync(
                 new BuyInput
@@ -379,7 +379,7 @@ namespace AElf.Contracts.TokenConverter
                     ReceiveLimit = 900L
                 })).TransactionResult;
             sellResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Failed);
-            sellResultNotExistConnector.Error.Contains("Can't find from connector.").ShouldBeTrue();
+            sellResultNotExistConnector.Error.Contains("From connector not found").ShouldBeTrue();
 
             var sellResultPriceNotGood = (await DefaultStub.Sell.SendWithExceptionAsync(
                 new SellInput

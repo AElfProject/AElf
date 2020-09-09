@@ -42,7 +42,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
-            Assert(CheckOrganizationExist(input), "new controller does not exist");
+            Assert(CheckOrganizationExist(input), "New Controller organization does not exist.");
             State.SymbolToPayTxFeeController.Value = input;
             return new Empty();
         }
@@ -50,7 +50,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty ChangeSideChainRentalController(AuthorityInfo input)
         {
             AssertControllerForSideChainRental();
-            Assert(CheckOrganizationExist(input), "new controller does not exist");
+            Assert(CheckOrganizationExist(input), "New Controller organization does not exist.");
             State.SideChainRentalController.Value = input;
             return new Empty();
         }

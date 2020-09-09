@@ -51,7 +51,7 @@ namespace AElf.Contracts.TokenConverter
                     nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub
                         .ChangeConnectorController),
                     newAuthority);
-                changeControllerRet.Error.ShouldContain("new controller does not exist");
+                changeControllerRet.Error.ShouldContain("New Controller organization does not exist.");
             }
         }
 
@@ -238,14 +238,14 @@ namespace AElf.Contracts.TokenConverter
                 Symbol = symbol,
                 Amount = 100
             });
-            buyRet.TransactionResult.Error.ShouldContain("can't purchase");
+            buyRet.TransactionResult.Error.ShouldContain("Purchase not enabled.");
 
             var sellRet = await DefaultStub.Buy.SendWithExceptionAsync(new BuyInput
             {
                 Symbol = symbol,
                 Amount = 100
             });
-            sellRet.TransactionResult.Error.ShouldContain("can't purchase");
+            sellRet.TransactionResult.Error.ShouldContain("Purchase not enabled.");
         }
 
         [Fact]
@@ -383,7 +383,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("From connector not found");
             }
 
             // invalid connector（deposit）
@@ -395,7 +395,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("From connector is deposit account");
             }
 
         }
@@ -469,7 +469,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
 
             // invalid connector（deposit）
@@ -481,7 +481,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
         }
 
@@ -499,7 +499,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
 
             // invalid connector（deposit）
@@ -511,7 +511,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
         }
 

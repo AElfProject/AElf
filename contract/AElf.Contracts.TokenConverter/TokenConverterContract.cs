@@ -39,7 +39,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 if (connector.IsDepositAccount)
                 {
-                    Assert(!string.IsNullOrEmpty(connector.Symbol),"Invalid connector symbol.");
+                    Assert(!string.IsNullOrEmpty(connector.Symbol), "Invalid connector symbol.");
                     AssertValidConnectorWeight(connector);
                 }
                 else
@@ -47,6 +47,7 @@ namespace AElf.Contracts.TokenConverter
                     Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
                     AssertValidConnectorWeight(connector);
                 }
+
                 State.Connectors[connector.Symbol] = connector;
             }
 
@@ -110,18 +111,22 @@ namespace AElf.Contracts.TokenConverter
         public override Empty Buy(BuyInput input)
         {
             var toConnector = State.Connectors[input.Symbol];
-            Assert(toConnector != null, "[Buy]Can't find to connector.");
-            Assert(toConnector.IsPurchaseEnabled, "can't purchase");
+            if (toConnector == null)
+            {
+                throw new AssertionException("To connector not found during buying.");
+            }
+
+            Assert(toConnector.IsPurchaseEnabled, "Purchase not enabled.");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
-            var amountToPay = BancorHelper.GetAmountToPayFromReturn(
+            var payAmount = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
-            AdjustPayAmount(input.Symbol, ref amountToPay);
-            var fee = Convert.ToInt64(amountToPay * GetFeeRate());
-            Assert(fee > 0, $"purchase not enough token: {input.Symbol}");
-            
-            var amountToPayPlusFee = amountToPay.Add(fee);
+            AdjustPayAmount(input.Symbol, ref payAmount);
+            var fee = Convert.ToInt64(payAmount * GetFeeRate());
+            Assert(fee > 0, $"Purchase token not enough: {input.Symbol}");
+
+            var amountToPayPlusFee = payAmount.Add(fee);
             Assert(input.PayLimit == 0 || amountToPayPlusFee <= input.PayLimit, "Price not good.");
 
             // Pay fee
@@ -137,9 +142,9 @@ namespace AElf.Contracts.TokenConverter
                     Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
                     To = Context.Self,
-                    Amount = amountToPay,
+                    Amount = payAmount,
                 });
-            State.DepositBalance[fromConnector.Symbol] = State.DepositBalance[fromConnector.Symbol].Add(amountToPay);
+            State.DepositBalance[fromConnector.Symbol] = State.DepositBalance[fromConnector.Symbol].Add(payAmount);
             // Transfer bought token
             State.TokenContract.Transfer.Send(
                 new TransferInput
@@ -153,7 +158,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 Symbol = input.Symbol,
                 BoughtAmount = input.Amount,
-                BaseAmount = amountToPay,
+                BaseAmount = payAmount,
                 FeeAmount = fee
             });
             return new Empty();
@@ -162,26 +167,32 @@ namespace AElf.Contracts.TokenConverter
         public override Empty Sell(SellInput input)
         {
             var fromConnector = State.Connectors[input.Symbol];
-            Assert(fromConnector != null, "[Sell]Can't find from connector.");
-            Assert(fromConnector.IsPurchaseEnabled, "can't purchase");
+            if (fromConnector == null)
+            {
+                throw new AssertionException("From connector not found during selling.");
+            }
+
+            Assert(fromConnector.IsPurchaseEnabled, "Purchase not enabled.");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
-            var amountToReceive = BancorHelper.GetReturnFromPaid(
+            var receiveAmount = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
             );
-            AdjustReceiveAmount(input.Symbol, ref amountToReceive);
-            var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
-            var dividendSender = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            if (fee == 0)
-                Assert(Context.Sender == dividendSender, $"sell not enough token: {input.Symbol}");
+            AdjustReceiveAmount(input.Symbol, ref receiveAmount);
+            var fee = Convert.ToInt64(receiveAmount * GetFeeRate());
+            var treasuryContractAddress = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
 
-            if (Context.Sender == dividendSender)
+            if (Context.Sender == treasuryContractAddress)
             {
                 fee = 0;
             }
+            else
+            {
+                Assert(fee > 0, $"Sell token not enough: {input.Symbol}");
+            }
 
-            var amountToReceiveLessFee = amountToReceive.Sub(fee);
+            var amountToReceiveLessFee = receiveAmount.Sub(fee);
             Assert(input.ReceiveLimit == 0 || amountToReceiveLessFee >= input.ReceiveLimit, "Price not good.");
 
             // Pay fee
@@ -196,10 +207,10 @@ namespace AElf.Contracts.TokenConverter
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     To = Context.Sender,
-                    Amount = amountToReceive
+                    Amount = receiveAmount
                 });
             State.DepositBalance[toConnector.Symbol] =
-                State.DepositBalance[toConnector.Symbol].Sub(amountToReceive);
+                State.DepositBalance[toConnector.Symbol].Sub(receiveAmount);
             // Transfer sold token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
@@ -213,7 +224,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 Symbol = input.Symbol,
                 SoldAmount = input.Amount,
-                BaseAmount = amountToReceive,
+                BaseAmount = receiveAmount,
                 FeeAmount = fee
             });
             return new Empty();
@@ -263,10 +274,16 @@ namespace AElf.Contracts.TokenConverter
         public override Empty EnableConnector(ToBeConnectedTokenInfo input)
         {
             var fromConnector = State.Connectors[input.TokenSymbol];
-            Assert(fromConnector != null && !fromConnector.IsDepositAccount,
-                "[EnableConnector]Can't find from connector.");
+            if (fromConnector == null)
+            {
+                throw new AssertionException("[EnableConnector]From connector not found during enable connector.");
+            }
+            Assert(!fromConnector.IsDepositAccount, "From connector is deposit account.");
             var toConnector = State.Connectors[fromConnector.RelatedSymbol];
-            Assert(toConnector != null, "[EnableConnector]Can't find to connector.");
+            if (toConnector == null)
+            {
+                throw new AssertionException("[EnableConnector]To connector not found during enable connector.");
+            }
             var needDeposit = GetNeededDeposit(input);
             if (needDeposit.NeedAmount > 0)
             {
@@ -301,7 +318,7 @@ namespace AElf.Contracts.TokenConverter
         public override Empty ChangeConnectorController(AuthorityInfo input)
         {
             AssertPerformedByConnectorController();
-            Assert(CheckOrganizationExist(input), "new controller does not exist");
+            Assert(CheckOrganizationExist(input), "New Controller organization does not exist.");
             State.ConnectorController.Value = input;
             return new Empty();
         }
@@ -320,11 +337,11 @@ namespace AElf.Contracts.TokenConverter
         {
             return number > decimal.Zero && number < decimal.One;
         }
-        
+
         private static bool IsValidSymbol(string symbol)
         {
             return symbol.Length > 0 &&
-                symbol.All(c => c >= 'A' && c <= 'Z');
+                   symbol.All(c => c >= 'A' && c <= 'Z');
         }
 
         private static bool IsValidBaseSymbol(string symbol)
@@ -392,34 +409,36 @@ namespace AElf.Contracts.TokenConverter
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
         }
-        
+
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);
             Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
-        
-        private void AdjustPayAmount(string symbol, ref long amount)
+
+        private void AdjustPayAmount(string symbol, ref long payAmount)
         {
             var tradeInformation = State.TradeInformation[symbol] ?? new TradeInformation();
             if (tradeInformation.BuyTimes >= tradeInformation.SellTimes)
             {
                 tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Add(1);
-                amount = amount.Add(1); // avoid buying multiple times and selling all one time
+                payAmount = payAmount.Add(1); // avoid buying multiple times and selling all one time
             }
+
             tradeInformation.BuyTimes = tradeInformation.BuyTimes.Add(1);
             State.TradeInformation[symbol] = tradeInformation;
         }
-        
-        private void AdjustReceiveAmount(string symbol, ref long amountToReceive)
+
+        private void AdjustReceiveAmount(string symbol, ref long receiveAmount)
         {
             var tradeInformation = State.TradeInformation[symbol] ?? new TradeInformation();
             if (tradeInformation.PrepareAmount > 0 && tradeInformation.SellTimes > tradeInformation.BuyTimes)
             {
                 tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Sub(1);
-                amountToReceive = amountToReceive.Add(1);
+                receiveAmount = receiveAmount.Add(1);
             }
+
             tradeInformation.SellTimes = tradeInformation.SellTimes.Add(1);
             State.TradeInformation[symbol] = tradeInformation;
         }
