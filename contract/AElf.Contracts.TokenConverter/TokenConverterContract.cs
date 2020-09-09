@@ -117,14 +117,7 @@ namespace AElf.Contracts.TokenConverter
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
-            var tradeInformation = State.TradeInformation[input.Symbol] ?? new TradeInformation();
-            if (tradeInformation.BuyTimes >= tradeInformation.SellTimes)
-            {
-                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Add(1);
-                amountToPay = amountToPay.Add(1); // avoid buying multiple times and selling all one time
-            }
-            tradeInformation.BuyTimes = tradeInformation.BuyTimes.Add(1);
-            State.TradeInformation[input.Symbol] = tradeInformation;
+            AdjustPayAmount(input.Symbol, ref amountToPay);
             var fee = Convert.ToInt64(amountToPay * GetFeeRate());
             Assert(fee > 0, $"purchase not enough token: {input.Symbol}");
             
@@ -177,14 +170,7 @@ namespace AElf.Contracts.TokenConverter
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
             );
-            var tradeInformation = State.TradeInformation[input.Symbol] ?? new TradeInformation();
-            if (tradeInformation.PrepareAmount > 0 && tradeInformation.SellTimes > tradeInformation.BuyTimes)
-            {
-                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Sub(1);
-                amountToReceive = amountToReceive.Add(1);
-            }
-            tradeInformation.SellTimes = tradeInformation.SellTimes.Add(1);
-            State.TradeInformation[input.Symbol] = tradeInformation;
+            AdjustReceiveAmount(input.Symbol, ref amountToReceive);
             var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
             var dividendSender = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             if (fee == 0)
@@ -412,6 +398,30 @@ namespace AElf.Contracts.TokenConverter
             var weight = AssertedDecimal(connector.Weight);
             Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
+        }
+        
+        private void AdjustPayAmount(string symbol, ref long amount)
+        {
+            var tradeInformation = State.TradeInformation[symbol] ?? new TradeInformation();
+            if (tradeInformation.BuyTimes >= tradeInformation.SellTimes)
+            {
+                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Add(1);
+                amount = amount.Add(1); // avoid buying multiple times and selling all one time
+            }
+            tradeInformation.BuyTimes = tradeInformation.BuyTimes.Add(1);
+            State.TradeInformation[symbol] = tradeInformation;
+        }
+        
+        private void AdjustReceiveAmount(string symbol, ref long amountToReceive)
+        {
+            var tradeInformation = State.TradeInformation[symbol] ?? new TradeInformation();
+            if (tradeInformation.PrepareAmount > 0 && tradeInformation.SellTimes > tradeInformation.BuyTimes)
+            {
+                tradeInformation.PrepareAmount = tradeInformation.PrepareAmount.Sub(1);
+                amountToReceive = amountToReceive.Add(1);
+            }
+            tradeInformation.SellTimes = tradeInformation.SellTimes.Add(1);
+            State.TradeInformation[symbol] = tradeInformation;
         }
 
         #endregion
