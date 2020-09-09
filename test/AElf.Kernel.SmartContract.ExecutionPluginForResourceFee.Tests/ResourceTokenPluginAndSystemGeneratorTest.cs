@@ -119,7 +119,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                     {
                         From = DefaultSender,
                         To = TokenConverterAddress,
-                        MethodName = nameof(TokenConverterContractStub.SetConnector)
+                        MethodName = nameof(TokenConverterContractStub.AddPairConnector)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
                     PreviousBlockHash = chain.BestChainHash
@@ -203,7 +203,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests
                     {
                         From = DefaultSender,
                         To = TokenConverterAddress,
-                        MethodName = nameof(TokenConverterContractStub.SetConnector)
+                        MethodName = nameof(TokenConverterContractStub.AddPairConnector)
                     },
                     BlockHeight = chain.BestChainHeight + 1,
                     PreviousBlockHash = chain.BestChainHash
