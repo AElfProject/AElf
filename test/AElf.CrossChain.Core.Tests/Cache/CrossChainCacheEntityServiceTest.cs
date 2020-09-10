@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Cache
             var cachedChainIdList = _crossChainCacheEntityService.GetCachedChainIds();
             cachedChainIdList.ShouldContain(chainId);
 
-            await _crossChainCacheEntityService.UpdateCrossChainCacheAsync(null, 0, new SideChainIdAndHeightDict
+            await _crossChainCacheEntityService.UpdateCrossChainCacheAsync(null, 0, new ChainIdAndHeightDict
             {
                 IdHeightDict = {{chainId, 12}}
             });

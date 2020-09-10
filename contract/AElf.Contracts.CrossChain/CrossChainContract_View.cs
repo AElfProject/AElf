@@ -99,9 +99,9 @@ namespace AElf.Contracts.CrossChain
             };
         }
 
-        public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
+        public override ChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
         {
-            var dict = new SideChainIdAndHeightDict();
+            var dict = new ChainIdAndHeightDict();
             var serialNumber = State.SideChainSerialNumber.Value;
             for (long i = 1; i <= serialNumber; i++)
             {
@@ -116,7 +116,7 @@ namespace AElf.Contracts.CrossChain
             return dict;
         }
 
-        public override SideChainIdAndHeightDict GetAllChainsIdAndHeight(Empty input)
+        public override ChainIdAndHeightDict GetAllChainsIdAndHeight(Empty input)
         {
             var dict = GetSideChainIdAndHeight(new Empty());
 

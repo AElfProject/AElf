@@ -724,7 +724,7 @@ namespace AElf.CrossChain.Indexing
             {
                 var allChainIdAndHeightResult =
                     await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
-                allChainIdAndHeightResult.ShouldBe(new SideChainIdAndHeightDict());
+                allChainIdAndHeightResult.ShouldBe(new ChainIdAndHeightDict());
             }
             
             _crossChainTestHelper.SetFakeLibHeight(2);
@@ -732,7 +732,7 @@ namespace AElf.CrossChain.Indexing
             {
                 var allChainIdAndHeightResult =
                     await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
-                allChainIdAndHeightResult.ShouldBe(new SideChainIdAndHeightDict());
+                allChainIdAndHeightResult.ShouldBe(new ChainIdAndHeightDict());
             }
             
             var parentChainId = ChainHelper.GetChainId(10);
