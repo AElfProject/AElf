@@ -23,11 +23,11 @@ namespace AElf.CSharp.CodeOps.Validators.Method
             
             foreach (var instruction in method.Body.Instructions)
             {
-                if (instruction.OpCode.Code == Code.Newobj)
+                if (instruction.OpCode.Code == Code.Newarr)
                 {
-                    var methodRef = (MethodReference) instruction.Operand;
+                    var typeReference = (TypeReference) instruction.Operand;
 
-                    if (methodRef.DeclaringType.IsArray && ((ArrayType) methodRef.DeclaringType).Dimensions.Count > 1)
+                    if (typeReference.IsArray)
                     {
                         errors.Add(
                             new MultiDimArrayValidationResult($"{method.Name} contains multi dimension array declaration.")

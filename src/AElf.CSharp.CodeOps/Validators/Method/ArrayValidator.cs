@@ -139,11 +139,12 @@ namespace AElf.CSharp.CodeOps.Validators.Method
         {
             var code = "";
             var next = instruction.Next;
-            while (depth-- > 0)
+            while (depth-- > 0 && next != null)
             {
                 code += next + "\n";
                 next = next.Next;
             }
+
             return code;
         }
 

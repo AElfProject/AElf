@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Association;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -16,6 +17,7 @@ using AElf.Contracts.Referendum;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.CodeOps.Patchers.Module;
 using AElf.CSharp.CodeOps.Validators;
 using AElf.CSharp.CodeOps.Validators.Assembly;
 using AElf.CSharp.CodeOps.Validators.Method;
@@ -23,6 +25,7 @@ using AElf.CSharp.CodeOps.Validators.Module;
 using AElf.Kernel.CodeCheck.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Runtime.CSharp.Tests.BadContract;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Options;
 using Mono.Cecil.Cil;
 using Shouldly;
@@ -77,10 +80,10 @@ namespace AElf.CSharp.CodeOps
         #region Positive Cases
 
         [Theory]
-        [InlineData(typeof(AssociationContract))]
+        [InlineData(typeof(AssociationContract), false, "acs3", "acs5")]
         [InlineData(typeof(ConfigurationContract))]
-        [InlineData(typeof(AEDPoSContract))]
-        [InlineData(typeof(CrossChainContract))]
+        [InlineData(typeof(AEDPoSContract), true, "acs1", "acs6", "acs10")]
+        [InlineData(typeof(CrossChainContract), true, "acs6")]
         [InlineData(typeof(EconomicContract))]
         [InlineData(typeof(ElectionContract))]
         [InlineData(typeof(BasicContractZero))]
@@ -90,10 +93,16 @@ namespace AElf.CSharp.CodeOps
         [InlineData(typeof(ReferendumContract))]
         [InlineData(typeof(TokenConverterContract))]
         [InlineData(typeof(TreasuryContract))]
-        public void CheckSystemContracts_AllShouldPass(Type contractType)
+        public void CheckSystemContracts_AllShouldPass(Type contractType, bool acsAllRequired = false, params string[] acsList)
         {
+            var requiredAcs = new RequiredAcs
+            {
+                RequireAll = acsAllRequired,
+                AcsList = new List<string>(acsList)
+            };
             _auditor.Audit(ReadPatchedContractCode(contractType), true);
-            Should.Throw<CSharpCodeCheckException>(() => _auditor.Audit(ReadPatchedContractCode(contractType), false));
+            Should.Throw<CSharpCodeCheckException>(() =>
+                _auditor.Audit(ReadPatchedContractCode(contractType), requiredAcs, false));
         }
         
         [Fact]
@@ -211,6 +220,11 @@ namespace AElf.CSharp.CodeOps
                 .ShouldNotBeNull();
 
             var getHashCodeFindings = findings.Where(f => f is GetHashCodeValidationResult).ToList();
+            // getHashCodeFindings.FirstOrDefault(f => f.Info.Type == nameof(BadContract)).ShouldNotBeNull();
+            // getHashCodeFindings.FirstOrDefault(f => f.Info.Type == nameof(DoubleInput)).ShouldNotBeNull();
+            // getHashCodeFindings.FirstOrDefault(f => f.Info.Type == nameof(FloatInput)).ShouldNotBeNull();
+            // getHashCodeFindings.FirstOrDefault(f => f.Info.Type == nameof(IMessageInheritedClass)).ShouldNotBeNull();
+            
             LookFor(getHashCodeFindings, "TestGetHashCodeCall", f => f != null).ShouldNotBeNull();
             LookFor(getHashCodeFindings, "GetHashCode", f => f != null).ShouldNotBeNull();
 
@@ -219,7 +233,7 @@ namespace AElf.CSharp.CodeOps
                 .FirstOrDefault(f => f is DescriptorAccessValidationResult &&
                                      f.Info.Type == "BadCase1" && f.Info.ReferencingMethod == "SetFileDescriptor")
                 .ShouldNotBeNull();
-
+            
             // Initialization value not allowed for resettable members, in regular type
             findings
                 .FirstOrDefault(f => f is ContractStructureValidationResult &&
@@ -231,7 +245,12 @@ namespace AElf.CSharp.CodeOps
                 .FirstOrDefault(f => f is ContractStructureValidationResult &&
                                      f.Info.Type == "BadContract" && f.Info.ReferencingMethod == ".ctor" &&
                                      f.Info.Member == "i").ShouldNotBeNull();
-
+            
+            // findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+            //                              f.Info.Type == "BadContract" && f.Info.Member == "staticNotAllowedTypeField").ShouldBeNull();
+            // findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
+            //                              f.Info.Type == "BadContract" && f.Info.Member == "staticAllowedTypeField").ShouldBeNull();
+            //
             // A type that is not allowed as a static readonly field
             findings.FirstOrDefault(f => f is ContractStructureValidationResult &&
                                          f.Info.Type == "BadCase3" && f.Info.Member == "field").ShouldNotBeNull();
@@ -251,6 +270,20 @@ namespace AElf.CSharp.CodeOps
         }
 
         [Fact]
+        public void CheckContractStruct_ForComponentsMissing()
+        {
+            {
+                var module = GetModule(typeof(ArrayValidator));
+                var contractStructure = new ContractStructureValidator();
+                var validationResults = contractStructure.Validate(module, CancellationToken.None);
+                validationResults
+                    .FirstOrDefault(f =>
+                        f is ContractStructureValidationResult && f.Message == "Contract base not found.")
+                    .ShouldNotBeNull();
+            }
+        }
+        
+        [Fact]
         public void CheckResetField_ForMissingReset()
         {
             var code = ReadContractCode(typeof(BadContract));
@@ -265,6 +298,8 @@ namespace AElf.CSharp.CodeOps
                 i.Operand is MethodDefinition method &&
                 method.Name == "ResetFields");
 
+            var instruction = ReplaceInstruction(resetFieldsMethod, OpCodes.Ldc_I4_1, i => i.OpCode == OpCodes.Ldc_I4_0);
+
             var tamperedContract = new MemoryStream();
             module.Write(tamperedContract);
 
@@ -277,6 +312,11 @@ namespace AElf.CSharp.CodeOps
 
             findings.FirstOrDefault(f => f is ResetFieldsValidationResult &&
                                          f.Message.Contains("missing certain method calls")).ShouldNotBeNull();
+
+            findings.FirstOrDefault(f => f is ResetFieldsValidationResult &&
+                                         f.Message.Contains(
+                                             $"Unexpected instruction {instruction} found in ResetFields method."))
+                .ShouldNotBeNull();
         }
 
         [Fact]
@@ -312,6 +352,18 @@ namespace AElf.CSharp.CodeOps
 
             // After patching, all unchecked arithmetic OpCodes should be cleared.
             Should.NotThrow(() => _auditor.Audit(_patcher.Patch(contractCode, false), false));
+
+            var badContractModule = GetModule(typeof(BadContract));
+            var validator = new ObserverProxyValidator();
+            var validationResults = validator.Validate(badContractModule, CancellationToken.None);
+            validationResults.ShouldContain(v => v.Message.Contains("BranchCount proxy method body is tampered."));
+            validationResults.ShouldContain(v => v.Message.Contains("CallCount proxy method body is tampered."));
+            validationResults.ShouldContain(v =>
+                v.Message.Contains("Missing execution observer call count call detected."));
+            validationResults.ShouldContain(v =>
+                v.Message.Contains("Missing execution observer branch count call detected."));
+            validationResults.ShouldContain(v =>
+                v.Message.Contains("Proxy initialize call detected from within the contract."));
         } 
 
         [Fact]
@@ -344,13 +396,22 @@ namespace AElf.CSharp.CodeOps
         }
 
 
-        void RemoveInstruction(MethodDefinition method, Func<Instruction, bool> where)
+        void RemoveInstruction(MethodDefinition method, Func<Mono.Cecil.Cil.Instruction, bool> where)
         {
             var il = method.Body.GetILProcessor();
 
             il.Remove(method.Body.Instructions.First(where));
         }
 
+        Mono.Cecil.Cil.Instruction ReplaceInstruction(MethodDefinition method, OpCode opCode, Func<Mono.Cecil.Cil.Instruction, bool> where)
+        {
+            var il = method.Body.GetILProcessor();
+
+            var instruction = il.Create(opCode);
+            il.Replace(method.Body.Instructions.First(where), instruction);
+            return instruction;
+        }
+        
         #endregion
     }
 }
