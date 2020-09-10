@@ -1,8 +1,6 @@
 ﻿using System.Linq;
-using AElf.Standards.ACS1;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -209,12 +207,17 @@ namespace AElf.Contracts.MultiToken
 
         public override BoolValue IsTokenAvailableForMethodFee(StringValue input)
         {
-            var tokenInfo = State.TokenInfos[input.Value];
-            if (tokenInfo == null) throw new AssertionException("Token is not found.");
             return new BoolValue
             {
-                Value = tokenInfo.IsBurnable
+                Value = IsTokenAvailableForMethodFee(input.Value)
             };
+        }
+
+        private bool IsTokenAvailableForMethodFee(string symbol)
+        {
+            var tokenInfo = State.TokenInfos[symbol];
+            if (tokenInfo == null) throw new AssertionException("Token is not found.");
+            return tokenInfo.IsBurnable;
         }
     }
 }

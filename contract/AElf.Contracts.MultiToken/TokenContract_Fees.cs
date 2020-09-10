@@ -221,8 +221,9 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
-            Assert(input != null, "invalid input");
-            bool isPrimaryTokenExist = false;
+            if (input == null)
+                throw new AssertionException("invalid input");
+            var isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
             var primaryTokenInfo = State.TokenInfos[primaryTokenSymbol.Value];
@@ -235,6 +236,7 @@ namespace AElf.Contracts.MultiToken
                     Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
                         $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
+
                 Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
                     $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
                 Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
@@ -255,7 +257,7 @@ namespace AElf.Contracts.MultiToken
             });
             return new Empty();
         }
-        
+
         /// <summary>
         /// Example 1:
         /// symbolToAmountMap: {{"ELF", 10}, {"TSA", 1}, {"TSB", 2}}
@@ -380,7 +382,7 @@ namespace AElf.Contracts.MultiToken
                 State.ConsensusContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "No permission.");
         }
 
@@ -708,7 +710,8 @@ namespace AElf.Contracts.MultiToken
             {
                 throw new AssertionException($"Token is not found. {tokenSymbol}");
             }
-            Assert(IsTokenAvailableForMethodFee(new StringValue{Value = tokenSymbol}).Value, $"Token {tokenSymbol} cannot set as method fee.");
+
+            Assert(IsTokenAvailableForMethodFee(tokenSymbol), $"Token {tokenSymbol} cannot set as method fee.");
             totalSupply = tokenInfo.TotalSupply;
         }
 
