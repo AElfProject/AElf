@@ -493,7 +493,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
-        public override Int64Value GetCurrentWelfareReward(Empty input)
+        public override Int64Value GetCurrentTermMiningReward(Empty input)
         {
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
