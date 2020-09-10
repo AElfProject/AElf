@@ -90,6 +90,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] illegal controller try to update the coefficientForContract")]
         public async Task UpdateCoefficientForContract_Without_Authorization_Test()
         {
+            await CreatePrimaryTokenAsync();
             var updateInfo = new UpdateCoefficientsInput
             {
                 Coefficients = new CalculateFeeCoefficients
@@ -110,6 +111,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Invalid fee type for Update controller")]
         public async Task UpdateCoefficientForContract_With_Invalid_FeeType_Test()
         {
+            await CreatePrimaryTokenAsync();
             var updateInfo = new UpdateCoefficientsInput
             {
                 Coefficients = new CalculateFeeCoefficients
@@ -126,6 +128,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] illegal controller try to update the coefficientForSender")]
         public async Task UpdateCoefficientForSender_Without_Authorization_Test()
         {
+            await CreatePrimaryTokenAsync();
             var initializeControllerRet = await TokenContractStub.InitializeAuthorizedController.SendAsync(new Empty());
             initializeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var updateRet =
@@ -145,6 +148,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Reference Token Fee Controller")]
         public async Task InitializeAuthorizedController_Test()
         {
+            await CreatePrimaryTokenAsync();
             var tryToGetControllerInfoRet =
                 await TokenContractStub.GetDeveloperFeeController.SendWithExceptionAsync(new Empty());
             tryToGetControllerInfoRet.TransactionResult.Error.ShouldContain(
@@ -172,7 +176,6 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SetReceiver_Test()
         {
-            
             // without authorized
             {
                 var setReceiverRet = await TokenContractStub.SetFeeReceiver.SendWithExceptionAsync(new Address());
@@ -182,7 +185,8 @@ namespace AElf.Contracts.MultiToken
             var methodName = nameof(TokenContractImplContainer.TokenContractImplStub.InitializeFromParentChain);
             var initialInput = new InitializeFromParentChainInput
             {
-                Creator = DefaultAddress
+                Creator = DefaultAddress,
+                RegisteredOtherTokenContractAddresses = { {1, TokenContractAddress}}
             };
             await SubmitAndApproveProposalOfDefaultParliament(TokenContractAddress, methodName, initialInput);
             await TokenContractStub.SetFeeReceiver.SendAsync(DefaultAddress);

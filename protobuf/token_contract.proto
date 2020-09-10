@@ -31,8 +31,6 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc AddTokenWhiteList (AddTokeWhiteListInput) returns (google.protobuf.Empty) {
-    }
     rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
     }
 
@@ -132,7 +130,7 @@ message TokenInfo {
     bool is_burnable = 7;
     bool is_profitable = 8;
     int32 issue_chain_id = 9;
-    int64 burned = 10;
+    int64 issued = 10;
 }
 
 message CreateInput {
@@ -340,11 +338,6 @@ message CrossChainCreateTokenInput {
     int64 parent_chain_height = 2;
     bytes transaction_bytes = 3;
     aelf.MerklePath merkle_path = 4;
-}
-
-message AddTokeWhiteListInput{
-    string token_symbol = 1;
-    aelf.Address address = 2;
 }
 
 message InitializeFromParentChainInput {

@@ -118,16 +118,6 @@ namespace AElf.Kernel.SmartContract
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
-        public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
-        {
-            return AsyncHelper.RunSync(() => _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
-        }
-
-        public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
-        {
-            return AsyncHelper.RunSync(() => _accountService.DecryptMessageAsync(senderPublicKey, cipherMessage));
-        }
-
         public Hash GenerateId(Address contractAddress, IEnumerable<byte> bytes)
         {
             var contactedBytes = OriginTransactionId.Value.Concat(contractAddress.Value);

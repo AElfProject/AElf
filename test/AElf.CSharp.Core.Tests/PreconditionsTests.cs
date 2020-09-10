@@ -1,32 +1,23 @@
 using System;
-using AElf.CSharp.Core.Utils;
 using AElf.Types;
 using Shouldly;
 using Xunit;
 
-namespace AElf.CSharp.Core
+namespace AElf.CSharp.Core.Utils
 {
-    public class PreconditionsTests : TypesCSharpTestBase
+    public class PreconditionsTests
     {
         [Fact]
         public void PreCondition_Check_Test()
         {
-            Func<Address> func1 = null;
-            Should.Throw<ArgumentException>(() => Preconditions.CheckNotNull(func1));
+            Func<Address,string> func = null;
+            Should.Throw<ArgumentException>(() => Preconditions.CheckNotNull(func));
+            Should.Throw<ArgumentException>(() => Preconditions.CheckNotNull(func, nameof(func))).Message
+                .ShouldContain(nameof(func));
             
-            func1 = () => Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
-            var reference = Preconditions.CheckNotNull(func1);
-            reference.ShouldNotBeNull();
-            var addressInfo = reference();
-            addressInfo.ShouldNotBeNull();
-            addressInfo.GetType().ToString().ShouldBe("AElf.Types.Address");
-
-            Func<Address, string> func2 = address => address.ToBase58();
-            var reference1 = Preconditions.CheckNotNull(func2, "address");
-            
-            reference1.ShouldNotBeNull();
-            var result = reference1(Address.FromBase58("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"));
-            result.ShouldNotBeNullOrEmpty();
+            func = address => address.ToBase58();
+            Preconditions.CheckNotNull(func).ShouldBe(func);
+            Preconditions.CheckNotNull(func, nameof(func)).ShouldBe(func);
         }
     }
 }

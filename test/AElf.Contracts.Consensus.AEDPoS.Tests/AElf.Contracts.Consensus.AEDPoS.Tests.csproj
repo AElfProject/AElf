@@ -13,11 +13,11 @@
     
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.3.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
@@ -43,19 +43,22 @@
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf\Proto\acs1.proto</Link>
+            <Link>Protobuf\Proto\base\acs1.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
+            <Link>Protobuf\Proto\base\acs3.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf\Proto\acs4.proto</Link>
+            <Link>Protobuf\Proto\base\acs4.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs5.proto">
-            <Link>Protobuf\Proto\acs5.proto</Link>
+            <Link>Protobuf\Proto\base\acs5.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs10.proto">
-            <Link>Protobuf\Proto\reference\acs10.proto</Link>
+            <Link>Protobuf\Proto\base\acs10.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
         </ContractBase>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf\Proto\vote_contract.proto</Link>
