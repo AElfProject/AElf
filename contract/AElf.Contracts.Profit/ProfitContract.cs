@@ -496,6 +496,7 @@ namespace AElf.Contracts.Profit
                 var symbol = profits.Key;
                 var amount = profits.Value;
                 var remainAmount = DistributeProfitsForSubSchemes(symbol, amount, scheme, totalShares);
+                Context.LogDebug(() => $"Distributing {remainAmount} {symbol} tokens.");
                 // Transfer remain amount to individuals' receiving profits address.
                 if (remainAmount != 0)
                 {
