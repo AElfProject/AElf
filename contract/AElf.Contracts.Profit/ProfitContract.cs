@@ -264,7 +264,7 @@ namespace AElf.Contracts.Profit
                 {
                     currentDetail.Details.Remove(expiryDetail);
                 }
-                else if(expiryDetail.EndPeriod >= scheme.CurrentPeriod)
+                else if (expiryDetail.EndPeriod >= scheme.CurrentPeriod)
                 {
                     expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
@@ -440,7 +440,7 @@ namespace AElf.Contracts.Profit
                         Owner = scheme.VirtualAddress,
                         Symbol = symbol
                     });
-                    if(balanceOfToken.Balance < amount)
+                    if (balanceOfToken.Balance < amount)
                         continue;
                     Context.SendVirtualInline(scheme.SchemeId, State.TokenContract.Value,
                         nameof(State.TokenContract.Transfer), new TransferInput
@@ -673,8 +673,6 @@ namespace AElf.Contracts.Profit
             Context.LogDebug(
                 () => $"{Context.Sender} is trying to profit from {input.SchemeId.ToHex()} for {beneficiary}.");
 
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
-
             // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
                 d.LastProfitPeriod == 0 ? d.EndPeriod >= d.StartPeriod : d.EndPeriod >= d.LastProfitPeriod).ToList();
@@ -762,6 +760,16 @@ namespace AElf.Contracts.Profit
                                     Symbol = symbol,
                                     Amount = amount
                                 }.ToByteString());
+
+                            Context.Fire(new ProfitsClaimed
+                            {
+                                Beneficiary = beneficiary,
+                                Symbol = symbol,
+                                Amount = amount,
+                                ClaimerShares = detailToPrint.Shares,
+                                TotalShares = distributedProfitsInformation.TotalShares,
+                                Period = periodToPrint
+                            });
                         }
 
                         lastProfitPeriod = period + 1;
