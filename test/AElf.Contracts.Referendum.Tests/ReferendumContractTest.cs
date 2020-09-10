@@ -364,7 +364,7 @@ namespace AElf.Contracts.Referendum
             var maximalRejectionThreshold = 10000;
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
-                maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender}, "ABC");
+                maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
             var keyPair = Accounts[1].KeyPair;
@@ -972,7 +972,7 @@ namespace AElf.Contracts.Referendum
             var maximalRejectionThreshold = 1;
             var createOrganizationInput = new CreateOrganizationInput
             {
-                TokenSymbol = "Elf",
+                TokenSymbol = "ELF",
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
                 {
                     MinimalApprovalThreshold = minimalApproveThreshold,
