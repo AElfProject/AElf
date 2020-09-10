@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Is sender produced too many blocks at one time?
                 new ContinuousBlocksValidationProvider(),
 
-                //new NormalBlockValidationProvider()
+                new NormalBlockValidationProvider()
             };
 
             switch (extraData.Behaviour)
