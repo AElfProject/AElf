@@ -62,7 +62,8 @@ namespace AElf.CSharp.CodeOps.Validators.Method
                 if (_instructionInjector.ValidateInstruction(moduleDefinition, instruction))
                     continue;
                 result.Add(new MethodCallInjectionValidationResult(
-                    $"{_instructionInjector.GetType()} validation failed."));
+                    $"{_instructionInjector.GetType()} validation failed.").WithInfo(methodDefinition.Name,
+                    methodDefinition.DeclaringType.Namespace, methodDefinition.DeclaringType.FullName, null));
             }
 
             return result;
