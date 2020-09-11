@@ -84,14 +84,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new TimeSlotValidationProvider(),
 
                 // Is sender produced too many blocks at one time?
-                new ContinuousBlocksValidationProvider(),
-
-                new NormalBlockValidationProvider()
+                new ContinuousBlocksValidationProvider()
             };
 
             switch (extraData.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    validationProviders.Add(new NormalBlockValidationProvider());
                     validationProviders.Add(new UpdateValueValidationProvider());
                     // Is confirmed lib height and lib round number went down? (Which should not happens.)
                     validationProviders.Add(new LibInformationValidationProvider());
