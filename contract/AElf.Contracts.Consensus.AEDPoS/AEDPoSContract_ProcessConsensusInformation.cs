@@ -243,14 +243,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var minerInRound = currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey];
             minerInRound.ActualMiningTimes.Add(updateValueInput.ActualMiningTime);
-            minerInRound.ProducedBlocks = updateValueInput.ProducedBlocks;
-            minerInRound.ProducedTinyBlocks =
-                currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ProducedTinyBlocks.Add(1);
             minerInRound.Signature = updateValueInput.Signature;
             minerInRound.OutValue = updateValueInput.OutValue;
             minerInRound.SupposedOrderOfNextRound = updateValueInput.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = updateValueInput.SupposedOrderOfNextRound;
             minerInRound.ImpliedIrreversibleBlockHeight = updateValueInput.ImpliedIrreversibleBlockHeight;
+
+            // Just add 1 based on previous data, do not use provided values.
+            minerInRound.ProducedBlocks = minerInRound.ProducedBlocks.Add(1);
+            minerInRound.ProducedTinyBlocks = minerInRound.ProducedTinyBlocks.Add(1);
 
             PerformSecretSharing(updateValueInput, minerInRound, currentRound, _processingBlockMinerPubkey);
 
@@ -309,14 +310,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             TryToGetCurrentRoundInformation(out var currentRound);
 
-            currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ActualMiningTimes
-                .Add(tinyBlockInput.ActualMiningTime);
-            currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ProducedBlocks =
-                tinyBlockInput.ProducedBlocks;
-            var producedTinyBlocks =
-                currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ProducedTinyBlocks;
-            currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ProducedTinyBlocks =
-                producedTinyBlocks.Add(1);
+            var minerInRound = currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey];
+            minerInRound.ActualMiningTimes.Add(tinyBlockInput.ActualMiningTime);
+            minerInRound.ProducedBlocks = minerInRound.ProducedBlocks.Add(1);
+            minerInRound.ProducedTinyBlocks = minerInRound.ProducedTinyBlocks.Add(1);
 
             Assert(TryToUpdateRoundInformation(currentRound), "Failed to update round information.");
         }
