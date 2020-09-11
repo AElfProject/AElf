@@ -90,10 +90,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             switch (extraData.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
-                    validationProviders.Add(new NormalBlockValidationProvider());
                     validationProviders.Add(new UpdateValueValidationProvider());
                     // Is confirmed lib height and lib round number went down? (Which should not happens.)
                     validationProviders.Add(new LibInformationValidationProvider());
+                    validationProviders.Add(new NormalBlockValidationProvider());
+                    break;
+                case AElfConsensusBehaviour.TinyBlock:
+                    validationProviders.Add(new NormalBlockValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     // Is sender's order of next round correct?
