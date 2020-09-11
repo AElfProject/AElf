@@ -739,7 +739,7 @@ Get initialization data for specified side chain.
   - **chain_primary_token_info**: chain priamry token information.
 
 - **ChainInitializationConsensusInfo**
-  - **initial_miner_list_data**: consensus miner list data.
+  - **initial_consensus_data**: initial consensus data.
 
 - **ChainInitializationConsensusInfo**
   - **resource_token_list_data**: resource token list data.

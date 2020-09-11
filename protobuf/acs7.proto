@@ -138,7 +138,7 @@ message ChainPrimaryTokenInfo{
 }
 
 message ChainInitializationConsensusInfo{
-    bytes initial_miner_list_data = 1;
+    bytes initial_consensus_data = 1;
 }
 
 message SideChainCreationRequest {

@@ -34,7 +34,7 @@ namespace AElf.Types
         /// Loads the content value from 32-byte long byte array.
         /// </summary>
         /// <param name="bytes"></param>
-        /// <ret1q`urns></returns>
+        /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static Address FromBytes(byte[] bytes)
         {

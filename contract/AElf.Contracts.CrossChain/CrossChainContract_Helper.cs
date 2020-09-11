@@ -542,7 +542,7 @@ namespace AElf.Contracts.CrossChain
             
             var initialConsensusInfo = GetInitialConsensusInformation();
             res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
-                {InitialMinerListData = initialConsensusInfo};
+                {InitialConsensusData = initialConsensusInfo};
 
             ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
             res.NativeTokenInfoData = nativeTokenInformation;
