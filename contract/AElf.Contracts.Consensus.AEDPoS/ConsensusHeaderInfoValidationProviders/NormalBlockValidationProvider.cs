@@ -46,7 +46,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!validationContext.BaseRound.RealTimeMinersInformation.ContainsKey(pubkey) ||
                 !validationContext.ProvidedRound.RealTimeMinersInformation.ContainsKey(pubkey))
             {
-                return false;
+                return true;
             }
             var before = validationContext.BaseRound.RealTimeMinersInformation[pubkey];
             var after = validationContext.ProvidedRound.RealTimeMinersInformation[pubkey];
