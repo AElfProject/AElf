@@ -1,22 +1,28 @@
 syntax = "proto3";
 
-import "acs1.proto";
+package Association;
+
 import "acs3.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Association";
 
 service AssociationContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
     
     // Actions    
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
-    rpc ChangeOrganizationMember(OrganizationMemberList) returns (google.protobuf.Empty){
-    }
     rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
+    rpc AddMember(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc RemoveMember(aelf.Address) returns (google.protobuf.Empty){
+    }
+    rpc ChangeMember(ChangeMemberInput) returns (google.protobuf.Empty){
     }
     //view
     rpc GetOrganization (aelf.Address) returns (Organization) {
@@ -31,6 +37,7 @@ message CreateOrganizationInput{
     OrganizationMemberList organization_member_list = 1;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
     acs3.ProposerWhiteList proposer_white_list = 3;
+    aelf.Hash creation_token = 4;
 }
 
 message Organization{
@@ -39,6 +46,7 @@ message Organization{
     acs3.ProposerWhiteList proposer_white_list = 3;
     aelf.Address organization_address = 4;
     aelf.Hash organization_hash = 5;
+    aelf.Hash creation_token = 6;
 }
 
 message ProposalInfo {
@@ -59,13 +67,31 @@ message OrganizationMemberList {
     repeated aelf.Address organization_members = 1;
 }
 
+message ChangeMemberInput{
+    aelf.Address old_member = 1;
+    aelf.Address new_member = 2;
+}
+
 message CreateOrganizationBySystemContractInput {
     CreateOrganizationInput organization_creation_input = 1;
     string organization_address_feedback_method = 2;
 }
 
-message OrganizationMemberChanged{
+message MemberAdded{
     option (aelf.is_event) = true;
-    aelf.Address organization_address = 1;
-    OrganizationMemberList organization_member_list = 2;
+    aelf.Address member = 1;
+    aelf.Address organization_address = 2 [(aelf.is_indexed) = true];    
+}
+
+message MemberRemoved{
+    option (aelf.is_event) = true;
+    aelf.Address member = 1;
+    aelf.Address organization_address = 2 [(aelf.is_indexed) = true];
+}
+
+message MemberChanged{
+    option (aelf.is_event) = true;
+    aelf.Address old_member = 1;
+    aelf.Address new_member = 2;
+    aelf.Address organization_address = 3 [(aelf.is_indexed) = true];
 }

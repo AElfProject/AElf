@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -220,7 +220,8 @@ namespace AElf.Contracts.Parliament
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             State.Proposals[proposalId] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+            Context.Fire(new ProposalCreated
+                {ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress});
             return proposalId;
         }
 
@@ -235,7 +236,8 @@ namespace AElf.Contracts.Parliament
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash,
                 ProposerAuthorityRequired = input.ProposerAuthorityRequired,
-                ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed
+                ParliamentMemberProposingAllowed = input.ParliamentMemberProposingAllowed,
+                CreationToken = input.CreationToken
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organizations[organizationAddress] != null)
@@ -255,12 +257,20 @@ namespace AElf.Contracts.Parliament
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
             var organizationAddress =
-                Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+                Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                    CalculateVirtualHash(organizationHash, createOrganizationInput.CreationToken));
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
+        }
+        
+        private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
+        {
+            return creationToken == null
+                ? organizationHash
+                : HashHelper.ConcatAndCompute(organizationHash, creationToken);
         }
     }
 }

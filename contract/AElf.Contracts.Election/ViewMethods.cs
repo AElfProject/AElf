@@ -3,7 +3,6 @@ using AElf.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -52,8 +51,8 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
 
-            var currentMiners = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
+            var currentMiners = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                .Select(k => k.ToHex()).ToList();
             return new PubkeyList {Value = {GetVictories(currentMiners)}};
         }
 
@@ -91,6 +90,7 @@ namespace AElf.Contracts.Election
             {
                 return new List<string>();
             }
+
             return State.Candidates.Value.Value
                 .Where(c => State.CandidateVotes[c.ToHex()] != null &&
                             State.CandidateVotes[c.ToHex()].ObtainedActiveVotedVotesAmount > 0)
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Election
 
         public override Int32Value GetMinersCount(Empty input)
         {
-            return new Int32Value {Value = State.MinersCount.Value };
+            return new Int32Value {Value = State.MinersCount.Value};
         }
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)
@@ -157,19 +157,19 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotingRecordIds[index++];
                 votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-            
+
             return votes;
         }
 
         public override ElectorVote GetElectorVoteWithAllRecords(StringValue input)
         {
             var votes = GetElectorVoteWithRecords(input);
-            
+
             if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
-            
+
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.WithdrawnVotingRecordIds}
@@ -180,7 +180,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.WithdrawnVotingRecordIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-            
+
             return votes;
         }
 
@@ -197,19 +197,6 @@ namespace AElf.Contracts.Election
             return new Int64Value
             {
                 Value = State.VoteContract.GetLatestVotingResult.Call(State.MinerElectionVotingItemId.Value).VotesAmount
-            };
-        }
-
-        public override Int64Value GetCurrentMiningReward(Empty input)
-        {
-            if (State.AEDPoSContract.Value == null)
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            return new Int64Value
-            {
-                Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation
-                    .Values.Sum(minerInRound => minerInRound.ProducedBlocks)
-                    .Mul(ElectionContractConstants.ElfTokenPerBlock)
             };
         }
 
@@ -259,14 +246,14 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ObtainedActiveVotingRecordIds[index++];
                 votes.ObtainedActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-            
+
             return votes;
         }
 
         public override CandidateVote GetCandidateVoteWithAllRecords(StringValue input)
         {
             var votes = GetCandidateVoteWithRecords(input);
-            
+
             //get withdrawn records
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -286,24 +273,24 @@ namespace AElf.Contracts.Election
         {
             return State.DataCentersRankingList.Value;
         }
-        
+
         public override VoteWeightInterestList GetVoteWeightSetting(Empty input)
         {
             return State.VoteWeightInterestList.Value ?? GetDefaultVoteWeightInterest();
         }
-        
+
         public override AuthorityInfo GetVoteWeightInterestController(Empty input)
         {
             if (State.VoteWeightInterestController.Value == null)
                 return GetDefaultVoteWeightInterestController();
             return State.VoteWeightInterestController.Value;
         }
-        
+
         public override VoteWeightProportion GetVoteWeightProportion(Empty input)
         {
             return State.VoteWeightProportion.Value ?? GetDefaultVoteWeightProportion();
         }
-        
+
         public override Int64Value GetCalculateVoteWeight(VoteInformation input)
         {
             return new Int64Value
@@ -311,7 +298,7 @@ namespace AElf.Contracts.Election
                 Value = GetVotesWeight(input.Amount, input.LockTime)
             };
         }
-        
+
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];
@@ -330,6 +317,70 @@ namespace AElf.Contracts.Election
                 Weight = GetVotesWeight(votingRecord.Amount, lockSeconds),
                 IsChangeTarget = votingRecord.IsChangeTarget
             };
+        }
+
+        public override MinerReplacementInformation GetMinerReplacementInformation(
+            GetMinerReplacementInformationInput input)
+        {
+            var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
+            var alternativeCandidates = new List<string>();
+            var latestSnapshot = State.Snapshots[State.CurrentTermNumber.Value.Sub(1)];
+            // Check out election snapshot.
+            if (latestSnapshot != null)
+            {
+                var maybeNextCandidates = latestSnapshot.ElectionResult
+                    // Except initial miners.
+                    .Where(cs =>
+                        !State.InitialMiners.Value.Value.Contains(
+                            ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(cs.Key))))
+                    // Except current miners.
+                    .Where(cs => !input.CurrentMinerList.Contains(cs.Key))
+                    .OrderByDescending(s => s.Value).ToList();
+                var take = Math.Min(evilMinersPubKeys.Count, maybeNextCandidates.Count);
+                alternativeCandidates.AddRange(maybeNextCandidates.Select(c => c.Key).Take(take));
+                Context.LogDebug(() =>
+                    $"Found alternative miner from candidate list: {alternativeCandidates.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
+            }
+
+            // If the count of evil miners is greater than alternative candidates, add some initial miners to alternative candidates.
+            var diff = evilMinersPubKeys.Count - alternativeCandidates.Count;
+            if (diff > 0)
+            {
+                var takeAmount = Math.Min(diff, State.InitialMiners.Value.Value.Count);
+                var selectedInitialMiners = State.InitialMiners.Value.Value.Where(k =>
+                    !input.CurrentMinerList.Contains(k.ToHex())).Take(takeAmount).Select(k => k.ToHex());
+                alternativeCandidates.AddRange(selectedInitialMiners);
+            }
+
+            return new MinerReplacementInformation
+            {
+                EvilMinerPubkeys = {evilMinersPubKeys},
+                AlternativeCandidatePubkeys = {alternativeCandidates}
+            };
+        }
+
+        private List<string> GetEvilMinersPublicKey(IEnumerable<string> currentMinerList)
+        {
+            var evilMinersPubKey = new List<string>();
+
+            if (State.Candidates.Value == null || !State.Candidates.Value.Value.Any())
+            {
+                return evilMinersPubKey;
+            }
+
+            // If one miner is not a candidate anymore.
+            var candidates = State.Candidates.Value.Value.Select(p => p.ToHex())
+                .ToList();
+            if (candidates.Any())
+            {
+                var keys = currentMinerList.Where(pubkey =>
+                    !candidates.Contains(pubkey) &&
+                    !State.InitialMiners.Value.Value.Contains(
+                        ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey))));
+                evilMinersPubKey.AddRange(keys);
+            }
+
+            return evilMinersPubKey;
         }
 
         private int GetValidationDataCenterCount()

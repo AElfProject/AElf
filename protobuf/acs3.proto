@@ -9,6 +9,7 @@ import public "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs3";
+option csharp_namespace = "AElf.Standards.ACS3";
 
 service AuthorizationContract {
     rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
@@ -93,11 +94,13 @@ message ValidateProposerInWhiteListInput{
 message ProposalCreated{
     option (aelf.is_event) = true;
     aelf.Hash proposal_id = 1;
+    aelf.Address organization_address=2 [(aelf.is_indexed) = true];
 }
 
 message ProposalReleased{
     option (aelf.is_event) = true;
     aelf.Hash proposal_id = 1;
+    aelf.Address organization_address=2 [(aelf.is_indexed) = true];
 }
 
 message OrganizationCreated{
@@ -111,6 +114,7 @@ message ReceiptCreated {
     aelf.Address address = 2;
     string receipt_type = 3;
     google.protobuf.Timestamp time = 4;
+    aelf.Address organization_address = 5 [(aelf.is_indexed) = true];
 }
 
 message OrganizationWhiteListChanged{

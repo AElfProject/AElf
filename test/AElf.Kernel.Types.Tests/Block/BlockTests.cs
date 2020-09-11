@@ -115,6 +115,41 @@ namespace AElf.Kernel.Types.Tests
             var hash1 = Hash.LoadFromByteArray(hashBytes);
             hash.ShouldBe(hash1);
         }
+        [Fact]
+        public void GetHashWithoutCache_Test()
+        { 
+            var blockHeader = GenerateBlockHeader();
+            var hash = blockHeader.GetHashWithoutCache();
+            hash.ShouldNotBe(null);
+
+            var blockHeader1 = GenerateBlockHeader();
+            blockHeader1.Signature =
+                ByteStringHelper.FromHexString("782330156f8c9403758ed30270a3e2d59e50b8f04c6779d819b72eee02addb13");
+            var  hash1=blockHeader1.GetHash();
+            hash1.ShouldNotBe(null);
+            
+            var block = CreateBlock(HashHelper.ComputeFrom("hash"), 123, 10);
+            block.Height.ShouldBe(10u);
+            var hash2 = block.GetHashWithoutCache();
+            hash2.ShouldNotBe(null);
+            
+            var blockHeader3 = GenerateBlockHeader();
+            blockHeader3.Height = 0;
+            Should.Throw<InvalidOperationException>(() => { blockHeader3.GetHash(); });
+        }
+
+        [Fact]
+        public void BlockIndex_ToDiagnosticString_Test()
+        {
+            var hash = HashHelper.ComputeFrom("test");
+            var height = 10;
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = hash,
+                BlockHeight = height
+            };
+            blockIndex.ToDiagnosticString().ShouldBe($"[{hash}: {height}]");
+        }
 
         private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {

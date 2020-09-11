@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -179,7 +180,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 Int32Value = _number,
                 Int64Value = _field1,
                 StringValue = _field2 ?? string.Empty,
-                BoolValue = _field3
+                BoolValue = _field3,
+                List = {_list ?? new List<int>()}
             };
         }
 

@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.Token;
 using AElf.Kernel.Token.Infrastructure;
@@ -143,7 +146,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Approve token to Contract")]
         public async Task MultiTokenContract_Approve_ContractAddress_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
             var approveBasisResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
                 Symbol = SymbolForTest,
@@ -230,7 +233,8 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_TransferFrom_Test()
         {
             await MultiTokenContract_Approve_Test();
-            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             var result2 = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
             {
                 Amount = 1000L,
@@ -292,7 +296,8 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_TransferFrom_MemoLength_Test()
         {
             await MultiTokenContract_Approve_Test();
-            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             {
                 var result = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
                 {
@@ -318,8 +323,84 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private async Task Create_BasicFunctionContract_Issue()
+        [Fact(DisplayName = "[MultiToken] Address is in symbol whitelist.")]
+        public async Task MultiTokenContract_TransferFrom_WhiteList_Test()
         {
+            await CreateTokenAndIssue();
+            var transferAmount = Amount.Div(3);
+            var beforeTransferBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = SymbolForTest
+            });
+            beforeTransferBalance.Balance.ShouldBe(0);
+            var allowance = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Spender = TreasuryContractAddress,
+                Symbol = SymbolForTest,
+                Owner = DefaultAddress
+            });
+            allowance.Allowance.ShouldBe(0);
+            var isInSymbolWhitelist = await TokenContractStub.IsInWhiteList.CallAsync(new IsInWhiteListInput
+            {
+                Address = TreasuryContractAddress,
+                Symbol = SymbolForTest
+            });
+            isInSymbolWhitelist.Value.ShouldBeTrue();
+            var beforeTransferFromBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = SymbolForTest
+            });
+            await TreasuryContractStub.Donate.SendAsync(new DonateInput
+            {
+                Amount = transferAmount,
+                Symbol = SymbolForTest
+            });
+            var afterTransferFromBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = SymbolForTest
+            });
+            afterTransferFromBalance.Balance.ShouldBe(beforeTransferFromBalance.Balance.Sub(transferAmount));
+        }
+
+        [Fact(DisplayName = "[MultiToken] token is not profitable")]
+        public async Task MultiTokenContract_TransferFrom_Without_Profitable_Token_Test()
+        {
+            await CreateTokenAndIssue(false, new List<Address>());
+            var transferAmount = Amount.Div(3);
+            var donateResult = await TreasuryContractStub.Donate.SendWithExceptionAsync(new DonateInput
+            {
+                Symbol = SymbolForTest,
+                Amount = transferAmount
+            });
+            donateResult.TransactionResult.Error.ShouldContain("TransferFrom]Insufficient allowance");
+        }
+
+        [Fact(DisplayName = "[MultiToken] token is profitable")]
+        public async Task MultiTokenContract_TransferFrom_With_Profitable_Token_Test()
+        {
+            await CreateTokenAndIssue(true, new List<Address>());
+            var transferAmount = Amount.Div(3);
+            var donateResult = await TreasuryContractStub.Donate.SendAsync(new DonateInput
+            {
+                Symbol = SymbolForTest,
+                Amount = transferAmount
+            });
+            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task CreateTokenAndIssue(bool isProfitable = false, List<Address> whitelist = null,
+            Address issueTo = null)
+        {
+            if (whitelist == null)
+                whitelist = new List<Address>
+                {
+                    BasicFunctionContractAddress,
+                    OtherBasicFunctionContractAddress,
+                    TreasuryContractAddress
+                };
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = SymbolForTest,
@@ -327,19 +408,18 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = true,
                 Issuer = DefaultAddress,
                 TokenName = "elf test token",
+                IsProfitable = isProfitable,
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 1000000,
                 LockWhiteList =
                 {
-                    BasicFunctionContractAddress,
-                    OtherBasicFunctionContractAddress,
-                    TreasuryContractAddress
+                    whitelist
                 }
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Symbol = SymbolForTest,
                 Amount = DPoSContractConsts.LockTokenForElection * 200000,
-                To = DefaultAddress,
+                To = issueTo == null ? DefaultAddress : issueTo,
                 Memo = "Issue"
             });
         }
@@ -347,7 +427,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock and unlock test")]
         public async Task MultiTokenContract_LockAndUnLock_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -368,7 +448,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var transferred = new Transferred();
-            transferred.MergeFrom(lockTokenResult.Logs.First(l=>l.Name == nameof(Transferred)));
+            transferred.MergeFrom(lockTokenResult.Logs.First(l => l.Name == nameof(Transferred)));
             // Check balance of user after locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -426,7 +506,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock through address not in whitelist")]
         public async Task MultiTokenContract_Lock_AddressNotInWhiteList_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             // Try to lock.
             var lockId = HashHelper.ComputeFrom("lockId");
@@ -445,11 +525,49 @@ namespace AElf.Contracts.MultiToken
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             lockResult.Error.ShouldContain("No Permission.");
         }
-        
+
+        [Fact(DisplayName = "[MultiToken] When the allowance is sufficient, Token lock will deduct it")]
+        public async Task Lock_With_Enough_Allowance_Test()
+        {
+            await CreateTokenAndIssue();
+            var lockId = HashHelper.ComputeFrom("lockId");
+            await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Amount = Amount,
+                Symbol = SymbolForTest,
+                Spender = BasicFunctionContractAddress
+            });
+
+            var allowanceBeforeLock = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = SymbolForTest,
+                Spender = BasicFunctionContractAddress
+            });
+            allowanceBeforeLock.Allowance.ShouldBe(Amount);
+            // Lock.
+            var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+            {
+                Address = DefaultAddress,
+                Amount = Amount,
+                Symbol = SymbolForTest,
+                LockId = lockId,
+                Usage = "Testing."
+            })).TransactionResult;
+            lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var allowanceAfterLock = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = SymbolForTest,
+                Spender = BasicFunctionContractAddress
+            });
+            allowanceAfterLock.Allowance.ShouldBe(0);
+        }
+
         [Fact(DisplayName = "[MultiToken] Token lock origin sender != input.Address")]
         public async Task MultiTokenContract_Lock_Invalid_Sender_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var lockId = HashHelper.ComputeFrom("lockId");
 
@@ -470,7 +588,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]
         public async Task MultiTokenContract_Lock_WithInsufficientBalance_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -500,7 +618,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token unlock until no balance left")]
         public async Task MultiTokenContract_Unlock_repeatedly_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var lockId = HashHelper.ComputeFrom("lockId");
 
@@ -563,7 +681,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token unlock excess the total amount of lock")]
         public async Task MultiTokenContract_Unlock_ExcessAmount_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var lockId = HashHelper.ComputeFrom("lockId");
 
@@ -594,7 +712,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] A locked his tokens, B want to unlock with A's lock id'.")]
         public async Task MultiTokenContract_Unlock_NotLocker_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -642,7 +760,7 @@ namespace AElf.Contracts.MultiToken
             "[MultiToken] Unlock the token through strange lockId which is different from locking lockId")]
         public async Task MultiTokenContract_Unlock_StrangeLockId_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var lockId = HashHelper.ComputeFrom("lockId");
 
@@ -673,7 +791,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Unlock the token to another address that isn't the address locked")]
         public async Task MultiTokenContract_Unlock_ToOtherAddress_Test()
         {
-            await Create_BasicFunctionContract_Issue();
+            await CreateTokenAndIssue();
 
             var lockId = HashHelper.ComputeFrom("lockId");
 
@@ -717,7 +835,7 @@ namespace AElf.Contracts.MultiToken
             });
             balance.Balance.ShouldBe(AliceCoinTotalAmount - 3000L);
         }
-        
+
         [Fact(DisplayName = "[MultiToken] Token Burn invalid token")]
         public async Task MultiTokenContract_Burn_Invalid_Token_Test()
         {
@@ -744,7 +862,8 @@ namespace AElf.Contracts.MultiToken
         public async Task MultiTokenContract_Burn_BeyondBalance_Test()
         {
             await CreateAndIssueMultiTokensAsync();
-            var user1Stub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
+            var user1Stub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             var result = (await user1Stub.Burn.SendWithExceptionAsync(new BurnInput
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
@@ -793,7 +912,64 @@ namespace AElf.Contracts.MultiToken
                 })).TransactionResult;
             result1.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        
+
+        [Fact(DisplayName = "[MultiToken] invalid token symbol or amount")]
+        public async Task TransferToContract_With_Invalid_Input_Test()
+        {
+            await CreateTokenAndIssue();
+            var ret = await TokenContractStub.TransferToContract.SendWithExceptionAsync(new TransferToContractInput
+            {
+                Amount = -1,
+                Symbol = SymbolForTest,
+            });
+            ret.TransactionResult.Error.ShouldContain("Invalid amount");
+            
+            ret = await TokenContractStub.TransferToContract.SendWithExceptionAsync(new TransferToContractInput
+            {
+                Amount = 100,
+                Symbol = "NOTEXIST"
+            });
+            ret.TransactionResult.Error.ShouldContain("Token is not found");
+        }
+
+        [Fact(DisplayName = "[MultiToken] sender is in whitelist, without approve, Token TransferToContract test")]
+        public async Task TransferToContract_Out_Whitelist_Without_Approve_Test()
+        {
+            await CreateTokenAndIssue(false, new List<Address>());
+            var transferAmount = Amount.Div(2);
+            var transferResult = await BasicFunctionContractStub.TransferTokenToContract.SendWithExceptionAsync(
+                new TransferTokenToContractInput
+                {
+                    Amount = transferAmount,
+                    Symbol = SymbolForTest
+                });
+            transferResult.TransactionResult.Error.ShouldContain("Insufficient allowance");
+        }
+
+        [Fact(DisplayName = "[MultiToken] sender is in whitelist, without approve, Token TransferToContract test")]
+        public async Task TransferToContract_In_Whitelist_Without_Approve_Test()
+        {
+            await CreateTokenAndIssue();
+            var transferAmount = Amount.Div(2);
+            var beforeBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = SymbolForTest,
+                Owner = BasicFunctionContractAddress
+            });
+            await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
+                new TransferTokenToContractInput
+                {
+                    Amount = transferAmount,
+                    Symbol = SymbolForTest
+                });
+            var afterBalance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = SymbolForTest,
+                Owner = BasicFunctionContractAddress
+            });
+            afterBalance.Balance.ShouldBe(beforeBalance.Balance.Add(transferAmount));
+        }
+
         [Fact(DisplayName = "[MultiToken] ChangeTokenIssuer test")]
         public async Task ChangeTokenIssuer_Test()
         {
@@ -812,11 +988,12 @@ namespace AElf.Contracts.MultiToken
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[1].KeyPair);
 
             {
-                var issueNotExistTokenRet = await tokenIssuerStub.ChangeTokenIssuer.SendWithExceptionAsync(new ChangeTokenIssuerInput
-                {
-                    Symbol = "NOTEXIST",
-                    NewTokenIssuer = Accounts[2].Address
-                });
+                var issueNotExistTokenRet = await tokenIssuerStub.ChangeTokenIssuer.SendWithExceptionAsync(
+                    new ChangeTokenIssuerInput
+                    {
+                        Symbol = "NOTEXIST",
+                        NewTokenIssuer = Accounts[2].Address
+                    });
                 issueNotExistTokenRet.TransactionResult.Error.ShouldContain("invalid token symbol");
             }
             {
@@ -832,7 +1009,7 @@ namespace AElf.Contracts.MultiToken
                 tokenInfo.Issuer.ShouldBe(Accounts[2].Address);
             }
         }
-        
+
         [Fact(DisplayName = "[MultiToken] sender is not the token issuer")]
         public async Task ChangeTokenIssuer_Without_Authorization_Test()
         {
@@ -871,19 +1048,25 @@ namespace AElf.Contracts.MultiToken
                         Creator = DefaultAddress
                     });
             initializedFromParentRet.TransactionResult.Error.ShouldContain("No permission");
-            var defaultParliament = (await ParliamentContractStub.GetDefaultOrganizationAddress.SendAsync(new Empty()))
-                .Output;
+            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalId = await CreateProposalAsync(TokenContractAddress,
                 defaultParliament, nameof(TokenContractStub.InitializeFromParentChain),
                 new InitializeFromParentChainInput
                 {
                     Creator = DefaultAddress,
-                    ResourceAmount = {{netSymbol, 100}}
+                    ResourceAmount = {{netSymbol, 100}},
+                    RegisteredOtherTokenContractAddresses = {{1, ParliamentContractAddress}}
                 });
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
-            var resourceAmountDic = (await TokenContractStub.GetResourceUsage.SendAsync(new Empty())).Output;
+            var resourceAmountDic = await TokenContractStub.GetResourceUsage.CallAsync(new Empty());
             resourceAmountDic.Value[netSymbol].ShouldBe(100);
+            var chainWhitelist = await TokenContractStub.GetCrossChainTransferTokenContractAddress.CallAsync(
+                new GetCrossChainTransferTokenContractAddressInput
+                {
+                    ChainId = 1
+                });
+            chainWhitelist.ShouldBe(ParliamentContractAddress);
             initializedFromParentRet =
                 await TokenContractStub.InitializeFromParentChain.SendWithExceptionAsync(
                     new InitializeFromParentChainInput
@@ -892,12 +1075,11 @@ namespace AElf.Contracts.MultiToken
                     });
             initializedFromParentRet.TransactionResult.Error.ShouldContain("MultiToken has been initialized");
         }
-        
+
         [Fact(DisplayName = "[MultiToken] Side chain send create token")]
         public async Task Side_Chain_Creat_Token_Test()
         {
-            var defaultParliament = (await ParliamentContractStub.GetDefaultOrganizationAddress.SendAsync(new Empty()))
-                .Output;
+            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalId = await CreateProposalAsync(TokenContractAddress,
                 defaultParliament, nameof(TokenContractStub.InitializeFromParentChain),
                 new InitializeFromParentChainInput
@@ -919,10 +1101,10 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Theory]
-        [InlineData(10000, 1000, 0,999, false, false)]
-        [InlineData(10000, 1000, 0,1001, false, true)]
-        [InlineData(10000, 1000, 600,599, true, false)]
-        [InlineData(10000, 1000, 600,601, true, true)]
+        [InlineData(10000, 1000, 0, 999, false, false)]
+        [InlineData(10000, 1000, 0, 1001, false, true)]
+        [InlineData(10000, 1000, 600, 599, true, false)]
+        [InlineData(10000, 1000, 600, 601, true, true)]
         public async Task CheckThreshold_With_One_Token_Test(long totalSupply, long issueAmount, long ApproveAmount,
             long checkAmount, bool isCheckAllowance, bool isThrowException)
         {
@@ -941,12 +1123,13 @@ namespace AElf.Contracts.MultiToken
 
             if (isThrowException)
             {
-                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
-                {
-                    IsCheckAllowance = isCheckAllowance,
-                    Sender = DefaultAddress,
-                    SymbolToThreshold = {{tokenA, checkAmount}}
-                });
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = isCheckAllowance,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, checkAmount}}
+                    });
                 checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
             }
             else
@@ -959,9 +1142,8 @@ namespace AElf.Contracts.MultiToken
                 });
                 checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-                
         }
-        
+
         [Theory]
         [InlineData(999, 0, 1000, 0, false, false)]
         [InlineData(1001, 0, 999, 0, false, false)]
@@ -986,6 +1168,7 @@ namespace AElf.Contracts.MultiToken
                     Symbol = tokenA
                 });
             }
+
             if (tokenBApporveAmount > 0)
             {
                 await TokenContractStub.Approve.SendAsync(new ApproveInput
@@ -995,14 +1178,16 @@ namespace AElf.Contracts.MultiToken
                     Symbol = tokenB
                 });
             }
+
             if (isThrowException)
             {
-                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(new CheckThresholdInput
-                {
-                    IsCheckAllowance = isCheckAllowance,
-                    Sender = DefaultAddress,
-                    SymbolToThreshold = {{tokenA, tokenACheckAmount}, {tokenB, tokenBCheckAmount}}
-                });
+                var checkSufficientBalance = await TokenContractStub.CheckThreshold.SendWithExceptionAsync(
+                    new CheckThresholdInput
+                    {
+                        IsCheckAllowance = isCheckAllowance,
+                        Sender = DefaultAddress,
+                        SymbolToThreshold = {{tokenA, tokenACheckAmount}, {tokenB, tokenBCheckAmount}}
+                    });
                 checkSufficientBalance.TransactionResult.Error.ShouldContain("Cannot meet the calling threshold");
             }
             else
@@ -1016,8 +1201,8 @@ namespace AElf.Contracts.MultiToken
                 checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
-
-        [Fact]
+        
+        [Fact] 
         public async Task GetPrimaryToken_Test()
         {
             var primaryTokenSymbol = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
@@ -1028,7 +1213,7 @@ namespace AElf.Contracts.MultiToken
             tokenSymbol = await primaryTokenService.GetPrimaryTokenSymbol();
             tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
             tokenSymbol = primaryTokenProvider.GetPrimaryTokenSymbol();
-            tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
+            tokenSymbol.ShouldBe(primaryTokenSymbol.Value); 
         }
 
         private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,
@@ -1046,7 +1231,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = symbol,
                 Amount = issueAmount,
-                To = to == null? creator: to
+                To = to == null ? creator : to
             });
         }
     }

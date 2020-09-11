@@ -654,7 +654,7 @@ namespace AElf.Contracts.Election
 
         private async Task<long> GetProfitAmount(ProfitType type)
         {
-            ProfitContractContainer.ProfitContractStub stub;
+            ProfitContractImplContainer.ProfitContractImplStub stub;
             switch (type)
             {
                 case ProfitType.CitizenWelfare:

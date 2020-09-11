@@ -1,15 +1,18 @@
 syntax = "proto3";
 
-import "aelf/core.proto";
+package TokenConverter;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
+import "aelf/core.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
 
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
-    option (aelf.base) = "acs1.proto";
 
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
@@ -28,13 +31,10 @@ service TokenConverterContract {
     }
     rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConnectorController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    rpc ChangeConnectorController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
@@ -50,6 +50,12 @@ service TokenConverterContract {
         option (aelf.is_view) = true;
     }
     rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsSymbolAbleToSell (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
 }

@@ -1,4 +1,4 @@
-using Acs8;
+using AElf.Standards.ACS8;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.CSharp.Core;

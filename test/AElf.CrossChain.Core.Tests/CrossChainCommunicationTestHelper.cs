@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Types;
 
@@ -40,7 +40,7 @@ namespace AElf.CrossChain
         
         public bool CheckClientConnected(int chainId)
         {
-            return _clientConnected[chainId];
+            return _clientConnected.TryGetValue(chainId, out var res) && res;
         }
 
         public void SetClientConnected(int chainId, bool isConnected)

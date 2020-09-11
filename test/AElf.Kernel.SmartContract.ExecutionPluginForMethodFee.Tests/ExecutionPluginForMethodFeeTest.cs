@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
@@ -10,13 +10,15 @@ using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Events;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Shouldly;
-using Xunit.Sdk;
+using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
 {
@@ -462,6 +464,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 Symbol = "ELF"
             });
             before.Balance.ShouldBe(after.Balance);
+        }
+        
+        [Fact]
+        public async Task IBlockValidationProvider_ValidateBeforeAttachAsync_Test()
+        {
+            var blockValidationProvider = GetRequiredService<IBlockValidationProvider>();
+            var ret = await blockValidationProvider.ValidateBeforeAttachAsync(null);
+            ret.ShouldBeTrue();
         }
     }
 }

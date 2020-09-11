@@ -13,8 +13,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
@@ -28,6 +34,9 @@
         <ContractStub Include="..\..\protobuf\acs10.proto">
             <Link>Protobuf\Proto\stub\acs10.proto</Link>
         </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>

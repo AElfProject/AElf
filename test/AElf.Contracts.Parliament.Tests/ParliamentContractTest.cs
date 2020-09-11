@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Parliament
         public async Task ApproveMultiProposals_Without_Authority_Test()
         {
             var invalidSenderStub =
-                GetTester<ParliamentContractContainer.ParliamentContractStub>(ParliamentContractAddress, TesterKeyPair);
+                GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, TesterKeyPair);
             var approveRet =
                 await invalidSenderStub.ApproveMultiProposals.SendWithExceptionAsync(new ProposalIdList());
             approveRet.TransactionResult.Error.ShouldContain("No permission");
@@ -1304,7 +1304,7 @@ namespace AElf.Contracts.Parliament
                 {
                     OrganizationAddress = defaultParliamentAddress,
                     ToAddress = TokenContractAddress,
-                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    ContractMethodName = nameof(TokenContractImplContainer.TokenContractImplStub.Transfer),
                     Params = new TransferInput
                     {
                         Amount = 100,
@@ -1320,6 +1320,140 @@ namespace AElf.Contracts.Parliament
             ret.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        [Fact]
+        public async Task GetNotVotedProposals_With_Invalid_Proposal_Test()
+        {
+            // proposal does not exist
+            {
+                var invalidProposalId = HashHelper.ComputeFrom("invalid hash");
+                var notVotedProposals = await ParliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
+                {
+                    ProposalIds = {invalidProposalId}
+                });
+                notVotedProposals.ProposalIds.Count.ShouldBe(0);
+            }
+            
+            //fail to validate proposal, proposal expires
+            {
+                await InitializeParliamentContracts();
+                var minimalApprovalThreshold = 6667;
+                var maximalAbstentionThreshold = 2000;
+                var maximalRejectionThreshold = 3000;
+                var minimalVoteThreshold = 8000;
+                var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                    maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+                var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+
+                ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+                var notVotedProposals = await ParliamentContractStub.GetNotVotedProposals.CallAsync(new ProposalIdList
+                {
+                    ProposalIds = {proposalId}
+                });
+                notVotedProposals.ProposalIds.Count.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task GetNotVotedPendingProposals_With_Invalid_Proposal_Test()
+        {
+            // proposal does not exist
+            {
+                var invalidProposalId = HashHelper.ComputeFrom("invalid hash");
+                var notVotedProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+                {
+                    ProposalIds = {invalidProposalId}
+                });
+                notVotedProposals.ProposalIds.Count.ShouldBe(0);
+            }
+            //fail to validate proposal, proposal expires
+            {
+                await InitializeParliamentContracts();
+                var minimalApprovalThreshold = 6667;
+                var maximalAbstentionThreshold = 2000;
+                var maximalRejectionThreshold = 3000;
+                var minimalVoteThreshold = 8000;
+                var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                    maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+                var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+
+                ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+                var notVotedProposals = await ParliamentContractStub.GetNotVotedPendingProposals.CallAsync(
+                    new ProposalIdList
+                    {
+                        ProposalIds = {proposalId}
+                    });
+                notVotedProposals.ProposalIds.Count.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task ApproveMultiProposals_With_Invalid_Proposal_Test()
+        {
+            await InitializeParliamentContracts();
+            var minimalApprovalThreshold = 6667;
+            var maximalAbstentionThreshold = 2000;
+            var maximalRejectionThreshold = 3000;
+            var minimalVoteThreshold = 8000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            var invalidProposalId = HashHelper.ComputeFrom("invalid hash");
+            var expiredProposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            
+            ParliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[0]);
+            var transactionResult =
+                await ParliamentContractStub.ApproveMultiProposals.SendAsync(new ProposalIdList
+                {
+                    ProposalIds = {invalidProposalId, expiredProposalId}
+                });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
+        [Fact]
+        public async Task Check_ValidProposal_With_Rejected_Test()
+        {
+            await InitializeParliamentContracts();
+
+            var minimalApprovalThreshold = 6000;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var minimalVoteThreshold = 6000;
+            var organizationAddress = await CreateOrganizationAsync(minimalApprovalThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, minimalVoteThreshold);
+            
+            //reject proposal
+            var proposalTobeRejectedId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            var parliamentContractStub = GetParliamentContractTester(InitialMinersKeyPairs[2]);
+            var validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalTobeRejectedId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(1);
+
+            await RejectionAsync(InitialMinersKeyPairs[0], proposalTobeRejectedId);
+            validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalTobeRejectedId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(0);
+            
+            //abstain proposal
+            var proposalTobeAbstainedId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalTobeAbstainedId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(1);
+
+            await AbstainAsync(InitialMinersKeyPairs[0], proposalTobeAbstainedId);
+            validProposals = await parliamentContractStub.GetNotVotedPendingProposals.CallAsync(new ProposalIdList
+            {
+                ProposalIds = {proposalTobeAbstainedId}
+            });
+            validProposals.ProposalIds.Count.ShouldBe(0);
+        }
+        
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
         {
             var transferInput = new TransferInput()

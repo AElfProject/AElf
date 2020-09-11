@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
-using Acs10;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -401,7 +401,7 @@ namespace AElf.Contracts.MultiToken
                 $"Now LatestTotalResourceTokensMapsHash is {State.LatestTotalResourceTokensMapsHash.Value}");
 
             var isMainChain = true;
-            if (State.TreasuryContract.Value == null)
+            if (State.DividendPoolContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
@@ -411,7 +411,7 @@ namespace AElf.Contracts.MultiToken
                 }
                 else
                 {
-                    State.TreasuryContract.Value = treasuryContractAddress;
+                    State.DividendPoolContract.Value = treasuryContractAddress;
                 }
             }
 
@@ -462,7 +462,7 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            State.TreasuryContract.Donate.Send(new DonateInput
+                            State.DividendPoolContract.Donate.Send(new DonateInput
                             {
                                 Symbol = symbol,
                                 Amount = amount
@@ -627,10 +627,14 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
+            var treasuryContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            if (treasuryContractAddress != null)
             {
                 // Main chain would donate tx fees to dividend pool.
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (State.DividendPoolContract.Value == null)
+                    State.DividendPoolContract.Value = treasuryContractAddress;
+                State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
                     Amount = transferAmount
@@ -684,7 +688,7 @@ namespace AElf.Contracts.MultiToken
 
         private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
         {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) && tokenInfo.TokenSymbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
                 $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -356,7 +356,7 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             
             var transaction = GenerateTransaction(accountAddress, basicContractZero,
-                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
+                nameof(BasicContractZeroImplContainer.BasicContractZeroImplBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))

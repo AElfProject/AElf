@@ -1,6 +1,10 @@
 syntax = "proto3";
 
-import "acs1.proto";
+package Referendum;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "aelf/core.proto";
 import "acs3.proto";
 
 option csharp_namespace = "AElf.Contracts.Referendum";
@@ -8,8 +12,7 @@ option csharp_namespace = "AElf.Contracts.Referendum";
 service ReferendumContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Referendum.ReferendumState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
+    
     // Actions
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
     }
@@ -30,6 +33,7 @@ message CreateOrganizationInput {
     string token_symbol = 1;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
     acs3.ProposerWhiteList proposer_white_list = 3;
+    aelf.Hash creation_token = 4;
 }
 
 message Organization {
@@ -38,6 +42,7 @@ message Organization {
     aelf.Address organization_address = 3;
     aelf.Hash organization_hash = 4;
     acs3.ProposerWhiteList proposer_white_list = 5;
+    aelf.Hash creation_token = 6;
 }
 
 message Receipt {
@@ -73,4 +78,5 @@ message ReferendumReceiptCreated {
     int64 amount = 4;
     string receipt_type = 5;
     google.protobuf.Timestamp time = 6;
+    aelf.Address organization_address=7 [(aelf.is_indexed) = true];
 }

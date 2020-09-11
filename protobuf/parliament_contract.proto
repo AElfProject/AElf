@@ -1,15 +1,17 @@
 syntax = "proto3";
 
-import "acs1.proto";
+package Parliament;
+
 import "acs3.proto";
+import public "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Parliament";
 
 service ParliamentContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
-    option (aelf.base) = "acs3.proto";
-    option (aelf.base) = "acs1.proto";
     
     // Actions
     rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
@@ -47,6 +49,7 @@ message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
     bool proposer_authority_required = 2;
     bool parliament_member_proposing_allowed = 3;
+    aelf.Hash creation_token = 4;
 }
 
 message Organization {
@@ -55,6 +58,7 @@ message Organization {
     aelf.Hash organization_hash = 3;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
     bool parliament_member_proposing_allowed = 5;
+    aelf.Hash creation_token = 6;
 }
 
 message ProposalInfo {

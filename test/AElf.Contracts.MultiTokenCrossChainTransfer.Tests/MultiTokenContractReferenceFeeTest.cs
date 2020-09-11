@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Association;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -166,6 +166,9 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         [InlineData(true, 0, new []{3}, new []{int.MaxValue, 2, 8, 2, 6, 300})]
         [InlineData(true, 0, new []{3,2}, new []{1000, 4, 3, 2}, new []{int.MaxValue, 4, 3, 2})]
         [InlineData(true, 0, new []{2,3}, new []{100, 4, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, -1, 3, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, -1, 2})]
+        [InlineData(true, 3, new []{1}, new [] {1000000, 4, 3, 0})]
         public async Task Update_Coefficient_For_Contract_Test(bool isFail, int feeType, int[] pieceNumber, 
             params int[][] newPieceFunctions)
         {
@@ -210,6 +213,17 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                         .ShouldBe(updatedCoefficients.PieceCoefficientsList[i]);
                 }
             }
+        }
+
+        [Fact]
+        public async Task GetCalculateFeeCoefficientsForContract_With_Invalid_FeeType_Test()
+        {
+            var invalidFeeType = -1;
+            var ret = await TokenContractStub.GetCalculateFeeCoefficientsForContract.CallAsync(new Int32Value
+            {
+                Value = invalidFeeType
+            });
+            ret.ShouldBe(new CalculateFeeCoefficients());
         }
         
         [Fact]
@@ -375,7 +389,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         [Fact]
         public async Task MethodFeeController_Test_Fail()
         {
-            var updateMethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController);
+            var updateMethodName = nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController);
             // no authority
             var newAuthority = await CreateNewParliamentAddressAsync();
             //invalid new organization
@@ -424,7 +438,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = TokenContractAddress,
                 Params = newController.ToByteString(),
                 OrganizationAddress = defaultController.OwnerAddress,
-                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroStub.ChangeMethodFeeController),
+                ContractMethodName = nameof(BasicContractZeroImplContainer.BasicContractZeroImplStub.ChangeMethodFeeController),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
@@ -478,7 +492,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             txResult.Error.ShouldContain("Invalid authority input");
         }
         
-                [Fact(DisplayName = "[MultiToken] validate the input")]
+        [Fact(DisplayName = "[MultiToken] validate the input")]
         public async Task SetSymbolsToPayTxSizeFee_With_Invalid_Input_Test()
         {
             var theDefaultController = await GetDefaultParliamentAddressAsync();
@@ -500,7 +514,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                     AddedTokenWeight = 2,
                     BaseTokenWeight = 1
                 });
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                result.ShouldBe(false);
             }
 
             // include the repeated token.
@@ -529,7 +544,8 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                         }
                     }
                 };
-                await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                result.ShouldBe(false);
             }
             
             // include invalid weright
@@ -553,9 +569,45 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                             }
                         }
                     };
-                    await VerifyTheInvalidSymbolList(theDefaultController, newSymbolList);
+                    var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+                    result.ShouldBe(false);
                 }
             }
+        }
+        
+        [Fact]
+        public async Task SetSymbolsToPayTxSizeFee_Success_Test()
+        {
+            var theDefaultController = await GetDefaultParliamentAddressAsync();
+            var primaryTokenSymbol = await GetThePrimaryTokenAsync();
+            var FeeToken = "FEETOKEN";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = FeeToken,
+                TokenName = "name",
+                Issuer = TokenContractAddress,
+                TotalSupply = 100_000
+            });
+            var newSymbolList = new SymbolListToPayTxSizeFee
+            {
+                SymbolsToPayTxSizeFee =
+                {
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = primaryTokenSymbol,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 1
+                    },
+                    new SymbolToPayTxSizeFee
+                    {
+                        TokenSymbol = FeeToken,
+                        AddedTokenWeight = 1,
+                        BaseTokenWeight = 2
+                    }
+                }
+            };
+            var result = await VerifyTheSymbolList(theDefaultController, newSymbolList);
+            result.ShouldBe(true);
         }
 
         [Fact]
@@ -594,7 +646,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
 
@@ -613,7 +665,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveProposalInput);
@@ -627,7 +679,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             return await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(releaseProposalInput);
@@ -641,7 +693,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.DeveloperController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var approveLeafProposalInput = new CreateProposalInput
@@ -649,7 +701,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = approveMidProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var newCreateProposalRet =
@@ -668,7 +720,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveLeafProposalInput);
@@ -678,7 +730,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveLeafProposalInput);
@@ -701,7 +753,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = createNestProposalInput.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.CreateProposal),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var releaseRet = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
@@ -720,7 +772,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AssociationContractImplContainer.AssociationContractImplStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(approveProposalInput);
@@ -735,7 +787,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ReferendumController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Approve),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Approve),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             
@@ -744,7 +796,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = ReferendumContractAddress,
                 Params = referendumProposal.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.CreateProposal),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.CreateProposal),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             var ret = await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);
@@ -766,7 +818,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = ReferendumContractAddress,
                 Params = referendumProposalId.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(ReferendumContractContainer.ReferendumContractStub.Release),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);
@@ -780,7 +832,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
                 ToAddress = AssociationContractAddress,
                 Params = input.ToByteString(),
                 OrganizationAddress = organizations.ParliamentController.OwnerAddress,
-                ContractMethodName = nameof(AssociationContractContainer.AssociationContractStub.Release),
+                ContractMethodName = nameof(AuthorizationContractContainer.AuthorizationContractStub.Release),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1)
             };
             return await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(parliamentProposal);
@@ -823,7 +875,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             return primaryTokenSymbol.Value;
         }
 
-        private async Task VerifyTheInvalidSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
+        private async Task<bool> VerifyTheSymbolList(Address defaultController, SymbolListToPayTxSizeFee newSymbolList)
         {
             var createProposalInput = new CreateProposalInput
             {
@@ -836,7 +888,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             };
             await MainChainTesterCreatApproveAndReleaseProposalForParliamentAsync(createProposalInput);
             var symbolListToPayTxSizeFee = await TokenContractStub.GetSymbolsToPayTxSizeFee.CallAsync(new Empty());
-            symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count.ShouldBe(0);
+            return symbolListToPayTxSizeFee.SymbolsToPayTxSizeFee.Count != 0;
         }
     }
 }

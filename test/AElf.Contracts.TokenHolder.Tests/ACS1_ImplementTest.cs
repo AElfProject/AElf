@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Parliament;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -87,6 +87,29 @@ namespace AElf.Contracts.TokenHolder
                 }
             });
             setMethodFeeRet.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
+        }
+        
+        [Fact]
+        public async Task SetMethodFee_With_Invalid_Input_Test()
+        {
+            var methodFees = new MethodFees
+            {
+                MethodName = "Test",
+                Fees =
+                {
+                    new MethodFee
+                    {
+                        BasicFee = 100,
+                        Symbol = "NOTEXIST"
+                    }
+                }
+            };
+            var setMethodFeeRet = await TokenHolderContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found");
+            methodFees.Fees[0].Symbol = "ELF";
+            methodFees.Fees[0].BasicFee = -1;
+            setMethodFeeRet = await TokenHolderContractStub.SetMethodFee.SendWithExceptionAsync(methodFees);
+            setMethodFeeRet.TransactionResult.Error.ShouldContain("Invalid amount");
         }
         
         [Fact]

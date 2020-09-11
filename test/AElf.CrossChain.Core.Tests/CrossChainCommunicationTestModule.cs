@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.CrossChain.Indexing.Application;
 using AElf.CrossChain.Indexing.Infrastructure;
@@ -28,7 +28,7 @@ namespace AElf.CrossChain
         {
             base.ConfigureServices(context);
             context.Services.AddSingleton<CrossChainCommunicationTestHelper>();
-           
+
             Configure<CrossChainConfigOptions>(option =>
             {
                 option.ParentChainId = ChainHelper.ConvertChainIdToBase58(ChainHelper.GetChainId(1));
@@ -47,7 +47,8 @@ namespace AElf.CrossChain
                 });
                 mockBlockChainService.Setup(m =>
                         m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns<Chain, long, Hash>((chain, height, hash) => Task.FromResult(crossChainCommunicationTestHelper.GetBlockHashByHeight(height)));
+                    .Returns<Chain, long, Hash>((chain, height, hash) =>
+                        Task.FromResult(crossChainCommunicationTestHelper.GetBlockHashByHeight(height)));
                 mockBlockChainService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>())).Returns<Hash>(hash =>
                 {
                     if (!crossChainCommunicationTestHelper.TryGetHeightByHash(hash, out var height))
@@ -85,7 +86,7 @@ namespace AElf.CrossChain
             {
                 var crossChainCommunicationTestHelper =
                     context.Services.GetRequiredServiceLazy<CrossChainCommunicationTestHelper>().Value;
-                
+
                 var mockCrossChainIndexingDataService = new Mock<ICrossChainIndexingDataService>();
                 var irreversibleBlockStateProvider =
                     context.Services.GetRequiredServiceLazy<IIrreversibleBlockStateProvider>();
@@ -121,7 +122,12 @@ namespace AElf.CrossChain
                         }
 
                         bool isConnected = crossChainCommunicationTestHelper.CheckClientConnected(chainId);
-                        crossChainClient = MockCrossChainClient(chainId, isConnected);
+                        crossChainClient = MockCrossChainClient(chainId, isConnected,
+                            entity =>
+                            {
+                                crossChainCommunicationTestHelper.SetClientConnected(-1, true);
+                                return true;
+                            });
                     }))
                     .Returns<int, ICrossChainClient>((chainId, client) =>
                         crossChainCommunicationTestHelper.TryGetCrossChainClientCreationContext(chainId, out _));
@@ -129,14 +135,11 @@ namespace AElf.CrossChain
                 mockCrossChainClientProvider
                     .Setup(c => c.AddOrUpdateClient(It.IsAny<CrossChainClientCreationContext>()))
                     .Returns<CrossChainClientCreationContext>(
-                        crossChainClientCreationContext =>
-                        {
-                            crossChainCommunicationTestHelper.AddNewCrossChainClient(crossChainClientCreationContext);
-                            bool isConnected =
-                                crossChainCommunicationTestHelper.CheckClientConnected(crossChainClientCreationContext
-                                    .RemoteChainId);
-                            return MockCrossChainClient(crossChainClientCreationContext.RemoteChainId, isConnected);
-                        });
+                        crossChainClientCreationContext => CreateAndAddClient(crossChainCommunicationTestHelper, crossChainClientCreationContext));
+
+                mockCrossChainClientProvider.Setup(c =>
+                    c.CreateChainInitializationDataClient(It.IsAny<CrossChainClientCreationContext>())).Returns<CrossChainClientCreationContext>(
+                    crossChainClientCreationContext => CreateAndAddClient(crossChainCommunicationTestHelper, crossChainClientCreationContext));
                 return mockCrossChainClientProvider.Object;
             });
 
@@ -155,7 +158,8 @@ namespace AElf.CrossChain
             public string BlockHeaderExtraDataKey => "Consensus";
         }
 
-        private ICrossChainClient MockCrossChainClient(int remoteChainId, bool isConnected)
+        private ICrossChainClient MockCrossChainClient(int remoteChainId, bool isConnected,
+            Func<ICrossChainBlockEntity, bool> func)
         {
             var mockCrossChainClient = new Mock<ICrossChainClient>();
             mockCrossChainClient.Setup(c => c.RemoteChainId)
@@ -167,7 +171,7 @@ namespace AElf.CrossChain
                 {
                     var chainInitialization = new ChainInitializationData
                     {
-                        CreationHeightOnParentChain = 1
+                        CreationHeightOnParentChain = 1,
                     };
                     return Task.FromResult(chainInitialization);
                 });
@@ -176,14 +180,26 @@ namespace AElf.CrossChain
                         It.IsAny<Func<ICrossChainBlockEntity, bool>>()))
                 .Returns(() =>
                 {
-                    var chainInitialization = new ChainInitializationData
-                    {
-                        CreationHeightOnParentChain = 1
-                    };
-                    return Task.FromResult(chainInitialization);
+                    func(new ParentChainBlockData());
+                    return Task.CompletedTask;
                 });
             mockCrossChainClient.Setup(c => c.ConnectAsync()).Returns(() => Task.CompletedTask);
             return mockCrossChainClient.Object;
+        }
+
+        private ICrossChainClient CreateAndAddClient(CrossChainCommunicationTestHelper crossChainCommunicationTestHelper, 
+            CrossChainClientCreationContext crossChainClientCreationContext)
+        {
+            crossChainCommunicationTestHelper.AddNewCrossChainClient(crossChainClientCreationContext);
+            bool isConnected =
+                crossChainCommunicationTestHelper.CheckClientConnected(crossChainClientCreationContext
+                    .RemoteChainId);
+            return MockCrossChainClient(crossChainClientCreationContext.RemoteChainId, isConnected,
+                entity =>
+                {
+                    crossChainCommunicationTestHelper.SetClientConnected(-1, true);
+                    return true;
+                });
         }
     }
 }

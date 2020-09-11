@@ -1,5 +1,5 @@
 using System;
-using Acs3;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -36,7 +36,8 @@ namespace AElf.Contracts.Referendum
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
 
-        private ReferendumReceiptCreated LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress)
+        private ReferendumReceiptCreated LockToken(string symbol, long amount, Hash proposalId, Address lockedAddress,
+            Address organizationAddress)
         {
             Assert(State.LockedTokenAmount[lockedAddress][proposalId] == null, "Already locked.");
 
@@ -65,7 +66,8 @@ namespace AElf.Contracts.Referendum
                 ProposalId = proposalId,
                 Amount = amount,
                 Symbol = symbol,
-                Time = Context.CurrentBlockTime
+                Time = Context.CurrentBlockTime,
+                OrganizationAddress = organizationAddress
             };
         }
 
@@ -90,6 +92,7 @@ namespace AElf.Contracts.Referendum
             if (string.IsNullOrEmpty(organization.TokenSymbol) || organization.OrganizationAddress == null ||
                 organization.OrganizationHash == null || organization.ProposerWhiteList.Empty())
                 return false;
+            Assert(!string.IsNullOrEmpty(GetTokenInfo(organization.TokenSymbol).Symbol), "Token not exists.");
 
             var proposalReleaseThreshold = organization.ProposalReleaseThreshold;
             return proposalReleaseThreshold.MinimalApprovalThreshold <= proposalReleaseThreshold.MinimalVoteThreshold &&
@@ -124,6 +127,15 @@ namespace AElf.Contracts.Referendum
             Assert(proposal != null, "Invalid proposal id.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
+        }
+        
+        private TokenInfo GetTokenInfo(string symbol)
+        {
+            RequireTokenContractStateSet();
+            return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
         }
 
         private long GetAllowance(Address owner, string tokenSymbol, Hash proposalId)
@@ -160,7 +172,7 @@ namespace AElf.Contracts.Referendum
             };
             Assert(Validate(proposal), "Invalid proposal.");
             State.Proposals[proposalId] = proposal;
-            Context.Fire(new ProposalCreated {ProposalId = proposalId});
+            Context.Fire(new ProposalCreated {ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress});
 
             return proposalId;
         }
@@ -176,12 +188,21 @@ namespace AElf.Contracts.Referendum
             CreateOrganizationInput createOrganizationInput)
         {
             var organizationHash = HashHelper.ComputeFrom(createOrganizationInput);
-            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(organizationHash);
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddressWithContractHashName(
+                CalculateVirtualHash(organizationHash, createOrganizationInput.CreationToken));
+            
             return new OrganizationHashAddressPair
             {
                 OrganizationAddress = organizationAddress,
                 OrganizationHash = organizationHash
             };
+        }
+        
+        private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
+        {
+            return creationToken == null
+                ? organizationHash
+                : HashHelper.ConcatAndCompute(organizationHash, creationToken);
         }
     }
 }

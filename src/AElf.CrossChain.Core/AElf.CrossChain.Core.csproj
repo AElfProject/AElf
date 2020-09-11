@@ -9,12 +9,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.EventBus" Version="2.9.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
     </ItemGroup>
 
     <ItemGroup>
@@ -31,8 +36,11 @@
         <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\parliament_contract.proto</Link>
         </ContractMessage>
-        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+        <ContractMessage Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract_impl.proto">
+            <Link>Protobuf\Proto\cross_chain_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

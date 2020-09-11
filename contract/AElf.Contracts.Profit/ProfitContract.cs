@@ -30,7 +30,7 @@ namespace AElf.Contracts.Profit
     /// 9. Balance of PI_FOO's virtual address of first period is 500L.
     /// 10. Anil can only get his profits by calling Profit (SchemeId: PI_BAR's profit id, Symbol: "ELF")
     /// </summary>
-    public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
+    public partial class ProfitContract : ProfitContractImplContainer.ProfitContractImplBase
     {
         /// <summary>
         /// Create a Scheme of profit distribution.
@@ -249,7 +249,7 @@ namespace AElf.Contracts.Profit
                 "Only manager can remove beneficiary.");
 
             var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
-                ? currentDetail.Details.ToList()
+                ? currentDetail.Details.Where(d => !d.IsWeightRemoved).ToList()
                 : currentDetail.Details
                     .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
@@ -263,7 +263,7 @@ namespace AElf.Contracts.Profit
                 {
                     currentDetail.Details.Remove(expiryDetail);
                 }
-                else
+                else if(expiryDetail.EndPeriod >= scheme.CurrentPeriod)
                 {
                     expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
@@ -422,7 +422,7 @@ namespace AElf.Contracts.Profit
         private Empty BurnProfits(long period, Dictionary<string, long> profitsMap, Scheme scheme,
             Address profitsReceivingVirtualAddress)
         {
-            Context.LogDebug(() => "Entered BurnProfits.");
+            Context.LogDebug(() => "going to Burn Profits.");
             scheme.CurrentPeriod = period.Add(1);
 
             var distributedProfitsInfo = new DistributedProfitsInfo
@@ -435,6 +435,13 @@ namespace AElf.Contracts.Profit
                 var amount = profits.Value;
                 if (amount > 0)
                 {
+                    var balanceOfToken = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Owner = scheme.VirtualAddress,
+                        Symbol = symbol
+                    });
+                    if(balanceOfToken.Balance < amount)
+                        continue;
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
                     {
                         From = scheme.VirtualAddress,
@@ -667,7 +674,8 @@ namespace AElf.Contracts.Profit
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
             // ReSharper disable once PossibleNullReferenceException
-            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod >= d.LastProfitPeriod).ToList();
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod == 0 ? d.EndPeriod >= d.StartPeriod : d.EndPeriod >= d.LastProfitPeriod).ToList();
             // ReSharper disable once PossibleNullReferenceException
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 

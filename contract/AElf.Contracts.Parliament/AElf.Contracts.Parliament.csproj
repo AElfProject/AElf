@@ -18,6 +18,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
@@ -32,10 +38,13 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\parliament_contract.proto">
-            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
             <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>

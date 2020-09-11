@@ -1,4 +1,4 @@
-using Acs2;
+using AElf.Standards.ACS2;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract

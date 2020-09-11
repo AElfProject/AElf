@@ -108,13 +108,13 @@ namespace AElf.Contracts.Profit.BVT
             var beforeBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
-            })).Burned;
+            })).Supply;
             await ContributeAndDistribute(creator, contributeAmountEachTime, period);
             var afterBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
-            })).Burned;
-            afterBurnToken.Sub(beforeBurnToken).ShouldBe(contributeAmountEachTime);
+            })).Supply;
+            beforeBurnToken.Sub(afterBurnToken).ShouldBe(contributeAmountEachTime);
         }
 
         [Fact]
@@ -220,7 +220,7 @@ namespace AElf.Contracts.Profit.BVT
             }
         }
 
-        private async Task ContributeAndDistribute(ProfitContractContainer.ProfitContractStub creator,
+        private async Task ContributeAndDistribute(ProfitContractImplContainer.ProfitContractImplStub creator,
             int contributeAmountEachTime, int period)
         {
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
@@ -237,7 +237,7 @@ namespace AElf.Contracts.Profit.BVT
             });
         }
 
-        private async Task<long> AddBeneficiaries(ProfitContractContainer.ProfitContractStub creator)
+        private async Task<long> AddBeneficiaries(ProfitContractImplContainer.ProfitContractImplStub creator)
         {
             await creator.AddBeneficiaries.SendAsync(new AddBeneficiariesInput
             {
