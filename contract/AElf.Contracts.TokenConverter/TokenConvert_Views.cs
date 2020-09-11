@@ -107,5 +107,11 @@ namespace AElf.Contracts.TokenConverter
                 Value = State.Connectors[ntSymbol].VirtualBalance + State.DepositBalance[ntSymbol]
             };
         }
+
+        public override BoolValue IsSymbolAbleToSell(StringValue input)
+        {
+            var depositConnector = GetPairConnector(new TokenSymbol {Symbol = input.Value}).DepositConnector;
+            return new BoolValue {Value = depositConnector != null && depositConnector.IsPurchaseEnabled};
+        }
     }
 }
