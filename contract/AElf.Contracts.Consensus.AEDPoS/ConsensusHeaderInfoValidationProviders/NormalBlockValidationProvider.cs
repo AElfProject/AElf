@@ -46,16 +46,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!validationContext.BaseRound.RealTimeMinersInformation.ContainsKey(pubkey) ||
                 !validationContext.ProvidedRound.RealTimeMinersInformation.ContainsKey(pubkey))
             {
+                // If sender isn't a current miner, this validation is meaning less.
                 return true;
             }
             var before = validationContext.BaseRound.RealTimeMinersInformation[pubkey];
             var after = validationContext.ProvidedRound.RealTimeMinersInformation[pubkey];
             var result = (before.ProducedBlocks == after.ProducedBlocks ||
-                    before.ProducedBlocks.Add(1) == after.ProducedBlocks) &&
-                   (before.ProducedTinyBlocks == after.ProducedTinyBlocks ||
-                    before.ProducedTinyBlocks.Add(1) == after.ProducedTinyBlocks) &&
-                   validationContext.BaseRound.GetMinedBlocks().Add(1) ==
-                   validationContext.ProvidedRound.GetMinedBlocks();
+                          before.ProducedBlocks.Add(1) == after.ProducedBlocks) &&
+                         (before.ProducedTinyBlocks == after.ProducedTinyBlocks ||
+                          before.ProducedTinyBlocks.Add(1) == after.ProducedTinyBlocks);
             return result;
         }
     }
