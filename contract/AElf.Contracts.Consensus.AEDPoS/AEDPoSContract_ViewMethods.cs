@@ -240,6 +240,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => "[CURRENT MINER]WRONG");
 
+            // More logs to debug.
+            var distanceToRoundStartTime = (Context.CurrentBlockTime - currentRound.GetRoundStartTime()).Milliseconds();
+            var missedRoundsCount = distanceToRoundStartTime.Div(currentRound.TotalMilliseconds(miningInterval));
+            var futureRoundStartTime = currentRound.CalculateFutureRoundStartTime(missedRoundsCount, miningInterval);
+            Context.LogDebug(() => "Is Current Miner judgement failed.\n" +
+                                   "Current round information: \n" +
+                                   $"{currentRound.ToString(pubkey)}\n" +
+                                   $"Distance to round start time: {distanceToRoundStartTime}\n" +
+                                   $"Missed rounds count: {missedRoundsCount}\n" +
+                                   $"Future round start time: {futureRoundStartTime}\n" +
+                                   $"Arranged future mining time:{arrangedMiningTime}");
+
             return false;
         }
 

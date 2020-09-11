@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>
-        private Timestamp CalculateFutureRoundStartTime(long missedRoundsCount = 0, int miningInterval = 0)
+        public Timestamp CalculateFutureRoundStartTime(long missedRoundsCount = 0, int miningInterval = 0)
         {
             if (miningInterval == 0)
                 miningInterval = GetMiningInterval();
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="miningInterval"></param>
         /// <returns></returns>
-        private int TotalMilliseconds(int miningInterval = 0)
+        public int TotalMilliseconds(int miningInterval = 0)
         {
             if (miningInterval == 0)
             {
