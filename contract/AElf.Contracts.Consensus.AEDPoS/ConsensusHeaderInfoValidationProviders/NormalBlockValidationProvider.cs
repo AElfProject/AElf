@@ -43,12 +43,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool ValidateProducedBlocksCount(ConsensusValidationContext validationContext)
         {
             var pubkey = validationContext.SenderPubkey;
+            if (!validationContext.BaseRound.RealTimeMinersInformation.ContainsKey(pubkey) ||
+                !validationContext.ProvidedRound.RealTimeMinersInformation.ContainsKey(pubkey))
+            {
+                return false;
+            }
             var before = validationContext.BaseRound.RealTimeMinersInformation[pubkey];
             var after = validationContext.ProvidedRound.RealTimeMinersInformation[pubkey];
-            return (before.ProducedBlocks == after.ProducedBlocks ||
+            var result = (before.ProducedBlocks == after.ProducedBlocks ||
                     before.ProducedBlocks.Add(1) == after.ProducedBlocks) &&
                    (before.ProducedTinyBlocks == after.ProducedTinyBlocks ||
-                    before.ProducedTinyBlocks.Add(1) == after.ProducedTinyBlocks);
+                    before.ProducedTinyBlocks.Add(1) == after.ProducedTinyBlocks) &&
+                   validationContext.BaseRound.GetMinedBlocks().Add(1) ==
+                   validationContext.ProvidedRound.GetMinedBlocks();
+            return result;
         }
     }
 }
