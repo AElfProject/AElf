@@ -1,3 +1,5 @@
+using AElf.Kernel.SmartContract;
+
 namespace AElf.Runtime.CSharp.Tests.BadContract
 {
     public static class ExecutionObserverProxy
