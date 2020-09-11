@@ -45,6 +45,8 @@ namespace AElf.OS.Handlers
         {
             var chain = await _blockchainService.GetChainAsync();
 
+            Logger.LogDebug($"About to process new block: {blockWithTransactions.Header}");
+
             if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions, senderPubkey))
             {
                 return;
