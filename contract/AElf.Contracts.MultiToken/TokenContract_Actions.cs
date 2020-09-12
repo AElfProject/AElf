@@ -149,7 +149,7 @@ namespace AElf.Contracts.MultiToken
             ValidateTokenInfoExistsInput validateTokenInfoExistsInput =
                 ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);
 
-            RegisterTokenInfo(new TokenInfo
+            var tokenInfo = new TokenInfo
             {
                 Symbol = validateTokenInfoExistsInput.Symbol,
                 TokenName = validateTokenInfoExistsInput.TokenName,
@@ -159,7 +159,20 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
                 IsProfitable = validateTokenInfoExistsInput.IsProfitable,
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
+            };
+            RegisterTokenInfo(tokenInfo);
+            
+            Context.Fire(new TokenCreated
+            {
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
+            
             return new Empty();
         }
 

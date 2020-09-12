@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Indexing.Application
 {
     public class CrossChainIndexingDataProposedLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
-        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+        public IOptions<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
         public ILogger<CrossChainIndexingDataProposedLogEventProcessor> Logger { get; set; }
 
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -56,7 +56,7 @@ namespace AElf.CrossChain.Indexing.Application
                 var transactionResult = events.Key;
                 foreach (var logEvent in events.Value)
                 {
-                    if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
+                    if (CrossChainConfigOptions.Value.CrossChainDataValidationIgnored)
                     {
                         Logger.LogTrace("Cross chain data validation disabled.");
                         return;

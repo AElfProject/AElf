@@ -1,4 +1,4 @@
-namespace AElf
+namespace AElf.Kernel.SmartContract
 {
     public interface IExecutionObserver
     {

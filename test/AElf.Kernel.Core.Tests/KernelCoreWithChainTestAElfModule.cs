@@ -1,5 +1,3 @@
-using AElf.Kernel.Token;
-using AElf.Kernel.Token.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;

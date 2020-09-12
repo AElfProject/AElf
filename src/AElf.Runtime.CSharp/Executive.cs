@@ -31,7 +31,6 @@ namespace AElf.Runtime.CSharp
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
-        public bool IsSystemContract { get; set; }
         public string ContractVersion { get; set; }
         public Timestamp LastUsedTime { get; set; }
 
@@ -104,9 +103,7 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                // no need to check for new system contracts. [deprecated]
-                if (!IsSystemContract)
-                    _smartContractProxy.SetExecutionObserver(observer);
+                _smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 

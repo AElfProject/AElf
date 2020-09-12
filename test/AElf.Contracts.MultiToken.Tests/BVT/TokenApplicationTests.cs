@@ -6,8 +6,6 @@ using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
-using AElf.Kernel.Token;
-using AElf.Kernel.Token.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -1200,20 +1198,6 @@ namespace AElf.Contracts.MultiToken
                 });
                 checkSufficientBalance.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-        }
-        
-        [Fact] 
-        public async Task GetPrimaryToken_Test()
-        {
-            var primaryTokenSymbol = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
-            var primaryTokenProvider = GetService<IPrimaryTokenSymbolProvider>();
-            var tokenSymbol = primaryTokenProvider.GetPrimaryTokenSymbol();
-            tokenSymbol.ShouldBeNull();
-            var primaryTokenService = GetService<IPrimaryTokenSymbolService>();
-            tokenSymbol = await primaryTokenService.GetPrimaryTokenSymbol();
-            tokenSymbol.ShouldBe(primaryTokenSymbol.Value);
-            tokenSymbol = primaryTokenProvider.GetPrimaryTokenSymbol();
-            tokenSymbol.ShouldBe(primaryTokenSymbol.Value); 
         }
 
         private async Task CreateAndIssueCustomizeTokenAsync(Address creator, string symbol, long totalSupply, long issueAmount,

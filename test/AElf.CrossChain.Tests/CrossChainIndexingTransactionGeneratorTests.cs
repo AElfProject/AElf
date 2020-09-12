@@ -37,7 +37,6 @@ namespace AElf.CrossChain
             var previousBlockHeight = 1;
             var crossChainBlockData = new CrossChainBlockData
             {
-                PreviousBlockHeight = previousBlockHeight
             };
             
             var cachingCount = 5;
