@@ -227,11 +227,12 @@ namespace AElf.Contracts.MultiToken
             {
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
-                SideChainTokenDecimals = 2,
-                IsSideChainTokenBurnable = true,
-                SideChainTokenTotalSupply = 1_000_000_000,
-                SideChainTokenSymbol = symbol,
-                SideChainTokenName = "TEST",
+                SideChainTokenCreationRequest = new SideChainTokenCreationRequest{
+                    SideChainTokenDecimals = 2,
+                    SideChainTokenTotalSupply = 1_000_000_000,
+                    SideChainTokenSymbol = symbol,
+                    SideChainTokenName = "TEST"
+                },
                 SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
                 InitialResourceAmount = {ResourceTokenSymbolList.ToDictionary(resource => resource, resource => 1)}
             };

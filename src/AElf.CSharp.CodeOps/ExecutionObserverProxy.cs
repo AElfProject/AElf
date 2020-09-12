@@ -1,4 +1,5 @@
 using System;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.CSharp.CodeOps
 {

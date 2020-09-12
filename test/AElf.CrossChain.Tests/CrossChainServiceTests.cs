@@ -20,7 +20,7 @@ namespace AElf.CrossChain
             _crossChainService = GetRequiredService<ICrossChainService>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
             _crossChainCacheEntityService = GetRequiredService<ICrossChainCacheEntityService>();
-            _crossChainConfigOptions = GetRequiredService<IOptionsMonitor<CrossChainConfigOptions>>().CurrentValue;
+            _crossChainConfigOptions = GetRequiredService<IOptions<CrossChainConfigOptions>>().Value;
         }
     
         [Fact]

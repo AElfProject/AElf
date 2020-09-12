@@ -129,9 +129,7 @@ namespace AElf.Contracts.CrossChain
                 return;
 
             // assert primary token to create
-            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
-                sideChainCreationRequest.SideChainTokenName,
-                sideChainCreationRequest.SideChainTokenTotalSupply);
+            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenCreationRequest);
             Assert(sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                 "Invalid side chain token initial issue list.");
@@ -147,10 +145,13 @@ namespace AElf.Contracts.CrossChain
             }
         }
 
-        private void AssertValidSideChainTokenInfo(string symbol, string tokenName, long totalSupply)
+        private void AssertValidSideChainTokenInfo(SideChainTokenCreationRequest sideChainTokenCreationRequest)
         {
-            Assert(!string.IsNullOrEmpty(symbol) && !string.IsNullOrEmpty(tokenName), "Invalid side chain token name.");
-            Assert(totalSupply > 0, "Invalid side chain token supply.");
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenCreationRequest.SideChainTokenSymbol) &&
+                !string.IsNullOrEmpty(sideChainTokenCreationRequest.SideChainTokenName),
+                "Invalid side chain token name.");
+            Assert(sideChainTokenCreationRequest.SideChainTokenTotalSupply > 0, "Invalid side chain token supply.");
         }
 
         private void SetContractStateRequired(ContractReferenceState state, string contractSystemName)
@@ -182,12 +183,11 @@ namespace AElf.Contracts.CrossChain
             // new token needed only for exclusive side chain
             var sideChainTokenInfo = new SideChainTokenInfo
             {
-                TokenName = sideChainCreationRequest.SideChainTokenName,
-                Symbol = sideChainCreationRequest.SideChainTokenSymbol,
-                TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
-                Decimals = sideChainCreationRequest.SideChainTokenDecimals,
-                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
-                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
+                TokenName = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenName,
+                Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply,
+                Decimals = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenDecimals,
+                IsBurnable = true
             };
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
@@ -542,7 +542,7 @@ namespace AElf.Contracts.CrossChain
             
             var initialConsensusInfo = GetInitialConsensusInformation();
             res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
-                {InitialMinerListData = initialConsensusInfo};
+                {InitialConsensusData = initialConsensusInfo};
 
             ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
             res.NativeTokenInfoData = nativeTokenInformation;
@@ -557,7 +557,7 @@ namespace AElf.Contracts.CrossChain
             if (IsPrimaryTokenNeeded(sideChainCreationRequest))
             {
                 ByteString sideChainTokenInformation =
-                    GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
+                    GetTokenInfo(sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol).ToByteString();
                 res.ChainPrimaryTokenInfo = new ChainPrimaryTokenInfo
                 {
                     ChainPrimaryTokenData = sideChainTokenInformation,

@@ -29,7 +29,7 @@ namespace AElf.ContractTestBase
                 ChainCreatorPrivilegePreserved = false,
                 ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
                 {
-                    InitialMinerListData = new MinerListWithRoundNumber
+                    InitialConsensusData = new MinerListWithRoundNumber
                     {
                         MinerList = new MinerList()
                         {

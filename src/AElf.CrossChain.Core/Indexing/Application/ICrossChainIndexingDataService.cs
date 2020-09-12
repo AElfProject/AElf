@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Indexing.Application
 
         // ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(CrossChainBlockData crossChainBlockData);
         void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight);
-        Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync();
+        Task<ChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync();
         Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
         Task<Block> GetNonIndexedBlockAsync(long requestHeight);
     }

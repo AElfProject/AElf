@@ -312,12 +312,12 @@ namespace AElf.CrossChain.Indexing.Application
             return await _irreversibleBlockStateProvider.GetNotIndexedIrreversibleBlockByHeightAsync(height);
         }
 
-        public async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
+        public async Task<ChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
         {
             var isReadyToCreateChainCache =
                 await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
             if (!isReadyToCreateChainCache)
-                return new SideChainIdAndHeightDict();
+                return new ChainIdAndHeightDict();
             var lib = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             return await _contractReaderFactory
                 .Create(new ContractReaderContext
@@ -341,7 +341,6 @@ namespace AElf.CrossChain.Indexing.Application
 
             var crossChainBlockData = new CrossChainBlockData
             {
-                PreviousBlockHeight = blockHeight,
                 ParentChainBlockDataList = {parentChainBlockData},
                 SideChainBlockDataList = {sideChainBlockData}
             };

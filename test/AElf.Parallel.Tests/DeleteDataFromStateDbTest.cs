@@ -1687,17 +1687,17 @@ namespace AElf.Parallel.Tests
                 CheckValueNotExisted(value);
 
                 value = await GetValueAsync(accountAddress, keys[4], block.GetHash(), block.Height);
-                CheckValueNotExisted(value);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
 
                 value = await GetValueAsync(accountAddress, keys[5], block.GetHash(), block.Height);
-                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+                CheckValueNotExisted(value);
 
                 value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
-                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+                CheckValueNotExisted(value);
 
                 var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
-                blockStateSet.Changes.Count.ShouldBe(9);
-                blockStateSet.Deletes.Count.ShouldBe(12);
+                blockStateSet.Changes.Count.ShouldBe(6);
+                blockStateSet.Deletes.Count.ShouldBe(15);
             }
             
             //Second Block
@@ -1855,17 +1855,17 @@ namespace AElf.Parallel.Tests
                 CheckValueNotExisted(value);
 
                 value = await GetValueAsync(accountAddress, keys[4], block.GetHash(), block.Height);
-                CheckValueNotExisted(value);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
 
                 value = await GetValueAsync(accountAddress, keys[5], block.GetHash(), block.Height);
-                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+                CheckValueNotExisted(value);
 
                 value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
-                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+                CheckValueNotExisted(value);
 
                 var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());
-                blockStateSet.Changes.Count.ShouldBe(6);
-                blockStateSet.Deletes.Count.ShouldBe(15);
+                blockStateSet.Changes.Count.ShouldBe(3);
+                blockStateSet.Deletes.Count.ShouldBe(18);
             }
 
             chain = await _blockchainService.GetChainAsync();
@@ -1874,10 +1874,9 @@ namespace AElf.Parallel.Tests
             await CheckValueNotExistedInVersionStateAsync(keys[1]);
             await CheckValueNotExistedInVersionStateAsync(keys[2]);
             await CheckValueNotExistedInVersionStateAsync(keys[3]);
-            await CheckValueNotExistedInVersionStateAsync(keys[4]);
-            await CheckValueInVersionStateAsync(keys[5], messageValue.Int64Value,
-                messageValue.StringValue, messageValue);
-            await CheckValueInVersionStateAsync(keys[6], messageValue.Int64Value,
+            await CheckValueNotExistedInVersionStateAsync(keys[5]);
+            await CheckValueNotExistedInVersionStateAsync(keys[6]);
+            await CheckValueInVersionStateAsync(keys[4], messageValue.Int64Value,
                 messageValue.StringValue, messageValue);
         }
         

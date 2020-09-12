@@ -32,7 +32,7 @@ namespace AElf.Contracts.MultiToken
                 ChainCreatorPrivilegePreserved = true,
                 ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
                 {
-                    InitialMinerListData = new MinerListWithRoundNumber
+                    InitialConsensusData = new MinerListWithRoundNumber
                     {
                         MinerList = new MinerList()
                         {

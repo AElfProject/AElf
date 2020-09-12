@@ -108,7 +108,6 @@ namespace AElf.Runtime.CSharp
             var assembly = Assembly.Load(code);
             var executive = new Executive(assembly)
             {
-                IsSystemContract = false
             };
 
             var hostSmartContractBridgeContext = _hostSmartContractBridgeContextService.Create();
@@ -182,7 +181,6 @@ namespace AElf.Runtime.CSharp
             var assembly = Assembly.Load(contractCode);
             var executive = new Executive(assembly)
             {
-                IsSystemContract = true
             };
             return executive;
         }
