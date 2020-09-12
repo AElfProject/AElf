@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -86,6 +88,17 @@ namespace AElf.Kernel.SmartContract.Application
                 IsPrivileged = false,
                 ContractName = null
             });
+        }
+
+        [Fact]
+        public void ExceptionTest()
+        {
+            var message = "message";
+            var exception = new Exception();
+            Should.Throw<SmartContractExecutingException>(() => throw new SmartContractExecutingException());
+            Should.Throw<SmartContractExecutingException>(() => throw new SmartContractExecutingException(message, exception));
+            Should.Throw<SmartContractFindRegistrationException>(() => throw new SmartContractFindRegistrationException());
+            Should.Throw<SmartContractFindRegistrationException>(() => throw new SmartContractFindRegistrationException(message, exception));
         }
     }
 }
