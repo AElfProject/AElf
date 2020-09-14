@@ -353,11 +353,13 @@ namespace AElf.Contracts.CrossChain.Tests
                     {
                         IndexingPrice = 1,
                         LockedTokenAmount = 10,
-                        SideChainTokenDecimals = 2,
-                        IsSideChainTokenBurnable = true,
-                        SideChainTokenTotalSupply = 1_000_000_000,
-                        SideChainTokenSymbol = "TE",
-                        SideChainTokenName = "TEST",
+                        SideChainTokenCreationRequest = new SideChainTokenCreationRequest
+                        {
+                            SideChainTokenDecimals = 2,
+                            SideChainTokenTotalSupply = 1_000_000_000,
+                            SideChainTokenSymbol = "TE",
+                            SideChainTokenName = "TEST",
+                        }
                     }
                 }.ToByteString()
             });

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
@@ -9,12 +11,13 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class BlockValidationProviderTests : AElfKernelWithChainTestBase
+    public sealed class BlockValidationProviderTests : AElfKernelWithChainTestBase
     {
         private readonly BlockValidationProvider _blockValidationProvider;
         private readonly IBlockValidationService _blockValidationService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly KernelTestHelper _kernelTestHelper;
+        private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
 
         public BlockValidationProviderTests()
         {
@@ -22,6 +25,7 @@ namespace AElf.Kernel.Blockchain.Application
             _blockValidationProvider = GetRequiredService<BlockValidationProvider>();
             _transactionBlockIndexService = GetRequiredService<ITransactionBlockIndexService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _systemTransactionExtraDataProvider = GetRequiredService<ISystemTransactionExtraDataProvider>();
         }
 
         [Fact]
@@ -126,7 +130,15 @@ namespace AElf.Kernel.Blockchain.Application
                     block.GetHash().ToByteArray()));
 
             validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);
+            validateResult.ShouldBeFalse();
+            
+            _systemTransactionExtraDataProvider.SetSystemTransactionCount(1,block.Header);
+            block.Header.Signature =
+                ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey,
+                    block.GetHash().ToByteArray()));
+            validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);
             validateResult.ShouldBeTrue();
+            
         }
 
         [Fact]
@@ -198,6 +210,20 @@ namespace AElf.Kernel.Blockchain.Application
 
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(repackagedBlock);
             validateResult.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void ExceptionTest()
+        {
+            var message = "message";
+            var exception = new Exception();
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException());
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException(message));
+            Should.Throw<BlockValidationException>(() => throw new BlockValidationException(message, exception));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException());
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(message));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(message, exception));
+            Should.Throw<ValidateNextTimeBlockValidationException>(() => throw new ValidateNextTimeBlockValidationException(Hash.Empty));
         }
     }
 }

@@ -204,6 +204,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        protected async Task SetPrimaryTokenSymbolAsync()
+        {
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+                {Symbol = NativeTokenSymbol});
+        }
+
         private async Task InitializeAElfConsensus()
         {
             {

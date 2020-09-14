@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Cache.Application
         long GetTargetHeightForChainCacheEntity(int chainId);
 
         Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
-            SideChainIdAndHeightDict chainIdAndHeightDict);
+            ChainIdAndHeightDict chainIdAndHeightDict);
     }
 
     internal class CrossChainCacheEntityService : ICrossChainCacheEntityService, ITransientDependency
@@ -61,7 +61,7 @@ namespace AElf.CrossChain.Cache.Application
         }
 
         public Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
-            SideChainIdAndHeightDict chainIdAndHeightDict)
+            ChainIdAndHeightDict chainIdAndHeightDict)
         {
             foreach (var chainIdHeight in chainIdAndHeightDict.IdHeightDict)
             {

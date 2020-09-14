@@ -160,6 +160,18 @@ namespace AElf.Contracts.MultiToken
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
             };
             RegisterTokenInfo(tokenInfo);
+
+            Context.Fire(new TokenCreated
+            {
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+            });
+
             return new Empty();
         }
 

@@ -333,11 +333,13 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
-                SideChainTokenDecimals = 2,
-                IsSideChainTokenBurnable = true,
-                SideChainTokenTotalSupply = 1_000_000_000,
-                SideChainTokenSymbol = "TE",
-                SideChainTokenName = "TEST",
+                SideChainTokenCreationRequest = new SideChainTokenCreationRequest
+                {
+                    SideChainTokenDecimals = 2,
+                    SideChainTokenTotalSupply = 1_000_000_000,
+                    SideChainTokenSymbol = "TE",
+                    SideChainTokenName = "TEST"   
+                },
                 SideChainTokenInitialIssueList = {sideChainTokenInitialIssueList},
                 InitialResourceAmount = {resourceAmount},
                 IsPrivilegePreserved = isPrivilegePreserved

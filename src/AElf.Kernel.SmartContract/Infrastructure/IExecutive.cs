@@ -21,9 +21,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         
         Hash ContractHash { get; }
         Timestamp LastUsedTime { get; set; }
-
-        bool IsSystemContract { get; }
-        
         string ContractVersion { get; }
     }
 }

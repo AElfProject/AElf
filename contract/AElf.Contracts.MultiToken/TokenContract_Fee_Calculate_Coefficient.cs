@@ -290,7 +290,7 @@ namespace AElf.Contracts.MultiToken
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Interval (1000000, ∞): x / 80
+                        // Interval (1000000, 5000000): x / 80
                         Value =
                         {
                             5000000,
@@ -299,7 +299,7 @@ namespace AElf.Contracts.MultiToken
                     },
                     new CalculateFeePieceCoefficients
                     {
-                        // Interval (1000000, ∞): x / 80 + x^2 / 100000
+                        // Interval (5000000, ∞): x / 80 + x^2 / 100000
                         Value =
                         {
                             int.MaxValue,

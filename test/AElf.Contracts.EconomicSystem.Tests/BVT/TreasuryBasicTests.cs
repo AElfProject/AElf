@@ -310,7 +310,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 var setSymbolRet =
                     await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                         newSymbolList);
-                setSymbolRet.Error.ShouldContain($"Token {resourceTokenSymbol} don't need to set to symbol list");
+                setSymbolRet.Error.ShouldContain($"Token {resourceTokenSymbol} doesn't need to set to symbol list");
             }
         }
 

@@ -20,11 +20,11 @@ namespace AElf.CrossChain.Application
             _crossChainIndexingDataService = crossChainIndexingDataService;
         }
 
-        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+        public IOptions<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
 
         public async Task FinishInitialSyncAsync()
         {
-            CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored = false;
+            CrossChainConfigOptions.Value.CrossChainDataValidationIgnored = false;
             var chainIdHeightPairs =
                 await _crossChainIndexingDataService.GetAllChainIdHeightPairsAtLibAsync();
             foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Application
 
         public async Task UpdateCrossChainDataWithLibAsync(Hash blockHash, long blockHeight)
         {
-            if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored
+            if (CrossChainConfigOptions.Value.CrossChainDataValidationIgnored
                 || blockHeight <= AElfConstants.GenesisBlockHeight)
                 return;
 

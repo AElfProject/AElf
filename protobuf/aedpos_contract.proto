@@ -60,7 +60,7 @@ service AEDPoSContract {
     rpc GetCurrentTermNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+    rpc GetCurrentTermMiningReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerList (GetMinerListInput) returns (MinerList) {
