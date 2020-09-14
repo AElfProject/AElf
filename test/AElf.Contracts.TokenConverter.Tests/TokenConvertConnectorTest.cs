@@ -51,7 +51,7 @@ namespace AElf.Contracts.TokenConverter
                     nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub
                         .ChangeConnectorController),
                     newAuthority);
-                changeControllerRet.Error.ShouldContain("new controller does not exist");
+                changeControllerRet.Error.ShouldContain("New Controller organization does not exist.");
             }
         }
 
@@ -152,7 +152,7 @@ namespace AElf.Contracts.TokenConverter
         {
             var tokenSymbol = "CWJ";
             await AddPairConnectorAsync(tokenSymbol);
-            var updateConnector = new Connector
+            var updateConnector = new UpdateConnectorInput
             {
                 Symbol = tokenSymbol,
                 Weight = "0.3"
@@ -182,12 +182,19 @@ namespace AElf.Contracts.TokenConverter
                     {
                         Symbol = creatConnectorTokenSymbol
                     });
-            var updateConnectorInput =
+            var updateConnector =
                 isUpdateResourceToken ? pairConnector.ResourceConnector : pairConnector.DepositConnector;
             if (isUpdateResourceToken)
-                updateConnectorInput.Symbol = inputTokenSymbol;
-            updateConnectorInput.Weight = weight;
-            updateConnectorInput.VirtualBalance = virtualBalance;
+                updateConnector.Symbol = inputTokenSymbol;
+            updateConnector.Weight = weight;
+            updateConnector.VirtualBalance = virtualBalance;
+
+            var updateConnectorInput = new UpdateConnectorInput
+            {
+                Symbol = updateConnector.Symbol,
+                Weight = updateConnector.Weight,
+                VirtualBalance = updateConnector.VirtualBalance
+            };
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -231,14 +238,14 @@ namespace AElf.Contracts.TokenConverter
                 Symbol = symbol,
                 Amount = 100
             });
-            buyRet.TransactionResult.Error.ShouldContain("can't purchase");
+            buyRet.TransactionResult.Error.ShouldContain("Purchase not enabled.");
 
             var sellRet = await DefaultStub.Buy.SendWithExceptionAsync(new BuyInput
             {
                 Symbol = symbol,
                 Amount = 100
             });
-            sellRet.TransactionResult.Error.ShouldContain("can't purchase");
+            sellRet.TransactionResult.Error.ShouldContain("Purchase not enabled.");
         }
 
         [Fact]
@@ -348,18 +355,15 @@ namespace AElf.Contracts.TokenConverter
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.AddPairConnector),
                 pairConnector);
-            var updateConnector = new Connector
+            var updateConnectorInput = new UpdateConnectorInput
             {
                 Symbol = token,
                 VirtualBalance = 1000_000,
-                IsVirtualBalanceEnabled = false,
-                IsPurchaseEnabled = true,
-                Weight = "0.49",
-                RelatedSymbol = "change"
+                Weight = "0.49"
             };
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
-                updateConnector);
+                updateConnectorInput);
             var resourceConnector =
                 (await DefaultStub.GetPairConnector.CallAsync(
                     new TokenSymbol {Symbol = token})).ResourceConnector;
@@ -379,7 +383,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("From connector not found");
             }
 
             // invalid connector（deposit）
@@ -391,7 +395,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find from connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("From connector is deposit account");
             }
 
         }
@@ -401,7 +405,7 @@ namespace AElf.Contracts.TokenConverter
         {
             await DefaultStub.Initialize.SendAsync(new InitializeInput
             {
-                FeeRate = "0.005"
+                FeeRate = "0.99"
             });
             string tokenSymbol = "NETT";
             await CreateTokenAsync(tokenSymbol);
@@ -430,18 +434,12 @@ namespace AElf.Contracts.TokenConverter
 
             // after enable connector buy
             {
-                var beforeTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
-                var beforeBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
                 var buyRet = (await DefaultStub.Buy.SendAsync(new BuyInput
                 {
                     Symbol = tokenSymbol,
                     Amount = 10000
                 })).TransactionResult;
                 buyRet.Status.ShouldBe(TransactionResultStatus.Mined);
-                var afterTokenBalance = await GetBalanceAsync(tokenSymbol, DefaultSender);
-                var afterBaseBalance = await GetBalanceAsync(NativeSymbol, DefaultSender);
-                (afterTokenBalance - beforeTokenBalance).ShouldBe(10000);
-                (beforeBaseBalance - afterBaseBalance).ShouldBe(100);
             }
 
             // after enable connector update connector 
@@ -449,8 +447,12 @@ namespace AElf.Contracts.TokenConverter
                 var updateRet = await ExecuteProposalForParliamentTransactionWithException(
                     TokenConverterContractAddress,
                     nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.UpdateConnector),
-                    resourceConnector);
-                updateRet.Error.ShouldContain("onnector can not be updated because it has been activated");
+                    new UpdateConnectorInput
+                    {
+                        Symbol = tokenSymbol,
+                        Weight = "0.2"
+                    });
+                updateRet.Error.ShouldContain("connector can not be updated because it has been activated");
             }
         }
 
@@ -467,7 +469,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
 
             // invalid connector（deposit）
@@ -479,7 +481,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
         }
 
@@ -497,7 +499,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = tokenSymbol,
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
 
             // invalid connector（deposit）
@@ -509,7 +511,7 @@ namespace AElf.Contracts.TokenConverter
                         TokenSymbol = "nt" + tokenSymbol, // deposit connector symbol
                         AmountToTokenConvert = 100,
                     });
-                enableConnectorRet.TransactionResult.Error.ShouldContain("Can't find to connector.");
+                enableConnectorRet.TransactionResult.Error.ShouldContain("To connector not found");
             }
         }
 

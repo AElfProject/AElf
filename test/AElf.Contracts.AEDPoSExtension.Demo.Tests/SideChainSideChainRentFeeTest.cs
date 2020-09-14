@@ -226,7 +226,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var invalidInputRet = await UpdateSideChainRentalDefaultProposalWithExceptionAsync(
                 nameof(TokenContractImplContainer.TokenContractImplStub.ChangeSideChainRentalController), authority);
-            invalidInputRet.Error.ShouldContain("new controller does not exist");
+            invalidInputRet.Error.ShouldContain("New Controller organization does not exist.");
         }
         
         [Fact]

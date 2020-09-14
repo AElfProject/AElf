@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
 {
@@ -19,5 +20,6 @@ namespace AElf.Contracts.TokenConverter
         public MappedState<string, long> DepositBalance { get; set; }
         public SingletonState<AuthorityInfo> ConnectorController { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+        public MappedState<string, TradeInformation> TradeInformation { get; set; }
     }
 }
