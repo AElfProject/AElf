@@ -157,7 +157,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-            transactionResult.Error.Contains("No permission.").ShouldBeTrue();
+            transactionResult.Error.ShouldContain("No permission.");
         }
         
         [Fact]
