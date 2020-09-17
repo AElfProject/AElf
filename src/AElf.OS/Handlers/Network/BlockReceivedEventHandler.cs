@@ -31,7 +31,7 @@ namespace AElf.OS.Handlers
             _blockSyncValidationService = blockSyncValidationService;
             _blockchainService = blockchainService;
             _blockSyncOptions = blockSyncOptions.Value;
-            
+
             Logger = NullLogger<BlockReceivedEventHandler>.Instance;
         }
 
@@ -45,14 +45,16 @@ namespace AElf.OS.Handlers
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            Logger.LogDebug($"About to process new block: {blockWithTransactions.Header}");
+            Logger.LogDebug(
+                $"About to process new block: {blockWithTransactions.Header.GetHash()} of height {blockWithTransactions.Height}");
 
-            if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions, senderPubkey))
+            if (!await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, blockWithTransactions,
+                senderPubkey))
             {
                 return;
             }
 
-            await _blockSyncService.SyncByBlockAsync(chain,new SyncBlockDto
+            await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
             {
                 BlockWithTransactions = blockWithTransactions,
                 BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
