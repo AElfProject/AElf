@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
@@ -36,6 +37,37 @@ namespace AElf.Contracts.Election
             electionResult.IsActive.ShouldBe(false);
             electionResult.Results.Count.ShouldBe(19);
             electionResult.Results.Values.ShouldAllBe(o => o == 1000);
+        }
+
+        [Fact]
+        public async Task GetElectorVoteWithRecords_Test()
+        {
+            const long amount = 500;
+            const int lockTime = 100 * 60 * 60 * 24;
+
+            var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
+            var candidateKeyPair = candidatesKeyPairs[0].PublicKey.ToHex();
+            var voterKeyPair = VoterKeyPairs.First();
+
+            await VoteToCandidate(voterKeyPair, candidateKeyPair, lockTime, amount);
+            var voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+            {
+                Value = voterKeyPair.PublicKey.ToHex()
+            });
+
+            var welfareHash = ProfitItemsIds[ProfitType.CitizenWelfare];
+            var profit = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = welfareHash,
+                Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey)
+            });
+            voteRecords.ActiveVotingRecords[0].Weight.ShouldBe(profit.Details[0].Shares);
+            await Election_VoteWeightInterestSetting_Test();
+            voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+            {
+                Value = voterKeyPair.PublicKey.ToHex()
+            });
+            voteRecords.ActiveVotingRecords[0].Weight.ShouldBe(profit.Details[0].Shares);
         }
 
         [Fact]

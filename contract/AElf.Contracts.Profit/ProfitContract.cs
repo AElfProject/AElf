@@ -798,7 +798,7 @@ namespace AElf.Contracts.Profit
             return scheme;
         }
 
-        private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
+        private static long SafeCalculateProfits(long shares, long totalAmount, long totalShares)
         {
             var decimalTotalAmount = (decimal) totalAmount;
             var decimalShares = (decimal) shares;
