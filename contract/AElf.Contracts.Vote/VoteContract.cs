@@ -84,7 +84,8 @@ namespace AElf.Contracts.Vote
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter,
-                IsChangeTarget = input.IsChangeTarget
+                IsChangeTarget = input.IsChangeTarget,
+                Weight = input.Weight
             };
 
             State.VotingRecords[input.VoteId] = votingRecord;

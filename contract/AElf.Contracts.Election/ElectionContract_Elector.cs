@@ -48,8 +48,9 @@ namespace AElf.Contracts.Election
 
             LockTokensOfVoter(input.Amount, voteId);
             IssueOrTransferTokensToVoter(input.Amount);
-            CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
-            AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
+            var weight = GetVotesWeight(input.Amount, lockSeconds);
+            CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId, weight);
+            AddBeneficiaryToVoter(weight, lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -590,7 +591,7 @@ namespace AElf.Contracts.Election
             }
         }
 
-        private void CallVoteContractVote(long amount, string candidatePubkey, Hash voteId)
+        private void CallVoteContractVote(long amount, string candidatePubkey, Hash voteId, long weight)
         {
             State.VoteContract.Vote.Send(new VoteInput
             {
@@ -598,7 +599,8 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Amount = amount,
                 Option = candidatePubkey,
-                VoteId = voteId
+                VoteId = voteId,
+                Weight = weight
             });
         }
 
