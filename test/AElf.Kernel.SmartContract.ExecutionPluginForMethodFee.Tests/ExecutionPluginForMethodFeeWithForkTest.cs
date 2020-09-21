@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestBase;
 using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
 using AElf.Kernel.SmartContract.Events;
@@ -155,7 +156,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     To = SampleAddress.AddressList[0]
                 });
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
+                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap(),
+                SampleECKeyPairs.KeyPairs.Last());
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
             transactionResult.Error.ShouldContain("No permission.");
         }

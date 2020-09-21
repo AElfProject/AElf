@@ -593,11 +593,13 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="input"></param>
+        /// <param name="keyPair"></param>
         /// <returns></returns>
         public async Task<(BlockExecutedSet, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName, IMessage input)
+            string methodName, IMessage input, ECKeyPair keyPair = null)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
+            var usingKeyPair = keyPair ?? KeyPair;
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, usingKeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
