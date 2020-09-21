@@ -103,7 +103,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     return new ValidationResult
                     {
-                        Success = false, Message = "Current round information is different with consensus extra data."
+                        Success = false, Message = "Current round information is different with consensus extra data.\n" +
+                                                   $"New block header consensus information:\n{headerInformation.Round}" +
+                                                   $"Stated block header consensus information:\n{currentRound}"
                     };
                 }
             }
