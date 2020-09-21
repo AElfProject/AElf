@@ -733,7 +733,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
         {
             var input = new TotalTransactionFeesMap();
             var tokenContractStub =
-                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[2].KeyPair);
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts.Last().KeyPair);
             var claimRet = await tokenContractStub.ClaimTransactionFees.SendWithExceptionAsync(input);
             claimRet.TransactionResult.Error.ShouldContain("No permission");
         }
