@@ -1,3 +1,10 @@
+/**
+ * Genesis contract.
+ *
+ * Used to manage the deployment and update of contracts.
+ * 
+ * Implement standards AElf.Standards.ACS0 and AElf.Standards.ACS1.
+ */
 syntax = "proto3";
 
 package ZeroImpl;
