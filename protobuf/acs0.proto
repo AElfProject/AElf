@@ -1,5 +1,5 @@
 /**
- * AElf standards ACS0
+ * AElf Standards ACS0(Contract Deployment Standard)
  *
  * Used to manage the deployment and update of contracts.
  */
@@ -14,42 +14,42 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 service ACS0 {
-    // Deploys a system smart contract on chain,
+    // Deploy a system smart contract on chain,
     // return the address of the system contract deployed,
-    // and logs event ContractDeployed.
+    // and log event ContractDeployed.
     rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {
     }
     
-    // Deploys a smart contract on chain,
+    // Deploy a smart contract on chain,
     // return the address of the contract deployed,
     // and logs event ContractDeployed.
     rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) {
     }
     
-    // Updates a smart contract on chain,
-    // and logs event CodeUpdated.
+    // Update a smart contract on chain,
+    // and log event CodeUpdated.
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
     
-    // Creates a proposal to deploy a new contract, 
-    // return the id of the proposed contract,
-    // and logs event ContractProposed.
+    // Create a proposal to deploy a new contract, 
+    // returns the id of the proposed contract,
+    // and log event ContractProposed.
     rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {
     }
     
-    // Creates a proposal to check the code of a contract, 
+    // Create a proposal to check the code of a contract, 
     // return the id of the proposed contract,
-    // and logs event CodeCheckRequired.
+    // and log event CodeCheckRequired.
     rpc ProposeContractCodeCheck (ContractCodeCheckInput) returns (aelf.Hash) {
     }
     
-    // Creates a proposal to update the specified contract, 
+    // Create a proposal to update the specified contract, 
     // return the id of the proposed contract,
-    // and logs event ContractProposed.
+    // and log event ContractProposed.
     rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {
     }
     
-    // Releases a contract proposal which has been approved.
+    // Release the contract proposal which has been approved.
     rpc ReleaseApprovedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
     
@@ -57,7 +57,7 @@ service ACS0 {
     rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
     }
     
-    // Validates whether the input system contract exists.
+    // Validate whether the input system contract exists.
     rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
     }
     
@@ -65,13 +65,13 @@ service ACS0 {
     rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
     }
     
-    // Gets the current serial number of genesis contract 
+    // Get the current serial number of genesis contract 
     // (corresponds to the serial number that will be given to the next deployed contract).
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
     
-    // Gets detailed information about the specified contract.
+    // Get detailed information about the specified contract.
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
         option (aelf.is_view) = true;
     }
@@ -81,22 +81,22 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     
-    // Gets the code hash of the contract about the specified address.
+    // Get the code hash of the contract about the specified address.
     rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
     
-    // Gets the address of a system contract by its name.
+    // Get the address of a system contract by its name.
     rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     
-    // Gets the registration of a smart contract by its address.
+    // Get the registration of a smart contract by its address.
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
     
-    // Gets the registration of a smart contract by code hash.
+    // Get the registration of a smart contract by code hash.
     rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
@@ -127,10 +127,13 @@ message ContractDeploymentInput {
 
 message SystemContractDeploymentInput {
     message SystemTransactionMethodCall {
+        // The method name of system transaction.
         string method_name = 1;
+        // The params of system transaction method.
         bytes params = 2;
     }
     message SystemTransactionMethodCallList {
+        // The list of system transactions.
         repeated SystemTransactionMethodCall value = 1;
     }
     // The category of contract code(0: C#).

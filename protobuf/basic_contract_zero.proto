@@ -16,11 +16,11 @@ option csharp_namespace = "AElf.Contracts.Genesis";
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
     
-    // Initializes the genesis contract.
+    // Initialize the genesis contract.
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     
-    // Sets initial controller address for CodeCheckController and ContractDeploymentController.
+    // Set initial controller address for CodeCheckController and ContractDeploymentController.
     rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
     

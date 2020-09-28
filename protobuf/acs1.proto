@@ -1,5 +1,5 @@
 /**
- * AElf standards ACS1
+ * AElf Standards ACS1(Transaction Fee Standard)
  *
  * Used to manage the transaction fee.
  */
@@ -18,7 +18,7 @@ option csharp_namespace = "AElf.Standards.ACS1";
 
 service MethodFeeProviderContract {
     
-    // Sets the method fees for the specified method. Note that this will override all fees of the method.
+    // Set the method fees for the specified method. Note that this will override all fees of the method.
     rpc SetMethodFee (MethodFees) returns (google.protobuf.Empty) {
     }
 

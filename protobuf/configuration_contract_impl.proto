@@ -3,7 +3,7 @@
  *
  * Used to manage the configuration on the block chain.
  * 
- * Implement standards AElf.Standards.ACS1.
+ * Implement AElf Standards ACS1.
  */
 syntax = "proto3";
 
