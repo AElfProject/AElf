@@ -19,43 +19,39 @@ option csharp_namespace = "AElf.Standards.ACS3";
 service AuthorizationContract {
     // Create a proposal for which organization members can vote. 
     // When the proposal is released, a transaction will be sent to the specified contract.
-    // Return id of the newly created proposal, and log event ProposalCreated.
+    // Return id of the newly created proposal.
     rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
     }
     
-    // Approve a proposal according to the proposal ID,
-    // and log event ReceiptCreated.
+    // Approve a proposal according to the proposal ID.
     rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {
     }
     
-    // Reject a proposal according to the proposal ID,
-    // and log event ReceiptCreated.
+    // Reject a proposal according to the proposal ID.
     rpc Reject(aelf.Hash) returns (google.protobuf.Empty) {
     }
 
-    // Abstain a proposal according to the proposal ID,
-    // and log event ReceiptCreated.
+    // Abstain a proposal according to the proposal ID.
     rpc Abstain(aelf.Hash) returns (google.protobuf.Empty){
     }
 
-    // Release a proposal according to the proposal ID, send a transaction to the specified contract,
-    // and log event ProposalReleased.
+    // Release a proposal according to the proposal ID and send a transaction to the specified contract.
     rpc Release(aelf.Hash) returns (google.protobuf.Empty){
     }
     
-    // Change the thresholds associated with proposals, and log event OrganizationThresholdChanged.
+    // Change the thresholds associated with proposals.
     // All fields will be overwritten by the input value and this will affect all current proposals of the organization. 
     // Note: only the organization can execute this through a proposal.
     rpc ChangeOrganizationThreshold(ProposalReleaseThreshold)returns(google.protobuf.Empty) {
     }
     
-    // Change the white list of organization proposer, and log event OrganizationWhiteListChanged.
+    // Change the white list of organization proposer.
     // This method overrides the list of whitelisted proposers.
     rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
     }
     
     // Create a proposal by system contracts,
-    // return id of the newly created proposal, and log event ProposalCreated.
+    // and return id of the newly created proposal.
     rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns (aelf.Hash){
     }
     

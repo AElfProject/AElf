@@ -16,8 +16,7 @@ option csharp_namespace = "AElf.Contracts.Configuration";
 service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
     
-    // Add or update configuration,
-    // and logs event ConfigurationSet.
+    // Add or update configuration.
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
     

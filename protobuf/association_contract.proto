@@ -16,23 +16,23 @@ service AssociationContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
     
-    // Create an organization, return its address, and log event OrganizationCreated.  
+    // Create an organization and return its address.  
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     
-    // Creates an organization by system contract, return its address, and log event OrganizationCreated. 
+    // Creates an organization by system contract and return its address. 
     rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
     
-    // Add organization members and log event MemberAdded.
+    // Add organization members.
     rpc AddMember(aelf.Address) returns (google.protobuf.Empty){
     }
     
-    // Remove organization members and log event MemberRemoved.
+    // Remove organization members.
     rpc RemoveMember(aelf.Address) returns (google.protobuf.Empty){
     }
     
-    // Replace organization member with a new member and log event MemberChanged.
+    // Replace organization member with a new member.
     rpc ChangeMember(ChangeMemberInput) returns (google.protobuf.Empty){
     }
     

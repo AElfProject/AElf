@@ -14,38 +14,28 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 service ACS0 {
-    // Deploy a system smart contract on chain,
-    // return the address of the system contract deployed,
-    // and log event ContractDeployed.
+    // Deploy a system smart contract on chain and return the address of the system contract deployed.
     rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {
     }
     
-    // Deploy a smart contract on chain,
-    // return the address of the contract deployed,
-    // and logs event ContractDeployed.
+    // Deploy a smart contract on chain and return the address of the contract deployed.
     rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) {
     }
     
-    // Update a smart contract on chain,
-    // and log event CodeUpdated.
+    // Update a smart contract on chain.
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
     
-    // Create a proposal to deploy a new contract, 
-    // returns the id of the proposed contract,
-    // and log event ContractProposed.
+    // Create a proposal to deploy a new contract and returns the id of the proposed contract.
     rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {
     }
     
-    // Create a proposal to check the code of a contract, 
-    // return the id of the proposed contract,
-    // and log event CodeCheckRequired.
+    // Create a proposal to check the code of a contract and return the id of the proposed contract.
     rpc ProposeContractCodeCheck (ContractCodeCheckInput) returns (aelf.Hash) {
     }
     
-    // Create a proposal to update the specified contract, 
-    // return the id of the proposed contract,
-    // and log event ContractProposed.
+    // Create a proposal to update the specified contract
+    // and return the id of the proposed contract.
     rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {
     }
     
