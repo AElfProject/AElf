@@ -1,5 +1,5 @@
 /**
- * Association contract base class.
+ * Association contract.
  */
 syntax = "proto3";
 

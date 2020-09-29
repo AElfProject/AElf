@@ -1,5 +1,5 @@
 /**
- * Genesis contract base class.
+ * Genesis contract.
  */
 syntax = "proto3";
 

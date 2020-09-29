@@ -1,5 +1,5 @@
 /**
- * Configuration contract base class.
+ * Configuration contract.
  */
 syntax = "proto3";
 

@@ -1,5 +1,5 @@
 /**
- * Parliament contract base class.
+ * Parliament contract.
  */
 syntax = "proto3";
 

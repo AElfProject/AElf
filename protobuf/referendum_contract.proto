@@ -1,5 +1,5 @@
 /**
- * Referendum contract base class.
+ * Referendum contract.
  */
 syntax = "proto3";
 
