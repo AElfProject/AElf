@@ -1,3 +1,11 @@
+/**
+ * Economic contract.
+ *
+ * The Economic contract establishes the economic system of the AElf. When the block chain starts to work, 
+ * this contract will initialize other contracts related to economic activities.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package EconomicImpl;
