@@ -181,25 +181,17 @@ namespace AElf.Contracts.CrossChain
                 return;
 
             // new token needed only for exclusive side chain
-            var sideChainTokenInfo = new SideChainTokenInfo
-            {
-                TokenName = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenName,
-                Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
-                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply,
-                Decimals = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenDecimals,
-                IsBurnable = true
-            };
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
             {
-                TokenName = sideChainTokenInfo.TokenName,
-                Decimals = sideChainTokenInfo.Decimals,
-                IsBurnable = sideChainTokenInfo.IsBurnable,
+                TokenName = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenName,
+                Decimals = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenDecimals,
+                IsBurnable = true,
                 Issuer = creator,
                 IssueChainId = chainId,
-                Symbol = sideChainTokenInfo.Symbol,
-                TotalSupply = sideChainTokenInfo.TotalSupply,
-                IsProfitable = sideChainTokenInfo.IsProfitable
+                Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply,
+                IsProfitable = false
             });
         }
 
@@ -808,12 +800,6 @@ namespace AElf.Contracts.CrossChain
             }
 
             State.CurrentParentChainHeight.Value = currentHeight;
-            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
-            {
-                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.LogDebug(() =>
-                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
-            }
 
             return indexedParentChainBlockData;
         }
