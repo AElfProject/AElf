@@ -12,6 +12,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -30,10 +31,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             Accounts.Take(1).Select(a => a.KeyPair).ToList();
-
-        protected IBlockTimeProvider BlockTimeProvider =>
-            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address AssociationContractAddress { get; set; }
@@ -91,7 +88,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ConsensusContractCode,
-                    HashHelper.ComputeFrom("AElf.ContractNames.Consensus"),
+                    ConsensusSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair
                 ));
             AEDPoSContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
