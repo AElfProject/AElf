@@ -110,9 +110,8 @@ namespace AElf.Contracts.Profit
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

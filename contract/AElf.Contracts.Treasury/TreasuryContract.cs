@@ -154,6 +154,11 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            if (!State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = input.Symbol}).Value)
+            {
+                return new Empty();
+            }
+
             if (State.TokenConverterContract.Value == null)
             {
                 State.TokenConverterContract.Value =
@@ -285,8 +290,9 @@ namespace AElf.Contracts.Treasury
                     Symbol = symbol,
                     Address = Context.Self
                 }).Value;
-                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
-                Assert(tokenInfo.IsProfitable || isTreasuryInWhiteList, "Symbol need to be profitable.");
+                Assert(
+                    State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value ||
+                    isTreasuryInWhiteList, "Symbol need to be profitable.");
                 Assert(!State.TokenConverterContract.IsSymbolAbleToSell.Call(new StringValue {Value = symbol}).Value,
                     $"Token {symbol} doesn't need to set to symbol list because it would become native token after donation.");
             }

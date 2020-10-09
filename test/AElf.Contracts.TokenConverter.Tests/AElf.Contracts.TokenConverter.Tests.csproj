@@ -59,6 +59,15 @@
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\treasury_contract_impl.proto">
+            <Link>Protobuf\Proto\treasury_contract_impl.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <Import Project="..\..\test\AllContracts.props" />

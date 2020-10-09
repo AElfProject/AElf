@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.Application
 {

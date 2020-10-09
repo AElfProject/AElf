@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
@@ -167,7 +168,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task DonateResourceToken_Without_Authorized_Test()
         {
-            var tokenStub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts[2].KeyPair);
+            var tokenStub = GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, Accounts.Last().KeyPair);
             var donate =
                 await tokenStub.DonateResourceToken.SendWithExceptionAsync(new TotalResourceTokensMaps());
             donate.TransactionResult.Error.ShouldContain("No permission");

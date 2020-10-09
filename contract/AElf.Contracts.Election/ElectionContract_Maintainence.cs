@@ -259,5 +259,16 @@ namespace AElf.Contracts.Election
             State.VotesRewardHash.Value = input.VotesRewardHash;
             return new Empty();
         }
+
+        private Address GetParliamentDefaultOrganizationAddress()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+        }
     }
 }

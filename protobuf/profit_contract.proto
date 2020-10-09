@@ -206,3 +206,13 @@ message SchemeCreated {
     bool is_release_all_balance_every_time_by_default = 4;
     aelf.Hash scheme_id = 5;
 }
+
+message ProfitsClaimed {
+    option (aelf.is_event) = true;
+    aelf.Address beneficiary = 1;
+    string symbol = 2;
+    int64 amount = 3;
+    int64 period = 4;
+    int64 claimer_shares = 5;
+    int64 total_shares = 6;
+}

@@ -88,6 +88,15 @@
         <ContractStub Include="..\..\protobuf\association_contract_impl.proto">
             <Link>Protobuf\Proto\association_contract_impl.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\election_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf\Proto\economic_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\random_number_provider_contract.proto">
             <Link>Protobuf\Proto\random_number_provider_contract.proto</Link>
         </ContractStub>
