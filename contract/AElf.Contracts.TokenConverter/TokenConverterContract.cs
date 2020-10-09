@@ -5,6 +5,7 @@ using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Standards.ACS10;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -27,8 +28,6 @@ namespace AElf.Contracts.TokenConverter
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            State.FeeReceiverAddress.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             State.BaseTokenSymbol.Value = !string.IsNullOrEmpty(input.BaseTokenSymbol)
                 ? input.BaseTokenSymbol
                 : Context.Variables.NativeSymbol;
@@ -39,7 +38,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 if (connector.IsDepositAccount)
                 {
-                    Assert(!string.IsNullOrEmpty(connector.Symbol),"Invalid connector symbol.");
+                    Assert(!string.IsNullOrEmpty(connector.Symbol), "Invalid connector symbol.");
                     AssertValidConnectorWeight(connector);
                 }
                 else
@@ -47,6 +46,7 @@ namespace AElf.Contracts.TokenConverter
                     Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
                     AssertValidConnectorWeight(connector);
                 }
+
                 State.Connectors[connector.Symbol] = connector;
             }
 
@@ -222,15 +222,29 @@ namespace AElf.Contracts.TokenConverter
             var donateFee = fee.Div(2);
             var burnFee = fee.Sub(donateFee);
 
-            // Transfer to fee receiver.
+            // Donate 0.5% fees to Treasury
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
                     Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
-                    To = State.FeeReceiverAddress.Value,
+                    To = Context.Self,
                     Amount = donateFee
                 });
+            if (State.DividendPoolContract.Value == null)
+                State.DividendPoolContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TokenContract.Approve.Send(new ApproveInput
+            {
+                Symbol = State.BaseTokenSymbol.Value,
+                Spender = State.DividendPoolContract.Value,
+                Amount = donateFee
+            });
+            State.DividendPoolContract.Donate.Send(new DonateInput
+            {
+                Symbol = State.BaseTokenSymbol.Value,
+                Amount = donateFee
+            });
 
             // Transfer to self contract then burn
             State.TokenContract.TransferFrom.Send(
@@ -318,11 +332,11 @@ namespace AElf.Contracts.TokenConverter
         {
             return number > decimal.Zero && number < decimal.One;
         }
-        
+
         private static bool IsValidSymbol(string symbol)
         {
             return symbol.Length > 0 &&
-                symbol.All(c => c >= 'A' && c <= 'Z');
+                   symbol.All(c => c >= 'A' && c <= 'Z');
         }
 
         private static bool IsValidBaseSymbol(string symbol)
@@ -390,7 +404,7 @@ namespace AElf.Contracts.TokenConverter
                 OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
             };
         }
-        
+
         private void AssertValidConnectorWeight(Connector connector)
         {
             var weight = AssertedDecimal(connector.Weight);

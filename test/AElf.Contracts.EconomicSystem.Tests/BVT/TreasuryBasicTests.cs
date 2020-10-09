@@ -184,7 +184,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var nativeTokenCost = depositBeforeDonate.Value.Sub(startResourceTokenDeposit.Value);
             var treasuryVirtualAddress = await GetTreasurySchemeVirtualAddressAsync();
             var balanceOfTreasuryBeforeDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            
             //donate
             var donateRet = await TreasuryContractStub.Donate.SendAsync(new DonateInput
             {
@@ -200,9 +199,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             depositBeforeDonate.Value.Sub(depositAfterDonate.Value).ShouldBe(nativeTokenCost);
             var feeRateString = EconomicContractsTestConstants.TokenConverterFeeRate;
             var feeRate = decimal.Parse(feeRateString);
-            var donateFee = (long)(nativeTokenCost * feeRate / 2);
             var balanceOfTreasuryAfterDonate = await GetBalanceAsync(nativeTokenSymbol, treasuryVirtualAddress);
-            balanceOfTreasuryAfterDonate.Sub(balanceOfTreasuryBeforeDonate).ShouldBe(nativeTokenCost.Add(donateFee));
+            balanceOfTreasuryAfterDonate.ShouldBe(nativeTokenCost.Add(balanceOfTreasuryBeforeDonate));
         }
 
         [Fact]
@@ -300,21 +298,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 setSymbolRet.Error.ShouldContain("Need to contain native symbol");
             }
             
-            // without profitable and treasury contract is not in whitelist
-            {
-                var newSymbolList = new SymbolList
-                {
-                    Value =
-                    {
-                        nativeTokenSymbol, tokenSymbol
-                    }
-                };
-                var setSymbolRet =
-                    await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
-                        newSymbolList);
-                setSymbolRet.Error.ShouldContain("Symbol need to be profitable");
-            }
-            
             //not valid connector
             {
                 var newSymbolList = new SymbolList
@@ -327,7 +310,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 var setSymbolRet =
                     await ExecuteProposalForParliamentTransactionWithException(Tester, TreasuryContractAddress, methodName,
                         newSymbolList);
-                setSymbolRet.Error.ShouldContain($"Token {resourceTokenSymbol} don't need to set to symbol list");
+                setSymbolRet.Error.ShouldContain($"Token {resourceTokenSymbol} doesn't need to set to symbol list");
             }
         }
 
@@ -343,7 +326,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 TokenName = "CWJ name",
                 TotalSupply = 1_0000_0000,
                 Issuer = BootMinerAddress,
-                IsProfitable = true
+                IsBurnable = true
             };
             await TokenContractStub.Create.SendAsync(tokenCreateInput);
             var newSymbolList = new SymbolList
@@ -363,7 +346,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Treasury_SetDividendPoolWeightSetting_Fail_Test()
         {
-            //without authority
+            // No permission
             {
                 var setRet =
                     await TreasuryContractStub.SetDividendPoolWeightSetting.SendAsync(new DividendPoolWeightSetting());
@@ -371,7 +354,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 setRet.TransactionResult.Error.ShouldContain("no permission");
             }
             
-            //invalid Inpout
+            // Invalid input
             {
                 var methodName = nameof(TreasuryContractStub.SetDividendPoolWeightSetting);
                 var newDividendSetting = new DividendPoolWeightSetting

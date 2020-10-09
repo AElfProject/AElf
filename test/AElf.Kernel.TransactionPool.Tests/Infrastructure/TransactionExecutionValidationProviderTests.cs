@@ -60,7 +60,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         [InlineData(TransactionResultStatus.Conflict)]
         [InlineData(TransactionResultStatus.NotExisted)]
         [InlineData(TransactionResultStatus.Failed)]
-        [InlineData(TransactionResultStatus.Unexecutable)]
         [InlineData(TransactionResultStatus.Pending)]
         public async Task ValidateTransactionFailedTest(TransactionResultStatus status)
         {

@@ -347,7 +347,6 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                         TokenName = "name",
                         Issuer = TokenContractAddress,
                         TotalSupply = 1000_000,
-                        IsProfitable = false
                     });
                 
                 var result = await Tester.ExecuteContractWithMiningAsync(ConfigurationContractAddress,

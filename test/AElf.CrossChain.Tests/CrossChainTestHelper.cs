@@ -60,9 +60,9 @@ namespace AElf.CrossChain
             _chainIdHeight.Add(chainId, libHeight);
         }
 
-        public SideChainIdAndHeightDict GetAllIndexedCrossChainExtraData()
+        public ChainIdAndHeightDict GetAllIndexedCrossChainExtraData()
         {
-            var sideChainIdAndHeightDict = new SideChainIdAndHeightDict
+            var sideChainIdAndHeightDict = new ChainIdAndHeightDict
             {
                 IdHeightDict = {_chainIdHeight}
             };

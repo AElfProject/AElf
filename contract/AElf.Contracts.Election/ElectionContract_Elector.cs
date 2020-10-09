@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -47,7 +46,7 @@ namespace AElf.Contracts.Election
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
 
             LockTokensOfVoter(input.Amount, voteId);
-            IssueOrTransferTokensToVoter(input.Amount);
+            TransferTokensToVoter(input.Amount);
             CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
             AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
 
@@ -211,9 +210,8 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
-            var targetCandidate = State.CandidateInformationMap[input.CandidatePubkey];
-            Assert( targetCandidate != null && targetCandidate.IsCurrentCandidate,
-                $"Candidate: {input.CandidatePubkey} dose not exist");
+            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
+            AssertValidCandidateInformation(targetInformation);
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
@@ -282,7 +280,7 @@ namespace AElf.Contracts.Election
                     dataCenterList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
                 IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, votingRecord.Option);
             }
-            
+
             State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
         }
@@ -367,7 +365,8 @@ namespace AElf.Contracts.Election
             return true;
         }
 
-        private bool IsCandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate, long voteAmount)
+        private bool IsCandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate,
+            long voteAmount)
         {
             var dateCenter = rankingList.DataCenters;
             if (dateCenter.Count < GetValidationDataCenterCount())
@@ -382,7 +381,7 @@ namespace AElf.Contracts.Election
             NotifyProfitReplaceCandidateInDataCenter(minimumVoteCandidateInDataCenter.Key, candidate);
             return true;
         }
-        
+
         private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
             string newCandidateDataCenter)
         {
@@ -402,6 +401,7 @@ namespace AElf.Contracts.Election
                 }
             });
         }
+
         #endregion
 
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
@@ -424,7 +424,7 @@ namespace AElf.Contracts.Election
             State.VoteWeightInterestList.Value = input;
             return new Empty();
         }
-        
+
         public override Empty SetVoteWeightProportion(VoteWeightProportion input)
         {
             AssertPerformedByVoteWeightInterestController();
@@ -468,12 +468,14 @@ namespace AElf.Contracts.Election
                 }
             };
         }
-        
+
         private VoteWeightProportion GetVoteWeightProportion()
         {
             return State.VoteWeightProportion.Value ??
                    (State.VoteWeightProportion.Value = GetDefaultVoteWeightProportion());
         }
+
+
         private VoteWeightProportion GetDefaultVoteWeightProportion()
         {
             return new VoteWeightProportion
@@ -559,35 +561,18 @@ namespace AElf.Contracts.Election
         /// Issue VOTE tokens to this voter.
         /// </summary>
         /// <param name="amount"></param>
-        private void IssueOrTransferTokensToVoter(long amount)
+        private void TransferTokensToVoter(long amount)
         {
             foreach (var symbol in new List<string>
                 {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
             {
-                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
-                    Symbol = symbol
+                    Symbol = symbol,
+                    To = Context.Sender,
+                    Amount = amount,
+                    Memo = $"Transfer {symbol}."
                 });
-                if (tokenInfo.TotalSupply.Sub(tokenInfo.Supply) <= amount) // Which means remain tokens not enough.
-                {
-                    State.TokenContract.Transfer.Send(new TransferInput
-                    {
-                        Symbol = symbol,
-                        To = Context.Sender,
-                        Amount = amount,
-                        Memo = $"Transfer {symbol}."
-                    });
-                }
-                else
-                {
-                    State.TokenContract.Issue.Send(new IssueInput
-                    {
-                        Symbol = symbol,
-                        To = Context.Sender,
-                        Amount = amount,
-                        Memo = $"Issue {symbol}."
-                    });
-                }
             }
         }
 
@@ -646,7 +631,7 @@ namespace AElf.Contracts.Election
         {
             if (voteMinerInput.Token != null)
                 return Context.GenerateId(Context.Self, voteMinerInput.Token);
-            
+
             var candidateVotesCount =
                 State.CandidateVotes[voteMinerInput.CandidatePubkey]?.ObtainedActiveVotedVotesAmount ?? 0;
             return Context.GenerateId(Context.Self,

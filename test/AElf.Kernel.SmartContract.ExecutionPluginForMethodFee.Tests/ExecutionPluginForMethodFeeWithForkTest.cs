@@ -4,12 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestBase;
 using AElf.ContractTestKit;
 using AElf.Kernel.FeeCalculation.Extensions;
+using AElf.Kernel.SmartContract.Events;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
+using Volo.Abp.EventBus;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -152,9 +156,32 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                     To = SampleAddress.AddressList[0]
                 });
             var result = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap());
+                nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees), new TotalTransactionFeesMap(),
+                SampleECKeyPairs.KeyPairs.Last());
             var transactionResult = await Tester.GetTransactionResultAsync(result.Item2.GetHash());
-            transactionResult.Error.Contains("No permission.").ShouldBeTrue();
+            transactionResult.Error.ShouldContain("No permission.");
+        }
+        
+        [Fact]
+        public async Task CleanBlockExecutedDataChangeHeightEventHandler_Handle_Test()
+        {
+            var blockchainExecutedDataCacheProvider =
+                GetRequiredService<IBlockchainExecutedDataCacheProvider<TransactionSizeFeeSymbols>>();
+            blockchainExecutedDataCacheProvider.SetChangeHeight("test1", 1);
+            blockchainExecutedDataCacheProvider.SetChangeHeight("test2", 2);
+            blockchainExecutedDataCacheProvider.SetChangeHeight("test3", 3);
+            blockchainExecutedDataCacheProvider.SetChangeHeight("test4", 4);
+
+            var cleanHandler =
+                GetRequiredService<CleanBlockExecutedDataChangeHeightEventHandler>();
+            await cleanHandler.HandleEventAsync(new CleanBlockExecutedDataChangeHeightEventData
+            {
+                IrreversibleBlockHeight = 3
+            });
+            blockchainExecutedDataCacheProvider.TryGetChangeHeight("test1", out _).ShouldBeFalse();
+            blockchainExecutedDataCacheProvider.TryGetChangeHeight("test2", out _).ShouldBeFalse();
+            blockchainExecutedDataCacheProvider.TryGetChangeHeight("test3", out _).ShouldBeFalse();
+            blockchainExecutedDataCacheProvider.TryGetChangeHeight("test4", out _).ShouldBeTrue();
         }
 
         private async Task<List<Block>> GenerateEmptyBlocksAsync(int count, Hash previousBlockHash,

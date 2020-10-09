@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -70,6 +72,7 @@ namespace AElf.Kernel.Types.Tests
                 ByteArrayHelper.HexStringToByteArray("782330156f8c9403758ed30270a3e2d59e50b8f04c6779d819b72eee02addb13"));
             Assert.Equal(expected, bloom.Data.ToHex().Replace("0x", ""));
 
+            new Bloom(bloom).Data.ShouldBe(bloom.Data);
             // add value
             var bloom1 = new Bloom();
             bloom1.AddValue(empty);
@@ -180,6 +183,34 @@ namespace AElf.Kernel.Types.Tests
             )));
             
             Assert.False(wrongSource.IsIn(target));
+            
+            var emptySource=new Bloom();
+            Assert.False(emptySource.IsIn(target));
         }
+
+        [Fact]
+        public async Task AddValue_With_Null_Test()
+        {
+            var bloom = new Bloom();
+            bloom.AddValue((IMessage)null);
+            bloom.Data.Length.ShouldBe(0);
+        } 
+        
+        #region AElf.Kernel.LogEventExtensions
+
+        [Fact]
+        public async Task LogEventGetBloom_Test()
+        {
+            var logEvent = new LogEvent
+            {
+                Name = "test1"
+            };
+            var bloom = logEvent.GetBloom();
+            bloom.ShouldNotBeNull();
+            logEvent = new LogEvent();
+            bloom = logEvent.GetBloom();
+            bloom.Data.Any(x => x != 0).ShouldBeTrue();
+        }
+        #endregion
     }
 }

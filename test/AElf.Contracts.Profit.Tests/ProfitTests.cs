@@ -587,7 +587,7 @@ namespace AElf.Contracts.Profit
                 scheme.CurrentPeriod.ShouldBe(1);
             }
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             // Current period: 1
             {
@@ -677,7 +677,7 @@ namespace AElf.Contracts.Profit
                 EndPeriod = 1
             });
 
-            await TransferToProfitItemVirtualAddress(schemeId, amount);
+            await ContributeProfits(schemeId, amount);
 
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
@@ -779,7 +779,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -963,7 +963,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -992,7 +992,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             // The actual creator is Creators[0]
             var anotherGuy = Creators[1];
@@ -1041,7 +1041,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+            await ContributeProfits(schemeId, amount * 2);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1092,7 +1092,7 @@ namespace AElf.Contracts.Profit
             var subSchemeId1 = await CreateScheme(1);
             var subSchemeId2 = await CreateScheme(2);
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             // Check balance of main profit scheme.
             {
@@ -1174,7 +1174,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1231,7 +1231,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1314,7 +1314,7 @@ namespace AElf.Contracts.Profit
             var schemeId = await CreateScheme();
             var subSchemeId = await CreateScheme(1);
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1400,7 +1400,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId);
+            await ContributeProfits(schemeId);
 
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
@@ -1439,7 +1439,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId, amount * periodCount + amount);
+            await ContributeProfits(schemeId, amount * periodCount + amount);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1541,7 +1541,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+            await ContributeProfits(schemeId, amount * 2);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -1724,7 +1724,7 @@ namespace AElf.Contracts.Profit
             const long amount = 100;
             var creator = Creators[0];
             var schemeId = await CreateScheme();
-            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+            await ContributeProfits(schemeId, amount * 2);
             var receiver = Accounts[0].Address;
             var tokenSymbol = ProfitContractTestConstants.NativeTokenSymbol;
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
@@ -1809,7 +1809,7 @@ namespace AElf.Contracts.Profit
            
         }
 
-        private async Task TransferToProfitItemVirtualAddress(Hash schemeId, long amount = 100)
+        private async Task ContributeProfits(Hash schemeId, long amount = 100)
         {
             await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
             {

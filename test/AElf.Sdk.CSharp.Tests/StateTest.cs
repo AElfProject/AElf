@@ -233,56 +233,7 @@ namespace AElf.Sdk.CSharp.Tests
             mapState.Clear();
             mapState.GetChanges().ShouldBe(new TransactionExecutingStateSet());
         }
-
-        [Fact]
-        public void Func_And_Action_ExtensionTest()
-        {
-            var state = new MockContractState()
-            {
-                ElfToken = new ElfTokenContractReference
-                {
-                    Action0 = () => { },
-                    Action1 = (x) => { },
-                    Action2 = (x, y) => { },
-                    
-                    NotAction = 1,
-
-                    Func1 = () => true,
-                    Func2 = (x) => false,
-                    Func3 = (x, y) => x + y
-                }
-            };
-
-            //func test
-            var func1 = state.ElfToken.Func1.GetType();
-            func1.IsFunc().ShouldBeTrue();
-            func1.IsAction().ShouldBeFalse();
-
-            var func2 = state.ElfToken.Func2.GetType();
-            func2.IsFunc().ShouldBeTrue();
-            func2.IsAction().ShouldBeFalse();
-
-            var func3 = state.ElfToken.Func3.GetType();
-            func3.IsFunc().ShouldBeTrue();
-            func3.IsAction().ShouldBeFalse();
-            
-            //action test
-            var action0 = state.ElfToken.Action0.GetType();
-            action0.IsAction().ShouldBeTrue();
-            action0.IsFunc().ShouldBeFalse();
-            
-            var action1 = state.ElfToken.Action1.GetType();
-            action1.IsAction().ShouldBeTrue();
-            action1.IsFunc().ShouldBeFalse();
-            
-            var action2 = state.ElfToken.Action2.GetType();
-            action2.IsAction().ShouldBeTrue();
-            action2.IsFunc().ShouldBeFalse();
-
-            var notAction = state.ElfToken.NotAction.GetType();
-            notAction.IsAction().ShouldBeFalse();
-        }
-
+        
         [Fact]
         public void GetSubStatePath_Test()
         {

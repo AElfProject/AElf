@@ -235,8 +235,6 @@ namespace AElf.CrossChain.Indexing.Application
         public async Task<bool> CheckExtraDataIsNeededAsync(Hash blockHash, long blockHeight, Timestamp timestamp)
         {
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, timestamp);
-            if (indexingProposalStatusList == null)
-                return true; // cross chain contract not updated, deprecated if re-run from zero
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, timestamp);
             return toBeReleasedChainIdList.Count > 0;
         }
@@ -245,9 +243,7 @@ namespace AElf.CrossChain.Indexing.Application
         {
             var utcNow = TimestampHelper.GetUtcNow();
             var indexingProposalStatusList = await GetIndexingProposalStatusAsync(blockHash, blockHeight, utcNow);
-            if (indexingProposalStatusList == null)
-                return ByteString.Empty; // cross chain contract not updated, deprecated if rerun from zero
-            
+
             var toBeReleasedChainIdList = FindToBeReleasedChainIdList(indexingProposalStatusList, utcNow);
 
             if (toBeReleasedChainIdList.Count > 0)
@@ -316,12 +312,12 @@ namespace AElf.CrossChain.Indexing.Application
             return await _irreversibleBlockStateProvider.GetNotIndexedIrreversibleBlockByHeightAsync(height);
         }
 
-        public async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
+        public async Task<ChainIdAndHeightDict> GetAllChainIdHeightPairsAtLibAsync()
         {
             var isReadyToCreateChainCache =
                 await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
             if (!isReadyToCreateChainCache)
-                return new SideChainIdAndHeightDict();
+                return new ChainIdAndHeightDict();
             var lib = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             return await _contractReaderFactory
                 .Create(new ContractReaderContext
@@ -345,7 +341,6 @@ namespace AElf.CrossChain.Indexing.Application
 
             var crossChainBlockData = new CrossChainBlockData
             {
-                PreviousBlockHeight = blockHeight,
                 ParentChainBlockDataList = {parentChainBlockData},
                 SideChainBlockDataList = {sideChainBlockData}
             };

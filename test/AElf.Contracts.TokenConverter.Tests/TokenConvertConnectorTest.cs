@@ -513,17 +513,6 @@ namespace AElf.Contracts.TokenConverter
             }
         }
 
-        [Fact]
-        public async Task GetFeeReceiverAddress_Test()
-        {
-            await DefaultStub.Initialize.SendAsync(new InitializeInput
-            {
-                FeeRate = "0.005"
-            });
-            var receiver = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
-            receiver.ShouldBe(TreasuryContractAddress);
-        }
-
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
             string resourceWeight = "0.05", string nativeWeight = "0.05")
         {
@@ -536,7 +525,7 @@ namespace AElf.Contracts.TokenConverter
             };
         }
 
-        private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000, bool isProfitable = false)
+        private async Task CreateTokenAsync(string symbol, long totalSupply = 100_0000_0000)
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -545,7 +534,6 @@ namespace AElf.Contracts.TokenConverter
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
                 IsBurnable = true,
-                IsProfitable = isProfitable,
                 LockWhiteList = {TokenConverterContractAddress}
             });
         }

@@ -140,7 +140,6 @@ namespace AElf.Contracts.Referendum
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                IsProfitable = true
             });
 
             //issue default user

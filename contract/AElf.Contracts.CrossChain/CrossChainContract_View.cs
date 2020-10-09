@@ -1,10 +1,8 @@
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Standards.ACS7;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -101,9 +99,9 @@ namespace AElf.Contracts.CrossChain
             };
         }
 
-        public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
+        public override ChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
         {
-            var dict = new SideChainIdAndHeightDict();
+            var dict = new ChainIdAndHeightDict();
             var serialNumber = State.SideChainSerialNumber.Value;
             for (long i = 1; i <= serialNumber; i++)
             {
@@ -118,7 +116,7 @@ namespace AElf.Contracts.CrossChain
             return dict;
         }
 
-        public override SideChainIdAndHeightDict GetAllChainsIdAndHeight(Empty input)
+        public override ChainIdAndHeightDict GetAllChainsIdAndHeight(Empty input)
         {
             var dict = GetSideChainIdAndHeight(new Empty());
 
@@ -156,46 +154,8 @@ namespace AElf.Contracts.CrossChain
 
         public override ChainInitializationData GetChainInitializationData(Int32Value input)
         {
-            var sideChainInfo = State.SideChainInfo[input.Value];
-            var sideChainCreationRequest = State.AcceptedSideChainCreationRequest[input.Value];
-
-            Assert(sideChainInfo != null && sideChainCreationRequest != null, "Side chain not found.");
-
-            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-            var res = new ChainInitializationData
-            {
-                CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
-                ChainId = input.Value,
-                Creator = sideChainInfo.Proposer,
-                CreationTimestamp = sideChainInfo.CreationTimestamp,
-                ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
-                ParentChainTokenContractAddress = State.TokenContract.Value
-            };
-            ByteString consensusInformation = State.SideChainInitialConsensusInfo[input.Value].Value;
-            res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
-                {InitialMinerListData = consensusInformation};
-
-            ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
-            res.NativeTokenInfoData = nativeTokenInformation;
-
-            ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
-            res.ResourceTokenInfo = new ResourceTokenInfo
-            {
-                ResourceTokenListData = resourceTokenInformation,
-                InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount}
-            };
-            
-            if (IsPrimaryTokenNeeded(sideChainCreationRequest))
-            {
-                ByteString sideChainTokenInformation =
-                    GetTokenInfo(sideChainCreationRequest.SideChainTokenSymbol).ToByteString();
-                res.ChainPrimaryTokenInfo = new ChainPrimaryTokenInfo
-                {
-                    ChainPrimaryTokenData = sideChainTokenInformation,
-                    SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList},
-                };
-            }
-
+            var res = State.SideChainInitializationData[input.Value];
+            Assert(res!=null, "Side chain not found.");
             return res;
         }
         

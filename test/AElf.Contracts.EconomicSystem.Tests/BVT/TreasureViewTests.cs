@@ -52,14 +52,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task GetCurrentWelfareReward_Test()
+        public async Task GetCurrentTermMiningReward_Test()
         {
             await NextTerm(BootMinerKeyPair);
             await AttendElectionAndVotes();
             await ProduceBlocks(BootMinerKeyPair, 20);
 
-            var welfareReward = await AEDPoSContractStub.GetCurrentWelfareReward.CallAsync(new Empty());
-            welfareReward.Value.ShouldBeGreaterThan(0);
+            var currentTermMiningReward = await AEDPoSContractStub.GetCurrentTermMiningReward.CallAsync(new Empty());
+            currentTermMiningReward.Value.ShouldBeGreaterThan(0);
         }
 
         private async Task AttendElectionAndVotes()

@@ -54,7 +54,10 @@
 
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\stub\acs3.proto</Link>
+            <Link>Protobuf\Proto\base\acs3.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
         </ContractBase>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>

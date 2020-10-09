@@ -55,6 +55,9 @@ service TokenConverterContract {
     rpc GetControllerForManageConnector (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    rpc IsSymbolAbleToSell (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message Connector {

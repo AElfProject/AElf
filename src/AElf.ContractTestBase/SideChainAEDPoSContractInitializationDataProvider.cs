@@ -29,7 +29,7 @@ namespace AElf.ContractTestBase
                 InitialMinerList = sideChainInitializationData == null
                     ? _consensusOptions.InitialMinerList
                     : MinerListWithRoundNumber.Parser
-                        .ParseFrom(sideChainInitializationData.ChainInitializationConsensusInfo.InitialMinerListData)
+                        .ParseFrom(sideChainInitializationData.ChainInitializationConsensusInfo.InitialConsensusData)
                         .MinerList.Pubkeys.Select(p => p.ToHex()).ToList(),
                 StartTimestamp = sideChainInitializationData?.CreationTimestamp ?? _consensusOptions.StartTimestamp,
                 PeriodSeconds = _consensusOptions.PeriodSeconds,

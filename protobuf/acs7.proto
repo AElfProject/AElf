@@ -12,7 +12,7 @@ option (aelf.identity) = "acs7";
 option csharp_namespace = "AElf.Standards.ACS7";
 
 service ACS7 {
-    
+
     rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
     }
     rpc ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput) returns (google.protobuf.Empty) {
@@ -33,13 +33,13 @@ service ACS7 {
     rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
+    rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (ChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
     rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) {
         option (aelf.is_view) = true;
     }
-    rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
+    rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (ChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
     rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {
@@ -87,7 +87,7 @@ message CrossChainExtraData {
     aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 
-message SideChainIdAndHeightDict {
+message ChainIdAndHeightDict {
     map<int32, int64> id_height_dict = 1;
 }
 
@@ -103,7 +103,6 @@ message SideChainIndexingInformation {
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data_list = 1;
     repeated ParentChainBlockData parent_chain_block_data_list = 2;
-    int64 previous_block_height = 3;
 }
 
 message CrossChainMerkleProofContext {
@@ -139,21 +138,23 @@ message ChainPrimaryTokenInfo{
 }
 
 message ChainInitializationConsensusInfo{
-    bytes initial_miner_list_data = 1;
+    bytes initial_consensus_data = 1;
 }
 
 message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
     bool is_privilege_preserved = 3;
-    string side_chain_token_symbol = 4;
-    string side_chain_token_name = 5;
-    int64 side_chain_token_total_supply = 6;
-    int32 side_chain_token_decimals = 7;
-    bool is_side_chain_token_burnable = 8;
-    bool is_side_chain_token_profitable = 9;
-    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
-    map<string, int32> initial_resource_amount = 11;
+    SideChainTokenCreationRequest side_chain_token_creation_request = 4;
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 5;
+    map<string, int32> initial_resource_amount = 6;
+}
+
+message SideChainTokenCreationRequest{
+    string side_chain_token_symbol = 1;
+    string side_chain_token_name = 2;
+    int64 side_chain_token_total_supply = 3;
+    int32 side_chain_token_decimals = 4;
 }
 
 message SideChainTokenInitialIssue{
@@ -168,7 +169,6 @@ message SideChainTokenInfo {
     int32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
-    bool is_profitable = 7;
 }
 
 message RequestChainCreationOutput {

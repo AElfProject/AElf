@@ -17,7 +17,6 @@ namespace AElf.Kernel.Extensions
         [InlineData(ExecutionStatus.ContractError, false)]
         [InlineData(ExecutionStatus.SystemError, false)]
         [InlineData(ExecutionStatus.ExceededMaxCallDepth, false)]
-        [InlineData(ExecutionStatus.ExecutionStoppedByPrePlugin, false)]
         public void IsSuccessful_Test(ExecutionStatus executionStatus, bool isSuccess)
         {
             {

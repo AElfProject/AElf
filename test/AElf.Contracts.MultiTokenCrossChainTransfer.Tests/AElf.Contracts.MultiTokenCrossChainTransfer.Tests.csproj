@@ -31,7 +31,7 @@
         <OutputItemType>Contract</OutputItemType>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj" >
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Referendum\AElf.Contracts.Referendum.csproj">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>Contract</OutputItemType>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,7 +46,7 @@
         <OutputItemType>Contract</OutputItemType>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj" >
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
         <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         <OutputItemType>Contract</OutputItemType>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -55,11 +55,11 @@
 </ItemGroup>
 <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="1.3.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="Shouldly" Version="3.0.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
 </ItemGroup>
 
 <ItemGroup>
@@ -125,6 +125,9 @@
     </ContractBase>
     <ContractBase Include="..\..\protobuf\acs10.proto">
         <Link>Protobuf\Proto\acs10.proto</Link>
+    </ContractBase>
+    <ContractBase Include="..\..\protobuf\acs11.proto">
+        <Link>Protobuf\Proto\acs11.proto</Link>
     </ContractBase>
     <ContractMessage Include="..\..\protobuf\acs0.proto">
         <Link>Protobuf\Proto\acs0.proto</Link>

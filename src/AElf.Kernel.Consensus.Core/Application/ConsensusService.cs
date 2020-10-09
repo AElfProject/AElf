@@ -18,8 +18,10 @@ namespace AElf.Kernel.Consensus.Application
     {
         private ConsensusCommand _consensusCommand;
         private readonly IConsensusScheduler _consensusScheduler;
+
         private readonly IContractReaderFactory<ConsensusContractContainer.ConsensusContractStub>
             _contractReaderFactory;
+
         private readonly ITriggerInformationProvider _triggerInformationProvider;
         private readonly IBlockTimeProvider _blockTimeProvider;
         private readonly IConsensusReaderContextService _consensusReaderContextService;
@@ -54,13 +56,13 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Trigger.");
+            Logger.LogDebug($"Block time of triggering consensus: {now.ToDateTime():hh:mm:ss.ffffff}.");
 
             var triggerInformation =
                 _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
 
             Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
-            
+
             // Upload the consensus command.
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -107,8 +109,6 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate Before.");
-
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var validationResult = await _contractReaderFactory
@@ -147,8 +147,6 @@ namespace AElf.Kernel.Consensus.Application
             var now = TimestampHelper.GetUtcNow();
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogDebug($"Set block time to utc now: {now.ToDateTime():hh:mm:ss.ffffff}. Validate After.");
-
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
             var validationResult = await _contractReaderFactory
@@ -186,7 +184,7 @@ namespace AElf.Kernel.Consensus.Application
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
             Logger.LogDebug(
-                $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
+                $"Block time of getting consensus extra data: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}.");
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -208,7 +206,7 @@ namespace AElf.Kernel.Consensus.Application
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
             Logger.LogDebug(
-                $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Txs.");
+                $"Block time of getting consensus system txs: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}.");
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);

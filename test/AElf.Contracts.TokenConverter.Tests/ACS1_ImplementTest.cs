@@ -136,27 +136,6 @@ namespace AElf.Contracts.TokenConverter
                 });
                 setMethodFeeRet.TransactionResult.Error.ShouldContain("Token is not found.");
             }
-            
-            // token is not profitable
-            {
-                var tokenSymbol = "KYO";
-                var methodName = "Test";
-                var basicFee = 111;
-                await CreateTokenAsync(tokenSymbol, 1000_000L, false);
-                var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
-                {
-                    MethodName = "Test",
-                    Fees =
-                    {
-                        new MethodFee
-                        {
-                            Symbol = tokenSymbol,
-                            BasicFee = 111
-                        }
-                    }
-                });
-                setMethodFeeRet.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");
-            }
         }
         
         [Fact]
@@ -165,7 +144,7 @@ namespace AElf.Contracts.TokenConverter
             var tokenSymbol = "KYO";
             var methodName = "Test";
             var basicFee = 111;
-            await CreateTokenAsync(tokenSymbol, 1000_000L, true);
+            await CreateTokenAsync(tokenSymbol, 1000_000L);
             var setMethodFeeRet = await DefaultStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
             {
                 MethodName = methodName,
@@ -187,7 +166,7 @@ namespace AElf.Contracts.TokenConverter
             var tokenSymbol = "KYO";
             var methodName = "Test";
             var basicFee = 111;
-            await CreateTokenAsync(tokenSymbol, 1000_000L, true);
+            await CreateTokenAsync(tokenSymbol, 1000_000L);
             await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress,
                 nameof(TokenConverterContractImplContainer.TokenConverterContractImplStub.SetMethodFee), new MethodFees
                 {

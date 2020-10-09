@@ -60,11 +60,11 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="1.3.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -82,6 +82,48 @@
         <CommonMessage Include="..\..\protobuf\transaction_fee.proto">
             <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </CommonMessage>
+        <ContractStub Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf\Proto\referendum_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf/Proto/association_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\base\acs6.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\base\acs10.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\base\acs11.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <Import Project="..\..\test\AllProto.props" />
     <Import Project="..\..\test\AllContracts.props" />

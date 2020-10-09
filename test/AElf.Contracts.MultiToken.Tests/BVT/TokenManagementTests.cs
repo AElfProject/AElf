@@ -19,6 +19,11 @@ namespace AElf.Contracts.MultiToken
     {
         private const long TotalSupply = 1000_000_000_00000000;
         private readonly int _chainId;
+        
+        public MultiTokenContractTests()
+        {
+            _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
+        }
 
         private TokenInfo NativeTokenInfo => new TokenInfo
         {
@@ -107,11 +112,6 @@ namespace AElf.Contracts.MultiToken
             IsVirtualBalanceEnabled = false
         };
 
-        public MultiTokenContractTests()
-        {
-            _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-        }
-
         private async Task CreateNativeTokenAsync()
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
@@ -122,7 +122,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
                 IsBurnable = NativeTokenInfo.IsBurnable,
-                IsProfitable = true,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -143,9 +142,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
                 IsBurnable = NativeTokenInfo.IsBurnable,
-                IsProfitable = true
             });
-
 
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -377,63 +374,6 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task AddNativeTokenWhiteList_Test()
-        {
-            await CreateNativeTokenAsync();
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = NativeTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
-        }
-        
-        [Fact]
-        public async Task AddChainPrimaryTokenWhiteList_Test()
-        {
-            await CreatePrimaryTokenAsync();
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = PrimaryTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
-        }
-
-        [Fact]
-        public async Task AddNormalTokenWhiteList_Test()
-        {
-            await CreateAndIssueMultiTokensAsync();
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = AliceCoinTokenInfo.Symbol
-                });
-                tx.TransactionResult.Error.ShouldContain("Invalid input.");
-            }
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = AliceCoinTokenInfo.Symbol,
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("No permission.");
-            }
-            {
-                var tx = await TokenContractStub.AddTokenWhiteList.SendWithExceptionAsync(new AddTokeWhiteListInput
-                {
-                    TokenSymbol = "NOTEXIST",
-                    Address = TokenContractAddress
-                });
-                tx.TransactionResult.Error.ShouldContain("Invalid input.");
-            }
         }
 
         [Fact]

@@ -200,9 +200,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                IsProfitable = true
             });
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        protected async Task SetPrimaryTokenSymbolAsync()
+        {
+            await TokenContractStub.SetPrimaryTokenSymbol.SendAsync(new SetPrimaryTokenSymbolInput
+                {Symbol = NativeTokenSymbol});
         }
 
         private async Task InitializeAElfConsensus()

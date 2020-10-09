@@ -49,6 +49,7 @@ message CreateOrganizationInput {
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
     bool proposer_authority_required = 2;
     bool parliament_member_proposing_allowed = 3;
+    aelf.Hash creation_token = 4;
 }
 
 message Organization {
@@ -57,6 +58,7 @@ message Organization {
     aelf.Hash organization_hash = 3;
     acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
     bool parliament_member_proposing_allowed = 5;
+    aelf.Hash creation_token = 6;
 }
 
 message ProposalInfo {

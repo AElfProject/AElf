@@ -90,7 +90,7 @@ namespace AElf.CrossChain
 
             if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetAllChainsIdAndHeight))
             {
-                var dict = new SideChainIdAndHeightDict();
+                var dict = new ChainIdAndHeightDict();
                 dict.IdHeightDict.Add(_sideChainIdHeights);
                 dict.IdHeightDict.Add(_parentChainIdHeight);
                 return dict.ToByteArray();
@@ -98,7 +98,7 @@ namespace AElf.CrossChain
 
             if (methodName == nameof(CrossChainContractImplContainer.CrossChainContractImplStub.GetSideChainIdAndHeight))
             {
-                var dict = new SideChainIdAndHeightDict();
+                var dict = new ChainIdAndHeightDict();
                 dict.IdHeightDict.Add(_sideChainIdHeights);
                 return dict.ToByteArray();
             }

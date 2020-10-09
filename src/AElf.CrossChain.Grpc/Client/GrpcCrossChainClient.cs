@@ -48,19 +48,6 @@ namespace AElf.CrossChain.Grpc.Client
         /// Create a new channel.
         /// </summary>
         /// <param name="uriStr"></param>
-        /// <param name="crt">Certificate</param>
-        /// <returns></returns>
-        private Channel CreateChannel(string uriStr, string crt)
-        {
-            var channelCredentials = new SslCredentials(crt);
-            var channel = new Channel(uriStr, channelCredentials);
-            return channel;
-        }
-
-        /// <summary>
-        /// Create a new channel.
-        /// </summary>
-        /// <param name="uriStr"></param>
         /// <returns></returns>
         private static Channel CreateChannel(string uriStr)
         {

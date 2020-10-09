@@ -30,6 +30,7 @@ namespace AElf.Contracts.Genesis
             {
                 AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");

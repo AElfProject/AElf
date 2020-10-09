@@ -31,13 +31,13 @@ namespace AElf.Contracts.Profit
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             return input.Period == 0
                 ? virtualAddress
-                : GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                : GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
         }
 
         public override DistributedProfitsInfo GetDistributedProfitsInfo(SchemePeriod input)
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
-            var releasedProfitsVirtualAddress = GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+            var releasedProfitsVirtualAddress = GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
             return State.DistributedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
             {
                 TotalShares = -1
@@ -49,9 +49,15 @@ namespace AElf.Contracts.Profit
             return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
-        private Address GetDistributedPeriodProfitsVirtualAddress(Address profitId, long period)
+        private Address GetDistributedPeriodProfitsVirtualAddress(Hash schemeId, long period)
         {
-            return Address.FromPublicKey(HashHelper.ComputeFrom(period).ToByteArray().Concat(profitId.Value).ToArray());
+            return Context.ConvertVirtualAddressToContractAddress(
+                GeneratePeriodVirtualAddressFromHash(schemeId, period));
+        }
+
+        private Hash GeneratePeriodVirtualAddressFromHash(Hash schemeId, long period)
+        {
+            return HashHelper.XorAndCompute(schemeId, HashHelper.ComputeFrom(period));
         }
 
         public override Int64Value GetProfitAmount(GetProfitAmountInput input)
@@ -87,7 +93,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                var profitsDict = ProfitAllPeriods(profitItem, profitDetail, profitVirtualAddress, beneficiary, true,
+                var profitsDict = ProfitAllPeriods(profitItem, profitDetail, beneficiary, true,
                     input.Symbol);
                 amount = amount.Add(profitsDict[input.Symbol]);
             }
@@ -127,7 +133,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, profitVirtualAddress, beneficiary, true);
+                var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, true);
                 foreach (var kv in profitsDictForEachProfitDetail)
                 {
                     if (profitsDict.ContainsKey(kv.Key))
