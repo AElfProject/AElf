@@ -21,8 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Symbol = tokenSymbol,
                 TokenName = "name",
                 TotalSupply = 1000_000_000,
-                Issuer = BootMinerAddress,
-                IsProfitable = false     
+                Issuer = BootMinerAddress
             });
             var issueAmount = 1000_000;
             await TokenContractStub.Issue.SendAsync(new IssueInput
