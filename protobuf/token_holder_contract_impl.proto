@@ -1,3 +1,10 @@
+/**
+ * TokenHolder contract.
+ *
+ * Used to build a a bonus model for distributing bonus’ to whom hold the token.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package TokenHolderImpl;
