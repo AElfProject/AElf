@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
+using AElf.Contracts.Treasury;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
 using AElf.EconomicSystem;
@@ -11,6 +12,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.TokenConverter
@@ -41,10 +43,10 @@ namespace AElf.Contracts.TokenConverter
         internal TokenConverterContractImplContainer.TokenConverterContractImplStub DefaultStub =>
             GetTester<TokenConverterContractImplContainer.TokenConverterContractImplStub>(TokenConverterContractAddress,
                 DefaultSenderKeyPair);
-        
+
         internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub =>
             GetParliamentContractTester(DefaultSenderKeyPair);
-        
+
         internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
             ECKeyPair keyPair)
         {
@@ -52,13 +54,16 @@ namespace AElf.Contracts.TokenConverter
                 keyPair);
         }
 
+        internal TreasuryContractImplContainer.TreasuryContractImplStub TreasuryContractStub =>
+            GetTester<TreasuryContractImplContainer.TreasuryContractImplStub>(TreasuryContractAddress,
+                DefaultSenderKeyPair);
+
         #endregion
 
         #region Properties
 
         protected ECKeyPair DefaultSenderKeyPair => Accounts[0].KeyPair;
         protected Address DefaultSender => Accounts[0].Address;
-        protected Address FeeReceiverAddress => TreasuryContractAddress;
         protected ECKeyPair ManagerKeyPair => Accounts[11].KeyPair;
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs => Accounts.Take(5).Select(a => a.KeyPair).ToList();
@@ -69,6 +74,7 @@ namespace AElf.Contracts.TokenConverter
         {
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
             {
+                ProfitSmartContractAddressNameProvider.Name,
                 TokenSmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
@@ -126,6 +132,12 @@ namespace AElf.Contracts.TokenConverter
                 ProposerAuthorityRequired = true
             });
             CheckResult(initializeResult.TransactionResult);
+        }
+
+        protected async Task InitializeTreasuryContractAsync()
+        {
+            await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
+            await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
         }
 
         private void CheckResult(TransactionResult result)

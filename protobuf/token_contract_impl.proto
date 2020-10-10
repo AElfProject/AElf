@@ -176,8 +176,6 @@ message ValidateTokenInfoExistsInput{
     bool is_burnable = 6;
     // The chain id of the token.
     int32 issue_chain_id = 7;
-    // A flag indicating if this token is profitable.
-    bool is_profitable = 8;
 }
 
 message UpdateRentalInput {

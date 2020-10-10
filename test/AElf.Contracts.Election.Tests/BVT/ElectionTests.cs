@@ -231,7 +231,7 @@ namespace AElf.Contracts.Election
                 Symbol = voteSymbol,
                 Owner = ElectionContractAddress
             });
-            voteBalanceInElectionContract.Balance.ShouldBe(amount);
+            voteBalanceInElectionContract.Balance.ShouldBe(voteTokenInfo.TotalSupply);
             
             voteRet = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime * 2, amount);
             voteRet.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Election
                 Symbol = voteSymbol,
                 Owner = ElectionContractAddress
             });
-            voteBalanceInElectionContract.Balance.ShouldBe(0);
+            voteBalanceInElectionContract.Balance.ShouldBe(amount);
         }
         
         [Fact]

@@ -204,7 +204,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
         public override Empty CheckResourceToken(Empty input)
         {
             AssertTransactionGeneratedByPlugin();
@@ -222,23 +221,32 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
-            Assert(input != null, "invalid input");
-            bool isPrimaryTokenExist = false;
+            if (input == null)
+                throw new AssertionException("invalid input");
+            var isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
+            var primaryTokenInfo = State.TokenInfos[primaryTokenSymbol.Value];
             Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
-            foreach (var tokenInfo in input.SymbolsToPayTxSizeFee)
+            foreach (var tokenWeightInfo in input.SymbolsToPayTxSizeFee)
             {
-                if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
+                if (tokenWeightInfo.TokenSymbol == primaryTokenSymbol.Value)
                 {
                     isPrimaryTokenExist = true;
-                    Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
-                        $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
+                    Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
+                        $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
 
-                AssertSymbolToPayTxFeeIsValid(tokenInfo);
-                Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
-                symbolList.Add(tokenInfo.TokenSymbol);
+                Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
+                    $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
+                Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
+                    $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
+                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo.TokenSymbol, out var addedTokenTotalSupply);
+                CheckIsWeightOverflow(primaryTokenSymbol.Value, tokenWeightInfo.BaseTokenWeight,
+                    addedTokenTotalSupply);
+                CheckIsWeightOverflow(tokenWeightInfo.TokenSymbol, tokenWeightInfo.AddedTokenWeight,
+                    primaryTokenInfo.TotalSupply);
+                symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
@@ -374,7 +382,7 @@ namespace AElf.Contracts.MultiToken
                 State.ConsensusContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "No permission.");
         }
 
@@ -616,6 +624,12 @@ namespace AElf.Contracts.MultiToken
 
             if (totalAmount <= 0) return;
 
+            var tokenInfo = State.TokenInfos[symbol];
+            if (!tokenInfo.IsBurnable)
+            {
+                return;
+            }
+
             var burnAmount = totalAmount.Div(10);
             if (burnAmount > 0)
                 Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -629,11 +643,14 @@ namespace AElf.Contracts.MultiToken
                 return;
             var treasuryContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            if (treasuryContractAddress != null)
+            var isMainChain = treasuryContractAddress != null;
+            if (isMainChain)
             {
                 // Main chain would donate tx fees to dividend pool.
                 if (State.DividendPoolContract.Value == null)
                     State.DividendPoolContract.Value = treasuryContractAddress;
+                State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol] =
+                    State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol].Add(transferAmount);
                 State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
@@ -676,7 +693,7 @@ namespace AElf.Contracts.MultiToken
             return State.FeeReceiver.Value;
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
+        private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -686,12 +703,16 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
         {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) && tokenInfo.TokenSymbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
-                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+            var tokenInfo = State.TokenInfos[tokenSymbol];
+            if (tokenInfo == null)
+            {
+                throw new AssertionException($"Token is not found. {tokenSymbol}");
+            }
+
+            Assert(IsTokenAvailableForMethodFee(tokenSymbol), $"Token {tokenSymbol} cannot set as method fee.");
+            totalSupply = tokenInfo.TotalSupply;
         }
 
         private void AssertTransactionGeneratedByPlugin()

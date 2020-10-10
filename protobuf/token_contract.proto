@@ -197,6 +197,9 @@ service TokenContract {
     rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
         option (aelf.is_view) = true;
     }
+    rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -214,8 +217,6 @@ message TokenInfo {
     aelf.Address issuer = 6;
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
-    // A flag indicating if this token is profitable.
-    bool is_profitable = 8;
     // The chain id of the token.
     int32 issue_chain_id = 9;
     // The amount of issued tokens.
@@ -237,10 +238,8 @@ message CreateInput {
     bool is_burnable = 6;
     // A whitelist address list used to lock tokens.
     repeated aelf.Address lock_white_list = 7;
-    // A flag indicating if this token is profitable.
-    bool is_profitable = 8;
     // The chain id of the token.
-    int32 issue_chain_id = 9;
+    int32 issue_chain_id = 8;
 }
 
 message SetPrimaryTokenSymbolInput {
@@ -685,10 +684,8 @@ message TokenCreated {
     aelf.Address issuer = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
-    // A flag indicating if this token is profitable.
-    bool is_profitable = 7;
     // The chain id of the token.
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
 }
 
 message Issued {

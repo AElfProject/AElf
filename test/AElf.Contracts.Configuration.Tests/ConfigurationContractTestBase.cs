@@ -11,6 +11,7 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.Configuration;
 using AElf.Kernel.Proposal;
+using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -23,6 +24,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
     {
         protected Address ParliamentAddress;
         protected Address ConfigurationContractAddress;
+        protected Address TokenContractAddress;
 
         protected long _totalSupply;
         protected long _balanceOfStarter;
@@ -35,6 +37,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             ParliamentAddress = Tester.GetContractAddress(ParliamentSmartContractAddressNameProvider.Name);
             ConfigurationContractAddress =
                 Tester.GetContractAddress(ConfigurationSmartContractAddressNameProvider.Name);
+            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 
         protected async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress,

@@ -93,9 +93,6 @@ service ElectionContract {
     rpc GetVotesAmount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
@@ -244,14 +241,6 @@ message TermSnapshot {
 
 message UpdateMinersCountInput {
      int32 miners_count = 1;
-}
-
-message GetWelfareRewardAmountSampleInput {
-    repeated int64 value = 1;
-}
-
-message GetWelfareRewardAmountSampleOutput {
-    repeated int64 value = 1;
 }
 
 message GetPageableCandidateInformationOutput {

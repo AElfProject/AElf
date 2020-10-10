@@ -159,6 +159,7 @@ namespace AElf.Contracts.TokenConverter
         public async Task Buy_Success_Test()
         {
             await CreateRamToken();
+            await InitializeTreasuryContractAsync();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
 
@@ -202,8 +203,8 @@ namespace AElf.Contracts.TokenConverter
             var balanceOfElfToken = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
             balanceOfElfToken.ShouldBe(amountToPay);
 
-            var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
+            var donatedFee = await TreasuryContractStub.GetUndistributedDividends.CallAsync(new Empty());
+            donatedFee.Value[NativeSymbol].ShouldBe(fee.Div(2));
 
             var balanceOfRamToken = await GetBalanceAsync(WriteSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
@@ -244,6 +245,7 @@ namespace AElf.Contracts.TokenConverter
         public async Task Sell_Success_Test()
         {
             await CreateRamToken();
+            await InitializeTreasuryContractAsync();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
 
@@ -257,7 +259,7 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Balance  before Sell
-            var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
+            var treasuryBeforeSell = (await TreasuryContractStub.GetUndistributedDividends.CallAsync(new Empty())).Value[NativeSymbol];
             var balanceOfElfToken = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
             var balanceOfTesterToken = await GetBalanceAsync(NativeSymbol, DefaultSender);
 
@@ -292,8 +294,8 @@ namespace AElf.Contracts.TokenConverter
             var balanceOfTesterRam = await GetBalanceAsync(WriteSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(0L);
 
-            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
-            balanceOfFeeReceiverAfterSell.ShouldBe(fee.Div(2) + balanceOfFeeReceiver);
+            var treasuryAfterSell = await TreasuryContractStub.GetUndistributedDividends.CallAsync(new Empty());
+            treasuryAfterSell.Value[NativeSymbol].ShouldBe(fee.Div(2) + treasuryBeforeSell);
 
             var balanceOfElfTokenAfterSell = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
             balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken - amountToReceive);
@@ -309,6 +311,7 @@ namespace AElf.Contracts.TokenConverter
         public async Task Sell_With_Invalid_Input_Test()
         {
             await CreateRamToken();
+            await InitializeTreasuryContractAsync();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
 
@@ -411,15 +414,6 @@ namespace AElf.Contracts.TokenConverter
                 Amount = 2000L,
             })).TransactionResult;
             approveRamTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var approveFeeResult = (await TokenContractStub.Approve.SendAsync(
-                new ApproveInput
-                {
-                    Spender = FeeReceiverAddress,
-                    Symbol = "ELF",
-                    Amount = 2000L,
-                })).TransactionResult;
-            approveFeeResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         #endregion

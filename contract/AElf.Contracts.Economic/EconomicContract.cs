@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
@@ -41,6 +42,16 @@ namespace AElf.Contracts.Economic
 
         private void CreateNativeToken(InitialEconomicSystemInput input)
         {
+            var lockWhiteListBackups = new List<Address>
+            {
+                Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)
+            };
+            var lockWhiteList = lockWhiteListBackups.Where(address => address != null).ToList();
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = input.NativeTokenSymbol,
@@ -49,16 +60,7 @@ namespace AElf.Contracts.Economic
                 Decimals = input.NativeTokenDecimals,
                 IsBurnable = input.IsNativeTokenBurnable,
                 Issuer = Context.Self,
-                IsProfitable = true,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName)
-                }
+                LockWhiteList = {lockWhiteList}
             });
 
             State.TokenContract.SetPrimaryTokenSymbol.Send(new SetPrimaryTokenSymbolInput
@@ -69,6 +71,12 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            var lockWhiteListBackups = new List<Address>
+            {
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+            };
+            var lockWhiteList = lockWhiteListBackups.Where(address => address != null).ToList();
             foreach (var resourceTokenSymbol in Context.Variables
                 .GetStringArray(EconomicContractConstants.PayTxFeeSymbolListName)
                 .Union(Context.Variables.GetStringArray(EconomicContractConstants.PayRentalSymbolListName)))
@@ -80,12 +88,7 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
-                    IsProfitable = true,
-                    LockWhiteList =
-                    {
-                        Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
-                    },
+                    LockWhiteList = {lockWhiteList},
                     IsBurnable = true
                 });
 
@@ -101,6 +104,12 @@ namespace AElf.Contracts.Economic
 
         private void CreateElectionTokens()
         {
+            var lockWhiteListBackups = new List<Address>
+            {
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
+            };
+            var lockWhiteList = lockWhiteListBackups.Where(address => address != null).ToList();
             foreach (var symbol in new List<string>
                 {EconomicContractConstants.ElectionTokenSymbol, EconomicContractConstants.ShareTokenSymbol})
             {
@@ -110,13 +119,16 @@ namespace AElf.Contracts.Economic
                     TokenName = $"{symbol} Token",
                     TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
                     Decimals = EconomicContractConstants.ElectionTokenDecimals,
-                    Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Issuer = Context.Self,
                     IsBurnable = true,
-                    LockWhiteList =
-                    {
-                        Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                        Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
-                    }
+                    LockWhiteList = {lockWhiteList}
+                });
+                State.TokenContract.Issue.Send(new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = EconomicContractConstants.ElectionTokenTotalSupply,
+                    To = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Memo = "Issue all election tokens to Election Contract."
                 });
             }
         }

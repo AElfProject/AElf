@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS

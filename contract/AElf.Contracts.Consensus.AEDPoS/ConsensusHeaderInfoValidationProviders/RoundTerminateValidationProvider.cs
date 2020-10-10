@@ -14,16 +14,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var validationResult = new ValidationResult();
             var extraData = validationContext.ExtraData;
-            switch (extraData.Behaviour)
+            if (extraData.Behaviour == AElfConsensusBehaviour.NextRound)
             {
-                case AElfConsensusBehaviour.NextRound:
-                    return ValidationForNextRound(validationContext);
-                case AElfConsensusBehaviour.NextTerm:
-                    return ValidationForNextTerm(validationContext);
-                default:
-                    validationResult.Success = true;
-                    return validationResult;
+                return ValidationForNextRound(validationContext);
             }
+
+            if (extraData.Behaviour == AElfConsensusBehaviour.NextTerm)
+            {
+                return ValidationForNextTerm(validationContext);
+            }
+
+            validationResult.Success = true;
+            return validationResult;
         }
 
         private ValidationResult ValidationForNextRound(ConsensusValidationContext validationContext)

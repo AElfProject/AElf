@@ -158,7 +158,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override BoolValue IsCurrentMiner(Address input)
         {
             var pubkey = ConvertAddressToPubkey(input);
-            Context.LogDebug(() => $"[CURRENT MINER]PUBKEY: {pubkey}");
             return new BoolValue
             {
                 Value = IsCurrentMiner(pubkey)
@@ -229,10 +228,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Check saving extra block time slot.
-            var arrangedMiningTime =
-                currentRound.ArrangeAbnormalMiningTime(pubkey, currentRound.GetExtraBlockMiningTime(), true);
-            if (arrangedMiningTime <= Context.CurrentBlockTime &&
-                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            var nextArrangeMiningTime =
+                currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
+            var actualArrangedMiningTime = nextArrangeMiningTime.AddMilliseconds(-currentRound.TotalMilliseconds());
+            if (actualArrangedMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime <= actualArrangedMiningTime.AddMilliseconds(miningInterval))
             {
                 Context.LogDebug(() => "[CURRENT MINER]SAVING");
                 return true;
@@ -314,12 +314,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToGetPreviousRoundInformation(out var previousRound);
             if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
             {
-                Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
                 nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
                 nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
-                Context.LogDebug(() => "Round of new miners generated.");
                 return;
             }
 
@@ -374,12 +372,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
-            Context.LogDebug(() => $"MainChainCurrentMinerList: \n{State.MainChainCurrentMinerList.Value}");
-            var result = State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
-                         GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                         GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
-            Context.LogDebug(() => $"IsMainChainMinerListChanged: {result}");
-            return result;
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
+                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
         }
 
         private static Hash GetMinerListHash(IEnumerable<string> minerList)
@@ -434,6 +429,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new Int64Value {Value = 0};
+        }
+
+        public override Int64Value GetCurrentMiningRewardPerBlock(Empty input)
+        {
+            return new Int64Value {Value = GetMiningRewardPerBlock()};
         }
 
         /// <summary>
@@ -491,6 +491,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return result;
+        }
+
+        public override MinerList GetMainChainCurrentMinerList(Empty input)
+        {
+            return State.MainChainCurrentMinerList.Value;
         }
 
         public override PubkeyList GetPreviousTermMinerPubkeyList(Empty input)

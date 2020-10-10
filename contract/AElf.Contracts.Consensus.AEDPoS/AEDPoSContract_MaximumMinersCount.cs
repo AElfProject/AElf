@@ -11,33 +11,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public override Empty SetMaximumMinersCount(Int32Value input)
         {
-            if (State.ElectionContract.Value == null)
-            {
-                State.ElectionContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-            }
+            EnsureElectionContractAddressSet();
 
             Assert(input.Value > 0, "Invalid max miners count.");
 
             RequiredMaximumMinersCountControllerSet();
             Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
                 "No permission to set max miners count.");
-            State.MaximumMinersCount.Value = input.Value;
-            State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+            // Only update miners count if 1) Max Miners Count is decreased; 2) Input value is less than auto Increasing miners count
+            if (State.MaximumMinersCount.Value > input.Value && GetAutoIncreasedMinersCount() > input.Value)
             {
-                MinersCount = input.Value
-            });
+                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                {
+                    MinersCount = input.Value
+                });
+            }
+
+            State.MaximumMinersCount.Value = input.Value;
             return new Empty();
         }
 
         private void RequiredMaximumMinersCountControllerSet()
         {
             if (State.MaximumMinersCountController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            EnsureParliamentContractAddressSet();
 
             var defaultAuthority = new AuthorityInfo
             {
@@ -67,17 +64,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Int32Value GetMaximumMinersCount(Empty input)
         {
-            if (State.BlockchainStartTimestamp.Value == null)
-            {
-                return new Int32Value {Value = AEDPoSContractConstants.SupposedMinersCount};
-            }
-
             return new Int32Value
             {
-                Value = Math.Min(AEDPoSContractConstants.SupposedMinersCount.Add(
-                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                    .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value)
+                Value = Math.Min(GetAutoIncreasedMinersCount(), State.MaximumMinersCount.Value)
             };
+        }
+
+        private int GetAutoIncreasedMinersCount()
+        {
+            if (State.BlockchainStartTimestamp.Value == null)
+            {
+                return AEDPoSContractConstants.SupposedMinersCount;
+            }
+
+            return AEDPoSContractConstants.SupposedMinersCount.Add(
+                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                .Div(State.MinerIncreaseInterval.Value).Mul(2));
         }
     }
 }

@@ -190,8 +190,7 @@ namespace AElf.Contracts.CrossChain
                 Issuer = creator,
                 IssueChainId = chainId,
                 Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
-                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply,
-                IsProfitable = false
+                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply
             });
         }
 

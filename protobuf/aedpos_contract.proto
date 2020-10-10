@@ -99,7 +99,13 @@ service AEDPoSContract {
     rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetMainChainCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetPreviousTermMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMiningRewardPerBlock (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
         option (aelf.is_view) = true;
     }
 }

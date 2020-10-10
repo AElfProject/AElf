@@ -513,17 +513,6 @@ namespace AElf.Contracts.TokenConverter
             }
         }
 
-        [Fact]
-        public async Task GetFeeReceiverAddress_Test()
-        {
-            await DefaultStub.Initialize.SendAsync(new InitializeInput
-            {
-                FeeRate = "0.005"
-            });
-            var receiver = await DefaultStub.GetFeeReceiverAddress.CallAsync(new Empty());
-            receiver.ShouldBe(TreasuryContractAddress);
-        }
-
         private PairConnectorParam GetLegalPairConnectorParam(string tokenSymbol, long nativeBalance = 1_0000_0000,
             string resourceWeight = "0.05", string nativeWeight = "0.05")
         {

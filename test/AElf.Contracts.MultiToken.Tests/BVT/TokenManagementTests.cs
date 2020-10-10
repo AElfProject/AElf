@@ -141,9 +141,8 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = NativeTokenInfo.TotalSupply,
                 Decimals = NativeTokenInfo.Decimals,
                 Issuer = NativeTokenInfo.Issuer,
-                IsBurnable = NativeTokenInfo.IsBurnable
+                IsBurnable = NativeTokenInfo.IsBurnable,
             });
-
 
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
