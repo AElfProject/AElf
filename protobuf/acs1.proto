@@ -33,6 +33,7 @@ service MethodFeeProviderContract {
 message MethodFees {
     string method_name = 1;
     repeated MethodFee fees = 2;
+    bool is_size_fee_free = 3;// Optional based on the implementation of SetMethodFee method.
 }
 
 message MethodFee {

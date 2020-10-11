@@ -90,7 +90,8 @@ namespace AElf.Contracts.MultiToken
         private bool IsMethodFeeSetToZero(MethodFees methodFees)
         {
             return !string.IsNullOrEmpty(methodFees.MethodName) &&
-                   (methodFees.Fees == null || !methodFees.Fees.Any() || methodFees.Fees.All(x => x.BasicFee == 0));
+                   (methodFees.Fees == null || !methodFees.Fees.Any() || methodFees.Fees.All(x => x.BasicFee == 0)) &&
+                   methodFees.IsSizeFeeFree;
         }
 
         private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
