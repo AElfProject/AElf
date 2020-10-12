@@ -37,14 +37,14 @@ namespace AElf.Contracts.MultiToken
             var successToChargeBaseFee = true;
             if (methodFees != null && methodFees.Fees.Any())
             {
-                // If base fee is set before, charge base fee at first.
+                // If base fee is set before, charge base fee.
                 successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
 
             var successToChargeSizeFee = true;
             if (methodFees != null && !methodFees.IsSizeFeeFree)
             {
-                // If base is not set and IsSizeFeeFree == true, charge size fee.
+                // If IsSizeFeeFree == true, charge size fee.
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
