@@ -37,13 +37,14 @@ namespace AElf.Contracts.MultiToken
             var successToChargeBaseFee = true;
             if (methodFees != null && methodFees.Fees.Any())
             {
+                // If base fee is set before, charge base fee at first.
                 successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
 
             var successToChargeSizeFee = true;
-            if (!IsMethodFeeSetToZero(methodFees))
+            if (methodFees != null && !methodFees.IsSizeFeeFree)
             {
-                // Then also do not charge size fee.
+                // If base is not set and IsSizeFeeFree == true, charge size fee.
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
@@ -85,13 +86,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             return dict;
-        }
-
-        private bool IsMethodFeeSetToZero(MethodFees methodFees)
-        {
-            return !string.IsNullOrEmpty(methodFees.MethodName) &&
-                   (methodFees.Fees == null || !methodFees.Fees.Any() || methodFees.Fees.All(x => x.BasicFee == 0)) &&
-                   methodFees.IsSizeFeeFree;
         }
 
         private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
