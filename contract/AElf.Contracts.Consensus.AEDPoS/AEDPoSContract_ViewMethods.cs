@@ -238,7 +238,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return true;
             }
 
-            Context.LogDebug(() => "[CURRENT MINER]WRONG");
+            // If current round is the first round of current term.
+            var latestMinedInfo =
+                currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
+                    .FirstOrDefault(i => i.ActualMiningTimes.Any());
+            if (latestMinedInfo != null)
+            {
+                var latestMinedSlotFirstActualMiningTime = latestMinedInfo.ActualMiningTimes.First();
+                var latestMinedOrder = latestMinedInfo.Order;
+                var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
+                var passedSlotsCount =
+                    (Context.CurrentBlockTime - latestMinedSlotFirstActualMiningTime).Seconds.Div(miningInterval);
+                if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder) ||
+                    passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Sub(1))
+                {
+                    Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
+                    return true;
+                }
+            }
+
+            Context.LogDebug(() => "[CURRENT MINER]NOT MINER");
 
             return false;
         }

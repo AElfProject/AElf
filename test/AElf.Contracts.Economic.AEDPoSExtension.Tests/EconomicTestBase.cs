@@ -118,6 +118,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })
             });
             await BlockMiningService.MineBlockAsync(GetIssueTransactions());
+
+            var balance = await TokenStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey),
+                Symbol = EconomicTestConstants.TokenSymbol
+            });
         }
 
         private List<Transaction> GetIssueTransactions()
