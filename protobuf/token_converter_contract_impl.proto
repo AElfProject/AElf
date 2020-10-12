@@ -1,3 +1,12 @@
+/**
+ * TokenConvert contract.
+ *
+ * Using this contract can build a connection between the base token and other tokens 
+ * created on the chain. After building the connection, users can trade tokens with the Bancor model. 
+ * You can find the detail information about Bancor in AElf Economic System White Paper.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package TokenConverterImpl;
