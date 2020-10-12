@@ -37,6 +37,7 @@ message InitialEconomicSystemInput {
     bool is_native_token_burnable = 5;
     // It determines how much native token is used to reward the miners.
     int64 mining_reward_total_amount = 6;
+    // todo : remove unused fields
     int64 transaction_size_fee_unit_price = 7;
 }
 

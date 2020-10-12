@@ -84,7 +84,7 @@ namespace AElf.OS.Account.Infrastructure
             var address = SampleAddress.AddressList[0];
             var addString = address.ToBase58();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
-            keyPair.ShouldBe(null);
+            keyPair.ShouldBeNull();
 
             var errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountFileNotFound);

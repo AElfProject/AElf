@@ -13,33 +13,34 @@ import "acs3.proto";
 option csharp_namespace = "AElf.Contracts.Referendum";
 
 service ReferendumContract {
-    
+
     option (aelf.csharp_state) = "AElf.Contracts.Referendum.ReferendumState";
-    
+
     // Unlock the token used for voting according to proposal id.
     rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
     }
-    
+
     // Create an organization and return its address.  
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
-    
+
     // Creates an organization by system contract and return its address. 
-    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    rpc CreateOrganizationBySystemContract (CreateOrganizationBySystemContractInput) returns (aelf.Address) {
     }
-    
+
     // Get the organization according to the organization address.
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    
+
     // Calculate the input and return the organization address.
-    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+    rpc CalculateOrganizationAddress (CreateOrganizationInput) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    
+
     // Get the virtual address of a proposal based on the proposal id.
-    rpc GetProposalVirtualAddress(aelf.Hash) returns (aelf.Address){}
+    rpc GetProposalVirtualAddress (aelf.Hash) returns (aelf.Address) {
+    }
 }
 
 message CreateOrganizationInput {
@@ -124,5 +125,5 @@ message ReferendumReceiptCreated {
     // The timestamp of this method call.
     google.protobuf.Timestamp time = 6;
     // The address of the organization.
-    aelf.Address organization_address=7 [(aelf.is_indexed) = true];
+    aelf.Address organization_address = 7 [(aelf.is_indexed) = true];
 }

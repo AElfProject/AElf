@@ -131,7 +131,7 @@ message Disposed {
 
 message ProposedCrossChainIndexing{
     // The collection of chain indexing proposal, the key is chain id.
-    map<int32, ChainIndexingProposal> ChainIndexingProposalCollections = 1;
+    map<int32, ChainIndexingProposal> chain_indexing_proposal_collections = 1;
 }
 
 message ChainIndexingProposal{
@@ -213,9 +213,10 @@ message SideChainInfo {
     int64 indexing_price = 6;
     // True if chain privilege needed, otherwise false.
     bool is_privilege_preserved = 7;
+    // creditor and amounts for the chain indexing fee debt 
     map<string, int64> arrears_info = 8;
     // The controller of indexing fee.
-    AuthorityInfo IndexingFeeController = 9;
+    AuthorityInfo indexing_fee_controller = 9;
 }
 
 message GetChainStatusOutput{
@@ -228,7 +229,7 @@ message SideChainCreationRequestState{
     acs7.SideChainCreationRequest side_chain_creation_request = 1;
     // The expiration date of the proposal.
     google.protobuf.Timestamp expired_time = 2;
-    // The proposer who propose to create the side chain.
+    // The proposer who proposed to create the side chain.
     aelf.Address proposer = 3;
 }
 

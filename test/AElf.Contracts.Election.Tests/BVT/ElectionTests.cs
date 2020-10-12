@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic;
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
@@ -562,7 +561,6 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(candidateKeyPair);
 
             var voterKeyPair = VoterKeyPairs[0];
-            var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
             var candidateStringKey = candidateKeyPair.PublicKey.ToHex();
             // Vote
             var transactionResult =
