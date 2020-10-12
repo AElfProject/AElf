@@ -218,9 +218,9 @@ message TokenInfo {
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
     // The chain id of the token.
-    int32 issue_chain_id = 9;
+    int32 issue_chain_id = 8;
     // The amount of issued tokens.
-    int64 issued = 10;
+    int64 issued = 9;
 }
 
 message CreateInput {
