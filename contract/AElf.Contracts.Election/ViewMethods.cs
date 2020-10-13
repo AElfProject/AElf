@@ -71,8 +71,11 @@ namespace AElf.Contracts.Election
                 victories =
                     new List<ByteString>(validCandidates.Select(ByteStringHelper.FromHexString));
                 var backups = currentMiners.Where(k => !validCandidates.Contains(k)).ToList();
-                backups.AddRange(
-                    State.InitialMiners.Value.Value.Select(k => k.ToHex()).Where(k => !backups.Contains(k)));
+                if (State.InitialMiners.Value != null)
+                {
+                    backups.AddRange(
+                        State.InitialMiners.Value.Value.Select(k => k.ToHex()).Where(k => !backups.Contains(k)));
+                }
                 victories.AddRange(backups.OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
                     .Select(ByteStringHelper.FromHexString));
