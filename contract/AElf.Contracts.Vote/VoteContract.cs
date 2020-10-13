@@ -62,6 +62,20 @@ namespace AElf.Contracts.Vote
                 SnapshotStartTimestamp = input.StartTimestamp
             };
 
+            Context.Fire(new VotingItemRegistered
+            {
+                Sponsor = Context.Sender,
+                VotingItemId = votingItemId,
+                AcceptedCurrency = input.AcceptedCurrency,
+                IsLockToken = input.IsLockToken,
+                TotalSnapshotNumber = input.TotalSnapshotNumber,
+                CurrentSnapshotNumber = 1,
+                CurrentSnapshotStartTimestamp = input.StartTimestamp,
+                StartTimestamp = input.StartTimestamp,
+                EndTimestamp = input.EndTimestamp,
+                RegisterTimestamp = Context.CurrentBlockTime,
+            });
+
             return new Empty();
         }
 
