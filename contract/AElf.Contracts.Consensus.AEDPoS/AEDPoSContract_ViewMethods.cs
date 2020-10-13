@@ -245,7 +245,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var latestMinedInfo =
                     currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
-                        .FirstOrDefault(i => i.ActualMiningTimes.Any());
+                        .FirstOrDefault(i => i.ActualMiningTimes.Any() && i.Pubkey != pubkey);
                 if (latestMinedInfo != null)
                 {
                     var minersCount = currentRound.RealTimeMinersInformation.Count;
