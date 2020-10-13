@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -27,7 +28,7 @@ namespace AElf.Kernel.Consensus.Application
             await _consensusService.TriggerConsensusAsync(ChainContext);
 
             // Check BlockTimeProvider.
-            var blockTime = _blockTimeProvider.GetBlockTime();
+            var blockTime = _blockTimeProvider.GetBlockTime(Hash.Empty);
             blockTime.ShouldNotBeNull();
 
             // Check whether consensus scheduler is filled.

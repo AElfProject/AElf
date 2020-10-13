@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus.Application
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
             var now = TimestampHelper.GetUtcNow();
-            _blockTimeProvider.SetBlockTime(now);
+            _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
             Logger.LogDebug($"Block time of triggering consensus: {now.ToDateTime():hh:mm:ss.ffffff}.");
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus.Application
             byte[] consensusExtraData)
         {
             var now = TimestampHelper.GetUtcNow();
-            _blockTimeProvider.SetBlockTime(now);
+            _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -145,7 +145,7 @@ namespace AElf.Kernel.Consensus.Application
             byte[] consensusExtraData)
         {
             var now = TimestampHelper.GetUtcNow();
-            _blockTimeProvider.SetBlockTime(now);
+            _blockTimeProvider.SetBlockTime(now, chainContext.BlockHash);
 
             var contractReaderContext =
                 await _consensusReaderContextService.GetContractReaderContextAsync(chainContext);
@@ -181,7 +181,7 @@ namespace AElf.Kernel.Consensus.Application
         /// <returns></returns>
         public async Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext)
         {
-            _blockTimeProvider.SetBlockTime(_nextMiningTime);
+            _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
 
             Logger.LogDebug(
                 $"Block time of getting consensus extra data: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}.");
@@ -203,7 +203,7 @@ namespace AElf.Kernel.Consensus.Application
         /// <returns></returns>
         public async Task<List<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
         {
-            _blockTimeProvider.SetBlockTime(_nextMiningTime);
+            _blockTimeProvider.SetBlockTime(_nextMiningTime, chainContext.BlockHash);
 
             Logger.LogDebug(
                 $"Block time of getting consensus system txs: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}.");

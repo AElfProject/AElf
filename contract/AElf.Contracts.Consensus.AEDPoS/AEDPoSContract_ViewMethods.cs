@@ -239,21 +239,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // If current round is the first round of current term.
-            var latestMinedInfo =
-                currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
-                    .FirstOrDefault(i => i.ActualMiningTimes.Any());
-            if (latestMinedInfo != null)
+            if (currentRound.RoundNumber == 1)
             {
-                var latestMinedSlotFirstActualMiningTime = latestMinedInfo.ActualMiningTimes.First();
-                var latestMinedOrder = latestMinedInfo.Order;
-                var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
-                var passedSlotsCount =
-                    (Context.CurrentBlockTime - latestMinedSlotFirstActualMiningTime).Seconds.Div(miningInterval);
-                if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder) ||
-                    passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Sub(1))
+                var latestMinedInfo =
+                    currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
+                        .FirstOrDefault(i => i.ActualMiningTimes.Any());
+                if (latestMinedInfo != null)
                 {
-                    Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
-                    return true;
+                    var minersCount = currentRound.RealTimeMinersInformation.Count;
+                    var latestMinedSlotLastActualMiningTime = latestMinedInfo.ActualMiningTimes.Last();
+                    var latestMinedOrder = latestMinedInfo.Order;
+                    var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
+                    var passedSlotsCount =
+                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Seconds.Div(miningInterval);
+                    if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(1).Add(minersCount) ||
+                        passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(minersCount))
+                    {
+                        Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
+                        return true;
+                    }
                 }
             }
 
