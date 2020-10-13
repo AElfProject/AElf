@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 return blockTime as Timestamp;
             }
 
-            return null;
+            return new Timestamp();
         }
 
         public void SetBlockTime(Timestamp blockTime, Hash blockHash)
