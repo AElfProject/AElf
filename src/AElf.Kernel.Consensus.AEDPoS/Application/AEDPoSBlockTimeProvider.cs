@@ -24,7 +24,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public Timestamp GetBlockTime(Hash blockHash)
         {
-            if (_blockTimeCache.TryGetValue(blockHash, out var blockTime))
+            if (blockHash != null && _blockTimeCache.TryGetValue(blockHash, out var blockTime))
             {
                 return blockTime as Timestamp;
             }
