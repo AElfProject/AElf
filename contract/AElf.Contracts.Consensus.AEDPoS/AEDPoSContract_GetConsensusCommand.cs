@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (SolitaryMinerDetection(currentRound, pubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
+            if (currentRound.RoundNumber == 1 && behaviour == AElfConsensusBehaviour.UpdateValue)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
