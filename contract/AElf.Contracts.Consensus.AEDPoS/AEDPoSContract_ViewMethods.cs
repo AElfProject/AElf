@@ -241,6 +241,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // If current round is the first round of current term.
             if (currentRound.RoundNumber == 1)
             {
+                Context.LogDebug(() => "First round");
+
                 var latestMinedInfo =
                     currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
                         .FirstOrDefault(i => i.ActualMiningTimes.Any());
@@ -258,6 +260,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
                         return true;
                     }
+
+                    Context.LogDebug(
+                        () => $"latestMinedSlotLastActualMiningTime: {latestMinedSlotLastActualMiningTime}");
+                    Context.LogDebug(
+                        () => $"latestMinedOrder: {latestMinedOrder}");
+                    Context.LogDebug(
+                        () => $"currentMinerOrder: {currentMinerOrder}");
+                    Context.LogDebug(
+                        () => $"passedSlotsCount: {passedSlotsCount}");
+                    Context.LogDebug(
+                        () => $"miningInterval: {miningInterval}");
                 }
             }
 
