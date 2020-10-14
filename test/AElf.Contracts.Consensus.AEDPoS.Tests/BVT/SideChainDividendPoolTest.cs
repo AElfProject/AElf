@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task SideChainDividendPool_Release_Test()
         {
-            var result = await AEDPoSContractStub.Release.SendWithExceptionAsync(new ReleaseInput
+            var result = await AEDPoSContractStub.Release.SendAsync(new ReleaseInput
             {
                 PeriodNumber = 1
             });
@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task SideChainDividendPool_SetSymbolList_Test()
         {
-            var result = await AEDPoSContractStub.SetSymbolList.SendWithExceptionAsync(new SymbolList());
+            var result = await AEDPoSContractStub.SetSymbolList.SendAsync(new SymbolList());
             result.TransactionResult.Error.ShouldContain("Side chain dividend pool not support setting symbol list.");
         }
 
