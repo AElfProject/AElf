@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [IgnoreOnCIFact]
+        [Fact]
         public async Task Query_RoundInformation_Test()
         {
             //first round
@@ -36,6 +36,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber.ShouldBe(2);
+
+            var previousRoundInfo = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
+            previousRoundInfo.RoundNumber.ShouldBe(1);
 
             var roundInformation = await AEDPoSContractStub.GetRoundInformation.CallAsync(new Int64Value
             {
@@ -75,6 +78,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var pubkeyList = await AEDPoSContractStub.GetCurrentMinerPubkeyList.CallAsync(new Empty());
             var nextMiner = await AEDPoSContractStub.GetNextMinerPubkey.CallAsync(new Empty());
             pubkeyList.Pubkeys.ShouldContain(nextMiner.Value);
+        }
+
+        [Fact]
+        public async Task GetCurrentMinerList_Test()
+        {
+            var minerList = await AEDPoSContractStub.GetMinerList.CallAsync(new GetMinerListInput {TermNumber = 1});
+            minerList.Pubkeys.Count.ShouldBe(5);
+
+            var currentMinerListWithRoundNumber =
+                await AEDPoSContractStub.GetCurrentMinerListWithRoundNumber.CallAsync(new Empty());
+            currentMinerListWithRoundNumber.MinerList.Pubkeys.Count.ShouldBe(5);
+            currentMinerListWithRoundNumber.RoundNumber.ShouldBe(1);
+            
+            var currentMiner = await AEDPoSContractStub.GetCurrentMinerPubkey.CallAsync(new Empty());
+            minerList.Pubkeys.Select(k => k.ToHex()).ShouldContain(currentMiner.Value);
+
+            var nextMiner = await AEDPoSContractStub.GetNextMinerPubkey.CallAsync(new Empty());
+            minerList.Pubkeys.Select(k => k.ToHex()).ShouldContain(nextMiner.Value);
+        }
+
+        [Fact]
+        public async Task GetMiner_Test()
+        {
+            
         }
     }
 }

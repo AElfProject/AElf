@@ -55,6 +55,12 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             
             var maxMinersCount = await ConsensusStub.GetMaximumMinersCount.CallAsync(new Empty());
             maxMinersCount.Value.ShouldBe(targetMinersCount);
+
+            var minedBlocksOfPreviousTerm = await ConsensusStub.GetMinedBlocksOfPreviousTerm.CallAsync(new Empty());
+            minedBlocksOfPreviousTerm.Value.ShouldBeGreaterThan(200);
+
+            var previousMinerList = await ConsensusStub.GetPreviousMinerList.CallAsync(new Empty());
+            previousMinerList.Pubkeys.Count.ShouldBe(targetMinersCount);
         }
 
         [Fact]

@@ -113,39 +113,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
-
-            Context.LogDebug(() => $"Now based on round: \n{previousRound.GetSimpleRound()}");
-
-            var extraBlockProducer = previousRound.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer)
-                .Pubkey;
-            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime();
-            if (extraBlockMiningTime <= currentBlockTime &&
-                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
-            {
-                Context.LogDebug(() => $"Checked extra block time slot: {extraBlockProducer}");
-                return extraBlockProducer;
-            }
-
-            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys.Except(new List<string>
-                {extraBlockProducer}))
-            {
-                var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
-                if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
-                    consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
-                {
-                    return maybeCurrentPubkey;
-                }
-            }
-
-            pubkey = previousRound.RealTimeMinersInformation.OrderBy(i => i.Value.Order).Select(i => i.Key)
-                .FirstOrDefault(k =>
-                    previousRound.IsInCorrectFutureMiningSlot(k, Context.CurrentBlockTime));
-
-            Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
-
-            return pubkey;
+            return null;
         }
 
         /// <summary>
