@@ -281,3 +281,27 @@ message Withdrawn {
     // The vote id.
     aelf.Hash vote_id = 1;
 }
+
+message VotingItemRegistered {
+    option (aelf.is_event) = true;
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The token symbol which will be accepted.
+    string accepted_currency = 2;
+    // Whether the vote will lock token.
+    bool is_lock_token = 3;
+    // The current snapshot number.
+    int64 current_snapshot_number = 4;
+    // The total number of snapshots of the vote.
+    int64 total_snapshot_number = 5;
+    // The register time of the voting activity.
+    google.protobuf.Timestamp register_timestamp = 6;
+    // The start time of the voting.
+    google.protobuf.Timestamp start_timestamp = 7;
+    // The end time of the voting.
+    google.protobuf.Timestamp end_timestamp = 8;
+    // The start time of current round of the voting.
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 9;
+    // The sponsor address of the voting activity.
+    aelf.Address sponsor = 10;
+}
