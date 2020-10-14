@@ -237,10 +237,6 @@ namespace AElf.Contracts.MultiToken
                 Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
                     $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
                 AssertSymbolToPayTxFeeIsValid(tokenWeightInfo.TokenSymbol, out var addedTokenTotalSupply);
-                CheckIsWeightOverflow(primaryTokenSymbol.Value, tokenWeightInfo.BaseTokenWeight,
-                    addedTokenTotalSupply);
-                CheckIsWeightOverflow(tokenWeightInfo.TokenSymbol, tokenWeightInfo.AddedTokenWeight,
-                    primaryTokenInfo.TotalSupply);
                 symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
