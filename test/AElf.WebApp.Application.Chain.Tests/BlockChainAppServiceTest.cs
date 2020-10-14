@@ -726,6 +726,14 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString().ToUpper());
             response.Bloom.ShouldBeNull();
+            
+            _transactionResultStatusCacheProvider.AddTransactionResultStatus(transaction.GetHash());
+            response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
+            response.TransactionId.ShouldBe(transactionHex);
+            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString().ToUpper());
+            response.Error.ShouldBeNull();
+            response.Bloom.ShouldBeNull();
         }
 
         [Fact]
