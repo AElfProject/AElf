@@ -1,3 +1,8 @@
+/**
+ * AElf Standards ACS6(Random Number Standard)
+ *
+ * Used to generate random number.
+ */
 syntax = "proto3";
 
 package acs6;
@@ -10,15 +15,8 @@ option (aelf.identity) = "acs6";
 option csharp_namespace = "AElf.Standards.ACS6";
 
 service RandomNumberProviderContract {
+    // Get random number according to block height.
     rpc GetRandomBytes (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
-}
-
-// Events
-
-message RandomBytesGenerated {
-    option (aelf.is_event) = true;
-    bytes argument = 1;
-    bytes random_bytes = 2;
 }
