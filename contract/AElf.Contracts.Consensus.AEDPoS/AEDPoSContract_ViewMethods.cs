@@ -260,17 +260,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
                         return true;
                     }
-
-                    Context.LogDebug(
-                        () => $"latestMinedSlotLastActualMiningTime: {latestMinedSlotLastActualMiningTime}");
-                    Context.LogDebug(
-                        () => $"latestMinedOrder: {latestMinedOrder}");
-                    Context.LogDebug(
-                        () => $"currentMinerOrder: {currentMinerOrder}");
-                    Context.LogDebug(
-                        () => $"passedSlotsCount: {passedSlotsCount}");
-                    Context.LogDebug(
-                        () => $"miningInterval: {miningInterval}");
                 }
             }
 
