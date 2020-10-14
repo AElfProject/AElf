@@ -51,10 +51,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 }
             };
 
-            await CreateAndIssueElf();
+            await CreateAndIssueToken("ELF");
+            await CreateAndIssueToken("READ");
             await TokenStub.Transfer.SendAsync(new TransferInput
             {
-                Symbol = "ELF",
+                Symbol = "READ",
                 Amount = 10_00000000,
                 To = ContractAddresses[ConsensusSmartContractAddressNameProvider.Name]
             });
@@ -66,13 +67,20 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             var minerList = await ConsensusStub.GetMainChainCurrentMinerList.CallAsync(new Empty());
             minerList.Pubkeys.Select(m => m.ToHex()).ShouldBe(headerInformation.Round.RealTimeMinersInformation.Keys);
+
+            var balance = await TokenStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.Skip(1).First().PublicKey),
+                Symbol = "READ"
+            });
+            balance.Balance.ShouldBe(2_00000000);
         }
 
-        private async Task CreateAndIssueElf()
+        private async Task CreateAndIssueToken(string symbol)
         {
             var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
             {
-                Symbol = "ELF",
+                Symbol = symbol,
                 Decimals = 8,
                 TokenName = "Test",
                 Issuer = Accounts[0].Address,
@@ -83,7 +91,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
             var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
             {
-                Symbol = "ELF",
+                Symbol = symbol,
                 Amount = issueTokenAmount,
                 To = issueToAddress
             });

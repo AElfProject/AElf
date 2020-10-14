@@ -37,6 +37,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var undistributedDividends = await AEDPoSContractStub.GetUndistributedDividends.CallAsync(new Empty());
             undistributedDividends.Value.Count.ShouldBe(0);
         }
-
     }
 }
