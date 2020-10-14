@@ -1,3 +1,10 @@
+/**
+ * Election contract.
+ *
+ * Used for voting for Block Producers.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package ElectionImpl;

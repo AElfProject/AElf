@@ -45,8 +45,6 @@ namespace AElf.Contracts.CrossChain
         public Int32State ParentChainId { get; set; }
         public MappedState<long, Hash> ParentChainTransactionStatusMerkleTreeRoot { get; set; }
         
-        public SingletonState<IndexedParentChainBlockData> LastIndexedParentChainBlockData { get; set; }
-            
         #endregion
 
         public SingletonState<long> LatestExecutedHeight { get; set; }
