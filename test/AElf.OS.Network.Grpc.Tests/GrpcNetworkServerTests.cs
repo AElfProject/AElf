@@ -123,11 +123,5 @@ namespace AElf.OS.Network.Grpc
             
             _peerPool.PeerCount.ShouldBe(0);
         }
-
-        [Fact]
-        public void CheckNtpDrift_Test()
-        {
-            _networkServer.CheckNtpDrift();
-        }
     }
 }
