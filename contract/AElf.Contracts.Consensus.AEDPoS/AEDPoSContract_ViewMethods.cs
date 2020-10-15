@@ -93,13 +93,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
             if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            if (Context.CurrentBlockTime < round.GetRoundStartTime())
+            var currentBlockTime = Context.CurrentBlockTime;
+            if (currentBlockTime < round.GetRoundStartTime())
             {
                 // First round not start yet.
                 return new StringValue
                 {
                     Value = round.RealTimeMinersInformation.Values.Single(i => i.Order == 1).Pubkey
                 };
+            }
+
+            // Very basic case
+            if (currentBlockTime < round.GetExtraBlockMiningTime())
+            {
+                var miningInterval = round.GetMiningInterval();
+                var pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
+                    m.ExpectedMiningTime <= currentBlockTime &&
+                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
+                if (pubkey != null)
+                {
+                    return new StringValue {Value = pubkey};
+                }
             }
 
             foreach (var maybeCurrentMiner in round.RealTimeMinersInformation.Keys)
