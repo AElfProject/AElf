@@ -9,7 +9,7 @@ namespace AElf.CrossChain.Grpc.Client
     {
         private readonly ICrossChainClientService _crossChainClientService;
         private readonly CrossChainConfigOptions _crossChainConfigOptions;
-        private int _localChainId;
+        public int ChainId { get; private set; }
 
         public ILogger<GrpcCrossChainClientNodePlugin> Logger { get; set; }
 
@@ -22,7 +22,7 @@ namespace AElf.CrossChain.Grpc.Client
 
         public async Task StartAsync(int chainId)
         {
-            _localChainId = chainId;
+            ChainId = chainId;
 
             if (string.IsNullOrEmpty(_crossChainConfigOptions.ParentChainId))
                 return;
@@ -43,7 +43,6 @@ namespace AElf.CrossChain.Grpc.Client
 
         public async Task CreateClientAsync(GrpcCrossChainClientCreationContext crossChainClientCreationContext)
         {
-            crossChainClientCreationContext.LocalChainId = _localChainId;
             await _crossChainClientService.CreateClientAsync(crossChainClientCreationContext);
         }
     }
