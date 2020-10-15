@@ -26,7 +26,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<ContractReaderContext> GetContractReaderContextAsync(IChainContext chainContext)
         {
-            var timestamp = _blockTimeProvider.GetBlockTime();
+            var timestamp = _blockTimeProvider.GetBlockTime(chainContext.BlockHash);
             var sender = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var consensusContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
                 chainContext, ConsensusSmartContractAddressNameProvider.StringName);

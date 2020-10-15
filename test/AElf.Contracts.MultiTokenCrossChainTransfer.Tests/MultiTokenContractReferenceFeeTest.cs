@@ -628,7 +628,7 @@ namespace AElf.Contracts.MultiTokenCrossSideChain
             result.ShouldBe(false);
         }
         
-        [Fact]
+        [Fact(Skip = "Now we remove related logic temporaryly.")]
         public async Task SetSymbolsToPayTxSizeFee_With_Overflow_Input_Test()
         {
             var primaryToken = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());

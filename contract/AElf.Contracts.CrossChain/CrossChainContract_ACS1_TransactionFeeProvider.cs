@@ -21,7 +21,8 @@ namespace AElf.Contracts.CrossChain
             {
                 return new MethodFees
                 {
-                    MethodName = input.Value
+                    MethodName = input.Value,
+                    IsSizeFeeFree = true
                 };
             }
             return State.TransactionFees[input.Value];

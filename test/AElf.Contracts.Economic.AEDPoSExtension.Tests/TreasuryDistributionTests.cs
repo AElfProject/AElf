@@ -405,7 +405,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 20);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(7);
+                    totalShares.ShouldBe(11);
 
                     information[SchemeType.ReElectionReward] = new DistributionInformation
                     {

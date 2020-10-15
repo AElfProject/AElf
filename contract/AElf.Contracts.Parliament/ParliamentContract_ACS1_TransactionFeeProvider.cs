@@ -16,7 +16,8 @@ namespace AElf.Contracts.Parliament
             {
                 return new MethodFees
                 {
-                    MethodName = input.Value
+                    MethodName = input.Value,
+                    IsSizeFeeFree = true
                 };
             }
 
