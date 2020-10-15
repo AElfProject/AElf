@@ -196,6 +196,7 @@ message UpdateValueInput {
     google.protobuf.Timestamp actual_mining_time = 5;
     // The supposed order of mining for the next round.
     int32 supposed_order_of_next_round = 6;
+    // The tuning order of mining for the next round, miner public key -> order.
     map<string, int32> tune_order_information = 7;
     // The encrypted pieces of InValue.
     map<string, bytes> encrypted_pieces = 8;
