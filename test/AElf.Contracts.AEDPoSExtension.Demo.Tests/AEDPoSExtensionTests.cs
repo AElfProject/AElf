@@ -86,7 +86,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 tokenInfo.Symbol.ShouldBe("ELF");
             }
 
-            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber - 2; i++)
+            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber; i++)
             {
                 await BlockMiningService.MineBlockAsync();
             }
