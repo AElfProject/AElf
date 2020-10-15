@@ -40,6 +40,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IBlockAcceptedLogEventProcessor, IrreversibleBlockHeightUnacceptableLogEventProcessor>();
             context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, SecretSharingInformationLogEventProcessor>();
+            context.Services.AddSingleton<IBlockTimeProvider, AEDPoSBlockTimeProvider>();
             
             // Our purpose is that other modules won't sense which consensus protocol are using, 
             // thus we read the configuration of ConsensusOption here.

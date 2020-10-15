@@ -22,7 +22,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 return new MethodFees
                 {
-                    MethodName = input.Value
+                    MethodName = input.Value,
+                    IsSizeFeeFree = true
                 };
             }
 

@@ -25,11 +25,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (SolitaryMinerDetection(currentRound, pubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
+            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
+
+            if (currentRound.RoundNumber == 1 && behaviour == AElfConsensusBehaviour.UpdateValue)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
-            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
