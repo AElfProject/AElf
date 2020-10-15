@@ -70,7 +70,13 @@ namespace AElf.Contracts.Election
             {
                 victories =
                     new List<ByteString>(validCandidates.Select(ByteStringHelper.FromHexString));
-                victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p)
+                var backups = currentMiners.Where(k => !validCandidates.Contains(k)).ToList();
+                if (State.InitialMiners.Value != null)
+                {
+                    backups.AddRange(
+                        State.InitialMiners.Value.Value.Select(k => k.ToHex()).Where(k => !backups.Contains(k)));
+                }
+                victories.AddRange(backups.OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
                     .Select(ByteStringHelper.FromHexString));
                 Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));

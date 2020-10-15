@@ -45,6 +45,9 @@ namespace AElf.WebApp.Application.Chain
 
         public static string TakeErrorMessage(string transactionResultError, bool errorTraceNeeded)
         {
+            if (string.IsNullOrWhiteSpace(transactionResultError))
+                return null;
+        
             if (errorTraceNeeded)
                 return transactionResultError;
 
