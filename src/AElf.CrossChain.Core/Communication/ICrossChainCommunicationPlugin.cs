@@ -6,5 +6,7 @@ namespace AElf.CrossChain.Communication
     {
         Task StartAsync(int chainId);
         Task ShutdownAsync();
+
+        int ChainId { get; }
     }
 }
