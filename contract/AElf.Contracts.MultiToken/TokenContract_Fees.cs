@@ -44,7 +44,7 @@ namespace AElf.Contracts.MultiToken
             var successToChargeSizeFee = true;
             if (methodFees != null && !methodFees.IsSizeFeeFree)
             {
-                // If IsSizeFeeFree == true, charge size fee.
+                // If IsSizeFeeFree == true, do not charge size fee.
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
