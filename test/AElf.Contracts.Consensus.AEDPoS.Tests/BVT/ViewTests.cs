@@ -91,9 +91,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentMinerListWithRoundNumber.MinerList.Pubkeys.Count.ShouldBe(5);
             currentMinerListWithRoundNumber.RoundNumber.ShouldBe(1);
 
-            var currentMiner = await AEDPoSContractStub.GetCurrentMinerPubkey.CallAsync(new Empty());
-            minerList.Pubkeys.Select(k => k.ToHex()).ShouldContain(currentMiner.Value);
-
             var nextMiner = await AEDPoSContractStub.GetNextMinerPubkey.CallAsync(new Empty());
             minerList.Pubkeys.Select(k => k.ToHex()).ShouldContain(nextMiner.Value);
         }

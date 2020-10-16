@@ -90,43 +90,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new StringValue();
         }
 
-        public override StringValue GetCurrentMinerPubkey(Empty input)
-        {
-            if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            var currentBlockTime = Context.CurrentBlockTime;
-            if (currentBlockTime < round.GetRoundStartTime())
-            {
-                // First round not start yet.
-                return new StringValue
-                {
-                    Value = round.RealTimeMinersInformation.Values.Single(i => i.Order == 1).Pubkey
-                };
-            }
-
-            // Very basic case
-            if (currentBlockTime < round.GetExtraBlockMiningTime())
-            {
-                var miningInterval = round.GetMiningInterval();
-                var pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
-                    m.ExpectedMiningTime <= currentBlockTime &&
-                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
-                if (pubkey != null)
-                {
-                    return new StringValue {Value = pubkey};
-                }
-            }
-
-            foreach (var maybeCurrentMiner in round.RealTimeMinersInformation.Keys)
-            {
-                if (IsCurrentMiner(maybeCurrentMiner))
-                {
-                    return new StringValue {Value = maybeCurrentMiner};
-                }
-            }
-
-            return new StringValue();
-        }
-
         /// <summary>
         /// Current implementation can be incorrect if all nodes recovering from
         /// a strike more than the time of one round, because it's impossible to
