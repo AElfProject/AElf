@@ -1,0 +1,23 @@
+/**
+ * TokenHolder contract.
+ *
+ * Used to build a a bonus model for distributing bonus’ to whom hold the token.
+ * 
+ * Implement AElf Standards ACS1.
+ */
+syntax = "proto3";
+
+package TokenHolderImpl;
+
+import "acs1.proto";
+import "token_holder_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.TokenHolder";
+
+service TokenHolderContractImpl {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.TokenHolder.TokenHolderContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "token_holder_contract.proto";
+    
+}

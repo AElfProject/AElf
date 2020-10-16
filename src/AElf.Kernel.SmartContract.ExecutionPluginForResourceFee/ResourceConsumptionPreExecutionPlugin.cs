@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Acs8;
+using AElf.Standards.ACS8;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -76,8 +76,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForResourceFee
             };
         }
 
-        public bool IsStopExecuting(ByteString txReturnValue)
+        public bool IsStopExecuting(ByteString txReturnValue, out string preExecutionInformation)
         {
+            preExecutionInformation = string.Empty;
             return false;
         }
     }

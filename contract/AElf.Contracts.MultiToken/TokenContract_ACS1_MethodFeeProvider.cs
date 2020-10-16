@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -22,7 +22,8 @@ namespace AElf.Contracts.MultiToken
             {
                 return new MethodFees
                 {
-                    MethodName = input.Value
+                    MethodName = input.Value,
+                    IsSizeFeeFree = true
                 };
             }
 
@@ -57,7 +58,7 @@ namespace AElf.Contracts.MultiToken
         {
             foreach (var symbolToAmount in input.Fees)
             {
-                AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
+                AssertValidFeeToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
 
             RequiredMethodFeeControllerSet();
@@ -120,6 +121,14 @@ namespace AElf.Contracts.MultiToken
             return Context.Call<BoolValue>(authorityInfo.ContractAddress,
                 nameof(AuthorizationContractContainer.AuthorizationContractReferenceState.ValidateOrganizationExist),
                 authorityInfo.OwnerAddress).Value;
+        }
+
+        private void AssertValidFeeToken(string symbol, long amount)
+        {
+            AssertValidSymbolAndAmount(symbol, amount);
+            if (State.TokenInfos[symbol] == null)
+                throw new AssertionException("Token is not found");
+            Assert(State.TokenInfos[symbol].IsBurnable, $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

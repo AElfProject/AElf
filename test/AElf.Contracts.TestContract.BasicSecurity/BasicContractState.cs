@@ -1,5 +1,6 @@
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.BasicSecurity
 {
@@ -19,6 +20,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public SingletonState<byte[]> BytesSingletonState { get; set; }
         public SingletonState<ProtobufMessage> ProtoInfo { get; set; }
+        
+        public SingletonState<int>LoopInt32Value { get; set; }
         public ProtobufState<ProtobufMessage> ProtoInfo2 { get; set; }
         
         public MappedState<long, ProtobufMessage> MappedState { get; set; }

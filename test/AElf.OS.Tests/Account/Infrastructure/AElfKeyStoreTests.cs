@@ -8,11 +8,10 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Shouldly;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AElf.OS.Account.Infrastructure
 {
-    public class AElfKeyStoreTests:KeyStoreTestBase
+    public class AElfKeyStoreTests : KeyStoreTestBase
     {
         private readonly AElfKeyStore _keyStore;
         private readonly INodeEnvironmentService _nodeEnvironmentService;
@@ -28,7 +27,9 @@ namespace AElf.OS.Account.Infrastructure
         {
             var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
             keyPair.ShouldNotBe(null);
-            _keyStore.GetAccountsAsync().Result.Count.ShouldBeGreaterThanOrEqualTo(1);
+            var list = await _keyStore.GetAccountsAsync();
+            list.Count.ShouldBeGreaterThanOrEqualTo(1);
+            list.ShouldContain(Address.FromPublicKey(keyPair.PublicKey).ToBase58());
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var addString = address.ToBase58();
@@ -46,36 +47,35 @@ namespace AElf.OS.Account.Infrastructure
 
             errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountAlreadyUnlocked);
-
-            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
-            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
-            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString, "123"));
         }
 
         [Fact]
-        public async Task Account_Create_And_Read_Compare()
+        public async Task Account_Create_And_Read()
         {
-            for (var i = 0; i < 10; i++)
-            {
-                //Create
-                var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
-                keyPair.ShouldNotBe(null);
-                var address = Address.FromPublicKey(keyPair.PublicKey);
-                var publicKey = keyPair.PublicKey.ToHex();
-                var addString = address.ToBase58();
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync("file", "123"));
 
-                //Read
-                var keyPair1 = await _keyStore.ReadKeyPairAsync(addString, "123");
-                var address1 = Address.FromPublicKey(keyPair1.PublicKey);
-                var publicKey1 = keyPair1.PublicKey.ToHex();
+            //Create
+            var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
+            keyPair.ShouldNotBe(null);
+            var address = Address.FromPublicKey(keyPair.PublicKey);
+            var publicKey = keyPair.PublicKey.ToHex();
+            var addString = address.ToBase58();
 
-                keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
+            //Read
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() =>
+                _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
 
-                publicKey.ShouldBe(publicKey1);
-                address.ShouldBe(address1);
+            await Should.ThrowAsync<InvalidPasswordException>(() =>
+                _keyStore.ReadKeyPairAsync(addString, "WrongPassword"));
 
-                Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
-            }
+            var keyPair1 = await _keyStore.ReadKeyPairAsync(addString, "123");
+            var address1 = Address.FromPublicKey(keyPair1.PublicKey);
+            var publicKey1 = keyPair1.PublicKey.ToHex();
+
+            keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
+
+            publicKey.ShouldBe(publicKey1);
+            address.ShouldBe(address1);
         }
 
         [Fact]
@@ -84,10 +84,38 @@ namespace AElf.OS.Account.Infrastructure
             var address = SampleAddress.AddressList[0];
             var addString = address.ToBase58();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
-            keyPair.ShouldBe(null);
+            keyPair.ShouldBeNull();
 
             var errResult = await _keyStore.UnlockAccountAsync(addString, "123");
             errResult.ShouldBe(AccountError.AccountFileNotFound);
+        }
+
+        [Fact]
+        public async Task GetAccountKeyPair_Test()
+        {
+            var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
+            var address = Address.FromPublicKey(keyPair.PublicKey).ToBase58();
+
+            var result = _keyStore.GetAccountKeyPair(address);
+            result.ShouldBeNull();
+
+            await _keyStore.UnlockAccountAsync(address, "123");
+            result = _keyStore.GetAccountKeyPair(address);
+            result.ShouldNotBeNull();
+            result.PublicKey.ShouldBe(keyPair.PublicKey);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            DeleteTestFolder();
+        }
+
+        private void DeleteTestFolder()
+        {
+            var path = Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys");
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
         }
     }
 }

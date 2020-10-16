@@ -1,4 +1,4 @@
-using Acs5;
+using AElf.Standards.ACS5;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.MethodCallThreshold

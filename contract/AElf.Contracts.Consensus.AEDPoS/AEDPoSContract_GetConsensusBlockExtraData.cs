@@ -17,10 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(triggerInformation.Pubkey.Any(), "Invalid pubkey.");
 
-            if (!TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                Assert(false, "Failed to get current round information.");
-            }
+            TryToGetCurrentRoundInformation(out var currentRound);
 
             var publicKeyBytes = triggerInformation.Pubkey;
             var pubkey = publicKeyBytes.ToHex();
@@ -109,8 +106,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         {
                             fakePreviousInValue = appointedPreviousInValue;
                         }
-
-                        Context.LogDebug(() => $"TEST:\n{previousRound.ToString(pubkey)}\nInValue: {fakePreviousInValue}");
                         signature = previousRound.CalculateSignature(fakePreviousInValue);
                     }
                     else
@@ -151,23 +146,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             foreach (var decryptedPiece in triggerInformation.DecryptedPieces)
-            {
                 if (updatedRound.RealTimeMinersInformation.ContainsKey(decryptedPiece.Key))
-                {
                     updatedRound.RealTimeMinersInformation[decryptedPiece.Key].DecryptedPieces[pubkey] =
                         decryptedPiece.Value;
-                }
-            }
 
             foreach (var revealedInValue in triggerInformation.RevealedInValues)
-            {
                 if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key) &&
                     (updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == Hash.Empty ||
                      updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == null))
-                {
                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
-                }
-            }
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataForTinyBlock(Round currentRound,

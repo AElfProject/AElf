@@ -1,0 +1,24 @@
+/**
+ * Treasury contract.
+ *
+ * Used for distributing bonus’ to voters and candidates during the election process.
+ * 
+ * Implement AElf Standards ACS1 and ACS10.
+ */
+syntax = "proto3";
+
+package TreasuryImpl;
+
+import "aelf/core.proto";
+import "acs1.proto";
+import "acs10.proto";
+import "treasury_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Treasury";
+
+service TreasuryContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs10.proto";
+    option (aelf.base) = "treasury_contract.proto";
+}

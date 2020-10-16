@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
@@ -10,6 +10,7 @@ using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
 using Moq;
+using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Grpc.Server
@@ -99,6 +100,22 @@ namespace AElf.CrossChain.Grpc.Server
             Assert.Equal(GrpcCrossChainConstants.MaximalIndexingCount, responseResults.Count);
             Assert.Equal(10, responseResults[0].Height);
         }
+        
+        [Fact]
+        public async Task RequestIndexingSideChain_EmptyResponse_Test()
+        {
+            var requestData = new CrossChainRequest
+            {
+                ChainId = ChainHelper.GetChainId(1),
+                NextHeight = 101
+            };
+
+            var responseResults = new List<SideChainBlockData>();
+            IServerStreamWriter<SideChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
+            var context = BuildServerCallContext();
+            await SideChainGrpcServerBase.RequestIndexingFromSideChain(requestData, responseStream, context);
+            Assert.Empty(responseResults);
+        }
 
         [Fact]
         public async Task CrossChainIndexingShake_Test()
@@ -108,11 +125,20 @@ namespace AElf.CrossChain.Grpc.Server
                 ListeningPort = 2100,
                 ChainId = ChainHelper.GetChainId(1)
             };
-            var context = BuildServerCallContext();
-            var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
+            {
+                // invalid peer format
+                var context = BuildServerCallContext(null, "127.0.0.1");
+                var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
+                indexingHandShakeReply.Status.ShouldBe(HandShakeReply.Types.HandShakeStatus.InvalidHandshakeRequest);
+            }
+            
+            {
+                var context = BuildServerCallContext();
+                var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
 
-            Assert.NotNull(indexingHandShakeReply);
-            Assert.True(indexingHandShakeReply.Status == HandShakeReply.Types.HandShakeStatus.Success);
+                Assert.NotNull(indexingHandShakeReply);
+                Assert.True(indexingHandShakeReply.Status == HandShakeReply.Types.HandShakeStatus.Success);
+            }
         }
 
         [Fact]
@@ -128,12 +154,12 @@ namespace AElf.CrossChain.Grpc.Server
             Assert.Equal(1, sideChainInitializationResponse.CreationHeightOnParentChain);
         }
 
-        private ServerCallContext BuildServerCallContext(Metadata metadata = null)
+        private ServerCallContext BuildServerCallContext(Metadata metadata = null, string peer = null)
         {
             var meta = metadata ?? new Metadata();
             return TestServerCallContext.Create("mock", "127.0.0.1",
                 TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), meta, CancellationToken.None,
-                "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(),
+                peer ?? "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(),
                 writeOptions => { });
         }
 

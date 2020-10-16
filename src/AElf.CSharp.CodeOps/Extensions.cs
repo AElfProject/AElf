@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -43,7 +44,7 @@ namespace AElf.CSharp.CodeOps
             return instruction.OpCode + operandStr;
         }
 
-        public static IEnumerable<FieldDefinition> GetStaticFields(this TypeDefinition type)
+        public static IEnumerable<FieldDefinition> GetResetableStaticFields(this TypeDefinition type)
         {
             // Get static fields from type
             var fields = type.Fields.Where(f => 
@@ -53,7 +54,7 @@ namespace AElf.CSharp.CodeOps
                 ).ToList();
 
             // Get static fields from nested types 
-            fields.AddRange(type.NestedTypes.SelectMany(GetStaticFields));
+            fields.AddRange(type.NestedTypes.SelectMany(GetResetableStaticFields));
 
             return fields;
         }
@@ -159,7 +160,7 @@ namespace AElf.CSharp.CodeOps
             return contractBase.DeclaringType;
         }
         
-        public static Type FindExecutionObserverType(this Assembly assembly)
+        public static Type FindExecutionObserverProxyType(this Assembly assembly)
         {
             return assembly.GetTypes().SingleOrDefault(t => t.Name == nameof(ExecutionObserverProxy));
         }

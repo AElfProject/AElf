@@ -1,9 +1,12 @@
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContractState : ContractState
     {
+        private static BoolState boolState;
+        private static readonly BoolState boolState2;
         public BoolState BoolInfo { get; set; }
         public Int32State Int32Info { get; set; }
         public UInt32State UInt32Info { get; set; }
@@ -17,5 +20,9 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
 
         public ReadonlyState<bool> ReadonlyBool { get; set; }
+        
+        public MappedState<long, Address> MappedState { get; set; }
+        
+        public MappedState<long, long> MappedInt64State { get; set; }
     }
 }

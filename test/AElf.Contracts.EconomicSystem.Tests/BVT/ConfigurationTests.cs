@@ -1,10 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.Configuration;
 using AElf.Contracts.Parliament;
 using AElf.Kernel.Configuration;
+using AElf.Kernel.Miner;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -17,7 +19,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task SetConfiguration_TransactionFee_Test()
         {
-            await ExecuteProposalTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
                 nameof(ConfigurationContractStub.SetMethodFee),
                 new MethodFees
                 {
@@ -43,11 +45,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task SetBlockTransactionLimit_Test()
         {
-            await ExecuteProposalTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
                 nameof(ConfigurationContractStub.SetConfiguration),
                 new SetConfigurationInput
                 {
-                    Key = BlockTransactionLimitConfigurationNameProvider.Name,
+                    Key = "BlockTransactionLimit",
                     Value = new Int32Value
                     {
                         Value = 50
@@ -55,7 +57,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
             var result = await ConfigurationContractStub.GetConfiguration.CallAsync(new StringValue
             {
-                Value = BlockTransactionLimitConfigurationNameProvider.Name
+                Value = "BlockTransactionLimit"
             });
             var limit = new Int32Value();
             limit.MergeFrom(BytesValue.Parser.ParseFrom(result.ToByteString()).Value);
@@ -78,7 +80,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = createOrganizationResult.Output;
 
             var methodFeeController = await ConfigurationContractStub.GetMethodFeeController.CallAsync(new Empty());
-            await ExecuteProposalTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
                 nameof(ConfigurationContractStub.ChangeMethodFeeController),
                 new AuthorityInfo
                 {
@@ -108,7 +110,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     ParliamentMemberProposingAllowed = true
                 })).Output;
 
-            await ExecuteProposalTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
                 nameof(ConfigurationContractStub.ChangeConfigurationController),
                 new AuthorityInfo
                 {

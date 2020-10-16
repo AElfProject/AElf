@@ -10,52 +10,49 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    namespace AElf.OS.Network.Handler
+    public class BlockMinedEventHandler : ILocalEventHandler<BlockMinedEventData>, ITransientDependency
     {
-        public class BlockMinedEventHandler : ILocalEventHandler<BlockMinedEventData>, ITransientDependency
+        private readonly INetworkService _networkService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly ISyncStateService _syncStateService;
+
+        public ILogger<BlockMinedEventHandler> Logger { get; set; }
+
+        public BlockMinedEventHandler(INetworkService networkService, IBlockchainService blockchainService,
+            ISyncStateService syncStateService)
         {
-            private readonly INetworkService _networkService;
-            private readonly IBlockchainService _blockchainService;
-            private readonly ISyncStateService _syncStateService;
+            _networkService = networkService;
+            _blockchainService = blockchainService;
+            _syncStateService = syncStateService;
 
-            public ILogger<BlockMinedEventHandler> Logger { get; set; }
+            Logger = NullLogger<BlockMinedEventHandler>.Instance;
+        }
 
-            public BlockMinedEventHandler(INetworkService networkService, IBlockchainService blockchainService,
-                ISyncStateService syncStateService)
+        public async Task HandleEventAsync(BlockMinedEventData eventData)
+        {
+            if (_syncStateService.SyncState != SyncState.Finished)
             {
-                _networkService = networkService;
-                _blockchainService = blockchainService;
-                _syncStateService = syncStateService;
-                
-                Logger = NullLogger<BlockMinedEventHandler>.Instance;
+                return;
             }
 
-            public async Task HandleEventAsync(BlockMinedEventData eventData)
+            if (eventData?.BlockHeader == null)
             {
-                if (_syncStateService.SyncState != SyncState.Finished)
-                {
-                    return;
-                }
-
-                if (eventData?.BlockHeader == null)
-                {
-                    return;
-                }
-
-                var blockWithTransactions =
-                    await _blockchainService.GetBlockWithTransactionsByHash(eventData.BlockHeader.GetHash());
-
-                if (blockWithTransactions == null)
-                {
-                    Logger.LogWarning($"Could not find {eventData.BlockHeader.GetHash()}.");
-                    return;
-                }
-
-                Logger.LogDebug(
-                    $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
-
-                var _ = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransactions);
+                return;
             }
+
+            var blockWithTransactions =
+                await _blockchainService.GetBlockWithTransactionsByHashAsync(eventData.BlockHeader.GetHash());
+
+            if (blockWithTransactions == null)
+            {
+                Logger.LogWarning($"Could not find {eventData.BlockHeader.GetHash()}.");
+                return;
+            }
+
+            Logger.LogDebug(
+                $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");
+
+            var _ = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransactions);
         }
     }
 }

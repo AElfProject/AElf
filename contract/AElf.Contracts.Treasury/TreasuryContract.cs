@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
-using Acs10;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Treasury
     /// 2. tx fees.
     /// 3. resource consumption of developer's contracts.
     /// </summary>
-    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public partial class TreasuryContract : TreasuryContractImplContainer.TreasuryContractImplBase
     {
         public override Empty InitialTreasuryContract(Empty input)
         {
@@ -65,6 +65,7 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
+                    CanRemoveBeneficiaryDirectly = i == 2
                 });
             }
 
@@ -153,6 +154,11 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            if (!State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = input.Symbol}).Value)
+            {
+                return new Empty();
+            }
+
             if (State.TokenConverterContract.Value == null)
             {
                 State.TokenConverterContract.Value =
@@ -160,7 +166,10 @@ namespace AElf.Contracts.Treasury
             }
 
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-            var canExchangeWithNativeSymbol = IsTokenCanExchangeWithNativeSymbol(input.Symbol);
+            var canExchangeWithNativeSymbol =
+                isNativeSymbol ||
+                State.TokenConverterContract.IsSymbolAbleToSell
+                    .Call(new StringValue {Value = input.Symbol}).Value;
 
             if (Context.Sender != Context.Self)
             {
@@ -227,12 +236,6 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
-        private bool IsTokenCanExchangeWithNativeSymbol(string symbol)
-        {
-            var connector = State.TokenConverterContract.GetPairConnector.Call(new TokenSymbol {Symbol = symbol});
-            return connector.DepositConnector != null && connector.DepositConnector.IsPurchaseEnabled;
-        }
-
         public override Empty DonateAll(DonateAllInput input)
         {
             if (State.TokenContract.Value == null)
@@ -268,6 +271,18 @@ namespace AElf.Contracts.Treasury
         {
             AssertPerformedByTreasuryController();
             Assert(input.Value.Contains(Context.Variables.NativeSymbol), "Need to contain native symbol.");
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
+
             foreach (var symbol in input.Value.Where(s => s != Context.Variables.NativeSymbol))
             {
                 var isTreasuryInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
@@ -275,10 +290,11 @@ namespace AElf.Contracts.Treasury
                     Symbol = symbol,
                     Address = Context.Self
                 }).Value;
-                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = symbol});
-                Assert(tokenInfo.IsProfitable || isTreasuryInWhiteList, "Symbol need to be profitable.");
-                Assert(!IsTokenCanExchangeWithNativeSymbol(symbol),
-                    $"Token {symbol} don't need to set to symbol list because it would become native token after donation.");
+                Assert(
+                    State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value ||
+                    isTreasuryInWhiteList, "Symbol need to be profitable.");
+                Assert(!State.TokenConverterContract.IsSymbolAbleToSell.Call(new StringValue {Value = symbol}).Value,
+                    $"Token {symbol} doesn't need to set to symbol list because it would become native token after donation.");
             }
 
             State.SymbolList.Value = input;
@@ -292,8 +308,6 @@ namespace AElf.Contracts.Treasury
                 input.CitizenWelfareWeight > 0 && input.BackupSubsidyWeight > 0 &&
                 input.MinerRewardWeight > 0,
                 "invalid input");
-            if (State.DividendPoolWeightSetting.Value == null)
-                State.DividendPoolWeightSetting.Value = GetDefaultDividendPoolWeightSetting();
             ResetSubSchemeToTreasury(input);
             State.DividendPoolWeightSetting.Value = input;
             return new Empty();
@@ -306,8 +320,6 @@ namespace AElf.Contracts.Treasury
                 input.BasicMinerRewardWeight > 0 && input.ReElectionRewardWeight > 0 &&
                 input.VotesWeightRewardWeight > 0,
                 "invalid input");
-            if (State.MinerRewardWeightSetting.Value == null)
-                State.MinerRewardWeightSetting.Value = GetDefaultMinerRewardWeightSetting();
             ResetSubSchemeToMinerReward(input);
             State.MinerRewardWeightSetting.Value = input;
             return new Empty();

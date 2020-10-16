@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
-using Acs10;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS10;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -17,15 +17,15 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             AssertTransactionGeneratedByPlugin();
             Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             // Primary token not created yet.
-            if (string.IsNullOrEmpty(input.PrimaryTokenSymbol))
+            if (State.ChainPrimaryTokenSymbol.Value == null)
             {
-                return new BoolValue {Value = true};
+                return new ChargeTransactionFeesOutput {Success = true};
             }
 
             // Record tx fee bill during current charging process.
@@ -37,13 +37,14 @@ namespace AElf.Contracts.MultiToken
             var successToChargeBaseFee = true;
             if (methodFees != null && methodFees.Fees.Any())
             {
+                // If base fee is set before, charge base fee.
                 successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
             }
 
             var successToChargeSizeFee = true;
-            if (!IsMethodFeeSetToZero(methodFees))
+            if (methodFees != null && !methodFees.IsSizeFeeFree)
             {
-                // Then also do not charge size fee.
+                // If IsSizeFeeFree == true, do not charge size fee.
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
@@ -62,7 +63,11 @@ namespace AElf.Contracts.MultiToken
                 }
             }
 
-            return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
+            var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
+            var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+            if (!chargingResult)
+                chargingOutput.ChargingInformation = "Transaction fee not enough.";
+            return chargingOutput;
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -81,12 +86,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             return dict;
-        }
-
-        private bool IsMethodFeeSetToZero(MethodFees methodFees)
-        {
-            return !string.IsNullOrEmpty(methodFees.MethodName) &&
-                   (methodFees.Fees == null || !methodFees.Fees.Any() || methodFees.Fees.All(x => x.BasicFee == 0));
         }
 
         private bool ChargeBaseFee(Dictionary<string, long> methodFeeMap, ref TransactionFeeBill bill)
@@ -112,7 +111,7 @@ namespace AElf.Contracts.MultiToken
         {
             string symbolChargedForBaseFee = null;
             var amountChargedForBaseFee = 0L;
-            var symbolToPayTxFee = input.PrimaryTokenSymbol;
+            var symbolToPayTxFee = State.ChainPrimaryTokenSymbol.Value;
             if (bill.FeesMap.Any())
             {
                 symbolChargedForBaseFee = bill.FeesMap.First().Key;
@@ -200,7 +199,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-
         public override Empty CheckResourceToken(Empty input)
         {
             AssertTransactionGeneratedByPlugin();
@@ -218,23 +216,28 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetSymbolsToPayTxSizeFee(SymbolListToPayTxSizeFee input)
         {
             AssertControllerForSymbolToPayTxSizeFee();
-            Assert(input != null, "invalid input");
-            bool isPrimaryTokenExist = false;
+            if (input == null)
+                throw new AssertionException("invalid input");
+            var isPrimaryTokenExist = false;
             var symbolList = new List<string>();
             var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty());
+            var primaryTokenInfo = State.TokenInfos[primaryTokenSymbol.Value];
             Assert(!string.IsNullOrEmpty(primaryTokenSymbol.Value), "primary token does not exist");
-            foreach (var tokenInfo in input.SymbolsToPayTxSizeFee)
+            foreach (var tokenWeightInfo in input.SymbolsToPayTxSizeFee)
             {
-                if (tokenInfo.TokenSymbol == primaryTokenSymbol.Value)
+                if (tokenWeightInfo.TokenSymbol == primaryTokenSymbol.Value)
                 {
                     isPrimaryTokenExist = true;
-                    Assert(tokenInfo.AddedTokenWeight == 1 && tokenInfo.BaseTokenWeight == 1,
-                        $"symbol:{tokenInfo.TokenSymbol} weight should be 1");
+                    Assert(tokenWeightInfo.AddedTokenWeight == 1 && tokenWeightInfo.BaseTokenWeight == 1,
+                        $"symbol:{tokenWeightInfo.TokenSymbol} weight should be 1");
                 }
 
-                AssertSymbolToPayTxFeeIsValid(tokenInfo);
-                Assert(!symbolList.Contains(tokenInfo.TokenSymbol), $"symbol:{tokenInfo.TokenSymbol} repeat");
-                symbolList.Add(tokenInfo.TokenSymbol);
+                Assert(tokenWeightInfo.AddedTokenWeight > 0 && tokenWeightInfo.BaseTokenWeight > 0,
+                    $"symbol:{tokenWeightInfo.TokenSymbol} weight should be greater than 0");
+                Assert(!symbolList.Contains(tokenWeightInfo.TokenSymbol),
+                    $"symbol:{tokenWeightInfo.TokenSymbol} repeat");
+                AssertSymbolToPayTxFeeIsValid(tokenWeightInfo.TokenSymbol, out var addedTokenTotalSupply);
+                symbolList.Add(tokenWeightInfo.TokenSymbol);
             }
 
             Assert(isPrimaryTokenExist, $"primary token:{primaryTokenSymbol.Value} not included");
@@ -370,7 +373,7 @@ namespace AElf.Contracts.MultiToken
                 State.ConsensusContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
-            
+
             Assert(State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value, "No permission.");
         }
 
@@ -397,7 +400,7 @@ namespace AElf.Contracts.MultiToken
                 $"Now LatestTotalResourceTokensMapsHash is {State.LatestTotalResourceTokensMapsHash.Value}");
 
             var isMainChain = true;
-            if (State.TreasuryContract.Value == null)
+            if (State.DividendPoolContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
@@ -407,7 +410,7 @@ namespace AElf.Contracts.MultiToken
                 }
                 else
                 {
-                    State.TreasuryContract.Value = treasuryContractAddress;
+                    State.DividendPoolContract.Value = treasuryContractAddress;
                 }
             }
 
@@ -458,7 +461,7 @@ namespace AElf.Contracts.MultiToken
                             Context.LogDebug(() => $"Adding {amount} of {symbol}s to dividend pool.");
                             // Main Chain.
                             ModifyBalance(Context.Self, symbol, amount);
-                            State.TreasuryContract.Donate.Send(new DonateInput
+                            State.DividendPoolContract.Donate.Send(new DonateInput
                             {
                                 Symbol = symbol,
                                 Amount = amount
@@ -612,6 +615,12 @@ namespace AElf.Contracts.MultiToken
 
             if (totalAmount <= 0) return;
 
+            var tokenInfo = State.TokenInfos[symbol];
+            if (!tokenInfo.IsBurnable)
+            {
+                return;
+            }
+
             var burnAmount = totalAmount.Div(10);
             if (burnAmount > 0)
                 Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -623,10 +632,17 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalAmount.Sub(burnAmount);
             if (transferAmount == 0)
                 return;
-            if (Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) != null)
+            var treasuryContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            var isMainChain = treasuryContractAddress != null;
+            if (isMainChain)
             {
                 // Main chain would donate tx fees to dividend pool.
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (State.DividendPoolContract.Value == null)
+                    State.DividendPoolContract.Value = treasuryContractAddress;
+                State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol] =
+                    State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol].Add(transferAmount);
+                State.DividendPoolContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
                     Amount = transferAmount
@@ -658,7 +674,6 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetFeeReceiver(Address input)
         {
             Assert(State.SideChainCreator.Value == Context.Sender, "No permission.");
-            Assert(State.FeeReceiver.Value == null, "Fee receiver already set.");
             State.FeeReceiver.Value = input;
             return new Empty();
         }
@@ -668,7 +683,7 @@ namespace AElf.Contracts.MultiToken
             return State.FeeReceiver.Value;
         }
 
-        private decimal GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
+        private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
             long cost)
         {
             var availableBalance = GetBalance(Context.Sender, tokenInfo.TokenSymbol);
@@ -678,12 +693,16 @@ namespace AElf.Contracts.MultiToken
                 .Div(tokenInfo.AddedTokenWeight);
         }
 
-        private void AssertSymbolToPayTxFeeIsValid(SymbolToPayTxSizeFee tokenInfo)
+        private void AssertSymbolToPayTxFeeIsValid(string tokenSymbol, out long totalSupply)
         {
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenSymbol) & tokenInfo.TokenSymbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(tokenInfo.AddedTokenWeight > 0 && tokenInfo.BaseTokenWeight > 0,
-                $"symbol:{tokenInfo.TokenSymbol} weight should be greater than 0");
+            var tokenInfo = State.TokenInfos[tokenSymbol];
+            if (tokenInfo == null)
+            {
+                throw new AssertionException($"Token is not found. {tokenSymbol}");
+            }
+
+            Assert(IsTokenAvailableForMethodFee(tokenSymbol), $"Token {tokenSymbol} cannot set as method fee.");
+            totalSupply = tokenInfo.TotalSupply;
         }
 
         private void AssertTransactionGeneratedByPlugin()

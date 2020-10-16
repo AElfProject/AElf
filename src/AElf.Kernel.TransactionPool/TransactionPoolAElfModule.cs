@@ -16,7 +16,7 @@ namespace AElf.Kernel.TransactionPool
             // Validate signature and tx size.
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionExecutionValidationProvider>();
-
+            services.AddSingleton<ITransactionValidationProvider, TransactionMethodValidationProvider>();
             
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             var configuration = context.Services.GetConfiguration();

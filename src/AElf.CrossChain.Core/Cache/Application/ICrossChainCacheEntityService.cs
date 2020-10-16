@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Cache.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Cache.Application
         long GetTargetHeightForChainCacheEntity(int chainId);
 
         Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
-            SideChainIdAndHeightDict chainIdAndHeightDict);
+            ChainIdAndHeightDict chainIdAndHeightDict);
     }
 
     internal class CrossChainCacheEntityService : ICrossChainCacheEntityService, ITransientDependency
@@ -61,7 +61,7 @@ namespace AElf.CrossChain.Cache.Application
         }
 
         public Task UpdateCrossChainCacheAsync(Hash blockHash, long blockHeight,
-            SideChainIdAndHeightDict chainIdAndHeightDict)
+            ChainIdAndHeightDict chainIdAndHeightDict)
         {
             foreach (var chainIdHeight in chainIdAndHeightDict.IdHeightDict)
             {

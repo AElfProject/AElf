@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -282,28 +283,6 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// Encrypts a message with the given public key.
-        /// </summary>
-        /// <param name="receiverPublicKey">The receivers public key.</param>
-        /// <param name="plainMessage">The non encrypted message.</param>
-        /// <returns>The encrypted message.</returns>
-        public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
-        {
-            return _smartContractBridgeContextImplementation.EncryptMessage(receiverPublicKey, plainMessage);
-        }
-
-        /// <summary>
-        /// Decrypts a message with the given public key.
-        /// </summary>
-        /// <param name="senderPublicKey">The public key that encrypted the message.</param>
-        /// <param name="cipherMessage">The encrypted message.</param>
-        /// <returns>The decrypted message.</returns>
-        public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
-        {
-            return _smartContractBridgeContextImplementation.DecryptMessage(senderPublicKey, cipherMessage);
-        }
-
-        /// <summary>
         /// Generate a hash type id based on the contract address and the bytes.
         /// </summary>
         /// <param name="contractAddress">The contract address on which the id generation is based.</param>
@@ -317,6 +296,16 @@ namespace AElf.Sdk.CSharp
         public object ValidateStateSize(object obj)
         {
             return _smartContractBridgeContextImplementation.ValidateStateSize(obj);
+        }
+
+        public Hash GetRandomHash(Hash fromHash)
+        {
+            return _smartContractBridgeContextImplementation.GetRandomHash(fromHash);
+        }
+
+        public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue)
+        {
+            return _smartContractBridgeContextImplementation.ConvertHashToInt64(hash, start, end);
         }
     }
 }

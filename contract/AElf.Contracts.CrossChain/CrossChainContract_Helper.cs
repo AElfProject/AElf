@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
-using Acs3;
-using Acs7;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
 using AElf.Contracts.Association;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.CSharp.Core.Utils;
@@ -36,7 +34,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.EncodeUtf8(TransactionResultStatus.Mined.ToString());
-            var hash = HashHelper.ComputeFrom(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
+            var hash = HashHelper.ComputeFrom(ByteArrayHelper.ConcatArrays(txId.ToByteArray(), txResultStatusRawBytes));
             return path.ComputeRootWithLeafNode(hash);
         }
 
@@ -112,28 +110,26 @@ namespace AElf.Contracts.CrossChain
                 Spender = Context.Self,
                 Symbol = Context.Variables.NativeSymbol
             }).Allowance;
-            
+
             Assert(
                 allowance >= sideChainCreationRequest.LockedTokenAmount,
                 "Allowance not enough.");
-            
+
             Assert(
                 sideChainCreationRequest.IndexingPrice >= 0 &&
                 sideChainCreationRequest.LockedTokenAmount >= sideChainCreationRequest.IndexingPrice,
                 "Invalid chain creation request.");
-            
-            if (!sideChainCreationRequest.IsPrivilegePreserved) 
+
+            if (!sideChainCreationRequest.IsPrivilegePreserved)
                 return; // there is no restriction for non-exclusive side chain creation
-            
+
             AssertValidResourceTokenAmount(sideChainCreationRequest);
 
             if (!IsPrimaryTokenNeeded(sideChainCreationRequest))
                 return;
 
             // assert primary token to create
-            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenSymbol,
-                sideChainCreationRequest.SideChainTokenName,
-                sideChainCreationRequest.SideChainTokenTotalSupply);
+            AssertValidSideChainTokenInfo(sideChainCreationRequest.SideChainTokenCreationRequest);
             Assert(sideChainCreationRequest.SideChainTokenInitialIssueList.Count > 0 &&
                    sideChainCreationRequest.SideChainTokenInitialIssueList.All(issue => issue.Amount > 0),
                 "Invalid side chain token initial issue list.");
@@ -149,10 +145,13 @@ namespace AElf.Contracts.CrossChain
             }
         }
 
-        private void AssertValidSideChainTokenInfo(string symbol, string tokenName, long totalSupply)
+        private void AssertValidSideChainTokenInfo(SideChainTokenCreationRequest sideChainTokenCreationRequest)
         {
-            Assert(!string.IsNullOrEmpty(symbol) && !string.IsNullOrEmpty(tokenName), "Invalid side chain token name.");
-            Assert(totalSupply > 0, "Invalid side chain token supply.");
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenCreationRequest.SideChainTokenSymbol) &&
+                !string.IsNullOrEmpty(sideChainTokenCreationRequest.SideChainTokenName),
+                "Invalid side chain token name.");
+            Assert(sideChainTokenCreationRequest.SideChainTokenTotalSupply > 0, "Invalid side chain token supply.");
         }
 
         private void SetContractStateRequired(ContractReferenceState state, string contractSystemName)
@@ -182,26 +181,16 @@ namespace AElf.Contracts.CrossChain
                 return;
 
             // new token needed only for exclusive side chain
-            var sideChainTokenInfo = new SideChainTokenInfo
-            {
-                TokenName = sideChainCreationRequest.SideChainTokenName,
-                Symbol = sideChainCreationRequest.SideChainTokenSymbol,
-                TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
-                Decimals = sideChainCreationRequest.SideChainTokenDecimals,
-                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable,
-                IsProfitable = sideChainCreationRequest.IsSideChainTokenProfitable
-            };
             SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Create.Send(new CreateInput
             {
-                TokenName = sideChainTokenInfo.TokenName,
-                Decimals = sideChainTokenInfo.Decimals,
-                IsBurnable = sideChainTokenInfo.IsBurnable,
+                TokenName = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenName,
+                Decimals = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenDecimals,
+                IsBurnable = true,
                 Issuer = creator,
                 IssueChainId = chainId,
-                Symbol = sideChainTokenInfo.Symbol,
-                TotalSupply = sideChainTokenInfo.TotalSupply,
-                IsProfitable = sideChainTokenInfo.IsProfitable
+                Symbol = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenTotalSupply
             });
         }
 
@@ -226,18 +215,22 @@ namespace AElf.Contracts.CrossChain
             return State.TokenContract.GetResourceTokenInfo.Call(new Empty());
         }
 
-        private MinerListWithRoundNumber GetCurrentMiners()
+        private ByteString GetInitialConsensusInformation()
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
-            return miners;
+            SetContractStateRequired(State.CrossChainInteractionContract,
+                SmartContractConstants.ConsensusContractSystemName);
+            var miners = State.CrossChainInteractionContract.GetChainInitializationInformation.Call(new BytesValue());
+            return miners.Value;
         }
 
         // only for side chain
-        private void UpdateCurrentMiners(ByteString bytes)
+        private void UpdateConsensusInformation(ByteString bytes)
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
+            SetContractStateRequired(State.CrossChainInteractionContract,
+                SmartContractConstants.ConsensusContractSystemName);
+            Context.SendInline(State.CrossChainInteractionContract.Value,
+                nameof(State.CrossChainInteractionContract.UpdateInformationFromCrossChain),
+                new BytesValue {Value = bytes});
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
@@ -298,8 +291,10 @@ namespace AElf.Contracts.CrossChain
 
         private void AssertAddressIsCurrentMiner(Address address)
         {
-            SetContractStateRequired(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(address).Value;
+            SetContractStateRequired(State.CrossChainInteractionContract,
+                SmartContractConstants.ConsensusContractSystemName);
+            var isCurrentMiner = State.CrossChainInteractionContract.CheckCrossChainIndexingPermission.Call(address)
+                .Value;
             Assert(isCurrentMiner, "No permission.");
         }
 
@@ -307,19 +302,21 @@ namespace AElf.Contracts.CrossChain
         {
             foreach (var chainId in chainIdList)
             {
-                var pendingProposalExists = TryGetIndexingProposalWithStatus(chainId, CrossChainIndexingProposalStatus.Pending,
+                var pendingProposalExists = TryGetIndexingProposalWithStatus(chainId,
+                    CrossChainIndexingProposalStatus.Pending,
                     out var pendingCrossChainIndexingProposal);
                 Assert(pendingProposalExists, "Chain indexing not proposed.");
                 HandleIndexingProposal(pendingCrossChainIndexingProposal.ProposalId);
             }
         }
-        
+
         private void RecordCrossChainData(IEnumerable<int> chainIdList)
         {
             var indexedSideChainBlockData = new IndexedSideChainBlockData();
             foreach (var chainId in chainIdList)
             {
-                var pendingProposalExists = TryGetIndexingProposalWithStatus(chainId, CrossChainIndexingProposalStatus.Pending,
+                var pendingProposalExists = TryGetIndexingProposalWithStatus(chainId,
+                    CrossChainIndexingProposalStatus.Pending,
                     out var pendingCrossChainIndexingProposal);
                 Assert(pendingProposalExists, "Chain indexing not proposed.");
 
@@ -330,7 +327,7 @@ namespace AElf.Contracts.CrossChain
                     indexedSideChainBlockData.SideChainBlockDataList.Add(IndexSideChainBlockData(
                         pendingCrossChainIndexingProposal.ProposedCrossChainBlockData.SideChainBlockDataList,
                         pendingCrossChainIndexingProposal.Proposer, chainId));
-                
+
                 SetCrossChainIndexingProposalStatus(pendingCrossChainIndexingProposal,
                     CrossChainIndexingProposalStatus.Accepted);
             }
@@ -520,9 +517,46 @@ namespace AElf.Contracts.CrossChain
             State.IndexingPendingProposal.Value = proposedIndexingProposal;
         }
 
-        private void BanCrossChainIndexingFromAddress(Address address)
+        private ChainInitializationData GetChainInitializationData(SideChainInfo sideChainInfo,
+            SideChainCreationRequest sideChainCreationRequest)
         {
-            State.BannedMinerHeight[address] = Context.CurrentHeight;
+            SetContractStateRequired(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            var res = new ChainInitializationData
+            {
+                CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
+                ChainId = sideChainInfo.SideChainId,
+                Creator = sideChainInfo.Proposer,
+                CreationTimestamp = sideChainInfo.CreationTimestamp,
+                ChainCreatorPrivilegePreserved = sideChainInfo.IsPrivilegePreserved,
+                ParentChainTokenContractAddress = State.TokenContract.Value
+            };
+            
+            var initialConsensusInfo = GetInitialConsensusInformation();
+            res.ChainInitializationConsensusInfo = new ChainInitializationConsensusInfo
+                {InitialConsensusData = initialConsensusInfo};
+
+            ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
+            res.NativeTokenInfoData = nativeTokenInformation;
+
+            ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
+            res.ResourceTokenInfo = new ResourceTokenInfo
+            {
+                ResourceTokenListData = resourceTokenInformation,
+                InitialResourceAmount = {sideChainCreationRequest.InitialResourceAmount}
+            };
+
+            if (IsPrimaryTokenNeeded(sideChainCreationRequest))
+            {
+                ByteString sideChainTokenInformation =
+                    GetTokenInfo(sideChainCreationRequest.SideChainTokenCreationRequest.SideChainTokenSymbol).ToByteString();
+                res.ChainPrimaryTokenInfo = new ChainPrimaryTokenInfo
+                {
+                    ChainPrimaryTokenData = sideChainTokenInformation,
+                    SideChainTokenInitialIssueList = {sideChainCreationRequest.SideChainTokenInitialIssueList},
+                };
+            }
+
+            return res;
         }
 
         private void ClearCrossChainIndexingProposalIfExpired()
@@ -649,13 +683,11 @@ namespace AElf.Contracts.CrossChain
                 authorityInfo.OwnerAddress).Value;
         }
 
-        private bool ValidateParliamentOrganization(Address organizationAddress,
-            bool isParliamentMemberProposingRequired)
+        private bool ValidateParliamentOrganization(Address organizationAddress)
         {
             SetContractStateRequired(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
             var organization = State.ParliamentContract.GetOrganization.Call(organizationAddress);
-            return organization != null &&
-                   (!isParliamentMemberProposingRequired || organization.ParliamentMemberProposingAllowed);
+            return organization != null && organization.ParliamentMemberProposingAllowed;
         }
 
         private bool ValidateSideChainBlockData(IEnumerable<SideChainBlockData> sideChainBlockData,
@@ -675,7 +707,7 @@ namespace AElf.Contracts.CrossChain
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : AElfConstants.GenesisBlockHeight;
-                
+
                 foreach (var blockData in group)
                 {
                     var sideChainHeight = blockData.Height;
@@ -755,7 +787,7 @@ namespace AElf.Contracts.CrossChain
                     blockInfo.ExtraData.TryGetValue(ConsensusExtraDataName, out var bytes))
                 {
                     Context.LogDebug(() => "Updating consensus information..");
-                    UpdateCurrentMiners(bytes);
+                    UpdateConsensusInformation(bytes);
                 }
 
                 if (blockInfo.CrossChainExtraData != null)
@@ -767,13 +799,7 @@ namespace AElf.Contracts.CrossChain
             }
 
             State.CurrentParentChainHeight.Value = currentHeight;
-            if (indexedParentChainBlockData.ParentChainBlockDataList.Count > 0)
-            {
-                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                Context.LogDebug(() =>
-                    $"Last indexed parent chain height {indexedParentChainBlockData.ParentChainBlockDataList.Last().Height}");
-            }
-            
+
             return indexedParentChainBlockData;
         }
 
@@ -788,7 +814,7 @@ namespace AElf.Contracts.CrossChain
             Address proposer, int chainId)
         {
             var indexedSideChainBlockData = new List<SideChainBlockData>();
-            
+
             {
                 var formattedProposerAddress = proposer.ToByteString().ToBase64();
                 long indexingFeeAmount = 0;
@@ -875,11 +901,11 @@ namespace AElf.Contracts.CrossChain
 
     internal class CrossChainDataDto
     {
-        public Dictionary<int, List<SideChainBlockData>> SideChainToBeIndexedData { get; } 
+        public Dictionary<int, List<SideChainBlockData>> SideChainToBeIndexedData { get; }
 
         public Dictionary<int, List<ParentChainBlockData>> ParentChainToBeIndexedData { get; }
 
-        public CrossChainDataDto(Dictionary<int, List<SideChainBlockData>> sideChainToBeIndexedData, 
+        public CrossChainDataDto(Dictionary<int, List<SideChainBlockData>> sideChainToBeIndexedData,
             Dictionary<int, List<ParentChainBlockData>> parentChainToBeIndexedData)
         {
             SideChainToBeIndexedData = sideChainToBeIndexedData;

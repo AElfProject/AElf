@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Application;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Grpc.Server;
@@ -32,17 +32,7 @@ namespace AElf.CrossChain.Grpc.Client
                     }));
                 return mockService.Object;
             });
-            // services.AddTransient(o =>
-            // {
-            //     var mockCrossChainService = new Mock<ICrossChainService>();
-            //     mockCrossChainService
-            //         .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>())).Returns(async () =>
-            //             await Task.FromResult(new ChainInitializationData
-            //             {
-            //                 CreationHeightOnParentChain = 1,
-            //             }));
-            //     return mockCrossChainService.Object;
-            // });
+
 
             services.AddTransient(o =>
             {
@@ -93,6 +83,15 @@ namespace AElf.CrossChain.Grpc.Client
                     });
                 return mockCrossChainResponseService.Object;
             });
+        }
+    }
+
+    [DependsOn(typeof(GrpcCrossChainClientTestModule))]
+    public class GrpcCrossChainClientWithoutParentChainTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<CrossChainConfigOptions>(option => { option.ParentChainId = string.Empty; });
         }
     }
 }

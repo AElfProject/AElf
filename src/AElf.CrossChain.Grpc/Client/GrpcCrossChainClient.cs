@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using Grpc.Core;
@@ -42,19 +42,6 @@ namespace AElf.CrossChain.Grpc.Client
             Channel = CreateChannel(grpcClientInitializationContext.UriStr);
             _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel);
             _listeningPort = grpcClientInitializationContext.ListeningPort;
-        }
-
-        /// <summary>
-        /// Create a new channel.
-        /// </summary>
-        /// <param name="uriStr"></param>
-        /// <param name="crt">Certificate</param>
-        /// <returns></returns>
-        private Channel CreateChannel(string uriStr, string crt)
-        {
-            var channelCredentials = new SslCredentials(crt);
-            var channel = new Channel(uriStr, channelCredentials);
-            return channel;
         }
 
         /// <summary>

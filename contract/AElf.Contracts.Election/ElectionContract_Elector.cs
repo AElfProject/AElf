@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -47,7 +46,7 @@ namespace AElf.Contracts.Election
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
 
             LockTokensOfVoter(input.Amount, voteId);
-            IssueOrTransferTokensToVoter(input.Amount);
+            TransferTokensToVoter(input.Amount);
             CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
             AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
 
@@ -74,7 +73,7 @@ namespace AElf.Contracts.Election
             var minimumVotes = candidateVotesAmount;
             var minimumVotesCandidate = input.CandidatePubkey;
             bool replaceWillHappen = false;
-            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.Reverse())
+            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.OrderBy(x => x.Value))
             {
                 if (pubkeyToVotesAmount.Value < minimumVotes)
                 {
@@ -89,21 +88,7 @@ namespace AElf.Contracts.Election
                 State.DataCentersRankingList.Value.DataCenters.Remove(minimumVotesCandidate);
                 State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
                     candidateVotesAmount);
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumVotesCandidate))
-                });
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-                {
-                    SchemeId = State.SubsidyHash.Value,
-                    BeneficiaryShare = new BeneficiaryShare
-                    {
-                        Beneficiary =
-                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
-                        Shares = 1
-                    }
-                });
+                NotifyProfitReplaceCandidateInDataCenter(minimumVotesCandidate, input.CandidatePubkey);
             }
         }
 
@@ -225,6 +210,8 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
+            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
+            AssertValidCandidateInformation(targetInformation);
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
@@ -257,6 +244,7 @@ namespace AElf.Contracts.Election
                 oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
+            var voteAmountOfNewCandidate = 0L;
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
             if (newCandidateVotes != null)
             {
@@ -266,6 +254,7 @@ namespace AElf.Contracts.Election
                 newCandidateVotes.AllObtainedVotedVotesAmount =
                     newCandidateVotes.AllObtainedVotedVotesAmount.Add(votingRecord.Amount);
                 State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
+                voteAmountOfNewCandidate = newCandidateVotes.ObtainedActiveVotedVotesAmount;
             }
             else
             {
@@ -276,8 +265,23 @@ namespace AElf.Contracts.Election
                     ObtainedActiveVotedVotesAmount = votingRecord.Amount,
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
+                voteAmountOfNewCandidate = votingRecord.Amount;
             }
 
+            var dataCenterList = State.DataCentersRankingList.Value;
+            if (dataCenterList.DataCenters.ContainsKey(input.CandidatePubkey))
+                dataCenterList.DataCenters[input.CandidatePubkey] =
+                    dataCenterList.DataCenters[input.CandidatePubkey].Add(votingRecord.Amount);
+            else
+                IsCandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
+            if (dataCenterList.DataCenters.ContainsKey(votingRecord.Option))
+            {
+                dataCenterList.DataCenters[votingRecord.Option] =
+                    dataCenterList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, votingRecord.Option);
+            }
+
+            State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
         }
 
@@ -327,10 +331,75 @@ namespace AElf.Contracts.Election
             {
                 rankingList.DataCenters[votingRecord.Option] =
                     rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, votingRecord.Option);
                 State.DataCentersRankingList.Value = rankingList;
             }
 
             return new Empty();
+        }
+
+        private bool IsUpdateDataCenterAfterMemberVoteAmountChange(DataCenterRankingList rankingList, string member)
+        {
+            var amountAfterWithdraw = rankingList.DataCenters[member];
+            if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
+                return false;
+            long maxVoteAmountOutDataCenter = 0;
+            string maxVoteOptionOutDataCenter = null;
+            foreach (var candidateByteString in State.Candidates.Value.Value)
+            {
+                var candidatePublicKeyString = candidateByteString.ToHex();
+                if (rankingList.DataCenters.ContainsKey(candidatePublicKeyString) ||
+                    !State.CandidateInformationMap[candidatePublicKeyString].IsCurrentCandidate) continue;
+                var candidateVoteAmount = State.CandidateVotes[candidatePublicKeyString].ObtainedActiveVotedVotesAmount;
+                if (maxVoteAmountOutDataCenter > candidateVoteAmount)
+                    continue;
+                maxVoteOptionOutDataCenter = candidatePublicKeyString;
+                maxVoteAmountOutDataCenter = candidateVoteAmount;
+            }
+
+            if (maxVoteAmountOutDataCenter <= amountAfterWithdraw)
+                return false;
+            rankingList.DataCenters.Remove(member);
+            rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
+            NotifyProfitReplaceCandidateInDataCenter(member, maxVoteOptionOutDataCenter);
+            return true;
+        }
+
+        private bool IsCandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate,
+            long voteAmount)
+        {
+            var dateCenter = rankingList.DataCenters;
+            if (dateCenter.Count < GetValidationDataCenterCount())
+                return false;
+            if (dateCenter.ContainsKey(candidate))
+                return false;
+            var list = dateCenter.ToList();
+            var minimumVoteCandidateInDataCenter = list.OrderBy(x => x.Value).First();
+            if (voteAmount <= minimumVoteCandidateInDataCenter.Value) return false;
+            dateCenter.Remove(minimumVoteCandidateInDataCenter.Key);
+            dateCenter[candidate] = voteAmount;
+            NotifyProfitReplaceCandidateInDataCenter(minimumVoteCandidateInDataCenter.Key, candidate);
+            return true;
+        }
+
+        private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,
+            string newCandidateDataCenter)
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldCandidateInDataCenter))
+            });
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary =
+                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newCandidateDataCenter)),
+                    Shares = 1
+                }
+            });
         }
 
         #endregion
@@ -338,7 +407,7 @@ namespace AElf.Contracts.Election
         public override Empty SetVoteWeightInterest(VoteWeightInterestList input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.VoteWeightInterestInfos.Count > 0, "invalid input");
+            Assert(input.VoteWeightInterestInfos.Count > 0, "invalid input");
             // ReSharper disable once PossibleNullReferenceException
             foreach (var info in input.VoteWeightInterestInfos)
             {
@@ -355,11 +424,11 @@ namespace AElf.Contracts.Election
             State.VoteWeightInterestList.Value = input;
             return new Empty();
         }
-        
+
         public override Empty SetVoteWeightProportion(VoteWeightProportion input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null && input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
+            Assert(input.TimeProportion > 0 && input.AmountProportion > 0, "invalid input");
             State.VoteWeightProportion.Value = input;
             return new Empty();
         }
@@ -367,7 +436,6 @@ namespace AElf.Contracts.Election
         public override Empty ChangeVoteWeightInterestController(AuthorityInfo input)
         {
             AssertPerformedByVoteWeightInterestController();
-            Assert(input != null, "invalid input");
             Assert(CheckOrganizationExist(input), "Invalid authority input.");
             State.VoteWeightInterestController.Value = input;
             return new Empty();
@@ -400,12 +468,14 @@ namespace AElf.Contracts.Election
                 }
             };
         }
-        
+
         private VoteWeightProportion GetVoteWeightProportion()
         {
             return State.VoteWeightProportion.Value ??
                    (State.VoteWeightProportion.Value = GetDefaultVoteWeightProportion());
         }
+
+
         private VoteWeightProportion GetDefaultVoteWeightProportion()
         {
             return new VoteWeightProportion
@@ -491,35 +561,18 @@ namespace AElf.Contracts.Election
         /// Issue VOTE tokens to this voter.
         /// </summary>
         /// <param name="amount"></param>
-        private void IssueOrTransferTokensToVoter(long amount)
+        private void TransferTokensToVoter(long amount)
         {
             foreach (var symbol in new List<string>
                 {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
             {
-                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
-                    Symbol = symbol
+                    Symbol = symbol,
+                    To = Context.Sender,
+                    Amount = amount,
+                    Memo = $"Transfer {symbol}."
                 });
-                if (tokenInfo.TotalSupply.Sub(tokenInfo.Supply) <= amount) // Which means remain tokens not enough.
-                {
-                    State.TokenContract.Transfer.Send(new TransferInput
-                    {
-                        Symbol = symbol,
-                        To = Context.Sender,
-                        Amount = amount,
-                        Memo = $"Transfer {symbol}."
-                    });
-                }
-                else
-                {
-                    State.TokenContract.Issue.Send(new IssueInput
-                    {
-                        Symbol = symbol,
-                        To = Context.Sender,
-                        Amount = amount,
-                        Memo = $"Issue {symbol}."
-                    });
-                }
             }
         }
 
@@ -578,7 +631,7 @@ namespace AElf.Contracts.Election
         {
             if (voteMinerInput.Token != null)
                 return Context.GenerateId(Context.Self, voteMinerInput.Token);
-            
+
             var candidateVotesCount =
                 State.CandidateVotes[voteMinerInput.CandidatePubkey]?.ObtainedActiveVotedVotesAmount ?? 0;
             return Context.GenerateId(Context.Self,

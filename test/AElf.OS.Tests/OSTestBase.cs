@@ -1,5 +1,7 @@
 using AElf.OS.Account;
 using AElf.OS.BlockSync;
+using AElf.OS.Handlers;
+using AElf.OS.Worker;
 using AElf.TestBase;
 
 namespace AElf.OS
@@ -19,6 +21,11 @@ namespace AElf.OS
     {
         
     }
+    
+    public class AccountServiceTestBase : AElfIntegratedTest<AccountServiceTestAElfModule>
+    {
+        
+    }
 
     public class KeyStoreTestBase : AElfIntegratedTest<KeyStoreTestAElfModule>
     {
@@ -35,6 +42,22 @@ namespace AElf.OS
     }
     
     public class BlockSyncAttachBlockAbnormalPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockAbnormalPeerTestAElfModule>
+    {
+    }
+    
+    public class BlockSyncRetryTestBase : AElfIntegratedTest<BlockSyncRetryTestAElfModule>
+    {
+    }
+    
+    public class PeerDiscoveryWorkerTestBase : AElfIntegratedTest<PeerDiscoveryWorkerTestModule>
+    {
+    }
+    
+    public class PeerReconnectionTestBase : AElfIntegratedTest<PeerReconnectionTestAElfModule>
+    {
+    }
+    
+    public class AbnormalPeerEventHandlerTestBase : AElfIntegratedTest<AbnormalPeerEventHandlerTestAElfModule>
     {
     }
 }

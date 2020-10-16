@@ -5,8 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Acs0;
-using Acs3;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS3;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
@@ -45,6 +45,8 @@ namespace AElf.ContractTestKit.AEDPoSExtension
 
         private bool _isSkipped;
 
+        private readonly IChainTypeProvider _chainTypeProvider;
+
         public BlockMiningService(IServiceProvider serviceProvider)
         {
             RegisterAssemblyResolveEvent();
@@ -52,6 +54,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
             _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
             _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
             _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
+            _chainTypeProvider = serviceProvider.GetRequiredService<IChainTypeProvider>();
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -81,7 +84,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =
-                _contractTesterFactory.Create<BasicContractZeroContainer.BasicContractZeroStub>(
+                _contractTesterFactory.Create<ACS0Container.ACS0Stub>(
                     _smartContractAddressService.GetZeroSmartContractAddress(),
                     MissionedECKeyPairs.InitialKeyPairs.First());
             if (!nameToCode.Keys.Contains(ConsensusSmartContractAddressNameProvider.Name) && deployConsensusContract)
@@ -129,7 +132,7 @@ namespace AElf.ContractTestKit.AEDPoSExtension
 
         private void InitialContractStubs()
         {
-            foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs)
+            foreach (var initialKeyPair in MissionedECKeyPairs.InitialKeyPairs.Concat(MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(18)))
             {
                 _contractStubs.Add(_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                     _consensusContractAddress, initialKeyPair));
@@ -144,7 +147,8 @@ namespace AElf.ContractTestKit.AEDPoSExtension
                     new InitialAElfConsensusContractInput
                     {
                         MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds
+                        PeriodSeconds = AEDPoSExtensionConstants.PeriodSeconds,
+                        IsSideChain = _chainTypeProvider.IsSideChain
                     });
                 if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
                 {

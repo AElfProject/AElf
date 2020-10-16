@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Contracts.Election;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -89,64 +90,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new StringValue();
         }
 
-        public override StringValue GetCurrentMinerPubkey(Empty input)
-        {
-            if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
-            return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
-        }
-
-        private string GetCurrentMinerPubkey(Round round, Timestamp currentBlockTime)
-        {
-            var miningInterval = round.GetMiningInterval();
-            string pubkey;
-            if (currentBlockTime < round.GetExtraBlockMiningTime())
-            {
-                pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
-                    m.ExpectedMiningTime <= currentBlockTime &&
-                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
-                if (pubkey != null)
-                {
-                    Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
-                    return pubkey;
-                }
-            }
-
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
-
-            Context.LogDebug(() => $"Now based on round: \n{previousRound.GetSimpleRound()}");
-
-            var extraBlockProducer = previousRound.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer)
-                .Pubkey;
-            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime();
-            if (extraBlockMiningTime <= currentBlockTime &&
-                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
-            {
-                Context.LogDebug(() => $"Checked extra block time slot: {extraBlockProducer}");
-                return extraBlockProducer;
-            }
-
-            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys.Except(new List<string>
-                {extraBlockProducer}))
-            {
-                var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
-                if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
-                    consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
-                {
-                    return maybeCurrentPubkey;
-                }
-            }
-
-            pubkey = previousRound.RealTimeMinersInformation.OrderBy(i => i.Value.Order).Select(i => i.Key)
-                .FirstOrDefault(k =>
-                    previousRound.IsInCorrectFutureMiningSlot(k, Context.CurrentBlockTime));
-
-            Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
-
-            return pubkey;
-        }
-
         /// <summary>
         /// Current implementation can be incorrect if all nodes recovering from
         /// a strike more than the time of one round, because it's impossible to
@@ -157,7 +100,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override BoolValue IsCurrentMiner(Address input)
         {
             var pubkey = ConvertAddressToPubkey(input);
-            Context.LogDebug(() => $"[CURRENT MINER]PUBKEY: {pubkey}");
             return new BoolValue
             {
                 Value = IsCurrentMiner(pubkey)
@@ -228,16 +170,42 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Check saving extra block time slot.
-            var arrangedMiningTime =
-                currentRound.ArrangeAbnormalMiningTime(pubkey, currentRound.GetExtraBlockMiningTime(), true);
-            if (arrangedMiningTime <= Context.CurrentBlockTime &&
-                Context.CurrentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval))
+            var nextArrangeMiningTime =
+                currentRound.ArrangeAbnormalMiningTime(pubkey, Context.CurrentBlockTime, true);
+            var actualArrangedMiningTime = nextArrangeMiningTime.AddMilliseconds(-currentRound.TotalMilliseconds());
+            if (actualArrangedMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime <= actualArrangedMiningTime.AddMilliseconds(miningInterval))
             {
                 Context.LogDebug(() => "[CURRENT MINER]SAVING");
                 return true;
             }
 
-            Context.LogDebug(() => "[CURRENT MINER]WRONG");
+            // If current round is the first round of current term.
+            if (currentRound.RoundNumber == 1)
+            {
+                Context.LogDebug(() => "First round");
+
+                var latestMinedInfo =
+                    currentRound.RealTimeMinersInformation.Values.OrderByDescending(i => i.Order)
+                        .FirstOrDefault(i => i.ActualMiningTimes.Any() && i.Pubkey != pubkey);
+                if (latestMinedInfo != null)
+                {
+                    var minersCount = currentRound.RealTimeMinersInformation.Count;
+                    var latestMinedSlotLastActualMiningTime = latestMinedInfo.ActualMiningTimes.Last();
+                    var latestMinedOrder = latestMinedInfo.Order;
+                    var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
+                    var passedSlotsCount =
+                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Milliseconds().Div(miningInterval);
+                    if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(1).Add(minersCount) ||
+                        passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(minersCount))
+                    {
+                        Context.LogDebug(() => "[CURRENT MINER]FIRST ROUND");
+                        return true;
+                    }
+                }
+            }
+
+            Context.LogDebug(() => "[CURRENT MINER]NOT MINER");
 
             return false;
         }
@@ -313,12 +281,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToGetPreviousRoundInformation(out var previousRound);
             if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
             {
-                Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
                 nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
                 nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
-                Context.LogDebug(() => "Round of new miners generated.");
                 return;
             }
 
@@ -326,44 +292,44 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var isMinerListChanged = false;
             if (IsMainChain && previousRound.TermNumber == currentRound.TermNumber) // In same term.
             {
-                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound);
-                var evilMinersCount = evilMinersPublicKey.Count;
-                if (evilMinersCount != 0)
+                var minerReplacementInformation = State.ElectionContract.GetMinerReplacementInformation.Call(
+                    new GetMinerReplacementInformationInput
+                    {
+                        CurrentMinerList = {currentRound.RealTimeMinersInformation.Keys}
+                    });
+
+                if (minerReplacementInformation.AlternativeCandidatePubkeys.Count > 0)
                 {
-                    Context.LogDebug(() => $"Evil nodes found: \n{string.Join("\n", evilMinersPublicKey)}");
-
-                    var alternatives = GetNextAvailableMinerPublicKey(currentRound, evilMinersCount);
-
-                    if (alternatives.Count < evilMinersCount)
+                    for (var i = 0; i < minerReplacementInformation.AlternativeCandidatePubkeys.Count; i++)
                     {
-                        Context.LogDebug(() => "Failed to find alternative miners.");
-                    }
-                    else
-                    {
-                        for (var i = 0; i < evilMinersCount; i++)
+                        var alternativeCandidatePubkey = minerReplacementInformation.AlternativeCandidatePubkeys[i];
+                        var evilMinerPubkey = minerReplacementInformation.EvilMinerPubkeys[i];
+
+                        // Update history information of evil node.
+                        UpdateCandidateInformation(evilMinerPubkey,
+                            currentRound.RealTimeMinersInformation[evilMinerPubkey].ProducedBlocks,
+                            currentRound.RealTimeMinersInformation[evilMinerPubkey].MissedTimeSlots, true);
+
+                        Context.Fire(new MinerReplaced
                         {
-                            // Update history information of evil node.
-                            UpdateCandidateInformation(evilMinersPublicKey[i],
-                                currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]].ProducedBlocks,
-                                currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]].MissedTimeSlots, true);
+                            NewMinerPubkey = alternativeCandidatePubkey
+                        });
+                        // Transfer evil node's consensus information to the chosen backup.
+                        var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinerPubkey];
+                        var minerInRound = new MinerInRound
+                        {
+                            Pubkey = alternativeCandidatePubkey,
+                            ExpectedMiningTime = evilMinerInformation.ExpectedMiningTime,
+                            Order = evilMinerInformation.Order,
+                            PreviousInValue = Hash.Empty,
+                            IsExtraBlockProducer = evilMinerInformation.IsExtraBlockProducer
+                        };
 
-                            // Transfer evil node's consensus information to the chosen backup.
-                            var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]];
-                            var minerInRound = new MinerInRound
-                            {
-                                Pubkey = alternatives[i],
-                                ExpectedMiningTime = evilMinerInformation.ExpectedMiningTime,
-                                Order = evilMinerInformation.Order,
-                                PreviousInValue = Hash.Empty,
-                                IsExtraBlockProducer = evilMinerInformation.IsExtraBlockProducer
-                            };
-
-                            currentRound.RealTimeMinersInformation.Add(alternatives[i], minerInRound);
-                            currentRound.RealTimeMinersInformation.Remove(evilMinersPublicKey[i]);
-                        }
-
-                        isMinerListChanged = true;
+                        currentRound.RealTimeMinersInformation.Remove(evilMinerPubkey);
+                        currentRound.RealTimeMinersInformation.Add(alternativeCandidatePubkey, minerInRound);
                     }
+
+                    isMinerListChanged = true;
                 }
             }
 
@@ -373,12 +339,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
-            Context.LogDebug(() => $"MainChainCurrentMinerList: \n{State.MainChainCurrentMinerList.Value}");
-            var result = State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
-                         GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                         GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
-            Context.LogDebug(() => $"IsMainChainMinerListChanged: {result}");
-            return result;
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
+                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
         }
 
         private static Hash GetMinerListHash(IEnumerable<string> minerList)
@@ -409,75 +372,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
         }
 
-        private List<string> GetEvilMinersPublicKey(Round currentRound)
-        {
-            var evilMinersPubKey = new List<string>();
-
-            if (State.ElectionContract.Value == null) return evilMinersPubKey;
-
-            // If one miner is not a candidate anymore.
-            var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex())
-                .ToList();
-            var initialMiners = State.Rounds[1].RealTimeMinersInformation.Keys;
-            if (candidates.Any())
-            {
-                var keys = currentRound.RealTimeMinersInformation.Keys.Where(pubkey =>
-                    !candidates.Contains(pubkey) && !initialMiners.Contains(pubkey));
-                evilMinersPubKey.AddRange(keys);
-            }
-
-            return evilMinersPubKey;
-        }
-
-        private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
-        {
-            if (!State.IsMainChain.Value)
-            {
-                snapshot = null;
-                return false;
-            }
-
-            snapshot = State.ElectionContract.GetTermSnapshot.Call(new GetTermSnapshotInput
-            {
-                TermNumber = termNumber
-            });
-
-            return snapshot.ElectionResult.Any();
-        }
-
-        private List<string> GetNextAvailableMinerPublicKey(Round round, int count = 1)
-        {
-            var nextCandidate = new List<string>();
-
-            TryToGetRoundInformation(1, out var firstRound);
-            // Check out election snapshot.
-            if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
-                TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
-            {
-                var maybeNextCandidates = snapshot.ElectionResult
-                    // Except initial miners.
-                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.Key))
-                    // Except current miners.
-                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.Key))
-                    .OrderByDescending(s => s.Value)
-                    .Where(c => !round.RealTimeMinersInformation.ContainsKey(c.Key)).ToList();
-                var take = Math.Min(count, maybeNextCandidates.Count);
-                nextCandidate.AddRange(maybeNextCandidates.Select(i => i.Key).Take(take));
-                Context.LogDebug(() =>
-                    $"Found alternative miner from candidate list: {nextCandidate.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
-            }
-
-            // Check out initial miners.
-            if (nextCandidate.Count < count)
-            {
-                nextCandidate.AddRange(firstRound.RealTimeMinersInformation.Keys.Where(k =>
-                    !round.RealTimeMinersInformation.ContainsKey(k)).Take(Math.Min(count - nextCandidate.Count,
-                    firstRound.RealTimeMinersInformation.Count)));
-            }
-
-            return nextCandidate;
-        }
-
         private int GetMinersCount(Round input)
         {
             if (State.BlockchainStartTimestamp.Value == null)
@@ -493,7 +387,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
-        public override Int64Value GetCurrentWelfareReward(Empty input)
+        public override Int64Value GetCurrentTermMiningReward(Empty input)
         {
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
@@ -502,6 +396,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new Int64Value {Value = 0};
+        }
+
+        public override Int64Value GetCurrentMiningRewardPerBlock(Empty input)
+        {
+            return new Int64Value {Value = GetMiningRewardPerBlock()};
         }
 
         /// <summary>
@@ -559,6 +458,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return result;
+        }
+
+        public override MinerList GetMainChainCurrentMinerList(Empty input)
+        {
+            return State.MainChainCurrentMinerList.Value;
+        }
+
+        public override PubkeyList GetPreviousTermMinerPubkeyList(Empty input)
+        {
+            var lastRoundNumber = State.FirstRoundNumberOfEachTerm[State.CurrentTermNumber.Value].Sub(1);
+            var lastRound = State.Rounds[lastRoundNumber];
+            if (lastRound == null || lastRound.RoundId == 0) return new PubkeyList();
+            return new PubkeyList
+            {
+                Pubkeys = {lastRound.RealTimeMinersInformation.Keys}
+            };
         }
     }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -21,7 +21,8 @@ namespace AElf.Contracts.CrossChain
             {
                 return new MethodFees
                 {
-                    MethodName = input.Value
+                    MethodName = input.Value,
+                    IsSizeFeeFree = true
                 };
             }
             return State.TransactionFees[input.Value];
@@ -41,6 +42,7 @@ namespace AElf.Contracts.CrossChain
             {
                 AssertValidToken(methodFee.Symbol, methodFee.BasicFee);
             }
+            
             RequiredMethodFeeControllerSet();
 
             Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
@@ -97,9 +99,8 @@ namespace AElf.Contracts.CrossChain
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            var tokenInfoInput = new GetTokenInfoInput {Symbol = symbol};
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(tokenInfoInput);
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
+            Assert(State.TokenContract.IsTokenAvailableForMethodFee.Call(new StringValue {Value = symbol}).Value,
+                $"Token {symbol} cannot set as method fee.");
         }
 
         #endregion

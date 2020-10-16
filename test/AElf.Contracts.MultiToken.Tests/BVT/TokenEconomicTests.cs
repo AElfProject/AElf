@@ -1,18 +1,14 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using Shouldly;
 using Volo.Abp.Threading;
-using Xunit;
 
 namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests
     {
-        private async Task InitialEconomic()
+        private async Task InitialEconomicAsync()
         {
             {
                 const long totalSupply = 100_000_00000000;
@@ -37,13 +33,11 @@ namespace AElf.Contracts.MultiToken
             {
                 var result =
                     await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
-                CheckResult(result.TransactionResult);
             }
             {
                 var result =
                     await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
                         new Empty());
-                CheckResult(result.TransactionResult);
             }
 
             {
@@ -57,33 +51,30 @@ namespace AElf.Contracts.MultiToken
                     Issuer = DefaultAddress,
                     LockWhiteList =
                     {
-                        ProfitContractAddress,
+                        ParliamentContractAddress,
                         TreasuryContractAddress
                     }
                 })).TransactionResult;
-                CheckResult(result);
             }
 
             {
-                var result = AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
+                AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = AliceCoinTokenInfo.Symbol,
                     Amount = 100_000_000L,
                     To = DefaultAddress,
                     Memo = "Set for token converter."
                 }));
-                CheckResult(result.TransactionResult);
             }
 
             {
-                var result = AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
+                AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = AliceCoinTokenInfo.Symbol,
                     Amount = AliceCoinTotalAmount - 100_000_000L,
                     To = TokenContractAddress,
                     Memo = "Set for token converter."
                 }));
-                CheckResult(result.TransactionResult);
             }
         }
     }

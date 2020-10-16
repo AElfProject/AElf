@@ -1,5 +1,5 @@
 using System.Linq;
-using Acs4;
+using AElf.Standards.ACS4;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -25,11 +25,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (SolitaryMinerDetection(currentRound, pubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
+            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
+
+            if (currentRound.RoundNumber == 1 && behaviour == AElfConsensusBehaviour.UpdateValue)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
-            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
@@ -49,12 +50,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var consensusCommand =
                         new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, pubkey,
                             currentBlockTime, GetMaximumBlocksCount())).GetConsensusCommand();
-                    if (consensusCommand.Hint ==
-                        new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}.ToByteString())
-                    {
-                        Context.LogDebug(() => "Re-arranged behaviour from TinyBlock to NextRound.");
-                    }
-
                     return consensusCommand;
                 }
 

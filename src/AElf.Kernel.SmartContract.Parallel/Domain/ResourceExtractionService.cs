@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Standards.ACS2;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
@@ -12,6 +13,7 @@ using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -23,6 +25,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly INonparallelContractCodeProvider _nonparallelContractCodeProvider;
+        private readonly ITransactionContextFactory _transactionContextFactory;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
@@ -30,10 +33,12 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            INonparallelContractCodeProvider nonparallelContractCodeProvider)
+            INonparallelContractCodeProvider nonparallelContractCodeProvider,
+            ITransactionContextFactory transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
             _nonparallelContractCodeProvider = nonparallelContractCodeProvider;
+            _transactionContextFactory = transactionContextFactory;
             _blockchainService = blockchainService;
 
             Logger = NullLogger<ResourceExtractionService>.Instance;
@@ -144,7 +149,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return resourceCache.ResourceInfo;
                 }
 
-                var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
+                var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
+                var resourceInfo = await executive.GetTransactionResourceInfoAsync(txContext, transaction.GetHash());
                 // Try storing in cache here
                 return resourceInfo;
             }
@@ -199,13 +205,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             await Task.CompletedTask;
         }
 
-        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
-        {
-            ClearResourceCache(eventData.Transactions);
-
-            await Task.CompletedTask;
-        }
-
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             ClearResourceCache(eventData.Block.TransactionIds);
@@ -241,6 +240,21 @@ namespace AElf.Kernel.SmartContract.Parallel
             return chainContext;
         }
 
+        private ITransactionContext GetTransactionContext(IChainContext chainContext, Address contractAddress, ByteString param)
+        {
+            var generatedTxn = new Transaction
+            {
+                From = contractAddress,
+                To = contractAddress,
+                MethodName = nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
+                Params = param,
+                Signature = ByteString.CopyFromUtf8(KernelConstants.SignaturePlaceholder)
+            };
+
+            var txContext = _transactionContextFactory.Create(generatedTxn, chainContext);
+            return txContext;
+        }
+        
         private class ContractResourceInfo
         {
             public Hash CodeHash { get; set; }

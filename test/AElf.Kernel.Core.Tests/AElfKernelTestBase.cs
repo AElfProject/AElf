@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Kernel.SmartContract;
 using AElf.TestBase;
 using Google.Protobuf;
 
@@ -19,6 +20,10 @@ namespace AElf.Kernel
     }
     
     public class AElfMinerTestBase : AElfIntegratedTest<KernelMinerTestAElfModule>
+    {
+    }
+    
+    public class AccountTestBase : AElfIntegratedTest<AccountTestAElfModule>
     {
     }
 }

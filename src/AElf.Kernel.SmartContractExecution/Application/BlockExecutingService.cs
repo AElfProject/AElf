@@ -4,10 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -42,12 +42,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             List<Transaction> nonCancellableTransactions)
         {
-            if (_systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
-                out var systemTransactionCount))
-                return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
-                    nonCancellableTransactions.Skip(systemTransactionCount),
-                    CancellationToken.None);
-            return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
+            _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
+                out var systemTransactionCount);
+            return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
+                nonCancellableTransactions.Skip(systemTransactionCount),
                 CancellationToken.None);
         }
 
@@ -142,14 +140,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return Task.FromResult(block);
         }
 
-        protected virtual async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
+        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
-            if (executionReturnSetCollection.Unexecutable.Count > 0)
-            {
-                await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader,
-                        executionReturnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
-            }
+            return Task.CompletedTask;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
@@ -212,8 +205,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             TransactionResultStatus executionReturnStatus)
         {
             // combine tx result status
-            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
+            var rawBytes = ByteArrayHelper.ConcatArrays(txId.ToByteArray(),
+                EncodingHelper.EncodeUtf8(executionReturnStatus.ToString()));
             return HashHelper.ComputeFrom(rawBytes);
         }
 

@@ -1,8 +1,7 @@
 using System.Linq;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.Types;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain
 {
@@ -19,7 +18,18 @@ namespace AElf.CrossChain
             if (crossChainBlockData.IsNullOrEmpty() || crossChainBlockData.SideChainBlockDataList.Count == 0)
                 return ByteString.Empty;
 
-            var txRootHashList = crossChainBlockData.SideChainBlockDataList
+            var indexedSideChainBlockData = new IndexedSideChainBlockData
+            {
+                SideChainBlockDataList = {crossChainBlockData.SideChainBlockDataList}
+            };
+
+            return indexedSideChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
+        }
+
+        public static ByteString ExtractCrossChainExtraDataFromCrossChainBlockData(
+            this IndexedSideChainBlockData indexedSideChainBlockData)
+        {
+            var txRootHashList = indexedSideChainBlockData.SideChainBlockDataList
                 .Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
 
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
@@ -29,6 +39,7 @@ namespace AElf.CrossChain
                 }
                 .ToByteString();
         }
+        
 
         public static bool IsNullOrEmpty(this IndexedSideChainBlockData indexedSideChainBlockData)
         {

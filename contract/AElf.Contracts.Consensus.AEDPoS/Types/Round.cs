@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs4;
+using AElf.Standards.ACS4;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -71,27 +70,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
             return HashHelper.ComputeFrom(GetCheckableRound(isContainPreviousInValue));
-        }
-
-        public string GetCurrentMinerPubkey(Timestamp currentBlockTime)
-        {
-            var pubkey = RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
-                m.ExpectedMiningTime <= currentBlockTime &&
-                currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(GetMiningInterval()))?.Pubkey;
-            if (pubkey != null)
-            {
-                return pubkey;
-            }
-
-            var extraBlockProducer = RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey;
-            var extraBlockMiningTime = GetExtraBlockMiningTime();
-            if (extraBlockMiningTime <= currentBlockTime &&
-                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(GetMiningInterval()))
-            {
-                return extraBlockProducer;
-            }
-
-            return RealTimeMinersInformation.Keys.First(k => IsInCorrectFutureMiningSlot(k, currentBlockTime));
         }
 
         /// <summary>

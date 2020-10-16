@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs3;
-using Acs7;
+using AElf.Standards.ACS3;
+using AElf.Standards.ACS7;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.CSharp.Core.Extension;
@@ -15,7 +16,7 @@ namespace AElf.CrossChain.Indexing.Application
 {
     public class CrossChainIndexingDataProposedLogEventProcessor : LogEventProcessorBase, IBlocksExecutionSucceededLogEventProcessor
     {
-        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+        public IOptions<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
         public ILogger<CrossChainIndexingDataProposedLogEventProcessor> Logger { get; set; }
 
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -55,7 +56,7 @@ namespace AElf.CrossChain.Indexing.Application
                 var transactionResult = events.Key;
                 foreach (var logEvent in events.Value)
                 {
-                    if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
+                    if (CrossChainConfigOptions.Value.CrossChainDataValidationIgnored)
                     {
                         Logger.LogTrace("Cross chain data validation disabled.");
                         return;

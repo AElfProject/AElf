@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -18,8 +18,6 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetMinersCount_Test()
         {
-            await ElectionContract_AnnounceElection_Test();
-
             var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
             minersCount.Value.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
         }
@@ -132,8 +130,11 @@ namespace AElf.Contracts.Election
 
                 var moreVotesCandidates = ValidationDataCenterKeyPairs
                     .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-                moreVotesCandidates.ForEach(async kp =>
-                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+
+                foreach (var candidate in moreVotesCandidates)
+                {
+                    await VoteToCandidate(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 2);
+                }
 
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
                 await NextTerm(BootMinerKeyPair);
@@ -210,7 +211,7 @@ namespace AElf.Contracts.Election
             //basic value
             {
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward = await AEDPoSContractStub.GetCurrentTermMiningReward.CallAsync(new Empty());
                 miningReward.Value.ShouldBeGreaterThanOrEqualTo(ElectionContractConstants.ElfTokenPerBlock * 10);
             }
 
@@ -218,11 +219,11 @@ namespace AElf.Contracts.Election
             {
                 await NextTerm(BootMinerKeyPair);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward1 = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward1 =  await AEDPoSContractStub.GetCurrentTermMiningReward.CallAsync(new Empty());
 
                 await NextTerm(BootMinerKeyPair);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                var miningReward2 = await ElectionContractStub.GetCurrentMiningReward.CallAsync(new Empty());
+                var miningReward2 =  await AEDPoSContractStub.GetCurrentTermMiningReward.CallAsync(new Empty());
 
                 miningReward1.ShouldBe(miningReward2);
             }
@@ -259,6 +260,83 @@ namespace AElf.Contracts.Election
                 LockTime = day * 24 * 3600
             });
             weight.Value.ShouldBe(9433);
+            
+            day = 1;   // 1 day
+            weight = await ElectionContractStub.GetCalculateVoteWeight.CallAsync(new VoteInformation
+            {
+                Amount = 1000,
+                LockTime = day * 24 * 3600
+            });
+            weight.Value.ShouldBe(1500);
+        }
+
+        [Fact]
+        public async Task Election_GetMinerElectionVotingItemId_Test()
+        {
+            var voteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
+            var voteItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
+            {
+                VotingItemId = voteItemId
+            });
+            voteItem.IsLockToken.ShouldBe(false);
+        }
+
+        [Fact]
+        public async Task Election_GetVotedCandidates_Test()
+        {
+            var ret = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
+            ret.ShouldBe(new PubkeyList());
+        }
+        
+        [Fact]
+        public async Task Election_GetCandidateInformation_Test()
+        {
+            var key = "not exist";
+            var ret = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringValue
+            {
+                Value = key
+            });
+            ret.ShouldBe(new CandidateInformation {Pubkey = key});
+        }
+        
+        [Fact]
+        public async Task Election_GetTermSnapshot_Test()
+        {
+            var ret = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
+            {
+                TermNumber = 10
+            });
+            ret.ShouldBe(new TermSnapshot());
+        }
+        
+        [Fact]
+        public async Task Election_GetElectorVote_Test()
+        {
+            var key = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var ret = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+            {
+                Value = key
+            });
+            ret.ShouldBe(new ElectorVote {Pubkey = ByteStringHelper.FromHexString(key)});
+        }
+
+        [Fact]
+        public async Task Election_GetPageableCandidateInformation_Test()
+        {
+            var ret = await ElectionContractStub.GetPageableCandidateInformation.CallAsync(new PageInformation
+            {
+                Start = 100
+            });
+            ret.ShouldBe(new GetPageableCandidateInformationOutput());
+        }
+        
+        [Fact]
+        public async Task Election_GetVoteWeightInterestController_Test()
+        {
+            var ret = await ElectionContractStub.GetVoteWeightInterestController.CallAsync(new Empty());
+            var parliamentDefaultAddress = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            ret.OwnerAddress.ShouldBe(parliamentDefaultAddress);
+            ret.ContractAddress.ShouldBe(ParliamentContractAddress);
         }
 
         private async Task<List<ECKeyPair>> UserVotesCandidate(int voterCount, long voteAmount, int lockDays)

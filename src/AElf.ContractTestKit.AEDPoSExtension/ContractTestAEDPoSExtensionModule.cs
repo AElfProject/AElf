@@ -1,12 +1,18 @@
+using System.Linq;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Sdk.CSharp;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using Moq;
 using Volo.Abp.Modularity;
 
 // ReSharper disable InconsistentNaming
@@ -39,14 +45,37 @@ namespace AElf.ContractTestKit.AEDPoSExtension
             context.Services.AddSingleton<ITransactionTraceProvider, TransactionTraceProvider>();
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
-            // context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
             context.Services.AddSingleton<IInValueCache, InValueCache>();
             context.Services.AddSingleton<ITransactionExecutingService, UnitTestPlainTransactionExecutingService>();
-            context.Services.AddSingleton<IPlainTransactionExecutingService, UnitTestPlainTransactionExecutingService>();
+            context.Services
+                .AddSingleton<IPlainTransactionExecutingService, UnitTestPlainTransactionExecutingService>();
             context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services.RemoveAll<ISystemTransactionGenerator>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
+            context.Services.AddSingleton<IConsensusExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddSingleton<IChainTypeProvider, ChainTypeProvider>();
 
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false );
+            context.Services.RemoveAll<IHostSmartContractBridgeContext>();
+            context.Services.AddTransient(provider =>
+            {
+                var mockBridgeContext =
+                    new Mock<HostSmartContractBridgeContext>(
+                            context.Services.GetRequiredServiceLazy<ISmartContractBridgeService>().Value,
+                            context.Services.GetRequiredServiceLazy<ITransactionReadOnlyExecutionService>().Value,
+                            context.Services.GetRequiredServiceLazy<IAccountService>().Value,
+                            context.Services
+                                .GetRequiredServiceLazy<IOptionsSnapshot<HostSmartContractBridgeContextOptions>>().Value)
+                        .As<IHostSmartContractBridgeContext>();
+                mockBridgeContext.CallBase = true;
+                mockBridgeContext.Setup(c =>
+                        c.GetContractAddressByName(It.IsIn(HashHelper.ComputeFrom("AElf.ContractNames.CrossChain")
+                            .ToStorageKey())))
+                    .Returns(Address.FromPublicKey(SampleAccount.Accounts.Last().KeyPair.PublicKey));
+                return mockBridgeContext.Object;
+            });
+
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 }

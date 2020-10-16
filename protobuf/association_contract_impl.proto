@@ -1,0 +1,25 @@
+/**
+ * Association contract.
+ *
+ * Organizations established to achieve specific goals 
+ * can use this contract to cooperatively handle transactions within the organization
+ * 
+ * Implement AElf Standards ACS1 and ACS3.
+ */
+syntax = "proto3";
+
+package AssociationImpl;
+
+import "acs1.proto";
+import "acs3.proto";
+import "association_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Association";
+
+service AssociationContractImpl {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
+    option (aelf.base) = "acs3.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "association_contract.proto";
+}

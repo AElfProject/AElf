@@ -1,14 +1,15 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs1;
-using Acs3;
+using AElf.Standards.ACS1;
+using AElf.Standards.ACS3;
 using AElf.Contracts.MultiToken;
-using AElf.ContractTestKit;
+using AElf.ContractTestBase.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
+using AElf.GovernmentSystem;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -19,9 +20,15 @@ namespace AElf.Contracts.Association
 {
     public class AssociationContractTests : AssociationContractTestBase<AssociationContractTestAElfModule>
     {
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly TestDemoSmartContractAddressNameProvider _smartContractAddressNameProvider;
+
         public AssociationContractTests()
         {
-            DeployContracts();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _smartContractAddressNameProvider = GetRequiredService<TestDemoSmartContractAddressNameProvider>();
         }
 
         [Fact]
@@ -33,43 +40,44 @@ namespace AElf.Contracts.Association
                     await AssociationContractStub.GetOrganization.CallAsync(Accounts[0].Address);
                 organization.ShouldBe(new Organization());
             }
+        }
 
-            //normal case
+        [Fact]
+        public async Task CreateOrganization_Success_Test()
+        {
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var createOrganizationInput = new CreateOrganizationInput
             {
-                var minimalApproveThreshold = 2;
-                var minimalVoteThreshold = 3;
-                var maximalAbstentionThreshold = 1;
-                var maximalRejectionThreshold = 1;
-                var createOrganizationInput = new CreateOrganizationInput
+                OrganizationMemberList = new OrganizationMemberList
                 {
-                    OrganizationMemberList = new OrganizationMemberList
-                    {
-                        OrganizationMembers = {Reviewer1, Reviewer2, Reviewer3}
-                    },
-                    ProposalReleaseThreshold = new ProposalReleaseThreshold
-                    {
-                        MinimalApprovalThreshold = minimalApproveThreshold,
-                        MinimalVoteThreshold = minimalVoteThreshold,
-                        MaximalAbstentionThreshold = maximalAbstentionThreshold,
-                        MaximalRejectionThreshold = maximalRejectionThreshold
-                    },
-                    ProposerWhiteList = new ProposerWhiteList
-                    {
-                        Proposers = {Reviewer1}
-                    }
-                };
-                var transactionResult =
-                    await AssociationContractStub.CreateOrganization.SendAsync(createOrganizationInput);
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var organizationAddress = transactionResult.Output;
-                var getOrganization = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
+                    OrganizationMembers = {Reviewer1, Reviewer2, Reviewer3}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = minimalApproveThreshold,
+                    MinimalVoteThreshold = minimalVoteThreshold,
+                    MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                    MaximalRejectionThreshold = maximalRejectionThreshold
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {Reviewer1}
+                }
+            };
+            var transactionResult =
+                await AssociationContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var organizationAddress = transactionResult.Output;
+            var getOrganization = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
 
-                getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
-                getOrganization.ProposerWhiteList.ShouldBe(createOrganizationInput.ProposerWhiteList);
-                getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
-                getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
-                getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFrom(createOrganizationInput));
-            }
+            getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
+            getOrganization.ProposerWhiteList.ShouldBe(createOrganizationInput.ProposerWhiteList);
+            getOrganization.ProposalReleaseThreshold.ShouldBe(createOrganizationInput.ProposalReleaseThreshold);
+            getOrganization.OrganizationMemberList.ShouldBe(createOrganizationInput.OrganizationMemberList);
+            getOrganization.OrganizationHash.ShouldBe(HashHelper.ComputeFrom(createOrganizationInput));
         }
 
         [Fact]
@@ -111,8 +119,19 @@ namespace AElf.Contracts.Association
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 var organizationAddress = transactionResult.Output;
 
-                var organizationAddressOnAnotherChain =
-                    await new SideChainAssociationContractTestBase().CreateOrganization(createOrganizationInput);
+                var testKit = CreateContractTestKit<AssociationContractTestAElfModule>(new ChainInitializationDto
+                {
+                    ChainId = 1
+                });
+                SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name]
+                    .ShouldNotBe(testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name]);
+                var otherChainAssociationContractStub =
+                    testKit.GetTester<AssociationContractImplContainer.AssociationContractImplStub>(
+                        testKit.SystemContractAddresses[AssociationSmartContractAddressNameProvider.Name],
+                        DefaultSenderKeyPair);
+                var executionResult =
+                    await otherChainAssociationContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                var organizationAddressOnAnotherChain = executionResult.Output;
                 organizationAddressOnAnotherChain.ShouldBe(organizationAddress);
             }
         }
@@ -433,6 +452,29 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
+        public async Task ClearProposal_Fail_Test()
+        {
+            // proposal does not exist
+            {
+                var ret = await AssociationContractStub.ClearProposal.SendWithExceptionAsync(new Hash());
+                ret.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+            
+            //proposal does not expire
+            {
+                var minimalApproveThreshold = 2;
+                var minimalVoteThreshold = 3;
+                var maximalAbstentionThreshold = 1;
+                var maximalRejectionThreshold = 1;
+                var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                    maximalAbstentionThreshold, maximalRejectionThreshold, DefaultSender);
+                var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+                var ret = await AssociationContractStub.ClearProposal.SendWithExceptionAsync(proposalId);
+                ret.TransactionResult.Error.ShouldContain("Proposal clear failed");
+            }
+        }
+
+        [Fact]
         public async Task Approve_Proposal_ExpiredTime_Test()
         {
             var minimalApproveThreshold = 2;
@@ -442,13 +484,13 @@ namespace AElf.Contracts.Association
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
             var proposalId = await CreateProposalAsync(Reviewer1KeyPair, organizationAddress);
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-            var error = await AssociationContractStub.Approve.CallWithExceptionAsync(proposalId);
+            var error = await associationContractStub.Approve.CallWithExceptionAsync(proposalId);
             error.Value.ShouldContain("Invalid proposal.");
 
             //Clear expire proposal
-            var result = await AssociationContractStub.ClearProposal.SendAsync(proposalId);
+            var result = await associationContractStub.ClearProposal.SendAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var queryProposal = await AssociationContractStub.GetProposal.CallAsync(proposalId);
@@ -576,8 +618,8 @@ namespace AElf.Contracts.Association
             //not found
             {
                 var fakeId = HashHelper.ComputeFrom("test");
-                AssociationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
-                var result = await AssociationContractStub.Release.SendWithExceptionAsync(fakeId);
+                var associationContractStub = GetAssociationContractTester(Reviewer2KeyPair);
+                var result = await associationContractStub.Release.SendWithExceptionAsync(fakeId);
                 //Proposal not found
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.TransactionResult.Error.Contains("Invalid proposal id.").ShouldBeTrue();
@@ -682,6 +724,15 @@ namespace AElf.Contracts.Association
                 transactionResult2.TransactionResult.Error.ShouldContain("Invalid proposal id.");
             }
         }
+        
+        [Fact]
+        public async Task ChangeOrganizationThreshold_With_Invalid_Sender_Test()
+        {
+            var ret =
+                await AssociationContractStub.ChangeOrganizationThreshold.SendWithExceptionAsync(
+                    new ProposalReleaseThreshold());
+            ret.TransactionResult.Error.ShouldContain("Organization not found");
+        }
 
         [Fact]
         public async Task Change_OrganizationThreshold_Test()
@@ -734,48 +785,6 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
-        public async Task Change_OrganizationMember_Test()
-        {
-            var minimalApproveThreshold = 1;
-            var minimalVoteThreshold = 1;
-            var maximalAbstentionThreshold = 1;
-            var maximalRejectionThreshold = 1;
-            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
-                maximalAbstentionThreshold, maximalRejectionThreshold, Reviewer1);
-
-            {
-                var organizationMember = new OrganizationMemberList
-                {
-                    OrganizationMembers = {Reviewer1}
-                };
-
-                var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                    nameof(associationContractStub.ChangeOrganizationMember), organizationAddress);
-                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-                var releaseResult = await associationContractStub.Release.SendWithExceptionAsync(changeProposalId);
-                releaseResult.TransactionResult.Error.ShouldContain("Invalid organization.");
-            }
-
-            {
-                var organizationMember = new OrganizationMemberList
-                {
-                    OrganizationMembers = {Reviewer1, Reviewer2}
-                };
-
-                AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
-                var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, organizationMember,
-                    nameof(AssociationContractStub.ChangeOrganizationMember), organizationAddress);
-                await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-                var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
-                releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                var organizationInfo = await AssociationContractStub.GetOrganization.CallAsync(organizationAddress);
-                organizationInfo.OrganizationMemberList.ShouldBe(organizationMember);
-            }
-        }
-
-        [Fact]
         public async Task Change_OrganizationProposalWhitelist_Test()
         {
             var minimalApproveThreshold = 1;
@@ -790,11 +799,11 @@ namespace AElf.Contracts.Association
                 Proposers = {Reviewer2}
             };
 
-            AssociationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             var changeProposalId = await CreateAssociationProposalAsync(Reviewer1KeyPair, proposerWhiteList,
-                nameof(AssociationContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
+                nameof(associationContractStub.ChangeOrganizationProposerWhiteList), organizationAddress);
             await ApproveAsync(Reviewer1KeyPair, changeProposalId);
-            var releaseResult = await AssociationContractStub.Release.SendAsync(changeProposalId);
+            var releaseResult = await associationContractStub.Release.SendAsync(changeProposalId);
             releaseResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             await TransferToOrganizationAddressAsync(organizationAddress);
             var transferInput = new TransferInput()
@@ -804,7 +813,7 @@ namespace AElf.Contracts.Association
                 To = Reviewer1,
                 Memo = "Transfer"
             };
-            var associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
+            associationContractStub = GetAssociationContractTester(Reviewer1KeyPair);
             var createProposalInput = new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContractStub.Approve),
@@ -825,6 +834,27 @@ namespace AElf.Contracts.Association
                     Proposer = Reviewer2
                 });
             verifyResult.Value.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task ChangeMethodFeeController_With_Invalid_Organization_Test()
+        {
+            var methodFeeController = await AssociationContractStub.GetMethodFeeController.CallAsync(new Empty());
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            methodFeeController.OwnerAddress.ShouldBe(defaultOrganization);
+
+            const string proposalCreationMethodName = nameof(AssociationContractStub.ChangeMethodFeeController);
+
+            var proposalId = await CreateFeeProposalAsync(AssociationContractAddress,
+                methodFeeController.OwnerAddress, proposalCreationMethodName, new AuthorityInfo
+                {
+                    OwnerAddress = ParliamentContractAddress,
+                    ContractAddress = ParliamentContractAddress
+                });
+
+            await ApproveWithMinersAsync(proposalId);
+            var releaseResult = await ParliamentContractStub.Release.SendWithExceptionAsync(proposalId);
+            releaseResult.TransactionResult.Error.ShouldContain("Invalid authority input");
         }
 
         [Fact]
@@ -890,6 +920,49 @@ namespace AElf.Contracts.Association
         }
 
         [Fact]
+        public async Task SetMethodFee_Fail_Test()
+        {
+            // fee < 0
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].BasicFee = -1;
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Invalid amount");
+            }
+            
+            // token does not exist
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].Symbol = "NOTEXIST";
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Token is not found");
+            }
+            
+            // token is not profitable
+            {
+                var tokenSymbol = "DLS";
+                var invalidMethodFees = GetValidMethodFees();
+                invalidMethodFees.Fees[0].Symbol = tokenSymbol;
+                await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = tokenSymbol,
+                    TokenName = "name",
+                    Issuer = DefaultSender,
+                    TotalSupply = 1000_000,
+                });
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain($"Token {tokenSymbol} cannot set as method fee.");
+            }
+            
+            // without authority
+            {
+                var invalidMethodFees = GetValidMethodFees();
+                var ret = await AssociationContractStub.SetMethodFee.SendWithExceptionAsync(invalidMethodFees);
+                ret.TransactionResult.Error.ShouldContain("Unauthorized to set method fee");
+            }
+        }
+
+        [Fact]
         public async Task SetMethodFee_Test()
         {
             var input = new MethodFees
@@ -925,6 +998,212 @@ namespace AElf.Contracts.Association
             var feeItem = transactionFee.Fees.First();
             feeItem.Symbol.ShouldBe("ELF");
             feeItem.BasicFee.ShouldBe(5000_0000L);
+        }
+
+        [Fact]
+        public async Task CreateOrganizationBySystemContract_Test()
+        {
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                OrganizationMemberList = new OrganizationMemberList
+                {
+                    OrganizationMembers = {DefaultSender, Reviewer1, Reviewer2, Reviewer3}
+                },
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = minimalApproveThreshold,
+                    MinimalVoteThreshold = minimalVoteThreshold,
+                    MaximalAbstentionThreshold = maximalAbstentionThreshold,
+                    MaximalRejectionThreshold = maximalRejectionThreshold
+                },
+                ProposerWhiteList = new ProposerWhiteList
+                {
+                    Proposers = {DefaultSender}
+                }
+            };
+            var input = new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = createOrganizationInput,
+                OrganizationAddressFeedbackMethod = ""
+            };
+            //Unauthorized to create organization
+            var addressByCalculate =
+                await AssociationContractStub.CalculateOrganizationAddress.SendAsync(createOrganizationInput);
+            var transactionResult =
+                await AssociationContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input);
+            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized");
+            //success
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+
+            var transactionResult1 =
+                await AssociationContractStub.CreateOrganizationBySystemContract.SendAsync(input);
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.ShouldBe(addressByCalculate.Output);
+            var boolResult =
+                await AssociationContractStub.ValidateOrganizationExist.SendAsync(addressByCalculate.Output);
+            boolResult.Output.Value.ShouldBeTrue();
+            //invalid contract
+            var method = "OrganizationAddressFeedbackMethodName";
+            var input2 = new CreateOrganizationBySystemContractInput
+            {
+                OrganizationCreationInput = createOrganizationInput,
+                OrganizationAddressFeedbackMethod = method
+            };
+            var transactionResult2 =
+                await AssociationContractStub.CreateOrganizationBySystemContract.SendWithExceptionAsync(input2);
+            transactionResult2.TransactionResult.Error.ShouldContain("invalid");
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_With_Invalid_Organization_Test()
+        {
+            var input = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = DefaultSender
+            };
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            // invalid organization address
+            {
+                var proposalInput = GetValidProposalInput(AssociationContractAddress);
+                input.ProposalInput = proposalInput;
+                var ret =
+                    await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("No registered organization");
+            }
+            
+            //invalid organization proposer
+            {
+                var proposer = Address.FromPublicKey(Accounts[2].KeyPair.PublicKey);
+                var minimalApproveThreshold = 2;
+                var minimalVoteThreshold = 3;
+                var maximalAbstentionThreshold = 1;
+                var maximalRejectionThreshold = 1;
+                var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                    maximalAbstentionThreshold, maximalRejectionThreshold, proposer);
+                var proposalInput = GetValidProposalInput(organizationAddress);
+                input.ProposalInput = proposalInput;
+                var ret =
+                    await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Unauthorized to propose");
+            }
+        }
+
+        [Fact]
+        public async Task CreateProposalBySystemContract_With_Invalid_Proposal_Test()
+        {
+            var input = new CreateProposalBySystemContractInput
+            {
+                OriginProposer = DefaultSender
+            };
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, DefaultSender);
+            
+            // invalid contract method name
+            {
+                var proposalInput = GetValidProposalInput(organizationAddress);
+                proposalInput.ContractMethodName = string.Empty;
+                input.ProposalInput = proposalInput;
+                var ret =
+                    await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+            
+            // invalid expire time
+            {
+                var proposalInput = GetValidProposalInput(organizationAddress);
+                proposalInput.ExpiredTime = new Timestamp();
+                input.ProposalInput = proposalInput;
+                var ret =
+                    await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+            
+            // invalid url
+            {
+                var proposalInput = GetValidProposalInput(organizationAddress);
+                proposalInput.ProposalDescriptionUrl = "TPP.og";
+                input.ProposalInput = proposalInput;
+                var ret =
+                    await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+                ret.TransactionResult.Error.ShouldContain("Invalid proposal");
+            }
+        }
+        
+        [Fact]
+        public async Task CreateProposalBySystemContract_Test()
+        {
+            var minimalApproveThreshold = 2;
+            var minimalVoteThreshold = 3;
+            var maximalAbstentionThreshold = 1;
+            var maximalRejectionThreshold = 1;
+            var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
+                maximalAbstentionThreshold, maximalRejectionThreshold, DefaultSender);
+
+            var transferInput = new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = Reviewer1,
+                Memo = "Transfer"
+            };
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Transfer),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+            var input = new CreateProposalBySystemContractInput
+            {
+                ProposalInput = createProposalInput, OriginProposer = DefaultSender
+            };
+            var chain = _blockchainService.GetChainAsync();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = chain.Result.BestChainHash,
+                BlockHeight = chain.Result.BestChainHeight
+            };
+            //Unauthorized to propose
+            var transactionResult =
+                await AssociationContractStub.CreateProposalBySystemContract.SendWithExceptionAsync(input);
+            transactionResult.TransactionResult.Error.ShouldContain("Not authorized to propose");
+            //success
+            await _smartContractAddressService.SetSmartContractAddressAsync(blockIndex,
+                _smartContractAddressNameProvider.ContractStringName, DefaultSender);
+            var transactionResult2 =
+                await AssociationContractStub.CreateProposalBySystemContract.SendAsync(input);
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)
@@ -1104,5 +1383,38 @@ namespace AElf.Contracts.Association
                 approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             }
         }
+        
+        private CreateProposalInput GetValidProposalInput(Address organizationAddress)
+        {
+            var transferInput = new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = Reviewer1,
+                Memo = "Transfer"
+            };
+            return new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Transfer),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+        }
+        
+        private MethodFees GetValidMethodFees()
+        {
+            return new MethodFees
+            {
+                MethodName = "Test",
+                Fees = { new MethodFee
+                {
+                    Symbol = "ELF",
+                    BasicFee = 10
+                }}
+            };
+        }
+
     }
 }

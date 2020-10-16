@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs4;
+using AElf.Standards.ACS4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
@@ -26,19 +26,10 @@ namespace AElf.Kernel.Consensus
         {
             var services = context.Services;
 
-            services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IConsensusScheduler>();
+            services.AddSingleton<IConsensusTestHelper, ConsensusTestHelper>();
 
-                return mockService.Object;
-            });
-
-            services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IBlockTimeProvider>();
-
-                return mockService.Object;
-            });
+            services.AddSingleton<IConsensusScheduler, MockConsensusScheduler>();
+            services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
 
             services.AddTransient(provider =>
             {

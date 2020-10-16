@@ -10,7 +10,7 @@ namespace AElf.Contracts.Vote
     /// <summary>
     /// Comments and documents see README.md of current project.
     /// </summary>
-    public partial class VoteContract : VoteContractContainer.VoteContractBase
+    public partial class VoteContract : VoteContractImplContainer.VoteContractImplBase
     {
         /// <summary>
         /// To register a new voting item while filling up with details.
@@ -61,6 +61,20 @@ namespace AElf.Contracts.Vote
                 SnapshotNumber = 1,
                 SnapshotStartTimestamp = input.StartTimestamp
             };
+
+            Context.Fire(new VotingItemRegistered
+            {
+                Sponsor = Context.Sender,
+                VotingItemId = votingItemId,
+                AcceptedCurrency = input.AcceptedCurrency,
+                IsLockToken = input.IsLockToken,
+                TotalSnapshotNumber = input.TotalSnapshotNumber,
+                CurrentSnapshotNumber = 1,
+                CurrentSnapshotStartTimestamp = input.StartTimestamp,
+                StartTimestamp = input.StartTimestamp,
+                EndTimestamp = input.EndTimestamp,
+                RegisterTimestamp = Context.CurrentBlockTime,
+            });
 
             return new Empty();
         }
@@ -121,19 +135,21 @@ namespace AElf.Contracts.Vote
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();
-            if (votedItems.VotedItemVoteIds.ContainsKey(votingItem.VotingItemId.ToHex()))
+            var voterItemIndex = votingItem.VotingItemId.ToHex();
+            if (votedItems.VotedItemVoteIds.ContainsKey(voterItemIndex))
             {
-                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Add(voteId);
+                votedItems.VotedItemVoteIds[voterItemIndex].ActiveVotes.Add(voteId);
             }
             else
             {
-                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()] =
+                votedItems.VotedItemVoteIds[voterItemIndex] =
                     new VotedIds
                     {
                         ActiveVotes = {voteId}
                     };
             }
 
+            votedItems.VotedItemVoteIds[voterItemIndex].WithdrawnVotes.Remove(voteId);
             State.VotedItemsMap[voter] = votedItems;
         }
 
@@ -232,7 +248,7 @@ namespace AElf.Contracts.Vote
 
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
 
-            Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
+            Assert(votingItem.CurrentSnapshotNumber - 1 < votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");
 
             // Update previous voting going information.
@@ -270,7 +286,7 @@ namespace AElf.Contracts.Vote
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             AssertOption(votingItem, input.Option);
-            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
+            Assert(votingItem.Options.Count < VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
@@ -321,6 +337,7 @@ namespace AElf.Contracts.Vote
             foreach (var option in input.Options)
             {
                 Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
+                Assert(option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
                 votingItem.Options.Remove(option);
             }
 

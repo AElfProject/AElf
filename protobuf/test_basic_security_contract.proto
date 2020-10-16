@@ -62,7 +62,19 @@ service BasicSecurityContract {
     }
     rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
     }
-    
+    rpc TestWhileInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestWhileInfiniteLoopWithState(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoopInSeparateClass(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForeachInfiniteLoop(ListInput) returns (Int32Output) {
+    }
+    rpc TestInfiniteRecursiveCall (Int32Input) returns (google.protobuf.Empty) { }
+    rpc TestInfiniteRecursiveCallInSeparateClass (Int32Input) returns (google.protobuf.Empty) { }
+
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
         option (aelf.is_view) = true;
@@ -217,6 +229,10 @@ message ResetNestedInput {
     string string_value = 2;
 }
 
+message ListInput {
+    repeated int32 list =1;
+}
+
 //Output
 message BoolOutput {
     bool bool_value = 1;
@@ -269,6 +285,7 @@ message ResetOutput {
     int32 int32_value = 2;
     string string_value = 3;
     bool bool_value = 4;
+    repeated int32 list =5;
 }
 
 message ConstOutput {

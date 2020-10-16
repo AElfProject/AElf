@@ -1,0 +1,24 @@
+/**
+ * Genesis contract.
+ *
+ * Used to manage the deployment and update of contracts.
+ * 
+ * Implement AElf Standards ACS0 and ACS1.
+ */
+syntax = "proto3";
+
+package ZeroImpl;
+
+import "acs0.proto";
+import "acs1.proto";
+import "google/protobuf/timestamp.proto";
+import "basic_contract_zero.proto";
+
+option csharp_namespace = "AElf.Contracts.Genesis";
+
+service BasicContractZeroImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
+    option (aelf.base) = "acs0.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "basic_contract_zero.proto";
+}

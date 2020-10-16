@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -179,7 +180,8 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 Int32Value = _number,
                 Int64Value = _field1,
                 StringValue = _field2 ?? string.Empty,
-                BoolValue = _field3
+                BoolValue = _field3,
+                List = {_list ?? new List<int>()}
             };
         }
 
@@ -213,7 +215,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         public override BoolValue CheckFieldsAlreadyReset(Empty input)
         {
             var res = _field1 == 0 && _field2 == null && _field3 == false && _basicTestType == null &&
-                      _innerContractType == null;
+                      _innerContractType == null && dict == null;
             return new BoolValue {Value = res};
         }
     }

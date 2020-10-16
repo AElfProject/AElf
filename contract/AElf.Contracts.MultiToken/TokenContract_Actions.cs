@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -16,6 +17,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!State.InitializedFromParentChain.Value, "MultiToken has been initialized");
             State.InitializedFromParentChain.Value = true;
+            Assert(input.Creator != null, "creator should not be null");
             foreach (var pair in input.ResourceAmount)
             {
                 State.ResourceAmount[pair.Key] = pair.Value;
@@ -25,7 +27,7 @@ namespace AElf.Contracts.MultiToken
             {
                 State.CrossChainTransferWhiteList[pair.Key] = pair.Value;
             }
-            
+
             SetSideChainCreator(input.Creator);
             return new Empty();
         }
@@ -39,7 +41,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
             AssertValidCreateInput(input);
-            RegisterTokenInfo(new TokenInfo
+            var tokenInfo = new TokenInfo
             {
                 Symbol = input.Symbol,
                 TokenName = input.TokenName,
@@ -47,12 +49,12 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsProfitable = input.IsProfitable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
-            });
+            };
+            RegisterTokenInfo(tokenInfo);
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
-                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid input.");
+                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid native token input.");
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
@@ -65,7 +67,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             Context.LogDebug(() => $"Token created: {input.Symbol}");
-            
+
             Context.Fire(new TokenCreated
             {
                 Symbol = input.Symbol,
@@ -74,7 +76,6 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsProfitable = input.IsProfitable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
 
@@ -109,8 +110,11 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
+
+            tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
+            
+            Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
             Context.Fire(new Issued
@@ -145,7 +149,7 @@ namespace AElf.Contracts.MultiToken
             ValidateTokenInfoExistsInput validateTokenInfoExistsInput =
                 ValidateTokenInfoExistsInput.Parser.ParseFrom(originalTransaction.Params);
 
-            RegisterTokenInfo(new TokenInfo
+            var tokenInfo = new TokenInfo
             {
                 Symbol = validateTokenInfoExistsInput.Symbol,
                 TokenName = validateTokenInfoExistsInput.TokenName,
@@ -153,9 +157,21 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-                IsProfitable = validateTokenInfoExistsInput.IsProfitable,
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+            };
+            RegisterTokenInfo(tokenInfo);
+
+            Context.Fire(new TokenCreated
+            {
+                Symbol = validateTokenInfoExistsInput.Symbol,
+                TokenName = validateTokenInfoExistsInput.TokenName,
+                TotalSupply = validateTokenInfoExistsInput.TotalSupply,
+                Decimals = validateTokenInfoExistsInput.Decimals,
+                Issuer = validateTokenInfoExistsInput.Issuer,
+                IsBurnable = validateTokenInfoExistsInput.IsBurnable,
                 IssueChainId = validateTokenInfoExistsInput.IssueChainId
             });
+
             return new Empty();
         }
 
@@ -247,7 +263,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[symbol] = tokenInfo;
             ModifyBalance(receivingAddress, symbol, amount);
-            
+
             Context.Fire(new CrossChainReceived
             {
                 From = transferSender,
@@ -304,8 +320,7 @@ namespace AElf.Contracts.MultiToken
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
             {
-                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value ||
-                    IsContributingProfits(input))
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
@@ -319,42 +334,6 @@ namespace AElf.Contracts.MultiToken
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
-        }
-
-        /// <summary>
-        /// Because Profit Contract Addresses in different chains are different,
-        /// so we use a property (is_profitable) in TokenInfo in order to indicate whether
-        /// Profit Contract Address of current chain should be in the white list or not.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private bool IsContributingProfits(TransferFromInput input)
-        {
-            var tokenInfo = Context.Call<TokenInfo>(Context.Self, nameof(GetTokenInfo), new GetTokenInfoInput
-            {
-                Symbol = input.Symbol
-            }.ToByteString());
-            if (!tokenInfo.IsProfitable) return false;
-
-            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName) ||
-                Context.Sender ==
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) // For main chain.
-            )
-            {
-                // Sender is Profit Contract, wants to transfer tokens from general ledger virtual address
-                // to period virtual address or sub schemes.
-                return true;
-            }
-
-            var tokenHolderContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
-            if (Context.Sender == tokenHolderContractAddress && input.To == tokenHolderContractAddress)
-            {
-                // Sender is Token Holder Contract, wants to transfer tokens from DApp Contract to himself.
-                return true;
-            }
-
-            return false;
         }
 
         public override Empty Approve(ApproveInput input)
@@ -394,7 +373,6 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
             ModifyBalance(Context.Sender, input.Symbol, -input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
             {
                 Burner = Context.Sender,
@@ -474,7 +452,9 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName).Contains(input.ResourceTokenSymbol),
+            Assert(
+                Context.Variables.GetStringArray(TokenContractConstants.PayTxFeeSymbolListName)
+                    .Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
@@ -500,25 +480,8 @@ namespace AElf.Contracts.MultiToken
             bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
                                     tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                     tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId &&
-                                    tokenInfo.IsProfitable == input.IsProfitable;
+                                    tokenInfo.IssueChainId == input.IssueChainId;
             Assert(validationResult, "Token validation failed.");
-            return new Empty();
-        }
-
-        public override Empty AddTokenWhiteList(AddTokeWhiteListInput input)
-        {
-            var tokenInfo = State.TokenInfos[input.TokenSymbol];
-            Assert(tokenInfo != null && input.Address != null, "Invalid input.");
-
-            Assert(input.TokenSymbol == Context.Variables.NativeSymbol ||
-                   input.TokenSymbol == State.ChainPrimaryTokenSymbol.Value, "No permission.");
-            var sender = Context.Sender;
-            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
-            var isSystemContractAddress = systemContractAddresses.Contains(sender);
-            Assert(isSystemContractAddress && sender == input.Address, "No permission.");
-
-            State.LockWhiteLists[input.TokenSymbol][input.Address] = true;
             return new Empty();
         }
 
@@ -527,7 +490,8 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[input.Symbol];
             Assert(tokenInfo != null, $"invalid token symbol: {input.Symbol}");
             // ReSharper disable once PossibleNullReferenceException
-            Assert(tokenInfo.Issuer == Context.Sender, "permission denied");
+            Assert(tokenInfo.Issuer == Context.Sender && tokenInfo.IssueChainId == Context.ChainId,
+                "Permission denied");
             tokenInfo.Issuer = input.NewTokenIssuer;
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();

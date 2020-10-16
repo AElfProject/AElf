@@ -1,0 +1,24 @@
+/**
+ * Cross-Chain contract.
+ * 
+ * Implement AElf Standards ACS1 and ACS7.
+ */
+syntax = "proto3";
+
+package CrossChainImpl;
+
+import "acs1.proto";
+import "acs7.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "cross_chain_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.CrossChain";
+
+service CrossChainContractImpl {
+
+    option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
+    option (aelf.base) = "acs7.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "cross_chain_contract.proto";
+}

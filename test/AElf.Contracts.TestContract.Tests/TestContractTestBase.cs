@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
+using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Parliament;
@@ -18,14 +19,15 @@ using AElf.CSharp.Core.Extension;
 using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.CodeCheck.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using Xunit;
 using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
+using SmartContractConstants = AElf.Sdk.CSharp.SmartContractConstants;
 
 namespace AElf.Contract.TestContract
 {
@@ -48,15 +50,15 @@ namespace AElf.Contract.TestContract
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
+        internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
 
-        internal Acs0.ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
+        internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<Acs0.ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
+            return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub GetTestBasicFunctionContractStub(
@@ -121,10 +123,12 @@ namespace AElf.Contract.TestContract
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
             //deploy test contract1
+            var basicFunctionPatchedCode = PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value;
+            CheckCode(basicFunctionPatchedCode);
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    PatchedCodes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
+                    basicFunctionPatchedCode,
                     TestBasicFunctionContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);

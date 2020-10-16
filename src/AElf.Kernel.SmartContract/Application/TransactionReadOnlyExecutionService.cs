@@ -11,31 +11,19 @@ namespace AElf.Kernel.SmartContract.Application
     public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly ITransactionContextFactory _transactionContextFactory;
 
-        public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService)
+        public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService, 
+            ITransactionContextFactory transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
+            _transactionContextFactory = transactionContextFactory;
         }
 
         public async Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
             Timestamp currentBlockTime)
         {
-            var trace = new TransactionTrace()
-            {
-                TransactionId = transaction.GetHash()
-            };
-
-            var transactionContext = new TransactionContext
-            {
-                PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = currentBlockTime,
-                Transaction = transaction,
-                BlockHeight = chainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = 0,
-                StateCache = chainContext.StateCache
-            };
-
+            var transactionContext = _transactionContextFactory.Create(transaction, chainContext, currentBlockTime);
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
                 chainContext, transaction.To);
 
@@ -48,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Application
                 await _smartContractExecutiveService.PutExecutiveAsync(chainContext, transaction.To, executive);
             }
 
-            return trace;
+            return transactionContext.Trace;
         }
 
         public async Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address)
@@ -103,6 +91,24 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
                 return executive.GetJsonStringOfParameters(transaction.MethodName, transaction.Params.ToByteArray());
+            }
+            finally
+            {
+                if (executive != null)
+                {
+                    await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
+                }
+            }
+        }
+
+        public async Task<bool> IsViewTransactionAsync(IChainContext chainContext, Transaction transaction)
+        {
+            var address = transaction.To;
+            IExecutive executive = null;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+                return executive.IsView(transaction.MethodName);
             }
             finally
             {

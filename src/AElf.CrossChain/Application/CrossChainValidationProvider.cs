@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Acs7;
+using AElf.Standards.ACS7;
 using AElf.CrossChain.Indexing.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -65,7 +65,7 @@ namespace AElf.CrossChain.Application
                 else if (isSideChainBlockDataIndexed)
                 {
                     var indexedCrossChainBlockData =
-                        await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(),
+                        await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.Header.GetHash(),
                             block.Header.Height);
                     if (indexedCrossChainBlockData.IsNullOrEmpty() ^ extraData.IsNullOrEmpty())
                         validationResult = false;
@@ -84,9 +84,9 @@ namespace AElf.CrossChain.Application
             }
         }
 
-        private bool ValidateBlockExtraDataAsync(CrossChainBlockData crossChainBlockData, ByteString extraData)
+        private bool ValidateBlockExtraDataAsync(IndexedSideChainBlockData indexedSideChainBlockData, ByteString extraData)
         {
-            var expected = crossChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
+            var expected = indexedSideChainBlockData.ExtractCrossChainExtraDataFromCrossChainBlockData();
             return expected.Equals(extraData);
         }
 

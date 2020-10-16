@@ -1,5 +1,6 @@
+using System;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -7,6 +8,8 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContract : TestContractContainer.TestContractBase
     {
+        public static int i;
+        
         public override BoolOutput TestBoolState(BoolInput input)
         {
             State.BoolInfo.Value = input.BoolValue;
@@ -15,7 +18,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
                 BoolValue = State.BoolInfo.Value
             };
         }
-
+    
         public override Int32Output TestInt32State(Int32Input input)
         {
             State.Int32Info.Value = State.Int32Info.Value.Sub(input.Int32Value);
@@ -160,10 +163,10 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         {
             // Iterating array via foreach loop causes unchecked arithmetic opcodes
             // This is to be used for contract policy tests
-            
-            var words = new[] { "TEST", "FOREACH", "LOOP" };
+
+            var words = new[] {"TEST", "FOREACH", "LOOP"};
             var merged = "";
-            
+
             foreach (var word in words)
             {
                 merged += $" {word}";
@@ -171,5 +174,37 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
             return new StringOutput {StringValue = merged};
         }
+
+        public override Int32Output TestViewMethod(Empty input)
+        {
+            return new Int32Output()
+            {
+                Int32Value = State.Int32Info.Value + 1
+            };
+        }
+
+        // for test cases
+        public bool TestStateType(int i)
+        {
+            State.ReadonlyBool.Value = false;
+            State.ProtoInfo.Value = new ProtobufMessage();
+            State.Int32Info.Value = Int32.MaxValue;
+            State.MappedState[1] = new Address();
+            State.MappedInt64State[1] = i + 1;
+            State.StringInfo.Value = "test";
+            return State.BoolInfo.Value;
+        }
+
+        public class TestNestClass
+        {
+            public static int k;
+            public const int j = 1;
+
+            public void TestState()
+            {
+                var state =new TestContractState();
+                state.ProtoInfo.Value = new ProtobufMessage();
+            }
+        }
     }
-}
+}    

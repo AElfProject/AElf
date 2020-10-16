@@ -4,7 +4,7 @@ using AElf.OS.Network.Infrastructure;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Infrastructure
 {
     public class PeerInvalidTransactionProviderTests : NetworkInfrastructureTestBase
     {
@@ -20,6 +20,9 @@ namespace AElf.OS.Network
         {
             var host = "127.0.0.1";
             bool markResult;
+            
+            _peerInvalidTransactionProvider.TryRemoveInvalidRecord(host).ShouldBe(false);
+            
             for (var i = 0; i < 5; i++)
             {
                 var txId = HashHelper.ComputeFrom(i.ToString());
@@ -37,7 +40,7 @@ namespace AElf.OS.Network
                 _peerInvalidTransactionProvider.TryMarkInvalidTransaction("192.168.1.1", HashHelper.ComputeFrom("0"));
             markResult.ShouldBeTrue();
 
-            _peerInvalidTransactionProvider.TryRemoveInvalidRecord(host);
+            _peerInvalidTransactionProvider.TryRemoveInvalidRecord(host).ShouldBe(true);
 
             markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("0"));
             markResult.ShouldBeTrue();
@@ -60,7 +63,7 @@ namespace AElf.OS.Network
 
             await Task.Delay(1500);
 
-            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("5"));
+            markResult = _peerInvalidTransactionProvider.TryMarkInvalidTransaction(host, HashHelper.ComputeFrom("6"));
             markResult.ShouldBeTrue();
         }
     }

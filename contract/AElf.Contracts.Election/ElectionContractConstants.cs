@@ -7,7 +7,5 @@ namespace AElf.Contracts.Election
         public const string VoteSymbol = "VOTE";
 
         public const string ShareSymbol = "SHARE";
-
-        public const long ElfTokenPerBlock = 1250_0000;
     }
 }

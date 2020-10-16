@@ -1,0 +1,24 @@
+/**
+ * Profit contract.
+ *
+ * The Profit contract is an abstract layer for creating scheme to share bonus. 
+ * Developers can build a system to distribute bonus by call this contract.
+ * 
+ * Implement AElf Standards ACS1.
+ */
+syntax = "proto3";
+
+package ProfitImpl;
+
+import "acs1.proto";
+import "aelf/core.proto";
+import "profit_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Profit";
+
+service ProfitContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "profit_contract.proto";
+    
+}

@@ -1,4 +1,4 @@
-using Acs1;
+using AElf.Standards.ACS1;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -8,11 +8,6 @@ namespace AElf.Contracts.TokenConverter
 {
     public partial class TokenConverterContract
     {
-        public override Address GetFeeReceiverAddress(Empty input)
-        {
-            return State.FeeReceiverAddress.Value;
-        }
-
         public override StringValue GetFeeRate(Empty input)
         {
             return new StringValue()
@@ -62,11 +57,8 @@ namespace AElf.Contracts.TokenConverter
 
         public override DepositInfo GetNeededDeposit(ToBeConnectedTokenInfo input)
         {
-            Assert(IsValidSymbol(input.TokenSymbol), "Invalid symbol.");
-
             var toConnector = State.Connectors[input.TokenSymbol];
-            Assert(toConnector != null, "[GetNeededDeposit]Can't find to connector.");
-            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
+            Assert(toConnector != null && !toConnector.IsDepositAccount, "[GetNeededDeposit]Can't find to connector.");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             Assert(fromConnector != null, "[GetNeededDeposit]Can't find from connector.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(
@@ -109,6 +101,12 @@ namespace AElf.Contracts.TokenConverter
             {
                 Value = State.Connectors[ntSymbol].VirtualBalance + State.DepositBalance[ntSymbol]
             };
+        }
+
+        public override BoolValue IsSymbolAbleToSell(StringValue input)
+        {
+            var depositConnector = GetPairConnector(new TokenSymbol {Symbol = input.Value}).DepositConnector;
+            return new BoolValue {Value = depositConnector != null && depositConnector.IsPurchaseEnabled};
         }
     }
 }

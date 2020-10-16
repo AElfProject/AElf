@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Acs9;
+using AElf.Standards.ACS9;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenHolder;
 using AElf.CSharp.Core;
@@ -196,7 +196,6 @@ namespace AElf.Contracts.TestContract.DApp
                 Decimals = DAppConstants.Decimal,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                IsProfitable = true,
                 TotalSupply = DAppConstants.TotalSupply,
                 LockWhiteList =
                 {

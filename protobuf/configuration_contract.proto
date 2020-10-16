@@ -1,52 +1,52 @@
+/**
+ * Configuration contract.
+ */
 syntax = "proto3";
 
-package configuration;
+package Configuration;
 
 import "aelf/core.proto";
 import "google/protobuf/wrappers.proto";
-import "acs1.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "authority_info.proto";
 
 option csharp_namespace = "AElf.Contracts.Configuration";
 
 service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
-    option (aelf.base) = "acs1.proto";
-    // Actions
+    
+    // Add or update configuration.
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeConfigurationController (acs1.AuthorityInfo) returns (google.protobuf.Empty) {
+    
+    // Change the method fee controller, the default is Parliament.
+    rpc ChangeConfigurationController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-
-    // Views
+    
+    // Query the configuration by configuration’s key.
     rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetConfigurationController (google.protobuf.Empty) returns (acs1.AuthorityInfo) {
+    
+    // Query the controller information
+    rpc GetConfigurationController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
+    
 }
 
 message SetConfigurationInput {
+    // The configuration’s key.
     string key = 1;
+    // The configuration’s value(binary data).
     bytes value = 2;
 }
 
-message BlockTransactionLimit
-{
-    int32 value = 1;
-}
-
-// Values
-
-message RequiredAcsInContracts {
-    repeated string acs_list = 1;
-    bool require_all = 2;
-}
-
-// Events
-
 message ConfigurationSet {
     option (aelf.is_event) = true;
+    // The configuration’s key.
     string key = 1;
+    // The configuration’s value(binary data).
     bytes value = 2;
 }

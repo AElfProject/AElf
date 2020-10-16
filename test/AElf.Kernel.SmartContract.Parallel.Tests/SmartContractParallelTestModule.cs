@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
@@ -23,9 +24,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var services = context.Services;
             services.AddSingleton<IResourceExtractionService, ResourceExtractionService>();
+            services.AddTransient<ParallelExecutionInterestedEventsHandler>();
             var executiveService = GetSmartContractExecutiveService(
                 (InternalConstants.NonAcs2, GetNonAcs2Executive()),
-                (InternalConstants.Acs2, GetAcs2Executive())
+                (InternalConstants.Acs2, GetAcs2Executive()),(InternalConstants.NonParallel,GetNonParallelExecutive())
             );
             services.AddSingleton(executiveService);
             context.Services.AddSingleton<IBlockchainService>(
@@ -43,10 +45,18 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 {
                     var mock = new Mock<INonparallelContractCodeProvider>();
                     mock.Setup(s =>
-                            s.GetNonparallelContractCodeAsync(It.IsAny<IChainContext>(), It.IsAny<Address>()))
+                            s.GetNonparallelContractCodeAsync(It.IsAny<IChainContext>(), It.Is<Address>(address => address == Address.FromBase58(InternalConstants.NonParallel))))
+                        .Returns(Task.FromResult(new NonparallelContractCode
+                        {
+                            CodeHash = GetNonParallelExecutive().ContractHash
+                        }));
+                    mock.Setup(s =>
+                            s.GetNonparallelContractCodeAsync(It.IsAny<IChainContext>(), It.Is<Address>(address => address != Address.FromBase58(InternalConstants.NonParallel))))
                         .Returns(Task.FromResult((NonparallelContractCode) null));
                     return mock.Object;
                 });
+
+            context.Services.AddTransient<ITransactionContextFactory, ParallelTestTransactionContextFactory>();
         }
 
         #region Mocks
@@ -84,6 +94,24 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         #endregion
+        
+        private static IExecutive GetNonParallelExecutive()
+        {
+            var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly
+                .Location;
+            var code = File.ReadAllBytes(testContractFile);
+            var runner = new CSharpSmartContractRunner(
+                Path.GetDirectoryName(testContractFile)
+            );
+            var executive = AsyncHelper.RunSync(() => runner.RunAsync(new SmartContractRegistration()
+            {
+                Category = 0,
+                Code = ByteString.CopyFrom(code),
+                CodeHash = HashHelper.ComputeFrom(code)
+            }));
+            executive.SetHostSmartContractBridgeContext(Mock.Of<IHostSmartContractBridgeContext>());
+            return executive;
+        }
 
         private static ISmartContractExecutiveService GetSmartContractExecutiveService(
             params (string, IExecutive)[] named)
@@ -111,6 +139,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services
+                .AddSingleton<AElf.Kernel.SmartContract.Parallel.Application.
+                    CleanBlockExecutedDataChangeHeightEventHandler>();
+            context.Services.AddSingleton<ISystemTransactionExtraDataProvider, MockSystemTransactionExtraDataProvider>();
         }
     }
 }

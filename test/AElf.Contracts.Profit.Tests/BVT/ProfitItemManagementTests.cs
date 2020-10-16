@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -16,6 +17,23 @@ namespace AElf.Contracts.Profit.BVT
         public ProfitContractTests()
         {
             InitializeContracts();
+        }
+        [Fact]
+        public async Task ProfitContract_CreateScheme_With_Invalid_Input_Test()
+        {
+            var creator = Creators[0];
+
+            var createSchemeRet = await creator.CreateScheme.SendWithExceptionAsync(new CreateSchemeInput
+            {
+                ProfitReceivingDuePeriodCount = ProfitContractTestConstants.MaximumProfitReceivingDuePeriodCount + 1,
+            });
+            createSchemeRet.TransactionResult.Error.ShouldContain("Invalid profit receiving due period count");
+            
+            createSchemeRet = await creator.CreateScheme.SendWithExceptionAsync(new CreateSchemeInput
+            {
+                ProfitReceivingDuePeriodCount = -1,
+            });
+            createSchemeRet.TransactionResult.Error.ShouldContain("Invalid profit receiving due period count");
         }
 
         [Fact]
@@ -63,6 +81,40 @@ namespace AElf.Contracts.Profit.BVT
             })).Balance;
 
             schemeBalance.ShouldBe(contributeAmount);
+        }
+        
+        [Fact]
+        public async Task ProfitContract_DistributeProfits_Burned_Profit_Test()
+        {
+            const int delayDistributePeriodCount = 3;
+            const int contributeAmountEachTime = 100_000;
+            var creator = Creators[0];
+            var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
+
+            await creator.CreateScheme.SendAsync(new CreateSchemeInput
+            {
+                IsReleaseAllBalanceEveryTimeByDefault = true,
+                ProfitReceivingDuePeriodCount = 100,
+                DelayDistributePeriodCount = delayDistributePeriodCount
+            });
+
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
+            {
+                Manager = creatorAddress
+            })).SchemeIds;
+
+            schemeId = createdSchemeIds.First();
+            var period = 1;
+            var beforeBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Supply;
+            await ContributeAndDistribute(creator, contributeAmountEachTime, period);
+            var afterBurnToken = (await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
+            {
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Supply;
+            beforeBurnToken.Sub(afterBurnToken).ShouldBe(contributeAmountEachTime);
         }
 
         [Fact]
@@ -168,7 +220,7 @@ namespace AElf.Contracts.Profit.BVT
             }
         }
 
-        private async Task ContributeAndDistribute(ProfitContractContainer.ProfitContractStub creator,
+        private async Task ContributeAndDistribute(ProfitContractImplContainer.ProfitContractImplStub creator,
             int contributeAmountEachTime, int period)
         {
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
@@ -185,7 +237,7 @@ namespace AElf.Contracts.Profit.BVT
             });
         }
 
-        private async Task<long> AddBeneficiaries(ProfitContractContainer.ProfitContractStub creator)
+        private async Task<long> AddBeneficiaries(ProfitContractImplContainer.ProfitContractImplStub creator)
         {
             await creator.AddBeneficiaries.SendAsync(new AddBeneficiariesInput
             {

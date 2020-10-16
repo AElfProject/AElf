@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class BlockExecutionResultProcessingServiceTests : SmartContractExecutionExecutingTestBase
+    public sealed class BlockExecutionResultProcessingServiceTests : SmartContractExecutionExecutingTestBase
     {
         private readonly IBlockExecutionResultProcessingService _blockExecutionResultProcessingService;
         private readonly IBlockchainService _blockchainService;
@@ -25,6 +26,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _chainBlockLinkService = GetRequiredService<IChainBlockLinkService>();
         }
 
+        [Fact]
+        public async Task Process_LessThanBestChainHeight_BlockExecutionResult()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.RemoveLongestBranchAsync(chain);
+
+            var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
+            await _blockchainService.AttachBlockToChainAsync(chain, block);
+
+            var executionResult = new BlockExecutionResult
+            {
+                SuccessBlockExecutedSets = {new BlockExecutedSet {Block = block}}
+            };
+            await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.LongestChainHash.ShouldBe(chain.BestChainHash);
+            chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
+        }
+        
         [Fact]
         public async Task Process_Success_BlockExecutionResult()
         {

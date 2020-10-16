@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
+using AElf.Standards.ACS0;
 using AElf.ContractDeployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
@@ -17,9 +17,11 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract;
@@ -42,7 +44,6 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenContractStub;
 using ParliamentContractStub = AElf.Contracts.Parliament.ParliamentContractContainer.ParliamentContractStub;
-using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
 namespace AElf.Contracts.TestBase
@@ -536,16 +537,21 @@ namespace AElf.Contracts.TestBase
         private async Task<BlockExecutedSet> MineAsync(List<Transaction> txs, Timestamp blockTime, Hash preBlockHash,
             long preBlockHeight)
         {
-            await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
+            var miningService = Application.ServiceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            var executedBlockSet = await minerService.MineAsync(preBlockHash, preBlockHeight,
-                blockTime ?? DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var executedBlockSet = await miningService.MineAsync(new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlockHash,
+                    PreviousBlockHeight = preBlockHeight,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue),
+                    TransactionCountLimit = int.MaxValue
+                }, txs, blockTime ?? DateTime.UtcNow.ToTimestamp());
             
             var block = executedBlockSet.Block;
 
+            await blockchainService.AddTransactionsAsync(txs);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
@@ -561,19 +567,6 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             return await blockchainService.GetTransactionsAsync(txs);
-        }
-
-        /// <summary>
-        /// In test cases, we can't distinguish normal txs and system txs,
-        /// so just keep in mind if some txs looks like system txs,
-        /// just add them first manually.
-        /// </summary>
-        /// <param name="txs"></param>
-        /// <returns></returns>
-        private async Task AddTransactionsAsync(IEnumerable<Transaction> txs)
-        {
-            var transactionPoolService = Application.ServiceProvider.GetRequiredService<ITransactionPoolService>();
-            await transactionPoolService.AddTransactionsAsync(txs);
         }
 
         /// <summary>
@@ -600,11 +593,13 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="input"></param>
+        /// <param name="keyPair"></param>
         /// <returns></returns>
         public async Task<(BlockExecutedSet, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName, IMessage input)
+            string methodName, IMessage input, ECKeyPair keyPair = null)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
+            var usingKeyPair = keyPair ?? KeyPair;
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, usingKeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
@@ -689,7 +684,7 @@ namespace AElf.Contracts.TestBase
             var transactionManager = Application.ServiceProvider.GetRequiredService<ITransactionManager>();
             var blockAttachService =
                 Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
-            txs.ForEach(tx => AsyncHelper.RunSync(() => transactionManager.AddTransactionAsync(tx)));
+            await transactionManager.AddTransactionsAsync(txs);
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
@@ -730,7 +725,7 @@ namespace AElf.Contracts.TestBase
                 TotalSupply = totalSupply,
                 Decimals = 8,
                 Issuer = issuer,
-                IsBurnable = true
+                IsBurnable = true,
             });
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
                 new SetPrimaryTokenSymbolInput {Symbol = "ELF"});
@@ -828,13 +823,14 @@ namespace AElf.Contracts.TestBase
                 {
                     Symbol = symbol
                 });
-
-            if(parentChainTokenContractAddress != null)
-                tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
-                    new InitializeFromParentChainInput
-                    {
-                        RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
-                    });
+            // side chain creator should not be null
+            
+            // if(parentChainTokenContractAddress != null)
+            //     tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeFromParentChain),
+            //         new InitializeFromParentChainInput
+            //         {
+            //             RegisteredOtherTokenContractAddresses = {[mainChainId] = parentChainTokenContractAddress}
+            //         });
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
                 new Empty());
             

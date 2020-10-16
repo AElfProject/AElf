@@ -5,18 +5,12 @@
         <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\test_contract.proto">
-            <Link>Protobuf/proto/test_contract.proto</Link>
+            <Link>Protobuf\Proto\test_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

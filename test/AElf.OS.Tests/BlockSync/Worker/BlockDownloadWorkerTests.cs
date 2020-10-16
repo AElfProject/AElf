@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -22,6 +23,7 @@ namespace AElf.OS.BlockSync.Worker
         private readonly INetworkService _networkService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly BlockSyncOptions _blockSyncOptions;
+        private readonly OSTestHelper _osTestHelper;
 
         public BlockDownloadWorkerTests()
         {
@@ -32,6 +34,7 @@ namespace AElf.OS.BlockSync.Worker
             _networkService = GetRequiredService<INetworkService>();
             _blockSyncStateProvider = GetRequiredService<IBlockSyncStateProvider>();
             _blockSyncOptions = GetRequiredService<IOptionsSnapshot<BlockSyncOptions>>().Value;
+            _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
         [Fact]
@@ -61,6 +64,39 @@ namespace AElf.OS.BlockSync.Worker
             jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
             jobInfo.ShouldBeNull();
             _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out state).ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task ProcessDownloadJob_CannotGetBlocks()
+        {
+            await _blockDownloadJobManager.EnqueueAsync(HashHelper.ComputeFrom("PeerBlock"), 30,
+                _blockSyncOptions.MaxBatchRequestBlockCount,
+                null);
+
+            var block = await _osTestHelper.MinedOneBlock();
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetIrreversibleBlockAsync(chain, block.Height, block.GetHash());
+
+            await _blockDownloadWorker.ProcessDownloadJobAsync();
+
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(block.Height);
+
+            var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
+            jobInfo.ShouldBeNull();
+        }
+        
+        [Fact]
+        public async Task ProcessDownloadJob_ThrowException()
+        {
+            await _blockDownloadJobManager.EnqueueAsync(HashHelper.ComputeFrom("PeerBlock"), 30,
+                _blockSyncOptions.MaxBatchRequestBlockCount,
+                "AbnormalPeer");
+            
+            _blockDownloadWorker.ProcessDownloadJobAsync().ShouldThrow<Exception>();
+
+            var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
+            jobInfo.ShouldBeNull();
         }
 
         [Fact]
@@ -105,6 +141,9 @@ namespace AElf.OS.BlockSync.Worker
             jobInfo.CurrentTargetBlockHeight = jobInfo.TargetBlockHeight;
             jobInfo.Deadline = TimestampHelper.GetUtcNow().AddSeconds(4);
             _blockSyncStateProvider.SetDownloadJobTargetState(jobInfo.TargetBlockHash, false);
+            
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName, null);
+            _blockSyncStateProvider.SetEnqueueTime(KernelConstants.UpdateChainQueueName, null);
 
             await _blockDownloadWorker.ProcessDownloadJobAsync();
             chain = await _blockchainService.GetChainAsync();
@@ -133,5 +172,6 @@ namespace AElf.OS.BlockSync.Worker
             var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
             jobInfo.ShouldBeNull();
         }
+
     }
 }
