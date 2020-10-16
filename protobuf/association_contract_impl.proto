@@ -1,3 +1,11 @@
+/**
+ * Association contract.
+ *
+ * Organizations established to achieve specific goals 
+ * can use this contract to cooperatively handle transactions within the organization
+ * 
+ * Implement AElf Standards ACS1 and ACS3.
+ */
 syntax = "proto3";
 
 package AssociationImpl;

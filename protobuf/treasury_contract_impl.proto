@@ -1,3 +1,10 @@
+/**
+ * Treasury contract.
+ *
+ * Used for distributing bonus’ to voters and candidates during the election process.
+ * 
+ * Implement AElf Standards ACS1 and ACS10.
+ */
 syntax = "proto3";
 
 package TreasuryImpl;

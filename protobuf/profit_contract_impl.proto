@@ -1,3 +1,11 @@
+/**
+ * Profit contract.
+ *
+ * The Profit contract is an abstract layer for creating scheme to share bonus. 
+ * Developers can build a system to distribute bonus by call this contract.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package ProfitImpl;

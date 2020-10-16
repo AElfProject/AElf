@@ -1,3 +1,10 @@
+/**
+ * Configuration contract.
+ *
+ * Used to manage the configuration on the block chain.
+ * 
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package ConfigurationImpl;
