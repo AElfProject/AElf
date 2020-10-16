@@ -193,11 +193,6 @@ namespace AElf.Contracts.MultiToken
             await TokenContractStub.SetFeeReceiver.SendAsync(DefaultAddress);
             var feeReceiver = await TokenContractStub.GetFeeReceiver.CallAsync(new Empty());
             feeReceiver.Value.ShouldBe(DefaultAddress.Value);
-            
-            // fee receiver is just allowed to set one time
-            
-            var repeatSetRet = await TokenContractStub.SetFeeReceiver.SendWithExceptionAsync(DefaultAddress);
-            repeatSetRet.TransactionResult.Error.ShouldContain("Fee receiver already set");
         }
 
         [Fact]

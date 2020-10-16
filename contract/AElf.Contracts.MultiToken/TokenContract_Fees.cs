@@ -674,7 +674,6 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetFeeReceiver(Address input)
         {
             Assert(State.SideChainCreator.Value == Context.Sender, "No permission.");
-            Assert(State.FeeReceiver.Value == null, "Fee receiver already set.");
             State.FeeReceiver.Value = input;
             return new Empty();
         }
