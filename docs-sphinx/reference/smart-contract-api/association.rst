@@ -8,6 +8,64 @@ contract to cooperatively handle transactions within the organization
 
 Implement AElf Standards ACS1 and ACS3.
 
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Method Name                           | Request Type                                                                                         | Response Type                                                 | Description                                                                                                                                                                                                                           |
++=======================================+======================================================================================================+===============================================================+=======================================================================================================================================================================================================================================+
+| CreateOrganization                    | `CreateOrganizationInput <#Association.CreateOrganizationInput>`__                                   | `.aelf.Address <#aelf.Address>`__                             | Create an organization and return its address.                                                                                                                                                                                        |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CreateOrganizationBySystemContract    | `CreateOrganizationBySystemContractInput <#Association.CreateOrganizationBySystemContractInput>`__   | `.aelf.Address <#aelf.Address>`__                             | Creates an organization by system contract and return its address.                                                                                                                                                                    |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| AddMember                             | `.aelf.Address <#aelf.Address>`__                                                                    | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Add organization members.                                                                                                                                                                                                             |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| RemoveMember                          | `.aelf.Address <#aelf.Address>`__                                                                    | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Remove organization members.                                                                                                                                                                                                          |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ChangeMember                          | `ChangeMemberInput <#Association.ChangeMemberInput>`__                                               | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Replace organization member with a new member.                                                                                                                                                                                        |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetOrganization                       | `.aelf.Address <#aelf.Address>`__                                                                    | `Organization <#Association.Organization>`__                  | Get the organization according to the organization address.                                                                                                                                                                           |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CalculateOrganizationAddress          | `CreateOrganizationInput <#Association.CreateOrganizationInput>`__                                   | `.aelf.Address <#aelf.Address>`__                             | Calculate the input and return the organization address.                                                                                                                                                                              |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| SetMethodFee                          | `MethodFees <#acs1.MethodFees>`__                                                                    | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Set the method fees for the specified method. Note that this will override all fees of the method.                                                                                                                                    |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ChangeMethodFeeController             | `.AuthorityInfo <#AuthorityInfo>`__                                                                  | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Change the method fee controller, the default is parliament and default organization.                                                                                                                                                 |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetMethodFee                          | `.google.protobuf.StringValue <#google.protobuf.StringValue>`__                                      | `MethodFees <#acs1.MethodFees>`__                             | Query method fee information by method name.                                                                                                                                                                                          |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetMethodFeeController                | `.google.protobuf.Empty <#google.protobuf.Empty>`__                                                  | `.AuthorityInfo <#AuthorityInfo>`__                           | Query the method fee controller.                                                                                                                                                                                                      |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CreateProposal                        | `CreateProposalInput <#acs3.CreateProposalInput>`__                                                  | `.aelf.Hash <#aelf.Hash>`__                                   | Create a proposal for which organization members can vote. When the proposal is released, a transaction will be sent to the specified contract. Return id of the newly created proposal.                                              |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Approve                               | `.aelf.Hash <#aelf.Hash>`__                                                                          | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Approve a proposal according to the proposal ID.                                                                                                                                                                                      |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Reject                                | `.aelf.Hash <#aelf.Hash>`__                                                                          | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Reject a proposal according to the proposal ID.                                                                                                                                                                                       |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Abstain                               | `.aelf.Hash <#aelf.Hash>`__                                                                          | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Abstain a proposal according to the proposal ID.                                                                                                                                                                                      |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Release                               | `.aelf.Hash <#aelf.Hash>`__                                                                          | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Release a proposal according to the proposal ID and send a transaction to the specified contract.                                                                                                                                     |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ChangeOrganizationThreshold           | `ProposalReleaseThreshold <#acs3.ProposalReleaseThreshold>`__                                        | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Change the thresholds associated with proposals. All fields will be overwritten by the input value and this will affect all current proposals of the organization. Note: only the organization can execute this through a proposal.   |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ChangeOrganizationProposerWhiteList   | `ProposerWhiteList <#acs3.ProposerWhiteList>`__                                                      | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Change the white list of organization proposer. This method overrides the list of whitelisted proposers.                                                                                                                              |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CreateProposalBySystemContract        | `CreateProposalBySystemContractInput <#acs3.CreateProposalBySystemContractInput>`__                  | `.aelf.Hash <#aelf.Hash>`__                                   | Create a proposal by system contracts, and return id of the newly created proposal.                                                                                                                                                   |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ClearProposal                         | `.aelf.Hash <#aelf.Hash>`__                                                                          | `.google.protobuf.Empty <#google.protobuf.Empty>`__           | Remove the specified proposal. If the proposal is in effect, the cleanup fails.                                                                                                                                                       |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetProposal                           | `.aelf.Hash <#aelf.Hash>`__                                                                          | `ProposalOutput <#acs3.ProposalOutput>`__                     | Get the proposal according to the proposal ID.                                                                                                                                                                                        |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ValidateOrganizationExist             | `.aelf.Address <#aelf.Address>`__                                                                    | `.google.protobuf.BoolValue <#google.protobuf.BoolValue>`__   | Check the existence of an organization.                                                                                                                                                                                               |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| ValidateProposerInWhiteList           | `ValidateProposerInWhiteListInput <#acs3.ValidateProposerInWhiteListInput>`__                        | `.google.protobuf.BoolValue <#google.protobuf.BoolValue>`__   | Check if the proposer is whitelisted.                                                                                                                                                                                                 |
++---------------------------------------+------------------------------------------------------------------------------------------------------+---------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+.. raw:: html
+
+   <div id="Association.ChangeMemberInput">
+
+.. raw:: html
+
+   </div>
+
 Association.ChangeMemberInput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -19,6 +77,14 @@ Association.ChangeMemberInput
 | new\_member   | `aelf.Address <#aelf.Address>`__   |         | The new member address.   |
 +---------------+------------------------------------+---------+---------------------------+
 
+.. raw:: html
+
+   <div id="Association.CreateOrganizationBySystemContractInput">
+
+.. raw:: html
+
+   </div>
+
 Association.CreateOrganizationBySystemContractInput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -29,6 +95,14 @@ Association.CreateOrganizationBySystemContractInput
 +-------------------------------------------+----------------------------------------------------------------------+---------+-------------------------------------------------------------------------------------------------------+
 | organization\_address\_feedback\_method   | `string <#string>`__                                                 |         | The organization address callback method which replies the organization address to caller contract.   |
 +-------------------------------------------+----------------------------------------------------------------------+---------+-------------------------------------------------------------------------------------------------------+
+
+.. raw:: html
+
+   <div id="Association.CreateOrganizationInput">
+
+.. raw:: html
+
+   </div>
 
 Association.CreateOrganizationInput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,6 +119,14 @@ Association.CreateOrganizationInput
 | creation\_token                | `aelf.Hash <#aelf.Hash>`__                                           |         | The creation token is for organization address generation.   |
 +--------------------------------+----------------------------------------------------------------------+---------+--------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="Association.MemberAdded">
+
+.. raw:: html
+
+   </div>
+
 Association.MemberAdded
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -55,6 +137,14 @@ Association.MemberAdded
 +-------------------------+------------------------------------+---------+-----------------------------+
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The organization address.   |
 +-------------------------+------------------------------------+---------+-----------------------------+
+
+.. raw:: html
+
+   <div id="Association.MemberChanged">
+
+.. raw:: html
+
+   </div>
 
 Association.MemberChanged
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +159,14 @@ Association.MemberChanged
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The organization address.   |
 +-------------------------+------------------------------------+---------+-----------------------------+
 
+.. raw:: html
+
+   <div id="Association.MemberRemoved">
+
+.. raw:: html
+
+   </div>
+
 Association.MemberRemoved
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -79,6 +177,14 @@ Association.MemberRemoved
 +-------------------------+------------------------------------+---------+-------------------------------+
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The organization address.     |
 +-------------------------+------------------------------------+---------+-------------------------------+
+
+.. raw:: html
+
+   <div id="Association.Organization">
+
+.. raw:: html
+
+   </div>
 
 Association.Organization
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,6 +205,14 @@ Association.Organization
 | creation\_token                | `aelf.Hash <#aelf.Hash>`__                                           |         | The creation token is for organization address generation.   |
 +--------------------------------+----------------------------------------------------------------------+---------+--------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="Association.OrganizationMemberList">
+
+.. raw:: html
+
+   </div>
+
 Association.OrganizationMemberList
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -107,6 +221,14 @@ Association.OrganizationMemberList
 +=========================+====================================+============+========================================+
 | organization\_members   | `aelf.Address <#aelf.Address>`__   | repeated   | The address of organization members.   |
 +-------------------------+------------------------------------+------------+----------------------------------------+
+
+.. raw:: html
+
+   <div id="Association.ProposalInfo">
+
+.. raw:: html
+
+   </div>
 
 Association.ProposalInfo
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,6 +259,14 @@ Association.ProposalInfo
 | proposal\_description\_url   | `string <#string>`__                                         |            | Url is used for proposal describing.                           |
 +------------------------------+--------------------------------------------------------------+------------+----------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs1.MethodFee">
+
+.. raw:: html
+
+   </div>
+
 acs1.MethodFee
 ~~~~~~~~~~~~~~
 
@@ -147,6 +277,14 @@ acs1.MethodFee
 +--------------+------------------------+---------+---------------------------------------+
 | basic\_fee   | `int64 <#int64>`__     |         | The amount of fees to be charged.     |
 +--------------+------------------------+---------+---------------------------------------+
+
+.. raw:: html
+
+   <div id="acs1.MethodFees">
+
+.. raw:: html
+
+   </div>
 
 acs1.MethodFees
 ~~~~~~~~~~~~~~~
@@ -161,6 +299,14 @@ acs1.MethodFees
 | is\_size\_fee\_free   | `bool <#bool>`__                  |            | Optional based on the implementation of SetMethodFee method.   |
 +-----------------------+-----------------------------------+------------+----------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.CreateProposalBySystemContractInput">
+
+.. raw:: html
+
+   </div>
+
 acs3.CreateProposalBySystemContractInput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -171,6 +317,14 @@ acs3.CreateProposalBySystemContractInput
 +--------------------+-------------------------------------------------------+---------+----------------------------------------+
 | origin\_proposer   | `aelf.Address <#aelf.Address>`__                      |         | The actor that trigger the call.       |
 +--------------------+-------------------------------------------------------+---------+----------------------------------------+
+
+.. raw:: html
+
+   <div id="acs3.CreateProposalInput">
+
+.. raw:: html
+
+   </div>
 
 acs3.CreateProposalInput
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -193,6 +347,14 @@ acs3.CreateProposalInput
 | token                        | `aelf.Hash <#aelf.Hash>`__                                   |         | The token is for proposal id generation and with this token, proposal id can be calculated before proposing.   |
 +------------------------------+--------------------------------------------------------------+---------+----------------------------------------------------------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.OrganizationCreated">
+
+.. raw:: html
+
+   </div>
+
 acs3.OrganizationCreated
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -201,6 +363,14 @@ acs3.OrganizationCreated
 +=========================+====================================+=========+============================================+
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The address of the created organization.   |
 +-------------------------+------------------------------------+---------+--------------------------------------------+
+
+.. raw:: html
+
+   <div id="acs3.OrganizationHashAddressPair">
+
+.. raw:: html
+
+   </div>
 
 acs3.OrganizationHashAddressPair
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -213,6 +383,14 @@ acs3.OrganizationHashAddressPair
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The address of organization.   |
 +-------------------------+------------------------------------+---------+--------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.OrganizationThresholdChanged">
+
+.. raw:: html
+
+   </div>
+
 acs3.OrganizationThresholdChanged
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -223,6 +401,14 @@ acs3.OrganizationThresholdChanged
 +--------------------------------+-----------------------------------------------------------------+---------+------------------------------+
 | proposer\_release\_threshold   | `ProposalReleaseThreshold <#acs3.ProposalReleaseThreshold>`__   |         | The new release threshold.   |
 +--------------------------------+-----------------------------------------------------------------+---------+------------------------------+
+
+.. raw:: html
+
+   <div id="acs3.OrganizationWhiteListChanged">
+
+.. raw:: html
+
+   </div>
 
 acs3.OrganizationWhiteListChanged
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,6 +421,14 @@ acs3.OrganizationWhiteListChanged
 | proposer\_white\_list   | `ProposerWhiteList <#acs3.ProposerWhiteList>`__   |         | The new proposer whitelist.   |
 +-------------------------+---------------------------------------------------+---------+-------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.ProposalCreated">
+
+.. raw:: html
+
+   </div>
+
 acs3.ProposalCreated
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -245,6 +439,14 @@ acs3.ProposalCreated
 +-------------------------+------------------------------------+---------+-----------------------------------------------------+
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The organization address of the created proposal.   |
 +-------------------------+------------------------------------+---------+-----------------------------------------------------+
+
+.. raw:: html
+
+   <div id="acs3.ProposalOutput">
+
+.. raw:: html
+
+   </div>
 
 acs3.ProposalOutput
 ~~~~~~~~~~~~~~~~~~~
@@ -275,6 +477,14 @@ acs3.ProposalOutput
 | abstention\_count        | `int64 <#int64>`__                                           |         | Abstention count for this proposal.                            |
 +--------------------------+--------------------------------------------------------------+---------+----------------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.ProposalReleaseThreshold">
+
+.. raw:: html
+
+   </div>
+
 acs3.ProposalReleaseThreshold
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -290,6 +500,14 @@ acs3.ProposalReleaseThreshold
 | minimal\_vote\_threshold         | `int64 <#int64>`__   |         | The value for the minimal vote threshold.         |
 +----------------------------------+----------------------+---------+---------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.ProposalReleased">
+
+.. raw:: html
+
+   </div>
+
 acs3.ProposalReleased
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -301,6 +519,14 @@ acs3.ProposalReleased
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The organization address of the released proposal.   |
 +-------------------------+------------------------------------+---------+------------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.ProposerWhiteList">
+
+.. raw:: html
+
+   </div>
+
 acs3.ProposerWhiteList
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -309,6 +535,14 @@ acs3.ProposerWhiteList
 +=============+====================================+============+================================+
 | proposers   | `aelf.Address <#aelf.Address>`__   | repeated   | The address of the proposers   |
 +-------------+------------------------------------+------------+--------------------------------+
+
+.. raw:: html
+
+   <div id="acs3.ReceiptCreated">
+
+.. raw:: html
+
+   </div>
 
 acs3.ReceiptCreated
 ~~~~~~~~~~~~~~~~~~~
@@ -327,6 +561,14 @@ acs3.ReceiptCreated
 | organization\_address   | `aelf.Address <#aelf.Address>`__                             |         | The address of the organization.                   |
 +-------------------------+--------------------------------------------------------------+---------+----------------------------------------------------+
 
+.. raw:: html
+
+   <div id="acs3.ValidateProposerInWhiteListInput">
+
+.. raw:: html
+
+   </div>
+
 acs3.ValidateProposerInWhiteListInput
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -337,6 +579,14 @@ acs3.ValidateProposerInWhiteListInput
 +-------------------------+------------------------------------+---------+------------------------------------+
 | organization\_address   | `aelf.Address <#aelf.Address>`__   |         | The address of the organization.   |
 +-------------------------+------------------------------------+---------+------------------------------------+
+
+.. raw:: html
+
+   <div id=".AuthorityInfo">
+
+.. raw:: html
+
+   </div>
 
 .AuthorityInfo
 ~~~~~~~~~~~~~~
@@ -349,6 +599,14 @@ acs3.ValidateProposerInWhiteListInput
 | owner\_address      | `aelf.Address <#aelf.Address>`__   |         | The address of the owner of the contract.   |
 +---------------------+------------------------------------+---------+---------------------------------------------+
 
+.. raw:: html
+
+   <div id="aelf.Address">
+
+.. raw:: html
+
+   </div>
+
 aelf.Address
 ~~~~~~~~~~~~
 
@@ -357,6 +615,14 @@ aelf.Address
 +=========+======================+=========+===============+
 | value   | `bytes <#bytes>`__   |         |               |
 +---------+----------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.BinaryMerkleTree">
+
+.. raw:: html
+
+   </div>
 
 aelf.BinaryMerkleTree
 ~~~~~~~~~~~~~~~~~~~~~
@@ -371,6 +637,14 @@ aelf.BinaryMerkleTree
 | leaf\_count   | `int32 <#int32>`__      |            |               |
 +---------------+-------------------------+------------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.Hash">
+
+.. raw:: html
+
+   </div>
+
 aelf.Hash
 ~~~~~~~~~
 
@@ -379,6 +653,14 @@ aelf.Hash
 +=========+======================+=========+===============+
 | value   | `bytes <#bytes>`__   |         |               |
 +---------+----------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.LogEvent">
+
+.. raw:: html
+
+   </div>
 
 aelf.LogEvent
 ~~~~~~~~~~~~~
@@ -395,6 +677,14 @@ aelf.LogEvent
 | non\_indexed   | `bytes <#bytes>`__            |            |               |
 +----------------+-------------------------------+------------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.MerklePath">
+
+.. raw:: html
+
+   </div>
+
 aelf.MerklePath
 ~~~~~~~~~~~~~~~
 
@@ -403,6 +693,14 @@ aelf.MerklePath
 +=======================+=============================================+============+===============+
 | merkle\_path\_nodes   | `MerklePathNode <#aelf.MerklePathNode>`__   | repeated   |               |
 +-----------------------+---------------------------------------------+------------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.MerklePathNode">
+
+.. raw:: html
+
+   </div>
 
 aelf.MerklePathNode
 ~~~~~~~~~~~~~~~~~~~
@@ -415,6 +713,14 @@ aelf.MerklePathNode
 | is\_left\_child\_node   | `bool <#bool>`__        |         |               |
 +-------------------------+-------------------------+---------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.SInt32Value">
+
+.. raw:: html
+
+   </div>
+
 aelf.SInt32Value
 ~~~~~~~~~~~~~~~~
 
@@ -424,6 +730,14 @@ aelf.SInt32Value
 | value   | `sint32 <#sint32>`__   |         |               |
 +---------+------------------------+---------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.SInt64Value">
+
+.. raw:: html
+
+   </div>
+
 aelf.SInt64Value
 ~~~~~~~~~~~~~~~~
 
@@ -432,6 +746,14 @@ aelf.SInt64Value
 +=========+========================+=========+===============+
 | value   | `sint64 <#sint64>`__   |         |               |
 +---------+------------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.ScopedStatePath">
+
+.. raw:: html
+
+   </div>
 
 aelf.ScopedStatePath
 ~~~~~~~~~~~~~~~~~~~~
@@ -443,6 +765,14 @@ aelf.ScopedStatePath
 +-----------+-----------------------------------+---------+---------------+
 | path      | `StatePath <#aelf.StatePath>`__   |         |               |
 +-----------+-----------------------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.SmartContractRegistration">
+
+.. raw:: html
+
+   </div>
 
 aelf.SmartContractRegistration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -461,6 +791,14 @@ aelf.SmartContractRegistration
 | version                | `int32 <#int32>`__      |         |               |
 +------------------------+-------------------------+---------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.StatePath">
+
+.. raw:: html
+
+   </div>
+
 aelf.StatePath
 ~~~~~~~~~~~~~~
 
@@ -469,6 +807,14 @@ aelf.StatePath
 +=========+========================+============+===============+
 | parts   | `string <#string>`__   | repeated   |               |
 +---------+------------------------+------------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.Transaction">
+
+.. raw:: html
+
+   </div>
 
 aelf.Transaction
 ~~~~~~~~~~~~~~~~
@@ -491,6 +837,14 @@ aelf.Transaction
 | signature            | `bytes <#bytes>`__            |         |               |
 +----------------------+-------------------------------+---------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.TransactionExecutingStateSet">
+
+.. raw:: html
+
+   </div>
+
 aelf.TransactionExecutingStateSet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -504,6 +858,14 @@ aelf.TransactionExecutingStateSet
 | deletes   | `TransactionExecutingStateSet.DeletesEntry <#aelf.TransactionExecutingStateSet.DeletesEntry>`__   | repeated   |               |
 +-----------+---------------------------------------------------------------------------------------------------+------------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.TransactionExecutingStateSet.DeletesEntry">
+
+.. raw:: html
+
+   </div>
+
 aelf.TransactionExecutingStateSet.DeletesEntry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -514,6 +876,14 @@ aelf.TransactionExecutingStateSet.DeletesEntry
 +---------+------------------------+---------+---------------+
 | value   | `bool <#bool>`__       |         |               |
 +---------+------------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.TransactionExecutingStateSet.ReadsEntry">
+
+.. raw:: html
+
+   </div>
 
 aelf.TransactionExecutingStateSet.ReadsEntry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -526,6 +896,14 @@ aelf.TransactionExecutingStateSet.ReadsEntry
 | value   | `bool <#bool>`__       |         |               |
 +---------+------------------------+---------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.TransactionExecutingStateSet.WritesEntry">
+
+.. raw:: html
+
+   </div>
+
 aelf.TransactionExecutingStateSet.WritesEntry
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -536,6 +914,14 @@ aelf.TransactionExecutingStateSet.WritesEntry
 +---------+------------------------+---------+---------------+
 | value   | `bytes <#bytes>`__     |         |               |
 +---------+------------------------+---------+---------------+
+
+.. raw:: html
+
+   <div id="aelf.TransactionResult">
+
+.. raw:: html
+
+   </div>
 
 aelf.TransactionResult
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -560,6 +946,14 @@ aelf.TransactionResult
 | error             | `string <#string>`__                                          |            |               |
 +-------------------+---------------------------------------------------------------+------------+---------------+
 
+.. raw:: html
+
+   <div id="aelf.TransactionResultStatus">
+
+.. raw:: html
+
+   </div>
+
 aelf.TransactionResultStatus
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -580,5 +974,4 @@ aelf.TransactionResultStatus
 +----------------------------+----------+---------------+
 | NODE\_VALIDATION\_FAILED   | 6        |               |
 +----------------------------+----------+---------------+
-
 
