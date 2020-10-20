@@ -71,7 +71,7 @@ public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransact
         });
         if (tokenToAmount.Value == 0)
         {
-            Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+            Context.LogDebug(() => "Maybe incorrect charged tx fee of " + tokenToAmount.Key + ": it's 0.");
         }
     }
 
