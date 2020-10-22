@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Grpc" Version="2.31.0" />
+      <PackageReference Include="Grpc" Version="2.33.1" />
       <PackageReference Include="Grpc.Tools" Version="2.31.0" />
       <PackageReference Include="GuerrillaNtp" Version="1.4.2" />
     </ItemGroup>
