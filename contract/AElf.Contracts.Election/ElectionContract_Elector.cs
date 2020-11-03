@@ -35,14 +35,14 @@ namespace AElf.Contracts.Election
             var recoveredPublicKey = Context.RecoverPublicKey();
 
 /*            // If voting targets is replaced by candidate admin, transfer voting information before we add votes to this candidate.
-            if (State.OriginPubkeyMap[input.CandidatePubkey] != null)
+            if (State.OldPubkeyMap[input.CandidatePubkey] != null)
             {
-                var originPubkey = State.OriginPubkeyMap[input.CandidatePubkey];
+                var OldPubkey = State.OldPubkeyMap[input.CandidatePubkey];
                 var newPubkey = input.CandidatePubkey;
                 var voterPublicKey = recoveredPublicKey.ToHex();
                 var electorVotes = State.ElectorVotes[voterPublicKey];
                 var activeVotingRecords =
-                    electorVotes.ActiveVotingRecords.Where(r => r.Candidate == originPubkey).ToList();
+                    electorVotes.ActiveVotingRecords.Where(r => r.Candidate == OldPubkey).ToList();
                 if (activeVotingRecords.Any())
                 {
                     foreach (var record in activeVotingRecords)

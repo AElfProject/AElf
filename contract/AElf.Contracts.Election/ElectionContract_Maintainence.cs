@@ -262,91 +262,101 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private string CheckReplacedPubkey(string originPubkey)
-        {
-            return State.CandidateReplacementMap[originPubkey] != null
-                ? State.CandidateReplacementMap[originPubkey]
-                : originPubkey;
-        }
-
         public override Empty ReplaceCandidatePubkey(ReplaceCandidatePubkeyInput input)
         {
-            Assert(State.CandidateInformationMap[input.OriginPubkey] != null, "Origin pubkey is not a candidate.");
-            // Permission check.
-            Assert(Context.Sender == State.CandidateAdmins[input.OriginPubkey], "No permission.");
+            var isCurrentCandidate = State.CandidateInformationMap[input.OldPubkey] != null &&
+                                     State.CandidateInformationMap[input.OldPubkey].IsCurrentCandidate;
+            Assert(isCurrentCandidate, "Origin pubkey is not a candidate.");
 
+            // Permission check.
+            Assert(Context.Sender == State.CandidateAdmins[input.OldPubkey], "No permission.");
+
+            // Cannot replace candidate during changing miners.
             var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
             Assert(!currentRound.IsMinerListJustChanged, "Cannot replace candidate during changing miners.");
 
             // Record the replacement.
-            PerformReplacement(input.OriginPubkey, input.NewPubkey);
+            PerformReplacement(input.OldPubkey, input.NewPubkey);
 
             // Change related data structures.
-            var originPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OriginPubkey));
+            var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
             var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
+
+            Assert(!State.BlackList.Value.Value.Contains(newPubkeyBytes), "New pubkey is in black list.");
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
-            candidates.Value.Remove(originPubkeyBytes);
+            candidates.Value.Remove(oldPubkeyBytes);
             candidates.Value.Add(newPubkeyBytes);
             State.Candidates.Value = candidates;
+
             var rankingList = State.DataCentersRankingList.Value;
-            if (rankingList.DataCenters.ContainsKey(input.OriginPubkey))
+            if (rankingList.DataCenters.ContainsKey(input.OldPubkey))
             {
-                rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OriginPubkey]);
-                rankingList.DataCenters.Remove(input.OriginPubkey);
+                rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
+                rankingList.DataCenters.Remove(input.OldPubkey);
             }
 
             State.DataCentersRankingList.Value = rankingList;
+
             var initialMiners = State.InitialMiners.Value;
-            if (initialMiners.Value.Contains(originPubkeyBytes))
+            if (initialMiners.Value.Contains(oldPubkeyBytes))
             {
-                initialMiners.Value.Remove(originPubkeyBytes);
+                initialMiners.Value.Remove(oldPubkeyBytes);
                 initialMiners.Value.Add(newPubkeyBytes);
             }
 
             State.InitialMiners.Value = initialMiners;
 
             //     For CandidateVotes and CandidateInformation, just replace value of origin pubkey.
-            var candidateVotes = State.CandidateVotes[input.OriginPubkey];
+            var candidateVotes = State.CandidateVotes[input.OldPubkey];
             candidateVotes.Pubkey = newPubkeyBytes;
             State.CandidateVotes[input.NewPubkey] = candidateVotes;
-            State.CandidateVotes.Remove(input.OriginPubkey);
-            var candidateInformation = State.CandidateInformationMap[input.OriginPubkey];
+            State.CandidateVotes.Remove(input.OldPubkey);
+            var candidateInformation = State.CandidateInformationMap[input.OldPubkey];
             candidateInformation.Pubkey = input.NewPubkey;
             State.CandidateInformationMap[input.NewPubkey] = candidateInformation;
-            State.CandidateInformationMap.Remove(input.OriginPubkey);
+            State.CandidateInformationMap.Remove(input.OldPubkey);
 
             //     Add origin pubkey to black list.
             var blackList = State.BlackList.Value;
-            blackList.Value.Add(originPubkeyBytes);
+            blackList.Value.Add(oldPubkeyBytes);
             State.BlackList.Value = blackList;
 
             return new Empty();
         }
 
-        private void PerformReplacement(string originPubkey, string newPubkey)
+        private void PerformReplacement(string oldPubkey, string newPubkey)
         {
-            State.CandidateReplacementMap[originPubkey] = newPubkey;
-            State.OriginPubkeyMap[newPubkey] = originPubkey;
-            // Notify Consensus Contract to add replacement information.
+            State.CandidateReplacementMap[newPubkey] = oldPubkey;
+            State.InitialToNewestPubkeyMap[oldPubkey] = newPubkey;
+
+            // Initial pubkey is:
+            // 1. miner pubkey of the first round (aka. Initial Miner)
+            // 2. the pubkey announced election
+
+            var initialPubkey = State.InitialPubkeyMap[oldPubkey] ?? oldPubkey;
+            State.InitialPubkeyMap[newPubkey] = initialPubkey;
+
+            State.InitialToNewestPubkeyMap[initialPubkey] = newPubkey;
+
+            // Notify Consensus Contract to update replacement information. (Update from old record.)
             State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
             {
-                OriginPubkey = originPubkey,
+                OldPubkey = initialPubkey,
                 NewPubkey = newPubkey
             });
-            if (State.OriginPubkeyMap[originPubkey] != null)
-            {
-                // Meanwhile the origin pubkey replaced another pubkey before.
-                var pubkeyBeforeOrigin = State.OriginPubkeyMap[originPubkey];
-                State.CandidateReplacementMap[pubkeyBeforeOrigin] = newPubkey;
-                // Notify Consensus Contract to update replacement information. (Update from old record.)
-                State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
-                {
-                    OriginPubkey = pubkeyBeforeOrigin,
-                    NewPubkey = newPubkey
-                });
-            }
+        }
+
+        public override StringValue GetNewestPubkey(StringValue input)
+        {
+            return new StringValue {Value = GetNewestPubkey(input.Value)};
+        }
+
+        private string GetNewestPubkey(string pubkey)
+        {
+            var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
+            return State.InitialToNewestPubkeyMap[initialPubkey];
         }
     }
 }

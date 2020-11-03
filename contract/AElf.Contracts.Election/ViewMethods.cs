@@ -142,7 +142,7 @@ namespace AElf.Contracts.Election
             if (!candidatesInBlackList.Any()) return snapshot;
             foreach (var candidateInBlackList in candidatesInBlackList)
             {
-                var maybePubkey = State.CandidateReplacementMap[candidateInBlackList];
+                var maybePubkey = GetNewestPubkey(candidateInBlackList);
                 if (maybePubkey == null) continue;
                 var electionResult = snapshot.ElectionResult[candidateInBlackList];
                 snapshot.ElectionResult.Add(maybePubkey, electionResult);
@@ -326,7 +326,7 @@ namespace AElf.Contracts.Election
             return new ElectionVotingRecord
             {
                 Voter = votingRecord.Voter,
-                Candidate = votingRecord.Option,
+                Candidate = GetNewestPubkey(votingRecord.Option),
                 Amount = votingRecord.Amount,
                 TermNumber = votingRecord.SnapshotNumber,
                 VoteId = voteId,
@@ -413,6 +413,11 @@ namespace AElf.Contracts.Election
         public override Address GetCandidateAdmin(StringValue input)
         {
             return State.CandidateAdmins[input.Value];
+        }
+
+        public override StringValue GetReplacedPubkey(StringValue input)
+        {
+            return new StringValue {Value = State.CandidateReplacementMap[input.Value]};
         }
     }
 }

@@ -68,13 +68,18 @@ namespace AElf.Contracts.Election
         public MappedState<string, Address> CandidateAdmins { get; set; }
 
         /// <summary>
-        /// Origin pubkey -> New pubkey
+        /// Pubkey -> Newest pubkey
         /// </summary>
         public MappedState<string, string> CandidateReplacementMap { get; set; }
 
         /// <summary>
-        /// New pubkey -> Origin Pubkey
+        /// Pubkey -> Initial pubkey (First round initial miner pubkey or first announce election pubkey)
         /// </summary>
-        public MappedState<string, string> OriginPubkeyMap { get; set; }
+        public MappedState<string, string> InitialPubkeyMap { get; set; }
+
+        /// <summary>
+        /// Initial pubkey -> Newest pubkey
+        /// </summary>
+        public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
     }
 }

@@ -877,5 +877,16 @@ namespace AElf.Contracts.Treasury
 
             return dividends;
         }
+
+        public override Empty RecordMinerReplacement(RecordMinerReplacementInput input)
+        {
+            var reElectionInformation = State.MinerReElectionInformation.Value;
+            if (!reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
+            reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey,
+                reElectionInformation.ContinualAppointmentTimes[input.OldPubkey]);
+            reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);
+            State.MinerReElectionInformation.Value = reElectionInformation;
+            return new Empty();
+        }
     }
 }

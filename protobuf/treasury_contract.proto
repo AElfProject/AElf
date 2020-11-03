@@ -28,6 +28,8 @@ service TreasuryContract {
     }
     rpc ChangeTreasuryController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc RecordMinerReplacement (RecordMinerReplacementInput) returns (google.protobuf.Empty) {
+    }
     
     // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -102,4 +104,9 @@ message MinerRewardWeightProportion {
     SchemeProportionInfo basic_miner_reward_proportion_info = 1;
     SchemeProportionInfo votes_weight_reward_proportion_info = 2;
     SchemeProportionInfo re_election_reward_proportion_info = 3;
+}
+
+message RecordMinerReplacementInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
 }

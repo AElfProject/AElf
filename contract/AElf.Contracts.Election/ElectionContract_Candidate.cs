@@ -219,14 +219,24 @@ namespace AElf.Contracts.Election
 
         public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
         {
+            var isCurrentCandidate = State.CandidateInformationMap[input.Pubkey] != null &&
+                                     State.CandidateInformationMap[input.Pubkey].IsCurrentCandidate;
+            Assert(isCurrentCandidate||
+                State.InitialMiners.Value.Value.Contains(
+                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey))),
+                "Pubkey is neither a current candidate nor an initial miner.");
+
             if (State.CandidateAdmins[input.Pubkey] == null)
             {
                 // If admin is not set before (due to old contract code)
                 Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
                     "No permission.");
             }
+            else
+            {
+                Assert(Context.Sender == State.CandidateAdmins[input.Pubkey], "No permission.");
+            }
 
-            Assert(Context.Sender == State.CandidateAdmins[input.Pubkey], "No permission.");
             State.CandidateAdmins[input.Pubkey] = input.Admin;
             return new Empty();
         }

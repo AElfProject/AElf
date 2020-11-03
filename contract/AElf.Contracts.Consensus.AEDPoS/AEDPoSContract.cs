@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -208,14 +209,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 "Only Election Contract can record candidate replacement information.");
 
             if (!TryToGetCurrentRoundInformation(out var currentRound) ||
-                !currentRound.RealTimeMinersInformation.ContainsKey(input.OriginPubkey)) return new Empty();
+                !currentRound.RealTimeMinersInformation.ContainsKey(input.OldPubkey)) return new Empty();
 
             // If this candidate is current miner, need to modify current round information.
-            var readTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OriginPubkey];
+            var readTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OldPubkey];
             readTimeMinerInformation.Pubkey = input.NewPubkey;
-            currentRound.RealTimeMinersInformation.Remove(input.OriginPubkey);
+            currentRound.RealTimeMinersInformation.Remove(input.OldPubkey);
             currentRound.RealTimeMinersInformation.Add(input.NewPubkey, readTimeMinerInformation);
             State.Rounds[State.CurrentRoundNumber.Value] = currentRound;
+
+            // Notify Treasury Contract to update replacement information. (Update from old record.)
+            State.TreasuryContract.RecordMinerReplacement.Send(new RecordMinerReplacementInput
+            {
+                OldPubkey = input.OldPubkey,
+                NewPubkey = input.NewPubkey
+            });
 
             return new Empty();
         }

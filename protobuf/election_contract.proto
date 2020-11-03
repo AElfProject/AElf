@@ -124,6 +124,12 @@ service ElectionContract {
     rpc GetCandidateAdmin (google.protobuf.StringValue) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
+    rpc GetNewestPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetReplacedPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
@@ -298,7 +304,7 @@ message MinerReplacementInformation {
 }
 
 message ReplaceCandidatePubkeyInput {
-    string origin_pubkey = 1;
+    string old_pubkey = 1;
     string new_pubkey = 2;
 }
 
@@ -311,4 +317,10 @@ message SetCandidateAdminInput {
 message EvilMinerDetected {
     option (aelf.is_event) = true;
     string pubkey = 1;
+}
+
+message CandidatePubkeyReplaced {
+    option (aelf.is_event) = true;
+    string old_pubkey = 1;
+    string new_pubkey = 2;
 }
