@@ -61,5 +61,20 @@ namespace AElf.Contracts.Election
         public SingletonState<AuthorityInfo> VoteWeightInterestController { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Address who has the authority to replace it.
+        /// </summary>
+        public MappedState<string, Address> CandidateAdmins { get; set; }
+
+        /// <summary>
+        /// Origin pubkey -> New pubkey
+        /// </summary>
+        public MappedState<string, string> CandidateReplacementMap { get; set; }
+
+        /// <summary>
+        /// New pubkey -> Origin Pubkey
+        /// </summary>
+        public MappedState<string, string> OriginPubkeyMap { get; set; }
     }
 }

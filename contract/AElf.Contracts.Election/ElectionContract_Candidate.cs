@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -21,12 +23,15 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty AnnounceElection(Empty input)
+        public override Empty AnnounceElection(Address input)
         {
             var recoveredPublicKey = Context.RecoverPublicKey();
             AnnounceElection(recoveredPublicKey);
 
             var pubkey = recoveredPublicKey.ToHex();
+
+            Assert(input.Value.Any(), "Admin is needed while announcing election.");
+            State.CandidateAdmins[pubkey] = input;
 
             LockCandidateNativeToken();
 
@@ -135,12 +140,13 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="input">Empty</param>
         /// <returns></returns>
-        public override Empty QuitElection(Empty input)
+        public override Empty QuitElection(StringValue input)
         {
-            var recoveredPublicKey = Context.RecoverPublicKey();
-            QuitElection(recoveredPublicKey);
-            var pubkey = recoveredPublicKey.ToHex();
+            var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(input.Value);
+            QuitElection(pubkeyBytes);
+            var pubkey = input.Value;
 
+            Assert(Context.Sender == State.CandidateAdmins[pubkey], "Only admin can quit election.");
             var candidateInformation = State.CandidateInformationMap[pubkey];
 
             // Unlock candidate's native token.
@@ -180,6 +186,7 @@ namespace AElf.Contracts.Election
 
                 State.DataCentersRankingList.Value = dataCenterList;
             }
+
             return new Empty();
         }
 
@@ -204,6 +211,24 @@ namespace AElf.Contracts.Election
             }
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
+        }
+
+        #endregion
+
+        #region SetCandidateAdmin
+
+        public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
+        {
+            if (State.CandidateAdmins[input.Pubkey] == null)
+            {
+                // If admin is not set before (due to old contract code)
+                Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
+                    "No permission.");
+            }
+
+            Assert(Context.Sender == State.CandidateAdmins[input.Pubkey], "No permission.");
+            State.CandidateAdmins[input.Pubkey] = input.Admin;
+            return new Empty();
         }
 
         #endregion

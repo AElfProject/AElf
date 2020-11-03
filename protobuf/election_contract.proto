@@ -22,9 +22,9 @@ service ElectionContract {
     }
     rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
     }
-    rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc AnnounceElection (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc QuitElection (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
     rpc Vote (VoteMinerInput) returns (aelf.Hash) {
     }
@@ -46,7 +46,11 @@ service ElectionContract {
     }
     rpc ChangeVoteWeightInterestController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    
+    rpc ReplaceCandidatePubkey (ReplaceCandidatePubkeyInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
+    }
+
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
@@ -115,6 +119,9 @@ service ElectionContract {
         option (aelf.is_view) = true;
     }
     rpc GetMinerReplacementInformation (GetMinerReplacementInformationInput) returns (MinerReplacementInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidateAdmin (google.protobuf.StringValue) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -202,6 +209,7 @@ message CandidateInformation {
     int64 continual_appointment_count = 5;
     aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
+    aelf.Hash replacement_transaction_id = 8;
 }
 
 message CandidateDetail {
@@ -287,6 +295,16 @@ message GetMinerReplacementInformationInput {
 message MinerReplacementInformation {
     repeated string alternative_candidate_pubkeys = 1;
     repeated string evil_miner_pubkeys = 2;
+}
+
+message ReplaceCandidatePubkeyInput {
+    string origin_pubkey = 1;
+    string new_pubkey = 2;
+}
+
+message SetCandidateAdminInput {
+    string pubkey = 1;
+    aelf.Address admin = 2;
 }
 
 // Events

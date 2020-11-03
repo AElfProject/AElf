@@ -76,6 +76,7 @@ namespace AElf.Contracts.Election
                     backups.AddRange(
                         State.InitialMiners.Value.Value.Select(k => k.ToHex()).Where(k => !backups.Contains(k)));
                 }
+
                 victories.AddRange(backups.OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
                     .Select(ByteStringHelper.FromHexString));
@@ -134,7 +135,21 @@ namespace AElf.Contracts.Election
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
-            return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
+            var snapshot = State.Snapshots[input.TermNumber];
+            var blackList = State.BlackList.Value.Value;
+            var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
+                blackList.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
+            if (!candidatesInBlackList.Any()) return snapshot;
+            foreach (var candidateInBlackList in candidatesInBlackList)
+            {
+                var maybePubkey = State.CandidateReplacementMap[candidateInBlackList];
+                if (maybePubkey == null) continue;
+                var electionResult = snapshot.ElectionResult[candidateInBlackList];
+                snapshot.ElectionResult.Add(maybePubkey, electionResult);
+                snapshot.ElectionResult.Remove(candidateInBlackList);
+            }
+
+            return snapshot;
         }
 
         public override ElectorVote GetElectorVote(StringValue input)
@@ -330,7 +345,8 @@ namespace AElf.Contracts.Election
         {
             var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
             var alternativeCandidates = new List<string>();
-            var latestSnapshot = State.Snapshots[State.CurrentTermNumber.Value.Sub(1)];
+            var latestSnapshot = GetTermSnapshot(new GetTermSnapshotInput
+                {TermNumber = State.CurrentTermNumber.Value.Sub(1)});
             // Check out election snapshot.
             if (latestSnapshot != null)
             {
@@ -392,6 +408,11 @@ namespace AElf.Contracts.Election
         private int GetValidationDataCenterCount()
         {
             return GetMinersCount(new Empty()).Value.Mul(5);
+        }
+
+        public override Address GetCandidateAdmin(StringValue input)
+        {
+            return State.CandidateAdmins[input.Value];
         }
     }
 }

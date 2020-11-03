@@ -251,9 +251,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var minersCount = currentRound.RealTimeMinersInformation.Count;
                     var latestMinedSlotLastActualMiningTime = latestMinedInfo.ActualMiningTimes.Last();
                     var latestMinedOrder = latestMinedInfo.Order;
-                    var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
+                    var currentMinerOrder =
+                        currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
                     var passedSlotsCount =
-                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Milliseconds().Div(miningInterval);
+                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Milliseconds()
+                        .Div(miningInterval);
                     if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(1).Add(minersCount) ||
                         passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(minersCount))
                     {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
@@ -106,7 +107,8 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
-            var previousTermMinerList = State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
+            var previousTermMinerList =
+                State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
 
             foreach (var pubkey in previousTermMinerList)
             {
@@ -260,15 +262,91 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private Address GetParliamentDefaultOrganizationAddress()
+        private string CheckReplacedPubkey(string originPubkey)
         {
-            if (State.ParliamentContract.Value == null)
+            return State.CandidateReplacementMap[originPubkey] != null
+                ? State.CandidateReplacementMap[originPubkey]
+                : originPubkey;
+        }
+
+        public override Empty ReplaceCandidatePubkey(ReplaceCandidatePubkeyInput input)
+        {
+            Assert(State.CandidateInformationMap[input.OriginPubkey] != null, "Origin pubkey is not a candidate.");
+            // Permission check.
+            Assert(Context.Sender == State.CandidateAdmins[input.OriginPubkey], "No permission.");
+
+            var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
+            Assert(!currentRound.IsMinerListJustChanged, "Cannot replace candidate during changing miners.");
+
+            // Record the replacement.
+            PerformReplacement(input.OriginPubkey, input.NewPubkey);
+
+            // Change related data structures.
+            var originPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OriginPubkey));
+            var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
+
+            //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
+            var candidates = State.Candidates.Value;
+            candidates.Value.Remove(originPubkeyBytes);
+            candidates.Value.Add(newPubkeyBytes);
+            State.Candidates.Value = candidates;
+            var rankingList = State.DataCentersRankingList.Value;
+            if (rankingList.DataCenters.ContainsKey(input.OriginPubkey))
             {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OriginPubkey]);
+                rankingList.DataCenters.Remove(input.OriginPubkey);
             }
 
-            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+            State.DataCentersRankingList.Value = rankingList;
+            var initialMiners = State.InitialMiners.Value;
+            if (initialMiners.Value.Contains(originPubkeyBytes))
+            {
+                initialMiners.Value.Remove(originPubkeyBytes);
+                initialMiners.Value.Add(newPubkeyBytes);
+            }
+
+            State.InitialMiners.Value = initialMiners;
+
+            //     For CandidateVotes and CandidateInformation, just replace value of origin pubkey.
+            var candidateVotes = State.CandidateVotes[input.OriginPubkey];
+            candidateVotes.Pubkey = newPubkeyBytes;
+            State.CandidateVotes[input.NewPubkey] = candidateVotes;
+            State.CandidateVotes.Remove(input.OriginPubkey);
+            var candidateInformation = State.CandidateInformationMap[input.OriginPubkey];
+            candidateInformation.Pubkey = input.NewPubkey;
+            State.CandidateInformationMap[input.NewPubkey] = candidateInformation;
+            State.CandidateInformationMap.Remove(input.OriginPubkey);
+
+            //     Add origin pubkey to black list.
+            var blackList = State.BlackList.Value;
+            blackList.Value.Add(originPubkeyBytes);
+            State.BlackList.Value = blackList;
+
+            return new Empty();
+        }
+
+        private void PerformReplacement(string originPubkey, string newPubkey)
+        {
+            State.CandidateReplacementMap[originPubkey] = newPubkey;
+            State.OriginPubkeyMap[newPubkey] = originPubkey;
+            // Notify Consensus Contract to add replacement information.
+            State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
+            {
+                OriginPubkey = originPubkey,
+                NewPubkey = newPubkey
+            });
+            if (State.OriginPubkeyMap[originPubkey] != null)
+            {
+                // Meanwhile the origin pubkey replaced another pubkey before.
+                var pubkeyBeforeOrigin = State.OriginPubkeyMap[originPubkey];
+                State.CandidateReplacementMap[pubkeyBeforeOrigin] = newPubkey;
+                // Notify Consensus Contract to update replacement information. (Update from old record.)
+                State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
+                {
+                    OriginPubkey = pubkeyBeforeOrigin,
+                    NewPubkey = newPubkey
+                });
+            }
         }
     }
 }

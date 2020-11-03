@@ -201,5 +201,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
             height.MergeFrom(input.Value);
             return GetRandomHash(height).ToBytesValue();
         }
+
+        public override Empty RecordCandidateReplacement(RecordCandidateReplacementInput input)
+        {
+            Assert(Context.Sender == State.ElectionContract.Value,
+                "Only Election Contract can record candidate replacement information.");
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound) ||
+                !currentRound.RealTimeMinersInformation.ContainsKey(input.OriginPubkey)) return new Empty();
+
+            // If this candidate is current miner, need to modify current round information.
+            var readTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OriginPubkey];
+            readTimeMinerInformation.Pubkey = input.NewPubkey;
+            currentRound.RealTimeMinersInformation.Remove(input.OriginPubkey);
+            currentRound.RealTimeMinersInformation.Add(input.NewPubkey, readTimeMinerInformation);
+            State.Rounds[State.CurrentRoundNumber.Value] = currentRound;
+
+            return new Empty();
+        }
     }
 }

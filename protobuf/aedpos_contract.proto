@@ -34,6 +34,8 @@ service AEDPoSContract {
     }
     rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    rpc RecordCandidateReplacement (RecordCandidateReplacementInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -297,4 +299,9 @@ message MiningRewardGenerated {
 message MinerReplaced {
     option (aelf.is_event) = true;
     string new_miner_pubkey = 1;
+}
+
+message RecordCandidateReplacementInput {
+    string origin_pubkey = 1;
+    string new_pubkey = 2;
 }

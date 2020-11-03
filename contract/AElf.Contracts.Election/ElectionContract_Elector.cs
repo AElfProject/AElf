@@ -31,6 +31,29 @@ namespace AElf.Contracts.Election
             // Check candidate information map instead of candidates. 
             var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
             AssertValidCandidateInformation(targetInformation);
+            
+            var recoveredPublicKey = Context.RecoverPublicKey();
+
+/*            // If voting targets is replaced by candidate admin, transfer voting information before we add votes to this candidate.
+            if (State.OriginPubkeyMap[input.CandidatePubkey] != null)
+            {
+                var originPubkey = State.OriginPubkeyMap[input.CandidatePubkey];
+                var newPubkey = input.CandidatePubkey;
+                var voterPublicKey = recoveredPublicKey.ToHex();
+                var electorVotes = State.ElectorVotes[voterPublicKey];
+                var activeVotingRecords =
+                    electorVotes.ActiveVotingRecords.Where(r => r.Candidate == originPubkey).ToList();
+                if (activeVotingRecords.Any())
+                {
+                    foreach (var record in activeVotingRecords)
+                    {
+                        var newRecord = record.Clone();
+                        newRecord.Candidate = newPubkey;
+                        electorVotes.ActiveVotingRecords.Remove(record);
+                        electorVotes.ActiveVotingRecords.Add(newRecord);
+                    }
+                }
+            }*/
 
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
@@ -38,8 +61,6 @@ namespace AElf.Contracts.Election
             var voteId = GenerateVoteId(input);
             Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
             State.LockTimeMap[voteId] = lockSeconds;
-
-            var recoveredPublicKey = Context.RecoverPublicKey();
 
             UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
 
