@@ -323,17 +323,22 @@ namespace AElf.Contracts.Election
             blackList.Value.Add(oldPubkeyBytes);
             State.BlackList.Value = blackList;
 
+            Context.Fire(new CandidatePubkeyReplaced
+            {
+                OldPubkey = input.OldPubkey,
+                NewPubkey = input.NewPubkey
+            });
+
             return new Empty();
         }
 
         private void PerformReplacement(string oldPubkey, string newPubkey)
         {
             State.CandidateReplacementMap[newPubkey] = oldPubkey;
-            State.InitialToNewestPubkeyMap[oldPubkey] = newPubkey;
 
             // Initial pubkey is:
-            // 1. miner pubkey of the first round (aka. Initial Miner)
-            // 2. the pubkey announced election
+            // - miner pubkey of the first round (aka. Initial Miner), or
+            // - the pubkey announced election
 
             var initialPubkey = State.InitialPubkeyMap[oldPubkey] ?? oldPubkey;
             State.InitialPubkeyMap[newPubkey] = initialPubkey;
@@ -343,7 +348,7 @@ namespace AElf.Contracts.Election
             // Notify Consensus Contract to update replacement information. (Update from old record.)
             State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
             {
-                OldPubkey = initialPubkey,
+                OldPubkey = oldPubkey,
                 NewPubkey = newPubkey
             });
         }

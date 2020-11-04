@@ -880,6 +880,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty RecordMinerReplacement(RecordMinerReplacementInput input)
         {
+            Assert(State.AEDPoSContract.Value == Context.Sender, "Only AEDPoS Contract can record miner replacement.");
             var reElectionInformation = State.MinerReElectionInformation.Value;
             if (!reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
             reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey,
