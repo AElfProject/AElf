@@ -136,9 +136,10 @@ namespace AElf.Contracts.Election
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
             var snapshot = State.Snapshots[input.TermNumber];
-            var blackList = State.BlackList.Value.Value;
+            var blackList = State.BlackList.Value;
+            if (blackList == null) return snapshot;
             var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
-                blackList.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
+                blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
             if (!candidatesInBlackList.Any()) return snapshot;
             foreach (var candidateInBlackList in candidatesInBlackList)
             {
