@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.Profit;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Types;
@@ -68,7 +69,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             foreach (var user in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount))
             {
                 var electionTester = GetElectionContractTester(user);
-                var electionResult = await electionTester.AnnounceElection.SendAsync(new Empty());
+                var electionResult = await electionTester.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
                 electionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 

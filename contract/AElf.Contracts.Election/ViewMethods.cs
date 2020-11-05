@@ -346,8 +346,13 @@ namespace AElf.Contracts.Election
         {
             var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
             var alternativeCandidates = new List<string>();
-            var latestSnapshot = GetTermSnapshot(new GetTermSnapshotInput
-                {TermNumber = State.CurrentTermNumber.Value.Sub(1)});
+            var termNumber = State.CurrentTermNumber.Value.Sub(1);
+            var latestSnapshot = termNumber == 0
+                ? null
+                : GetTermSnapshot(new GetTermSnapshotInput
+                {
+                    TermNumber = termNumber
+                });
             // Check out election snapshot.
             if (latestSnapshot != null)
             {

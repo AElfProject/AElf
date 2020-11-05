@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Profit;
+using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.TestBase;
 using AElf.Types;
@@ -42,7 +43,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
                 MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(new Empty())));
+                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
@@ -147,7 +148,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
                 MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).Take(10)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(new Empty())));
+                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
@@ -291,7 +292,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
                 MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(10)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(new Empty())));
+                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
