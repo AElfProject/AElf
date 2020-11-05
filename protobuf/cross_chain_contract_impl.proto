@@ -1,3 +1,8 @@
+/**
+ * Cross-Chain contract.
+ * 
+ * Implement AElf Standards ACS1 and ACS7.
+ */
 syntax = "proto3";
 
 package CrossChainImpl;

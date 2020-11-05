@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Standards.ACS10;
 using AElf.Types;
+using NSubstitute;
 using Shouldly;
 using Xunit;
 
@@ -9,12 +10,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        
         [Fact]
         public async Task Consensus_Donate_With_Invalid_Token_Test()
         {
             var tokenSymbol = "SEP";
-            
+
             // Donate with token which is not profitable will fail
             await TokenContractStub.Create.SendAsync(new CreateInput
             {

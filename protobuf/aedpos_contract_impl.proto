@@ -1,3 +1,10 @@
+/**
+ * AEDPoS contract.
+ *
+ * Used to managing block producers and synchronizing data.
+ * 
+ * Implement AElf Standards ACS1, ACS4, ACS6, ACS10 and ACS11.
+ */
 syntax = "proto3";
 
 package AEDPoSImpl;

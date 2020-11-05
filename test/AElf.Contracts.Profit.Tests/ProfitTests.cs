@@ -420,8 +420,7 @@ namespace AElf.Contracts.Profit
                 var removeSubSchemeResult = await creator.RemoveSubScheme.SendAsync(new RemoveSubSchemeInput
                 {
                     SchemeId = schemeId,
-                    SubSchemeId = subSchemeId1,
-                    SubItemCreator = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
+                    SubSchemeId = subSchemeId1
                 });
                 removeSubSchemeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

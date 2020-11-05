@@ -1,3 +1,11 @@
+/**
+ * Vote contract.
+ *
+ * The Vote contract is an abstract layer for voting. Developers implement concrete voting activities 
+ * by calling this contract.
+ *
+ * Implement AElf Standards ACS1.
+ */
 syntax = "proto3";
 
 package VoteImp;

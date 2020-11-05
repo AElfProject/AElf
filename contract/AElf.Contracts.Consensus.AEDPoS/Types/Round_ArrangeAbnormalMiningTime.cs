@@ -38,17 +38,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return futureRoundStartTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
         }
 
-        public bool IsInCorrectFutureMiningSlot(string pubkey, Timestamp currentBlockTime)
-        {
-            var miningInterval = GetMiningInterval();
-
-            var arrangedMiningTime =
-                ArrangeAbnormalMiningTime(pubkey, currentBlockTime.AddMilliseconds(-miningInterval));
-
-            return arrangedMiningTime <= currentBlockTime &&
-                   currentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval);
-        }
-
         private MinerInRound GetExtraBlockProducerInformation()
         {
             return RealTimeMinersInformation.First(bp => bp.Value.IsExtraBlockProducer).Value;
