@@ -266,7 +266,9 @@ namespace AElf.Contracts.Election
         {
             var isCurrentCandidate = State.CandidateInformationMap[input.OldPubkey] != null &&
                                      State.CandidateInformationMap[input.OldPubkey].IsCurrentCandidate;
-            Assert(isCurrentCandidate, "Origin pubkey is not a candidate.");
+            var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
+            var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
+            Assert(isCurrentCandidate || State.InitialMiners.Value.Value.Contains(oldPubkeyBytes), "Origin pubkey is not a candidate.");
 
             // Permission check.
             Assert(Context.Sender == State.CandidateAdmins[input.OldPubkey], "No permission.");
@@ -278,45 +280,48 @@ namespace AElf.Contracts.Election
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
 
-            // Change related data structures.
-            var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
-            var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
-
             Assert(!State.BlackList.Value.Value.Contains(newPubkeyBytes), "New pubkey is in black list.");
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
-            candidates.Value.Remove(oldPubkeyBytes);
-            candidates.Value.Add(newPubkeyBytes);
-            State.Candidates.Value = candidates;
+            if (candidates.Value.Contains(oldPubkeyBytes))
+            {
+                candidates.Value.Remove(oldPubkeyBytes);
+                candidates.Value.Add(newPubkeyBytes);
+                State.Candidates.Value = candidates;
+            }
 
             var rankingList = State.DataCentersRankingList.Value;
             if (rankingList.DataCenters.ContainsKey(input.OldPubkey))
             {
                 rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
                 rankingList.DataCenters.Remove(input.OldPubkey);
+                State.DataCentersRankingList.Value = rankingList;
             }
-
-            State.DataCentersRankingList.Value = rankingList;
 
             var initialMiners = State.InitialMiners.Value;
             if (initialMiners.Value.Contains(oldPubkeyBytes))
             {
                 initialMiners.Value.Remove(oldPubkeyBytes);
                 initialMiners.Value.Add(newPubkeyBytes);
+                State.InitialMiners.Value = initialMiners;
             }
-
-            State.InitialMiners.Value = initialMiners;
 
             //     For CandidateVotes and CandidateInformation, just replace value of origin pubkey.
             var candidateVotes = State.CandidateVotes[input.OldPubkey];
-            candidateVotes.Pubkey = newPubkeyBytes;
-            State.CandidateVotes[input.NewPubkey] = candidateVotes;
-            State.CandidateVotes.Remove(input.OldPubkey);
+            if (candidateVotes != null)
+            {
+                candidateVotes.Pubkey = newPubkeyBytes;
+                State.CandidateVotes[input.NewPubkey] = candidateVotes;
+                State.CandidateVotes.Remove(input.OldPubkey);
+            }
             var candidateInformation = State.CandidateInformationMap[input.OldPubkey];
-            candidateInformation.Pubkey = input.NewPubkey;
-            State.CandidateInformationMap[input.NewPubkey] = candidateInformation;
-            State.CandidateInformationMap.Remove(input.OldPubkey);
+            if (candidateInformation != null)
+            {
+                candidateInformation.Pubkey = input.NewPubkey;
+                State.CandidateInformationMap[input.NewPubkey] = candidateInformation;
+                State.CandidateInformationMap.Remove(input.OldPubkey);
+            }
 
             //     Add origin pubkey to black list.
             var blackList = State.BlackList.Value;
