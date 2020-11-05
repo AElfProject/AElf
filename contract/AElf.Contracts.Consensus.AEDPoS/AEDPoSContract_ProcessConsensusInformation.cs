@@ -237,9 +237,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             // Remove information out of date.
-            if (currentRound.RoundNumber > 3)
+            var removeTargetRoundNumber = currentRound.RoundNumber.Sub(3);
+            if (removeTargetRoundNumber > 0 && State.MinedMinerListMap[removeTargetRoundNumber] != null)
             {
-                State.MinedMinerListMap.Remove(currentRound.RoundNumber.Sub(3));
+                State.MinedMinerListMap.Remove(removeTargetRoundNumber);
             }
         }
 

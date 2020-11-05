@@ -212,10 +212,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 !currentRound.RealTimeMinersInformation.ContainsKey(input.OldPubkey)) return new Empty();
 
             // If this candidate is current miner, need to modify current round information.
-            var readTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OldPubkey];
-            readTimeMinerInformation.Pubkey = input.NewPubkey;
+            var realTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OldPubkey];
+            realTimeMinerInformation.Pubkey = input.NewPubkey;
             currentRound.RealTimeMinersInformation.Remove(input.OldPubkey);
-            currentRound.RealTimeMinersInformation.Add(input.NewPubkey, readTimeMinerInformation);
+            currentRound.RealTimeMinersInformation.Add(input.NewPubkey, realTimeMinerInformation);
             State.Rounds[State.CurrentRoundNumber.Value] = currentRound;
 
             // Notify Treasury Contract to update replacement information. (Update from old record.)
