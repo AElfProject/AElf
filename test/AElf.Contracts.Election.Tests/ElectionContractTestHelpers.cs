@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -42,14 +44,15 @@ namespace AElf.Contracts.Election
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address)).TransactionResult;
             return announceResult;
         }
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;
+            return (await electionStub.QuitElection.SendAsync(new StringValue {Value = keyPair.PublicKey.ToHex()}))
+                .TransactionResult;
         }
 
         private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,

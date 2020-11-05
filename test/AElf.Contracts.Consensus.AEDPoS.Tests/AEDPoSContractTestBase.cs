@@ -9,6 +9,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;

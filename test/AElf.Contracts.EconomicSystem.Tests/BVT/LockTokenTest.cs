@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
@@ -37,12 +38,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }));
             issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             {
-                var result = AsyncHelper.RunSync(()=> EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
-                {
-                    Amount = EconomicContractsTestConstants.TotalSupply / 5,
-                    To = TokenContractAddress,
-                    Memo = "Set mining rewards."
-                }));
+                var result = AsyncHelper.RunSync(() => EconomicContractStub.IssueNativeToken.SendAsync(
+                    new IssueNativeTokenInput
+                    {
+                        Amount = EconomicContractsTestConstants.TotalSupply / 5,
+                        To = TokenContractAddress,
+                        Memo = "Set mining rewards."
+                    }));
                 result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
@@ -62,8 +64,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task Token_Unlock_Test()
         {
             await Token_Lock_Test();
-            
-            await tokenTestElectionContractStub.QuitElection.SendAsync(new Empty());
+
+            await tokenTestElectionContractStub.QuitElection.SendAsync(new StringValue
+                {Value = AnnounceElectionKeyPair.PublicKey.ToHex()});
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(AnnounceElectionKeyPair.PublicKey),
