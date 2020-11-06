@@ -94,7 +94,7 @@ namespace AElf.OS.Network.Grpc
             });
 
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
-            
+
             peer.InboundSessionId = handshake.SessionId.ToByteArray();
             peer.UpdateLastSentHandshake(handshake);
 
@@ -109,10 +109,9 @@ namespace AElf.OS.Network.Grpc
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
-            
+
             try
             {
-                
                 var metadata = new Metadata
                 {
                     {GrpcConstants.RetryCountMetadataKey, "0"},
@@ -121,7 +120,7 @@ namespace AElf.OS.Network.Grpc
 
                 handshakeReply =
                     await client.Client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, metadata);
-                
+
                 Logger.LogDebug($"Handshake to {remoteEndPoint} successful.");
             }
             catch (Exception)
@@ -132,7 +131,7 @@ namespace AElf.OS.Network.Grpc
 
             return handshakeReply;
         }
-        
+
         public async Task<bool> CheckEndpointAvailableAsync(DnsEndPoint remoteEndpoint)
         {
             var client = await CreateClientAsync(remoteEndpoint);
@@ -159,7 +158,7 @@ namespace AElf.OS.Network.Grpc
 
             if (client == null)
                 return null;
-            
+
             await PingNodeAsync(client, remoteEndpoint);
 
             var peer = new GrpcPeer(client, remoteEndpoint, new PeerConnectionInfo
@@ -215,7 +214,8 @@ namespace AElf.OS.Network.Grpc
                 return null;
 
             Logger.LogDebug($"Upgrading connection to TLS: {certificate}.");
-            ChannelCredentials credentials =  new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
+            ChannelCredentials credentials =
+                new SslCredentials(TlsHelper.ObjectToPem(certificate), _clientKeyCertificatePair);
 
             var channel = new Channel(remoteEndpoint.ToString(), credentials, new List<ChannelOption>
             {
@@ -236,7 +236,7 @@ namespace AElf.OS.Network.Grpc
 
             return new GrpcClient(channel, client, certificate);
         }
-        
+
         private async Task<X509Certificate> RetrieveServerCertificateAsync(DnsEndPoint remoteEndpoint)
         {
             Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
@@ -251,7 +251,8 @@ namespace AElf.OS.Network.Grpc
                     using (var cts = new CancellationTokenSource())
                     {
                         cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
-                        await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
+                        await Task.Run(() => client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port), cts.Token)
+                            .WithCancellation(cts.Token);
                     }
                 }
                 catch (OperationCanceledException)
@@ -287,10 +288,10 @@ namespace AElf.OS.Network.Grpc
             {
                 client?.Close();
             }
-            
+
             return null;
         }
-        
+
         public static X509Certificate FromX509Certificate(
             System.Security.Cryptography.X509Certificates.X509Certificate x509Cert)
         {
