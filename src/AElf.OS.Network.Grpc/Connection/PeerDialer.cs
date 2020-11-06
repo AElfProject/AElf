@@ -242,41 +242,37 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Starting certificate retrieval for {remoteEndpoint}.");
 
             TcpClient client = null;
+
             try
             {
                 client = new TcpClient();
-
-                try
+                using (var cts = new CancellationTokenSource())
                 {
-                    using (var cts = new CancellationTokenSource())
+                    cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
+                    await client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port).WithCancellation(cts.Token);
+
+                    using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
                     {
-                        cts.CancelAfter(NetworkConstants.DefaultSslCertifFetchTimeout);
-                        await Task.Run(() => client.ConnectAsync(remoteEndpoint.Host, remoteEndpoint.Port), cts.Token)
-                            .WithCancellation(cts.Token);
+                        sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
+                        sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
+                        await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host).WithCancellation(cts.Token);
+
+                        if (sslStream.RemoteCertificate == null)
+                        {
+                            Logger.LogDebug($"Certificate from {remoteEndpoint} is null");
+                            return null;
+                        }
+
+                        Logger.LogDebug($"Retrieved certificate for {remoteEndpoint}.");
+
+                        return FromX509Certificate(sslStream.RemoteCertificate);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
-                    return null;
-                }
-
-                using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
-                {
-                    sslStream.ReadTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
-                    sslStream.WriteTimeout = NetworkConstants.DefaultSslCertifFetchTimeout;
-                    await sslStream.AuthenticateAsClientAsync(remoteEndpoint.Host);
-
-                    if (sslStream.RemoteCertificate == null)
-                    {
-                        Logger.LogDebug($"Certificate from {remoteEndpoint} is null");
-                        return null;
-                    }
-
-                    Logger.LogDebug($"Retrieved certificate for {remoteEndpoint}.");
-
-                    return FromX509Certificate(sslStream.RemoteCertificate);
-                }
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.LogDebug($"Certificate retrieval connection timeout for {remoteEndpoint}.");
+                return null;
             }
             catch (Exception ex)
             {
