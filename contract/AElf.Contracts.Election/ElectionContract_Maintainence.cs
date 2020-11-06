@@ -271,7 +271,7 @@ namespace AElf.Contracts.Election
             Assert(isCurrentCandidate || State.InitialMiners.Value.Value.Contains(oldPubkeyBytes), "Origin pubkey is not a candidate.");
 
             // Permission check.
-            Assert(Context.Sender == State.CandidateAdmins[input.OldPubkey], "No permission.");
+            Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
 
             // Cannot replace candidate during changing miners.
             var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());

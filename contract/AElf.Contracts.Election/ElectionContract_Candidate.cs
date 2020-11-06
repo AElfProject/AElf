@@ -146,7 +146,8 @@ namespace AElf.Contracts.Election
             QuitElection(pubkeyBytes);
             var pubkey = input.Value;
 
-            Assert(Context.Sender == State.CandidateAdmins[pubkey], "Only admin can quit election.");
+            var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
+            Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "Only admin can quit election.");
             var candidateInformation = State.CandidateInformationMap[pubkey];
 
             // Unlock candidate's native token.
@@ -226,7 +227,8 @@ namespace AElf.Contracts.Election
                     ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey))),
                 "Pubkey is neither a current candidate nor an initial miner.");
 
-            if (State.CandidateAdmins[input.Pubkey] == null)
+            var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
+            if (State.CandidateAdmins[initialPubkey] == null)
             {
                 // If admin is not set before (due to old contract code)
                 Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
@@ -234,10 +236,10 @@ namespace AElf.Contracts.Election
             }
             else
             {
-                Assert(Context.Sender == State.CandidateAdmins[input.Pubkey], "No permission.");
+                Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "No permission.");
             }
 
-            State.CandidateAdmins[input.Pubkey] = input.Admin;
+            State.CandidateAdmins[initialPubkey] = input.Admin;
             return new Empty();
         }
 

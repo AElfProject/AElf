@@ -418,7 +418,7 @@ namespace AElf.Contracts.Election
 
         public override Address GetCandidateAdmin(StringValue input)
         {
-            return State.CandidateAdmins[input.Value];
+            return State.CandidateAdmins[State.InitialPubkeyMap[input.Value] ?? input.Value];
         }
 
         public override StringValue GetReplacedPubkey(StringValue input)
