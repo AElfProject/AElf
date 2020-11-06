@@ -74,6 +74,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     executive.LastUsedTime = TimestampHelper.GetUtcNow();
                     pool.Add(executive);
+                    Logger.LogDebug($"Executive pool size for {address}: {pool.Count}");
                     return;
                 }
 
