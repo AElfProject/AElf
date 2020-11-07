@@ -274,6 +274,11 @@ namespace AElf.Contracts.Election
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
 
             // Cannot replace candidate during changing miners.
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
             var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
             Assert(!currentRound.IsMinerListJustChanged, "Cannot replace candidate during changing miners.");
 
