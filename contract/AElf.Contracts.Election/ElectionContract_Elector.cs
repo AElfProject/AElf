@@ -635,16 +635,10 @@ namespace AElf.Contracts.Election
 
         private AuthorityInfo GetDefaultVoteWeightInterestController()
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
             return new AuthorityInfo
             {
                 ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+                OwnerAddress = GetParliamentDefaultAddress()
             };
         }
 

@@ -220,23 +220,23 @@ namespace AElf.Contracts.Election
 
         public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
         {
-            var isCurrentCandidate = State.CandidateInformationMap[input.Pubkey] != null &&
-                                     State.CandidateInformationMap[input.Pubkey].IsCurrentCandidate;
-            Assert(isCurrentCandidate||
-                State.InitialMiners.Value.Value.Contains(
-                    ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Pubkey))),
+            Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
 
+            // Permission check
             var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
-            if (State.CandidateAdmins[initialPubkey] == null)
+            if (Context.Sender != GetParliamentDefaultAddress())
             {
-                // If admin is not set before (due to old contract code)
-                Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
-                    "No permission.");
-            }
-            else
-            {
-                Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "No permission.");
+                if (State.CandidateAdmins[initialPubkey] == null)
+                {
+                    // If admin is not set before (due to old contract code)
+                    Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
+                        "No permission.");
+                }
+                else
+                {
+                    Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "No permission.");
+                }
             }
 
             State.CandidateAdmins[initialPubkey] = input.Admin;
@@ -244,5 +244,25 @@ namespace AElf.Contracts.Election
         }
 
         #endregion
+
+        private Address GetParliamentDefaultAddress()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+        }
+
+        private bool IsCurrentCandidateOrInitialMiner(string pubkey)
+        {
+            var isCurrentCandidate = State.CandidateInformationMap[pubkey] != null &&
+                                     State.CandidateInformationMap[pubkey].IsCurrentCandidate;
+            var isInitialMiner = State.InitialMiners.Value.Value.Contains(
+                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+            return isCurrentCandidate || isInitialMiner;
+        }
     }
 }

@@ -264,11 +264,13 @@ namespace AElf.Contracts.Election
 
         public override Empty ReplaceCandidatePubkey(ReplaceCandidatePubkeyInput input)
         {
-            var isCurrentCandidate = State.CandidateInformationMap[input.OldPubkey] != null &&
-                                     State.CandidateInformationMap[input.OldPubkey].IsCurrentCandidate;
-            var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
-            var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
-            Assert(isCurrentCandidate || State.InitialMiners.Value.Value.Contains(oldPubkeyBytes), "Origin pubkey is not a candidate.");
+            Assert(IsCurrentCandidateOrInitialMiner(input.OldPubkey),
+                "Pubkey is neither a current candidate nor an initial miner.");
+
+            // This judgement is to confirm Candidate Admin is a multi-signature account address (an organization address).
+            var signedPubkey = Context.RecoverPublicKey();
+            var signedAddress = Address.FromPublicKey(signedPubkey);
+            Assert(signedAddress != Context.Sender, "Sender should be a multi-signature account.");
 
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
@@ -279,11 +281,15 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
+
             var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
             Assert(!currentRound.IsMinerListJustChanged, "Cannot replace candidate during changing miners.");
 
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
+
+            var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
+            var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
 
             Assert(!State.BlackList.Value.Value.Contains(newPubkeyBytes), "New pubkey is in black list.");
 
@@ -320,6 +326,7 @@ namespace AElf.Contracts.Election
                 State.CandidateVotes[input.NewPubkey] = candidateVotes;
                 State.CandidateVotes.Remove(input.OldPubkey);
             }
+
             var candidateInformation = State.CandidateInformationMap[input.OldPubkey];
             if (candidateInformation != null)
             {
