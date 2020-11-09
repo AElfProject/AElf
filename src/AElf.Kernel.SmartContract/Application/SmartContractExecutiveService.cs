@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
     {
-        private const int ExecutiveExpirationTime = 3600; // 1 Hour
+        private const int ExecutiveExpirationTime = 1200; // 1 Hour
         private const int ExecutiveClearLimit = 10;
 
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -69,7 +69,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 var smartContractRegistration =
                     await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
-                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash ||
+                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash && pool.Count < ExecutiveClearLimit||
                     chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight)
                 {
                     executive.LastUsedTime = TimestampHelper.GetUtcNow();
@@ -95,10 +95,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void CleanIdleExecutive()
         {
-            foreach (var executivePool in _smartContractExecutiveProvider.GetExecutivePools())
+            var pools = _smartContractExecutiveProvider.GetExecutivePools();
+            Logger.LogDebug($"Pools count {pools.Count}");
+            foreach (var executivePool in pools)
             {
                 var executiveBag = executivePool.Value;
-                if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
+                if (executiveBag.Count > ExecutiveClearLimit || executiveBag.Min(o => o.LastUsedTime) <
                     TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                 {
                     if (executiveBag.TryTake(out _))
