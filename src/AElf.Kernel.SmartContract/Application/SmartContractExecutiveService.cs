@@ -100,6 +100,9 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var executivePool in pools)
             {
                 var executiveBag = executivePool.Value;
+                if (executiveBag.Count == 0)
+                    continue;
+                
                 if (executiveBag.Count > ExecutiveClearLimit || executiveBag.Min(o => o.LastUsedTime) <
                     TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                 {
