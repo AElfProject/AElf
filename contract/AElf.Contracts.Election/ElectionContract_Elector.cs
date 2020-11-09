@@ -34,27 +34,6 @@ namespace AElf.Contracts.Election
             
             var recoveredPublicKey = Context.RecoverPublicKey();
 
-/*            // If voting targets is replaced by candidate admin, transfer voting information before we add votes to this candidate.
-            if (State.OldPubkeyMap[input.CandidatePubkey] != null)
-            {
-                var OldPubkey = State.OldPubkeyMap[input.CandidatePubkey];
-                var newPubkey = input.CandidatePubkey;
-                var voterPublicKey = recoveredPublicKey.ToHex();
-                var electorVotes = State.ElectorVotes[voterPublicKey];
-                var activeVotingRecords =
-                    electorVotes.ActiveVotingRecords.Where(r => r.Candidate == OldPubkey).ToList();
-                if (activeVotingRecords.Any())
-                {
-                    foreach (var record in activeVotingRecords)
-                    {
-                        var newRecord = record.Clone();
-                        newRecord.Candidate = newPubkey;
-                        electorVotes.ActiveVotingRecords.Remove(record);
-                        electorVotes.ActiveVotingRecords.Add(newRecord);
-                    }
-                }
-            }*/
-
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
 

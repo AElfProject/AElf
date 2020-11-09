@@ -33,7 +33,7 @@ namespace AElf.Contracts.Election
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
             State.CandidateAdmins[pubkey] = input;
 
-            LockCandidateNativeToken();
+            LockCandidateNativeToken(input);
 
             AddCandidateAsOption(pubkey);
 
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Election
             State.Candidates.Value.Value.Add(pubkeyByteString);
         }
 
-        private void LockCandidateNativeToken()
+        private void LockCandidateNativeToken(Address candidateAdmin)
         {
             if (State.TokenContract.Value == null)
             {
@@ -88,10 +88,18 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = candidateAdmin,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = ElectionContractConstants.LockTokenForElection,
+            });
+
             // Lock the token from sender for deposit of announce election
             State.TokenContract.Lock.Send(new LockInput
             {
-                Address = Context.Sender,
+                Address = candidateAdmin,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 LockId = Context.OriginTransactionId,
@@ -153,7 +161,7 @@ namespace AElf.Contracts.Election
             // Unlock candidate's native token.
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                Address = Context.Sender,
+                Address = State.CandidateAdmins[initialPubkey],
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
@@ -235,7 +243,9 @@ namespace AElf.Contracts.Election
                 }
                 else
                 {
-                    Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "No permission.");
+                    var oldCandidateAdmin = State.CandidateAdmins[initialPubkey];
+                    Assert(Context.Sender == oldCandidateAdmin, "No permission.");
+                    TransferLockedNativeTokens(oldCandidateAdmin, input.Admin, initialPubkey);
                 }
             }
 
@@ -263,6 +273,36 @@ namespace AElf.Contracts.Election
             var isInitialMiner = State.InitialMiners.Value.Value.Contains(
                 ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
             return isCurrentCandidate || isInitialMiner;
+        }
+
+        private void TransferLockedNativeTokens(Address oldCandidateAdmin, Address newCandidateAdmin,
+            string initialPubkey)
+        {
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                Address = oldCandidateAdmin,
+                Symbol = Context.Variables.NativeSymbol,
+                LockId = State.CandidateInformationMap[initialPubkey].AnnouncementTransactionId,
+                Amount = ElectionContractConstants.LockTokenForElection,
+                Usage = "Transferring locked tokens."
+            });
+
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = oldCandidateAdmin,
+                To = newCandidateAdmin,
+                Amount = ElectionContractConstants.LockTokenForElection,
+                Symbol = Context.Variables.NativeSymbol
+            });
+
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                Address = newCandidateAdmin,
+                Symbol = Context.Variables.NativeSymbol,
+                LockId = State.CandidateInformationMap[initialPubkey].AnnouncementTransactionId,
+                Amount = ElectionContractConstants.LockTokenForElection,
+                Usage = "Transferring locked tokens."
+            });
         }
     }
 }
