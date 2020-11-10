@@ -297,7 +297,8 @@ namespace AElf.Contracts.MultiToken
         public override Empty Unlock(UnlockInput input)
         {
             AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-            Assert(Context.Origin == input.Address, "Unlock behaviour should be initialed by origin address.");
+            Assert(Context.Origin == input.Address || Context.Sender == input.Address,
+                "Unlock behaviour should be initialed by origin address.");
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
