@@ -10,6 +10,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private void RevealSharedInValues(Round currentRound, string publicKey)
         {
+            Context.LogDebug(() => "About to reveal shared in values.");
+
             if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
 
             if (!TryToGetPreviousRoundInformation(out var previousRound)) return;

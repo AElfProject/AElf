@@ -216,6 +216,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             realTimeMinerInformation.Pubkey = input.NewPubkey;
             currentRound.RealTimeMinersInformation.Remove(input.OldPubkey);
             currentRound.RealTimeMinersInformation.Add(input.NewPubkey, realTimeMinerInformation);
+            if (currentRound.ExtraBlockProducerOfPreviousRound == input.OldPubkey)
+            {
+                currentRound.ExtraBlockProducerOfPreviousRound = input.NewPubkey;
+            }
             State.Rounds[State.CurrentRoundNumber.Value] = currentRound;
 
             // Notify Treasury Contract to update replacement information. (Update from old record.)

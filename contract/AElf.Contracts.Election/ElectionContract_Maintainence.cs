@@ -366,6 +366,8 @@ namespace AElf.Contracts.Election
                 OldPubkey = oldPubkey,
                 NewPubkey = newPubkey
             });
+
+            Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
         }
 
         public override StringValue GetNewestPubkey(StringValue input)
@@ -375,8 +377,8 @@ namespace AElf.Contracts.Election
 
         private string GetNewestPubkey(string pubkey)
         {
-            var initialPubkey = State.InitialPubkeyMap[pubkey];
-            return initialPubkey == null ? pubkey : State.InitialToNewestPubkeyMap[initialPubkey];
+            var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
+            return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
         }
     }
 }

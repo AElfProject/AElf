@@ -143,10 +143,10 @@ namespace AElf.Contracts.Election
             if (!candidatesInBlackList.Any()) return snapshot;
             foreach (var candidateInBlackList in candidatesInBlackList)
             {
-                var maybePubkey = GetNewestPubkey(candidateInBlackList);
-                if (maybePubkey == null) continue;
+                var newestPubkey = GetNewestPubkey(candidateInBlackList);
+                if (newestPubkey == null) continue;
                 var electionResult = snapshot.ElectionResult[candidateInBlackList];
-                snapshot.ElectionResult.Add(maybePubkey, electionResult);
+                snapshot.ElectionResult.Add(newestPubkey, electionResult);
                 snapshot.ElectionResult.Remove(candidateInBlackList);
             }
 
