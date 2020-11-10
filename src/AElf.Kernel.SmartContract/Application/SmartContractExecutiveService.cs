@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -97,6 +98,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var pools = _smartContractExecutiveProvider.GetExecutivePools();
             Logger.LogDebug($"Pools count {pools.Count}");
+            var toBeRemoved = new List<Address>();
             foreach (var executivePool in pools)
             {
                 var executiveBag = executivePool.Value;
@@ -110,7 +112,16 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
                     }
+                    
+                    if (executiveBag.IsEmpty)
+                        toBeRemoved.Add(executivePool.Key);
                 }
+            }
+
+            // clean empty pools
+            foreach (var address in toBeRemoved)
+            {
+                CleanExecutive(address);
             }
         }
 
