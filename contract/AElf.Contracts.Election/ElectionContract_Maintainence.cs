@@ -269,8 +269,11 @@ namespace AElf.Contracts.Election
 
             // This judgement is to confirm Candidate Admin is a multi-signature account address (an organization address).
             var signedPubkey = Context.RecoverPublicKey();
-            var signedAddress = Address.FromPublicKey(signedPubkey);
-            Assert(signedAddress != Context.Sender, "Sender should be a multi-signature account.");
+            if (signedPubkey != null)
+            {
+                var signedAddress = Address.FromPublicKey(signedPubkey);
+                Assert(signedAddress != Context.Sender, "Sender should be a multi-signature account.");
+            }
 
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
