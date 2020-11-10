@@ -153,7 +153,7 @@ namespace AElf.Contracts.Election
             // Unlock candidate's native token.
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                Address = State.CandidateAdmins[initialPubkey],
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
