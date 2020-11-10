@@ -283,16 +283,14 @@ namespace AElf.Contracts.MultiToken
         public override Empty Lock(LockInput input)
         {
             AssertSystemContractOrLockWhiteListAddress(input.Symbol);
-            Assert(Context.Origin == input.Address, "Lock behaviour should be initialed by origin address.");
-            var allowance = State.Allowances[input.Address][Context.Sender][input.Symbol];
-            if (allowance >= input.Amount)
-                State.Allowances[input.Address][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
+            var transferFromAddress = Context.Origin;// Who will pay the locked tokens.
+            var lockToAddress = input.Address;// Locking tokens to which address.
             AssertValidToken(input.Symbol, input.Amount);
-            var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(input.Address.Value)
+            var fromVirtualAddress = HashHelper.ComputeFrom(Context.Sender.Value.Concat(lockToAddress.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
-            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            DoTransfer(transferFromAddress, virtualAddress, input.Symbol, input.Amount, input.Usage);
             return new Empty();
         }
 

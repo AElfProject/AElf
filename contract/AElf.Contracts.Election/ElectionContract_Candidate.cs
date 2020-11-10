@@ -88,14 +88,6 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                To = candidateAdmin,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = ElectionContractConstants.LockTokenForElection,
-            });
-
             // Lock the token from sender for deposit of announce election
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -285,14 +277,6 @@ namespace AElf.Contracts.Election
                 LockId = State.CandidateInformationMap[initialPubkey].AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 Usage = "Transferring locked tokens."
-            });
-
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = oldCandidateAdmin,
-                To = newCandidateAdmin,
-                Amount = ElectionContractConstants.LockTokenForElection,
-                Symbol = Context.Variables.NativeSymbol
             });
 
             State.TokenContract.Lock.Send(new LockInput
