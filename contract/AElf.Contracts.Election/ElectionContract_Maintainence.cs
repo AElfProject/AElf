@@ -334,6 +334,18 @@ namespace AElf.Contracts.Election
             var blackList = State.BlackList.Value;
             blackList.Value.Add(oldPubkeyBytes);
             State.BlackList.Value = blackList;
+            
+            // Notify Vote Contract to replace option.
+            State.VoteContract.RemoveOption.Send(new RemoveOptionInput
+            {
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Option = input.OldPubkey
+            });
+            State.VoteContract.AddOption.Send(new AddOptionInput
+            {
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Option = input.NewPubkey
+            });
 
             Context.Fire(new CandidatePubkeyReplaced
             {
