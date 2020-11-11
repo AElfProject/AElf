@@ -334,18 +334,7 @@ namespace AElf.Contracts.Election
             var blackList = State.BlackList.Value;
             blackList.Value.Add(oldPubkeyBytes);
             State.BlackList.Value = blackList;
-            
-            // Notify Vote Contract to replace option.
-            State.VoteContract.RemoveOption.Send(new RemoveOptionInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = input.OldPubkey
-            });
-            State.VoteContract.AddOption.Send(new AddOptionInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = input.NewPubkey
-            });
+
 
             Context.Fire(new CandidatePubkeyReplaced
             {
@@ -374,6 +363,31 @@ namespace AElf.Contracts.Election
             {
                 OldPubkey = oldPubkey,
                 NewPubkey = newPubkey
+            });
+
+            // Notify Profit Contract to update backup subsidy profiting item.
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldPubkey))
+            });
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                    {Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)), Shares = 1}
+            });
+
+            // Notify Vote Contract to replace option.
+            State.VoteContract.RemoveOption.Send(new RemoveOptionInput
+            {
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Option = oldPubkey
+            });
+            State.VoteContract.AddOption.Send(new AddOptionInput
+            {
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Option = newPubkey
             });
 
             Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
