@@ -267,9 +267,6 @@ namespace AElf.Contracts.Election
             Assert(IsCurrentCandidateOrInitialMiner(input.OldPubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
 
-            // This judgement is to confirm Candidate Admin is a multi-signature account address (an organization address).
-            Assert(Context.Origin != Context.Sender, "Sender should be a multi-signature account.");
-
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
 

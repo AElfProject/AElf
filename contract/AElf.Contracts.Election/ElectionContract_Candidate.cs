@@ -20,6 +20,7 @@ namespace AElf.Contracts.Election
         /// <summary>
         /// Actually this method is for adding an option of the Voting Item.
         /// Thus the limitation of candidates will be limited by the capacity of voting options.
+        /// The input is candidate admin, better be an organization address of Association Contract.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Election
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
             State.CandidateAdmins[pubkey] = input;
 
-            LockCandidateNativeToken(input);
+            LockCandidateNativeToken();
 
             AddCandidateAsOption(pubkey);
 
@@ -80,7 +81,7 @@ namespace AElf.Contracts.Election
             State.Candidates.Value.Value.Add(pubkeyByteString);
         }
 
-        private void LockCandidateNativeToken(Address candidateAdmin)
+        private void LockCandidateNativeToken()
         {
             if (State.TokenContract.Value == null)
             {
@@ -89,13 +90,16 @@ namespace AElf.Contracts.Election
             }
 
             // Lock the token from sender for deposit of announce election
-            State.TokenContract.Lock.Send(new LockInput
+            var lockId = Context.OriginTransactionId;
+            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+            var announcePubkeyAddress = Context.Sender;
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
-                Address = candidateAdmin,
+                From = announcePubkeyAddress,
+                To = lockVirtualAddress,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
-                LockId = Context.OriginTransactionId,
-                Usage = "Lock for announcing election."
+                Memo = "Lock for announcing election."
             });
         }
 
@@ -151,13 +155,15 @@ namespace AElf.Contracts.Election
             var candidateInformation = State.CandidateInformationMap[pubkey];
 
             // Unlock candidate's native token.
-            State.TokenContract.Unlock.Send(new UnlockInput
+            var lockId = candidateInformation.AnnouncementTransactionId;
+            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
-                Address = Context.Sender,
+                From = lockVirtualAddress,
+                To = Address.FromPublicKey(pubkeyBytes),
                 Symbol = Context.Variables.NativeSymbol,
-                LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
-                Usage = "Quit election."
+                Memo = "Quit election."
             });
 
             // Update candidate information.
@@ -237,7 +243,6 @@ namespace AElf.Contracts.Election
                 {
                     var oldCandidateAdmin = State.CandidateAdmins[initialPubkey];
                     Assert(Context.Sender == oldCandidateAdmin, "No permission.");
-                    TransferLockedNativeTokens(oldCandidateAdmin, input.Admin, initialPubkey);
                 }
             }
 
@@ -265,28 +270,6 @@ namespace AElf.Contracts.Election
             var isInitialMiner = State.InitialMiners.Value.Value.Contains(
                 ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
             return isCurrentCandidate || isInitialMiner;
-        }
-
-        private void TransferLockedNativeTokens(Address oldCandidateAdmin, Address newCandidateAdmin,
-            string initialPubkey)
-        {
-            State.TokenContract.Unlock.Send(new UnlockInput
-            {
-                Address = oldCandidateAdmin,
-                Symbol = Context.Variables.NativeSymbol,
-                LockId = State.CandidateInformationMap[initialPubkey].AnnouncementTransactionId,
-                Amount = ElectionContractConstants.LockTokenForElection,
-                Usage = "Transferring locked tokens."
-            });
-
-            State.TokenContract.Lock.Send(new LockInput
-            {
-                Address = newCandidateAdmin,
-                Symbol = Context.Variables.NativeSymbol,
-                LockId = State.CandidateInformationMap[initialPubkey].AnnouncementTransactionId,
-                Amount = ElectionContractConstants.LockTokenForElection,
-                Usage = "Transferring locked tokens."
-            });
         }
     }
 }

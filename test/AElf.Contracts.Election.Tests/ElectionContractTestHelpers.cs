@@ -40,11 +40,12 @@ namespace AElf.Contracts.Election
             round.GetMinedBlocks().ShouldBe(1);
             round.GetMinedMiners().Count.ShouldBe(1);
         }
-        
+
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            var announceResult = (await electionStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address)).TransactionResult;
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address))
+                .TransactionResult;
             return announceResult;
         }
 

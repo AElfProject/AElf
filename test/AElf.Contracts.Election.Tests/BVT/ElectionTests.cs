@@ -51,7 +51,7 @@ namespace AElf.Contracts.Election
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
             await AnnounceElectionAsync(candidatesKeyPair);
             var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
-            balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
+            balanceAfterAnnouncing.ShouldBe(balanceBeforeAnnouncing - ElectionContractConstants.LockTokenForElection);
             var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = MinerElectionVotingItemId
