@@ -277,9 +277,6 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
 
-            var currentRound = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty());
-            Assert(!currentRound.IsMinerListJustChanged, "Cannot replace candidate during changing miners.");
-
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
 
@@ -334,7 +331,6 @@ namespace AElf.Contracts.Election
             var blackList = State.BlackList.Value;
             blackList.Value.Add(oldPubkeyBytes);
             State.BlackList.Value = blackList;
-
 
             Context.Fire(new CandidatePubkeyReplaced
             {

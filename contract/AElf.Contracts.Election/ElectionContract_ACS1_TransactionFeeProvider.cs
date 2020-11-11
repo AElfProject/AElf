@@ -57,7 +57,7 @@ namespace AElf.Contracts.Election
             var defaultAuthority = new AuthorityInfo
             {
                 OwnerAddress = GetParliamentDefaultAddress(),
-                ContractAddress = State.ParliamentContract.Value
+                ContractAddress = Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName)
             };
 
             State.MethodFeeController.Value = defaultAuthority;

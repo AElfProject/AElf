@@ -201,7 +201,7 @@ namespace AElf.Contracts.Election
         {
             var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
 
-            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
+            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Target is not a candidate.");
 
             if (State.AEDPoSContract.Value == null)
             {

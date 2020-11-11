@@ -41,10 +41,11 @@ namespace AElf.Contracts.Election
             round.GetMinedMiners().Count.ShouldBe(1);
         }
 
-        private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
+        private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair, Address candidateAdmin = null)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            var announceResult = (await electionStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address))
+            candidateAdmin ??= Address.FromPublicKey(keyPair.PublicKey);
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(candidateAdmin))
                 .TransactionResult;
             return announceResult;
         }

@@ -73,7 +73,7 @@ namespace AElf.Contracts.Election
         /// Take first 7 full node key pairs to announce election.
         /// </summary>
         /// <returns>Return 7 candidates key pairs.</returns>
-        public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
+        private async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
         {
             var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(CandidatesCount).ToList();
 

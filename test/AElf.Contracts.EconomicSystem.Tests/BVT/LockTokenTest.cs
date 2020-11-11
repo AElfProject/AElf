@@ -51,7 +51,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
         private async Task Token_Lock_Test()
         {
-            await tokenTestElectionContractStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
+            await tokenTestElectionContractStub.AnnounceElection.SendAsync(Address.FromPublicKey(AnnounceElectionKeyPair.PublicKey));
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(AnnounceElectionKeyPair.PublicKey),

@@ -618,7 +618,7 @@ namespace AElf.Contracts.Election
         {
             return new AuthorityInfo
             {
-                ContractAddress = State.ParliamentContract.Value,
+                ContractAddress = Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName),
                 OwnerAddress = GetParliamentDefaultAddress()
             };
         }
