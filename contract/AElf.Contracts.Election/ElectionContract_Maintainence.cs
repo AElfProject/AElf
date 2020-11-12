@@ -375,7 +375,8 @@ namespace AElf.Contracts.Election
             });
 
             // Notify Vote Contract to replace option if this is not the initial miner case.
-            if (!State.InitialMiners.Value.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey))))
+            if (!State.InitialMiners.Value.Value.Contains(
+                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey))))
             {
                 State.VoteContract.RemoveOption.Send(new RemoveOptionInput
                 {
