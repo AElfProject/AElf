@@ -374,17 +374,20 @@ namespace AElf.Contracts.Election
                     {Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)), Shares = 1}
             });
 
-            // Notify Vote Contract to replace option.
-            State.VoteContract.RemoveOption.Send(new RemoveOptionInput
+            // Notify Vote Contract to replace option if this is not the initial miner case.
+            if (!State.InitialMiners.Value.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey))))
             {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = oldPubkey
-            });
-            State.VoteContract.AddOption.Send(new AddOptionInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = newPubkey
-            });
+                State.VoteContract.RemoveOption.Send(new RemoveOptionInput
+                {
+                    VotingItemId = State.MinerElectionVotingItemId.Value,
+                    Option = oldPubkey
+                });
+                State.VoteContract.AddOption.Send(new AddOptionInput
+                {
+                    VotingItemId = State.MinerElectionVotingItemId.Value,
+                    Option = newPubkey
+                });
+            }
 
             Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
         }
