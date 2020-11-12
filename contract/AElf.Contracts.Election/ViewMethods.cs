@@ -141,6 +141,7 @@ namespace AElf.Contracts.Election
             var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
                 blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
             if (!candidatesInBlackList.Any()) return snapshot;
+            Context.LogDebug(() => "Getting snapshot and there's miner replaced during current term.");
             foreach (var candidateInBlackList in candidatesInBlackList)
             {
                 var newestPubkey = GetNewestPubkey(candidateInBlackList);
@@ -345,6 +346,7 @@ namespace AElf.Contracts.Election
             GetMinerReplacementInformationInput input)
         {
             var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
+            Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys.");
             var alternativeCandidates = new List<string>();
             var termNumber = State.CurrentTermNumber.Value.Sub(1);
             var latestSnapshot = termNumber == 0
@@ -353,6 +355,7 @@ namespace AElf.Contracts.Election
                 {
                     TermNumber = termNumber
                 });
+            Context.LogDebug(() => $"Latest snapshot:\n{latestSnapshot}");
             // Check out election snapshot.
             if (latestSnapshot != null)
             {

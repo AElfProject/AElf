@@ -884,7 +884,7 @@ namespace AElf.Contracts.Treasury
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only AEDPoS Contract can record miner replacement.");
             var reElectionInformation = State.MinerReElectionInformation.Value;
-            if (!reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
+            if (reElectionInformation == null || !reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
             reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey,
                 reElectionInformation.ContinualAppointmentTimes[input.OldPubkey]);
             reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS4;
 using Google.Protobuf;
@@ -101,16 +102,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
                 if (headerInformation.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
-                    return new ValidationResult
+                    // Double check: If miner replacement happened in latest block, skip this judgement.
+                    if (!IsMinerReplacementHappened(headerInformation.Round, currentRound))
                     {
-                        Success = false, Message = "Current round information is different with consensus extra data.\n" +
-                                                   $"New block header consensus information:\n{headerInformation.Round}" +
-                                                   $"Stated block header consensus information:\n{currentRound}"
-                    };
+                        return new ValidationResult
+                        {
+                            Success = false, Message = "Current round information is different with consensus extra data.\n" +
+                                                       $"New block header consensus information:\n{headerInformation.Round}" +
+                                                       $"Stated block header consensus information:\n{currentRound}"
+                        };
+                    }
                 }
             }
 
             return new ValidationResult {Success = true};
+        }
+
+        private bool IsMinerReplacementHappened(Round headerRound, Round stateRound)
+        {
+            var headerMiners = headerRound.RealTimeMinersInformation.Keys;
+            var stateMiners = stateRound.RealTimeMinersInformation.Keys;
+            return headerMiners.Except(stateMiners).Any();
         }
 
         private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,

@@ -300,6 +300,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         CurrentMinerList = {currentRound.RealTimeMinersInformation.Keys}
                     });
 
+                Context.LogDebug(() => $"Got miner replacement information:\n{minerReplacementInformation}");
+
                 if (minerReplacementInformation.AlternativeCandidatePubkeys.Count > 0)
                 {
                     for (var i = 0; i < minerReplacementInformation.AlternativeCandidatePubkeys.Count; i++)
@@ -316,6 +318,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         {
                             NewMinerPubkey = alternativeCandidatePubkey
                         });
+
                         // Transfer evil node's consensus information to the chosen backup.
                         var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinerPubkey];
                         var minerInRound = new MinerInRound

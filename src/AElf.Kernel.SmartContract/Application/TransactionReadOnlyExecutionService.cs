@@ -5,6 +5,8 @@ using AElf.Kernel.SmartContract;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -12,12 +14,15 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionContextFactory _transactionContextFactory;
+        public ILogger<TransactionReadOnlyExecutionService> Logger { get; set; }
 
         public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService, 
             ITransactionContextFactory transactionContextFactory)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
             _transactionContextFactory = transactionContextFactory;
+            
+            Logger = NullLogger<TransactionReadOnlyExecutionService>.Instance;
         }
 
         public async Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
@@ -34,6 +39,11 @@ namespace AElf.Kernel.SmartContract.Application
             finally
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(chainContext, transaction.To, executive);
+            }
+
+            if (!transactionContext.Trace.IsSuccessful())
+            {
+                Logger.LogError($"Tx executing failed: {transactionContext.Trace.Error}");
             }
 
             return transactionContext.Trace;
