@@ -70,6 +70,7 @@ Each node implements the network interface protocol defined by AElf to ensure no
 
 ### 3.1 Connection
 
+// todo : remove "interface"
 #### 3.1.1 DoHandshake Interface
 
 When a node wants to connect with the current node, the current node receives the handshake information of the target node through the interface DoHandshake. After the current node verifies the handshake information, it returns the verification result and the handshake information of the current node to the target node.
