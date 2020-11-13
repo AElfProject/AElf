@@ -145,7 +145,9 @@ namespace AElf.Contracts.Election
             foreach (var candidateInBlackList in candidatesInBlackList)
             {
                 var newestPubkey = GetNewestPubkey(candidateInBlackList);
-                if (newestPubkey == null) continue;
+                // If newest pubkey not exists or same as old pubkey (which in black list), skip.
+                if (newestPubkey == null || newestPubkey == candidateInBlackList ||
+                    snapshot.ElectionResult.ContainsKey(newestPubkey)) continue;
                 var electionResult = snapshot.ElectionResult[candidateInBlackList];
                 snapshot.ElectionResult.Add(newestPubkey, electionResult);
                 snapshot.ElectionResult.Remove(candidateInBlackList);

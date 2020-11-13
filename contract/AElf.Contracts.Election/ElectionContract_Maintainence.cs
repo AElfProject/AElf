@@ -266,6 +266,8 @@ namespace AElf.Contracts.Election
         {
             Assert(IsCurrentCandidateOrInitialMiner(input.OldPubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
+            Assert(!IsPubkeyInBlackList(input.OldPubkey) && !IsPubkeyInBlackList(input.NewPubkey),
+                "Pubkey is in black list.");
 
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
@@ -287,12 +289,10 @@ namespace AElf.Contracts.Election
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
-            if (candidates.Value.Contains(oldPubkeyBytes))
-            {
-                candidates.Value.Remove(oldPubkeyBytes);
-                candidates.Value.Add(newPubkeyBytes);
-                State.Candidates.Value = candidates;
-            }
+            Assert(candidates.Value.Contains(oldPubkeyBytes), "Old pubkey is not in candidate list.");
+            candidates.Value.Remove(oldPubkeyBytes);
+            candidates.Value.Add(newPubkeyBytes);
+            State.Candidates.Value = candidates;
 
             var rankingList = State.DataCentersRankingList.Value;
             if (rankingList.DataCenters.ContainsKey(input.OldPubkey))
