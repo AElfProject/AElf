@@ -228,6 +228,7 @@ namespace AElf.Contracts.Election
         {
             Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
+            Assert(!IsPubkeyInBlackList(input.Pubkey), "Pubkey is in black list.");
 
             // Permission check
             var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
@@ -251,6 +252,13 @@ namespace AElf.Contracts.Election
         }
 
         #endregion
+
+        private bool IsPubkeyInBlackList(string pubkey)
+        {
+            var blackList = State.BlackList.Value;
+            return blackList != null &&
+                   blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+        }
 
         private Address GetParliamentDefaultAddress()
         {
