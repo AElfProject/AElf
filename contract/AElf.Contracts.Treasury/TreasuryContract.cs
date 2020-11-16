@@ -896,8 +896,8 @@ namespace AElf.Contracts.Treasury
             var reElectionInformation = State.MinerReElectionInformation.Value;
             if (reElectionInformation == null ||
                 !reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
-            reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);
             var oldTimes = reElectionInformation.ContinualAppointmentTimes[input.OldPubkey];
+            reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);
             reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey, oldTimes);
             State.MinerReElectionInformation.Value = reElectionInformation;
 
@@ -937,7 +937,7 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Beneficiary = oldAddress
-            }).Details.First();
+            }).Details.FirstOrDefault();
             if (votesWeightDetail != null)
             {
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
