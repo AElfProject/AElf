@@ -883,12 +883,78 @@ namespace AElf.Contracts.Treasury
             Assert(
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only AEDPoS Contract can record miner replacement.");
+            Context.LogDebug(() =>
+                $"Updating re-election and votes-weight rewords info: {input.OldPubkey} -> {input.NewPubkey}");
+            
+            // Update own re-election state.
             var reElectionInformation = State.MinerReElectionInformation.Value;
-            if (reElectionInformation == null || !reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
-            reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey,
-                reElectionInformation.ContinualAppointmentTimes[input.OldPubkey]);
+            if (reElectionInformation == null ||
+                !reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
             reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);
+            var oldTimes = reElectionInformation.ContinualAppointmentTimes[input.OldPubkey];
+            reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey, oldTimes);
             State.MinerReElectionInformation.Value = reElectionInformation;
+            
+            // Update re-election profit scheme beneficiary.
+            var oldAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
+            var newAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
+            var reElectionDetail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                SchemeId = State.ReElectionRewardHash.Value,
+                Beneficiary = oldAddress
+            }).Details.FirstOrDefault();
+            if (reElectionDetail != null)
+            {
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    Beneficiary = oldAddress
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = newAddress,
+                        Shares = reElectionDetail.Shares,
+                    },
+                    EndPeriod = reElectionDetail.EndPeriod
+                });
+            }
+            else
+            {
+                Context.LogDebug(() => $"Re-election profit scheme details of {input.OldPubkey} is null.");
+            }
+
+            // Update votes-weight profit scheme beneficiary.
+            var votesWeightDetail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                SchemeId = State.VotesWeightRewardHash.Value,
+                Beneficiary = oldAddress
+            }).Details.First();
+            if (votesWeightDetail != null)
+            {
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.VotesWeightRewardHash.Value,
+                    Beneficiary = oldAddress
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.VotesWeightRewardHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = newAddress,
+                        Shares = votesWeightDetail.Shares
+                    },
+                    EndPeriod = votesWeightDetail.EndPeriod
+                });
+            }
+            else
+            {
+                Context.LogDebug(() => $"Votes-weight profit scheme details of {input.OldPubkey} is null.");
+            }
+
             return new Empty();
         }
     }

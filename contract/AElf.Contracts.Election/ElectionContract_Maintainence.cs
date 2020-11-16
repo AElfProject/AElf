@@ -289,10 +289,12 @@ namespace AElf.Contracts.Election
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
-            Assert(candidates.Value.Contains(oldPubkeyBytes), "Old pubkey is not in candidate list.");
-            candidates.Value.Remove(oldPubkeyBytes);
-            candidates.Value.Add(newPubkeyBytes);
-            State.Candidates.Value = candidates;
+            if (candidates.Value.Contains(oldPubkeyBytes))
+            {
+                candidates.Value.Remove(oldPubkeyBytes);
+                candidates.Value.Add(newPubkeyBytes);
+                State.Candidates.Value = candidates;
+            }
 
             var rankingList = State.DataCentersRankingList.Value;
             if (rankingList.DataCenters.ContainsKey(input.OldPubkey))
