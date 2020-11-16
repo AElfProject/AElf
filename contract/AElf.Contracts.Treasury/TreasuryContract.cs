@@ -65,7 +65,8 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
-                    CanRemoveBeneficiaryDirectly = i == 2
+                    // Subsidy, Votes Weight Reward and Re-Election Reward can remove beneficiary directly (due to replaceable.)
+                    CanRemoveBeneficiaryDirectly = new List<int> {2, 5, 6}.Contains(i)
                 });
             }
 
