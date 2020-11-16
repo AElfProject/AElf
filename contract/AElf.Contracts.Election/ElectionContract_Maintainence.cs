@@ -272,13 +272,6 @@ namespace AElf.Contracts.Election
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
 
-            // Cannot replace candidate during changing miners.
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
-
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
 
@@ -357,6 +350,11 @@ namespace AElf.Contracts.Election
             State.InitialToNewestPubkeyMap[initialPubkey] = newPubkey;
 
             // Notify Consensus Contract to update replacement information. (Update from old record.)
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
             State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
             {
                 OldPubkey = oldPubkey,
@@ -364,6 +362,11 @@ namespace AElf.Contracts.Election
             });
 
             // Notify Profit Contract to update backup subsidy profiting item.
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
