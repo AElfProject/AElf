@@ -885,7 +885,13 @@ namespace AElf.Contracts.Treasury
                 "Only AEDPoS Contract can record miner replacement.");
             Context.LogDebug(() =>
                 $"Updating re-election and votes-weight rewords info: {input.OldPubkey} -> {input.NewPubkey}");
-            
+
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+
             // Update own re-election state.
             var reElectionInformation = State.MinerReElectionInformation.Value;
             if (reElectionInformation == null ||
@@ -894,7 +900,7 @@ namespace AElf.Contracts.Treasury
             var oldTimes = reElectionInformation.ContinualAppointmentTimes[input.OldPubkey];
             reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey, oldTimes);
             State.MinerReElectionInformation.Value = reElectionInformation;
-            
+
             // Update re-election profit scheme beneficiary.
             var oldAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
             var newAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
