@@ -140,4 +140,5 @@ message MinerRewardWeightProportion {
 message RecordMinerReplacementInput {
     string old_pubkey = 1;
     string new_pubkey = 2;
+    int64 current_term_number = 3;
 }

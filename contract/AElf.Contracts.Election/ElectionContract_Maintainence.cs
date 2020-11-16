@@ -282,6 +282,7 @@ namespace AElf.Contracts.Election
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
+            Assert(!candidates.Value.Contains(newPubkeyBytes), "New pubkey is already a candidate.");
             if (candidates.Value.Contains(oldPubkeyBytes))
             {
                 candidates.Value.Remove(oldPubkeyBytes);
@@ -376,7 +377,10 @@ namespace AElf.Contracts.Election
             {
                 SchemeId = State.SubsidyHash.Value,
                 BeneficiaryShare = new BeneficiaryShare
-                    {Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)), Shares = 1}
+                {
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)),
+                    Shares = 1
+                }
             });
 
             // Notify Vote Contract to replace option if this is not the initial miner case.

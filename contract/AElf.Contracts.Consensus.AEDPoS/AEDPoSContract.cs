@@ -226,7 +226,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TreasuryContract.RecordMinerReplacement.Send(new RecordMinerReplacementInput
             {
                 OldPubkey = input.OldPubkey,
-                NewPubkey = input.NewPubkey
+                NewPubkey = input.NewPubkey,
+                CurrentTermNumber = State.CurrentTermNumber.Value
             });
 
             return new Empty();

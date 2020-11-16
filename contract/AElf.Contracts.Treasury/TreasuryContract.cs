@@ -908,8 +908,8 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 Beneficiary = oldAddress
-            }).Details.FirstOrDefault();
-            if (reElectionDetail != null)
+            }).Details.LastOrDefault();
+            if (reElectionDetail != null && reElectionDetail.EndPeriod >= input.CurrentTermNumber)
             {
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
@@ -924,7 +924,7 @@ namespace AElf.Contracts.Treasury
                         Beneficiary = newAddress,
                         Shares = reElectionDetail.Shares,
                     },
-                    EndPeriod = reElectionDetail.EndPeriod
+                    EndPeriod = input.CurrentTermNumber
                 });
             }
             else
@@ -937,8 +937,8 @@ namespace AElf.Contracts.Treasury
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 Beneficiary = oldAddress
-            }).Details.FirstOrDefault();
-            if (votesWeightDetail != null)
+            }).Details.LastOrDefault();
+            if (votesWeightDetail != null && votesWeightDetail.EndPeriod >= input.CurrentTermNumber)
             {
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
@@ -953,7 +953,7 @@ namespace AElf.Contracts.Treasury
                         Beneficiary = newAddress,
                         Shares = votesWeightDetail.Shares
                     },
-                    EndPeriod = votesWeightDetail.EndPeriod
+                    EndPeriod = input.CurrentTermNumber
                 });
             }
             else

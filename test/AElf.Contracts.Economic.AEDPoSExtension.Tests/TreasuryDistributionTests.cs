@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Election;
 using AElf.Contracts.Profit;
 using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
@@ -275,7 +276,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return information;
         }
 
-        [IgnoreOnCIFact]
+        [Fact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
@@ -292,8 +293,18 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
                 MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(10)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
+                announceTransactions.Add(
+                    stub.AnnounceElection.GetTransaction(Address.FromPublicKey(Accounts[0].KeyPair.PublicKey))));
             await BlockMiningService.MineBlockAsync(announceTransactions);
+
+//            await BlockMiningService.MineBlockAsync(new List<Transaction>
+//            {
+//                ElectionStub.ReplaceCandidatePubkey.GetTransaction(new ReplaceCandidatePubkeyInput
+//                {
+//                    OldPubkey = MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(6).First().PublicKey.ToHex(),
+//                    NewPubkey = MissionedECKeyPairs.ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
+//                })
+//            });
 
             // Check candidates.
             var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
