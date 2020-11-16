@@ -309,6 +309,10 @@ namespace AElf.Contracts.Election
             // Update Elector's Votes information.
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var voterVotes = State.ElectorVotes[voterPublicKey];
+            if (voterVotes == null)
+            {
+                throw new AssertionException($"Voter {voterPublicKey} never votes before.");
+            }
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
@@ -317,6 +321,10 @@ namespace AElf.Contracts.Election
             // Update Candidate's Votes information.
             var newestPubkey = GetNewestPubkey(votingRecord.Option);
             var candidateVotes = State.CandidateVotes[newestPubkey];
+            if (candidateVotes == null)
+            {
+                throw new AssertionException($"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+            }
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
             candidateVotes.ObtainedActiveVotedVotesAmount =
