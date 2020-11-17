@@ -257,7 +257,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var executionDataFlowBlockOptions = new ExecutionDataflowBlockOptions
             {
-                BoundedCapacity = _transactionOptions.PoolLimit,
+                BoundedCapacity = Math.Max(_transactionOptions.PoolLimit, 1), // cannot be zero
                 MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
             };
             var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
