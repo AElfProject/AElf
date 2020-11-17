@@ -135,8 +135,14 @@ namespace AElf.Contracts.Election
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
-            var snapshot = State.Snapshots[input.TermNumber];
-            if (snapshot == null) return new TermSnapshot();
+            return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
+        }
+
+        private TermSnapshot GetPreviousTermSnapshotWithNewestPubkey()
+        {
+            var termNumber = State.CurrentTermNumber.Value.Sub(1);
+            var snapshot = State.Snapshots[termNumber];
+            if (snapshot == null) return null;
             var blackList = State.BlackList.Value;
             if (blackList == null) return snapshot;
             var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
@@ -351,17 +357,11 @@ namespace AElf.Contracts.Election
             var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
             Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys.");
             var alternativeCandidates = new List<string>();
-            var termNumber = State.CurrentTermNumber.Value.Sub(1);
-            var latestSnapshot = termNumber == 0
-                ? null
-                : GetTermSnapshot(new GetTermSnapshotInput
-                {
-                    TermNumber = termNumber
-                });
-            Context.LogDebug(() => $"Latest snapshot:\n{latestSnapshot}");
+            var latestSnapshot = GetPreviousTermSnapshotWithNewestPubkey();
             // Check out election snapshot.
             if (latestSnapshot != null)
             {
+                Context.LogDebug(() => $"Previous term snapshot:\n{latestSnapshot}");
                 var maybeNextCandidates = latestSnapshot.ElectionResult
                     // Except initial miners.
                     .Where(cs =>
