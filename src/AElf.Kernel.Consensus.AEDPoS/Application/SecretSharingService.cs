@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 var encryptedShares =
                     secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].EncryptedPieces;
-                if (!encryptedShares.Any()) continue;
+                if (!encryptedShares.Any() || !encryptedShares.ContainsKey(selfPubkey)) continue;
                 var interestingMessage = encryptedShares[selfPubkey];
                 var senderPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
 
