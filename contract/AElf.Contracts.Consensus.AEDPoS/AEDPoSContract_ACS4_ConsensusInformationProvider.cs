@@ -100,29 +100,36 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
 
                 var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
-                if (headerInformation.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                if (headerInformation.Round.GetHash(isContainPreviousInValue) !=
+                    currentRound.GetHash(isContainPreviousInValue))
                 {
-                    // Double check: If miner replacement happened in latest block, skip this judgement.
-                    if (!IsMinerReplacementHappened(headerInformation.Round, currentRound))
+                    var headerMiners = headerInformation.Round.RealTimeMinersInformation.Keys;
+                    var stateMiners = currentRound.RealTimeMinersInformation.Keys;
+                    var replacedMiners = headerMiners.Except(stateMiners).ToList();
+                    if (!replacedMiners.Any())
                     {
                         return new ValidationResult
                         {
-                            Success = false, Message = "Current round information is different with consensus extra data.\n" +
-                                                       $"New block header consensus information:\n{headerInformation.Round}" +
-                                                       $"Stated block header consensus information:\n{currentRound}"
+                            Success = false, Message =
+                                "Current round information is different with consensus extra data.\n" +
+                                $"New block header consensus information:\n{headerInformation.Round}" +
+                                $"Stated block header consensus information:\n{currentRound}"
                         };
                     }
+
+                    var newMiners = stateMiners.Except(headerMiners).ToList();
+                    var officialNewestMiners = replacedMiners.Select(miner =>
+                            State.ElectionContract.GetNewestPubkey.Call(new StringValue {Value = miner}).Value)
+                        .ToList();
+
+                    Assert(
+                        newMiners.Count == officialNewestMiners.Count &&
+                        newMiners.Union(officialNewestMiners).Count() == newMiners.Count,
+                        "Incorrect replacement information.");
                 }
             }
 
             return new ValidationResult {Success = true};
-        }
-
-        private bool IsMinerReplacementHappened(Round headerRound, Round stateRound)
-        {
-            var headerMiners = headerRound.RealTimeMinersInformation.Keys;
-            var stateMiners = stateRound.RealTimeMinersInformation.Keys;
-            return headerMiners.Except(stateMiners).Any();
         }
 
         private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
