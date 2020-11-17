@@ -273,7 +273,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                     new ExecutionDataflowBlockOptions
                     {
-                        BoundedCapacity = _transactionOptions.PoolLimit,
+                        BoundedCapacity = Math.Max(_transactionOptions.PoolLimit, 1), // cannot be zero
                         EnsureOrdered = false
                     });
                 var index = i;
