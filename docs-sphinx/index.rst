@@ -19,6 +19,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Tutorials
+   :maxdepth: 3
 
    AElf Blockchain Boot Sequence <tutorials/boot-sequence>
    Joining AElf's MainNet/TestNet <tutorials/testnet>
@@ -29,6 +30,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Protocol
+   :maxdepth: 3
 
    Consensus <protocol/consensus>
    Network <protocol/network>
@@ -38,6 +40,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Architecture
+   :maxdepth: 3
 
    Core <architecture/core/index>
    Cross-chain <architecture/cross-chain/index>
@@ -46,6 +49,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Reference
+   :maxdepth: 3
 
    Web API <reference/web-api/web-api>
    Chain SDK <reference/chain-sdk/index>
@@ -57,6 +61,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Resources
+   :maxdepth: 3
 
    Wallet and Block Explorer <resources/wallet-and-explorer/index>
    Browser Extension <resources/browser-extension>
@@ -67,7 +72,8 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :hidden:
-   
+   :maxdepth: 3
+
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
    reference/cli/cli
