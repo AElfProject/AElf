@@ -4,7 +4,6 @@ AELF API 1.0
 
 Chain API
 ---------
-// todo: replace with api name which would be presented in table of contents
 Get information about a given block by block hash. Optionally with the list of its transactions.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -817,7 +816,6 @@ Tags
 
 Net API
 -------
-// todo: replace with api name which would be presented in table of contents
 
 Get information about the node’s connection to the network.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
