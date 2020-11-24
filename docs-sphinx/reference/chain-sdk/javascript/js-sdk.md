@@ -30,8 +30,7 @@ const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
 
 You can also see full examples in `./examples`;
 
-// todo : Remove index "1" "2".. 
-### 1.Create instance
+### Create instance
 
 Create a new instance of AElf, connect to an AELF chain node.
 
@@ -42,7 +41,7 @@ Create a new instance of AElf, connect to an AELF chain node.
     const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1235'));
 ```
 
-### 2.Create or load a wallet
+### Create or load a wallet
 
 Create or load a wallet with `AElf.wallet`
 

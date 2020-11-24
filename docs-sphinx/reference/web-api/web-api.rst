@@ -1,6 +1,6 @@
 AELF API 1.0
 ============
-// todo : too many levels in table of contents 
+
 
 Chain API
 ---------

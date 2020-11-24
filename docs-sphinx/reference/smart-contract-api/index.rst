@@ -9,7 +9,7 @@ using client (like **aelf-command**).
 
 .. toctree::
    :caption: Smart Contract APIs
-   :maxdepth: 2
+   :maxdepth: 2web-api.rst
    
    Association Contract <association>
    Referendum Contract <referendum>

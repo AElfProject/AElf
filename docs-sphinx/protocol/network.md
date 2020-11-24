@@ -70,8 +70,7 @@ Each node implements the network interface protocol defined by AElf to ensure no
 
 ### 3.1 Connection
 
-// todo : remove "interface"
-#### 3.1.1 DoHandshake Interface
+#### 3.1.1 DoHandshake 
 
 When a node wants to connect with the current node, the current node receives the handshake information of the target node through the interface DoHandshake. After the current node verifies the handshake information, it returns the verification result and the handshake information of the current node to the target node.
 
@@ -165,7 +164,7 @@ rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
     - SIGNATURE_TIMEOUT: the signature data has timed out.
     <br/>
 
-#### 3.1.2 ConfirmHandshake Interface
+#### 3.1.2 ConfirmHandshake 
 
 When the target node verifies that it has passed the current node's handshake message, it sends the handshake confirmation message again.
 
@@ -180,7 +179,7 @@ message ConfirmHandshakeRequest {
 
 ### 3.2 Broadcasting
 
-#### 3.2.1 BlockBroadcastStream Interface
+#### 3.2.1 BlockBroadcastStream 
 
 The interface BlockCastStream is used to receive information about the block and its complete transaction after the BP node has packaged the block.
 
@@ -198,15 +197,15 @@ message BlockWithTransactions {
 - header:
 - transactions:
 
-#### 3.2.2 TransactionBroadcastStream Interface
+#### 3.2.2 TransactionBroadcastStream 
 
-Interface TransactionBroadcastStream used to receive other nodes forward transaction information.
+ TransactionBroadcastStream used to receive other nodes forward transaction information.
 
 ``` Protobuf
 rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
 ```
 
-#### 3.2.3 AnnouncementBroadcastStream Interface
+#### 3.2.3 AnnouncementBroadcastStream 
 
 Interface AnnouncementBroadcastStream used to receive other nodes perform block after block information broadcast.
 
@@ -224,7 +223,7 @@ message BlockAnnouncement {
 - block_hash: the announced block hash.
 - block_height: the announced block height.
 
-#### 3.2.4 LibAnnouncementBroadcastStream Interface
+#### 3.2.4 LibAnnouncementBroadcastStream 
 
 Interface LibAnnouncementBroadcastStream used to receive other nodes Lib changed Lib latest information broadcast.
 
@@ -244,7 +243,7 @@ message LibAnnouncement{
 
 ### 3.3 Block Request
 
-#### 3.3.1 RequestBlock Interface
+#### 3.3.1 RequestBlock 
 
 The interface RequestBlock requests a single block in response to other nodes. Normally, the node receives block information packaged and broadcast by BP. However, if the block is not received for some other reason. The node may also receive BlockAnnouncement messages that are broadcast after the block has been executed by other nodes, so that the complete block information can be obtained by calling the RequestBlock interface of other peers.
 
@@ -273,7 +272,7 @@ rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     - block: the requested block, including complete block and transactions information.
     <br/>
 
-#### 3.3.2 RequestBlocks Interface
+#### 3.3.2 RequestBlocks 
 
 The interface RequestBlock requests blocks in bulk in response to other nodes. When a node forks or falls behind, the node synchronizes blocks by bulk fetching a specified number of blocks to the RequestBlocks interface through which the target node is called.
 
@@ -304,7 +303,7 @@ rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
 ### 3.4 Peer Management
 
-#### 3.4.1 Ping Interface
+#### 3.4.1 Ping 
 
 Interface Ping is used between nodes to verify that each other's network is available.
 
@@ -322,7 +321,7 @@ message PongReply {
 }
 ```
 
-#### 3.4.2 CheckHealth Interface
+#### 3.4.2 CheckHealth 
 
 The interface CheckHealth is invoked for other nodes' health checks, and each node periodically traverses the available peers in its own Peer Pool to send health check requests and retries or disconnects if an exception in the Peer state is found.
 

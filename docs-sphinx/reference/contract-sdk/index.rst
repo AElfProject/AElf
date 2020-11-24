@@ -1,6 +1,6 @@
 C# reference
 ===================================== 
-// todo : too many levels in table of contents 
+
 
 .. toctree::
 
