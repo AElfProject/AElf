@@ -62,7 +62,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Resources
-   :maxdepth: 3
+   :maxdepth: 2
 
    Wallet and Block Explorer <resources/wallet-and-explorer/index>
    Browser Extension <resources/browser-extension>
@@ -73,7 +73,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :hidden:
-   :maxdepth: 3
+   :maxdepth: 2
 
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node

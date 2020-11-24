@@ -6,7 +6,7 @@ initial nodes, and gradually replaces the initial nodes with true
 production nodes through elections, thus completing the complete process
 of AElf Blockchain startup.
 
-1. Start initial nodes
+Start initial nodes
 ----------------------------------------------------------------------------
 
 We need to start at least one or more initial nodes to start the AElf
@@ -31,7 +31,7 @@ set the PeriodSeconds to smaller:
      },
    }
 
-2. Run full node
+Run full node
 --------------------------------------------------------------------------------------------
 
 Create an account for the full node:
@@ -92,7 +92,7 @@ height of the initial node, the subsequent steps can be carried out.
      "BestChainHeight": 2449
    }
 
-3. Be a candidate node
+Be a candidate node
 -------------------------------------------------------------------------------
 
 Full nodes need to call Election contract to become candidate nodes. The
@@ -144,7 +144,7 @@ candidates:
      "isCurrentCandidate": true
    } 
 
-4. User vote election
+User vote election
 ------------------------------------------------------------------------------
 
 For the simulated user voting scenario, we create a user account:
@@ -206,7 +206,7 @@ successfully obtained 20 votes.
      "pubkey": "BO7QDrAJzNKDeY44Yngc69Je1qRkHg4bfQ47a1kCUEBnn8TcDtyd4Wa9YwxyVRiKmurfyDL9rggoJw93xu8meQU="
    } 
 
-5. Become production node
+Become production node
 ----------------------------------------------------------------------------------
 
 At the next election, the candidate nodes with votes in the first 17 are
@@ -231,7 +231,7 @@ Contract API for details.
      ]
    } 
 
-6. Add more production nodes
+Add more production nodes
 -------------------------------------------------------------------------------------
 
 Repeat steps 2-4 to add more production nodes. When the number of

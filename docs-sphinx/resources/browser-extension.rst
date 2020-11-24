@@ -29,10 +29,10 @@ For Dapp Developers
 Interaction Flow
 ~~~~~~~~~~~~~~~~
 
--  1.Make sure the user get the Extension
--  2.Connect Chain
--  3.Initialize Contract
--  4.Call contract methods
+-  Make sure the user get the Extension
+-  Connect Chain
+-  Initialize Contract
+-  Call contract methods
 
 How to use
 ~~~~~~~~~~
@@ -40,17 +40,17 @@ How to use
 If you need complete data structure. you can `click
 here <#data-format>`__
 
--  `0. Check Extension Demo <#demo-of-checking-the-extension>`__
--  `1. GET_CHAIN_STATUS <#get-chain-status>`__
--  `2. CALL_AELF_CHAIN <#call-aelf-chain>`__
--  `3. LOGIN <#login>`__
--  `4. INIT_AELF_CONTRACT <#init-aelf-contract>`__
--  `5. CALL_AELF_CONTRACT /
+-  `Check Extension Demo <#demo-of-checking-the-extension>`__
+-  `GET_CHAIN_STATUS <#get-chain-status>`__
+-  `CALL_AELF_CHAIN <#call-aelf-chain>`__
+-  `LOGIN <#login>`__
+-  `INIT_AELF_CONTRACT <#init-aelf-contract>`__
+-  `=CALL_AELF_CONTRACT /
    CALL_AELF_CONTRACT_READONLY <#call-aelf-contract-call-aelf-contract-readonly>`__
--  `6. CHECK_PERMISSION <#check-permission>`__
--  `7. SET_CONTRACT_PERMISSION <#set-contract-permission>`__
--  `8. REMOVE_CONTRACT_PERMISSION <#remove-contract-permission>`__
--  `9. REMOVE_METHODS_WHITELIST <#remove-methods-whitelist>`__
+-  `CHECK_PERMISSION <#check-permission>`__
+-  `SET_CONTRACT_PERMISSION <#set-contract-permission>`__
+-  `REMOVE_CONTRACT_PERMISSION <#remove-contract-permission>`__
+-  `REMOVE_METHODS_WHITELIST <#remove-methods-whitelist>`__
 
 Data Format
 -----------
@@ -131,7 +131,7 @@ Demo of Checking the Extension
        // connectChain -> Login -> initContract -> call contract methods
    });
 
-1.GET_CHAIN_STATUS
+GET_CHAIN_STATUS
 ~~~~~~~~~~~~~~~~~~
 
 You can see the demo
@@ -171,7 +171,7 @@ Note: ``'...'`` stands for omitted data.
    //     GenesisContractAddress: "61W3AF3Voud7cLY2mejzRuZ4WEN8mrDMioA9kZv3H8taKxF"
    // }
 
-2.CALL_AELF_CHAIN
+CALL_AELF_CHAIN
 ~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -187,7 +187,7 @@ Note: ``'...'`` stands for omitted data.
    //     TransactionId: "ff5bcd126f9b7f22bbfd0816324390776f10ccb3fe0690efc84c5fcf6bdd3fc6"
    // }
 
-3. LOGIN
+LOGIN
 ~~~~~~~~
 
 .. code:: javascript
@@ -240,7 +240,7 @@ Note: ``'...'`` stands for omitted data.
    //     }]
    // }
 
-4.INIT_AELF_CONTRACT
+INIT_AELF_CONTRACT
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -271,7 +271,7 @@ Note: ``'...'`` stands for omitted data.
    //     ....
    // }
 
-5.CALL_AELF_CONTRACT / CALL_AELF_CONTRACT_READONLY
+CALL_AELF_CONTRACT / CALL_AELF_CONTRACT_READONLY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -308,7 +308,7 @@ Note: ``'...'`` stands for omitted data.
    //     balance: 0
    // }
 
-6.CHECK_PERMISSION
+CHECK_PERMISSION
 ~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -346,7 +346,7 @@ Note: ``'...'`` stands for omitted data.
    //     ]
    // }
 
-7.SET_CONTRACT_PERMISSION
+SET_CONTRACT_PERMISSION
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -392,7 +392,7 @@ Note: ``'...'`` stands for omitted data.
    //     }]
    // }
 
-8.REMOVE_CONTRACT_PERMISSION
+REMOVE_CONTRACT_PERMISSION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
@@ -423,7 +423,7 @@ Note: ``'...'`` stands for omitted data.
    //     }]
    // }
 
-9.REMOVE_METHODS_WHITELIST
+REMOVE_METHODS_WHITELIST
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: javascript
