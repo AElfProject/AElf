@@ -12,6 +12,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Getting Started
+   :maxdepth: 3
 
    Development Environment <getting-started/development-environment/index>
    Smart Contract Development <getting-started/smart-contract-development/index>
@@ -49,7 +50,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Reference
-   :maxdepth: 3
+   :maxdepth: 2
 
    Web API <reference/web-api/web-api>
    Chain SDK <reference/chain-sdk/index>
