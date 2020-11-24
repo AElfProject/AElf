@@ -39,12 +39,6 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 TestDataProvider.SetBlockTime(
                     round.RealTimeMinersInformation.Single(m => m.Value.Order == 1).Value.ExpectedMiningTime +
                     new Duration {Seconds = 1});
-                var firstMinerPubkey = round.RealTimeMinersInformation.Single(m => m.Value.Order == 1).Key;
-                var currentMinerPubkey = await ConsensusStub.GetCurrentMinerPubkey.CallAsync(new Empty());
-                currentMinerPubkey.Value.ShouldBe(firstMinerPubkey);
-                (await ConsensusStub.IsCurrentMiner.CallAsync(
-                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(firstMinerPubkey)))).Value
-                    .ShouldBeTrue();
             }
 
             // We can use this method process testing.
@@ -86,20 +80,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 tokenInfo.Symbol.ShouldBe("ELF");
             }
 
-            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber - 2; i++)
+            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber; i++)
             {
                 await BlockMiningService.MineBlockAsync();
-            }
-
-            // Check miner information
-            {
-                var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                var secondMinerPubkey = round.RealTimeMinersInformation.Single(m => m.Value.Order == 2).Key;
-                var currentMinerPubkey = await ConsensusStub.GetCurrentMinerPubkey.CallAsync(new Empty());
-                currentMinerPubkey.Value.ShouldBe(secondMinerPubkey);
-                (await ConsensusStub.IsCurrentMiner.CallAsync(
-                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(secondMinerPubkey)))).Value
-                    .ShouldBeTrue();
             }
 
             var getBalanceTransaction = TokenStub.GetBalance.GetTransaction(new GetBalanceInput

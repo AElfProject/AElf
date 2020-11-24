@@ -29,25 +29,37 @@ The generated transaction's method  is ChargeTransactionFees. The implementation
 /// </summary>
 /// <param name="input"></param>
 /// <returns></returns>
-public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input)
+public override ChargeTransactionFeesOutput ChargeTransactionFees(ChargeTransactionFeesInput input)
 {
-    // ...
+    AssertTransactionGeneratedByPlugin();
+    Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
+
+    // Primary token not created yet.
+    if (State.ChainPrimaryTokenSymbol.Value == null)
+    {
+        return new ChargeTransactionFeesOutput {Success = true};
+    }
+
     // Record tx fee bill during current charging process.
     var bill = new TransactionFeeBill();
+
     var fromAddress = Context.Sender;
     var methodFees = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
         new StringValue {Value = input.MethodName});
     var successToChargeBaseFee = true;
     if (methodFees != null && methodFees.Fees.Any())
     {
+        // If base fee is set before, charge base fee.
         successToChargeBaseFee = ChargeBaseFee(GetBaseFeeDictionary(methodFees), ref bill);
     }
+
     var successToChargeSizeFee = true;
-    if (!IsMethodFeeSetToZero(methodFees))
+    if (methodFees != null && !methodFees.IsSizeFeeFree)
     {
-        // Then also do not charge size fee.
+        // If IsSizeFeeFree == true, do not charge size fee.
         successToChargeSizeFee = ChargeSizeFee(input, ref bill);
     }
+
     // Update balances.
     foreach (var tokenToAmount in bill.FeesMap)
     {
@@ -59,10 +71,15 @@ public override BoolValue ChargeTransactionFees(ChargeTransactionFeesInput input
         });
         if (tokenToAmount.Value == 0)
         {
-            //Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+            Context.LogDebug(() => "Maybe incorrect charged tx fee of " + tokenToAmount.Key + ": it's 0.");
         }
     }
-    return new BoolValue {Value = successToChargeBaseFee && successToChargeSizeFee};
+
+    var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
+    var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
+    if (!chargingResult)
+        chargingOutput.ChargingInformation = "Transaction fee not enough.";
+    return chargingOutput;
 }
 ```
 
@@ -86,7 +103,15 @@ The TransactionFeeCharged event will be captured and processed on the chain to c
 private void TransferTransactionFeesToFeeReceiver(string symbol, long totalAmount)
 {
     Context.LogDebug(() => "Transfer transaction fee to receiver.");
+
     if (totalAmount <= 0) return;
+
+    var tokenInfo = State.TokenInfos[symbol];
+    if (!tokenInfo.IsBurnable)
+    {
+        return;
+    }
+
     var burnAmount = totalAmount.Div(10);
     if (burnAmount > 0)
         Context.SendInline(Context.Self, nameof(Burn), new BurnInput
@@ -94,16 +119,20 @@ private void TransferTransactionFeesToFeeReceiver(string symbol, long totalAmoun
             Symbol = symbol,
             Amount = burnAmount
         });
+
     var transferAmount = totalAmount.Sub(burnAmount);
     if (transferAmount == 0)
         return;
     var treasuryContractAddress =
         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-    if ( treasuryContractAddress!= null)
+    var isMainChain = treasuryContractAddress != null;
+    if (isMainChain)
     {
         // Main chain would donate tx fees to dividend pool.
         if (State.DividendPoolContract.Value == null)
             State.DividendPoolContract.Value = treasuryContractAddress;
+        State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol] =
+            State.Allowances[Context.Self][State.DividendPoolContract.Value][symbol].Add(transferAmount);
         State.DividendPoolContract.Donate.Send(new DonateInput
         {
             Symbol = symbol,
@@ -140,7 +169,7 @@ In this way, AElf charges the transaction fee via the GetMethodFee provided by A
 
 The easiest way to do this is to just implement the method GetMethodFee.
 
-If there are Foo1, Foo2, Bar1 and Bar2 methods related to business logic in a contract, they are priced as 1, 1, 2, 2 ELF respectively, and the transaction fees of these four methods will not be easily modified later, they can be implemented as follows:
+If there are Foo1, Foo2, Bar1, Bar2 and Free methods related to business logic in a contract, they are priced as 1, 1, 2, 2 ELF respectively, and the transaction fees of these four methods will not be easily modified later, they can be implemented as follows:
 
 ```c#
 public override MethodFees GetMethodFee(StringValue input)
@@ -173,6 +202,15 @@ public override MethodFees GetMethodFee(StringValue input)
                     Symbol = Context.Variables.NativeSymbol
                 }
             }
+        };
+    }
+    if (input.Value == nameof(Free))
+    {
+        // Transactions of Free method will be totally free.
+        return new MethodFees
+        {
+            MethodName = input.Value,
+            IsSizeFeeFree = true
         };
     }
     return new MethodFees();
@@ -217,7 +255,7 @@ public override Empty SetMethodFee(MethodFees input)
      AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee); 
   }
   RequiredMethodFeeControllerSet();
-  Assert(Context.Sender ==             State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
+  Assert(Context.Sender == State.MethodFeeController.Value.OwnerAddress, "Unauthorized to set method fee.");
     State.TransactionFees[input.MethodName] = input;
     return new Empty();
 }
@@ -235,7 +273,7 @@ private void RequiredMethodFeeControllerSet()
    if (State.MethodFeeController.Value != null) return;
    if (State.ParliamentContract.Value == null)
    {
-     State.ParliamentContract.Value =         Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+     State.ParliamentContract.Value = Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
    }
    var defaultAuthority = new AuthorityInfo();
    // Parliament Auth Contract maybe not deployed.

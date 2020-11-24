@@ -116,11 +116,6 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     
-    // Get current miner public key.
-    rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
-        option (aelf.is_view) = true;
-    }
-    
     // Check to see if the account address is on the miner list for the current round.
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;

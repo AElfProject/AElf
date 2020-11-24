@@ -90,64 +90,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new StringValue();
         }
 
-        public override StringValue GetCurrentMinerPubkey(Empty input)
-        {
-            if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
-            return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
-        }
-
-        private string GetCurrentMinerPubkey(Round round, Timestamp currentBlockTime)
-        {
-            var miningInterval = round.GetMiningInterval();
-            string pubkey;
-            if (currentBlockTime < round.GetExtraBlockMiningTime())
-            {
-                pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
-                    m.ExpectedMiningTime <= currentBlockTime &&
-                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
-                if (pubkey != null)
-                {
-                    Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
-                    return pubkey;
-                }
-            }
-
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
-
-            Context.LogDebug(() => $"Now based on round: \n{previousRound.GetSimpleRound()}");
-
-            var extraBlockProducer = previousRound.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer)
-                .Pubkey;
-            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime();
-            if (extraBlockMiningTime <= currentBlockTime &&
-                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
-            {
-                Context.LogDebug(() => $"Checked extra block time slot: {extraBlockProducer}");
-                return extraBlockProducer;
-            }
-
-            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys.Except(new List<string>
-                {extraBlockProducer}))
-            {
-                var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
-                    currentBlockTime.AddMilliseconds(-miningInterval.Mul(round.RealTimeMinersInformation.Count)));
-                if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
-                    consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
-                {
-                    return maybeCurrentPubkey;
-                }
-            }
-
-            pubkey = previousRound.RealTimeMinersInformation.OrderBy(i => i.Value.Order).Select(i => i.Key)
-                .FirstOrDefault(k =>
-                    previousRound.IsInCorrectFutureMiningSlot(k, Context.CurrentBlockTime));
-
-            Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
-
-            return pubkey;
-        }
-
         /// <summary>
         /// Current implementation can be incorrect if all nodes recovering from
         /// a strike more than the time of one round, because it's impossible to

@@ -111,21 +111,21 @@ Other Whitelisted Namespaces
 Allowed Types for Arrays
 ------------------------
 
-======================== ========== =========
-Type                     Size Limit Threshold
-======================== ========== =========
-``byte``                 By Size    4 Mb
-``short``                By Size    4 Mb
-``int``                  By Size    4 Mb
-``long``                 By Size    4 Mb
-``ushort``               By Size    4 Mb
-``uint``                 By Size    4 Mb
-``ulong``                By Size    4 Mb
-``decimal``              By Size    4 Mb
-``char``                 By Size    4 Mb
-``string``               By Size    128
-``Type``                 By Size    5
-``Object``               By Size    5
-``FileDescriptor``       By Count   10
-``GeneratedClrTypeInfo`` By Count   100
-======================== ========== =========
+======================== ================
+Type                     Array Size Limit
+======================== ================
+``byte``                 40960     
+``short``                20480     
+``int``                  10240     
+``long``                 5120      
+``ushort``               20480     
+``uint``                 10240     
+``ulong``                5120      
+``decimal``              2560      
+``char``                 20480     
+``string``               320       
+``Type``                 5         
+``Object``               5         
+``FileDescriptor``       10        
+``GeneratedClrTypeInfo`` 100       
+======================== ================
