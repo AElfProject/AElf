@@ -235,6 +235,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Pubkeys = {currentRound.GetMinedMiners().Select(m => ByteStringHelper.FromHexString(m.Pubkey))}
             });
+
+            // Remove information out of date.
+            var removeTargetRoundNumber = currentRound.RoundNumber.Sub(3);
+            if (removeTargetRoundNumber > 0 && State.MinedMinerListMap[removeTargetRoundNumber] != null)
+            {
+                State.MinedMinerListMap.Remove(removeTargetRoundNumber);
+            }
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)

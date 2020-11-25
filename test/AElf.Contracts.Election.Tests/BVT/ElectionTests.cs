@@ -51,7 +51,7 @@ namespace AElf.Contracts.Election
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
             await AnnounceElectionAsync(candidatesKeyPair);
             var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
-            balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
+            balanceAfterAnnouncing.ShouldBe(balanceBeforeAnnouncing - ElectionContractConstants.LockTokenForElection);
             var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
                 VotingItemId = MinerElectionVotingItemId
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Election
         /// Take first 7 full node key pairs to announce election.
         /// </summary>
         /// <returns>Return 7 candidates key pairs.</returns>
-        public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
+        private async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
         {
             var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(CandidatesCount).ToList();
 
@@ -122,8 +122,7 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
-        #pragma warning disable xUnit1013
-        public async Task ElectionContract_QuiteElection_Test()
+        private async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
 

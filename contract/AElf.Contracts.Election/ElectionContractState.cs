@@ -61,5 +61,25 @@ namespace AElf.Contracts.Election
         public SingletonState<AuthorityInfo> VoteWeightInterestController { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Address who has the authority to replace it.
+        /// </summary>
+        public MappedState<string, Address> CandidateAdmins { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Newest pubkey
+        /// </summary>
+        public MappedState<string, string> CandidateReplacementMap { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Initial pubkey (First round initial miner pubkey or first announce election pubkey)
+        /// </summary>
+        public MappedState<string, string> InitialPubkeyMap { get; set; }
+
+        /// <summary>
+        /// Initial pubkey -> Newest pubkey
+        /// </summary>
+        public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
     }
 }

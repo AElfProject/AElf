@@ -184,6 +184,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {
+                // This miner was replaced by another miner in next round.
                 return new AElfConsensusHeaderInformation
                 {
                     SenderPubkey = ByteStringHelper.FromHexString(pubkey),

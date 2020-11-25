@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
@@ -38,18 +40,21 @@ namespace AElf.Contracts.Election
             round.GetMinedBlocks().ShouldBe(1);
             round.GetMinedMiners().Count.ShouldBe(1);
         }
-        
-        private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
+
+        private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair, Address candidateAdmin = null)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            candidateAdmin ??= Address.FromPublicKey(keyPair.PublicKey);
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(candidateAdmin))
+                .TransactionResult;
             return announceResult;
         }
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;
+            return (await electionStub.QuitElection.SendAsync(new StringValue {Value = keyPair.PublicKey.ToHex()}))
+                .TransactionResult;
         }
 
         private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,

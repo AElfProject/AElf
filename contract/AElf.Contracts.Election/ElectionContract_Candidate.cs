@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -18,15 +20,19 @@ namespace AElf.Contracts.Election
         /// <summary>
         /// Actually this method is for adding an option of the Voting Item.
         /// Thus the limitation of candidates will be limited by the capacity of voting options.
+        /// The input is candidate admin, better be an organization address of Association Contract.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty AnnounceElection(Empty input)
+        public override Empty AnnounceElection(Address input)
         {
             var recoveredPublicKey = Context.RecoverPublicKey();
             AnnounceElection(recoveredPublicKey);
 
             var pubkey = recoveredPublicKey.ToHex();
+
+            Assert(input.Value.Any(), "Admin is needed while announcing election.");
+            State.CandidateAdmins[pubkey] = input;
 
             LockCandidateNativeToken();
 
@@ -84,13 +90,16 @@ namespace AElf.Contracts.Election
             }
 
             // Lock the token from sender for deposit of announce election
-            State.TokenContract.Lock.Send(new LockInput
+            var lockId = Context.OriginTransactionId;
+            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+            var announcePubkeyAddress = Context.Sender;
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
-                Address = Context.Sender,
+                From = announcePubkeyAddress,
+                To = lockVirtualAddress,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
-                LockId = Context.OriginTransactionId,
-                Usage = "Lock for announcing election."
+                Memo = "Lock for announcing election."
             });
         }
 
@@ -135,22 +144,26 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="input">Empty</param>
         /// <returns></returns>
-        public override Empty QuitElection(Empty input)
+        public override Empty QuitElection(StringValue input)
         {
-            var recoveredPublicKey = Context.RecoverPublicKey();
-            QuitElection(recoveredPublicKey);
-            var pubkey = recoveredPublicKey.ToHex();
+            var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(input.Value);
+            QuitElection(pubkeyBytes);
+            var pubkey = input.Value;
 
+            var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
+            Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "Only admin can quit election.");
             var candidateInformation = State.CandidateInformationMap[pubkey];
 
             // Unlock candidate's native token.
-            State.TokenContract.Unlock.Send(new UnlockInput
+            var lockId = candidateInformation.AnnouncementTransactionId;
+            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
-                Address = Context.Sender,
+                From = lockVirtualAddress,
+                To = Address.FromPublicKey(pubkeyBytes),
                 Symbol = Context.Variables.NativeSymbol,
-                LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
-                Usage = "Quit election."
+                Memo = "Quit election."
             });
 
             // Update candidate information.
@@ -180,6 +193,7 @@ namespace AElf.Contracts.Election
 
                 State.DataCentersRankingList.Value = dataCenterList;
             }
+
             return new Empty();
         }
 
@@ -187,7 +201,7 @@ namespace AElf.Contracts.Election
         {
             var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
 
-            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
+            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Target is not a candidate.");
 
             if (State.AEDPoSContract.Value == null)
             {
@@ -207,5 +221,63 @@ namespace AElf.Contracts.Election
         }
 
         #endregion
+
+        #region SetCandidateAdmin
+
+        public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
+        {
+            Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
+                "Pubkey is neither a current candidate nor an initial miner.");
+            Assert(!IsPubkeyInBlackList(input.Pubkey), "Pubkey is in black list.");
+
+            // Permission check
+            var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
+            if (Context.Sender != GetParliamentDefaultAddress())
+            {
+                if (State.CandidateAdmins[initialPubkey] == null)
+                {
+                    // If admin is not set before (due to old contract code)
+                    Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
+                        "No permission.");
+                }
+                else
+                {
+                    var oldCandidateAdmin = State.CandidateAdmins[initialPubkey];
+                    Assert(Context.Sender == oldCandidateAdmin, "No permission.");
+                }
+            }
+
+            State.CandidateAdmins[initialPubkey] = input.Admin;
+            return new Empty();
+        }
+
+        #endregion
+
+        private bool IsPubkeyInBlackList(string pubkey)
+        {
+            var blackList = State.BlackList.Value;
+            return blackList != null &&
+                   blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+        }
+
+        private Address GetParliamentDefaultAddress()
+        {
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+        }
+
+        private bool IsCurrentCandidateOrInitialMiner(string pubkey)
+        {
+            var isCurrentCandidate = State.CandidateInformationMap[pubkey] != null &&
+                                     State.CandidateInformationMap[pubkey].IsCurrentCandidate;
+            var isInitialMiner = State.InitialMiners.Value.Value.Contains(
+                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+            return isCurrentCandidate || isInitialMiner;
+        }
     }
 }

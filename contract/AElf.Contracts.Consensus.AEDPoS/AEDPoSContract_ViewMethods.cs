@@ -193,9 +193,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var minersCount = currentRound.RealTimeMinersInformation.Count;
                     var latestMinedSlotLastActualMiningTime = latestMinedInfo.ActualMiningTimes.Last();
                     var latestMinedOrder = latestMinedInfo.Order;
-                    var currentMinerOrder = currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
+                    var currentMinerOrder =
+                        currentRound.RealTimeMinersInformation.Single(i => i.Key == pubkey).Value.Order;
                     var passedSlotsCount =
-                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Milliseconds().Div(miningInterval);
+                        (Context.CurrentBlockTime - latestMinedSlotLastActualMiningTime).Milliseconds()
+                        .Div(miningInterval);
                     if (passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(1).Add(minersCount) ||
                         passedSlotsCount == currentMinerOrder.Sub(latestMinedOrder).Add(minersCount))
                     {
@@ -298,6 +300,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         CurrentMinerList = {currentRound.RealTimeMinersInformation.Keys}
                     });
 
+                Context.LogDebug(() => $"Got miner replacement information:\n{minerReplacementInformation}");
+
                 if (minerReplacementInformation.AlternativeCandidatePubkeys.Count > 0)
                 {
                     for (var i = 0; i < minerReplacementInformation.AlternativeCandidatePubkeys.Count; i++)
@@ -314,6 +318,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         {
                             NewMinerPubkey = alternativeCandidatePubkey
                         });
+
                         // Transfer evil node's consensus information to the chosen backup.
                         var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinerPubkey];
                         var minerInRound = new MinerInRound

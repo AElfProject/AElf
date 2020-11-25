@@ -39,14 +39,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public ReadonlyState<long> MinerIncreaseInterval { get; set; }
 
-        public MappedState<Hash, RandomNumberRequestInformation> RandomNumberInformationMap { get; set; }
-
-        /// <summary>
-        /// Round Number -> Random Number Token Hashes.
-        /// Used for deleting due token hashes.
-        /// </summary>
-        public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
-
         public Int32State MaximumMinersCount { get; set; }
 
         public SingletonState<LatestPubkeyToTinyBlocksCount> LatestPubkeyToTinyBlocksCount { get; set; }

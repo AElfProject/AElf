@@ -50,6 +50,10 @@ service AEDPoSContract {
     // The authority information for SetMaximumMinersCount, by default, is governed by parliament.
     rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
+    
+    // Election Contract can notify AEDPoS Contract to aware candidate replacement happened.
+    rpc RecordCandidateReplacement (RecordCandidateReplacementInput) returns (google.protobuf.Empty) {
+    }
 
     // Get the list of current miners.
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -428,4 +432,9 @@ message MinerReplaced {
     option (aelf.is_event) = true;
     // The new miner public key.
     string new_miner_pubkey = 1;
+}
+
+message RecordCandidateReplacementInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
 }

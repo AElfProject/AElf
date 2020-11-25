@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Standards.ACS3;
 using AElf.Contracts.Election;
+using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
@@ -53,7 +54,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     ContractAddresses[ElectionSmartContractAddressNameProvider.Name], keyPair)).ToList();
             foreach (var electionStub in candidateElectionStubs)
             {
-                await electionStub.AnnounceElection.SendAsync(new Empty());
+                await electionStub.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
             }
 
             foreach (var keyPair in nodeAccounts)
