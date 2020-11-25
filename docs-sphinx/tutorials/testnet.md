@@ -167,15 +167,14 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 
 Note: if your infrastructure is behind a firewall you need to open the
 P2P listening port of the node. You also need to configure your
-listening ip and port for the side chain connections:
+listening ip and port for the side chain connections in `appsettings.MainChain.TestNet.json`:
 
 ``` json
 {
     "CrossChain": {
         "Grpc": {
             "LocalServerPort": 5000,
-            "LocalServerHost": "your server ip address",
-            "ListeningHost": "0.0.0.0"
+            "LocalServerHost": "your server ip address"
         }
     },
 }
@@ -267,17 +266,15 @@ sidechain1:
 ```
 
 In order for a sidechain to connect to a mainchain node you need to
-modify the configuration with the remote information.
+modify the `appsettings.SideChain.TestNet.json` with your node information.
 
 ``` json
 {
     "CrossChain": {
         "Grpc": {
-            "RemoteParentChainServerPort": 5000,
-            "LocalServerHost": "you local ip address",
-            "LocalServerPort": 5001,
-            "RemoteParentChainServerHost": "your mainchain ip address",
-            "ListeningHost": "0.0.0.0"
+            "ParentChainServerPort": 5000,
+            "ParentChainServerIp": "your mainchain ip address",
+            "ListeningPort": 5001,
         },
         "ParentChainId": "AELF"
     }
