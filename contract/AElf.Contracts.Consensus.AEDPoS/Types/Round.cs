@@ -226,25 +226,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return checkableRound.ToByteArray();
         }
 
-        public Round GetSimpleRound()
-        {
-            var minersInformation = new Dictionary<string, MinerInRound>();
-            foreach (var minerInRound in RealTimeMinersInformation.Clone())
-            {
-                var checkableMinerInRound = minerInRound.Value.Clone();
-                checkableMinerInRound.EncryptedPieces.Clear();
-                checkableMinerInRound.DecryptedPieces.Clear();
-                checkableMinerInRound.ActualMiningTimes.Clear();
-                minersInformation.Add(minerInRound.Key, checkableMinerInRound);
-            }
-
-            return new Round
-            {
-                RoundNumber = RoundNumber,
-                RealTimeMinersInformation = {minersInformation},
-            };
-        }
-
         /// <summary>
         /// Change term if two thirds of miners latest ActualMiningTime meets threshold of changing term.
         /// </summary>

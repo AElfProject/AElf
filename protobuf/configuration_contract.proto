@@ -1,3 +1,6 @@
+/**
+ * Configuration contract.
+ */
 syntax = "proto3";
 
 package Configuration;
@@ -12,16 +15,21 @@ option csharp_namespace = "AElf.Contracts.Configuration";
 
 service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
-    // Actions
+    
+    // Add or update configuration.
     rpc SetConfiguration (SetConfigurationInput) returns (google.protobuf.Empty) {
     }
+    
+    // Change the method fee controller, the default is Parliament.
     rpc ChangeConfigurationController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
-    // Views
+    // Query the configuration by configuration’s key.
     rpc GetConfiguration (google.protobuf.StringValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
+    
+    // Query the controller information
     rpc GetConfigurationController (google.protobuf.Empty) returns (AuthorityInfo) {
         option (aelf.is_view) = true;
     }
@@ -29,14 +37,16 @@ service Configuration {
 }
 
 message SetConfigurationInput {
+    // The configuration’s key.
     string key = 1;
+    // The configuration’s value(binary data).
     bytes value = 2;
 }
 
-// Events
-
 message ConfigurationSet {
     option (aelf.is_event) = true;
+    // The configuration’s key.
     string key = 1;
+    // The configuration’s value(binary data).
     bytes value = 2;
 }

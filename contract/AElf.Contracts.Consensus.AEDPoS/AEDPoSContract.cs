@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -200,6 +201,36 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var height = new Int64Value();
             height.MergeFrom(input.Value);
             return GetRandomHash(height).ToBytesValue();
+        }
+
+        public override Empty RecordCandidateReplacement(RecordCandidateReplacementInput input)
+        {
+            Assert(Context.Sender == State.ElectionContract.Value,
+                "Only Election Contract can record candidate replacement information.");
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound) ||
+                !currentRound.RealTimeMinersInformation.ContainsKey(input.OldPubkey)) return new Empty();
+
+            // If this candidate is current miner, need to modify current round information.
+            var realTimeMinerInformation = currentRound.RealTimeMinersInformation[input.OldPubkey];
+            realTimeMinerInformation.Pubkey = input.NewPubkey;
+            currentRound.RealTimeMinersInformation.Remove(input.OldPubkey);
+            currentRound.RealTimeMinersInformation.Add(input.NewPubkey, realTimeMinerInformation);
+            if (currentRound.ExtraBlockProducerOfPreviousRound == input.OldPubkey)
+            {
+                currentRound.ExtraBlockProducerOfPreviousRound = input.NewPubkey;
+            }
+            State.Rounds[State.CurrentRoundNumber.Value] = currentRound;
+
+            // Notify Treasury Contract to update replacement information. (Update from old record.)
+            State.TreasuryContract.RecordMinerReplacement.Send(new RecordMinerReplacementInput
+            {
+                OldPubkey = input.OldPubkey,
+                NewPubkey = input.NewPubkey,
+                CurrentTermNumber = State.CurrentTermNumber.Value
+            });
+
+            return new Empty();
         }
     }
 }

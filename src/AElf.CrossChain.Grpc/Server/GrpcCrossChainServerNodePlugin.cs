@@ -8,6 +8,7 @@ namespace AElf.CrossChain.Grpc.Server
     {
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly IGrpcCrossChainServer _grpcCrossChainServer;
+        public int ChainId { get; private set; }
 
         public GrpcCrossChainServerNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
             IGrpcCrossChainServer grpcCrossChainServer)
@@ -18,6 +19,8 @@ namespace AElf.CrossChain.Grpc.Server
 
         public Task StartAsync(int chainId)
         {
+            ChainId = chainId;
+
             if (_grpcCrossChainConfigOption.ListeningPort == 0)
                 return Task.CompletedTask;
             return _grpcCrossChainServer.StartAsync(_grpcCrossChainConfigOption.ListeningPort);

@@ -53,16 +53,11 @@ namespace AElf.Contracts.Election
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
 
             var defaultAuthority = new AuthorityInfo
             {
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty()),
-                ContractAddress = State.ParliamentContract.Value
+                OwnerAddress = GetParliamentDefaultAddress(),
+                ContractAddress = Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName)
             };
 
             State.MethodFeeController.Value = defaultAuthority;

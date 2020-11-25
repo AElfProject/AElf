@@ -65,7 +65,8 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
-                    CanRemoveBeneficiaryDirectly = i == 2
+                    // Subsidy, Votes Weight Reward and Re-Election Reward can remove beneficiary directly (due to replaceable.)
+                    CanRemoveBeneficiaryDirectly = new List<int> {2, 5, 6}.Contains(i)
                 });
             }
 
@@ -876,6 +877,92 @@ namespace AElf.Contracts.Treasury
             }
 
             return dividends;
+        }
+
+        public override Empty RecordMinerReplacement(RecordMinerReplacementInput input)
+        {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                "Only AEDPoS Contract can record miner replacement.");
+            Context.LogDebug(() =>
+                $"Updating re-election and votes-weight rewords info: {input.OldPubkey} -> {input.NewPubkey}");
+
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+
+            // Update own re-election state.
+            var reElectionInformation = State.MinerReElectionInformation.Value;
+            if (reElectionInformation == null ||
+                !reElectionInformation.ContinualAppointmentTimes.ContainsKey(input.OldPubkey)) return new Empty();
+            var oldTimes = reElectionInformation.ContinualAppointmentTimes[input.OldPubkey];
+            reElectionInformation.ContinualAppointmentTimes.Remove(input.OldPubkey);
+            reElectionInformation.ContinualAppointmentTimes.Add(input.NewPubkey, oldTimes);
+            State.MinerReElectionInformation.Value = reElectionInformation;
+
+            // Update re-election profit scheme beneficiary.
+            var oldAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
+            var newAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
+            var reElectionDetail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                SchemeId = State.ReElectionRewardHash.Value,
+                Beneficiary = oldAddress
+            }).Details.LastOrDefault();
+            if (reElectionDetail != null && reElectionDetail.EndPeriod >= input.CurrentTermNumber)
+            {
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    Beneficiary = oldAddress
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = newAddress,
+                        Shares = reElectionDetail.Shares,
+                    },
+                    EndPeriod = input.CurrentTermNumber
+                });
+            }
+            else
+            {
+                Context.LogDebug(() => $"Re-election profit scheme details of {input.OldPubkey} is null.");
+            }
+
+            // Update votes-weight profit scheme beneficiary.
+            var votesWeightDetail = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                SchemeId = State.VotesWeightRewardHash.Value,
+                Beneficiary = oldAddress
+            }).Details.LastOrDefault();
+            if (votesWeightDetail != null && votesWeightDetail.EndPeriod >= input.CurrentTermNumber)
+            {
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.VotesWeightRewardHash.Value,
+                    Beneficiary = oldAddress
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.VotesWeightRewardHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = newAddress,
+                        Shares = votesWeightDetail.Shares
+                    },
+                    EndPeriod = input.CurrentTermNumber
+                });
+            }
+            else
+            {
+                Context.LogDebug(() => $"Votes-weight profit scheme details of {input.OldPubkey} is null.");
+            }
+
+            return new Empty();
         }
     }
 }
