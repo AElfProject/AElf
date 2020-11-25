@@ -45,7 +45,7 @@ here <#data-format>`__
 -  `CALL_AELF_CHAIN <#call-aelf-chain>`__
 -  `LOGIN <#login>`__
 -  `INIT_AELF_CONTRACT <#init-aelf-contract>`__
--  `=CALL_AELF_CONTRACT /
+-  `CALL_AELF_CONTRACT /
    CALL_AELF_CONTRACT_READONLY <#call-aelf-contract-call-aelf-contract-readonly>`__
 -  `CHECK_PERMISSION <#check-permission>`__
 -  `SET_CONTRACT_PERMISSION <#set-contract-permission>`__
