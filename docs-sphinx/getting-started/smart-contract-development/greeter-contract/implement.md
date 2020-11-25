@@ -269,7 +269,8 @@ From within the contract methods, you can easily access the contracts state thro
 Context.LogDebug(() => "Hello {0}!", input.Value);
 ```
 
-It is also possible to log from smart contract methods. The above example will log "Hello" and the value of the input. It also prints useful information like the ID of the transaction. 
+It is also possible to log from smart contract methods. The above example will log "Hello" and the value of the input. It also prints useful information like the ID of the transaction.
+It will print in the console log if you launch the node with DEBUG mode. This is only for debug use and has no impacts on state at all.
 
 ### More on state
 
@@ -308,7 +309,3 @@ The state uses the custom ```GreetedList``` type, which was generated from the P
 The ```SingletonState``` is part of the C# SDK and is used to represent exactly **one** value. The value can be of any type, including collection types. Here we only wanted our contract to store one list (here a list of strings).
 
 **Note** that you have to wrap your state types in a type like ```SingletonState``` (others are also available like ```MappedState```) because behind the scene, they implement the state read and write operations.
-
-## Next 
-
-This article showed you how to set up the contract's definition and implementation, next, we'll see how to test it.

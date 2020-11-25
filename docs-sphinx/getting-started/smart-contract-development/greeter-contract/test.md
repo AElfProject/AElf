@@ -77,7 +77,3 @@ From the previous code snippet you can note several things:
 - you can use the contracts stub to call the contract and check returns.
 
 Feel free to have a look at the full test class in the Boilerplate source code.
-
-## Next
-
-We've seen how to add the tests for a contract. The next step is to run the node where the contract is deployed to actually be able to interact with the contract from external sources.

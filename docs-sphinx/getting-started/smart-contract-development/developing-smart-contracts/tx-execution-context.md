@@ -114,7 +114,3 @@ public override Empty Vote(VoteMinerInput input)
     var recoveredPublicKey = Context.RecoverPublicKey();
 }
 ```
-
-## Next
-
-The execution context also exposes functionality for sending inline transactions; the next article will give you more details on how to generate inline calls.
