@@ -207,27 +207,36 @@ it.
    rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){}
 
    message SideChainCreationRequest {
+       // The cross chain indexing price.
        int64 indexing_price = 1;
+       // Initial locked balance for a new side chain.
        int64 locked_token_amount = 2;
+       // Creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
        bool is_privilege_preserved = 3;
-       string side_chain_token_symbol = 4;
-       string side_chain_token_name = 5;
-       int64 side_chain_token_total_supply = 6;
-       int32 side_chain_token_decimals = 7;
-       bool is_side_chain_token_burnable = 8;
-       bool is_side_chain_token_profitable = 9;
-       repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
-       map<string, int32> initial_resource_amount = 11;
+       // Side chain token information.
+       SideChainTokenCreationRequest side_chain_token_creation_request = 4;
+       // A list of accounts and amounts that will be issued when the chain starts.
+       repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 5;
+       // The initial rent resources.
+       map<string, int32> initial_resource_amount = 6;
    }
-
+   
+   message SideChainTokenCreationRequest{
+       // Token symbol of the side chain to be created
+       string side_chain_token_symbol = 1;
+       // Token name of the side chain to be created
+       string side_chain_token_name = 2;
+       // Token total supply of the side chain to be created
+       int64 side_chain_token_total_supply = 3;
+       // Token decimals of the side chain to be created
+       int32 side_chain_token_decimals = 4;
+   }
+   
    message SideChainTokenInitialIssue{
+       // The account that will be issued.
        aelf.Address address = 1;
+       // The amount that will be issued.
        int64 amount = 2;
-   }
-
-   message ProposalCreated{
-       option (aelf.is_event) = true;
-       aelf.Hash proposal_id = 1;
    }
 
 In order for the creation request to succeed, some assertions must pass:
