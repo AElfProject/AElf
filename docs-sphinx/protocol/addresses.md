@@ -21,7 +21,7 @@ public interface IAElfAsymmetricCipherKeyPair
     byte[] PublicKey { get; }
 }
 ```
-Currently, in AElf blockchain, we use ECKeyPair to implement this interface, just like most of other blockchain systems. Users can use :doc:`aelf-command <../reference/cli/introduction>` tool to generate themselves a valid ECKeyPair, thus generate a unique User Address.
+Currently, in AElf blockchain, we use ECKeyPair to implement this interface, just like most of other blockchain systems. Users can use [aelf-command](../reference/cli/introduction.md) tool to generate themselves a valid ECKeyPair, thus generate a unique User Address.
 
 User can easily create a key pair with **command line tool** with the **create** command.
 
@@ -31,7 +31,7 @@ aelf-command create
 
 Creation will be successful after you provide a valid password. When creating the key-pair (that we sometimes refer to as the "account") it will generate a file with the ".json" extension. This file will contain the public and private key and will be encrypted with the password you provided before.
 
-If you are writing a dApp you can also use the following method in the :doc:`js-sdk <../reference/chain-sdk/js-sdk>`, it is based on [bip39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) for generating a deterministic key pair with a "mnemonic sentence" :
+If you are writing a dApp you can also use the following method in the [js-sdk](../reference/chain-sdk/js-sdk)`, it is based on [bip39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) for generating a deterministic key pair with a "mnemonic sentence" :
 
 ```javascript
 import Aelf from 'aelf-sdk';
