@@ -81,7 +81,7 @@ Use the code generator to generate contracts and test projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Open the ``AElf.Boilerplate.CodeGenerator`` project in the
-`AElf.Boilerplate(https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator)`,
+`AElf.Boilerplate<https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator>`,
 and modify the Contents node in appsetting.json under this
 project:
 
@@ -173,12 +173,12 @@ Register & Quit
 
 Register：
 
-* Determine the Seed of the user, Seed is a hash value, participating 
+- Determine the Seed of the user, Seed is a hash value, participating 
   in the calculation of the random number, each user is different, so
   as to ensure that different users get different results on the same
   height;
   
-* Record the user’s registration time.
+- Record the user’s registration time.
 
 Quit：Just delete the user’s information.
 
@@ -198,15 +198,15 @@ Play：
 
 Bingo：
 
-1. Find the corresponding Bout according to PlayId, if the current block
+- Find the corresponding Bout according to PlayId, if the current block
    height is greater than PlayBlockHeight + number of nodes \* 8, you
    can get the result that you win or lose;
-2. Use the current height and the user’s Seed to calculate a random
+- Use the current height and the user’s Seed to calculate a random
    number, and then treat the hash value as a bit Array, each of which
    is added to get a number ranging from 0 to 256.
-3. Whether the number is divisible by 2 determines the user wins or
+- Whether the number is divisible by 2 determines the user wins or
    loses;
-4. The range of this number determines the amount of win/loss for the
+- The range of this number determines the amount of win/loss for the
    user, see the note of GetKind method for details.
 
 Write Test
