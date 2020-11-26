@@ -119,12 +119,12 @@ method that is used to trigger the transfer:
        }
 
 The fields of the input: 
-- **to** : the target address to receive token 
-- **symbol** : symbol of token to be transferred
-- **amount** : amount of token to be transferred
-- **memo** : memo field in this transfer 
-- **to_chain_id** : destination chain id on which the tokens will be received
-- **issue_chain_id** : the chain on which the token was issued
+- **to** - the target address to receive token 
+- **symbol** - symbol of token to be transferred
+- **amount** - amount of token to be transferred
+- **memo** - memo field in this transfer 
+- **to_chain_id** - destination chain id on which the tokens will be received
+- **issue_chain_id** - the chain on which the token was issued
 
 Receive on the destination chain
 --------------------------------
@@ -152,9 +152,11 @@ On the destination chain tokens need to be received, it’s the
            aelf.MerklePath merkle_path_from_parent_chain = 2;
        }
 
-Let’s review the fields of the input: 
+Let’s review the fields of the input 
 
-- **from_chain_id**: the source chain id on which cross chain transfer launched 
+- **from_chain_id**
+ 
+ the source chain id on which cross chain transfer launched 
 
 - **parent_chain_height**
   
@@ -164,7 +166,9 @@ Let’s review the fields of the input:
     is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*, 
     see :doc:`cross chain verification <./crosschain-verification>`) - accessible in the **bound_parent_chain_height** field. 
 
-- **transfer_transaction_bytes**: the serialized form of the ``CrossChainTransfer`` transaction. 
+- **transfer_transaction_bytes**
+
+  the serialized form of the ``CrossChainTransfer`` transaction. 
 
 - **merkle_path**
     
@@ -178,6 +182,6 @@ Let’s review the fields of the input:
   
     - the merkle path from the source chain’s web api ``GetMerklePathByTransactionIdAsync`` (``CrossChainTransfer`` transaction ID as input).
       
-    - the output of ``GetBoundParentChainHeightAndMerklePathByHeight`` method in ``Cross chain Contract`` (``CrossChainTransfer`` transaction’s block height as input). The path nodes are in the **merkle_path_from_parent_chain** field of the ```CrossChainMerkleProofContext``object.
+    - the output of ``GetBoundParentChainHeightAndMerklePathByHeight`` method in ``Cross chain Contract`` (``CrossChainTransfer`` transaction’s block height as input). The path nodes are in the **merkle_path_from_parent_chain** field of the ``CrossChainMerkleProofContext``object.
       
     - Concat above two merkle path.

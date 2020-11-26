@@ -2,7 +2,7 @@
 
 #### Event option
 
-During the execution, Events are used internally to represent events that have happened during the execution of a smart contract. The event will be logged in the transaction traces logs (a collection of LogEvents.
+During the execution, Events are used internally to represent events that have happened during the execution of a smart contract. The event will be logged in the transaction traces logs (a collection of LogEvents).
 
 ```protobuf
 message Transferred {
