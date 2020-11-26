@@ -80,8 +80,8 @@ Write Contract
 Use the code generator to generate contracts and test projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Open the `AElf.Boilerplate.CodeGenerator` project in the AElf.Boilerplate
-[AElf.Boilerplate](https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator),
+Open the ``AElf.Boilerplate.CodeGenerator`` project in the
+`AElf.Boilerplate(https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator)`,
 and modify the Contents node in appsetting.json under this
 project:
 
@@ -104,7 +104,7 @@ project:
      ],
    }
 
-Then run the `AElf.Boilerplate.CodeGenerator` project. After running
+Then run the ``AElf.Boilerplate.CodeGenerator`` project. After running
 successfully, you will see a `AElf.Contracts.BingoContract.sln` in the
 same directory as the `AElf.Boilerplate.sln` is in. After opening the sln,
 you will see that the contract project and test case project of the
