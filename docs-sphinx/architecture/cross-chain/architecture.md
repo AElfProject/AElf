@@ -47,8 +47,6 @@ Side chain lifetime involves the following steps.
 - It is allowed to do cross chain verification iff side chain is
   indexed correctly.
 
-The next section describes what happens once the side chain node has
-been started.
 
 ### Communication
 
@@ -90,6 +88,11 @@ with data in this contract can cross chain verification work correctly.
 
 #### Data flow
 
-Conceptually the node is like described in the following diagram:
+Conceptually the node is like described in the following diagram. Main/Side 
+chain node gets the cross chain data from the other side and put it in the 
+local memory. Indexing transaction will be packed by miner and cross chain 
+data would go into `State` through `Crosschain Contract`.
 
 ![image](architecture-node.png)
+
+

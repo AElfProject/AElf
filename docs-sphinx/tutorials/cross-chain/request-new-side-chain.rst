@@ -16,14 +16,14 @@ side chain that will be created.
 This section show the API to use in order to propose the creation of a
 side chain. The fields that are in the ``SideChainCreationRequest`` will
 determine the type of side chain that is created. For more api details,
-you can follow the ``RequestSideChainCreation`` in :doc:`cross chain contract <../../../reference/smart-contract-api/cross-chain>`.
+you can follow the ``RequestSideChainCreation`` in :doc:`Crosschain contract<../../../reference/smart-contract-api/cross-chain>`.
 
 A new proposal about the side chain creation would be created and the
 event ``ProposalCreated`` containing proposal id would be fired. A
 parliament organization which is specified since the chain launched is
 going to approve this proposal in 24 hours(refer to :doc:`Parliament contract <../../../reference/smart-contract-api/parliament>` 
 for detail). Proposer is able to release the side chain creation request
-with proposal id once the proposal can be released. Refer ``ReleaseSideChainCreation`` in :doc:`cross chain contract <../../../reference/smart-contract-api/cross-chain>`.
+with proposal id once the proposal can be released. Refer ``ReleaseSideChainCreation`` in :doc:`Crosschain contract<../../../reference/smart-contract-api/cross-chain>`.
 
 New side chain would be created and the event ``SideChainCreatedEvent``
 containing chain id would be fired.
