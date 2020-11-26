@@ -118,13 +118,31 @@ method that is used to trigger the transfer:
            int32 issue_chain_id = 6;
        }
 
-The fields of the input: 
-- **to** - the target address to receive token 
-- **symbol** - symbol of token to be transferred
-- **amount** - amount of token to be transferred
-- **memo** - memo field in this transfer 
-- **to_chain_id** - destination chain id on which the tokens will be received
-- **issue_chain_id** - the chain on which the token was issued
+The fields of the input:
+
+- **to**
+
+ the target address to receive token
+
+- **symbol**
+
+ symbol of token to be transferred
+
+- **amount**
+
+ amount of token to be transferred
+
+- **memo**
+
+ memo field in this transfer
+
+- **to_chain_id**
+
+ destination chain id on which the tokens will be received
+ 
+- **issue_chain_id**
+ 
+ the chain on which the token was issued
 
 Receive on the destination chain
 --------------------------------
@@ -169,14 +187,15 @@ Let’s review the fields of the input
 - **transfer_transaction_bytes**
 
   the serialized form of the ``CrossChainTransfer`` transaction. 
-
+  
+  
 - **merkle_path**
     
-    You should get this from the source chain but merkle path data construction differs among cases.
+  You should get this from the source chain but merkle path data construction differs among cases.
   
   - for the case of transfer from main chain to side chain
     
-     - only need the merkle path from the main chain’s web api ``GetMerklePathByTransactionIdAsync`` (``CrossChainTransfer`` transaction ID as input). 
+    - only need the merkle path from the main chain’s web api ``GetMerklePathByTransactionIdAsync`` (``CrossChainTransfer`` transaction ID as input). 
   
   - for the case of transfer from side chain to side chain or from side chain to main chain
   
