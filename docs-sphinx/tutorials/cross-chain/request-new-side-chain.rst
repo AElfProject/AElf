@@ -14,56 +14,16 @@ The request contains different fields that will determine the type of
 side chain that will be created.
 
 This section show the API to use in order to propose the creation of a
-side chain. The fields that are in the **SideChainCreationRequest** will
+side chain. The fields that are in the `SideChainCreationRequest` will
 determine the type of side chain that is created. For more api details,
-you can follow the :doc:`request side chain creation <../../../reference/smart-contract-api/cross-chain>`.
-
-.. code:: proto
-
-   rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty) { }
-   message SideChainCreationRequest {
-       int64 indexing_price = 1;
-       int64 locked_token_amount = 2;
-       bool is_privilege_preserved = 3;
-       string side_chain_token_symbol = 4;
-       string side_chain_token_name = 5;
-       int64 side_chain_token_total_supply = 6;
-       int32 side_chain_token_decimals = 7;
-       bool is_side_chain_token_burnable = 8;
-       bool is_side_chain_token_profitable = 9;
-       repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 10;
-       map<string, int32> initial_resource_amount = 11;
-   }
-
-   message SideChainTokenInitialIssue{
-       aelf.Address address = 1;
-       int64 amount = 2;
-   }
-   message ProposalCreated{
-       option (aelf.is_event) = true;
-       aelf.Hash proposal_id = 1;
-   }
+you can follow the `RequestSideChainCreation` in `:doc:`cross chain contract <../../../reference/smart-contract-api/cross-chain>`.
 
 A new proposal about the side chain creation would be created and the
 event ``ProposalCreated`` containing proposal id would be fired. A
 parliament organization which is specified since the chain launched is
 going to approve this proposal in 24 hours(refer to :doc:`Parliament contract <../../../reference/smart-contract-api/parliament>` 
 for detail). Proposer is able to release the side chain creation request
-with proposal id once the proposal can be released.
-
-.. code:: proto
-
-   rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){}
-   
-   message ReleaseSideChainCreationInput {
-       aelf.Hash proposal_id = 1;
-   }
-   
-   message SideChainCreatedEvent {
-       option (aelf.is_event) = true;
-       aelf.Address creator = 1;
-       int32 chainId = 2;
-   }
+with proposal id once the proposal can be released. Refer `ReleaseSideChainCreation` in `:doc:`cross chain contract <../../../reference/smart-contract-api/cross-chain>`.
 
 New side chain would be created and the event ``SideChainCreatedEvent``
 containing chain id would be fired.
@@ -81,8 +41,26 @@ Side chain types
 Two types of side-chain’s currently exist: **exclusive** or **shared**.
 An **exclusive** side-chain is a type of dedicated side-chain (as
 opposed to shared) that allows developers to choose the transaction fee
-model and set the transaction fee price. The developer has exclusive use
-of this side-chain. Developers of an exclusive side-chain pay the
+model and set the transaction fee price. The creator has exclusive use
+of this side-chain. For example, only creator of this **exclusive** 
+side-chain can propose to deploy a new contract.
+
+Pay for Side chain
+^^^^^^^^^^^^^^^^^^
+
+Indexing fee
+------------
+
+Indexing fee, literally, is paid for the side chain indexing. You can 
+specify the indexing fee price and prepayments amount when you request
+side chain creation. `Cross chain contract` is going to charge your 
+prepayments once the side chain created and pay the miner who indexes 
+the side chain block every time. 
+
+Resource fee
+------------
+
+Developers of an exclusive side-chain pay the
 producers for running it by paying CPU, RAM, DISK, NET resource tokens:
 this model is called *charge-by-time*. The amount side chain creator
 must share with the producers is set after creation of the chain. The
