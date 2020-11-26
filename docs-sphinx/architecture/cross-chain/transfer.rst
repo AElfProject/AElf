@@ -17,18 +17,18 @@ Few preparing steps are required before cross chain transfer, which is
 to be done only once for one chain. Just ignore this preparing part if
 already completed.
 
-Let’s say that you want to transfer token FOO from chain A to chain B.
+Let’s say that you want to transfer token FOO from chain **A** to chain **B**.
 Note that please make sure you are already clear about how cross chain
 transaction verification works before you start. Any input
 contains\ ``MerklePath`` in the following steps means the cross chain
 verification processing is needed. See :doc:`cross chain verification <crosschain-verification>`
 for more details.
 
--  Validate **Token Contract** address on chain ``A``.
+-  Validate ``Token Contract`` address on chain **A**.
 
-   Send transaction ``tx_1`` to **Genesis Contract** with method
+   Send transaction ``tx_1`` to ``Genesis Contract`` with method
    ValidateSystemContractAddress. You should provide
-   **system_contract_hash_name** and address of **Token Contract** .
+   **system_contract_hash_name** and address of ``Token Contract`` .
    ``tx_1`` would be packed in block successfully.
 
    .. code:: protobuf
@@ -40,14 +40,14 @@ for more details.
             aelf.Address address = 2;
         }
 
--  Register token contract address of chain ``A`` on chain ``B``.
+-  Register token contract address of chain **A** on chain **B**.
 
    Create a proposal, which is proposed to
    **RegisterCrossChainTokenContractAddress**, for the default
    parliament organization (check :doc:`Parliament contract <../../reference/smart-contract-api/parliament>`
-   for more details) on chain ``B``. Apart from cross chain verification
+   for more details) on chain **B**. Apart from cross chain verification
    context, you should also provide the origin data of ``tx_1`` and
-   **Token Contract** address on chain ``A``.
+   ``Token Contract`` address on chain **A**.
 
    .. code:: protobuf
 
@@ -61,11 +61,11 @@ for more details.
             aelf.Address token_contract_address = 5;
         }
 
--  Validate **TokenInfo** of ``FOO`` on chain ``A``.
+-  Validate **TokenInfo** of **FOO** on chain **A**.
 
-   Send transaction ``tx_2`` to **Token Contract** with method
-   **ValidateTokenInfoExists** on chain ``A``. You should provide
-   **TokenInfo** of ``FOO``. ``tx_2`` would be packed in block
+   Send transaction **tx_2** to ``Token Contract`` with method
+   **ValidateTokenInfoExists** on chain **A**. You should provide
+   **TokenInfo** of **FOO**. **tx_2** would be packed in block
    successfully.
 
    .. code:: protobuf
@@ -83,11 +83,11 @@ for more details.
             bool is_profitable = 8;
         }
 
--  Create token ``FOO`` on chain ``B``.
+-  Create token **FOO** on chain **B**.
 
-   Send transaction ``tx_2`` to **Token Contract** with method
-   CrossChainCreateToken on chain ``B``. You should provide the origin
-   data of ``tx_2`` and cross chain verification context of ``tx_2``.
+   Send transaction **tx_2** to ``Token Contract`` with method
+   CrossChainCreateToken on chain **B**. You should provide the origin
+   data of **tx_2** and cross chain verification context of **tx_2**.
 
    .. code:: protobuf
 
