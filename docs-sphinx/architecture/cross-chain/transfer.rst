@@ -182,6 +182,6 @@ Let’s review the fields of the input
   
     - the merkle path from the source chain’s web api ``GetMerklePathByTransactionIdAsync`` (``CrossChainTransfer`` transaction ID as input).
       
-    - the output of ``GetBoundParentChainHeightAndMerklePathByHeight`` method in ``Cross chain Contract`` (``CrossChainTransfer`` transaction’s block height as input). The path nodes are in the **merkle_path_from_parent_chain** field of the ``CrossChainMerkleProofContext``object.
+    - the output of ``GetBoundParentChainHeightAndMerklePathByHeight`` method in ``Cross chain Contract`` (``CrossChainTransfer`` transaction’s block height as input). The path nodes are in the **merkle_path_from_parent_chain** field of the ``CrossChainMerkleProofContext`` object.
       
     - Concat above two merkle path.

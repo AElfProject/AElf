@@ -174,7 +174,6 @@ listening ip and port for the side chain connections in `appsettings.MainChain.T
     "CrossChain": {
         "Grpc": {
             "LocalServerPort": 5000,
-            "LocalServerHost": "your server ip address"
         }
     },
 }
