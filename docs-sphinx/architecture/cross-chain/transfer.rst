@@ -17,19 +17,19 @@ Few preparing steps are required before cross chain transfer, which is
 to be done only once for one chain. Just ignore this preparing part if
 already completed.
 
-Let’s say that you want to transfer token FOO from chain **A** to chain **B**.
+Let’s say that you want to transfer token FOO from chain *A* to chain *B*.
 Note that please make sure you are already clear about how cross chain
 transaction verification works before you start. Any input
 contains\ ``MerklePath`` in the following steps means the cross chain
 verification processing is needed. See :doc:`cross chain verification <crosschain-verification>`
 for more details.
 
--  Validate ``Token Contract`` address on chain **A**.
+-  Validate ``Token Contract`` address on chain *A*.
 
-   Send transaction ``tx_1`` to ``Genesis Contract`` with method
+   Send transaction *tx_1* to ``Genesis Contract`` with method
    ValidateSystemContractAddress. You should provide
    **system_contract_hash_name** and address of ``Token Contract`` .
-   ``tx_1`` would be packed in block successfully.
+   *tx_1* would be packed in block successfully.
 
    .. code:: protobuf
 
@@ -40,14 +40,14 @@ for more details.
             aelf.Address address = 2;
         }
 
--  Register token contract address of chain **A** on chain **B**.
+-  Register token contract address of chain *A* on chain *B*.
 
    Create a proposal, which is proposed to
-   **RegisterCrossChainTokenContractAddress**, for the default
+   ``RegisterCrossChainTokenContractAddress``, for the default
    parliament organization (check :doc:`Parliament contract <../../reference/smart-contract-api/parliament>`
-   for more details) on chain **B**. Apart from cross chain verification
-   context, you should also provide the origin data of ``tx_1`` and
-   ``Token Contract`` address on chain **A**.
+   for more details) on chain *B*. Apart from cross chain verification
+   context, you should also provide the origin data of *tx_1* and
+   ``Token Contract`` address on chain *A*.
 
    .. code:: protobuf
 
@@ -61,11 +61,11 @@ for more details.
             aelf.Address token_contract_address = 5;
         }
 
--  Validate **TokenInfo** of **FOO** on chain **A**.
+-  Validate ``TokenInfo`` of *FOO* on chain *A*.
 
-   Send transaction **tx_2** to ``Token Contract`` with method
-   **ValidateTokenInfoExists** on chain **A**. You should provide
-   **TokenInfo** of **FOO**. **tx_2** would be packed in block
+   Send transaction *tx_2* to ``Token Contract`` with method
+   ``ValidateTokenInfoExists`` on chain *A*. You should provide
+   ``TokenInfo`` of *FOO*. *tx_2* would be packed in block
    successfully.
 
    .. code:: protobuf
@@ -83,11 +83,11 @@ for more details.
             bool is_profitable = 8;
         }
 
--  Create token **FOO** on chain **B**.
+-  Create token *FOO* on chain *B*.
 
-   Send transaction **tx_2** to ``Token Contract`` with method
-   CrossChainCreateToken on chain **B**. You should provide the origin
-   data of **tx_2** and cross chain verification context of **tx_2**.
+   Send transaction *tx_2* to ``Token Contract`` with method
+   CrossChainCreateToken on chain *B*. You should provide the origin
+   data of *tx_2* and cross chain verification context of *tx_2*.
 
    .. code:: protobuf
 
@@ -103,7 +103,7 @@ for more details.
 Initiate the transfer
 ---------------------
 
-On the token contract of source chain, it’s the **CrossChainTransfer**
+On the token contract of source chain, it’s the ``CrossChainTransfer``
 method that is used to trigger the transfer:
 
 .. code:: protobuf
@@ -129,7 +129,7 @@ Receive on the destination chain
 --------------------------------
 
 On the destination chain tokens need to be received, it’s the
-**CrossChainReceiveToken** method that is used to trigger the reception:
+``CrossChainReceiveToken`` method that is used to trigger the reception:
 
 .. code:: protobuf
 
@@ -157,14 +157,14 @@ Let’s review the fields of the input:
 
 - **parent_chain_height**
   
-  - for the case of transfer from main chain to side chain: this parent_chain_height is the height of the block on the main chain that contains the **CrossChainTransfer** transaction. 
+  - for the case of transfer from main chain to side chain: this parent_chain_height is the height of the block on the main chain that contains the ``CrossChainTransfer`` transaction. 
   
   - for the case of transfer from side chain to side chain or side chain to main-chain: this **parent_chain_height** is the result of **GetBoundParentChainHeightAndMerklePathByHeight** (input is the height of the *CrossChainTransfer*, see :doc:`cross chain verification <./crosschain-verification>`) - accessible in the **bound_parent_chain_height** field. 
 
-- **transfer_transaction_bytes**: the serialized form of the **CrossChainTransfer** transaction. 
+- **transfer_transaction_bytes**: the serialized form of the ``CrossChainTransfer`` transaction. 
 
 - **merkle_path**
   
-  - for the case of transfer from main chain to side chain: for this you just need the merkle path from the main chain’s web api with the **GetMerklePathByTransactionIdAsync** method (**CrossChainTransfer** transaction ID as input). 
+  - for the case of transfer from main chain to side chain: for this you just need the merkle path from the main chain’s web api with the ``GetMerklePathByTransactionIdAsync`` method (``CrossChainTransfer`` transaction ID as input). 
   
-  - for the case of transfer from side chain to side chain or from side chain to main chain: for this you also need to get the merkle path from the source node (side chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the **CrossChainTransfer** transaction’s block height (concat the merkle path nodes). The nodes are in the **merkle_path_from_parent_chain** field of the **CrossChainMerkleProofContext** object.
+  - for the case of transfer from side chain to side chain or from side chain to main chain: for this you also need to get the merkle path from the source node (side chain here). But you also have to complete this merkle path with **GetBoundParentChainHeightAndMerklePathByHeight** with the ``CrossChainTransfer`` transaction’s block height (concat the merkle path nodes). The nodes are in the **merkle_path_from_parent_chain** field of the ```CrossChainMerkleProofContext`` object.
