@@ -190,4 +190,4 @@ project:
 Example
 -------
 
-You can refer to the implementation of the :doc: `AEDPoS contract <../smart-contract-api/consensus>`
+You can refer to the implementation of the :doc:`AEDPoS contract <../smart-contract-api/consensus>`
