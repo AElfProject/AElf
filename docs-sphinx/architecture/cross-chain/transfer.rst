@@ -120,29 +120,12 @@ method that is used to trigger the transfer:
 
 The fields of the input:
 
-- **to**
-
- the target address to receive token
-
-- **symbol**
-
- symbol of token to be transferred
-
-- **amount**
-
- amount of token to be transferred
-
-- **memo**
-
- memo field in this transfer
-
-- **to_chain_id**
-
- destination chain id on which the tokens will be received
- 
-- **issue_chain_id**
- 
- the chain on which the token was issued
+- **to** - the target address to receive token
+- **symbol** - symbol of token to be transferred
+- **amount** - amount of token to be transferred
+- **memo** - memo field in this transfer
+- **to_chain_id** - destination chain id on which the tokens will be received
+- **issue_chain_id** - the chain on which the token was issued
 
 Receive on the destination chain
 --------------------------------

@@ -3,6 +3,7 @@ Acs Introduction
 
 
 .. toctree::
+   :maxdepth: 1
 
    Acs1 - Transaction Fee Standard <acs1>
    Acs2 - Parallel Execution Standard <acs2>
