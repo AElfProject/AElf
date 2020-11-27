@@ -6,10 +6,10 @@ ACS3 is suitable for the case that a method needs to be approved by multiple par
 
 If you want multiple addresses vote to get agreement to do something, you can implement the following methods defined in ACS3:
 
-* CreateProposal - is to create a new proposal given target contract method and parameters. Therefore, the parameter CreateProposalInput defines the basic information of the inline transaction to be executed finally. The return value is a hash, which is used to uniquely identify this proposal;
+* ``CreateProposal`` is to create a new proposal given target contract method and parameters. Therefore, the parameter CreateProposalInput defines the basic information of the inline transaction to be executed finally. The return value is a hash, which is used to uniquely identify this proposal;
 * Approve, Reject, Abstain - are used to agree, reject, and abstain respectively.
-* Release - the parameter is the proposal Id, is used to release the proposal. If the release requirements are met, it is going to be released: use a virtual address as a Sender, and execute this method by sending an inline transaction. 
-* ClearProposal - used to clean expired proposal.
+* ``Release`` the parameter is the proposal Id, is used to release the proposal. If the release requirements are met, it is going to be released: use a virtual address as a Sender, and execute this method by sending an inline transaction. 
+* ``ClearProposal`` used to clean expired proposal.
 
 It can be seen that before a proposal is released, the account with voting rights can agree, reject, and abstain. Which specific accounts have the right to vote? ACS3 introduces the concept of **Organization**. A proposal is attached to an organization from its creation, and only members of the organization can vote.
 
@@ -58,15 +58,15 @@ The organization determines how to deal with the proposal according to the data:
 
 Interfaces referencing organization in ACS3:
 
-* ChangeOrganizationThreshold -  used to modify the organization release threshold.
-* ChangeOrganizationProposerWhiteList - used to restrict which addresses can create proposals.
-* CreateProposalBySystemContract - used to create a proposal, which is only available to system contracts (built-in contracts)
+* ``ChangeOrganizationThreshold``  used to modify the organization release threshold.
+* ``ChangeOrganizationProposerWhiteList`` used to restrict which addresses can create proposals.
+* ``CreateProposalBySystemContract`` used to create a proposal, which is only available to system contracts (built-in contracts)
 
 The type of APIs mentioned above is action, there are some APIs with type View used to query:
 
-* GetProposal - used to get the proposal detailed information.
-* ValidateOrganizationExist - used to check if the organization exists in a contract.
-* ValidateProposerInWhiteList - used to check if the address is in the whitelist of an organization.
+* ``GetProposal`` used to get the proposal detailed information.
+* ``ValidateOrganizationExist`` used to check if the organization exists in a contract.
+* ``ValidateProposerInWhiteList`` used to check if the address is in the whitelist of an organization.
 
 ## Implementation
 

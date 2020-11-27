@@ -6,7 +6,7 @@ ACS1 is used to manage the transfer fee.
 
 The contract inherited from ACS1 need implement the APIs below:
 
-* ``SetMethodFee``, the parameter type MethodFees defined in acs1.proto indicates the method name and its fee.
+* ``SetMethodFee`` the parameter type MethodFees defined in acs1.proto indicates the method name and its fee.
 
 * ``GetMethodFee`` is used to get the method fee according to your input(method name).
 
@@ -201,7 +201,7 @@ The implementation of ``SetMethodFee`` requires the addition of permission manag
 
 Referring to the ``MultiToken contract``, it can be implemented as follows:
 
-Firstly, define a SingletonState with type ``AuthorityInfo``(in authority_info.proto)
+Firstly, define a ``SingletonState`` with type ``AuthorityInfo``(in authority_info.proto)
 
 ```c#
 public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

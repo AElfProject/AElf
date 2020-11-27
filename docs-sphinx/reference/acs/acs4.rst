@@ -9,27 +9,27 @@ Interface
 If you want to customize the consensus mechanism, you need to implement
 the following five interfaces:
 
--  GetConsensusCommand, whose parameter is a binary array, returns
+-  ``GetConsensusCommand``  whose parameter is a binary array, returns
    ConsensusCommand defined in acs4.proto. This type is used to indicate
    the start time of the next block, the block time limit, and the final
    cut-off time for the account calling GetConsensus Command;
--  GetConsensusExtraData, the parameters and return values are binary
+-  ``GetConsensusExtraData`` the parameters and return values are binary
    arrays, which are used to generate consensus block header information
    through consensus contracts when a new block is produced;
--  GenerateConsensusTransactions, the parameter is a binary array, and
+-  ``GenerateConsensusTransactions`` the parameter is a binary array, and
    the return value is of type TransactionList. It is used to generate a
    consensus system transaction when a block is generated. Each block
    will contain only one consensus transaction, which is used to write
    the latest consensus information to the State database;
--  ValidateConsensusBeforeExecution, the parameter is a binary array,
+-  ``ValidateConsensusBeforeExecution`` the parameter is a binary array,
    and the return value is of type ValidationResult, is used to verify
    whether the consensus information in the block header is correct
    before the block executes;
--  ValidateConsensusAfterExecution, with the same parameter and return
+-  ``ValidateConsensusAfterExecution`` with the same parameter and return
    value, is used to verify that the consensus information written to
    the State is correct after the block executes.
 
-ConsensusCommand, ValidationResult and TransactionList are defined as:
+``ConsensusCommand``, ``ValidationResult`` and ``TransactionList`` are defined as:
 
 .. code:: proto
 
@@ -52,7 +52,7 @@ Usage
 -----
 
 The five interfaces defined in ACS4 basically correspond to the five
-methods of the IConsensusService interface in the AElf.Kernel.Consensus
+methods of the ``IConsensusService`` interface in the ``AElf.Kernel.Consensus``
 project:
 
 +-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
@@ -184,10 +184,10 @@ project:
 ..      - The Timing To Call
 ..    * - GetConsensusCommand
 ..      - Task TriggerConsensusAsync(ChainContext chainContext)
-..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the GetConsensusCommand method of the consensus contract to obtain block information(ConsensusCommand), and use it to update the local consensus scheduler (see IConsensusScheduler implementation).
+..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the ``GetConsensusCommand`` method of the consensus contract to obtain block information(``ConsensusCommand``), and use it to update the local consensus scheduler (see ``IConsensusScheduler`` implementation).
 ..      - 1. When the node is started;
 
 Example
 -------
 
-You can refer to the implementation of the AEDPoS contract.
+You can refer to the implementation of the :doc: `AEDPoS contract <../smart-contract-api/consensus>`

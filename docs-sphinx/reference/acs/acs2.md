@@ -6,7 +6,7 @@ ACS2 is used to provide information for parallel execution of transactions.
 
 A contract that inherits ACS2 only needs to implement one method:
 
-* GetResourceInfo
+* ``GetResourceInfo``
 
 The parameter is the Transaction type, and the return value is the type `ResourceInfo` defined in acs2.proto:
 
