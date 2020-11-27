@@ -1,19 +1,19 @@
 # ACS9 - Contract profit dividend standard
 
-On the AElf's side chain, the contract needs to declare where its profits are going, and implemente ACS9.
+On the AElf's side chain, the contract needs to declare where its profits are going, and implement ACS9.
 
 ## Interface
 
 ACS9 contains an method which does not have to be implemented:
 
-* TakeContractProfits is used for the developer to collect the profits from the contract. and the profits will be distributed  in this method. There are also other methods for developers to claim profits. However, these methods needs to be approved before deployment/upgrade.
+* ``TakeContractProfits`` used for the developer to collect the profits from the contract and the profits will be distributed in this method. There are also other methods for developers to claim profits. However, these methods needs to be approved before deployment/upgrade.
 
 Two View methods that must be implemented. They are mostly used in the AElf blockchain browser:
 
-* GetProfitConfig, whose return value is the ProfitConfig defined in acs9.proto, includes the profit token symbol list, the token symbol that the user can lock them to claim the profit, and the portion of the profit that will be donated to the dividend pool each time the developer receives the profit. When reviewing the contract code, you should check if the same ProfitConfig data is actually used for distributing the profits.
-* GetProfitsAmount, as the name implies, is used to query the profits of the contract so far, with a return value of type ProfitsMap.
+* ``GetProfitConfig`` whose return value is the ``ProfitConfig`` defined in acs9.proto, includes the profit token symbol list, the token symbol that the user can lock them to claim the profit, and the portion of the profit that will be donated to the dividend pool each time the developer receives the profit. When reviewing the contract code, you should check if the same ``ProfitConfig`` data is actually used for distributing the profits.
+* ``GetProfitsAmount`` as the name implies, used to query the profits of the contract so far, with a return value of type ``ProfitsMap``.
 
-ProfitConfig is defined as:
+``ProfitConfig`` is defined as:
 
 ```proto
 message ProfitConfig {
@@ -23,7 +23,7 @@ message ProfitConfig {
 }
 ```
 
-The ProfitsMap type is essentially a map from token symbol to the  amount:
+The ``ProfitsMap`` type is essentially a map from token symbol to the amount:
 
 ```proto
 message ProfitsMap {
@@ -33,7 +33,7 @@ message ProfitsMap {
 
 ## Implementation
 
-Here we define a contract. The contract creates a token called APP at the time of initialization and uses the TokenHolder contract to create a token holder bonus scheme with the lock token is designated to APP.
+Here we define a contract. The contract creates a token called APP at the time of initialization and uses the ``TokenHolder`` contract to create a token holder bonus scheme with the lock token is designated to APP.
 
 The user will be given 10 APP when to sign up.
 
@@ -108,7 +108,7 @@ private void SetProfitConfig()
 }
 ```
 
-The State.symbol is a singleton of type string, state.Profitconfig is a singleton of type ProfitConfig, and state.profitreceiver is a singleton of type Address.
+The State.symbol is a singleton of type string, state.Profitconfig is a singleton of type ``ProfitConfig``, and state.profitreceiver is a singleton of type ``Address``.
 
 The user can use the SighUp method to register and get the bonus. Besides, it will create a archive for him:
 
@@ -304,7 +304,7 @@ public override ProfitsMap GetProfitsAmount(Empty input)
 
 ## Test
 
-Since part of the profits from the ACS9 contract transfer to the Token contract and the other transfer to the dividend pool, a TokenHolder Stub and a contract implementing ACS10 Stub are required in the test. Accordingly, the contracts that implements ACS9 or ACS10 need to be deployed. Before the test begins, the contract implementing ACS9 can be initialized by interface IContractInitializationProvider, and sets the dividend pool's name to the other contract's name:
+Since part of the profits from the ACS9 contract transfer to the ``Token contract`` and the other transfer to the dividend pool, a ``TokenHolder`` Stub and a contract implementing ACS10 Stub are required in the test. Accordingly, the contracts that implements ACS9 or ACS10 need to be deployed. Before the test begins, the contract implementing ACS9 can be initialized by interface ``IContractInitializationProvider``, and sets the dividend pool's name to the other contract's name:
 
 ```c#
 public class ACS9DemoContractInitializationProvider : IContractInitializationProvider
@@ -392,7 +392,7 @@ elfBalanceAfter.ShouldBe(elfBalanceBefore - 100_00000000);
 (await GetFirstUserBalance("APP")).ShouldBe(110_00000000);
 ```
 
-The user locks up 57 APP via the TokenHolder contract in order to obtain profits from the contract:
+The user locks up 57 APP via the ``TokenHolder contract`` in order to obtain profits from the contract:
 
 ```c#
 // User lock some APP tokens for getting profits. (APP -57)
@@ -421,7 +421,7 @@ for (var i = 0; i < 10; i++)
 (await GetFirstUserBalance("APP")).ShouldBe(50_00000000);
 ```
 
-Using the TakeContractProfits method, the developer attempts to withdraw 10 ELF as profits. The 10 ELF will be transferred to the developer in this method:
+Using the ``TakeContractProfits`` method, the developer attempts to withdraw 10 ELF as profits. The 10 ELF will be transferred to the developer in this method:
 
 ```c#
 const long baseBalance = 0;
