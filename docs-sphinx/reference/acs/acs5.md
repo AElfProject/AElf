@@ -6,13 +6,13 @@ If you want to raise the threshold for using contract, consider implementing ACS
 
 To limit to call a method in a contract, you only need to implement an interface:
 
-* GetMethodCallingThreshold, the parameter is string, and the return value is the MethodCallingThreshold defined in the acs5.proto file.
+* ``GetMethodCallingThreshold`` the parameter is string, and the return value is the MethodCallingThreshold defined in the acs5.proto file.
 
 If you want to modify the threshold after the contract is deployed, another interface can be implemented:
 
-* SetMethodCallingThreshold, the parameter is SetMethodCallingThresholdInput.
+* ``SetMethodCallingThreshold`` the parameter is SetMethodCallingThresholdInput.
 
-The definition of MethodCallingThreshold type is:
+The definition of ``MethodCallingThreshold`` type is:
 
 ```proto
 message MethodCallingThreshold {
@@ -25,23 +25,14 @@ enum ThresholdCheckType {
 }
 ```
 
-The significance of the enumeration ThresholdCheckType is that there are two types of thresholds for contract method calls:
+The significance of the enumeration ``ThresholdCheckType`` is that there are two types of thresholds for contract method calls:
 
-1. It can be called when the balance of a certain token in the account is sufficient, which corresponds to ThresholdCheckType.Balance;
-2. Not only does the balance of a token in the account be required to be sufficient, but the account also needs sufficient authorization for the target contract, which corresponds to The ThresholdCheckType.Allowance.
-3. SetMethodCallingThresholdInput definition：
-
-```proto
-message SetMethodCallingThresholdInput {
-    string method = 1;
-    map<string, int64> symbol_to_amount = 2;// The order matters.
-    ThresholdCheckType threshold_check_type = 3;
-}
-```
+- It can be called when the balance of a certain token in the account is sufficient, which corresponds to ``ThresholdCheckType.Balance``.
+- Not only does the balance of a token in the account be required to be sufficient, but the account also needs sufficient authorization for the target contract, which corresponds to The ``ThresholdCheckType.Allowance``.
 
 ## Usage
 
-Similar to ACS1, which uses an automatically generated pre-plugin transaction called ChargeTransactionFees to charge a transaction fee, ACS5 automatically generates a pre-plugin transaction called CheckThreshold to test whether the account that sent the transaction can invoke the corresponding method.
+Similar to ACS1, which uses an automatically generated pre-plugin transaction called ``ChargeTransactionFees`` to charge a transaction fee, ACS5 automatically generates a pre-plugin transaction called ``CheckThreshold`` to test whether the account that sent the transaction can invoke the corresponding method.
 
 The implementation of CheckThreshold:
 
@@ -86,15 +77,15 @@ In other words, if the token balance of the sender of the transaction or the amo
 
 ## Implementation
 
-As the GetMethodFee of ACS1, you can implement only one GetMethodCallingThreshold method.
+Just lik the ``GetMethodFee`` of ACS1, you can implement only one `GetMethodCallingThreshold` method.
 
-It can also be achieved by using MappedState<string, MethodCallingThreshold> in the State file:
+It can also be achieved by using MappedState<string, MethodCallingThreshold> in the State class:
 
 ```c#
 public MappedState<string, MethodCallingThreshold> MethodCallingThresholds { get; set; }
 ```
 
-But at the same time, do not forget to configure the call permission of SetMethodCallingThreshold, which requires the definition of an Admin in the State (of course, you can also use ACS3):
+But at the same time, do not forget to configure the call permission of ``SetMethodCallingThreshold``, which requires the definition of an Admin in the State (of course, you can also use ACS3):
 
 ```c#
 public SingletonState<Address> Admin { get; set; }
@@ -112,15 +103,24 @@ public override Empty SetMethodCallingThreshold(SetMethodCallingThresholdInput i
     };
     return new Empty();
 }
+
 public override MethodCallingThreshold GetMethodCallingThreshold(StringValue input)
 {
     return State.MethodCallingThresholds[input.Value];
 }
+
 public override Empty Foo(Empty input)
 {
     return new Empty();
 }
+
+message SetMethodCallingThresholdInput {
+    string method = 1;
+    map<string, int64> symbol_to_amount = 2;// The order matters.
+    ThresholdCheckType threshold_check_type = 3;
+}
 ```
+
 
 ## Test
 
