@@ -10,7 +10,7 @@ In another word, if a contract declares that it inherits from ACS8, each transac
 
 Only one method is defined in the acs8.proto file:
 
-* BuyResourceToken, the parameter is the BuyResourceTokenInput defined in the Proto file.
+* ``BuyResourceToken`` the parameter is the ``BuyResourceTokenInput`` defined in the Proto file.
 
 ```proto
 message BuyResourceTokenInput {
@@ -22,15 +22,15 @@ message BuyResourceTokenInput {
 
 This method can be used to purchase one of the four resource coins, which consumes the ELF balance in the contract account (you can recharge it yourself, or you can collect the user's ELF tokens as a profit to be self-sufficient).
 
-Of course, it is possible for developers to purchase resource token and then directly transfer to the address of this contract via the Transfer method of the Token contract. Therefore, this interface does not have to be implemented.
+Of course, it is possible for developers to purchase resource token and then directly transfer to the address of this contract via the ``Transfer`` method of the ``Token contract``. Therefore, this interface does not have to be implemented.
 
 ## Usage
 
-The contract inherited from ACS1 uses a pre-plugin transaction called ChargeTransactionFees for charging transaction fee.
+The contract inherited from ACS1 uses a pre-plugin transaction called ``ChargeTransactionFees`` for charging transaction fee.
 
-Because the specific charge amount is determined by the actual consumption of the transaction, the post-plugin generates ChargeResourceToken tansaction to charge resource token.
+Because the specific charge amount is determined by the actual consumption of the transaction, the post-plugin generates ``ChargeResourceToken`` transaction to charge resource token.
 
-The implementation of ChargeResourceToken is also similar to it of ChargeTransactionFees:
+The implementation of ``ChargeResourceToken`` is also similar to it of ``ChargeTransactionFees``:
 
 ```c#
 public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
@@ -66,9 +66,9 @@ public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
 }
 ```
 
-The amount of each resource token should be calculated by AElf.Kernel.FeeCalculation. In detail, A data structure named CalculateFeeCoefficients is defined in token_contract.proto, whose function is to save all coefficients of a polynomial, and every three coefficients are a group, such as a, b, c, which means (b / c) * x ^ a. Each resource token has a polynomial that calculates it. Then according to the polynomial and the actual consumption of the resource, calculate the cost of the resource token. Finally, the cost is used as the parameter of ChargeResourceToken to generate this post-plugin transaction.
+The amount of each resource token should be calculated by ``AElf.Kernel.FeeCalculation``. In detail, A data structure named ``CalculateFeeCoefficients`` is defined in token_contract.proto, whose function is to save all coefficients of a polynomial, and every three coefficients are a group, such as a, b, c, which means (b / c) * x ^ a. Each resource token has a polynomial that calculates it. Then according to the polynomial and the actual consumption of the resource, calculate the cost of the resource token. Finally, the cost is used as the parameter of ``ChargeResourceToken`` to generate this post-plugin transaction.
 
-In addition, the method of the contract that has been owed cannot be executed before the contract top up resource token. As a result, a pre-plugin transaction is added, similar to the ACS5 pre-plugin transaction, which checks the contract's resource token balance, and the transaction's method name is CheckResourceToken :
+In addition, the method of the contract that has been owed cannot be executed before the contract top up resource token. As a result, a pre-plugin transaction is added, similar to the ACS5 pre-plugin transaction, which checks the contract's resource token balance, and the transaction's method name is ``CheckResourceToken`` :
 
 ```c#
 public override Empty CheckResourceToken(Empty input)
