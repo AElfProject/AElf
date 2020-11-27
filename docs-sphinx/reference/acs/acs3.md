@@ -1,37 +1,38 @@
 # ACS3 - Contract Proposal Standard
 
-Using the AuthorityInfo defined in authority_info.proto restricts a method to be called by a certain address:
-
-```c#
-Assert(Context.Sender == State.AuthorityInfo.Value.OwnerAddress, "No permission.");
-```
-
-When a method needs to be agreed by multiple parties, the above solution is obviously inadequate. At this time, you can consider using some of the interfaces provided by ACS3.
+ACS3 is suitable for the case that a method needs to be approved by multiple parties. At this time, you can consider using some of the interfaces provided by ACS3.
 
 ## Interface
 
 If you want multiple addresses vote to get agreement to do something, you can implement the following methods defined in ACS3:
 
-* CreateProposal, it is to specify a method for a contract and its parameters. When the proposal is approved by multiple addresses, it can be released: use a virtual address as a Sender, and execute this method by sending an inline transaction. Therefore, the parameter CreateProposalInput defines the basic information of the inline transaction to be executed finally. The return value is a hash, which is used to uniquely identify this proposal;
-* Approve, Reject, Abstain, the parameters are Hash, called the proposal Id, created by CreateProposal, is used to agree, reject, and abstain respectively .
-* Release, the parameter is the proposal Id, is used to release the proposal: when the requirements are met, it can be released;
-* ClearProposal is used to clean invalid data in DB.
+* CreateProposal - is to create a new proposal given target contract method and parameters. Therefore, the parameter CreateProposalInput defines the basic information of the inline transaction to be executed finally. The return value is a hash, which is used to uniquely identify this proposal;
+* Approve, Reject, Abstain - are used to agree, reject, and abstain respectively.
+* Release - the parameter is the proposal Id, is used to release the proposal. If the release requirements are met, it is going to be released: use a virtual address as a Sender, and execute this method by sending an inline transaction. 
+* ClearProposal - used to clean expired proposal.
 
-It can be seen that before a proposal is released, the account with voting rights can agree, object, and abstain. Which specific accounts have the right to vote? ACS3 introduces the concept of Organization. A proposal is attached to an organization from its creation, and only members of the organization can vote.
+It can be seen that before a proposal is released, the account with voting rights can agree, reject, and abstain. Which specific accounts have the right to vote? ACS3 introduces the concept of **Organization**. A proposal is attached to an organization from its creation, and only members of the organization can vote.
 
 However, due to the different forms of organization, the Organization structure needs to be defined by the contract implementing the ACS3. Here is an example:
 
 ```proto
-message Organization {
-    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
-    string token_symbol = 2;
-    aelf.Address organization_address = 3;
-    aelf.Hash organization_hash = 4;
-    acs3.ProposerWhiteList proposer_white_list = 5;
+message Organization{
+    // The organization members.
+    OrganizationMemberList organization_member_list = 1;
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    // The proposer whitelist.
+    acs3.ProposerWhiteList proposer_white_list = 3;
+    // The address of organization.
+    aelf.Address organization_address = 4;
+    // The organizations id.
+    aelf.Hash organization_hash = 5;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 6;
 }
 ```
 
-Because each organization has a default virtual address, adding the code like the begining at this document can verify if the sender is authorized.
+Because each organization has a unique **organization_address**, sender authority can be verified very easily.
 
 ```c#
 Assert(Context.Sender == someOrganization.OrganizationAddress, "No permission.");
@@ -48,28 +49,30 @@ message ProposalReleaseThreshold {
 }
 ```
 
-The orgnaization determines how to deal with the proposal according to the data:
+The organization determines how to deal with the proposal according to the data:
 
-* the minimal approval the proposal can be released.
-* The most rejection amount the proposal can tolerate.
-* The most abstention amount the proposal can tolerate.
-* the minimal vote amount the proposal is valid.
+* minimal_approval_threshold - the minimal approval count for the proposal to be released.
+* maximal_rejection_threshold - the maximal rejection count for the proposal to be released.
+* maximal_abstention_threshold - the maximal abstention count for the proposal to be released.
+* minimal_vote_threshold - the minimal total vote count for the proposal to be released.
 
 Interfaces referencing organization in ACS3:
 
-* ChangeOrganizationThreshold，its paramenter is ProposalReleaseThreshold that is used to modify the threshold. Of course, this method also needs permission control；
-* ChangeOrganizationProposerWhiteList, The organization can restrict which addresses can create proposals. Its parameter is ProposerWhiteList, defined in acs3.proto, which is actually an Address list;
-* CreateProposalBySystemContract, The original intention is that the system contract can create a proposal via the virtual address, that is, there are some senders have privileges, and must be a contract:
+* ChangeOrganizationThreshold -  used to modify the organization release threshold.
+* ChangeOrganizationProposerWhiteList - used to restrict which addresses can create proposals.
+* CreateProposalBySystemContract - used to create a proposal, which is only available to system contracts (built-in contracts)
 
 The type of APIs mentioned above is action, there are some APIs with type View used to query:
 
-* GetProposal is used to get the proposal detailed information.
-* ValidateOrganizationExist is used to check if the organization exists in a contract.
-* ValidateProposerInWhiteList is used to check if the address is in the whitelist of a organization.
+* GetProposal - used to get the proposal detailed information.
+* ValidateOrganizationExist - used to check if the organization exists in a contract.
+* ValidateProposerInWhiteList - used to check if the address is in the whitelist of an organization.
 
 ## Implementation
 
-It is assumed here that there is only one organization in a contract, that is, there is no need to specifically define the Organization type. Since the organization is not explicitly declared and created, the organization's proposal whitelist does not exist. The process here is that the voter must use a certain token to vote. 
+It is assumed here that there is only one organization in a contract, that is, there is no need to specifically define the Organization type.
+Since the organization is not explicitly declared and created, the organization's proposal whitelist does not exist. The process here is 
+that the voter must use a certain token to vote. 
 
 For simplicity, only the core methods CreateProposal, Approve, Reject, Abstain, and Release are implemented here.
 
@@ -219,24 +222,26 @@ private bool CheckEnoughVoteAndApprovals(ProposalInfo proposal)
 
 ## Test
 
-Before testing, two methods were added to the contract, that had just implemented ACS3. We will test the proposal with these mehods.
+Before testing, two methods were added to a Dapp contract. We will test the proposal with these methods.
 
-Define a singleton string in the State file:
+Define a singleton string and an organization address state in the State class:
 
 ```c#
 public StringState Slogan { get; set; }
+public SingletonState<Address> Organization { get; set; }
 ```
 
-Then implement a pair of Set/Get methods:
+A pair of Set/Get methods:
 
 ```c#
 public override StringValue GetSlogan(Empty input)
 {
     return State.Slogan.Value == null ? new StringValue() : new StringValue {Value = State.Slogan.Value};
 }
+
 public override Empty SetSlogan(StringValue input)
 {
-    Assert(Context.Sender == Context.Self, "No permission.");
+    Assert(Context.Sender == State.Organization.Value, "No permission.");
     State.Slogan.Value = input.Value;
     return new Empty();
 }
@@ -271,6 +276,7 @@ Create a proposal, the target method is SetSlogan, here we want to change the Sl
 ```c#
 var proposalId = (await acs3DemoContractStub.CreateProposal.SendAsync(new CreateProposalInput
 {
+    OrganizationAddress = OrganizationAddress
     ContractMethodName = nameof(acs3DemoContractStub.SetSlogan),
     ToAddress = DAppContractAddress,
     ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
