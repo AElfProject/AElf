@@ -72,7 +72,7 @@ In this method, the transaction fee consists of two parts:
 
 2. If the method fee is not set to 0 by the contract developer, the system will charge size fee. (the size if calculate by the parameter's size)
 
-After charging successfully, an TransactionFeeCharged event is thrown, and the balance of the sender is modified.
+After charging successfully, an ``TransactionFeeCharged`` event is thrown, and the balance of the sender is modified.
 
 The ``TransactionFeeCharged`` event will be captured and processed on the chain to calculate the total amount of transaction fees charged in the block. In the next block, the 10% of the transaction fee charged in this block is destroyed, the remaining 90% flows to dividend pool on the main chain, and is transferred to the ``FeeReciever`` on the side chain. The code is:
 
@@ -134,11 +134,11 @@ private void TransferTransactionFeesToFeeReceiver(string symbol, long totalAmoun
 }
 ```
 
-In this way, AElf charges the transaction fee via the GetMethodFee provided by ACS1, and the other three methods are used to help with the implementations of GetMethodFee.
+In this way, AElf charges the transaction fee via the ``GetMethodFee`` provided by ACS1, and the other three methods are used to help with the implementations of GetMethodFee.
 
 ## Implementation
 
-The easiest way to do this is to just implement the method GetMethodFee.
+The easiest way to do this is to just implement the method ``GetMethodFee``.
 
 If there are Foo1, Foo2, Bar1 and Bar2 methods related to business logic in a contract, they are priced as 1, 1, 2, 2 ELF respectively, and the transaction fees of these four methods will not be easily modified later, they can be implemented as follows:
 
@@ -181,7 +181,7 @@ public override MethodFees GetMethodFee(StringValue input)
 
 This implementation can modify the transaction fee only by upgrading the contract, without implementing the other three interfaces.
 
-A more recommended implementation needs to define an MappedState in the State file for the contract:
+A more recommended implementation needs to define an ``MappedState`` in the State file for the contract:
 
 ```c#
 public MappedState<string, MethodFees> TransactionFees { get; set; }
@@ -227,7 +227,7 @@ AssertValidToken checks if the token symbol exists, and the ``BasicFee`` is reas
 
 The permission check code is in the lines 8 and 9, and ``RequiredMethodFeeControllerSet`` prevents the permission is not set before.
 
-If permissions are not set, the ``SetMethodFee`` method can only be called by the default address of the Parliamentary contract. If a method is sent through the default address of ``Parliament``, it means that two-thirds of the block producers have agreed to the proposal.
+If permissions are not set, the ``SetMethodFee`` method can only be called by the default address of the Parliament organization. If a method is sent through this organization, it means that two-thirds of the block producers have agreed to the proposal.
 
 ```c#
 private void RequiredMethodFeeControllerSet()

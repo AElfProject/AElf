@@ -8,7 +8,7 @@ A contract that inherits ACS2 only needs to implement one method:
 
 * GetResourceInfo
 
-The parameter is the Transaction type, and the return value is the type ResourceInfo defined in acs2.proto:
+The parameter is the Transaction type, and the return value is the type `ResourceInfo` defined in acs2.proto:
 
 ```proto
 message ResourceInfo {
@@ -17,7 +17,7 @@ message ResourceInfo {
 }
 ```
 
-aelf.ScopedStatePath is defined in aelf\core.proto:
+``aelf.ScopedStatePath`` is defined in aelf\core.proto:
 
 ```proto
 message ScopedStatePath {
@@ -31,17 +31,24 @@ message StatePath {
 
 ## Usage
 
-AElf uses the key-value database to store data. For the data generated during the contract execution, a mechanism called State Path is used to determine the key of the data.
+AElf uses the key-value database to store data. For the data generated during the contract execution, a mechanism called **State Path** is used to determine the key of the data.
 
-For example Token contract‘s State file defines a property MappedState < Address, string, long >Balances, it can be used to access, modify balance.
+For example ``Token contract`` defines a property, 
 
-Assuming that the address of the Token contract is **Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE**. If you want to know the balance of the address **2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz**, you can directly use this key to access redis / ssdb to get its value.
+```c#
+ public MappedState<Address, string, long> Balances { get; set; }
+```
+
+
+it can be used to access, modify balance.
+
+Assuming that the address of the ``Token contract`` is **Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE**. If you want to know the balance of the address **2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz**, you can directly use this key to access redis / ssdb to get its value.
 
 ``` text
 Nmjj7noTpMqZ522j76SDsFLhiKkThv1u3d4TxqJMD8v89tWmE/Balances/2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz/ELF
 ```
 
-On AElf, the implementation of parallel transaction execution is also based on the key , developers need to provide a method may access to the StatePath, then the corresponding transactions will be properly grouped before executing: if the two methods do not access the same StatePath, then you can safely place them in different groups.
+On AElf, the implementation of parallel transaction execution is also based on the key , developers need to provide a method may access to the ``StatePath``, then the corresponding transactions will be properly grouped before executing: if the two methods do not access the same StatePath, then you can safely place them in different groups.
 
 Attention: The transaction will be canceled and labeled to "can not be groupped" when the StatePath mismatchs the method.
 
@@ -49,9 +56,9 @@ If you are interested in the logic, you can view the code ITransactionGrouper, a
 
 ## Implementation
 
-A example: within the Token contract, the core logic of method Transfer is to modify the balance of address. It accesses the balances property mentioned above twice.
+Token contract, as an example, the core logic of method ``Transfer`` is to modify the balance of address. It accesses the balances property mentioned above twice.
 
-At this point, we need to notify ITransactionGrouper via the GetResourceInfo method of the key of the ELF balance of address A and address B:
+At this point, we need to notify ``ITransactionGrouper`` via the ``GetResourceInfo`` method of the key of the ELF balance of address A and address B:
 
 ```c#
 var args = TransferInput.Parser.ParseFrom(txn.Params);
@@ -66,7 +73,7 @@ var resourceInfo = new ResourceInfo
 return resourceInfo;
 ```
 
-The GetPath forms a ScopedStatePath from several pieces of data that make up the key:
+The ``GetPath`` forms a ``ScopedStatePath`` from several pieces of data that make up the key:
 
 ```c#
 private ScopedStatePath GetPath(params string[] parts)
@@ -87,7 +94,7 @@ private ScopedStatePath GetPath(params string[] parts)
 
 ## Test
 
-You can construct two transactions, and the transactions are passed directly to an implementation instance of ITransactionGrouper, and the GroupAsync method is used to see if the two transactions are parallel.
+You can construct two transactions, and the transactions are passed directly to an implementation instance of ``ITransactionGrouper``, and the ``GroupAsync`` method is used to see whether the two transactions are parallel.
 
 We prepare two stubs that implement the ACS2 contract with different addresses to simulate the Transfer:
 
@@ -159,4 +166,4 @@ Finally, check it via transactionGrouper:
 
 ## Example
 
-You can refer to the implementation of the MultiToken contract for GetResourceInfo. Noting that for the ResourceInfo provided by the method Tranfer, you need to consider charging a transaction fee in addition to the two keys mentioned in this article.
+You can refer to the implementation of the ``MultiToken contract`` for ``GetResourceInfo``. Noting that for the ``ResourceInfo`` provided by the method ``Transfer``, you need to consider charging a transaction fee in addition to the two keys mentioned in this article.
