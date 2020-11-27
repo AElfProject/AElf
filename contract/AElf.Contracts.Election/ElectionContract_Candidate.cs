@@ -67,7 +67,7 @@ namespace AElf.Contracts.Election
             }
             else
             {
-                Assert(!State.BannedPubkeyMap[pubkey], "This candidate already marked as evil node before.");
+                Assert(!IsPubkeyBanned(pubkey), "This candidate already banned before.");
                 State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
                     Pubkey = pubkey,
