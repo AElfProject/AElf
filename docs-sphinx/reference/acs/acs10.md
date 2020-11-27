@@ -6,12 +6,12 @@ ACS10 is used to construct a dividend pool in the contract.
 
 To construct a dividend pool, you can implement the following interfaces optionally:
 
-* Donate is used to donate dividend pool, parameters include the token symbol and the amount to be donated to the dividend pool;
-* Release is used to release the dividend pool. The parameter is the number of sessions to release dividends. Be careful to set its calling permission.
-* SetSymbolList is used to set the token symbols dividend pool supports. The parameter is of type SymbolList.
-* GetSymbolList is used to get the token symbols dividend pool supports. The return type is SymbolList.
-* GetUndistributdividends is used to obtain tokens' balance that have not been distributed. The return type is Dividends;
-* GetDividends, whose return type is also Dividends, is used to obtain additional dividends from the height of a block.
+* ``Donate`` is used to donate dividend pool, parameters include the token symbol and the amount to be donated to the dividend pool;
+* ``Release`` is used to release the dividend pool. The parameter is the number of sessions to release dividends. Be careful to set its calling permission.
+* ``SetSymbolList`` is used to set the token symbols dividend pool supports. The parameter is of type ``SymbolList``.
+* ``GetSymbolList`` is used to get the token symbols dividend pool supports. The return type is ``SymbolList``.
+* ``GetUndistributedDividends`` is used to obtain tokens' balance that have not been distributed. The return type is ``Dividends``;
+* ``GetDividends``, whose return type is also ``Dividends``, is used to obtain additional dividends from the height of a block.
 
 SymbolList is a string list:
 
@@ -21,7 +21,7 @@ message SymbolList {
 }
 ```
 
-The type of Dividends is a map from token symbol to amount:
+The type of ``Dividends`` is a map from token symbol to amount:
 
 ```proto
 message Dividends {
@@ -33,11 +33,11 @@ message Dividends {
 
 ACS10 only unifies the standard interface of the dividend pool, which does not interact with the AElf chain.
 
-## Implementaion
+## Implementation
 
 ### With the Profit contract
 
-A Profit Scheme can be created using the Profit contract's CreateScheme method:
+A Profit Scheme can be created using the ``CreateScheme`` method of ``Profit contract``:
 
 ```c#
 State.ProfitContract.Value =
@@ -57,12 +57,12 @@ The Context.GenerateId method is a common method used by the AElf to generate Id
 
 After the establishment of the dividend scheme:
 
-* ContributeProfits method of Profit can be used to implement the method Donate in ACS10.
-* The Release in the ACS10 can be implemented using the method DistributeProfits in the Profit contract;
-* Methods such as AddBeneficiary and RemoveBeneficiary can be used to manage the recipients and their weight.
-* AddSubScheme, RemoveSubScheme and other methods can be used to manage the sub-dividend scheme and its weight;
-* The SetSymbolList and GetSymbolList can be implemented by yourself. Just make sure the symbol list you set is used correctly in Donate and Release.
-* GetUndistributedDividends returns the balance of the token whose symbol is includeded in symbol list.
+* ``ContributeProfits`` method of Profit can be used to implement the method Donate in ACS10.
+* The Release in the ACS10 can be implemented using the method ``DistributeProfits`` in the ``Profit contract``;
+* Methods such as ``AddBeneficiary`` and ``RemoveBeneficiary`` can be used to manage the recipients and their weight.
+* ``AddSubScheme``, ``RemoveSubScheme`` and other methods can be used to manage the sub-dividend scheme and its weight;
+* The ``SetSymbolList`` and ``GetSymbolList`` can be implemented by yourself. Just make sure the symbol list you set is used correctly in ``Donate`` and ``Release``.
+* ``GetUndistributedDividends`` returns the balance of the token whose symbol is included in symbol list.
 
 ### With TokenHolder Contract
 
@@ -81,7 +81,7 @@ return new Empty();
 
 In a token holder dividend scheme, a scheme is bound to its creator, so SchemeId is not necessary to compute (in fact, the scheme is created via the Profit contract).
 
-Considering the GetDividends returns the dividend information according to the input height, so each Donate need update dividend information for each height . A Donate can be implemented as:
+Considering the ``GetDividends`` returns the dividend information according to the input height, so each Donate need update dividend information for each height . A Donate can be implemented as:
 
 ```c#
 public override Empty Donate(DonateInput input)
@@ -136,7 +136,7 @@ public override Empty Donate(DonateInput input)
 }
 ```
 
-The method Release directly sends the TokenHolder's method DistributeProfits transaction:
+The method Release directly sends the TokenHolder's method ``DistributeProfits`` transaction:
 
 ```c#
 public override Empty Release(ReleaseInput input)
@@ -149,7 +149,7 @@ public override Empty Release(ReleaseInput input)
 }
 ```
 
-In the TokenHolder contract, the default implementation is to release what token is received, so SetSymbolList does not need to be implemented, and GetSymbolList returns the symbol list recorded in dividend scheme:
+In the ``TokenHolder contract``, the default implementation is to release what token is received, so ``SetSymbolList`` does not need to be implemented, and ``GetSymbolList`` returns the symbol list recorded in dividend scheme:
 
 ```c#
 public override Empty SetSymbolList(SymbolList input)
@@ -181,7 +181,7 @@ private Scheme GetDividendPoolScheme()
 }
 ```
 
-The implementation of GetUndistributdividendeds is the same as described in the previous section, and it returns the balance:
+The implementation of ``GetUndistributedDividends`` is the same as described in the previous section, and it returns the balance:
 
 ```c#
 public override Dividends GetUndistributedDividends(Empty input)
@@ -201,11 +201,11 @@ public override Dividends GetUndistributedDividends(Empty input)
 }
 ```
 
-In addition to the Profit and TokenHolder contracts, of course, you can also implement a dividend pool on your own contract.
+In addition to the ``Profit`` and ``TokenHolder`` contracts, of course, you can also implement a dividend pool on your own contract.
 
 ## Test
 
-The dividend pool, for example, is tested in two ways with the token Holder contract.
+The dividend pool, for example, is tested in two ways with the ``TokenHolder contract``.
 
 One way is for the dividend pool to send Donate, Release and a series of query operations;
 
@@ -226,7 +226,7 @@ var tokenHolderContractStub =
         keyPair);
 ```
 
-Before proceeding, You should Approve the TokenHolder contract and the dividend pool contract. 
+Before proceeding, You should Approve the ``TokenHolder contract`` and the dividend pool contract. 
 
 ```c#
 await tokenContractStub.Approve.SendAsync(new ApproveInput
@@ -263,7 +263,7 @@ await acs10DemoContractStub.Donate.SendAsync(new DonateInput
 });
 ```
 
-At this point you can test the GetUndistributedDividends and GetDividends:
+At this point you can test the ``GetUndistributedDividends`` and ``GetDividends``:
 
 ```c#
 // Check undistributed dividends before releasing.
@@ -279,7 +279,7 @@ var dividends =
 dividends.Value["ELF"].ShouldBe(amount);
 ```
 
-Release bonus, and test GetUndistributedDividends again:
+Release bonus, and test ``GetUndistributedDividends`` again:
 
 ```c#
 await acs10DemoContractStub.Release.SendAsync(new ReleaseInput
@@ -319,6 +319,6 @@ balanceAfterClaimForProfits.Balance.ShouldBe(balanceBeforeClaimForProfits.Balanc
 
 The dividend pool of the main chain and the side chain is built by implementing ACS10.
 
-The dividend pool provided by the Treasury contract implementing ACS10 is on the main chain.
+The dividend pool provided by the ``Treasury contract`` implementing ACS10 is on the main chain.
 
-The dividend pool provided by the ACS10 contract implementing ACS10 is on the side chain.
+The dividend pool provided by the ``Consensus contract`` implementing ACS10 is on the side chain.

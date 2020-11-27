@@ -6,12 +6,12 @@ On the AElf's side chain, the contract needs to declare where its profits are go
 
 ACS9 contains an method which does not have to be implemented:
 
-* ``TakeContractProfits`` used for the developer to collect the profits from the contract and the profits will be distributed in this method. There are also other methods for developers to claim profits. However, these methods needs to be approved before deployment/upgrade.
+* ``TakeContractProfits`` is used for the developer to collect the profits from the contract and the profits will be distributed in this method. There are also other methods for developers to claim profits. However, these methods needs to be approved before deployment/upgrade.
 
 Two View methods that must be implemented. They are mostly used in the AElf blockchain browser:
 
 * ``GetProfitConfig`` whose return value is the ``ProfitConfig`` defined in acs9.proto, includes the profit token symbol list, the token symbol that the user can lock them to claim the profit, and the portion of the profit that will be donated to the dividend pool each time the developer receives the profit. When reviewing the contract code, you should check if the same ``ProfitConfig`` data is actually used for distributing the profits.
-* ``GetProfitsAmount`` as the name implies, used to query the profits of the contract so far, with a return value of type ``ProfitsMap``.
+* ``GetProfitsAmount`` as the name implies, is used to query the profits of the contract so far, with a return value of type ``ProfitsMap``.
 
 ``ProfitConfig`` is defined as:
 
