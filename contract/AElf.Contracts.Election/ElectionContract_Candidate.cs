@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
@@ -68,8 +67,7 @@ namespace AElf.Contracts.Election
             }
             else
             {
-                Assert(!State.BlackList.Value.Value.Contains(pubkeyByteString),
-                    "This candidate already marked as evil node before.");
+                Assert(!State.BannedPubkeyMap[pubkey], "This candidate already marked as evil node before.");
                 State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
                     Pubkey = pubkey,
@@ -228,7 +226,7 @@ namespace AElf.Contracts.Election
         {
             Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
-            Assert(!IsPubkeyInBlackList(input.Pubkey), "Pubkey is in black list.");
+            Assert(!IsPubkeyBanned(input.Pubkey), "Pubkey is already banned.");
 
             // Permission check
             var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
@@ -253,11 +251,9 @@ namespace AElf.Contracts.Election
 
         #endregion
 
-        private bool IsPubkeyInBlackList(string pubkey)
+        private bool IsPubkeyBanned(string pubkey)
         {
-            var blackList = State.BlackList.Value;
-            return blackList != null &&
-                   blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+            return State.BannedPubkeyMap[pubkey];
         }
 
         private Address GetParliamentDefaultAddress()

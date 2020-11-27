@@ -143,21 +143,18 @@ namespace AElf.Contracts.Election
             var termNumber = State.CurrentTermNumber.Value.Sub(1);
             var snapshot = State.Snapshots[termNumber];
             if (snapshot == null) return null;
-            var blackList = State.BlackList.Value;
-            if (blackList == null) return snapshot;
-            var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
-                blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
-            if (!candidatesInBlackList.Any()) return snapshot;
+            var bannedCandidates = snapshot.ElectionResult.Keys.Where(k => State.BannedPubkeyMap[k]).ToList();
+            if (!bannedCandidates.Any()) return snapshot;
             Context.LogDebug(() => "Getting snapshot and there's miner replaced during current term.");
-            foreach (var candidateInBlackList in candidatesInBlackList)
+            foreach (var bannedCandidate in bannedCandidates)
             {
-                var newestPubkey = GetNewestPubkey(candidateInBlackList);
-                // If newest pubkey not exists or same as old pubkey (which in black list), skip.
-                if (newestPubkey == null || newestPubkey == candidateInBlackList ||
+                var newestPubkey = GetNewestPubkey(bannedCandidate);
+                // If newest pubkey not exists or same as old pubkey (which is banned), skip.
+                if (newestPubkey == null || newestPubkey == bannedCandidate ||
                     snapshot.ElectionResult.ContainsKey(newestPubkey)) continue;
-                var electionResult = snapshot.ElectionResult[candidateInBlackList];
+                var electionResult = snapshot.ElectionResult[bannedCandidate];
                 snapshot.ElectionResult.Add(newestPubkey, electionResult);
-                snapshot.ElectionResult.Remove(candidateInBlackList);
+                snapshot.ElectionResult.Remove(bannedCandidate);
             }
 
             return snapshot;
