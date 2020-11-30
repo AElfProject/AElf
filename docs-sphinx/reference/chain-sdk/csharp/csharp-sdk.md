@@ -61,7 +61,7 @@ var param = new TransferInput
 {
     To = new Address {Value = Address.FromBase58("7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz").Value},
     Symbol = "ELF",
-    Amount = 1000,
+    Amount = 1000000000,
     Memo = "transfer in demo"
 };
 var ownerAddress = Client.GetAddressFromPrivateKey(PrivateKey);

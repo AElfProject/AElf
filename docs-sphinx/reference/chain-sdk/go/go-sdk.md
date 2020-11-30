@@ -24,26 +24,43 @@ go get -u github.com/AElfProject/aelf-sdk.go
 
 Create a new instance of AElfClient, and set url of an AElf chain node.
 
-```C#
-using AElf.Client.Service;
+```go
+import ("github.com/AElfProject/aelf-sdk.go/client")
 
-// create a new instance of AElfClient
-private AElfClient Client = new AElfClient('http://127.0.0.1:1235');
-```
-
-### Test connection
-
-Check that the AElf chain node is connectable.
-
-```C#
-var isConnected = await Client.IsConnectedAsync();
+var aelf = client.AElfClient{
+	Host:       "http://127.0.0.1:8000",
+	Version:    "1.0",
+	PrivateKey: "cd86ab6347d8e52bbbe8532141fc59ce596268143a308d1d40fedf385528b458",
+}
 ```
 
 ### Initiate a transfer transaction
 
-```C#
+```go
 // Get token contract address.
-var tokenContractAddress = await Client.GetContractAddressByNameAsync(HashHelper.ComputeFrom("AElf.ContractNames.Token"));
+tokenContractAddress, _ := aelf.GetContractAddressByName("AElf.ContractNames.Token")
+fromAddress := aelf.GetAddressFromPrivateKey(aelf.PrivateKey)
+methodName := "Transfer"
+toAddress, _ := util.Base58StringToAddress("7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz")
+
+params := &pb.TransferInput{
+	To:     toAddress,
+	Symbol: "ELF",
+	Amount: 1000000000,
+	Memo:   "transfer in demo",
+}
+paramsByte, _ := proto.Marshal(params)
+
+// Generate a transfer transaction.
+transaction, _ := aelf.CreateTransaction(fromAddress, tokenContractAddress, methodName, paramsByte)
+signature, _ := aelf.SignTransaction(aelf.PrivateKey, transaction)
+transaction.Signature = signature
+
+// Send the transfer transaction to AElf chain node.
+transactionByets, _ := proto.Marshal(transaction)
+sendResult, _ := aelf.SendTransaction(hex.EncodeToString(transactionByets))
+
+transactionResult, _ := aelf.GetTransactionResult(sendResult.TransactionID)
 
 var methodName = "Transfer";
 var param = new TransferInput
@@ -67,22 +84,6 @@ var result = await Client.SendTransactionAsync(new SendTransactionInput
 
 // After the transaction is mined, query the execution results.
 var transactionResult = await Client.GetTransactionResultAsync(result.TransactionId);
-
-// Query account balance.
-var paramGetBalance = new GetBalanceInput
-{
-    Symbol = "ELF",
-    Owner = new Address {Value = Address.FromBase58(ownerAddress).Value}
-};
-var transactionGetBalance =await Client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), "GetBalance", paramGetBalance);
-var txWithSignGetBalance = Client.SignTransaction(PrivateKey, transactionGetBalance);
-
-var transactionGetBalanceResult = await Client.ExecuteTransactionAsync(new ExecuteTransactionDto
-{
-    RawTransaction = txWithSignGetBalance.ToByteArray().ToHex()
-});
-
-var balance = GetBalanceOutput.Parser.ParseFrom(ByteArrayHelper.HexstringToByteArray(transactionGetBalanceResult));
 ```
 
 ## Web API
