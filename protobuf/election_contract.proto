@@ -33,12 +33,12 @@ service ElectionContract {
     // To be a block producer, a user should first register to be a candidate and lock some token as a deposit. 
     // If the data center is not full, the user will be added in automatically and get one weight 
     // for sharing bonus in the future.
-    rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc AnnounceElection (aelf.Address) returns (google.protobuf.Empty) {
     }
     
     // A candidate is able to quit the election provided he is not currently elected. If you quit successfully, 
     // the candidate will get his locked tokens back and will not receive anymore bonus.
-    rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc QuitElection (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
     
     // Used for voting for a candidate to be elected. The tokens you vote with will be locked until the end time. 
@@ -81,6 +81,14 @@ service ElectionContract {
     
     // Change the controller for the weight of vote interest.
     rpc ChangeVoteWeightInterestController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Candidate admin can replace candidate pubkey with a new pubkey.
+    rpc ReplaceCandidatePubkey (ReplaceCandidatePubkeyInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set admin address of candidate (mostly supply)
+    rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
     
     // Get all candidates’ public keys.
@@ -196,6 +204,21 @@ service ElectionContract {
     
     // Inspect the evil nodes included in the specified miners and return to the replacement node.
     rpc GetMinerReplacementInformation (GetMinerReplacementInformationInput) returns (MinerReplacementInformation) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query candidate admin.
+    rpc GetCandidateAdmin (google.protobuf.StringValue) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the newest pubkey of an old pubkey.
+    rpc GetNewestPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the old pubkey.
+    rpc GetReplacedPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
 }
@@ -454,8 +477,24 @@ message MinerReplacementInformation {
     repeated string evil_miner_pubkeys = 2;
 }
 
+message ReplaceCandidatePubkeyInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+}
+
+message SetCandidateAdminInput {
+    string pubkey = 1;
+    aelf.Address admin = 2;
+}
+
 message EvilMinerDetected {
     option (aelf.is_event) = true;
     // The public key of evil miner.
     string pubkey = 1;
+}
+
+message CandidatePubkeyReplaced {
+    option (aelf.is_event) = true;
+    string old_pubkey = 1;
+    string new_pubkey = 2;
 }

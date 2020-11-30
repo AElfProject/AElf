@@ -44,6 +44,10 @@ service TreasuryContract {
     rpc ChangeTreasuryController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
+    // AEDPoS Contract can notify Treasury Contract to aware miner replacement happened.
+    rpc RecordMinerReplacement (RecordMinerReplacementInput) returns (google.protobuf.Empty) {
+    }
+    
     // Used to estimate the revenue weight of 10000 tokens voted by users.
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -131,4 +135,10 @@ message MinerRewardWeightProportion {
     SchemeProportionInfo votes_weight_reward_proportion_info = 2;
     // The proportion of the reappointment of the miner.
     SchemeProportionInfo re_election_reward_proportion_info = 3;
+}
+
+message RecordMinerReplacementInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+    int64 current_term_number = 3;
 }

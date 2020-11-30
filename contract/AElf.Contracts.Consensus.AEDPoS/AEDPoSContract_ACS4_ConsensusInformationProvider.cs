@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS4;
 using Google.Protobuf;
@@ -99,14 +100,32 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
 
                 var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
-                if (headerInformation.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                if (headerInformation.Round.GetHash(isContainPreviousInValue) !=
+                    currentRound.GetHash(isContainPreviousInValue))
                 {
-                    return new ValidationResult
+                    var headerMiners = headerInformation.Round.RealTimeMinersInformation.Keys;
+                    var stateMiners = currentRound.RealTimeMinersInformation.Keys;
+                    var replacedMiners = headerMiners.Except(stateMiners).ToList();
+                    if (!replacedMiners.Any())
                     {
-                        Success = false, Message = "Current round information is different with consensus extra data.\n" +
-                                                   $"New block header consensus information:\n{headerInformation.Round}" +
-                                                   $"Stated block header consensus information:\n{currentRound}"
-                    };
+                        return new ValidationResult
+                        {
+                            Success = false, Message =
+                                "Current round information is different with consensus extra data.\n" +
+                                $"New block header consensus information:\n{headerInformation.Round}" +
+                                $"Stated block header consensus information:\n{currentRound}"
+                        };
+                    }
+
+                    var newMiners = stateMiners.Except(headerMiners).ToList();
+                    var officialNewestMiners = replacedMiners.Select(miner =>
+                            State.ElectionContract.GetNewestPubkey.Call(new StringValue {Value = miner}).Value)
+                        .ToList();
+
+                    Assert(
+                        newMiners.Count == officialNewestMiners.Count &&
+                        newMiners.Union(officialNewestMiners).Count() == newMiners.Count,
+                        "Incorrect replacement information.");
                 }
             }
 

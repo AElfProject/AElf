@@ -76,6 +76,7 @@ namespace AElf.Contracts.Election
                     backups.AddRange(
                         State.InitialMiners.Value.Value.Select(k => k.ToHex()).Where(k => !backups.Contains(k)));
                 }
+
                 victories.AddRange(backups.OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
                     .Select(ByteStringHelper.FromHexString));
@@ -135,6 +136,31 @@ namespace AElf.Contracts.Election
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
             return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
+        }
+
+        private TermSnapshot GetPreviousTermSnapshotWithNewestPubkey()
+        {
+            var termNumber = State.CurrentTermNumber.Value.Sub(1);
+            var snapshot = State.Snapshots[termNumber];
+            if (snapshot == null) return null;
+            var blackList = State.BlackList.Value;
+            if (blackList == null) return snapshot;
+            var candidatesInBlackList = snapshot.ElectionResult.Keys.Where(k =>
+                blackList.Value.Contains(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(k)))).ToList();
+            if (!candidatesInBlackList.Any()) return snapshot;
+            Context.LogDebug(() => "Getting snapshot and there's miner replaced during current term.");
+            foreach (var candidateInBlackList in candidatesInBlackList)
+            {
+                var newestPubkey = GetNewestPubkey(candidateInBlackList);
+                // If newest pubkey not exists or same as old pubkey (which in black list), skip.
+                if (newestPubkey == null || newestPubkey == candidateInBlackList ||
+                    snapshot.ElectionResult.ContainsKey(newestPubkey)) continue;
+                var electionResult = snapshot.ElectionResult[candidateInBlackList];
+                snapshot.ElectionResult.Add(newestPubkey, electionResult);
+                snapshot.ElectionResult.Remove(candidateInBlackList);
+            }
+
+            return snapshot;
         }
 
         public override ElectorVote GetElectorVote(StringValue input)
@@ -311,7 +337,7 @@ namespace AElf.Contracts.Election
             return new ElectionVotingRecord
             {
                 Voter = votingRecord.Voter,
-                Candidate = votingRecord.Option,
+                Candidate = GetNewestPubkey(votingRecord.Option),
                 Amount = votingRecord.Amount,
                 TermNumber = votingRecord.SnapshotNumber,
                 VoteId = voteId,
@@ -329,11 +355,13 @@ namespace AElf.Contracts.Election
             GetMinerReplacementInformationInput input)
         {
             var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
+            Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys.");
             var alternativeCandidates = new List<string>();
-            var latestSnapshot = State.Snapshots[State.CurrentTermNumber.Value.Sub(1)];
+            var latestSnapshot = GetPreviousTermSnapshotWithNewestPubkey();
             // Check out election snapshot.
             if (latestSnapshot != null)
             {
+                Context.LogDebug(() => $"Previous term snapshot:\n{latestSnapshot}");
                 var maybeNextCandidates = latestSnapshot.ElectionResult
                     // Except initial miners.
                     .Where(cs =>
@@ -392,6 +420,16 @@ namespace AElf.Contracts.Election
         private int GetValidationDataCenterCount()
         {
             return GetMinersCount(new Empty()).Value.Mul(5);
+        }
+
+        public override Address GetCandidateAdmin(StringValue input)
+        {
+            return State.CandidateAdmins[State.InitialPubkeyMap[input.Value] ?? input.Value];
+        }
+
+        public override StringValue GetReplacedPubkey(StringValue input)
+        {
+            return new StringValue {Value = State.CandidateReplacementMap[input.Value]};
         }
     }
 }

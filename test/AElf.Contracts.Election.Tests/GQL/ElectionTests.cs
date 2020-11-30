@@ -110,7 +110,7 @@ namespace AElf.Contracts.Election
 
             var transactionResult = await QuitElectionAsync(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
+            transactionResult.Error.Contains("Target is not a candidate").ShouldBeTrue();
         }
         
         [Fact]

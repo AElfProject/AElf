@@ -31,6 +31,8 @@ namespace AElf.Contracts.Election
             // Check candidate information map instead of candidates. 
             var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
             AssertValidCandidateInformation(targetInformation);
+            
+            var recoveredPublicKey = Context.RecoverPublicKey();
 
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
@@ -38,8 +40,6 @@ namespace AElf.Contracts.Election
             var voteId = GenerateVoteId(input);
             Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
             State.LockTimeMap[voteId] = lockSeconds;
-
-            var recoveredPublicKey = Context.RecoverPublicKey();
 
             UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
 
@@ -236,15 +236,16 @@ namespace AElf.Contracts.Election
             });
 
             // Update related candidate
-            var oldCandidateVotes = State.CandidateVotes[votingRecord.Option];
+            var newestPubkey = GetNewestPubkey(votingRecord.Option);
+            var oldCandidateVotes = State.CandidateVotes[newestPubkey];
             oldCandidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
             oldCandidateVotes.ObtainedActiveVotedVotesAmount =
                 oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             oldCandidateVotes.AllObtainedVotedVotesAmount =
                 oldCandidateVotes.AllObtainedVotedVotesAmount.Sub(votingRecord.Amount);
-            State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
+            State.CandidateVotes[newestPubkey] = oldCandidateVotes;
 
-            var voteAmountOfNewCandidate = 0L;
+            long voteAmountOfNewCandidate;
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
             if (newCandidateVotes != null)
             {
@@ -274,11 +275,11 @@ namespace AElf.Contracts.Election
                     dataCenterList.DataCenters[input.CandidatePubkey].Add(votingRecord.Amount);
             else
                 IsCandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
-            if (dataCenterList.DataCenters.ContainsKey(votingRecord.Option))
+            if (dataCenterList.DataCenters.ContainsKey(newestPubkey))
             {
-                dataCenterList.DataCenters[votingRecord.Option] =
-                    dataCenterList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
-                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, votingRecord.Option);
+                dataCenterList.DataCenters[newestPubkey] =
+                    dataCenterList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, newestPubkey);
             }
 
             State.DataCentersRankingList.Value = dataCenterList;
@@ -308,18 +309,27 @@ namespace AElf.Contracts.Election
             // Update Elector's Votes information.
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var voterVotes = State.ElectorVotes[voterPublicKey];
+            if (voterVotes == null)
+            {
+                throw new AssertionException($"Voter {voterPublicKey} never votes before.");
+            }
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.ElectorVotes[voterPublicKey] = voterVotes;
 
             // Update Candidate's Votes information.
-            var candidateVotes = State.CandidateVotes[votingRecord.Option];
+            var newestPubkey = GetNewestPubkey(votingRecord.Option);
+            var candidateVotes = State.CandidateVotes[newestPubkey];
+            if (candidateVotes == null)
+            {
+                throw new AssertionException($"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+            }
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
             candidateVotes.ObtainedActiveVotedVotesAmount =
                 candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
-            State.CandidateVotes[votingRecord.Option] = candidateVotes;
+            State.CandidateVotes[newestPubkey] = candidateVotes;
 
             UnlockTokensOfVoter(input, votingRecord.Amount);
             RetrieveTokensFromVoter(votingRecord.Amount);
@@ -327,11 +337,11 @@ namespace AElf.Contracts.Election
             RemoveBeneficiaryOfVoter();
 
             var rankingList = State.DataCentersRankingList.Value;
-            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
+            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(newestPubkey))
             {
-                rankingList.DataCenters[votingRecord.Option] =
-                    rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
-                IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, votingRecord.Option);
+                rankingList.DataCenters[newestPubkey] =
+                    rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, newestPubkey);
                 State.DataCentersRankingList.Value = rankingList;
             }
 
@@ -357,7 +367,7 @@ namespace AElf.Contracts.Election
                 maxVoteAmountOutDataCenter = candidateVoteAmount;
             }
 
-            if (maxVoteAmountOutDataCenter <= amountAfterWithdraw)
+            if (maxVoteAmountOutDataCenter <= amountAfterWithdraw || maxVoteOptionOutDataCenter == null)
                 return false;
             rankingList.DataCenters.Remove(member);
             rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
@@ -614,16 +624,10 @@ namespace AElf.Contracts.Election
 
         private AuthorityInfo GetDefaultVoteWeightInterestController()
         {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
-
             return new AuthorityInfo
             {
-                ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+                ContractAddress = Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName),
+                OwnerAddress = GetParliamentDefaultAddress()
             };
         }
 

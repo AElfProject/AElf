@@ -9,6 +9,7 @@ using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
+using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -134,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var candidatesKeyPair in ValidationDataCenterKeyPairs.Take(take))
             {
                 var electionTester = GetElectionContractTester(candidatesKeyPair);
-                var announceResult = await electionTester.AnnounceElection.SendAsync(new Empty());
+                var announceResult = await electionTester.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
                 announceResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 //query candidates
