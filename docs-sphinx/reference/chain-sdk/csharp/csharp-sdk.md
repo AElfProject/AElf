@@ -285,7 +285,7 @@ _Returns_
   - `Indexed - string[]`
   - `NonIndexed - string`
 - `Bloom - string`
-- `BlockNumber - Number`
+- `BlockNumber - long`
 - `Transaction - TransactionDto`
   - `From - string`
   - `To - string`
