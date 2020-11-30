@@ -385,8 +385,10 @@ _POST_
 
 _Parameters_
 
-`SendTransactionInput` - Serialization of data into protobuf data:
-- `RawTransaction - string` :
+`SendRawTransactionInput` - Serialization of data into protobuf data:
+- `Transaction - string`
+- `Signature - string`
+- `ReturnTransaction - bool`
 
 _Returns_
 
@@ -661,7 +663,7 @@ await Client.GetContractAddressByNameAsync(contractNameHash);
 
 ### GenerateTransaction
 
-Get address of a contract by given contractNameHash.
+Build a transaction from the input parameters.
 
 _Parameters_
 
@@ -711,7 +713,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.SignTransaction("cd86ab6347d8e52bbbe8532141fc59ce596268143a308d1d40fedf385528b458", transaction);
+Client.SignTransaction(privateKeyHex, transaction);
 ```
 
 ### GetAddressFromPubKey
@@ -728,7 +730,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.GetAddressFromPubKey("SD6BXDrKT2syNd1WehtPyRo3dPBiXqfGUj8UJym7YP9W9RynM");
+Client.GetAddressFromPubKey(pubKey);
 ```
 
 ### GetAddressFromPrivateKey
@@ -745,7 +747,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.GetAddressFromPrivateKey("cd86ab6347d8e52bbbe8532141fc59ce596268143a308d1d40fedf385528b458");
+Client.GetAddressFromPrivateKey(privateKeyHex);
 ```
 
 ### GenerateKeyPairInfo

@@ -381,6 +381,8 @@ _Parameters_
 
 `SendRawTransactionInput` - Serialization of data into protobuf data:
 - `Transaction - string`
+- `Signature - string`
+- `ReturnTransaction - bool`
 
 _Returns_
 
@@ -389,8 +391,8 @@ _Returns_
 - `Transaction - TransactionDto`
 
 _Example_
-```C#
-sendRawresult, err := aelf.SendRawTransaction(input)
+```go
+sendRawResult, err := aelf.SendRawTransaction(input)
 ```
 
 ### SendTransactions
@@ -405,16 +407,15 @@ _POST_
 
 _Parameters_
 
-`SendTransactionsInput` - Serialization of data into protobuf data:
-- `RawTransactions - string`
+`rawTransactions - string` - Serialization of data into protobuf data:
 
 _Returns_
 
-`string[]`
+`[]interface{}`
 
 _Example_
-```C#
-await Client.SendTransactionsAsync(input);
+```go
+results, err := aelf.SendTransactions(transactions)
 ```
 
 ### CreateRawTransaction
@@ -432,7 +433,7 @@ _Parameters_
 `CreateRawTransactionInput`
 - `From - string`
 - `To - string`
-- `RefBlockNumber - long`
+- `RefBlockNumber - int64`
 - `RefBlockHash - string`
 - `MethodName - string`
 - `Params - string`
@@ -443,8 +444,8 @@ _Returns_
 - `RawTransactions - string`
 
 _Example_
-```C#
-await Client.CreateRawTransactionAsync(input);
+```go
+result, err := aelf.CreateRawTransaction(input)
 ```
 
 ### ExecuteTransaction
@@ -459,16 +460,15 @@ _POST_
 
 _Parameters_
 
-`ExecuteTransactionDto` - Serialization of data into protobuf data:
-- `RawTransaction - string`
+`rawTransaction - string`
 
 _Returns_
 
 `string`
 
 _Example_
-```C#
-await Client.ExecuteTransactionAsync(input);
+```go
+executeresult, err := aelf.ExecuteTransaction(rawTransaction)
 ```
 
 ### ExecuteRawTransaction
@@ -492,8 +492,8 @@ _Returns_
 `string`
 
 _Example_
-```C#
-await Client.ExecuteRawTransactionAsync(input);
+```go
+executeRawresult, err := aelf.ExecuteRawTransaction(executeRawinput)
 ```
 
 ### GetPeers
@@ -513,21 +513,21 @@ _Returns_
 `PeerDto`
 - `IpAddress - string`
 - `ProtocolVersion - int`
-- `ConnectionTime - long`
+- `ConnectionTime - int64`
 - `ConnectionStatus - string`
 - `Inbound - bool`
 - `BufferedTransactionsCount - int`
 - `BufferedBlocksCount - int`
 - `BufferedAnnouncementsCount - int`
-- `RequestMetrics - List<RequestMetric>`
-  - `RoundTripTime - long`
+- `RequestMetrics - []RequestMetric`
+  - `RoundTripTime - int64`
   - `MethodName - string`
   - `Info - string`
   - `RequestTime - string`
 
 _Example_
-```C#
-await Client.GetPeersAsync(false);
+```go
+peers, err := aelf.GetPeers(false);
 ```
 
 ### AddPeer
@@ -549,8 +549,8 @@ _Returns_
 `bool`
 
 _Example_
-```C#
-await Client.AddPeerAsync("127.0.0.1:7001");
+```go
+addResult, err := aelf.AddPeer("127.0.0.1:7001");
 ```
 
 ### RemovePeer
@@ -572,8 +572,8 @@ _Returns_
 `bool`
 
 _Example_
-```C#
-await Client.RemovePeerAsync("127.0.0.1:7001");
+```go
+removeResult, err := aelf.RemovePeer("127.0.0.1:7001");
 ```
 
 ### GetNetworkInfo
@@ -596,8 +596,8 @@ _Returns_
 - `Connections - int`
 
 _Example_
-```C#
-await Client.GetNetworkInfoAsync();
+```go
+networkInfo, err := aelf.GetNetworkInfo()
 ```
 
 ## AElf Client
@@ -615,8 +615,8 @@ _Returns_
 `bool`
 
 _Example_
-```C#
-await Client.IsConnectedAsync();
+```go
+isConnected := aelf.IsConnected()
 ```
 
 ### GetGenesisContractAddress
@@ -632,8 +632,8 @@ _Returns_
 `string`
 
 _Example_
-```C#
-await Client.GetGenesisContractAddressAsync();
+```go
+contractAddress, err := aelf.GetGenesisContractAddress()
 ```
 
 ### GetContractAddressByName
@@ -642,35 +642,35 @@ Get address of a contract by given contractNameHash.
 
 _Parameters_
 
-1. `contractNameHash - Hash`
+1. `contractNameHash - string`
 
 _Returns_
 
 `Address`
 
 _Example_
-```C#
-await Client.GetContractAddressByNameAsync(contractNameHash);
+```go
+contractAddress, err := aelf.GetContractAddressByName("AElf.ContractNames.Token")
 ```
 
-### GenerateTransaction
+### CreateTransaction
 
-Get address of a contract by given contractNameHash.
+Build a transaction from the input parameters.
 
 _Parameters_
 
 1. `from - string`
 2. `to - string`
 3. `methodName - string`
-4. `input - IMessage`
+4. `params - []byte`
 
 _Returns_
 
 `Transaction`
 
 _Example_
-```C#
-await Client.GenerateTransactionAsync(from, to, methodName, input);
+```go
+transaction, err := aelf.CreateTransaction(fromAddress, toAddress, methodName, param)
 ```
 
 ### GetFormattedAddress
@@ -679,15 +679,15 @@ Convert the Address to the displayed string：symbol_base58-string_base58-string
 
 _Parameters_
 
-1. `address - Address`
+1. `address - string`
 
 _Returns_
 
 `string`
 
 _Example_
-```C#
-await Client.GetFormattedAddressAsync(address);
+```go
+formattedAddress, err := aelf.GetFormattedAddress(address);
 ```
 
 ### SignTransaction
@@ -696,16 +696,16 @@ Sign a transaction using private key.
 
 _Parameters_
 
-1. `privateKeyHex - string`
+1. `privateKey - string`
 2. `transaction - Transaction`
 
 _Returns_
 
-`Transaction`
+`[]byte`
 
 _Example_
-```C#
-Client.SignTransaction("cd86ab6347d8e52bbbe8532141fc59ce596268143a308d1d40fedf385528b458", transaction);
+```go
+signature, err := aelf.SignTransaction(privateKey, transaction)
 ```
 
 ### GetAddressFromPubKey
@@ -721,8 +721,8 @@ _Returns_
 `string`
 
 _Example_
-```C#
-Client.GetAddressFromPubKey("SD6BXDrKT2syNd1WehtPyRo3dPBiXqfGUj8UJym7YP9W9RynM");
+```go
+address := aelf.GetAddressFromPubKey(pubKey);
 ```
 
 ### GetAddressFromPrivateKey
@@ -731,15 +731,15 @@ Get the account address through the private key.
 
 _Parameters_
 
-1. `privateKeyHex - string`
+1. `privateKey - string`
 
 _Returns_
 
 `string`
 
 _Example_
-```C#
-Client.GetAddressFromPrivateKey("cd86ab6347d8e52bbbe8532141fc59ce596268143a308d1d40fedf385528b458");
+```go
+address := aelf.GetAddressFromPrivateKey(privateKey)
 ```
 
 ### GenerateKeyPairInfo
@@ -758,10 +758,10 @@ _Returns_
 - `Address - string`
 
 _Example_
-```C#
-Client.GenerateKeyPairInfo();
+```go
+keyPair := aelf.GenerateKeyPairInfo()
 ```
 
 ## Supports
 
-.NET Standard 2.0
+Go 1.13
