@@ -240,7 +240,7 @@ You now should have a node that's running, to check this run the
 following command that will query the node for its current block height:
 
 ``` bash
-aelf-command get-blk-height -e http://your node ip address:8000
+aelf-command get-blk-height -e http://your node ip address:port
 ```
 
 Run side-chains
