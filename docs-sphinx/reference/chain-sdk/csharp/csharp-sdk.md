@@ -39,7 +39,7 @@ Create a new instance of AElfClient, and set url of an AElf chain node.
 using AElf.Client.Service;
 
 // create a new instance of AElfClient
-private AElfClient Client = new AElfClient('http://127.0.0.1:1235');
+AElfClient client = new AElfClient('http://127.0.0.1:1235');
 ```
 
 ### Test connection
@@ -47,14 +47,14 @@ private AElfClient Client = new AElfClient('http://127.0.0.1:1235');
 Check that the AElf chain node is connectable.
 
 ```C#
-var isConnected = await Client.IsConnectedAsync();
+var isConnected = await client.IsConnectedAsync();
 ```
 
 ### Initiate a transfer transaction
 
 ```C#
 // Get token contract address.
-var tokenContractAddress = await Client.GetContractAddressByNameAsync(HashHelper.ComputeFrom("AElf.ContractNames.Token"));
+var tokenContractAddress = await client.GetContractAddressByNameAsync(HashHelper.ComputeFrom("AElf.ContractNames.Token"));
 
 var methodName = "Transfer";
 var param = new TransferInput
@@ -64,20 +64,22 @@ var param = new TransferInput
     Amount = 1000000000,
     Memo = "transfer in demo"
 };
-var ownerAddress = Client.GetAddressFromPrivateKey(PrivateKey);
+var ownerAddress = client.GetAddressFromPrivateKey(PrivateKey);
 
 // Generate a transfer transaction.
-var transaction = await Client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), methodName, param);
-var txWithSign = Client.SignTransaction(PrivateKey, transaction); 
+var transaction = await client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), methodName, param);
+var txWithSign = client.SignTransaction(PrivateKey, transaction); 
 
 // Send the transfer transaction to AElf chain node.
-var result = await Client.SendTransactionAsync(new SendTransactionInput
+var result = await client.SendTransactionAsync(new SendTransactionInput
 {
     RawTransaction = txWithSign.ToByteArray().ToHex()
 });
 
+await Task.Delay(4000);
 // After the transaction is mined, query the execution results.
-var transactionResult = await Client.GetTransactionResultAsync(result.TransactionId);
+var transactionResult = await client.GetTransactionResultAsync(result.TransactionId);
+Console.WriteLine(transactionResult.Status);
 
 // Query account balance.
 var paramGetBalance = new GetBalanceInput
@@ -85,15 +87,16 @@ var paramGetBalance = new GetBalanceInput
     Symbol = "ELF",
     Owner = new Address {Value = Address.FromBase58(ownerAddress).Value}
 };
-var transactionGetBalance =await Client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), "GetBalance", paramGetBalance);
-var txWithSignGetBalance = Client.SignTransaction(PrivateKey, transactionGetBalance);
+var transactionGetBalance =await client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), "GetBalance", paramGetBalance);
+var txWithSignGetBalance = client.SignTransaction(PrivateKey, transactionGetBalance);
 
-var transactionGetBalanceResult = await Client.ExecuteTransactionAsync(new ExecuteTransactionDto
+var transactionGetBalanceResult = await client.ExecuteTransactionAsync(new ExecuteTransactionDto
 {
     RawTransaction = txWithSignGetBalance.ToByteArray().ToHex()
 });
 
 var balance = GetBalanceOutput.Parser.ParseFrom(ByteArrayHelper.HexstringToByteArray(transactionGetBalanceResult));
+Console.WriteLine(balance.Balance);
 ```
 
 ## Web API
@@ -107,7 +110,7 @@ The usage of these methods is based on the AElfClient instance, so if you don't 
 using AElf.Client.Service;
 
 // create a new instance of AElf, change the URL if needed
-private AElfClient Client = new AElfClient('http://127.0.0.1:1235');
+private AElfClient client = new AElfClient('http://127.0.0.1:1235');
 ```
 
 ### GetChainStatus
@@ -141,12 +144,12 @@ _Returns_
 _Example_
 
 ```C#
-await Client.GetChainStatusAsync();
+await client.GetChainStatusAsync();
 ```
 
 ### GetContractFileDescriptorSet
 
-Get the protobuf definitions related to a contract
+Get the protobuf definitions related to a contract.
 
 _Web API path_
 
@@ -162,7 +165,7 @@ _Returns_
 
 _Example_
 ```C#
-await GetContractFileDescriptorSetAsync(address);
+await client.GetContractFileDescriptorSetAsync(address);
 ```
 
 ### GetBlockHeight
@@ -183,7 +186,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetBlockHeightAsync();
+await client.GetBlockHeightAsync();
 ```
 
 ### GetBlock
@@ -221,7 +224,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetBlockByHashAsync(blockHash);
+await client.GetBlockByHashAsync(blockHash);
 ```
 
 ### GetBlockByHeight
@@ -259,7 +262,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetBlockByHeightAsync(height);
+await client.GetBlockByHeightAsync(height);
 ```
 
 ### GetTransactionResult
@@ -298,12 +301,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetTransactionResultAsync(transactionId);
+await client.GetTransactionResultAsync(transactionId);
 ```
 
 ### GetTransactionResults
 
-Get multiple transaction results in a block
+Get multiple transaction results in a block.
 
 _Web API path_
 
@@ -322,7 +325,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetTransactionResultsAsync(blockHash, 0, 10);
+await client.GetTransactionResultsAsync(blockHash, 0, 10);
 ```
 
 ### GetTransactionPoolStatus
@@ -345,12 +348,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetTransactionPoolStatusAsync();
+await client.GetTransactionPoolStatusAsync();
 ```
 
 ### SendTransaction
 
-Broadcast a transaction
+Broadcast a transaction.
 
 _Web API path_
 
@@ -370,12 +373,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.SendTransactionAsync(input);
+await client.SendTransactionAsync(input);
 ```
 
 ### SendRawTransaction
 
-Broadcast a transaction
+Broadcast a transaction.
 
 _Web API path_
 
@@ -398,12 +401,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.SendRawTransactionAsync(input);
+await client.SendRawTransactionAsync(input);
 ```
 
 ### SendTransactions
 
-Broadcast multiple transactions
+Broadcast multiple transactions.
 
 _Web API path_
 
@@ -422,7 +425,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.SendTransactionsAsync(input);
+await client.SendTransactionsAsync(input);
 ```
 
 ### CreateRawTransaction
@@ -452,7 +455,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.CreateRawTransactionAsync(input);
+await client.CreateRawTransactionAsync(input);
 ```
 
 ### ExecuteTransaction
@@ -476,7 +479,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.ExecuteTransactionAsync(input);
+await client.ExecuteTransactionAsync(input);
 ```
 
 ### ExecuteRawTransaction
@@ -501,12 +504,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.ExecuteRawTransactionAsync(input);
+await client.ExecuteRawTransactionAsync(input);
 ```
 
 ### GetPeers
 
-Get peer info about the connected network nodes
+Get peer info about the connected network nodes.
 
 _Web API path_
 
@@ -518,7 +521,7 @@ _Parameters_
 
 _Returns_
 
-`PeerDto`
+`List<PeerDto>`
 - `IpAddress - string`
 - `ProtocolVersion - int`
 - `ConnectionTime - long`
@@ -535,12 +538,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetPeersAsync(false);
+await client.GetPeersAsync(false);
 ```
 
 ### AddPeer
 
-Attempts to add a node to the connected network nodes
+Attempts to add a node to the connected network nodes.
 
 _Web API path_
 
@@ -558,12 +561,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.AddPeerAsync("127.0.0.1:7001");
+await client.AddPeerAsync("127.0.0.1:7001");
 ```
 
 ### RemovePeer
 
-Attempts to remove a node from the connected network nodes
+Attempts to remove a node from the connected network nodes.
 
 _Web API path_
 
@@ -581,12 +584,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.RemovePeerAsync("127.0.0.1:7001");
+await client.RemovePeerAsync("127.0.0.1:7001");
 ```
 
 ### GetNetworkInfo
 
-Get the network information of the node
+Get the network information of the node.
 
 _Web API path_
 
@@ -605,7 +608,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetNetworkInfoAsync();
+await client.GetNetworkInfoAsync();
 ```
 
 ## AElf Client
@@ -624,7 +627,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.IsConnectedAsync();
+await client.IsConnectedAsync();
 ```
 
 ### GetGenesisContractAddress
@@ -641,7 +644,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetGenesisContractAddressAsync();
+await client.GetGenesisContractAddressAsync();
 ```
 
 ### GetContractAddressByName
@@ -658,7 +661,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetContractAddressByNameAsync(contractNameHash);
+await client.GetContractAddressByNameAsync(contractNameHash);
 ```
 
 ### GenerateTransaction
@@ -678,12 +681,12 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GenerateTransactionAsync(from, to, methodName, input);
+await client.GenerateTransactionAsync(from, to, methodName, input);
 ```
 
 ### GetFormattedAddress
 
-Convert the Address to the displayed string：symbol_base58-string_base58-string-chain-id
+Convert the Address to the displayed string：symbol_base58-string_base58-string-chain-id.
 
 _Parameters_
 
@@ -695,7 +698,7 @@ _Returns_
 
 _Example_
 ```C#
-await Client.GetFormattedAddressAsync(address);
+await client.GetFormattedAddressAsync(address);
 ```
 
 ### SignTransaction
@@ -713,7 +716,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.SignTransaction(privateKeyHex, transaction);
+client.SignTransaction(privateKeyHex, transaction);
 ```
 
 ### GetAddressFromPubKey
@@ -730,7 +733,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.GetAddressFromPubKey(pubKey);
+client.GetAddressFromPubKey(pubKey);
 ```
 
 ### GetAddressFromPrivateKey
@@ -747,7 +750,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.GetAddressFromPrivateKey(privateKeyHex);
+client.GetAddressFromPrivateKey(privateKeyHex);
 ```
 
 ### GenerateKeyPairInfo
@@ -767,7 +770,7 @@ _Returns_
 
 _Example_
 ```C#
-Client.GenerateKeyPairInfo();
+client.GenerateKeyPairInfo();
 ```
 
 ## Supports

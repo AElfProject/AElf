@@ -137,7 +137,7 @@ chainStatus, err := aelf.GetChainStatus()
 
 ### GetContractFileDescriptorSet
 
-Get the protobuf definitions related to a contract
+Get the protobuf definitions related to a contract.
 
 _Web API path_
 
@@ -255,7 +255,7 @@ block, err := aelf.GetBlockByHeight(100, true)
 
 ### GetTransactionResult
 
-Get the result of a transaction
+Get the result of a transaction.
 
 _Web API path_
 
@@ -296,7 +296,7 @@ transactionResult, err := aelf.GetTransactionResult(transactionID)
 
 ### GetTransactionResults
 
-Get multiple transaction results in a block
+Get multiple transaction results in a block.
 
 _Web API path_
 
@@ -343,7 +343,7 @@ poolStatus, err := aelf.GetTransactionPoolStatus()
 
 ### SendTransaction
 
-Broadcast a transaction
+Broadcast a transaction.
 
 _Web API path_
 
@@ -368,7 +368,7 @@ sendResult, err := aelf.SendTransaction(input)
 
 ### SendRawTransaction
 
-Broadcast a transaction
+Broadcast a transaction.
 
 _Web API path_
 
@@ -396,7 +396,7 @@ sendRawResult, err := aelf.SendRawTransaction(input)
 
 ### SendTransactions
 
-Broadcast multiple transactions
+Broadcast multiple transactions.
 
 _Web API path_
 
@@ -497,7 +497,7 @@ executeRawresult, err := aelf.ExecuteRawTransaction(executeRawinput)
 
 ### GetPeers
 
-Get peer info about the connected network nodes
+Get peer info about the connected network nodes.
 
 _Web API path_
 
@@ -509,7 +509,7 @@ _Parameters_
 
 _Returns_
 
-`PeerDto`
+`[]PeerDto`
 - `IpAddress - string`
 - `ProtocolVersion - int`
 - `ConnectionTime - int64`
@@ -531,7 +531,7 @@ peers, err := aelf.GetPeers(false);
 
 ### AddPeer
 
-Attempts to add a node to the connected network nodes
+Attempts to add a node to the connected network nodes.
 
 _Web API path_
 
@@ -554,7 +554,7 @@ addResult, err := aelf.AddPeer("127.0.0.1:7001");
 
 ### RemovePeer
 
-Attempts to remove a node from the connected network nodes
+Attempts to remove a node from the connected network nodes.
 
 _Web API path_
 
@@ -577,7 +577,7 @@ removeResult, err := aelf.RemovePeer("127.0.0.1:7001");
 
 ### GetNetworkInfo
 
-Get the network information of the node
+Get the network information of the node.
 
 _Web API path_
 
@@ -674,7 +674,7 @@ transaction, err := aelf.CreateTransaction(fromAddress, toAddress, methodName, p
 
 ### GetFormattedAddress
 
-Convert the Address to the displayed string：symbol_base58-string_base58-string-chain-id
+Convert the Address to the displayed string：symbol_base58-string_base58-string-chain-id.
 
 _Parameters_
 
