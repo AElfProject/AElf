@@ -61,29 +61,27 @@ transactionByets, _ := proto.Marshal(transaction)
 sendResult, _ := aelf.SendTransaction(hex.EncodeToString(transactionByets))
 
 transactionResult, _ := aelf.GetTransactionResult(sendResult.TransactionID)
+fmt.Println(transactionResult)
 
-var methodName = "Transfer";
-var param = new TransferInput
-{
-    To = new Address {Value = Address.FromBase58("7s4XoUHfPuqoZAwnTV7pHWZAaivMiL8aZrDSnY9brE1woa8vz").Value},
-    Symbol = "ELF",
-    Amount = 1000,
-    Memo = "transfer in demo"
-};
-var ownerAddress = Client.GetAddressFromPrivateKey(PrivateKey);
+// Query account balance.
+ownerAddress, _ := util.Base58StringToAddress(fromAddress)
+getBalanceInput := &pb.GetBalanceInput{
+	Symbol: "ELF",
+	Owner:  ownerAddress,
+}
+getBalanceInputByte, _ := proto.Marshal(getBalanceInput)
 
-// Generate a transfer transaction.
-var transaction = await Client.GenerateTransaction(ownerAddress, tokenContractAddress.ToBase58(), methodName, param);
-var txWithSign = Client.SignTransaction(PrivateKey, transaction); 
+getBalanceTransaction, _ := aelf.CreateTransaction(fromAddress, tokenContractAddress, "GetBalance", getBalanceInputByte)
+getBalanceTransaction.Params = getBalanceInputByte
+getBalanceSignature, _ := aelf.SignTransaction(aelf.PrivateKey, getBalanceTransaction)
+getBalanceTransaction.Signature = getBalanceSignature
 
-// Send the transfer transaction to AElf chain node.
-var result = await Client.SendTransactionAsync(new SendTransactionInput
-{
-    RawTransaction = txWithSign.ToByteArray().ToHex()
-});
-
-// After the transaction is mined, query the execution results.
-var transactionResult = await Client.GetTransactionResultAsync(result.TransactionId);
+getBalanceTransactionByets, _ := proto.Marshal(getBalanceTransaction)
+getBalanceResult, _ := aelf.ExecuteTransaction(hex.EncodeToString(getBalanceTransactionByets))
+balance := &pb.GetBalanceOutput{}
+getBalanceResultBytes, _ := hex.DecodeString(getBalanceResult)
+proto.Unmarshal(getBalanceResultBytes, balance)
+fmt.Println(balance)
 ```
 
 ## Web API
