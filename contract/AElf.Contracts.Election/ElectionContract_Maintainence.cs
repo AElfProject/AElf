@@ -247,7 +247,8 @@ namespace AElf.Contracts.Election
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
-            SynSubsidyInfoAfterReduceMiner();
+            // to do
+            //SynSubsidyInfoAfterReduceMiner();
             return new Empty();
         }
 
