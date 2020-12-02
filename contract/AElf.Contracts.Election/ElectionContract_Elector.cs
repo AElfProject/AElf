@@ -453,6 +453,22 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty SynSubsidyInfoAfterReduceMiner(Empty input)
+        {
+            var rankingList = State.DataCentersRankingList.Value;
+            var validDataCenterCount = GetValidationDataCenterCount();
+            if (rankingList.DataCenters.Count <= validDataCenterCount) return new Empty();
+            var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
+            var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
+                .Take(diffCount.Add(1)).ToList();
+            rankingList.MinimumVotes = toRemoveList.Last().Value;
+            toRemoveList.Remove(toRemoveList.Last());
+            foreach (var kv in toRemoveList)
+                rankingList.DataCenters.Remove(kv.Key);
+            State.DataCentersRankingList.Value = rankingList;
+            return new Empty();
+        }
+
         private VoteWeightInterestList GetDefaultVoteWeightInterest()
         {
             return new VoteWeightInterestList

@@ -90,6 +90,10 @@ service ElectionContract {
     // Set admin address of candidate (mostly supply)
     rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
+
+    // Adjust the size of dataCenter after changing miner count
+    rpc SynSubsidyInfoAfterReduceMiner (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
