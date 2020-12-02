@@ -337,13 +337,11 @@ namespace AElf.Contracts.Election
             RemoveBeneficiaryOfVoter();
 
             var rankingList = State.DataCentersRankingList.Value;
-            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(newestPubkey))
-            {
-                rankingList.DataCenters[newestPubkey] =
-                    rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
-                IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, newestPubkey);
-                State.DataCentersRankingList.Value = rankingList;
-            }
+            if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
+            rankingList.DataCenters[newestPubkey] =
+                rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
+            IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, newestPubkey);
+            State.DataCentersRankingList.Value = rankingList;
 
             return new Empty();
         }
@@ -366,11 +364,13 @@ namespace AElf.Contracts.Election
                 maxVoteOptionOutDataCenter = candidatePublicKeyString;
                 maxVoteAmountOutDataCenter = candidateVoteAmount;
             }
-
-            if (maxVoteAmountOutDataCenter <= amountAfterWithdraw || maxVoteOptionOutDataCenter == null)
+            if (amountAfterWithdraw > 0 && maxVoteAmountOutDataCenter <= amountAfterWithdraw)
                 return false;
+            if (maxVoteAmountOutDataCenter == 0)
+                maxVoteOptionOutDataCenter = null;
             rankingList.DataCenters.Remove(member);
-            rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
+            if (maxVoteOptionOutDataCenter != null)
+                rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
             NotifyProfitReplaceCandidateInDataCenter(member, maxVoteOptionOutDataCenter);
             return true;
         }
@@ -400,6 +400,8 @@ namespace AElf.Contracts.Election
                 SchemeId = State.SubsidyHash.Value,
                 Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldCandidateInDataCenter))
             });
+            if (newCandidateDataCenter == null)
+                return;
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,

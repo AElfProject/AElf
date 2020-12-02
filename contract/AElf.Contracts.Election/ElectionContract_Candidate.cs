@@ -181,16 +181,7 @@ namespace AElf.Contracts.Election
             if (dataCenterList.DataCenters.ContainsKey(pubkey))
             {
                 dataCenterList.DataCenters[pubkey] = 0;
-                if (!IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, pubkey))
-                {
-                    State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-                    {
-                        SchemeId = State.SubsidyHash.Value,
-                        Beneficiary = Context.Sender
-                    });
-                    dataCenterList.DataCenters.Remove(pubkey);
-                }
-
+                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, pubkey);
                 State.DataCentersRankingList.Value = dataCenterList;
             }
 

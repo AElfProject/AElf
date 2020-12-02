@@ -201,14 +201,13 @@ namespace AElf.Contracts.Election
             {
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
-                if (State.ProfitContract.Value == null)
-                    State.ProfitContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                var rankingList = State.DataCentersRankingList.Value;
+                if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
-                    SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Address.FromPublicKey(publicKeyByte)
-                });
+                    rankingList.DataCenters[input.Pubkey] = 0;
+                    IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey);
+                    State.DataCentersRankingList.Value = rankingList;
+                }
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
                 Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
                 State.CandidateInformationMap.Remove(input.Pubkey);
