@@ -247,6 +247,7 @@ namespace AElf.Contracts.Election
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
+            SynSubsidyInfoAfterReduceMiner();
             return new Empty();
         }
 
@@ -410,6 +411,28 @@ namespace AElf.Contracts.Election
         {
             var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
             return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
+        }
+        
+        private void SynSubsidyInfoAfterReduceMiner()
+        {
+            var rankingList = State.DataCentersRankingList.Value;
+            var validDataCenterCount = GetValidationDataCenterCount();
+            if (rankingList.DataCenters.Count <= validDataCenterCount) return;
+            var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
+            var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
+                .Take(diffCount.Add(1)).ToList();
+            rankingList.MinimumVotes = toRemoveList.Last().Value;
+            toRemoveList.Remove(toRemoveList.Last());
+            foreach (var kv in toRemoveList)
+            {
+                rankingList.DataCenters.Remove(kv.Key);
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.WelfareHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(kv.Key))
+                });
+            }
+            State.DataCentersRankingList.Value = rankingList;
         }
     }
 }
