@@ -140,9 +140,6 @@ the script:
    ...
 
    const createSideChain = async () => {
-
-       console.log('Starting side chain creation script\n');
-
        // check the chain status to make sure the node is running
        const chainStatus = await aelf.chain.getChainStatus({sync: true});
        const genesisContract = await aelf.chain.contractAt(chainStatus.GenesisContractAddress, wallet)
@@ -180,8 +177,6 @@ cross-chain contract.
 
    var setAllowance = async function(tokenContract, crossChainContractAddress)
    {
-       console.log('\n>>>> Setting allowance for the cross-chain contract.');
-
        // set some allowance to the cross-chain contract
        const approvalResult = await tokenContract.Approve({
            symbol:'ELF',
@@ -250,31 +245,29 @@ In order for the creation request to succeed, some assertions must pass:
 
 .. code:: javascript
 
-       console.log('\n>>>> Requesting the side chain creation.');
        const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
-           indexingPrice: 1,
-           lockedTokenAmount: '20000',
-           isPrivilegePreserved: true,
-           sideChainTokenDecimals: 8,
-           sideChainTokenName: 'SCATokenName',
-           sideChainTokenSymbol: 'SCA',
-           sideChainTokenTotalSupply: '100000000000000000',
-           isSideChainTokenBurnable: true,
-           sideChainTokenInitialIssueList: [
-               {
-                   address: '28Y8JA1i2cN6oHvdv7EraXJr9a1gY6D1PpJXw9QtRMRwKcBQMK',
-                   amount: '1000000000000000'
-               }
-           ],
-           initialResourceAmount: { CPU: 2, RAM: 4, DISK: 512, NET: 1024 },
-           isSideChainTokenProfitable: true
-       });
+          indexingPrice: 1,
+          lockedTokenAmount: '20000',
+          isPrivilegePreserved: true,
+          sideChainTokenCreationRequest: {
+              sideChainTokenDecimals: 8,
+              sideChainTokenName: 'SCATokenName',
+              sideChainTokenSymbol: 'SCA',
+              sideChainTokenTotalSupply: '100000000000000000',
+          },
+          sideChainTokenInitialIssueList: [
+              {
+                  address: '28Y8JA1i2cN6oHvdv7EraXJr9a1gY6D1PpJXw9QtRMRwKcBQMK',
+                  amount: '1000000000000000'
+              }
+          ],
+          initialResourceAmount: { CPU: 2, RAM: 4, DISK: 512, NET: 1024 },
+      });
 
        let sideChainCreationRequestTxResult = await pollMining(sideChainCreationRequestTx.TransactionId);
 
        // deserialize the log to get the proposal's ID.
        let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
-       console.log(`>> side chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
 
 The last line will print the proposal ID and this is what will be used
 for approving by the producers.
@@ -285,8 +278,6 @@ Approval from producers
 This is where the parliament organization members approve the proposal:
 
 .. code:: javascript
-
-       console.log('\n>>>> Approving the proposal.');
 
        var proposalApproveTx = await parliamentContract.Approve(deserializedLogs[0].proposalId);
        await pollMining(proposalApproveTx.TransactionId);
@@ -302,8 +293,6 @@ This part of the script releases the proposal:
 
 .. code:: javascript
 
-       console.log('\n>>>> Release the side chain.');
-
        var releaseResult = await crossChainContract.ReleaseSideChainCreation({
            proposalId: deserializedLogs[0].proposalId
        });
@@ -312,8 +301,6 @@ This part of the script releases the proposal:
 
        // Parse the logs to get the chain id.
        let sideChainCreationEvent = crossChainContract.deserializeLog(releaseTxResult.Logs, 'SideChainCreatedEvent');
-       console.log('Chain chain created : ');
-       console.log(sideChainCreationEvent);
 
 This is the last step involved in creating a side chain, after this the
 chain id of the new side chain is accessible in the
@@ -349,115 +336,108 @@ You can simply run the script from anywhere:
 
    const AElf = require('aelf-sdk');
    const Wallet = AElf.wallet;
-
+   
    const { sha256 } = AElf.utils;
-
+   
    // set the private key of the block producer
    const defaultPrivateKey = 'e119487fea0658badc42f089fbaa56de23d8c0e8d999c5f76ac12ad8ae897d76';
    const defaultPrivateKeyAddress = 'HEtBQStfqu53cHVC3PxJU6iGP3RGxiNUfQGvAPTjfrF3ZWH3U';
+   
    const wallet = Wallet.getWalletByPrivateKey(defaultPrivateKey);
-
+   
    // link to the node
-   const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:1234'));
-
+   const aelf = new AElf(new AElf.providers.HttpProvider('http://127.0.0.1:8000'));
+   
    if (!aelf.isConnected()) {
-     console.log('Could not connect to the node.');
+       console.log('Could not connect to the node.');
    }
-
+   
    const tokenContractName = 'AElf.ContractNames.Token';
    const parliamentContractName = 'AElf.ContractNames.Parliament';
    const crossChainContractName = 'AElf.ContractNames.CrossChain';
-
+   
    var pollMining = async function(transactionId) {
-     console.log('>> Waiting for ${transactionId} the transaction to be mined.');
-
-     for (i = 0; i < 10; i++) {
-         const currentResult = await aelf.chain.getTxResult(transactionId);
-         // console.log('transaction status: ' + currentResult.Status);
-
-         if (currentResult.Status === 'MINED')
-             return currentResult;
-
-         await new Promise(resolve => setTimeout(resolve, 2000))
-         .catch(function () {
-             console.log("Promise Rejected");
-        });;
-     }
+       console.log(`>> Waiting for ${transactionId} the transaction to be mined.`);
+   
+       for (i = 0; i < 10; i++) {
+           const currentResult = await aelf.chain.getTxResult(transactionId);
+           // console.log('transaction status: ' + currentResult.Status);
+   
+           if (currentResult.Status === 'MINED')
+               return currentResult;
+   
+           await new Promise(resolve => setTimeout(resolve, 2000))
+               .catch(function () {
+                   console.log("Promise Rejected");
+               });;
+       }
    }
-
+   
    var setAllowance = async function(tokenContract, crossChainContractAddress)
    {
        console.log('\n>>>> Setting allowance for the cross-chain contract.');
-
+   
        // set some allowance to the cross-chain contract
        const approvalResult = await tokenContract.Approve({
            symbol:'ELF',
            spender: crossChainContractAddress,
            amount: 20000
-           });
-
-       let approveTransactionResult = await pollMining(approvalResult.TransactionId);
-       //console.log(approveTransactionResult);
+       });
+   
+       await pollMining(approvalResult.TransactionId);
    }
-
+   
    var checkAllowance = async function(tokenContract, owner, spender)
    {
        console.log('\n>>>> Checking the cross-chain contract\'s allowance');
-
-       const checkAllowanceTx = await tokenContract.GetAllowance({
+   
+       const checkAllowanceTx = await tokenContract.GetAllowance.call({
            symbol: 'ELF',
            owner: owner,
            spender: spender
        });
-
-       let checkAllowanceTxResult = await pollMining(checkAllowanceTx.TransactionId);
-       let txReturn = JSON.parse(checkAllowanceTxResult.ReadableReturnValue);
-
-       console.log('>> allowance to the cross-chain contract: ${txReturn.allowance} ${txReturn.symbol}');
-   } 
-
+   
+       console.log(`>> allowance to the cross-chain contract: ${checkAllowanceTx.allowance} ${checkAllowanceTx.symbol}`);
+   }
+   
    const createSideChain = async () => {
-
+   
        // get the status of the chain in order to get the genesis contract address
        console.log('Starting side chain creation script\n');
-
+   
        const chainStatus = await aelf.chain.getChainStatus({sync: true});
        const genesisContract = await aelf.chain.contractAt(chainStatus.GenesisContractAddress, wallet)
-         .catch((err) => {
-           console.log(err);
-         });
-
+           .catch((err) => {
+               console.log(err);
+           });
+   
        // get the addresses of the contracts that we'll need to call
        const tokenContractAddress = await genesisContract.GetContractAddressByName.call(sha256(tokenContractName));
        const parliamentContractAddress = await genesisContract.GetContractAddressByName.call(sha256(parliamentContractName));
        const crossChainContractAddress = await genesisContract.GetContractAddressByName.call(sha256(crossChainContractName));
-
-       console.log('token contract address: ' + tokenContractAddress);
-       console.log('parliament contract address: ' + parliamentContractAddress);
-       console.log('cross chain contract address: ' + crossChainContractAddress);
-
+   
        // build the aelf-sdk contract object
        const parliamentContract = await aelf.chain.contractAt(parliamentContractAddress, wallet);
        const tokenContract = await aelf.chain.contractAt(tokenContractAddress, wallet);
        const crossChainContract = await aelf.chain.contractAt(crossChainContractAddress, wallet);
-
-       console.log();
-
+   
+   
        // 1. set and check the allowance, spender is the cross-chain contract
        await setAllowance(tokenContract, crossChainContractAddress);
        await checkAllowance(tokenContract, defaultPrivateKeyAddress, crossChainContractAddress);
-
+   
        // 2. request the creation of the side chain with the cross=chain contract
        console.log('\n>>>> Requesting the side chain creation.');
        const sideChainCreationRequestTx = await crossChainContract.RequestSideChainCreation({
            indexingPrice: 1,
            lockedTokenAmount: '20000',
            isPrivilegePreserved: true,
-           sideChainTokenDecimals: 8,
-           sideChainTokenName: 'SCATokenName',
-           sideChainTokenSymbol: 'SCA',
-           sideChainTokenTotalSupply: '100000000000000000',
-           isSideChainTokenBurnable: true,
+           sideChainTokenCreationRequest: {
+               sideChainTokenDecimals: 8,
+               sideChainTokenName: 'SCATokenName',
+               sideChainTokenSymbol: 'SCA',
+               sideChainTokenTotalSupply: '100000000000000000',
+           },
            sideChainTokenInitialIssueList: [
                {
                    address: '28Y8JA1i2cN6oHvdv7EraXJr9a1gY6D1PpJXw9QtRMRwKcBQMK',
@@ -465,34 +445,33 @@ You can simply run the script from anywhere:
                }
            ],
            initialResourceAmount: { CPU: 2, RAM: 4, DISK: 512, NET: 1024 },
-           isSideChainTokenProfitable: true
        });
-
+   
        let sideChainCreationRequestTxResult = await pollMining(sideChainCreationRequestTx.TransactionId);
-
+   
        // deserialize the log to get the proposal's ID.
        let deserializedLogs = parliamentContract.deserializeLog(sideChainCreationRequestTxResult.Logs, 'ProposalCreated');
-       console.log('>> side chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}');
-
-       // 3. Approve the proposal 
+       console.log(`>> side chain creation request proposal id ${JSON.stringify(deserializedLogs[0].proposalId)}`);
+   
+       // 3. Approve the proposal
        console.log('\n>>>> Approving the proposal.');
-
+   
        var proposalApproveTx = await parliamentContract.Approve(deserializedLogs[0].proposalId);
        await pollMining(proposalApproveTx.TransactionId);
-
+   
        // 3. Release the side chain
        console.log('\n>>>> Release the side chain.');
-
+   
        var releaseResult = await crossChainContract.ReleaseSideChainCreation({
            proposalId: deserializedLogs[0].proposalId
        });
-
+   
        let releaseTxResult = await pollMining(releaseResult.TransactionId);
-
+   
        // Parse the logs to get the chain id.
        let sideChainCreationEvent = crossChainContract.deserializeLog(releaseTxResult.Logs, 'SideChainCreatedEvent');
        console.log('Chain chain created : ');
        console.log(sideChainCreationEvent);
    };
-
-   createSideChain();
+   
+   createSideChain().then(() => {console.log('Done.')});
