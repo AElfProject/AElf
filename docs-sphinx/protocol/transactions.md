@@ -43,7 +43,7 @@ message Transaction {
 }
 ```
 
-In the js sdk theres multiple methods to work with transactions. One important method is the **getTransaction** method that will build a transaction object for you:
+In the js sdk, there are multiple methods to work with transactions. One important method is the **getTransaction** method that will build a transaction object for you:
 
 ```js
 import Aelf from 'aelf-sdk';
@@ -83,14 +83,22 @@ var txn = Aelf.wallet.signTransaction(rawTxn, wallet.keyPair);
 
 ### RefBlockNumber & RefBlockPrefix
 
-These are security measures, to know when the transaction broadcasted and whether this transaction has expired.
+These two fields measure whether this transaction has expired. The transaction will be discarded if it is too old.
 
-### Transaction Id
+## Transaction Id
 
-The unique identity of a transaction.
+The unique identity of a transaction. Transaction Id consists of a cryptographic hash of the instance basic fields, excluding signature.
 
-Note that if the sender broadcasted several transaction with same parameters at the same time, the Transaction Id of these transactions will be the same, thus these transactions will be regarded as one transaction but broadcasted several times.
+Note that the Transaction Id of transactions will be the same if the sender broadcasted several transactions with the same origin data, and then these transactions will be regarded as one transaction even though broadcasting several times.
 
-## Transaction Execution
+## Transaction Lifetime
+
+### Verify
+
+### Execution
+
+### TransactionResult
+
+
 
 todo

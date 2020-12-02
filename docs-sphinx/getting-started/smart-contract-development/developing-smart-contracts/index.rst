@@ -65,7 +65,8 @@ focus on exposing more complex functionality.
 
 .. toctree::
    :caption: Smart contract development
-   
+   :maxdepth: 4
+
    Setup Boilerplate <setup>
    Execution Context <tx-execution-context>
    Inline Contract Calls <internal-contract-call>

@@ -1,9 +1,9 @@
 AELF API 1.0
 ============
 
+
 Chain API
 ---------
-
 Get information about a given block by block hash. Optionally with the list of its transactions.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

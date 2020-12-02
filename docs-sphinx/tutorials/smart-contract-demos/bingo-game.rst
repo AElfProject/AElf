@@ -80,8 +80,9 @@ Write Contract
 Use the code generator to generate contracts and test projects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Open the AElf.Boilerplate.CodeGenerator project in the AElf.Boilerplate
-solution, and modify the Contents node in appsetting.json under this
+Open the ``AElf.Boilerplate.CodeGenerator`` project in the
+`AElf.Boilerplate<https://aelf-boilerplate-docs.readthedocs.io/en/latest/usage/setup.html#try-code-generator>`,
+and modify the Contents node in appsetting.json under this
 project:
 
 .. code:: json
@@ -103,9 +104,9 @@ project:
      ],
    }
 
-Then run the AElf.Boilerplate.CodeGenerator project. After running
-successfully, you will see a AElf.Contracts.BingoContract.sln in the
-same directory as the AElf.Boilerplate.sln is in. After opening the sln,
+Then run the ``AElf.Boilerplate.CodeGenerator`` project. After running
+successfully, you will see a `AElf.Contracts.BingoContract.sln` in the
+same directory as the `AElf.Boilerplate.sln` is in. After opening the sln,
 you will see that the contract project and test case project of the
 Bingo contract have been generated and are included in the new solution.
 
@@ -172,11 +173,12 @@ Register & Quit
 
 Register：
 
-1. Determine the Seed of the user, Seed is a hash value, participating
-   in the calculation of the random number, each user is different, so
-   as to ensure that different users get different results on the same
-   height;
-2. Record the user’s registration time.
+- Determine the Seed of the user, Seed is a hash value, participating 
+  in the calculation of the random number, each user is different, so
+  as to ensure that different users get different results on the same
+  height;
+  
+- Record the user’s registration time.
 
 Quit：Just delete the user’s information.
 
@@ -185,25 +187,26 @@ Play & Bingo
 
 Play：
 
-1. Use TransferFrom to deduct the user’s bet amount;
-2. At the same time add a round (Bount) for the user, when the Bount is
-   initialized, record three messages： 1.PlayId, the transaction Id of
-   this transaction, is used to uniquely identify the Bout (see
-   BoutInformation for its data structure in the Proto definition);
-   2.Amount，Record the amount of the bet； 3.Record the height of the
-   block in which the Play transaction is packaged.
+- Use TransferFrom to deduct the user’s bet amount;
+- At the same time add a round (Bount) for the user, when the Bount is
+  initialized, record three messages： 1.PlayId, the transaction Id of
+  this transaction, is used to uniquely identify the Bout (see
+  BoutInformation for its data structure in the Proto definition);
+
+- Amount，Record the amount of the bet； 3.Record the height of the
+  block in which the Play transaction is packaged.
 
 Bingo：
 
-1. Find the corresponding Bout according to PlayId, if the current block
+- Find the corresponding Bout according to PlayId, if the current block
    height is greater than PlayBlockHeight + number of nodes \* 8, you
    can get the result that you win or lose;
-2. Use the current height and the user’s Seed to calculate a random
+- Use the current height and the user’s Seed to calculate a random
    number, and then treat the hash value as a bit Array, each of which
    is added to get a number ranging from 0 to 256.
-3. Whether the number is divisible by 2 determines the user wins or
+- Whether the number is divisible by 2 determines the user wins or
    loses;
-4. The range of this number determines the amount of win/loss for the
+- The range of this number determines the amount of win/loss for the
    user, see the note of GetKind method for details.
 
 Write Test

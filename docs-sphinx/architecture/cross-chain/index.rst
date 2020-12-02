@@ -2,6 +2,7 @@ Cross Chain
 =====================================
 
 .. toctree::
+   :maxdepth: 3
 
    Introduction <introduction>
    Architecture <architecture>
