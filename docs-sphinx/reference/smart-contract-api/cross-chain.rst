@@ -109,6 +109,9 @@ AElf.Standards.ACS7
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.CrossChain
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="CrossChain.AcceptCrossChainIndexingProposalInput">

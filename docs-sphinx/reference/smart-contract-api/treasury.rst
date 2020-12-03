@@ -82,6 +82,9 @@ AElf.Standards.ACS10
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Treasury
+^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Treasury.DividendPoolWeightProportion">

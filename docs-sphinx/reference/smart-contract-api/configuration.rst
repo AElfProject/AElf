@@ -44,6 +44,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Configuration.ConfigurationSet">

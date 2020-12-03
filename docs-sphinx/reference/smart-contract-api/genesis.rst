@@ -89,6 +89,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Genesis
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Zero.ContractProposingInput">

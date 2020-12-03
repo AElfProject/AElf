@@ -74,6 +74,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Profit
+^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Profit.AddBeneficiariesInput">

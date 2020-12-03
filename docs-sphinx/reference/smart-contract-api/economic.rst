@@ -42,6 +42,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Economic
+^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Economic.InitialEconomicSystemInput">

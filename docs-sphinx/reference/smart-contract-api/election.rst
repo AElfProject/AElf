@@ -122,6 +122,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Election
+^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Election.CandidateDetail">

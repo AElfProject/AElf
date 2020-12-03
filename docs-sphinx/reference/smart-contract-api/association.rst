@@ -8,7 +8,8 @@ contract to cooperatively handle transactions within the organization
 
 Implement AElf Standards ACS1 and ACS3. 
 
-### Contract Methods
+Contract Methods
+~~~~~~~~~~~~~~~~
 
 +--------------------------------------+------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------+----------------------------------------------------------------------+
 | Method Name                          | Request Type                                                                                                     | Response Type                                              | Description                                                          |
@@ -80,6 +81,9 @@ AElf.Standards.ACS3
 
 Contract Types
 ~~~~~~~~~~~~~~
+
+AElf.Contracts.Association
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. raw:: html
 

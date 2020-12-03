@@ -71,6 +71,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.TokenConverter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="TokenConverter.BuyInput">

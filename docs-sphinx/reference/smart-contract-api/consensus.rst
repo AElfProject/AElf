@@ -158,6 +158,9 @@ AElf.Standards.ACS11
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Consensus.AEDPoS
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="AEDPoS.AElfConsensusHeaderInformation">

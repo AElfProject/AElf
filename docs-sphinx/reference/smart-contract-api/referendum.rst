@@ -82,6 +82,9 @@ AElf.Standards.ACS3
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Referendum
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Referendum.CreateOrganizationBySystemContractInput">

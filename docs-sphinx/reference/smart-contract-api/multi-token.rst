@@ -174,6 +174,9 @@ AElf.Standards.ACS2
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.MultiToken
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="tokenimpl.AdvanceResourceTokenInput">

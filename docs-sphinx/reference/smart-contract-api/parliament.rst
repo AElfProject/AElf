@@ -92,6 +92,9 @@ AElf.Standards.ACS3
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Parliament
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Parliament.CreateOrganizationBySystemContractInput">

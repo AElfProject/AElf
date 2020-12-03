@@ -57,6 +57,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.TokenHolder
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="TokenHolder.AddTokenHolderBeneficiaryInput">

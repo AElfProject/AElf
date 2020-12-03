@@ -67,6 +67,9 @@ AElf.Standards.ACS1
 Contract Types
 ~~~~~~~~~~~~~~
 
+AElf.Contracts.Vote
+^^^^^^^^^^^^^^^^^^^
+
 .. raw:: html
 
    <div id="Vote.AddOptionInput">
