@@ -1203,13 +1203,8 @@ namespace AElf.Contracts.Election
             }
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
-            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalMethodName = nameof(AEDPoSContractStub.SetMaximumMinersCount);
-            var param = new Int32Value
-            {
-                Value = 3
-            };
-            var diffCount = fullCount.Sub(param.Value.Mul(5));
+            var minerCount = 3;
+            var diffCount = fullCount.Sub(minerCount.Mul(5));
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
             {
@@ -1221,13 +1216,10 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].EndPeriod.ShouldNotBe(0);
                 profitDetail.Details.Count.ShouldBe(1);
             }
-            
-            var proposalId = await CreateProposalAsync(ConsensusContractAddress,
-                defaultParliament, proposalMethodName, param);
-            await ApproveWithMinersAsync(proposalId);
-            await ParliamentContractStub.Release.SendAsync(proposalId);
+
+            await ResetMinerCount(minerCount);
             var newMinerCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
-            newMinerCount.ShouldBe(param);
+            newMinerCount.Value.ShouldBe(minerCount);
             var dataCenterListAfterReduceBp = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             
             dataCenterList.DataCenters.Count.Sub(dataCenterListAfterReduceBp.DataCenters.Count).ShouldBe(diffCount);
@@ -1241,6 +1233,20 @@ namespace AElf.Contracts.Election
                 });
                 profitDetail.Details[0].EndPeriod.ShouldBe(0);
             }
+        }
+
+        private async Task ResetMinerCount(int count)
+        {
+            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalMethodName = nameof(AEDPoSContractStub.SetMaximumMinersCount);
+            var param = new Int32Value
+            {
+                Value = count
+            };
+            var proposalId = await CreateProposalAsync(ConsensusContractAddress,
+                defaultParliament, proposalMethodName, param);
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
         }
         #endregion
     }

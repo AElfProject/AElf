@@ -51,19 +51,34 @@ namespace AElf.Contracts.Election
             AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
-            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
+            if (rankingList.DataCenters.ContainsKey(input.CandidatePubkey))
             {
                 rankingList.DataCenters[input.CandidatePubkey] =
                     rankingList.DataCenters[input.CandidatePubkey].Add(input.Amount);
                 State.DataCentersRankingList.Value = rankingList;
             }
-
-            if (State.Candidates.Value.Value.Count > GetValidationDataCenterCount() &&
-                !State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
+            else
             {
-                TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
+                if (rankingList.DataCenters.Count < GetValidationDataCenterCount())
+                {
+                    State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
+                        candidateVotesAmount);
+                    State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                    {
+                        SchemeId = State.SubsidyHash.Value,
+                        BeneficiaryShare = new BeneficiaryShare
+                        {
+                            Beneficiary =
+                                Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
+                            Shares = 1
+                        }
+                    });
+                }
+                else
+                {
+                    TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
+                }
             }
-
             return voteId;
         }
 
