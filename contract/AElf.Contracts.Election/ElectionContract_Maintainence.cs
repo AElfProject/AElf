@@ -202,7 +202,7 @@ namespace AElf.Contracts.Election
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 var rankingList = State.DataCentersRankingList.Value;
-                if (rankingList!= null && rankingList.DataCenters.ContainsKey(input.Pubkey))
+                if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
                     rankingList.DataCenters[input.Pubkey] = 0;
                     IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey);

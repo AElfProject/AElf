@@ -358,6 +358,8 @@ namespace AElf.Contracts.Election
                 var candidatePublicKeyString = candidateByteString.ToHex();
                 if (rankingList.DataCenters.ContainsKey(candidatePublicKeyString) ||
                     !State.CandidateInformationMap[candidatePublicKeyString].IsCurrentCandidate) continue;
+                if(State.CandidateVotes[candidatePublicKeyString] == null)
+                    continue;
                 var candidateVoteAmount = State.CandidateVotes[candidatePublicKeyString].ObtainedActiveVotedVotesAmount;
                 if (maxVoteAmountOutDataCenter > candidateVoteAmount)
                     continue;
