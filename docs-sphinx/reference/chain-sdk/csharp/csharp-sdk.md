@@ -39,7 +39,7 @@ Create a new instance of AElfClient, and set url of an AElf chain node.
 using AElf.Client.Service;
 
 // create a new instance of AElfClient
-AElfClient client = new AElfClient('http://127.0.0.1:1235');
+AElfClient client = new AElfClient("http://127.0.0.1:1235");
 ```
 
 ### Test connection

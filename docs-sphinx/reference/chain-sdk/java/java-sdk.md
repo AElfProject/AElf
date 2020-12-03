@@ -34,7 +34,7 @@ Create a new instance of AElfClient, and set url of an AElf chain node.
 using AElf.Client.Service;
 
 // create a new instance of AElf, change the URL if needed
-AElfClient client = new AElfClient('http://127.0.0.1:1235');
+AElfClient client = new AElfClient("http://127.0.0.1:1235");
 ```
 
 ### Test connection
@@ -114,7 +114,7 @@ The usage of these methods is based on the AElfClient instance, so if you don't 
 using AElf.Client.Service;
 
 // create a new instance of AElf, change the URL if needed
-AElfClient client = new AElfClient('http://127.0.0.1:1235');
+AElfClient client = new AElfClient("http://127.0.0.1:1235");
 ```
 
 ### GetChainStatus
