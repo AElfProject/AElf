@@ -1,94 +1,147 @@
-ACS4 - Consensus Standard
-=========================
+ACS10 - Dividend Pool Standard
+==============================
 
-ACS4 is used to customize consensus mechanisms.
+ACS10 is used to construct a dividend pool in the contract.
 
 Interface
 ---------
 
-If you want to customize the consensus mechanism, you need to implement
-the following five interfaces:
+To construct a dividend pool, you can implement the following interfaces
+optionally:
 
 Methods
 ~~~~~~~
 
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Method Name                        | Request Type                                                   | Response Type                                                  | Description                                                                                                                                                                                                |
-+====================================+================================================================+================================================================+============================================================================================================================================================================================================+
-| GetConsensusCommand                | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ConsensusCommand <#acs4.ConsensusCommand>`__             | Generate a consensus command based on the consensus contract state and the input public key.                                                                                                               |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GetConsensusExtraData              | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | Generate consensus extra data when a block is generated.                                                                                                                                                   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GenerateConsensusTransactions      | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.TransactionList <#acs4.TransactionList>`__               | Generate consensus system transactions when a block is generated. Each block will contain only one consensus transaction, which is used to write the latest consensus information to the State database.   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusBeforeExecution   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | Before executing the block, verify that the consensus information in the block header is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusAfterExecution    | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | After executing the block, verify that the state information written to the consensus is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Method Name                 | Request Type                                                   | Response Type                                        | Description                                                                                                                                                   |
++=============================+================================================================+======================================================+===============================================================================================================================================================+
+| Donate                      | `acs10.DonateInput <#acs10.DonateInput>`__                     | `google.protobuf.Empty <#google.protobuf.Empty>`__   | Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, they will be first converted to the native token.   |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Release                     | `acs10.ReleaseInput <#acs10.ReleaseInput>`__                   | `google.protobuf.Empty <#google.protobuf.Empty>`__   | Release dividend pool according the period number.                                                                                                            |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| SetSymbolList               | `acs10.SymbolList <#acs10.SymbolList>`__                       | `google.protobuf.Empty <#google.protobuf.Empty>`__   | Set the token symbols dividend pool supports.                                                                                                                 |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetSymbolList               | `google.protobuf.Empty <#google.protobuf.Empty>`__             | `acs10.SymbolList <#acs10.SymbolList>`__             | Query the token symbols dividend pool supports.                                                                                                               |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetUndistributedDividends   | `google.protobuf.Empty <#google.protobuf.Empty>`__             | `acs10.Dividends <#acs10.Dividends>`__               | Query the balance of undistributed tokens whose symbols are included in the symbol list.                                                                      |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| GetDividends                | `google.protobuf.Int64Value <#google.protobuf.Int64Value>`__   | `acs10.Dividends <#acs10.Dividends>`__               | Query the dividend information according to the height.                                                                                                       |
++-----------------------------+----------------------------------------------------------------+------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Types
 ~~~~~
 
 .. raw:: html
 
-   <div id="acs4.ConsensusCommand">
+   <div id="acs10.Dividends">
 
 .. raw:: html
 
    </div>
 
-acs4.ConsensusCommand
-^^^^^^^^^^^^^^^^^^^^^
+acs10.Dividends
+^^^^^^^^^^^^^^^
 
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| Field                                    | Type                                                         | Description                                                                                  | Label   |
-+==========================================+==============================================================+==============================================================================================+=========+
-| limit\_milliseconds\_of\_mining\_block   | `int32 <#int32>`__                                           | Time limit of mining next block.                                                             |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| hint                                     | `bytes <#bytes>`__                                           | Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.   |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| arranged\_mining\_time                   | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The time of arrange mining.                                                                  |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| mining\_due\_time                        | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The expiration time of mining.                                                               |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
++---------+----------------------------------------------------------+------------------------------------+------------+
+| Field   | Type                                                     | Description                        | Label      |
++=========+==========================================================+====================================+============+
+| value   | `Dividends.ValueEntry <#acs10.Dividends.ValueEntry>`__   | The dividends, symbol -> amount.   | repeated   |
++---------+----------------------------------------------------------+------------------------------------+------------+
 
 .. raw:: html
 
-   <div id="acs4.TransactionList">
+   <div id="acs10.Dividends.ValueEntry">
 
 .. raw:: html
 
    </div>
 
-acs4.TransactionList
-^^^^^^^^^^^^^^^^^^^^
+acs10.Dividends.ValueEntry
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-+----------------+--------------------------------------------+----------------------------------+------------+
-| Field          | Type                                       | Description                      | Label      |
-+================+============================================+==================================+============+
-| transactions   | `aelf.Transaction <#aelf.Transaction>`__   | Consensus system transactions.   | repeated   |
-+----------------+--------------------------------------------+----------------------------------+------------+
++---------+------------------------+---------------+---------+
+| Field   | Type                   | Description   | Label   |
++=========+========================+===============+=========+
+| key     | `string <#string>`__   |               |         |
++---------+------------------------+---------------+---------+
+| value   | `int64 <#int64>`__     |               |         |
++---------+------------------------+---------------+---------+
 
 .. raw:: html
 
-   <div id="acs4.ValidationResult">
+   <div id="acs10.DonateInput">
 
 .. raw:: html
 
    </div>
 
-acs4.ValidationResult
-^^^^^^^^^^^^^^^^^^^^^
+acs10.DonateInput
+^^^^^^^^^^^^^^^^^
 
-+-------------------+------------------------+------------------------------------+---------+
-| Field             | Type                   | Description                        | Label   |
-+===================+========================+====================================+=========+
-| success           | `bool <#bool>`__       | Is successful.                     |         |
-+-------------------+------------------------+------------------------------------+---------+
-| message           | `string <#string>`__   | The error message.                 |         |
-+-------------------+------------------------+------------------------------------+---------+
-| is\_re\_trigger   | `bool <#bool>`__       | Whether to trigger mining again.   |         |
-+-------------------+------------------------+------------------------------------+---------+
++----------+------------------------+-------------------------------+---------+
+| Field    | Type                   | Description                   | Label   |
++==========+========================+===============================+=========+
+| symbol   | `string <#string>`__   | The token symbol to donate.   |         |
++----------+------------------------+-------------------------------+---------+
+| amount   | `int64 <#int64>`__     | The amount to donate.         |         |
++----------+------------------------+-------------------------------+---------+
+
+.. raw:: html
+
+   <div id="acs10.DonationReceived">
+
+.. raw:: html
+
+   </div>
+
+acs10.DonationReceived
+^^^^^^^^^^^^^^^^^^^^^^
+
++------------------+------------------------------------+---------------------------------+---------+
+| Field            | Type                               | Description                     | Label   |
++==================+====================================+=================================+=========+
+| from             | `aelf.Address <#aelf.Address>`__   | The address of donors.          |         |
++------------------+------------------------------------+---------------------------------+---------+
+| pool\_contract   | `aelf.Address <#aelf.Address>`__   | The address of dividend pool.   |         |
++------------------+------------------------------------+---------------------------------+---------+
+| symbol           | `string <#string>`__               | The token symbol Donated.       |         |
++------------------+------------------------------------+---------------------------------+---------+
+| amount           | `int64 <#int64>`__                 | The amount Donated.             |         |
++------------------+------------------------------------+---------------------------------+---------+
+
+.. raw:: html
+
+   <div id="acs10.ReleaseInput">
+
+.. raw:: html
+
+   </div>
+
+acs10.ReleaseInput
+^^^^^^^^^^^^^^^^^^
+
++------------------+----------------------+---------------------------------+---------+
+| Field            | Type                 | Description                     | Label   |
++==================+======================+=================================+=========+
+| period\_number   | `int64 <#int64>`__   | The period number to release.   |         |
++------------------+----------------------+---------------------------------+---------+
+
+.. raw:: html
+
+   <div id="acs10.SymbolList">
+
+.. raw:: html
+
+   </div>
+
+acs10.SymbolList
+^^^^^^^^^^^^^^^^
+
++---------+------------------------+--------------------------+------------+
+| Field   | Type                   | Description              | Label      |
++=========+========================+==========================+============+
+| value   | `string <#string>`__   | The token symbol list.   | repeated   |
++---------+------------------------+--------------------------+------------+
 
 .. raw:: html
 
@@ -466,147 +519,337 @@ aelf.TransactionResultStatus
 | NODE\_VALIDATION\_FAILED   | 6        | Transaction validation failed.                                                      |
 +----------------------------+----------+-------------------------------------------------------------------------------------+
 
-
 Usage
 -----
 
-The five interfaces defined in ACS4 basically correspond to the five
-methods of the ``IConsensusService`` interface in the ``AElf.Kernel.Consensus``
-project:
+ACS10 only unifies the standard interface of the dividend pool, which
+does not interact with the AElf chain.
 
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ACS4                    | IConsensusService           | Methodology                             | The Timing To Call                 |
-+=========================+=============================+=========================================+====================================+
-| ``GetConsensusCommand`` | Task TriggerConsensusAsync  | When TriggerConsensusAsync is called,   | 1. When the node is started;       |
-|                         |                             |                                         |                                    |
-|                         | (ChainContext chainContext);| it will use the account configured by   | 2. When the BestChainFound-        |
-|                         |                             |                                         |                                    |
-|                         |                             | the node to call the GetConsensusCommand| EventData event is thrown;         |
-|                         |                             |                                         |                                    |
-|                         |                             | method of the consensus contract        | 3. When the validation of consensus|
-|                         |                             |                                         |                                    |
-|                         |                             | to obtain block information             | data fails and the consensus needs |
-|                         |                             |                                         |                                    |
-|                         |                             | ConsensusCommand), and use it to        | to be triggered again (The         |
-|                         |                             |                                         |                                    |
-|                         |                             | (see IConsensusScheduler implementation)| IsReTrigger field of the           |
-|                         |                             |                                         |                                    |
-|                         |                             | .                                       | ValidationResult type is true);    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``GetConsensus-``       | Task<byte[]> GetConsensus   | When a node produces a block, it will   | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``ExtraData``           | ExtraDataAsync(ChainContext | generate block header information for   | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | chainContext);              | the new block by IBlockExtraDataService.|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | This service is implemented to traverse |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | all IBlockExtraDataProvider             |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | implementations, and they generate      |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | binary array information into the       |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | ExtraData field of BlockHeader. The     |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | consensus block header information is   |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | provided by ConsensusExtraDataProvider, |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | in which the GetConsensusExtraDataAsync |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | of the IConsensusService in the         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | consensus contract is called, and the   |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | GetConsensusExtraDataAsync method is    |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | implemented by calling the              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | GetConsensusExtraData in the consensus  |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | contract.                               |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``GenerateConsensus-``  | Task<List<Transaction>>     | In the process of generating new blocks,| At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``Transactions``        | GenerateConsensus-          | a consensus transaction needs to be     | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | TransactionsAsync(          | generated as one of the system          |                                    |
-|                         |                             |                                         |                                    |
-|                         | ChainContext chainContext); | transactions. The basic principle is the|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | same as GetConsensusExtraData.          |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``ValidateConsensus-``  | Task<bool> ValidateConsensus| As long as the IBlockValidationProvider | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``BeforeExecution``     | BeforeExecutionAsync(       | interface is implemented, a new block   | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | chainContext, byte[]        | validator can be added.  The consensus  |                                    |
-|                         |                             |                                         |                                    |
-|                         | consensusExtraData);        | validator is ConsensusValidationProvider|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | , where ValidateBlockBeforeExecuteAsync |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | is implemented by calling the           |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | ValidateConsensusBeforeExecution method |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | of the consensus contract.              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``ValidateConsensus-``  | Task<bool> ValidateConsensus| The implementation of                   | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``AfterExecution``      | AfterExecutionAsync         | ValidateBlockAfterExecuteAsync in       | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | ( ChainContext chainContext,| ConsensusValidationProvider is to call  |                                    |
-|                         |                             |                                         |                                    |
-|                         | byte[] consensusExtraData); | the ValidateConsensusAfterExecution     |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | in the consensus contract.              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
+Implementation
+--------------
 
+With the Profit contract
+~~~~~~~~~~~~~~~~~~~~~~~~
 
+A Profit Scheme can be created using the ``CreateScheme`` method of
+``Profit contract``:
 
+.. code:: c#
 
+   State.ProfitContract.Value =
+       Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+   var schemeToken = HashHelper.ComputeFrom(Context.Self);
+   State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
+   {
+       Manager = Context.Self,
+       CanRemoveBeneficiaryDirectly = true,
+       IsReleaseAllBalanceEveryTimeByDefault = true,
+       Token = schemeToken
+   });
+   State.ProfitSchemeId.Value = Context.GenerateId(State.ProfitContract.Value, schemeToken);
 
+The Context.GenerateId method is a common method used by the AElf to
+generate Id. We use the address of the Profit contract and the
+schemeToken provided to the Profit contract to calculate the Id of the
+scheme, and we set this id to State.ProfitSchemeId
+(SingletonState<Hash>).
 
+After the establishment of the dividend scheme:
 
+-  ``ContributeProfits`` method of Profit can be used to implement the
+   method Donate in ACS10.
+-  The Release in the ACS10 can be implemented using the method
+   ``DistributeProfits`` in the ``Profit contract``;
+-  Methods such as ``AddBeneficiary`` and ``RemoveBeneficiary`` can be
+   used to manage the recipients and their weight.
+-  ``AddSubScheme``, ``RemoveSubScheme`` and other methods can be used
+   to manage the sub-dividend scheme and its weight;
+-  The ``SetSymbolList`` and ``GetSymbolList`` can be implemented by
+   yourself. Just make sure the symbol list you set is used correctly in
+   ``Donate`` and ``Release``.
+-  ``GetUndistributedDividends`` returns the balance of the token whose
+   symbol is included in symbol list.
 
+With TokenHolder Contract
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
+When initializing the contract, you should create a token holder
+dividend scheme using the CreateScheme in the TokenHolder contract(Token
+Holder Profit Scheme）：
 
+.. code:: c#
 
-.. .. list-table::
-..    :widths: 15 10 30 30
-..    :header-rows: 1
+   State.TokenHolderContract.Value =
+       Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName);
+   State.TokenHolderContract.CreateScheme.Send(new CreateTokenHolderProfitSchemeInput
+   {
+       Symbol = Context.Variables.NativeSymbol,
+       MinimumLockMinutes = input.MinimumLockMinutes
+   });
+   return new Empty();
 
-..    * - ACS4  
-..      - IConsensusService
-..      - Methodology
-..      - The Timing To Call
-..    * - GetConsensusCommand
-..      - Task TriggerConsensusAsync(ChainContext chainContext)
-..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the ``GetConsensusCommand`` method of the consensus contract to obtain block information(``ConsensusCommand``), and use it to update the local consensus scheduler (see ``IConsensusScheduler`` implementation).
-..      - 1. When the node is started;
+In a token holder dividend scheme, a scheme is bound to its creator, so
+SchemeId is not necessary to compute (in fact, the scheme is created via
+the Profit contract).
+
+Considering the ``GetDividends`` returns the dividend information
+according to the input height, so each Donate need update dividend
+information for each height . A Donate can be implemented as:
+
+.. code:: c#
+
+   public override Empty Donate(DonateInput input)
+   {
+       State.TokenContract.TransferFrom.Send(new TransferFromInput
+       {
+           From = Context.Sender,
+           Symbol = input.Symbol,
+           Amount = input.Amount,
+           To = Context.Self
+       });
+       State.TokenContract.Approve.Send(new ApproveInput
+       {
+           Symbol = input.Symbol,
+           Amount = input.Amount,
+           Spender = State.TokenHolderContract.Value
+       });
+       State.TokenHolderContract.ContributeProfits.Send(new ContributeProfitsInput
+       {
+           SchemeManager = Context.Self,
+           Symbol = input.Symbol,
+           Amount = input.Amount
+       });
+       Context.Fire(new DonationReceived
+       {
+           From = Context.Sender,
+           Symbol = input.Symbol,
+           Amount = input.Amount,
+           PoolContract = Context.Self
+       });
+       var currentReceivedDividends = State.ReceivedDividends[Context.CurrentHeight];
+       if (currentReceivedDividends != null && currentReceivedDividends.Value.ContainsKey(input.Symbol))
+       {
+           currentReceivedDividends.Value[input.Symbol] =
+               currentReceivedDividends.Value[input.Symbol].Add(input.Amount);
+       }
+       else
+       {
+           currentReceivedDividends = new Dividends
+           {
+               Value =
+               {
+                   {
+                       input.Symbol, input.Amount
+                   }
+               }
+           };
+       }
+       State.ReceivedDividends[Context.CurrentHeight] = currentReceivedDividends;
+       Context.LogDebug(() => string.Format("Contributed {0} {1}s to side chain dividends pool.", input.Amount, input.Symbol));
+       return new Empty();
+   }
+
+The method Release directly sends the TokenHolder’s method
+``DistributeProfits`` transaction:
+
+.. code:: c#
+
+   public override Empty Release(ReleaseInput input)
+   {
+       State.TokenHolderContract.DistributeProfits.Send(new DistributeProfitsInput
+       {
+           SchemeManager = Context.Self
+       });
+       return new Empty();
+   }
+
+In the ``TokenHolder contract``, the default implementation is to
+release what token is received, so ``SetSymbolList`` does not need to be
+implemented, and ``GetSymbolList`` returns the symbol list recorded in
+dividend scheme:
+
+.. code:: c#
+
+   public override Empty SetSymbolList(SymbolList input)
+   {
+       Assert(false, "Not support setting symbol list.");
+       return new Empty();
+   }
+   public override SymbolList GetSymbolList(Empty input)
+   {
+       return new SymbolList
+       {
+           Value =
+           {
+               GetDividendPoolScheme().ReceivedTokenSymbols
+           }
+       };
+   }
+   private Scheme GetDividendPoolScheme()
+   {
+       if (State.DividendPoolSchemeId.Value == null)
+       {
+           var tokenHolderScheme = State.TokenHolderContract.GetScheme.Call(Context.Self);
+           State.DividendPoolSchemeId.Value = tokenHolderScheme.SchemeId;
+       }
+       return Context.Call<Scheme>(
+           Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
+           nameof(ProfitContractContainer.ProfitContractReferenceState.GetScheme),
+           State.DividendPoolSchemeId.Value);
+   }
+
+The implementation of ``GetUndistributedDividends`` is the same as
+described in the previous section, and it returns the balance:
+
+.. code:: c#
+
+   public override Dividends GetUndistributedDividends(Empty input)
+   {
+       var scheme = GetDividendPoolScheme();
+       return new Dividends
+       {
+           Value =
+           {
+               scheme.ReceivedTokenSymbols.Select(s => State.TokenContract.GetBalance.Call(new GetBalanceInput
+               {
+                   Owner = scheme.VirtualAddress,
+                   Symbol = s
+               })).ToDictionary(b => b.Symbol, b => b.Balance)
+           }
+       };
+   }
+
+In addition to the ``Profit`` and ``TokenHolder`` contracts, of course,
+you can also implement a dividend pool on your own contract.
+
+Test
+----
+
+The dividend pool, for example, is tested in two ways with the
+``TokenHolder contract``.
+
+One way is for the dividend pool to send Donate, Release and a series of
+query operations;
+
+The other way is to use an account to lock up, and then take out
+dividends.
+
+Define the required Stubs:
+
+.. code:: c#
+
+   const long amount = 10_00000000;
+   var keyPair = SampleECKeyPairs.KeyPairs[0];
+   var address = Address.FromPublicKey(keyPair.PublicKey);
+   var acs10DemoContractStub =
+       GetTester<ACS10DemoContractContainer.ACS10DemoContractStub>(DAppContractAddress, keyPair);
+   var tokenContractStub =
+       GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
+   var tokenHolderContractStub =
+       GetTester<TokenHolderContractContainer.TokenHolderContractStub>(TokenHolderContractAddress,
+           keyPair);
+
+Before proceeding, You should Approve the ``TokenHolder contract`` and
+the dividend pool contract.
+
+.. code:: c#
+
+   await tokenContractStub.Approve.SendAsync(new ApproveInput
+   {
+       Spender = TokenHolderContractAddress,
+       Symbol = "ELF",
+       Amount = long.MaxValue
+   });
+   await tokenContractStub.Approve.SendAsync(new ApproveInput
+   {
+       Spender = DAppContractAddress,
+       Symbol = "ELF",
+       Amount = long.MaxValue
+   });
+
+Lock the position, at which point the account balance is reduced by 10
+ELF:
+
+.. code:: c#
+
+   await tokenHolderContractStub.RegisterForProfits.SendAsync(new RegisterForProfitsInput
+   {
+       SchemeManager = DAppContractAddress,
+       Amount = amount
+   });
+
+Donate, at which point the account balance is reduced by another 10 ELF:
+
+.. code:: c#
+
+   await acs10DemoContractStub.Donate.SendAsync(new DonateInput
+   {
+       Symbol = "ELF",
+       Amount = amount
+   });
+
+At this point you can test the ``GetUndistributedDividends`` and
+``GetDividends``:
+
+.. code:: c#
+
+   // Check undistributed dividends before releasing.
+   {
+       var undistributedDividends =
+           await acs10DemoContractStub.GetUndistributedDividends.CallAsync(new Empty());
+       undistributedDividends.Value["ELF"].ShouldBe(amount);
+   }
+   var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+   var currentBlockHeight = (await blockchainService.GetChainAsync()).BestChainHeight;
+   var dividends =
+       await acs10DemoContractStub.GetDividends.CallAsync(new Int64Value {Value = currentBlockHeight});
+   dividends.Value["ELF"].ShouldBe(amount);
+
+Release bonus, and test ``GetUndistributedDividends`` again:
+
+.. code:: c#
+
+   await acs10DemoContractStub.Release.SendAsync(new ReleaseInput
+   {
+       PeriodNumber = 1
+   });
+   // Check undistributed dividends after releasing.
+   {
+       var undistributedDividends =
+           await acs10DemoContractStub.GetUndistributedDividends.CallAsync(new Empty());
+       undistributedDividends.Value["ELF"].ShouldBe(0);
+   }
+
+Finally, let this account receive the dividend and then observe the
+change in its balance:
+
+.. code:: c#
+
+   var balanceBeforeClaimForProfits = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+   {
+       Owner = address,
+       Symbol = "ELF"
+   });
+   await tokenHolderContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+   {
+       SchemeManager = DAppContractAddress,
+       Beneficiary = address
+   });
+   var balanceAfterClaimForProfits = await tokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+   {
+       Owner = address,
+       Symbol = "ELF"
+   });
+   balanceAfterClaimForProfits.Balance.ShouldBe(balanceBeforeClaimForProfits.Balance + amount);
 
 Example
 -------
 
-You can refer to the implementation of the :doc:`AEDPoS contract <../smart-contract-api/consensus>`.
+The dividend pool of the main chain and the side chain is built by
+implementing ACS10.
+
+The dividend pool provided by the ``Treasury contract`` implementing
+ACS10 is on the main chain.
+
+The dividend pool provided by the ``Consensus contract`` implementing
+ACS10 is on the side chain.

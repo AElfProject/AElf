@@ -1,12 +1,12 @@
-ACS7 - Contract CrossChain Standard
+ACS0 - Contract Deployment Standard
 ===================================
 
-ACS7 is for cross chain related contract implementation.
+ACS0 is used to manage the deployment and update of contracts.
 
 Interface
 ---------
 
-This involves methods for chain creation and indexing:
+The contract inherited from ACS0 need implement the following interfaces:
 
 Methods
 ~~~~~~~
@@ -1019,5 +1019,5 @@ aelf.TransactionResultStatus
 Example
 -------
 
-ACS7 declares methods for the scenes about cross chain. AElf provides the implementation for ACS7, ``CrossChainContract``.
-You can refer to the implementation of the :doc:`Cross chain contract api<../smart-contract-api/cross-chain>`.
+ACS0 declares methods for the scenes about contract deployment and update. AElf provides the implementation for ACS0, ``Genesis Contract``.
+You can refer to the implementation of the :doc:`Genesis contract api<../smart-contract-api/genesis>`.

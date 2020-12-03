@@ -1,94 +1,28 @@
-ACS4 - Consensus Standard
-=========================
+ACS11 - Cross Chain Consensus Standard
+======================================
 
-ACS4 is used to customize consensus mechanisms.
+ACS11 is used to customize consensus mechanisms for cross chain.
 
 Interface
 ---------
 
-If you want to customize the consensus mechanism, you need to implement
-the following five interfaces:
+The contract inherited from ACS11 need implement the following interfaces:
 
 Methods
 ~~~~~~~
 
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Method Name                        | Request Type                                                   | Response Type                                                  | Description                                                                                                                                                                                                |
-+====================================+================================================================+================================================================+============================================================================================================================================================================================================+
-| GetConsensusCommand                | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ConsensusCommand <#acs4.ConsensusCommand>`__             | Generate a consensus command based on the consensus contract state and the input public key.                                                                                                               |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GetConsensusExtraData              | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | Generate consensus extra data when a block is generated.                                                                                                                                                   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GenerateConsensusTransactions      | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.TransactionList <#acs4.TransactionList>`__               | Generate consensus system transactions when a block is generated. Each block will contain only one consensus transaction, which is used to write the latest consensus information to the State database.   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusBeforeExecution   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | Before executing the block, verify that the consensus information in the block header is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusAfterExecution    | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | After executing the block, verify that the state information written to the consensus is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++-------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------------------+
+| Method Name                         | Request Type                                                   | Response Type                                                  | Description                                                   |
++=====================================+================================================================+================================================================+===============================================================+
+| UpdateInformationFromCrossChain     | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `google.protobuf.Empty <#google.protobuf.Empty>`__             | Update the consensus information of the side chain.           |
++-------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------------------+
+| GetChainInitializationInformation   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | Get the current miner list and consensus round information.   |
++-------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------------------+
+| CheckCrossChainIndexingPermission   | `aelf.Address <#aelf.Address>`__                               | `google.protobuf.BoolValue <#google.protobuf.BoolValue>`__     | Verify that the input address is the current miner.           |
++-------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+---------------------------------------------------------------+
 
 Types
 ~~~~~
-
-.. raw:: html
-
-   <div id="acs4.ConsensusCommand">
-
-.. raw:: html
-
-   </div>
-
-acs4.ConsensusCommand
-^^^^^^^^^^^^^^^^^^^^^
-
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| Field                                    | Type                                                         | Description                                                                                  | Label   |
-+==========================================+==============================================================+==============================================================================================+=========+
-| limit\_milliseconds\_of\_mining\_block   | `int32 <#int32>`__                                           | Time limit of mining next block.                                                             |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| hint                                     | `bytes <#bytes>`__                                           | Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.   |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| arranged\_mining\_time                   | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The time of arrange mining.                                                                  |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| mining\_due\_time                        | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The expiration time of mining.                                                               |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="acs4.TransactionList">
-
-.. raw:: html
-
-   </div>
-
-acs4.TransactionList
-^^^^^^^^^^^^^^^^^^^^
-
-+----------------+--------------------------------------------+----------------------------------+------------+
-| Field          | Type                                       | Description                      | Label      |
-+================+============================================+==================================+============+
-| transactions   | `aelf.Transaction <#aelf.Transaction>`__   | Consensus system transactions.   | repeated   |
-+----------------+--------------------------------------------+----------------------------------+------------+
-
-.. raw:: html
-
-   <div id="acs4.ValidationResult">
-
-.. raw:: html
-
-   </div>
-
-acs4.ValidationResult
-^^^^^^^^^^^^^^^^^^^^^
-
-+-------------------+------------------------+------------------------------------+---------+
-| Field             | Type                   | Description                        | Label   |
-+===================+========================+====================================+=========+
-| success           | `bool <#bool>`__       | Is successful.                     |         |
-+-------------------+------------------------+------------------------------------+---------+
-| message           | `string <#string>`__   | The error message.                 |         |
-+-------------------+------------------------+------------------------------------+---------+
-| is\_re\_trigger   | `bool <#bool>`__       | Whether to trigger mining again.   |         |
-+-------------------+------------------------+------------------------------------+---------+
 
 .. raw:: html
 
@@ -466,147 +400,8 @@ aelf.TransactionResultStatus
 | NODE\_VALIDATION\_FAILED   | 6        | Transaction validation failed.                                                      |
 +----------------------------+----------+-------------------------------------------------------------------------------------+
 
-
-Usage
------
-
-The five interfaces defined in ACS4 basically correspond to the five
-methods of the ``IConsensusService`` interface in the ``AElf.Kernel.Consensus``
-project:
-
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ACS4                    | IConsensusService           | Methodology                             | The Timing To Call                 |
-+=========================+=============================+=========================================+====================================+
-| ``GetConsensusCommand`` | Task TriggerConsensusAsync  | When TriggerConsensusAsync is called,   | 1. When the node is started;       |
-|                         |                             |                                         |                                    |
-|                         | (ChainContext chainContext);| it will use the account configured by   | 2. When the BestChainFound-        |
-|                         |                             |                                         |                                    |
-|                         |                             | the node to call the GetConsensusCommand| EventData event is thrown;         |
-|                         |                             |                                         |                                    |
-|                         |                             | method of the consensus contract        | 3. When the validation of consensus|
-|                         |                             |                                         |                                    |
-|                         |                             | to obtain block information             | data fails and the consensus needs |
-|                         |                             |                                         |                                    |
-|                         |                             | ConsensusCommand), and use it to        | to be triggered again (The         |
-|                         |                             |                                         |                                    |
-|                         |                             | (see IConsensusScheduler implementation)| IsReTrigger field of the           |
-|                         |                             |                                         |                                    |
-|                         |                             | .                                       | ValidationResult type is true);    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``GetConsensus-``       | Task<byte[]> GetConsensus   | When a node produces a block, it will   | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``ExtraData``           | ExtraDataAsync(ChainContext | generate block header information for   | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | chainContext);              | the new block by IBlockExtraDataService.|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | This service is implemented to traverse |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | all IBlockExtraDataProvider             |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | implementations, and they generate      |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | binary array information into the       |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | ExtraData field of BlockHeader. The     |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | consensus block header information is   |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | provided by ConsensusExtraDataProvider, |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | in which the GetConsensusExtraDataAsync |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | of the IConsensusService in the         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | consensus contract is called, and the   |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | GetConsensusExtraDataAsync method is    |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | implemented by calling the              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | GetConsensusExtraData in the consensus  |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | contract.                               |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``GenerateConsensus-``  | Task<List<Transaction>>     | In the process of generating new blocks,| At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``Transactions``        | GenerateConsensus-          | a consensus transaction needs to be     | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | TransactionsAsync(          | generated as one of the system          |                                    |
-|                         |                             |                                         |                                    |
-|                         | ChainContext chainContext); | transactions. The basic principle is the|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | same as GetConsensusExtraData.          |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``ValidateConsensus-``  | Task<bool> ValidateConsensus| As long as the IBlockValidationProvider | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``BeforeExecution``     | BeforeExecutionAsync(       | interface is implemented, a new block   | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | chainContext, byte[]        | validator can be added.  The consensus  |                                    |
-|                         |                             |                                         |                                    |
-|                         | consensusExtraData);        | validator is ConsensusValidationProvider|                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | , where ValidateBlockBeforeExecuteAsync |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | is implemented by calling the           |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | ValidateConsensusBeforeExecution method |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | of the consensus contract.              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-| ``ValidateConsensus-``  | Task<bool> ValidateConsensus| The implementation of                   | At the time that the node produces |
-|                         |                             |                                         |                                    |
-| ``AfterExecution``      | AfterExecutionAsync         | ValidateBlockAfterExecuteAsync in       | a new block.                       |
-|                         |                             |                                         |                                    |
-|                         | ( ChainContext chainContext,| ConsensusValidationProvider is to call  |                                    |
-|                         |                             |                                         |                                    |
-|                         | byte[] consensusExtraData); | the ValidateConsensusAfterExecution     |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             | in the consensus contract.              |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-|                         |                             |                                         |                                    |
-+-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
-
-
-
-
-
-
-
-
-
-
-
-.. .. list-table::
-..    :widths: 15 10 30 30
-..    :header-rows: 1
-
-..    * - ACS4  
-..      - IConsensusService
-..      - Methodology
-..      - The Timing To Call
-..    * - GetConsensusCommand
-..      - Task TriggerConsensusAsync(ChainContext chainContext)
-..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the ``GetConsensusCommand`` method of the consensus contract to obtain block information(``ConsensusCommand``), and use it to update the local consensus scheduler (see ``IConsensusScheduler`` implementation).
-..      - 1. When the node is started;
-
 Example
 -------
 
-You can refer to the implementation of the :doc:`AEDPoS contract <../smart-contract-api/consensus>`.
+ACS11 declares methods for the scenes about customize consensus mechanisms for cross chain. AElf provides the implementation for ACS11, ``AEDPoS Contract``.
+You can refer to the implementation of the :doc:`AEDPoS contract api<../smart-contract-api/consensus>`.
