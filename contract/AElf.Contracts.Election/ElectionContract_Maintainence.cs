@@ -247,7 +247,7 @@ namespace AElf.Contracts.Election
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
-            SynSubsidyInfoAfterReduceMiner();
+            SyncSubsidyInfoAfterReduceMiner();
             return new Empty();
         }
 
@@ -413,11 +413,12 @@ namespace AElf.Contracts.Election
             return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
         }
         
-        private void SynSubsidyInfoAfterReduceMiner()
+        private void SyncSubsidyInfoAfterReduceMiner()
         {
             var rankingList = State.DataCentersRankingList.Value;
             var validDataCenterCount = GetValidationDataCenterCount();
             if (rankingList.DataCenters.Count <= validDataCenterCount) return;
+            Context.LogDebug(() => "sync DataCenter after reduce bp");
             var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
             var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
                 .Take(diffCount.Add(1)).ToList();
