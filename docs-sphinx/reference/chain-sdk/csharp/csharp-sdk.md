@@ -110,7 +110,7 @@ The usage of these methods is based on the AElfClient instance, so if you don't 
 using AElf.Client.Service;
 
 // create a new instance of AElf, change the URL if needed
-private AElfClient client = new AElfClient('http://127.0.0.1:1235');
+private AElfClient client = new AElfClient("http://127.0.0.1:1235");
 ```
 
 ### GetChainStatus
