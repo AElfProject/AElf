@@ -793,7 +793,7 @@ toolkit.cross_chain_transfer(to_address_string, symbol, amount, memo, to_chain_i
 
 ## Support
 
-![node](https://hub.docker.com/r/aelf/node)
+[node](https://hub.docker.com/r/aelf/node)
 
 ## About contributing
 
