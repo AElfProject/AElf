@@ -200,6 +200,12 @@ namespace AElf.OS.Network.Grpc
                 return null;
             }
 
+            if (_peerPool.IsOverIpLimit(endpoint.Host))
+            {
+                Logger.LogWarning($"{endpoint.Host} - peer pool is full.");
+                return null;
+            }
+
             var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
 
             if (dialedPeer == null)

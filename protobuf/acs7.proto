@@ -249,13 +249,6 @@ message ReleaseCrossChainIndexingProposalInput{
     repeated int32 chain_id_list = 1;
 }
 
-message RecordCrossChainDataInput{
-    // Proposed cross chain data to be indexed.
-    CrossChainBlockData proposed_cross_chain_data = 1;
-    // The address of proposer. 
-    aelf.Address proposer = 2;
-}
-
 message CreateSideChainInput{
     // The request information of the side chain creation.
     SideChainCreationRequest side_chain_creation_request = 1;

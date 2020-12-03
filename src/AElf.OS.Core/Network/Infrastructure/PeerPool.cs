@@ -47,7 +47,7 @@ namespace AElf.OS.Network.Infrastructure
             return _blackListedPeerProvider.IsIpBlackListed(host);
         }
 
-        private bool IsOverIpLimit(string host)
+        public bool IsOverIpLimit(string host)
         {
             if (NetworkOptions.MaxPeersPerIpAddress == 0 || host.Equals(IPAddress.Loopback.ToString()))
                 return false;
