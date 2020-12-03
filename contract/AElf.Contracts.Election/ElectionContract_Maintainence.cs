@@ -202,7 +202,7 @@ namespace AElf.Contracts.Election
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 var rankingList = State.DataCentersRankingList.Value;
-                if (rankingList.DataCenters.ContainsKey(input.Pubkey))
+                if (rankingList!= null && rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
                     rankingList.DataCenters[input.Pubkey] = 0;
                     IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey);
@@ -424,13 +424,12 @@ namespace AElf.Contracts.Election
             var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
             var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
                 .Take(diffCount).ToList();
-            toRemoveList.Remove(toRemoveList.Last());
             foreach (var kv in toRemoveList)
             {
                 rankingList.DataCenters.Remove(kv.Key);
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
-                    SchemeId = State.WelfareHash.Value,
+                    SchemeId = State.SubsidyHash.Value,
                     Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(kv.Key))
                 });
             }
