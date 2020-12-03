@@ -423,8 +423,7 @@ namespace AElf.Contracts.Election
             Context.LogDebug(() => "sync DataCenter after reduce bp");
             var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
             var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
-                .Take(diffCount.Add(1)).ToList();
-            rankingList.MinimumVotes = toRemoveList.Last().Value;
+                .Take(diffCount).ToList();
             toRemoveList.Remove(toRemoveList.Last());
             foreach (var kv in toRemoveList)
             {
