@@ -366,6 +366,8 @@ namespace AElf.Contracts.Election
             }
             if (amountAfterWithdraw > 0 && maxVoteAmountOutDataCenter <= amountAfterWithdraw)
                 return false;
+            if (maxVoteAmountOutDataCenter == 0)
+                maxVoteOptionOutDataCenter = null;
             rankingList.DataCenters.Remove(member);
             if (maxVoteOptionOutDataCenter != null)
                 rankingList.DataCenters[maxVoteOptionOutDataCenter] = maxVoteAmountOutDataCenter;
