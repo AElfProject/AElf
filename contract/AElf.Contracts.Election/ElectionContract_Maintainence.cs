@@ -416,6 +416,8 @@ namespace AElf.Contracts.Election
         private void SyncSubsidyInfoAfterReduceMiner()
         {
             var rankingList = State.DataCentersRankingList.Value;
+            if (rankingList == null)
+                return;
             var validDataCenterCount = GetValidationDataCenterCount();
             if (rankingList.DataCenters.Count <= validDataCenterCount) return;
             Context.LogDebug(() => "sync DataCenter after reduce bp");
