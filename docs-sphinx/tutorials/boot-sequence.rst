@@ -120,11 +120,11 @@ full node account has enough tokens, 20W ELF:
      "balance": "2000000000000"
    } 
 
-Full node announce election:
+Full node announces election with admin specified in params:
 
 .. code:: bash
 
-   aelf-command send AElf.ContractNames.Election AnnounceElection '{}' -a Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC
+   aelf-command send AElf.ContractNames.Election AnnounceElection '{"value": "Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC"}' -a Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC
 
 By inquiring candidate information, we can see the full node is already
 candidates:
