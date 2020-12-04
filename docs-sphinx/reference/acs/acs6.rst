@@ -15,7 +15,7 @@ Methods
 +--------------------------------+----------------------------------------------------------------------------------+------------------------------------------------------------------+---------------------------------------------------+
 | Method Name                    | Request Type                                                                     | Response Type                                                    | Description                                       |
 +================================+==================================================================================+==================================================================+===================================================+
-| RandomNumberProviderContract   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__                     | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__     | Get the random number provided by this contract   |
+| GetRandomBytes                 | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__                     | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__     | Get the random number provided by this contract.  |
 +--------------------------------+----------------------------------------------------------------------------------+------------------------------------------------------------------+---------------------------------------------------+
 
 Usage
