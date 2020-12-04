@@ -11,6 +11,7 @@ namespace AElf.OS.Network.Infrastructure
 
         bool IsFull();
         bool IsPeerBlackListed(string host);
+        bool IsOverIpLimit(string host);
 
         bool AddHandshakingPeer(string host, string pubkey);
         bool RemoveHandshakingPeer(string host, string pubkey);
