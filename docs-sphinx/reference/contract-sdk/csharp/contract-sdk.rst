@@ -20,16 +20,17 @@ Contents
    -  :ref:`TransactionId <AElf-Sdk-CSharp-CSharpSmartContractContext-TransactionId>`
    -  :ref:`Variables <AElf-Sdk-CSharp-CSharpSmartContractContext-Variables>`
    -  :ref:`Call(fromAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-Call-AElf-Types-Address-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`ConvertHashToInt64(hash,start,end) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertHashToInt64-AElf-Types-Hash-System-Int64-System-Int64>`
    -  :ref:`ConvertVirtualAddressToContractAddress(virtualAddress) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash>`
    -  :ref:`ConvertVirtualAddressToContractAddress(virtualAddress,contractAddress) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash-AElf-Types-Address>`
    -  :ref:`ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash>`
    -  :ref:`ConvertVirtualAddressToContractAddressWithContractHashName(virtualAddress,contractAddress) <AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddressWithContractHashName-AElf-Types-Hash-AElf-Types-Address>`
-   -  :ref:`DecryptMessage(senderPublicKey,cipherMessage) <AElf-Sdk-CSharp-CSharpSmartContractContext-DecryptMessage-System-Byte-System-Byte>`
-   -  :ref:`EncryptMessage(receiverPublicKey,plainMessage) <AElf-Sdk-CSharp-CSharpSmartContractContext-EncryptMessage-System-Byte-System-Byte>`
+   -  :ref:`DeployContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-DeployContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
    -  :ref:`FireLogEvent(logEvent) <AElf-Sdk-CSharp-CSharpSmartContractContext-FireLogEvent-AElf-Types-LogEvent>`
    -  :ref:`GenerateId(contractAddress,bytes) <AElf-Sdk-CSharp-CSharpSmartContractContext-GenerateId-AElf-Types-Address-System-Collections-Generic-IEnumerableSystem-Byte>`
    -  :ref:`GetContractAddressByName(hash) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetContractAddressByName-AElf-Types-Hash>`
    -  :ref:`GetPreviousBlockTransactions() <AElf-Sdk-CSharp-CSharpSmartContractContext-GetPreviousBlockTransactions>`
+   -  :ref:`GetRandomHash(fromHash) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetRandomHash-AElf-Types-Hash>`
    -  :ref:`GetSystemContractNameToAddressMapping() <AElf-Sdk-CSharp-CSharpSmartContractContext-GetSystemContractNameToAddressMapping>`
    -  :ref:`GetZeroSmartContractAddress() <AElf-Sdk-CSharp-CSharpSmartContractContext-GetZeroSmartContractAddress>`
    -  :ref:`GetZeroSmartContractAddress(chainId) <AElf-Sdk-CSharp-CSharpSmartContractContext-GetZeroSmartContractAddress-System-Int32>`
@@ -38,6 +39,8 @@ Contents
    -  :ref:`SendInline(toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendInline-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInline(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInline-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
    -  :ref:`SendVirtualInlineBySystemContract(fromVirtualAddress,toAddress,methodName,args) <AElf-Sdk-CSharp-CSharpSmartContractContext-SendVirtualInlineBySystemContract-AElf-Types-Hash-AElf-Types-Address-System-String-Google-Protobuf-ByteString>`
+   -  :ref:`UpdateContract(address,registration,name) <AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash>`
+   -  :ref:`ValidateStateSize(obj) <AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object>`
    -  :ref:`VerifySignature(tx) <AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction>`
 
 -  :ref:`CSharpSmartContract <AElf-Sdk-CSharp-CSharpSmartContract>`
@@ -276,6 +279,43 @@ Name Description
 T    The type of the return message.
 ==== ===============================
 
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertHashToInt64-AElf-Types-Hash-System-Int64-System-Int64:
+
+ConvertHashToInt64(hash,start,end) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Converts the input hash to a 64-bit signed integer.
+
+Returns
+'''''''
+
+The 64-bit signed integer.
+
+Parameters
+''''''''''
+
++---------+------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+
+| Name    | Type                                                                                                       | Description                                                                                               |
++=========+============================================================================================================+===========================================================================================================+
+| hash    | AElf.Types.Hash                                                                                            | The hash.                                                                                                 |
++---------+------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+
+| start   | `System.Int64 <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Int64>`__   | The inclusive lower bound of the number returned.                                                         |
++---------+------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+
+| end     | `System.Int64 <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Int64>`__   | The exclusive upper bound of the number returned. endValue must be greater than or equal to startValue.   |
++---------+------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+
+
+Exceptions
+''''''''''
+
++------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+| Name                                                                                                                               | Description                                           |
++====================================================================================================================================+=======================================================+
+| `System.ArgumentException <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.ArgumentException>`__   | startValue is less than 0 or greater than endValue.   |
++------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------+
+
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-ConvertVirtualAddressToContractAddress-AElf-Types-Hash:
 
 ConvertVirtualAddressToContractAddress(virtualAddress) ``method``
@@ -385,75 +425,29 @@ Parameters
 | contractAddress | AElf.Types.Address     | The contract address.  |
 +-----------------+------------------------+------------------------+
 
-.. _AElf-Sdk-CSharp-CSharpSmartContractContext-DecryptMessage-System-Byte-System-Byte:
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-DeployContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash:
 
-DecryptMessage(senderPublicKey,cipherMessage) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-Summary
-'''''''
-
-Decrypts a message with the given public key.
-
-Returns
-'''''''
-
-The decrypted message. 
-
-Parameters
-''''''''''
-
-+-----------------+------------------------+------------------------+
-| Name            | Type                   | Description            |
-+=================+========================+========================+
-| senderPublicKey | `System.Byte[] <http:/ | The public key that    |
-|                 | /msdn.microsoft.com/qu | encrypted the message. |
-|                 | ery/dev14.query?appId= |                        |
-|                 | Dev14IDEF1&l=EN-US&k=k |                        |
-|                 | :System.Byte>`__       |                        |
-+-----------------+------------------------+------------------------+
-| cipherMessage   | `System.Byte[] <http:/ | The encrypted message. |
-|                 | /msdn.microsoft.com/qu |                        |
-|                 | ery/dev14.query?appId= |                        |
-|                 | Dev14IDEF1&l=EN-US&k=k |                        |
-|                 | :System.Byte>`__       |                        |
-+-----------------+------------------------+------------------------+
-
-.. _AElf-Sdk-CSharp-CSharpSmartContractContext-EncryptMessage-System-Byte-System-Byte:
-
-EncryptMessage(receiverPublicKey,plainMessage) ``method``
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+DeployContract(address,registration,name) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Summary
 '''''''
 
-Encrypts a message with the given public key.
-
-Returns
-'''''''
-
-The encrypted message.
+Deploy a new smart contract (only the genesis contract can call it).
 
 Parameters
 ''''''''''
 
-+-------------------+-----------------------+-----------------------+
-| Name              | Type                  | Description           |
-+===================+=======================+=======================+
-| receiverPublicKey | `System.              | The receivers public  |
-|                   | Byte[] <http://msdn   | key.                  |
-|                   | .microsoft.com/query  |                       |
-|                   | /dev14.query?appId=De |                       |
-|                   | v14IDEF1&l=EN-US&k=k: |                       |
-|                   | System.Byte>`__       |                       |
-+-------------------+-----------------------+-----------------------+
-| plainMessage      | `System.              | The non encrypted     |
-|                   | Byte[] <http://msd    | message.              |
-|                   | n.microsoft.com/query |                       |
-|                   | /dev14.query?appId=De |                       |
-|                   | v14IDEF1&l=EN-US&k=k: |                       |
-|                   | System.Byte>`__       |                       |
-+-------------------+-----------------------+-----------------------+
++----------------+--------------------------------------------------------------------------------------+-----------------------------------------------+
+| Name           | Type                                                                                 | Description                                   |
++================+======================================================================================+===============================================+
+| address        | AElf.Types.Address                                                                   | The address of new smart contract.            |
++----------------+--------------------------------------------------------------------------------------+-----------------------------------------------+
+| registration   | AElf.Types.SmartContractRegistration                                                 | The registration of the new smart contract.   |
++----------------+--------------------------------------------------------------------------------------+-----------------------------------------------+
+| name           | AElf.Types.Hash                                                                      | The hash value of the smart contract name.    |
++----------------+--------------------------------------------------------------------------------------+-----------------------------------------------+
+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-FireLogEvent-AElf-Types-LogEvent:
 
@@ -556,6 +550,31 @@ Parameters
 ''''''''''
 
 This method has no parameters.
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-GetRandomHash-AElf-Types-Hash:
+
+GetRandomHash(fromHash) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Gets a random hash based on the input hash.
+
+Returns
+'''''''
+
+Random hash.
+
+Parameters
+''''''''''
+
++------------+--------------------------------------------+---------------+
+| Name       | Type                                       | Description   |
++============+============================================+===============+
+| fromHash   | AElf.Types.Hash                            | Hash.         |
++------------+--------------------------------------------+---------------+
+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-GetSystemContractNameToAddressMapping:
 
@@ -790,6 +809,61 @@ Parameters
 | input type.        |                  |                                        |
 +--------------------+------------------+----------------------------------------+
 
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-UpdateContract-AElf-Types-Address-AElf-Types-SmartContractRegistration-AElf-Types-Hash:
+
+UpdateContract(address,registration,name) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Update a smart contract (only the genesis contract can call it).
+
+Parameters
+''''''''''
+
++----------------+--------------------------------------------------------------------------------------+--------------------------------------------------------+
+| Name           | Type                                                                                 | Description                                            |
++================+======================================================================================+========================================================+
+| address        | AElf.Types.Address                                                                   | The address of smart contract to update.               |
++----------------+--------------------------------------------------------------------------------------+--------------------------------------------------------+
+| registration   | AElf.Types.SmartContractRegistration                                                 | The registration of the smart contract to update.      |
++----------------+--------------------------------------------------------------------------------------+--------------------------------------------------------+
+| name           | AElf.Types.Hash <#T-AElf-Types-Hash>                                                 | The hash value of the smart contract name to update.   |
++----------------+--------------------------------------------------------------------------------------+--------------------------------------------------------+
+
+.. _AElf-Sdk-CSharp-CSharpSmartContractContext-ValidateStateSize-System-Object:
+
+ValidateStateSize(obj) ``method``
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Summary
+'''''''
+
+Verify that the state size is within the valid value.
+
+Returns
+'''''''
+
+The state.
+
+Parameters
+''''''''''
+
++--------+--------------------------------------------------------------------------------------------------------------+---------------+
+| Name   | Type                                                                                                         | Description   |
++========+==============================================================================================================+===============+
+| obj    | `System.Object <http://msdn.microsoft.com/query/dev14.query?appId=Dev14IDEF1&l=EN-US&k=k:System.Object>`__   | The state.    |
++--------+--------------------------------------------------------------------------------------------------------------+---------------+
+
+Exceptions
+''''''''''
+
++--------------------------------------------------------------------------------------------------------------+-------------------------------------+
+| Name                                                                                                         | Description                         |
++==============================================================================================================+=====================================+
+| AElf.Kernel.SmartContract.StateOverSizeException                                                             | The state size exceeds the limit.   |
++--------------------------------------------------------------------------------------------------------------+-------------------------------------+
 
 .. _AElf-Sdk-CSharp-CSharpSmartContractContext-VerifySignature-AElf-Types-Transaction:
 
