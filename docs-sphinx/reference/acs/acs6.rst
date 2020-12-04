@@ -1,5 +1,5 @@
 ACS6 - Random Number Provider Standard
-==================================
+======================================
 
 If your contract is about to generate a random number, you can consider using acs6.
 
