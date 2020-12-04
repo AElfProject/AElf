@@ -18,10 +18,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             RequiredMaximumMinersCountControllerSet();
             Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
                 "No permission to set max miners count.");
-            
+
+            TryToGetCurrentRoundInformation(out Round round);
+
             State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
             {
-                MinersCount = input.Value
+                MinersCount = GetMinersCount(round)
             });
             
 
