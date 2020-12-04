@@ -83,6 +83,16 @@ namespace AElf.OS.Network.Grpc
             var added = await _connectionService.ConnectAsync(endpoint);
             added.ShouldBeFalse();
         }
+        
+        [Fact] 
+        public async Task Connect_OverIpLimit_Test()
+        {
+            AElfPeerEndpointHelper.TryParse("192.168.100.100", out var endpoint);
+            _peerPool.AddHandshakingPeer(endpoint.Host, "pubkey");
+
+            var added = await _connectionService.ConnectAsync(endpoint);
+            added.ShouldBeFalse();
+        }
 
         [Fact]
         public async Task Connect_InboundPeerIsLater_Test()
