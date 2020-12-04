@@ -23,7 +23,6 @@ namespace AElf.Contracts.Election
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.Candidates.Value = new PubkeyList();
-            State.BlackList.Value = new PubkeyList();
 
             State.MinimumLockTime.Value = input.MinimumLockTime;
             State.MaximumLockTime.Value = input.MaximumLockTime;
@@ -200,7 +199,7 @@ namespace AElf.Contracts.Election
             if (input.IsEvilNode)
             {
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
-                State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
+                State.BannedPubkeyMap[input.Pubkey] = true;
                 var rankingList = State.DataCentersRankingList.Value;
                 if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
@@ -266,8 +265,8 @@ namespace AElf.Contracts.Election
         {
             Assert(IsCurrentCandidateOrInitialMiner(input.OldPubkey),
                 "Pubkey is neither a current candidate nor an initial miner.");
-            Assert(!IsPubkeyInBlackList(input.OldPubkey) && !IsPubkeyInBlackList(input.NewPubkey),
-                "Pubkey is in black list.");
+            Assert(!IsPubkeyBanned(input.OldPubkey) && !IsPubkeyBanned(input.NewPubkey),
+                "Pubkey is in already banned.");
 
             // Permission check.
             Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
@@ -277,8 +276,6 @@ namespace AElf.Contracts.Election
 
             var oldPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.OldPubkey));
             var newPubkeyBytes = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.NewPubkey));
-
-            Assert(!State.BlackList.Value.Value.Contains(newPubkeyBytes), "New pubkey is in black list.");
 
             //     Remove origin pubkey from Candidates, DataCentersRankingList and InitialMiners; then add new pubkey.
             var candidates = State.Candidates.Value;
@@ -323,10 +320,8 @@ namespace AElf.Contracts.Election
                 State.CandidateInformationMap.Remove(input.OldPubkey);
             }
 
-            //     Add origin pubkey to black list.
-            var blackList = State.BlackList.Value;
-            blackList.Value.Add(oldPubkeyBytes);
-            State.BlackList.Value = blackList;
+            //     Ban old pubkey.
+            State.BannedPubkeyMap[input.OldPubkey] = true;
 
             Context.Fire(new CandidatePubkeyReplaced
             {
