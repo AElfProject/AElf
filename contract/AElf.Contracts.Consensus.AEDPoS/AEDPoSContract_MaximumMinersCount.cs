@@ -21,13 +21,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             TryToGetCurrentRoundInformation(out Round round);
 
+            State.MaximumMinersCount.Value = input.Value;
             State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
             {
                 MinersCount = GetMinersCount(round)
             });
-            
 
-            State.MaximumMinersCount.Value = input.Value;
             return new Empty();
         }
 
