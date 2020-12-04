@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -69,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 var smartContractRegistration =
                     await _smartContractRegistrationProvider.GetSmartContractRegistrationAsync(chainContext, address);
-                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash ||
+                if (smartContractRegistration != null && smartContractRegistration.CodeHash == executive.ContractHash && pool.Count < ExecutiveClearLimit||
                     chainContext.BlockHeight <= AElfConstants.GenesisBlockHeight)
                 {
                     executive.LastUsedTime = TimestampHelper.GetUtcNow();
@@ -94,17 +95,32 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void CleanIdleExecutive()
         {
-            foreach (var executivePool in _smartContractExecutiveProvider.GetExecutivePools())
+            var pools = _smartContractExecutiveProvider.GetExecutivePools();
+            Logger.LogDebug($"Pools count {pools.Count}");
+            var toBeRemoved = new List<Address>();
+            foreach (var executivePool in pools)
             {
                 var executiveBag = executivePool.Value;
-                if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Min(o => o.LastUsedTime) <
+                if (executiveBag.Count == 0)
+                    continue;
+                
+                if (executiveBag.Count > ExecutiveClearLimit || executiveBag.Min(o => o.LastUsedTime) <
                     TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
                 {
                     if (executiveBag.TryTake(out _))
                     {
                         Logger.LogDebug($"Cleaned an idle executive for address {executivePool.Key}.");
                     }
+                    
+                    if (executiveBag.IsEmpty)
+                        toBeRemoved.Add(executivePool.Key);
                 }
+            }
+
+            // clean empty pools
+            foreach (var address in toBeRemoved)
+            {
+                CleanExecutive(address);
             }
         }
 

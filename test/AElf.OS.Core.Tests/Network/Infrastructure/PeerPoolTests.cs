@@ -83,12 +83,14 @@ namespace AElf.OS.Network.Infrastructure
             var mockPubkeyOne = "pub1";
             var mockPubkeyTwo = "pub2";
             
-            _peerPool.AddHandshakingPeer(commonHost, mockPubkeyOne);
-            _peerPool.AddHandshakingPeer(commonHost, mockPubkeyTwo);
+            var addResult1 =_peerPool.AddHandshakingPeer(commonHost, mockPubkeyOne);
+            addResult1.ShouldBeTrue();
+            var addResult2 = _peerPool.AddHandshakingPeer(commonHost, mockPubkeyTwo);
+            addResult2.ShouldBeFalse();
 
             _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out var peers);
-            peers.Values.Count.ShouldBe(2);
-            peers.Values.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
+            peers.Values.Count.ShouldBe(1);
+            peers.Values.ShouldContain(mockPubkeyOne);
         }
 
         [Fact]
@@ -105,10 +107,10 @@ namespace AElf.OS.Network.Infrastructure
             
             _peerPool.RemoveHandshakingPeer(commonHost, "NotExist").ShouldBeFalse();
             _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyOne).ShouldBeTrue();
-            _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out _).ShouldBeTrue();
+            _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out _).ShouldBeFalse();
             
             // remove last should remove entry
-            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyTwo).ShouldBeTrue();
+            _peerPool.RemoveHandshakingPeer(commonHost, mockPubkeyTwo).ShouldBeFalse();
             _peerPool.GetHandshakingPeers().TryGetValue(commonHost, out _).ShouldBeFalse();
 
         }
