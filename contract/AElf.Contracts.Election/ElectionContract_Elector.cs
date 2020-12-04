@@ -288,8 +288,26 @@ namespace AElf.Contracts.Election
             if (dataCenterList.DataCenters.ContainsKey(input.CandidatePubkey))
                 dataCenterList.DataCenters[input.CandidatePubkey] =
                     dataCenterList.DataCenters[input.CandidatePubkey].Add(votingRecord.Amount);
+            else if (dataCenterList.DataCenters.Count < GetValidationDataCenterCount())
+            {
+                // add data center
+                dataCenterList.DataCenters.Add(input.CandidatePubkey,
+                    State.CandidateVotes[input.CandidatePubkey].ObtainedActiveVotedVotesAmount);
+
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary =
+                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
+                        Shares = 1
+                    }
+                });
+            }
             else
                 IsCandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
+            
             if (dataCenterList.DataCenters.ContainsKey(newestPubkey))
             {
                 dataCenterList.DataCenters[newestPubkey] =
