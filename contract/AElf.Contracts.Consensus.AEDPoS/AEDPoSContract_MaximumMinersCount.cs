@@ -18,14 +18,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             RequiredMaximumMinersCountControllerSet();
             Assert(Context.Sender == State.MaximumMinersCountController.Value.OwnerAddress,
                 "No permission to set max miners count.");
-            // Only update miners count if 1) Max Miners Count is decreased; 2) Input value is less than auto Increasing miners count
-            if (State.MaximumMinersCount.Value > input.Value && GetAutoIncreasedMinersCount() > input.Value)
+            
+            State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
             {
-                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                {
-                    MinersCount = input.Value
-                });
-            }
+                MinersCount = input.Value
+            });
+            
 
             State.MaximumMinersCount.Value = input.Value;
             return new Empty();
