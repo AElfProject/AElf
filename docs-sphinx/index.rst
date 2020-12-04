@@ -12,7 +12,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Getting Started
-   :maxdepth: 3
+   :maxdepth: 2
 
    Development Environment <getting-started/development-environment/index>
    Smart Contract Development <getting-started/smart-contract-development/index>
@@ -20,7 +20,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Tutorials
-   :maxdepth: 3
+   :maxdepth: 2
 
    AElf Blockchain Boot Sequence <tutorials/boot-sequence>
    Joining AElf's MainNet/TestNet <tutorials/testnet>
@@ -31,7 +31,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Protocol
-   :maxdepth: 3
+   :maxdepth: 2
 
    Consensus <protocol/consensus>
    Network <protocol/network>
@@ -41,7 +41,7 @@ Welcome to first doc's documentation!
 
 .. toctree::
    :caption: Architecture
-   :maxdepth: 3
+   :maxdepth: 2
 
    Core <architecture/core/index>
    Cross-chain <architecture/cross-chain/index>
