@@ -84,4 +84,6 @@ AEDPoS mining nodes are elected in a way that resembles representative democracy
 
 ## Irreversible Block
 
-todo
+Which means there're always some block links (a block height to its hash value) can never be reversible.
+
+The block link currently is double confirmed by the AEDPoS mechanism during the Round changes.

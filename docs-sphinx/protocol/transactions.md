@@ -91,14 +91,41 @@ The unique identity of a transaction. Transaction Id consists of a cryptographic
 
 Note that the Transaction Id of transactions will be the same if the sender broadcasted several transactions with the same origin data, and then these transactions will be regarded as one transaction even though broadcasting several times.
 
-## Transaction Lifetime
-
 ### Verify
+
+One transaction now is verified by the node before forwarding this transaction to other nodes. If the transaction execution is failed, the node won't forward this transaction nor package this transaction to the producing block.
+
+We have several transaction validationi providers such as:
+
+- BasicTransactionValidationProvider. To verify the transaction signature and size.
+
+- TransactionExecutionValidationProvider. To pre-execute this transaction before forwarding this transaction or really packaging this transaction to new block.
+
+- TransactionMethodValidationProvider. To prevent transaction which call view-only contract method from packaging to new block.
 
 ### Execution
 
+In AElf, the transaction is executed via .net reflection mechanism.
+
+Besides, we have some transaction execution plugins in AElf main net. The execution plugins contain pre-execution plugins and post-execution plugins.
+
+- FeeChargePreExecutionPlugin. This plugin is for charging method fees from transaction sender.
+
+- MethodCallingThresholdPreExecutionPlugin. This plugin is for checking the calling threshold of a specific contract or contract method.
+
+- ResourceConsumptionPostExecutionPlugin. This plugin is for charging resource tokens from called contract after transaction execution (thus we can know how much resource tokens are cost during the execution.)
+
 ### TransactionResult
 
+Data structure of TransactionResult:
 
-
-todo
+```protobuf
+message TransactionResourceInfo {
+    repeated aelf.ScopedStatePath write_paths = 1;
+    repeated aelf.ScopedStatePath read_paths = 2;
+    ParallelType parallel_type = 3;
+    aelf.Hash transaction_id = 4;
+    aelf.Hash contract_hash = 5;
+    bool is_nonparallel_contract_code = 6;
+}
+```
