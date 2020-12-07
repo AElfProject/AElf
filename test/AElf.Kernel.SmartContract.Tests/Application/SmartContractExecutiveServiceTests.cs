@@ -201,20 +201,21 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractExecutiveProvider.TryGetValue(address, out pool);
             pool.Count.ShouldBe(11);
             _smartContractExecutiveService.CleanIdleExecutive();
+            pool.Count.ShouldBe(10);
             _smartContractExecutiveProvider.TryGetValue(address, out pool);
-            pool.Count.ShouldBe(11);
+            pool.Count.ShouldBe(10);
             
             pool.TryPeek(out var item);
             item.LastUsedTime = item.LastUsedTime.AddHours(-2);
             _smartContractExecutiveService.CleanIdleExecutive();
             _smartContractExecutiveProvider.TryGetValue(address, out pool);
-            pool.Count.ShouldBe(10);
+            pool.Count.ShouldBe(9);
             
             pool.TryPeek(out item);
             item.LastUsedTime = item.LastUsedTime.AddHours(-2);
             _smartContractExecutiveService.CleanIdleExecutive();
             _smartContractExecutiveProvider.TryGetValue(address, out pool);
-            pool.Count.ShouldBe(10);
+            pool.Count.ShouldBe(8);
         }
         [Fact]
         public async Task Put_Executive_Success()

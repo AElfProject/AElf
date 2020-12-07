@@ -52,11 +52,6 @@ service TokenConverterContract {
     rpc ChangeConnectorController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
     
-    // Query the address of fee receiver.
-    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    
     // Query the pair connector according to token symbol.
     rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
         option (aelf.is_view) = true;

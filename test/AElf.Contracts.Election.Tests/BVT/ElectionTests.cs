@@ -1186,7 +1186,6 @@ namespace AElf.Contracts.Election
             profitDetailOfTheOut.Details[0].EndPeriod.ShouldBe(0);
         }
         
-        
         [Fact]
         public async Task ElectionContract_UpdateMinerCount_ReduceBp_Test()
         {
@@ -1198,12 +1197,13 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
+            var minerCount = 3;
+            await NextRound(InitialCoreDataCenterKeyPairs[0]);
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
-            var minerCount = 3;
             var diffCount = fullCount.Sub(minerCount.Mul(5));
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
@@ -1216,12 +1216,13 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].EndPeriod.ShouldNotBe(0);
                 profitDetail.Details.Count.ShouldBe(1);
             }
-
             await ResetMinerCount(minerCount);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             var newMinerCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
             newMinerCount.Value.ShouldBe(minerCount);
-            var dataCenterListAfterReduceBp = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
-            
+            var dataCenterListAfterReduceBp =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+
             dataCenterList.DataCenters.Count.Sub(dataCenterListAfterReduceBp.DataCenters.Count).ShouldBe(diffCount);
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
             {
@@ -1248,6 +1249,7 @@ namespace AElf.Contracts.Election
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
         }
+        
         #endregion
     }
 }
