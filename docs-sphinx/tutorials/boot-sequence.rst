@@ -117,7 +117,7 @@ full node account has enough tokens, 20W ELF:
    {
      "symbol": "ELF",
      "owner": "Q3t34SAEsxAQrSQidTRzDonWNTPpSTgH8bqu8pQUGCSWRPdRC",
-     "balance": "2000000000000"
+     "balance": "20000000000000"
    } 
 
 Full node announces election with admin specified in params:

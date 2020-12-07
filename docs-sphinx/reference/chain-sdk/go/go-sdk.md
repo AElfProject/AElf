@@ -15,7 +15,7 @@ If you need more information you can check out the repo : [aelf-sdk.go](https://
 First you need to get aelf-sdk.go:
 
 ```
-go get -u github.com/AElfProject/aelf-sdk.go
+> go get -u github.com/AElfProject/aelf-sdk.go
 ```
 
 ## Examples
@@ -60,6 +60,7 @@ transaction.Signature = signature
 transactionByets, _ := proto.Marshal(transaction)
 sendResult, _ := aelf.SendTransaction(hex.EncodeToString(transactionByets))
 
+time.Sleep(time.Duration(4) * time.Second)
 transactionResult, _ := aelf.GetTransactionResult(sendResult.TransactionID)
 fmt.Println(transactionResult)
 
