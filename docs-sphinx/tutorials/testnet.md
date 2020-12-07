@@ -158,9 +158,7 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
             "testnet-mainchain-1.aelf.io:6800",
             "testnet-mainchain-2.aelf.io:6800"
         ],
-        "ListeningPort": 6800,
-        "NetAllowed": "",
-        "NetWhitelist": []
+        "ListeningPort": 6800
     }
 }
 ```
@@ -302,9 +300,7 @@ bootnodes that are available:
         "BootNodes": [
             "Add the right boot node according sidechain"
         ],
-        "ListeningPort": 6800,
-        "NetAllowed": "",
-        "NetWhitelist": []
+        "ListeningPort": 6800
     }
 }
 ```
