@@ -1186,68 +1186,6 @@ namespace AElf.Contracts.Election
             profitDetailOfTheOut.Details[0].EndPeriod.ShouldBe(0);
         }
         
-        
-        [Fact]
-        public async Task ElectionContract_UpdateMinerCount_ReduceBp_Test()
-        {
-            var voter = VoterKeyPairs.First();
-            var voteAmount = 100;
-            var span = 100;
-            var lockTime = 120 * 60 * 60 * 24;
-            var fullCount = 5.Mul(5);
-            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
-            {
-                await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
-                voteAmount = voteAmount.Add(span);
-            }
-            var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
-            dataCenterList.DataCenters.Count.ShouldBe(fullCount);
-            var minerCount = 3;
-            var diffCount = fullCount.Sub(minerCount.Mul(5));
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
-            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
-            {
-                var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-                {
-                    SchemeId = subsidy,
-                    Beneficiary = Address.FromPublicKey(keyPair.PublicKey)
-                });
-                profitDetail.Details[0].EndPeriod.ShouldNotBe(0);
-                profitDetail.Details.Count.ShouldBe(1);
-            }
-
-            await ResetMinerCount(minerCount);
-            var newMinerCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
-            newMinerCount.Value.ShouldBe(minerCount);
-            var dataCenterListAfterReduceBp = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
-            
-            dataCenterList.DataCenters.Count.Sub(dataCenterListAfterReduceBp.DataCenters.Count).ShouldBe(diffCount);
-            foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
-            {
-                dataCenterListAfterReduceBp.DataCenters.ContainsKey(keyPair.PublicKey.ToHex()).ShouldBeFalse();
-                var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-                {
-                    SchemeId = subsidy,
-                    Beneficiary = Address.FromPublicKey(keyPair.PublicKey)
-                });
-                profitDetail.Details[0].EndPeriod.ShouldBe(0);
-            }
-        }
-
-        private async Task ResetMinerCount(int count)
-        {
-            var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var proposalMethodName = nameof(AEDPoSContractStub.SetMaximumMinersCount);
-            var param = new Int32Value
-            {
-                Value = count
-            };
-            var proposalId = await CreateProposalAsync(ConsensusContractAddress,
-                defaultParliament, proposalMethodName, param);
-            await ApproveWithMinersAsync(proposalId);
-            await ParliamentContractStub.Release.SendAsync(proposalId);
-        }
         #endregion
     }
 }
