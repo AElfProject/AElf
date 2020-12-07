@@ -204,7 +204,7 @@ namespace AElf.Contracts.Election
                 if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
                     rankingList.DataCenters[input.Pubkey] = 0;
-                    IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey);
+                    IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey, true);
                     State.DataCentersRankingList.Value = rankingList;
                 }
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");

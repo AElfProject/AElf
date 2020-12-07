@@ -179,7 +179,7 @@ namespace AElf.Contracts.Election
             if (dataCenterList.DataCenters.ContainsKey(pubkey))
             {
                 dataCenterList.DataCenters[pubkey] = 0;
-                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, pubkey);
+                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, pubkey, true);
                 State.DataCentersRankingList.Value = dataCenterList;
             }
 
