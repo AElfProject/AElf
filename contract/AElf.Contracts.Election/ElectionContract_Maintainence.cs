@@ -293,6 +293,28 @@ namespace AElf.Contracts.Election
                 rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
                 rankingList.DataCenters.Remove(input.OldPubkey);
                 State.DataCentersRankingList.Value = rankingList;
+                
+                // Notify Profit Contract to update backup subsidy profiting item.
+                if (State.ProfitContract.Value == null)
+                {
+                    State.ProfitContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                }
+                
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(oldPubkeyBytes.ToByteArray())
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = Address.FromPublicKey(newPubkeyBytes.ToByteArray()),
+                        Shares = 1
+                    }
+                });
             }
 
             var initialMiners = State.InitialMiners.Value;
@@ -355,27 +377,6 @@ namespace AElf.Contracts.Election
             {
                 OldPubkey = oldPubkey,
                 NewPubkey = newPubkey
-            });
-
-            // Notify Profit Contract to update backup subsidy profiting item.
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldPubkey))
-            });
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)),
-                    Shares = 1
-                }
             });
 
             // Notify Vote Contract to replace option if this is not the initial miner case.
