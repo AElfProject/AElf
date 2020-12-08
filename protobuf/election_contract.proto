@@ -435,7 +435,6 @@ message SetTreasurySchemeIdsInput {
 message DataCenterRankingList {
     // The top n * 5 candidates with vote amount, candidate public key -> vote amount.
     map<string, int64> data_centers = 1;
-    int64 minimum_votes = 2;
 }
 
 message VoteWeightInterest{

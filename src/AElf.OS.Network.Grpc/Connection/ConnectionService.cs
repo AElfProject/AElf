@@ -189,7 +189,7 @@ namespace AElf.OS.Network.Grpc
                 }
                 else
                 {
-                    Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
+                    Logger.LogDebug($"Peer with endpoint {endpoint} is already in the pool.");
                     return null; 
                 }
             }
@@ -202,7 +202,7 @@ namespace AElf.OS.Network.Grpc
 
             if (_peerPool.IsOverIpLimit(endpoint.Host))
             {
-                Logger.LogWarning($"{endpoint.Host} - peer pool is full.");
+                Logger.LogDebug($"{endpoint.Host} is over ip limit.");
                 return null;
             }
 
