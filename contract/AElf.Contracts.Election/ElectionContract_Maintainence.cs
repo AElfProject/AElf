@@ -200,14 +200,13 @@ namespace AElf.Contracts.Election
             {
                 var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BannedPubkeyMap[input.Pubkey] = true;
-                if (State.ProfitContract.Value == null)
-                    State.ProfitContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                var rankingList = State.DataCentersRankingList.Value;
+                if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
-                    SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Address.FromPublicKey(publicKeyByte)
-                });
+                    rankingList.DataCenters[input.Pubkey] = 0;
+                    IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey, true);
+                    State.DataCentersRankingList.Value = rankingList;
+                }
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
                 Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
                 State.CandidateInformationMap.Remove(input.Pubkey);
@@ -247,6 +246,7 @@ namespace AElf.Contracts.Election
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
+            SyncSubsidyInfoAfterReduceMiner();
             return new Empty();
         }
 
@@ -293,6 +293,28 @@ namespace AElf.Contracts.Election
                 rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
                 rankingList.DataCenters.Remove(input.OldPubkey);
                 State.DataCentersRankingList.Value = rankingList;
+                
+                // Notify Profit Contract to update backup subsidy profiting item.
+                if (State.ProfitContract.Value == null)
+                {
+                    State.ProfitContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                }
+                
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(oldPubkeyBytes.ToByteArray())
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = Address.FromPublicKey(newPubkeyBytes.ToByteArray()),
+                        Shares = 1
+                    }
+                });
             }
 
             var initialMiners = State.InitialMiners.Value;
@@ -357,27 +379,6 @@ namespace AElf.Contracts.Election
                 NewPubkey = newPubkey
             });
 
-            // Notify Profit Contract to update backup subsidy profiting item.
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(oldPubkey))
-            });
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(newPubkey)),
-                    Shares = 1
-                }
-            });
-
             // Notify Vote Contract to replace option if this is not the initial miner case.
             if (!State.InitialMiners.Value.Value.Contains(
                 ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey))))
@@ -406,6 +407,29 @@ namespace AElf.Contracts.Election
         {
             var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
             return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
+        }
+        
+        private void SyncSubsidyInfoAfterReduceMiner()
+        {
+            var rankingList = State.DataCentersRankingList.Value;
+            if (rankingList == null)
+                return;
+            var validDataCenterCount = GetValidationDataCenterCount();
+            if (rankingList.DataCenters.Count <= validDataCenterCount) return;
+            Context.LogDebug(() => "sync DataCenter after reduce bp");
+            var diffCount = rankingList.DataCenters.Count.Sub(validDataCenterCount);
+            var toRemoveList = rankingList.DataCenters.OrderBy(x => x.Value)
+                .Take(diffCount).ToList();
+            foreach (var kv in toRemoveList)
+            {
+                rankingList.DataCenters.Remove(kv.Key);
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(kv.Key))
+                });
+            }
+            State.DataCentersRankingList.Value = rankingList;
         }
     }
 }
