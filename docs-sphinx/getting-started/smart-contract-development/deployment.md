@@ -12,9 +12,7 @@ It is determined since the launch of the chain.
 
 This part will introduce contract deployment pipeline for different chain type on AElf mainnet/testnet/customnet network. 
 
-## Authority check
-
-### `ContractDeploymentAuthorityRequired` is false
+## `ContractDeploymentAuthorityRequired` is false
 
 Anyone can directly deploy contract with transaction if `ContractDeploymentAuthorityRequired` is false. 
 It is usually set as false especially when it is for contract unit test or custom network. 
@@ -33,7 +31,7 @@ The return value of this transaction indicates the address of the deployed contr
 for c# contract and provide your contract dll bytes.
  
 
-### `ContractDeploymentAuthorityRequired` is true
+## `ContractDeploymentAuthorityRequired` is true
 
 `ContractDeploymentAuthorityRequired` is always true when it comes to public networks(Mainnet/Testnet). 
 And contract pipelines are distinguished for different chain types. But for sure, no one can directly deploy.

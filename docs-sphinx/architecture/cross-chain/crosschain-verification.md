@@ -30,7 +30,7 @@ hash calculated from its children values until to the tree root.
 
 ![image](merkle.png)
 
-Merkle root
+Merkle roots
 ------------
 
 When a transaction gets included in a side chain's block the block will also include

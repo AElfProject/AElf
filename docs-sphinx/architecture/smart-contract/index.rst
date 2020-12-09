@@ -2,7 +2,6 @@ Smart contract
 =====================================
 
 .. toctree::
-   :maxdepth: 3
 
    Architecture <architecture>
    Service <service>

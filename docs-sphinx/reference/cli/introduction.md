@@ -81,7 +81,6 @@ Examples:
 
 ```bash
 $ aelf-command console -a 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
-✔ Enter the the URI of an AElf node: http://127.0.0.1:8000
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Succeed!
 Welcome to aelf interactive console. Ctrl + C to terminate the program. Double tap Tab to list objects
@@ -104,7 +103,6 @@ Any missed parameters you did not give in CLI parameters will be asked in a prom
 
 ```bash
 $ aelf-command console
-✔ Enter the the URI of an AElf node: http://127.0.0.1:8000
 ✔ Enter a valid wallet address, if you don\'t have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Succeed!

@@ -1,7 +1,6 @@
 AElf.CSharp.Core
 ================
 
-
 Contents
 --------
 

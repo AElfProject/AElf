@@ -2,7 +2,6 @@ Development Environment
 ===================================== 
 
 .. toctree::
-   :maxdepth: 3
 
    Environment Setup <environment-setup>
    Single Node <docker>

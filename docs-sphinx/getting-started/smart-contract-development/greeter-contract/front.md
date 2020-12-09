@@ -136,3 +136,7 @@ The following snippet shows how to call a view method on the contract:
 ```
 
 Here the **getContract** retrieves the greeter contract instance. On the instance, it calls **GetGreetedList** with ".call" appended to it, which will indicate a read-only execution (no broadcasted transaction).
+
+## Next
+
+This first series of tutorials showed you an end-to-end example of a dApp implemented with Boilerplate. Further tutorials will give more in-depth explanations about some aspect of the contracts.

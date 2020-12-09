@@ -8,13 +8,11 @@ Before we get started with the examples, it's important to know a little about t
 
 ```protobuf
 message Transaction {
-    Address from = 1;            // the address of the signer
-    Address to = 2;              // the address of the target contract
-    int64 ref_block_number = 3;  // the block number
-    bytes ref_block_prefix = 4;  // the block prefix info
-    string method_name = 5;      // the method to execute
-    bytes params = 6;            // the parameters to pass to the method
-    bytes signature = 10000;     // the signature of this transaction (by the Sender)
+    Address from;       // the address of the signer
+    Address to;         // the address of the target contract 
+    string method_name; // the method to execute
+    bytes params;       // the parameters to pass to the method 
+    bytes signature;    // the signature of this transaction (by the Sender)
 }
 ```
 
@@ -114,3 +112,7 @@ public override Empty Vote(VoteMinerInput input)
     var recoveredPublicKey = Context.RecoverPublicKey();
 }
 ```
+
+## Next
+
+The execution context also exposes functionality for sending inline transactions; the next article will give you more details on how to generate inline calls.

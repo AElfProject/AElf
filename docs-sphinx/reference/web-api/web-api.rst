@@ -1032,26 +1032,24 @@ Name                       Schema
 **BlockHash** \ *optional* string
 **Body** \ *optional*      `BlockBodyDto <#blockbodydto>`__
 **Header** \ *optional*    `BlockHeaderDto <#blockheaderdto>`__
-**BlockSize** \ *optional* integer (int32)
 ========================== ====================================
 
 BlockHeaderDto
 ^^^^^^^^^^^^^^
 
-================================================= ==================
-Name                                              Schema
-================================================= ==================
-**Bloom** \ *optional*                            string
-**ChainId** \ *optional*                          string
-**Extra** \ *optional*                            string
-**Height** \ *optional*                           integer (int64)
-**MerkleTreeRootOfTransactions** \ *optional*     string
-**MerkleTreeRootOfWorldState** \ *optional*       string
-**MerkleTreeRootOfTransactionState** \ *optional* string
-**PreviousBlockHash** \ *optional*                string
-**SignerPubkey** \ *optional*                     string
-**Time** \ *optional*                             string (date-time)
-================================================= ==================
+============================================= ==================
+Name                                          Schema
+============================================= ==================
+**Bloom** \ *optional*                        string
+**ChainId** \ *optional*                      string
+**Extra** \ *optional*                        string
+**Height** \ *optional*                       integer (int64)
+**MerkleTreeRootOfTransactions** \ *optional* string
+**MerkleTreeRootOfWorldState** \ *optional*   string
+**PreviousBlockHash** \ *optional*            string
+**SignerPubkey** \ *optional*                 string
+**Time** \ *optional*                         string (date-time)
+============================================= ==================
 
 BlockStateDto
 ^^^^^^^^^^^^^
@@ -1260,8 +1258,6 @@ PeerDto
 |                                  | `RequestMetric <#requestmetric>`__|
 |                                  | > array                           |
 +----------------------------------+-----------------------------------+
-| **ConnectionStatus** \ *optional*| string                            |
-+----------------------------------+-----------------------------------+
 
 RequestMetric
 ^^^^^^^^^^^^^
@@ -1397,17 +1393,16 @@ Name                            Schema
 TransactionResultDto
 ^^^^^^^^^^^^^^^^^^^^
 
-================================ ========================================
-Name                             Schema
-================================ ========================================
-**BlockHash** \ *optional*       string
-**BlockNumber** \ *optional*     integer (int64)
-**Bloom** \ *optional*           string
-**Error** \ *optional*           string
-**Logs** \ *optional*            < `LogEventDto <#logeventdto>`__ > array
-**ReturnValue** \ *optional*     string
-**Status** \ *optional*          string
-**Transaction** \ *optional*     `TransactionDto <#transactiondto>`__
-**TransactionId** \ *optional*   string
-**TransactionSize** \ *optional* integer (int32)
-================================ ========================================
+============================== ========================================
+Name                           Schema
+============================== ========================================
+**BlockHash** \ *optional*     string
+**BlockNumber** \ *optional*   integer (int64)
+**Bloom** \ *optional*         string
+**Error** \ *optional*         string
+**Logs** \ *optional*          < `LogEventDto <#logeventdto>`__ > array
+**ReturnValue** \ *optional*   string
+**Status** \ *optional*        string
+**Transaction** \ *optional*   `TransactionDto <#transactiondto>`__
+**TransactionId** \ *optional* string
+============================== ========================================

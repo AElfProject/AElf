@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to AElf's official documentation!
-=========================================   
+Welcome to first doc's documentation!
+=====================================   
 
 .. toctree::
 
@@ -12,7 +12,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Getting Started
-   :maxdepth: 2
 
    Development Environment <getting-started/development-environment/index>
    Smart Contract Development <getting-started/smart-contract-development/index>
@@ -20,7 +19,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Tutorials
-   :maxdepth: 2
 
    AElf Blockchain Boot Sequence <tutorials/boot-sequence>
    Joining AElf's MainNet/TestNet <tutorials/testnet>
@@ -31,7 +29,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Protocol
-   :maxdepth: 2
 
    Consensus <protocol/consensus>
    Network <protocol/network>
@@ -41,7 +38,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Architecture
-   :maxdepth: 2
 
    Core <architecture/core/index>
    Cross-chain <architecture/cross-chain/index>
@@ -50,7 +46,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Reference
-   :maxdepth: 2
 
    Web API <reference/web-api/web-api>
    Chain SDK <reference/chain-sdk/index>
@@ -62,7 +57,6 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :caption: Resources
-   :maxdepth: 2
 
    Wallet and Block Explorer <resources/wallet-and-explorer/index>
    Browser Extension <resources/browser-extension>
@@ -73,8 +67,8 @@ Welcome to AElf's official documentation!
 
 .. toctree::
    :hidden:
-   :maxdepth: 2
-
+   
    tutorials/cross-chain/running-side-chain
    tutorials/__run-node
+   reference/cli/cli
    getting-started/smart-contract-development/developing-smart-contracts/index

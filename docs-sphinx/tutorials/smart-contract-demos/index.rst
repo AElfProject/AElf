@@ -2,6 +2,6 @@ Smart Contract Developing Demos
 ===================================== 
 
 .. toctree::
-   :maxdepth: 3
+   :caption: Smart Contract Developing Demos
 
    Bingo Game Contract <bingo-game>

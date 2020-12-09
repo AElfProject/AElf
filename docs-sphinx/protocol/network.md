@@ -1,12 +1,12 @@
 # Network
 
-## Introduction
+## 1. Introduction
 
 The role that the network layer plays in AElf is very important, it maintains active and healthy connections to other peers of the network and is of course the medium through which nodes communicate and follow the chain protocol. The network layer also implements interfaces for higher-level logic like the synchronization code and also exposes some functionality for the node operator to administer and monitor network operations.
 
 The design goals when designing AElf’s network layer was to avoid “reinventing the wheel” and keep things as simply possible, we ended up choosing gRPC to implement the connections in AElf. Also, it was important to isolate the actual implementation (the framework used) from the contract (the interfaces exposed to the higher-level layers) to make it possible to switch implementation in the future without breaking anything.
 
-## Architecture
+## 2. Architecture
 
 This section will present a summary of the different layers that are involved in network interactions.
 
@@ -23,7 +23,7 @@ The network is split into 3 different layers/projects, namely:
     - Launches events defined in the core
     - Low-level functionality: serialization, buffering, retrying...
 
-### AElf.OS
+### 2.1 AElf.OS
 
 At the AElf.OS layer, the network monitors events of interest to the network through event handlers, such as kernel layer transaction verification, block packaging, block execution success, and discovery of new libs. The handler will call NetworkService to broadcast this information to its connected peer. And it will run background workers to process network tasks regularly.
 
@@ -38,7 +38,7 @@ Currently, the AElf.OS layer will periodically process the following tasks.
 - Peer retry connection: peer with abnormal connection will try to reconnect.
 - Network node discovery: regularly discover more available nodes through the network.
 
-### AElf.OS.Core.Network
+### 2.2 AElf.OS.Core.Network
 AElf.OS.Core.Network is the core module of the network，contains services(service layer exposed to higher levels (OS)) and definitions (abstraction of the Infrastructure layer).
 - Application layer implementation: 
     - NetworkService: this service exposes and implements functionality that is used by higher layers like the sync and RPC modules. It takes care of the following:
@@ -51,7 +51,7 @@ AElf.OS.Core.Network is the core module of the network，contains services(servi
 - Definitions of types (network_types.proto and partial).
 - Defines the event that should be launched from the infrastructure layer’s implementation.
 
-### AElf.OS.Network.Grpc
+### 2.3 AElf.OS.Network.Grpc
 
 The AElf.OS.Network.Grpc layer is the network infrastructure layer that we implement using the gRPC framework.
 - GrpcPeer：implemented the interface IPeer defined by the AElf.OS.Core.Network layer
@@ -64,13 +64,13 @@ The AElf.OS.Network.Grpc layer is the network infrastructure layer that we imple
 
 In fact, gRPC is not the only option. Someone could if they wanted to replace the gRPC stack with a low-level socket API (like the one provided by the dotnet framework) and re-implement the needed functionality. As long as the contract (the interface) is respected, any suitable framework can be used if needed.
 
-## Protocol
+## 3. Protocol
 
 Each node implements the network interface protocol defined by AElf to ensure normal operation and data synchronization between nodes.
 
-### Connection
+### 3.1 Connection
 
-#### DoHandshake 
+#### 3.1.1 DoHandshake Interface
 
 When a node wants to connect with the current node, the current node receives the handshake information of the target node through the interface DoHandshake. After the current node verifies the handshake information, it returns the verification result and the handshake information of the current node to the target node.
 
@@ -164,7 +164,7 @@ rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
     - SIGNATURE_TIMEOUT: the signature data has timed out.
     <br/>
 
-#### 3.1.2 ConfirmHandshake 
+#### 3.1.2 ConfirmHandshake Interface
 
 When the target node verifies that it has passed the current node's handshake message, it sends the handshake confirmation message again.
 
@@ -177,9 +177,9 @@ message ConfirmHandshakeRequest {
 }
 ```
 
-### Broadcasting
+### 3.2 Broadcasting
 
-#### BlockBroadcastStream 
+#### 3.2.1 BlockBroadcastStream Interface
 
 The interface BlockCastStream is used to receive information about the block and its complete transaction after the BP node has packaged the block.
 
@@ -197,15 +197,15 @@ message BlockWithTransactions {
 - header:
 - transactions:
 
-#### TransactionBroadcastStream 
+#### 3.2.2 TransactionBroadcastStream Interface
 
- TransactionBroadcastStream used to receive other nodes forward transaction information.
+Interface TransactionBroadcastStream used to receive other nodes forward transaction information.
 
 ``` Protobuf
 rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
 ```
 
-#### AnnouncementBroadcastStream 
+#### 3.2.3 AnnouncementBroadcastStream Interface
 
 Interface AnnouncementBroadcastStream used to receive other nodes perform block after block information broadcast.
 
@@ -223,7 +223,7 @@ message BlockAnnouncement {
 - block_hash: the announced block hash.
 - block_height: the announced block height.
 
-#### LibAnnouncementBroadcastStream 
+#### 3.2.4 LibAnnouncementBroadcastStream Interface
 
 Interface LibAnnouncementBroadcastStream used to receive other nodes Lib changed Lib latest information broadcast.
 
@@ -241,9 +241,9 @@ message LibAnnouncement{
 - lib_hash: the announced last irreversible block hash.
 - lib_height: the announced last irreversible block height.
 
-### Block Request
+### 3.3 Block Request
 
-#### RequestBlock 
+#### 3.3.1 RequestBlock Interface
 
 The interface RequestBlock requests a single block in response to other nodes. Normally, the node receives block information packaged and broadcast by BP. However, if the block is not received for some other reason. The node may also receive BlockAnnouncement messages that are broadcast after the block has been executed by other nodes, so that the complete block information can be obtained by calling the RequestBlock interface of other peers.
 
@@ -272,7 +272,7 @@ rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     - block: the requested block, including complete block and transactions information.
     <br/>
 
-#### RequestBlocks 
+#### 3.3.2 RequestBlocks Interface
 
 The interface RequestBlock requests blocks in bulk in response to other nodes. When a node forks or falls behind, the node synchronizes blocks by bulk fetching a specified number of blocks to the RequestBlocks interface through which the target node is called.
 
@@ -301,9 +301,9 @@ rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     - blocks: the requested blocks, including complete blocks and transactions information.
     <br/>
 
-### Peer Management
+### 3.4 Peer Management
 
-#### Ping 
+#### 3.4.1 Ping Interface
 
 Interface Ping is used between nodes to verify that each other's network is available.
 
@@ -321,7 +321,7 @@ message PongReply {
 }
 ```
 
-#### CheckHealth 
+#### 3.4.2 CheckHealth Interface
 
 The interface CheckHealth is invoked for other nodes' health checks, and each node periodically traverses the available peers in its own Peer Pool to send health check requests and retries or disconnects if an exception in the Peer state is found.
 

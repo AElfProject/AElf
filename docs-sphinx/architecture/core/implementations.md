@@ -1,7 +1,7 @@
 Design principles:
 ==================
 
-![image](node-archi.png)
+![image](node-archi.png){.align-center width="300px"}
 
 The above diagram shows the conceptual structure of the node and the
 separation between OS and Kernel.

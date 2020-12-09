@@ -9,469 +9,50 @@ Interface
 If you want to customize the consensus mechanism, you need to implement
 the following five interfaces:
 
-Methods
-~~~~~~~
-
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Method Name                        | Request Type                                                   | Response Type                                                  | Description                                                                                                                                                                                                |
-+====================================+================================================================+================================================================+============================================================================================================================================================================================================+
-| GetConsensusCommand                | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ConsensusCommand <#acs4.ConsensusCommand>`__             | Generate a consensus command based on the consensus contract state and the input public key.                                                                                                               |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GetConsensusExtraData              | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | Generate consensus extra data when a block is generated.                                                                                                                                                   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| GenerateConsensusTransactions      | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.TransactionList <#acs4.TransactionList>`__               | Generate consensus system transactions when a block is generated. Each block will contain only one consensus transaction, which is used to write the latest consensus information to the State database.   |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusBeforeExecution   | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | Before executing the block, verify that the consensus information in the block header is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ValidateConsensusAfterExecution    | `google.protobuf.BytesValue <#google.protobuf.BytesValue>`__   | `acs4.ValidationResult <#acs4.ValidationResult>`__             | After executing the block, verify that the state information written to the consensus is correct.                                                                                                          |
-+------------------------------------+----------------------------------------------------------------+----------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-
-Types
-~~~~~
-
-.. raw:: html
-
-   <div id="acs4.ConsensusCommand">
-
-.. raw:: html
-
-   </div>
-
-acs4.ConsensusCommand
-^^^^^^^^^^^^^^^^^^^^^
-
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| Field                                    | Type                                                         | Description                                                                                  | Label   |
-+==========================================+==============================================================+==============================================================================================+=========+
-| limit\_milliseconds\_of\_mining\_block   | `int32 <#int32>`__                                           | Time limit of mining next block.                                                             |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| hint                                     | `bytes <#bytes>`__                                           | Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.   |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| arranged\_mining\_time                   | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The time of arrange mining.                                                                  |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-| mining\_due\_time                        | `google.protobuf.Timestamp <#google.protobuf.Timestamp>`__   | The expiration time of mining.                                                               |         |
-+------------------------------------------+--------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="acs4.TransactionList">
-
-.. raw:: html
-
-   </div>
-
-acs4.TransactionList
-^^^^^^^^^^^^^^^^^^^^
-
-+----------------+--------------------------------------------+----------------------------------+------------+
-| Field          | Type                                       | Description                      | Label      |
-+================+============================================+==================================+============+
-| transactions   | `aelf.Transaction <#aelf.Transaction>`__   | Consensus system transactions.   | repeated   |
-+----------------+--------------------------------------------+----------------------------------+------------+
-
-.. raw:: html
-
-   <div id="acs4.ValidationResult">
-
-.. raw:: html
-
-   </div>
-
-acs4.ValidationResult
-^^^^^^^^^^^^^^^^^^^^^
-
-+-------------------+------------------------+------------------------------------+---------+
-| Field             | Type                   | Description                        | Label   |
-+===================+========================+====================================+=========+
-| success           | `bool <#bool>`__       | Is successful.                     |         |
-+-------------------+------------------------+------------------------------------+---------+
-| message           | `string <#string>`__   | The error message.                 |         |
-+-------------------+------------------------+------------------------------------+---------+
-| is\_re\_trigger   | `bool <#bool>`__       | Whether to trigger mining again.   |         |
-+-------------------+------------------------+------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.Address">
-
-.. raw:: html
-
-   </div>
-
-aelf.Address
-^^^^^^^^^^^^
-
-+---------+----------------------+---------------+---------+
-| Field   | Type                 | Description   | Label   |
-+=========+======================+===============+=========+
-| value   | `bytes <#bytes>`__   |               |         |
-+---------+----------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.BinaryMerkleTree">
-
-.. raw:: html
-
-   </div>
-
-aelf.BinaryMerkleTree
-^^^^^^^^^^^^^^^^^^^^^
-
-+---------------+-------------------------+---------------------------+------------+
-| Field         | Type                    | Description               | Label      |
-+===============+=========================+===========================+============+
-| nodes         | `Hash <#aelf.Hash>`__   | The leaf nodes.           | repeated   |
-+---------------+-------------------------+---------------------------+------------+
-| root          | `Hash <#aelf.Hash>`__   | The root node hash.       |            |
-+---------------+-------------------------+---------------------------+------------+
-| leaf\_count   | `int32 <#int32>`__      | The count of leaf node.   |            |
-+---------------+-------------------------+---------------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.Hash">
-
-.. raw:: html
-
-   </div>
-
-aelf.Hash
-^^^^^^^^^
-
-+---------+----------------------+---------------+---------+
-| Field   | Type                 | Description   | Label   |
-+=========+======================+===============+=========+
-| value   | `bytes <#bytes>`__   |               |         |
-+---------+----------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.LogEvent">
-
-.. raw:: html
-
-   </div>
-
-aelf.LogEvent
-^^^^^^^^^^^^^
-
-+----------------+-------------------------------+----------------------------------------------+------------+
-| Field          | Type                          | Description                                  | Label      |
-+================+===============================+==============================================+============+
-| address        | `Address <#aelf.Address>`__   | The contract address.                        |            |
-+----------------+-------------------------------+----------------------------------------------+------------+
-| name           | `string <#string>`__          | The name of the log event.                   |            |
-+----------------+-------------------------------+----------------------------------------------+------------+
-| indexed        | `bytes <#bytes>`__            | The indexed data, used to calculate bloom.   | repeated   |
-+----------------+-------------------------------+----------------------------------------------+------------+
-| non\_indexed   | `bytes <#bytes>`__            | The non indexed data.                        |            |
-+----------------+-------------------------------+----------------------------------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.MerklePath">
-
-.. raw:: html
-
-   </div>
-
-aelf.MerklePath
-^^^^^^^^^^^^^^^
-
-+-----------------------+---------------------------------------------+--------------------------+------------+
-| Field                 | Type                                        | Description              | Label      |
-+=======================+=============================================+==========================+============+
-| merkle\_path\_nodes   | `MerklePathNode <#aelf.MerklePathNode>`__   | The merkle path nodes.   | repeated   |
-+-----------------------+---------------------------------------------+--------------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.MerklePathNode">
-
-.. raw:: html
-
-   </div>
-
-aelf.MerklePathNode
-^^^^^^^^^^^^^^^^^^^
-
-+-------------------------+-------------------------+------------------------------------+---------+
-| Field                   | Type                    | Description                        | Label   |
-+=========================+=========================+====================================+=========+
-| hash                    | `Hash <#aelf.Hash>`__   | The node hash.                     |         |
-+-------------------------+-------------------------+------------------------------------+---------+
-| is\_left\_child\_node   | `bool <#bool>`__        | Whether it is a left child node.   |         |
-+-------------------------+-------------------------+------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.SInt32Value">
-
-.. raw:: html
-
-   </div>
-
-aelf.SInt32Value
-^^^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------+---------+
-| Field   | Type                   | Description   | Label   |
-+=========+========================+===============+=========+
-| value   | `sint32 <#sint32>`__   |               |         |
-+---------+------------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.SInt64Value">
-
-.. raw:: html
-
-   </div>
-
-aelf.SInt64Value
-^^^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------+---------+
-| Field   | Type                   | Description   | Label   |
-+=========+========================+===============+=========+
-| value   | `sint64 <#sint64>`__   |               |         |
-+---------+------------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.ScopedStatePath">
-
-.. raw:: html
-
-   </div>
-
-aelf.ScopedStatePath
-^^^^^^^^^^^^^^^^^^^^
-
-+-----------+-----------------------------------+----------------------------------------------------------+---------+
-| Field     | Type                              | Description                                              | Label   |
-+===========+===================================+==========================================================+=========+
-| address   | `Address <#aelf.Address>`__       | The scope address, which will be the contract address.   |         |
-+-----------+-----------------------------------+----------------------------------------------------------+---------+
-| path      | `StatePath <#aelf.StatePath>`__   | The path of contract state.                              |         |
-+-----------+-----------------------------------+----------------------------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.SmartContractRegistration">
-
-.. raw:: html
-
-   </div>
-
-aelf.SmartContractRegistration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+------------------------+-------------------------+-----------------------------------------+---------+
-| Field                  | Type                    | Description                             | Label   |
-+========================+=========================+=========================================+=========+
-| category               | `sint32 <#sint32>`__    | The category of contract code(0: C#).   |         |
-+------------------------+-------------------------+-----------------------------------------+---------+
-| code                   | `bytes <#bytes>`__      | The byte array of the contract code.    |         |
-+------------------------+-------------------------+-----------------------------------------+---------+
-| code\_hash             | `Hash <#aelf.Hash>`__   | The hash of the contract code.          |         |
-+------------------------+-------------------------+-----------------------------------------+---------+
-| is\_system\_contract   | `bool <#bool>`__        | Whether it is a system contract.        |         |
-+------------------------+-------------------------+-----------------------------------------+---------+
-| version                | `int32 <#int32>`__      | The version of the current contract.    |         |
-+------------------------+-------------------------+-----------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.StatePath">
-
-.. raw:: html
-
-   </div>
-
-aelf.StatePath
-^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------------------------------+------------+
-| Field   | Type                   | Description                           | Label      |
-+=========+========================+=======================================+============+
-| parts   | `string <#string>`__   | The partial path of the state path.   | repeated   |
-+---------+------------------------+---------------------------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.Transaction">
-
-.. raw:: html
-
-   </div>
-
-aelf.Transaction
-^^^^^^^^^^^^^^^^
-
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| Field                | Type                          | Description                                                                                                                                                                                        | Label   |
-+======================+===============================+====================================================================================================================================================================================================+=========+
-| from                 | `Address <#aelf.Address>`__   | The address of the sender of the transaction.                                                                                                                                                      |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| to                   | `Address <#aelf.Address>`__   | The address of the contract when calling a contract.                                                                                                                                               |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| ref\_block\_number   | `int64 <#int64>`__            | The height of the referenced block hash.                                                                                                                                                           |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| ref\_block\_prefix   | `bytes <#bytes>`__            | The first four bytes of the referenced block hash.                                                                                                                                                 |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| method\_name         | `string <#string>`__          | The name of a method in the smart contract at the To address.                                                                                                                                      |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| params               | `bytes <#bytes>`__            | The parameters to pass to the smart contract method.                                                                                                                                               |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-| signature            | `bytes <#bytes>`__            | When signing a transaction it’s actually a subset of the fields: from/to and the target method as well as the parameter that were given. It also contains the reference block number and prefix.   |         |
-+----------------------+-------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionExecutingStateSet">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionExecutingStateSet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------+---------------------------------------------------------------------------------------------------+-----------------------+------------+
-| Field     | Type                                                                                              | Description           | Label      |
-+===========+===================================================================================================+=======================+============+
-| writes    | `TransactionExecutingStateSet.WritesEntry <#aelf.TransactionExecutingStateSet.WritesEntry>`__     | The changed states.   | repeated   |
-+-----------+---------------------------------------------------------------------------------------------------+-----------------------+------------+
-| reads     | `TransactionExecutingStateSet.ReadsEntry <#aelf.TransactionExecutingStateSet.ReadsEntry>`__       | The read states.      | repeated   |
-+-----------+---------------------------------------------------------------------------------------------------+-----------------------+------------+
-| deletes   | `TransactionExecutingStateSet.DeletesEntry <#aelf.TransactionExecutingStateSet.DeletesEntry>`__   | The deleted states.   | repeated   |
-+-----------+---------------------------------------------------------------------------------------------------+-----------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionExecutingStateSet.DeletesEntry">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionExecutingStateSet.DeletesEntry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------+---------+
-| Field   | Type                   | Description   | Label   |
-+=========+========================+===============+=========+
-| key     | `string <#string>`__   |               |         |
-+---------+------------------------+---------------+---------+
-| value   | `bool <#bool>`__       |               |         |
-+---------+------------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionExecutingStateSet.ReadsEntry">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionExecutingStateSet.ReadsEntry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------+---------+
-| Field   | Type                   | Description   | Label   |
-+=========+========================+===============+=========+
-| key     | `string <#string>`__   |               |         |
-+---------+------------------------+---------------+---------+
-| value   | `bool <#bool>`__       |               |         |
-+---------+------------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionExecutingStateSet.WritesEntry">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionExecutingStateSet.WritesEntry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+---------+------------------------+---------------+---------+
-| Field   | Type                   | Description   | Label   |
-+=========+========================+===============+=========+
-| key     | `string <#string>`__   |               |         |
-+---------+------------------------+---------------+---------+
-| value   | `bytes <#bytes>`__     |               |         |
-+---------+------------------------+---------------+---------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionResult">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionResult
-^^^^^^^^^^^^^^^^^^^^^^
-
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| Field             | Type                                                          | Description                                                                                                                                                                                                                                                                | Label      |
-+===================+===============================================================+============================================================================================================================================================================================================================================================================+============+
-| transaction\_id   | `Hash <#aelf.Hash>`__                                         | The transaction id.                                                                                                                                                                                                                                                        |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| status            | `TransactionResultStatus <#aelf.TransactionResultStatus>`__   | The transaction result status.                                                                                                                                                                                                                                             |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| logs              | `LogEvent <#aelf.LogEvent>`__                                 | The log events.                                                                                                                                                                                                                                                            | repeated   |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| bloom             | `bytes <#bytes>`__                                            | Bloom filter for transaction logs. A transaction log event can be defined in the contract and stored in the bloom filter after the transaction is executed. Through this filter, we can quickly search for and determine whether a log exists in the transaction result.   |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| return\_value     | `bytes <#bytes>`__                                            | The return value of the transaction execution.                                                                                                                                                                                                                             |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| block\_number     | `int64 <#int64>`__                                            | The height of the block hat packages the transaction.                                                                                                                                                                                                                      |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| block\_hash       | `Hash <#aelf.Hash>`__                                         | The hash of the block hat packages the transaction.                                                                                                                                                                                                                        |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-| error             | `string <#string>`__                                          | Failed execution error message.                                                                                                                                                                                                                                            |            |
-+-------------------+---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------+
-
-.. raw:: html
-
-   <div id="aelf.TransactionResultStatus">
-
-.. raw:: html
-
-   </div>
-
-aelf.TransactionResultStatus
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| Name                       | Number   | Description                                                                         |
-+============================+==========+=====================================================================================+
-| NOT\_EXISTED               | 0        | The execution result of the transaction does not exist.                             |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| PENDING                    | 1        | The transaction is in the transaction pool waiting to be packaged.                  |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| FAILED                     | 2        | Transaction execution failed.                                                       |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| MINED                      | 3        | The transaction was successfully executed and successfully packaged into a block.   |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| CONFLICT                   | 4        | When executed in parallel, there are conflicts with other transactions.             |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| PENDING\_VALIDATION        | 5        | The transaction is waiting for validation.                                          |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-| NODE\_VALIDATION\_FAILED   | 6        | Transaction validation failed.                                                      |
-+----------------------------+----------+-------------------------------------------------------------------------------------+
-
+-  GetConsensusCommand, whose parameter is a binary array, returns
+   ConsensusCommand defined in acs4.proto. This type is used to indicate
+   the start time of the next block, the block time limit, and the final
+   cut-off time for the account calling GetConsensus Command;
+-  GetConsensusExtraData, the parameters and return values are binary
+   arrays, which are used to generate consensus block header information
+   through consensus contracts when a new block is produced;
+-  GenerateConsensusTransactions, the parameter is a binary array, and
+   the return value is of type TransactionList. It is used to generate a
+   consensus system transaction when a block is generated. Each block
+   will contain only one consensus transaction, which is used to write
+   the latest consensus information to the State database;
+-  ValidateConsensusBeforeExecution, the parameter is a binary array,
+   and the return value is of type ValidationResult, is used to verify
+   whether the consensus information in the block header is correct
+   before the block executes;
+-  ValidateConsensusAfterExecution, with the same parameter and return
+   value, is used to verify that the consensus information written to
+   the State is correct after the block executes.
+
+ConsensusCommand, ValidationResult and TransactionList are defined as:
+
+.. code:: proto
+
+   message ConsensusCommand {
+       int32 limit_milliseconds_of_mining_block = 1;// Time limit of mining next block.
+       bytes hint = 2;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
+       google.protobuf.Timestamp arranged_mining_time = 3;
+       google.protobuf.Timestamp mining_due_time = 4;
+   }
+   message ValidationResult {
+       bool success = 1;
+       string message = 2;
+       bool is_re_trigger = 3;
+   }
+   message TransactionList {
+       repeated aelf.Transaction transactions = 1;
+   }
 
 Usage
 -----
 
 The five interfaces defined in ACS4 basically correspond to the five
-methods of the ``IConsensusService`` interface in the ``AElf.Kernel.Consensus``
+methods of the IConsensusService interface in the AElf.Kernel.Consensus
 project:
 
 +-------------------------+-----------------------------+-----------------------------------------+------------------------------------+
@@ -603,10 +184,10 @@ project:
 ..      - The Timing To Call
 ..    * - GetConsensusCommand
 ..      - Task TriggerConsensusAsync(ChainContext chainContext)
-..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the ``GetConsensusCommand`` method of the consensus contract to obtain block information(``ConsensusCommand``), and use it to update the local consensus scheduler (see ``IConsensusScheduler`` implementation).
+..      - When TriggerConsensusAsync is called, it will use the account configured by the node to call the GetConsensusCommand method of the consensus contract to obtain block information(ConsensusCommand), and use it to update the local consensus scheduler (see IConsensusScheduler implementation).
 ..      - 1. When the node is started;
 
 Example
 -------
 
-You can refer to the implementation of the :doc:`AEDPoS contract <../smart-contract-api/consensus>`.
+You can refer to the implementation of the AEDPoS contract.
