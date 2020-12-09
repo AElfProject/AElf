@@ -1,4 +1,4 @@
-introduction
+Introduction
 ============
 
 One of the major issues with current blockchain systems is scalability.

@@ -128,12 +128,24 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
         }
-
+        
+        /// <summary>
+        /// Deploy a new smart contract (only the genesis contract can call it).
+        /// </summary>
+        /// <param name="address">The address of new smart contract.</param>
+        /// <param name="registration">The registration of the new smart contract.</param>
+        /// <param name="name">The hash value of the smart contract name.</param>
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             _smartContractBridgeContextImplementation.DeployContract(address, registration, name);
         }
 
+        /// <summary>
+        /// Update a smart contract (only the genesis contract can call it).
+        /// </summary>
+        /// <param name="address">The address of smart contract to update.</param>
+        /// <param name="registration">The registration of the smart contract to update.</param>
+        /// <param name="name">The hash value of the smart contract name to update.</param>
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
         {
             _smartContractBridgeContextImplementation.UpdateContract(address, registration, name);
@@ -293,16 +305,35 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.GenerateId(contractAddress, bytes);
         }
 
+        /// <summary>
+        /// Verify that the state size is within the valid value.
+        /// </summary>
+        /// <param name="obj">The state.</param>
+        /// <returns>The state.</returns>
+        /// <exception cref="T:AElf.Kernel.SmartContract.StateOverSizeException"> The state size exceeds the limit.</exception>
         public object ValidateStateSize(object obj)
         {
             return _smartContractBridgeContextImplementation.ValidateStateSize(obj);
         }
 
+        /// <summary>
+        /// Gets a random hash based on the input hash.
+        /// </summary>
+        /// <param name="fromHash">Hash.</param>
+        /// <returns>Random hash.</returns>
         public Hash GetRandomHash(Hash fromHash)
         {
             return _smartContractBridgeContextImplementation.GetRandomHash(fromHash);
         }
 
+        /// <summary>
+        /// Converts the input hash to a 64-bit signed integer.
+        /// </summary>
+        /// <param name="hash">The hash.</param>
+        /// <param name="start">The inclusive lower bound of the number returned.</param>
+        /// <param name="end">The exclusive upper bound of the number returned. endValue must be greater than or equal to startValue.</param>
+        /// <returns>The 64-bit signed integer.</returns>
+        /// <exception cref="T:System.ArgumentException"> startValue is less than 0 or greater than endValue.</exception>
         public long ConvertHashToInt64(Hash hash, long start = 0, long end = long.MaxValue)
         {
             return _smartContractBridgeContextImplementation.ConvertHashToInt64(hash, start, end);

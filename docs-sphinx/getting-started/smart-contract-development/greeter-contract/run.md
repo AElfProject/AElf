@@ -39,9 +39,4 @@ aelf-command get-chain-status
 
 This enables further testing of the contract, including testing it from a dApp.
 
-## Next
-
-We've just seen through this and the previous articles how to use Boilerplate in order to develop and test a smart contract. That said, these articles only show a subset of the possibilities. 
-
-The next article will demonstrate how to build a small front-end for the greeter contract.
 
