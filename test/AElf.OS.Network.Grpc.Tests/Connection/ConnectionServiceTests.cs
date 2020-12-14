@@ -287,10 +287,7 @@ namespace AElf.OS.Network.Grpc
             var handshake = CreateHandshake(keyPair, endpoint.Port);
             
             var result = await _connectionService.DoHandshakeAsync(endpoint, handshake);
-            result.Error.ShouldBe(HandshakeError.HandshakeOk);
-            
-            var peer = _peerPool.FindPeerByEndpoint(existPeer.RemoteEndpoint);
-            peer.ShouldBeNull();
+            result.Error.ShouldBe(HandshakeError.RepeatedConnection);
         }
         
         [Fact]

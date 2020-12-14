@@ -95,6 +95,23 @@ namespace AElf.OS.Worker
             var result = _peerPool.FindPeerByEndpoint(aelEndpoint);
             result.ShouldBeNull();
         }
+        
+        [Fact]
+        public async Task ProcessPeerDiscoveryJob_PeerIsInPeerPool_Test()
+        {
+            var node = new NodeInfo
+            {
+                Endpoint = "192.168.100.1:8001",
+                Pubkey = ByteString.CopyFromUtf8("PeerWithSamePubkeyNode")
+            };
+            await _peerDiscoveryService.AddNodeAsync(node);
+            
+            await RunDiscoveryWorkerAsync();
+
+            var peer = _peerPool.FindPeerByPublicKey(node.Pubkey.ToHex());
+            peer.RemoteEndpoint.Host.ShouldBe("192.168.88.100");
+            peer.RemoteEndpoint.Port.ShouldBe(8803);
+        }
 
         private async Task RunDiscoveryWorkerAsync()
         {
