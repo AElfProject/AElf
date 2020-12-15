@@ -23,7 +23,8 @@ Welcome to AElf's official documentation!
    :maxdepth: 2
 
    AElf Blockchain Boot Sequence <tutorials/boot-sequence>
-   Joining AElf's MainNet/TestNet <tutorials/testnet>
+   Joining AElf's TestNet <tutorials/testnet>
+   Joining AElf's MainNet <tutorials/mainnet>
    Running a side chain <tutorials/cross-chain/index>
    Running AElf on the cloud <tutorials/cloud/index>
    Smart Contract Developing Demos <tutorials/smart-contract-demos/index>
