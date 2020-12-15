@@ -207,6 +207,7 @@ namespace AElf.Contracts.Election
                     IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey, true);
                     State.DataCentersRankingList.Value = rankingList;
                 }
+
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
                 Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
                 State.CandidateInformationMap.Remove(input.Pubkey);
@@ -293,14 +294,14 @@ namespace AElf.Contracts.Election
                 rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
                 rankingList.DataCenters.Remove(input.OldPubkey);
                 State.DataCentersRankingList.Value = rankingList;
-                
+
                 // Notify Profit Contract to update backup subsidy profiting item.
                 if (State.ProfitContract.Value == null)
                 {
                     State.ProfitContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
                 }
-                
+
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,
@@ -373,6 +374,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
+
             State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
             {
                 OldPubkey = oldPubkey,
@@ -408,7 +410,7 @@ namespace AElf.Contracts.Election
             var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
             return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
         }
-        
+
         private void SyncSubsidyInfoAfterReduceMiner()
         {
             var rankingList = State.DataCentersRankingList.Value;
@@ -429,7 +431,18 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(kv.Key))
                 });
             }
+
             State.DataCentersRankingList.Value = rankingList;
+        }
+
+        public override Empty InitialBannedPubkeyMap(Empty input)
+        {
+            foreach (var pubkey in State.BlackList.Value.Value)
+            {
+                State.BannedPubkeyMap[pubkey.ToHex()] = true;
+            }
+
+            return new Empty();
         }
     }
 }

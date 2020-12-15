@@ -30,6 +30,8 @@ namespace AElf.Contracts.Election
 
         public SingletonState<PubkeyList> InitialMiners { get; set; }
 
+        public SingletonState<PubkeyList> BlackList { get; set; }
+
         public MappedState<string, bool> BannedPubkeyMap { get; set; }
 
         /// <summary>

@@ -90,7 +90,10 @@ service ElectionContract {
     // Set admin address of candidate (mostly supply)
     rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc InitialBannedPubkeyMap (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
