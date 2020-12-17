@@ -99,18 +99,30 @@ namespace AElf.OS.Worker
         [Fact]
         public async Task ProcessPeerDiscoveryJob_PeerIsInPeerPool_Test()
         {
+            var pubkey = ByteString.CopyFromUtf8("SamePubkey");
+                
+            var mockPeer = new Mock<IPeer>();
+            mockPeer.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                {Pubkey = pubkey.ToHex(), ConnectionTime = TimestampHelper.GetUtcNow()});
+            mockPeer.Setup(p => p.IsReady).Returns(true);
+            mockPeer.Setup(p => p.RemoteEndpoint).Returns(new AElfPeerEndpoint("192.168.99.99", 8801));
+            mockPeer.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(new NodeList()));
+
+            _peerPool.TryAddPeer(mockPeer.Object);
+            
             var node = new NodeInfo
             {
-                Endpoint = "192.168.100.1:8001",
-                Pubkey = ByteString.CopyFromUtf8("PeerWithSamePubkeyNode")
+                Endpoint = "192.168.99.100:8002",
+                Pubkey = pubkey
             };
             await _peerDiscoveryService.AddNodeAsync(node);
             
             await RunDiscoveryWorkerAsync();
 
             var peer = _peerPool.FindPeerByPublicKey(node.Pubkey.ToHex());
-            peer.RemoteEndpoint.Host.ShouldBe("192.168.88.100");
-            peer.RemoteEndpoint.Port.ShouldBe(8803);
+            peer.RemoteEndpoint.Host.ShouldBe("192.168.99.99");
+            peer.RemoteEndpoint.Port.ShouldBe(8801);
         }
 
         private async Task RunDiscoveryWorkerAsync()
