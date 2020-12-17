@@ -94,6 +94,9 @@ service ElectionContract {
     rpc InitialBannedPubkeyMap (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 
+    rpc RemoveSubsidyBeneficiary (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;

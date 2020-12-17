@@ -444,5 +444,15 @@ namespace AElf.Contracts.Election
 
             return new Empty();
         }
+
+        public override Empty RemoveSubsidyBeneficiary(Address input)
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = input
+            });
+            return new Empty();
+        }
     }
 }
