@@ -155,8 +155,8 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
 {
     "Network": {
         "BootNodes": [
-            "testnet-mainchain-1.aelf.io:6800",
-            "testnet-mainchain-2.aelf.io:6800"
+            "xxx.xxxx.xxx.xxx:6800",
+            ..
         ],
         "ListeningPort": 6800
     }
@@ -289,10 +289,9 @@ run script) for the side-chain:
 
     wget https://github.com/AElfProject/AElf/releases/download/v1.0.0-rc1/aelf-testnet-sidechain1.zip
 
-Each side chain has its own P2P network, you can find here some
-bootnodes that are available:
+Each side chain has its own P2P network, add the testnet sidechain nodes as peer:
 
-    sidechain1 bootnode → ["testnet-sidechain1-1.aelf.io:6800", "testnet-sidechain1-2.aelf.io:6800"]
+    bootnode → ["xxx.xxxx.xxx.xxx:6800", ..]
 
 ``` json
 {

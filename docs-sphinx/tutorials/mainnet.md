@@ -155,8 +155,8 @@ Next add the mainnet mainchain nodes as peer (bootnode peers):
 {
     "Network": {
         "BootNodes": [
-            "mainnet-mainchain-1.aelf.io:6800",
-            "mainnet-mainchain-2.aelf.io:6800"
+            "xxx.xxxx.xxx.xxx:6800",
+            ..
         ],
         "ListeningPort": 6800
     }
