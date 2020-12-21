@@ -156,7 +156,7 @@ Next add the testnet mainchain nodes as peer (bootnode peers):
     "Network": {
         "BootNodes": [
             "xxx.xxxx.xxx.xxx:6800",
-            ..
+            "..."
         ],
         "ListeningPort": 6800
     }
@@ -291,7 +291,7 @@ run script) for the side-chain:
 
 Each side chain has its own P2P network, add the testnet sidechain nodes as peer:
 
-    bootnode → ["xxx.xxxx.xxx.xxx:6800", ..]
+    bootnode → ["xxx.xxxx.xxx.xxx:6800", "..."]
 
 ``` json
 {

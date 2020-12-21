@@ -156,7 +156,7 @@ Next add the mainnet mainchain nodes as peer (bootnode peers):
     "Network": {
         "BootNodes": [
             "xxx.xxxx.xxx.xxx:6800",
-            ..
+            "..."
         ],
         "ListeningPort": 6800
     }
