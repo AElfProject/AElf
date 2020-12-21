@@ -63,7 +63,7 @@ Restore the chain database from snapshot:
 ## state database : decompress and load the state database
 >> tar xvzf aelf-mainnet-mainchain-statedb-*.tar.gz
 >> stop your state database instance (ssdb server)
->> cp -r aelf-mainnet-mainchain-statedb-*/* /path/to/install/ssdb/var/
+>> cp -r aelf-mainnet-mainchain-statedb-*/* /path/to/install/statedb/ssdb/var/
 >> start your state database instance
 >> enter ssdb console (ssdb-cli) use the "info" command to confirm that the data has been imported)
 ```
