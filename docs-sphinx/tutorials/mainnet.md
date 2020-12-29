@@ -244,4 +244,66 @@ aelf-command get-blk-height -e http://your node ip address:port
 Run side-chains
 ---------------
 
-COMING SOON!
+This section explains how to set up a side-chain node, you will have to
+repeat these steps for all side chains (currently only one is running):
+
+1.  Fetch the appsettings and the docker run script.
+2.  Download and restore the snapshot data with the URLs provided below
+    (steps are the same as in Setup the database).
+3.  Run the side-chain node.
+
+Running a side chain is very much like running a mainchain node, only
+configuration will change. Here you can find the instructions for
+sidechain1:
+
+``` bash
+>> cd /tmp/ && wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf-mainnet-sidechain1.zip
+>> unzip aelf-mainnet-sidechain1.zip
+>> mv aelf-mainnet-sidechain1 /opt/aelf-node
+```
+
+In order for a sidechain to connect to a mainchain node you need to
+modify the `appsettings.SideChain.MainNet.json` with your node information.
+
+``` json
+{
+    "CrossChain": {
+        "Grpc": {
+            "ParentChainServerPort": 5001,
+            "ParentChainServerIp": "your mainchain ip address",
+            "ListeningPort": 5011,
+        },
+        "ParentChainId": "AELF",
+        "Economic": {
+            "SymbolListToPayTxFee": "WRITE,READ,STORAGE,TRAFFIC",
+            "SymbolListToPayRental": "CPU,RAM,DISK,NET"
+    }
+  }
+}
+```
+
+Here you can find the snapshot data for the only current side-chain
+running, optionally you can specify the date, but we recommend you get
+the latest:
+
+    >> curl -O -s https://aelf-backup.s3.ap-northeast-2.amazonaws.com/snapshot/mainnet/download-sidechain-db.sh 
+
+Here you can find the list of templates folders (appsettings and docker
+run script) for the side-chain:
+
+    wget https://github.com/AElfProject/AElf/releases/download/v1.0.0/aelf-mainnet-sidechain1.zip
+
+Each side chain has its own P2P network, add the mainnet sidechain nodes as peer:
+
+    bootnode → ["xxx.xxxx.xxx.xxx:6800", "..."]
+
+``` json
+{
+    "Network": {
+        "BootNodes": [
+            "Add the right boot node according sidechain"
+        ],
+        "ListeningPort": 6800
+    }
+}
+```
