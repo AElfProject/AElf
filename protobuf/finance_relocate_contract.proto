@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "acs12.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.FinanceRelocate";
+
+service FinanceRelocate {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.FinanceRelocate.FinanceRelocateContractState";
+    option (aelf.base) = "acs12.proto";
+    
+    rpc Shuffle (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}

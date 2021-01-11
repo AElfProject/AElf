@@ -1,0 +1,51 @@
+/**
+ * AElf Standards ACS12(Financing Standard)
+ *
+ * Used to re-locate assets.
+ */
+syntax = "proto3";
+
+package acs12;
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs12";
+option csharp_namespace = "AElf.Standards.ACS12";
+
+service FinancingContract {
+    // Core functions
+    rpc Stake (StakeInput) returns (google.protobuf.Empty) {
+    }
+    rpc Harvest (HarvestInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Management
+    rpc SetValidTokenSymbols (StringList) returns (google.protobuf.Empty) {
+    }
+    rpc SetManager (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetValidTokenSymbols (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetLockedAmount (google.protobuf.StringValue) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message StakeInput {
+    string symbol = 1;
+    int64 amount = 2;
+    string remark = 3;
+}
+
+message HarvestInput {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message StringList {
+    repeated string value = 1;
+}
