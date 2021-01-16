@@ -18,7 +18,7 @@ Summary of the steps to set up a node:
 4.  Run and check the node.
 
 Hardware suggestion: for the AElf mainnet we use the following Amazon
-configuration: c5.large instance with 2 vCPUs, 4GiB RAM and a 200GiB
+configuration: c5.xlarge instance with 4 vCPUs, 8GiB RAM and a 500GiB
 hard drive for each node we run. We recommend using something similar
 per node that you want to run (one for the mainchain node and one per
 side chain node).
