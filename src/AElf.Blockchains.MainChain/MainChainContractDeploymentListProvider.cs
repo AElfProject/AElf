@@ -17,20 +17,7 @@ namespace AElf.Blockchains.MainChain
         {
             return new List<Hash>
             {
-                VoteSmartContractAddressNameProvider.Name,
-                ProfitSmartContractAddressNameProvider.Name,
-                ElectionSmartContractAddressNameProvider.Name,
-                TreasurySmartContractAddressNameProvider.Name,
-                ParliamentSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name,
-                ReferendumSmartContractAddressNameProvider.Name,
-                TokenSmartContractAddressNameProvider.Name,
-                CrossChainSmartContractAddressNameProvider.Name,
-                ConfigurationSmartContractAddressNameProvider.Name,
-                ConsensusSmartContractAddressNameProvider.Name,
-                TokenConverterSmartContractAddressNameProvider.Name,
-                TokenHolderSmartContractAddressNameProvider.Name,
-                EconomicSmartContractAddressNameProvider.Name,
+                ConsensusSmartContractAddressNameProvider.Name
             };
         }
     }

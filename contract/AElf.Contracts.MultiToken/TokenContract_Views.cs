@@ -97,19 +97,6 @@ namespace AElf.Contracts.MultiToken
             return State.CrossChainTransferWhiteList[input.ChainId];
         }
 
-        public override StringValue GetPrimaryTokenSymbol(Empty input)
-        {
-            if (string.IsNullOrWhiteSpace(_primaryTokenSymbol) && State.ChainPrimaryTokenSymbol.Value != null)
-            {
-                _primaryTokenSymbol = State.ChainPrimaryTokenSymbol.Value;
-            }
-
-            return new StringValue
-            {
-                Value = _primaryTokenSymbol ?? Context.Variables.NativeSymbol
-            };
-        }
-
         public override CalculateFeeCoefficients GetCalculateFeeCoefficientsForContract(Int32Value input)
         {
             if (input.Value == (int) FeeTypeEnum.Tx)
@@ -186,13 +173,6 @@ namespace AElf.Contracts.MultiToken
             Assert(State.SideChainRentalController.Value != null,
                 "controller does not initialize, call InitializeAuthorizedController first");
             return State.SideChainRentalController.Value;
-        }
-
-        public override AuthorityInfo GetSymbolsToPayTXSizeFeeController(Empty input)
-        {
-            if (State.SymbolToPayTxFeeController.Value == null)
-                return GetDefaultSymbolToPayTxFeeController();
-            return State.SymbolToPayTxFeeController.Value;
         }
 
         public override AuthorityInfo GetCrossChainTokenContractRegistrationController(Empty input)

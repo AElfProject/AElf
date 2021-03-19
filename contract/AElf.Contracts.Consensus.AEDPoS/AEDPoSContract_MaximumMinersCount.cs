@@ -44,17 +44,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MaximumMinersCountController.Value = defaultAuthority;
         }
 
-        public override Empty ChangeMaximumMinersCountController(AuthorityInfo input)
-        {
-            RequiredMaximumMinersCountControllerSet();
-            AssertSenderAddressWith(State.MaximumMinersCountController.Value.OwnerAddress);
-            var organizationExist = CheckOrganizationExist(input);
-            Assert(organizationExist, "Invalid authority input.");
-
-            State.MaximumMinersCountController.Value = input;
-            return new Empty();
-        }
-
         public override AuthorityInfo GetMaximumMinersCountController(Empty input)
         {
             RequiredMaximumMinersCountControllerSet();
