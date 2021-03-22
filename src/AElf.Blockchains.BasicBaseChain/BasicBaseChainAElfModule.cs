@@ -32,16 +32,12 @@ namespace AElf.Blockchains.BasicBaseChain
     [DependsOn(
         typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
-        typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
-
-        typeof(GovernmentSystemAElfModule),
-        typeof(EconomicSystemAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
