@@ -6,7 +6,6 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
-        <ProjectReference Include="..\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj" />
         <None Update="Dockerfile">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>

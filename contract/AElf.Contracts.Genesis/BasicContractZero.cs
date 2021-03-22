@@ -3,7 +3,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Standards.ACS0;
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.CSharp.Core.Extension;
 

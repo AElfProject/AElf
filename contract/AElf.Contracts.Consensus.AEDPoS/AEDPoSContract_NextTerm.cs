@@ -1,8 +1,4 @@
-using System.Linq;
-using AElf.Contracts.Election;
-using AElf.Standards.ACS10;
 using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -26,43 +22,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 input.RealTimeMinersInformation[senderPubkey].ProducedBlocks =
                     input.RealTimeMinersInformation[senderPubkey].ProducedBlocks.Add(1);
-            }
-            else
-            {
-                // If the sender isn't in miner list of next term.
-                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                {
-                    Pubkey = senderPubkey,
-                    RecentlyProducedBlocks = 1
-                });
-            }
-        }
-
-        private void UpdateCurrentMinerInformationToElectionContract(Round previousRound)
-        {
-            State.ElectionContract.UpdateMultipleCandidateInformation.Send(new UpdateMultipleCandidateInformationInput
-            {
-                Value =
-                {
-                    previousRound.RealTimeMinersInformation.Select(i => new UpdateCandidateInformationInput
-                    {
-                        Pubkey = i.Key,
-                        RecentlyProducedBlocks = i.Value.ProducedBlocks,
-                        RecentlyMissedTimeSlots = i.Value.MissedTimeSlots
-                    })
-                }
-            });
-        }
-
-        private void UpdateMinersCountToElectionContract(Round input)
-        {
-            var minersCount = GetMinersCount(input);
-            if (minersCount != 0 && State.ElectionContract.Value != null)
-            {
-                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                {
-                    MinersCount = minersCount
-                });
             }
         }
 
@@ -115,54 +74,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.CurrentTermNumber.Value = termNumber;
             return true;
-        }
-
-        private bool DonateMiningReward(Round previousRound)
-        {
-            if (State.TreasuryContract.Value == null)
-            {
-                var treasuryContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-                // Return false if Treasury Contract didn't deployed.
-                if (treasuryContractAddress == null) return false;
-                State.TreasuryContract.Value = treasuryContractAddress;
-            }
-
-            var miningRewardPerBlock = GetMiningRewardPerBlock();
-            var amount = previousRound.GetMinedBlocks().Mul(miningRewardPerBlock);
-            State.TreasuryContract.UpdateMiningReward.Send(new Int64Value {Value = miningRewardPerBlock});
-
-            if (amount > 0)
-            {
-                State.TreasuryContract.Donate.Send(new DonateInput
-                {
-                    Symbol = Context.Variables.NativeSymbol,
-                    Amount = amount
-                });
-
-                Context.Fire(new MiningRewardGenerated
-                {
-                    TermNumber = previousRound.TermNumber,
-                    Amount = amount
-                });
-            }
-
-            Context.LogDebug(() => $"Released {amount} mining rewards.");
-
-            return true;
-        }
-
-        private long GetMiningRewardPerBlock()
-        {
-            var miningReward = AEDPoSContractConstants.InitialMiningRewardPerBlock;
-            var blockAge = GetBlockchainAge();
-            var denominator = blockAge.Div(AEDPoSContractConstants.TimeToReduceMiningRewardByHalf);
-            for (var i = 0; i < denominator; i++)
-            {
-                miningReward = miningReward.Div(2);
-            }
-
-            return miningReward;
         }
     }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -138,33 +136,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(State.LatestExecutedHeight.Value != Context.CurrentHeight, "Cannot execute this tx.");
             State.LatestExecutedHeight.Value = Context.CurrentHeight;
-        }
-
-        private void EnsureTokenContractAddressSet()
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-        }
-
-        private void EnsureElectionContractAddressSet()
-        {
-            if (State.ElectionContract.Value == null)
-            {
-                State.ElectionContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-            }
-        }
-
-        private void EnsureParliamentContractAddressSet()
-        {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
         }
     }
 }

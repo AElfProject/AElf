@@ -1,8 +1,4 @@
 ﻿using System.Linq;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.Treasury;
-using AElf.CSharp.Core;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -34,11 +30,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"There are {State.PeriodSeconds.Value} seconds per period.");
 
-            if (input.IsSideChain)
-            {
-                InitialProfitSchemeForSideChain(input.PeriodSeconds);
-            }
-
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 State.IsMainChain.Value = false;
@@ -47,20 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.IsMainChain.Value = true;
 
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            State.TokenContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-
             State.MaximumMinersCount.Value = int.MaxValue;
-
-            if (State.TreasuryContract.Value != null)
-            {
-                State.TreasuryContract.UpdateMiningReward.Send(new Int64Value
-                {
-                    Value = AEDPoSContractConstants.InitialMiningRewardPerBlock
-                });
-            }
 
             return new Empty();
         }
@@ -185,20 +163,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #endregion
-
-        // Keep this for compatibility.
-        public override Hash GetRandomHash(Int64Value input)
-        {
-            Assert(input.Value > 1, "Invalid block height.");
-            Assert(Context.CurrentHeight >= input.Value, "Block height not reached.");
-            return State.RandomHashes[input.Value] ?? Hash.Empty;
-        }
-
-        public override BytesValue GetRandomBytes(BytesValue input)
-        {
-            var height = new Int64Value();
-            height.MergeFrom(input.Value);
-            return GetRandomHash(height).ToBytesValue();
-        }
     }
 }

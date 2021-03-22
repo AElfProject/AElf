@@ -1,5 +1,3 @@
-using AElf.Standards.ACS1;
-using AElf.Standards.ACS10;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -31,8 +29,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public MappedState<long, MinerList> MinerListMap { get; set; }
 
-        public Int64State MainChainRoundNumber { get; set; }
-
         public SingletonState<MinerList> MainChainCurrentMinerList { get; set; }
 
         public BoolState IsMainChain { get; set; }
@@ -44,19 +40,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<LatestPubkeyToTinyBlocksCount> LatestPubkeyToTinyBlocksCount { get; set; }
 
         public MappedState<long, MinerList> MinedMinerListMap { get; set; }
-        public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
-        public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
-        public SingletonState<AuthorityInfo> MaximumMinersCountController { get; set; }
 
         public MappedState<long, Hash> RandomHashes { get; set; }
 
         public SingletonState<long> LatestExecutedHeight { get; set; }
-
-        public MappedState<long, Dividends> SideChainReceivedDividends { get; set; }
-
-        public SingletonState<Hash> SideChainDividendPoolSchemeId { get; set; }
 
         public BoolState IsPreviousBlockInSevereStatus { get; set; }
     }

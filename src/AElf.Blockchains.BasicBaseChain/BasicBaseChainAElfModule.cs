@@ -1,17 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
-using AElf.CrossChain;
-using AElf.CrossChain.Grpc;
 using AElf.CSharp.CodeOps;
 using AElf.EconomicSystem;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
@@ -35,7 +30,6 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(CrossChainAElfModule),
         typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
         typeof(TokenKernelAElfModule),
@@ -45,19 +39,13 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(GrpcCrossChainAElfModule),
 
         typeof(GovernmentSystemAElfModule),
         typeof(EconomicSystemAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule),
-        typeof(ParallelExecutionModule),
-
-        //plugin
-        typeof(ExecutionPluginForMethodFeeModule),
-        typeof(ExecutionPluginForResourceFeeModule),
-        typeof(ExecutionPluginForCallThresholdModule)
+        typeof(ParallelExecutionModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
