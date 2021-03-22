@@ -28,9 +28,9 @@ namespace AElf.ContractDeployer
         
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(Run)
-                .WithNotParsed(Error);
+            // Parser.Default.ParseArguments<Options>(args)
+            //     .WithParsed(Run)
+            //     .WithNotParsed(Error);
         }
 
         private static void Error(IEnumerable<Error> errors)

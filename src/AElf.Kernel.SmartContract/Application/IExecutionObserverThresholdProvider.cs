@@ -27,6 +27,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public IExecutionObserverThreshold GetExecutionObserverThreshold(IBlockIndex blockIndex)
         {
+            return new ExecutionObserverThreshold
+            {
+                ExecutionBranchThreshold = SmartContractConstants.ExecutionBranchThreshold,
+                ExecutionCallThreshold = SmartContractConstants.ExecutionBranchThreshold
+            };
+            
             var branchCountObserverThreshold = GetBlockExecutedData(blockIndex, BranchCountThresholdKey)?.Value ??
                                                SmartContractConstants.ExecutionBranchThreshold;
             var callCountObserverThreshold = GetBlockExecutedData(blockIndex, CallCountThresholdKey)?.Value ??
