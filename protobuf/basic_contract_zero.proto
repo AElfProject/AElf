@@ -5,9 +5,9 @@ syntax = "proto3";
 
 package Zero;
 
+import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
-import "aelf/core.proto";
 import "google/protobuf/timestamp.proto";
 import "authority_info.proto";
 

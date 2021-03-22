@@ -1,12 +1,6 @@
 using System.Collections.Generic;
-using AElf.CrossChain;
-using AElf.EconomicSystem;
-using AElf.GovernmentSystem;
-using AElf.Kernel.Configuration;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
 using AElf.Types;
 
 namespace AElf.Blockchains.MainChain
@@ -17,6 +11,7 @@ namespace AElf.Blockchains.MainChain
         {
             return new List<Hash>
             {
+<<<<<<< HEAD
                 // VoteSmartContractAddressNameProvider.Name,
                 // ProfitSmartContractAddressNameProvider.Name,
                 // ElectionSmartContractAddressNameProvider.Name,
@@ -31,6 +26,9 @@ namespace AElf.Blockchains.MainChain
                 // TokenConverterSmartContractAddressNameProvider.Name,
                 // TokenHolderSmartContractAddressNameProvider.Name,
                 // EconomicSmartContractAddressNameProvider.Name,
+=======
+                ConsensusSmartContractAddressNameProvider.Name
+>>>>>>> 24965b91996ac95c5055d6da940c93be37faf6dd
             };
         }
     }

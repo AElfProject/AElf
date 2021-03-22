@@ -1,9 +1,5 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
-using AElf.Standards.ACS10;
-using AElf.Contracts.Election;
-using AElf.Contracts.TokenHolder;
-using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -81,11 +77,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"New random hash generated: {randomHash} - height {Context.CurrentHeight}");
 
-            if (!State.IsMainChain.Value && currentRound.RoundNumber > 1)
-            {
-                Release();
-            }
-
             // Clear cache.
             _processingBlockMinerPubkey = null;
         }
@@ -125,36 +116,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
                     Context.CurrentBlockTime;
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-
-                // Initialize current miners' information in Election Contract.
-                if (State.IsMainChain.Value)
-                {
-                    var minersCount = GetMinersCount(nextRound);
-                    if (minersCount != 0 && State.ElectionContract.Value != null)
-                    {
-                        State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                        {
-                            MinersCount = minersCount
-                        });
-                    }
-                }
-            }
-
-            if (State.IsMainChain.Value && // Only detect evil miners in Main Chain.
-                currentRound.TryToDetectEvilMiners(out var evilMiners))
-            {
-                Context.LogDebug(() => "Evil miners detected.");
-                foreach (var evilMiner in evilMiners)
-                {
-                    Context.LogDebug(() =>
-                        $"Evil miner {evilMiner}, missed time slots: {currentRound.RealTimeMinersInformation[evilMiner].MissedTimeSlots}.");
-                    // Mark these evil miners.
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = evilMiner,
-                        IsEvilNode = true
-                    });
-                }
             }
 
             AddRoundInformation(nextRound);
@@ -174,8 +135,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Update current term number and current round number.
             Assert(TryToUpdateTermNumber(nextRound.TermNumber), "Failed to update term number.");
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
-
-            UpdateMinersCountToElectionContract(nextRound);
 
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in nextRound.RealTimeMinersInformation.Values)
@@ -204,25 +163,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Assert(false, "Failed to get previous round information.");
             }
-
-            UpdateCurrentMinerInformationToElectionContract(previousRound);
-
-            if (DonateMiningReward(previousRound))
-            {
-                State.TreasuryContract.Release.Send(new ReleaseInput
-                {
-                    PeriodNumber = termNumber
-                });
-
-                Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
-            }
-
-            State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
-            {
-                MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber,
-                RoundNumber = previousRound.RoundNumber
-            });
 
             Context.LogDebug(() => $"Changing term number to {nextRound.TermNumber}");
         }

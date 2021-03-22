@@ -1,14 +1,7 @@
-using System;
 using System.Linq;
-using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using System.Text;
-using AElf.Standards.ACS0;
-using AElf.Standards.ACS1;
-using AElf.Standards.ACS7;
 using AElf.CSharp.Core;
 
 namespace AElf.Contracts.MultiToken
@@ -74,33 +67,6 @@ namespace AElf.Contracts.MultiToken
             return State.Balances[address][symbol];
         }
 
-        private void AssertSystemContractOrLockWhiteListAddress(string symbol)
-        {
-            var symbolState = State.LockWhiteLists[symbol];
-            var isInWhiteList = symbolState != null && symbolState[Context.Sender];
-            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Values;
-            var isSystemContractAddress = systemContractAddresses.Contains(Context.Sender);
-            Assert(isInWhiteList || isSystemContractAddress, "No Permission.");
-        }
-
-        private Address ExtractTokenContractAddress(ByteString bytes)
-        {
-            var validateSystemContractAddressInput = ValidateSystemContractAddressInput.Parser.ParseFrom(bytes);
-            var validatedAddress = validateSystemContractAddressInput.Address;
-            var validatedContractHashName = validateSystemContractAddressInput.SystemContractHashName;
-
-            Assert(validatedContractHashName == SmartContractConstants.TokenContractSystemHashName,
-                "Address validation failed.");
-            return validatedAddress;
-        }
-
-        private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress, params string[] validMethodNames)
-        {
-            var validateResult = validMethodNames.Contains(originalTransaction.MethodName) 
-                                 && originalTransaction.To == validAddress;
-            Assert(validateResult, "Invalid transaction.");
-        }
-
         private void RegisterTokenInfo(TokenInfo tokenInfo)
         {
             var existing = State.TokenInfos[tokenInfo.Symbol];
@@ -113,42 +79,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
         }
 
-        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, MerklePath merklePath)
-        {
-            var verificationInput = new VerifyTransactionInput
-            {
-                TransactionId = transactionId,
-                ParentChainHeight = parentChainHeight,
-                VerifiedChainId = chainId,
-                Path = merklePath
-            };
-            var address = Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-
-            var verificationResult = Context.Call<BoolValue>(address,
-                nameof(ACS7Container.ACS7ReferenceState.VerifyTransaction), verificationInput);
-            Assert(verificationResult.Value, "Cross chain verification failed.");
-        }
-
-        private AuthorityInfo GetCrossChainTokenContractRegistrationController()
-        {
-            var parliamentContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            var controller = new AuthorityInfo
-            {
-                ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = Context.Call<Address>(parliamentContractAddress,
-                    nameof(ParliamentContractContainer.ParliamentContractReferenceState.GetDefaultOrganizationAddress),
-                    new Empty())
-            };
-            return controller;
-        }
-
-        private int GetIssueChainId(string symbol)
-        {
-            var tokenInfo = State.TokenInfos[symbol];
-            return tokenInfo.IssueChainId;
-        }
-
         private void AssertValidCreateInput(CreateInput input)
         {
             var isValid = input.TokenName.Length <= TokenContractConstants.TokenNameLength
@@ -157,13 +87,6 @@ namespace AElf.Contracts.MultiToken
                           && input.Decimals >= 0
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
-        }
-
-        private void CheckCrossChainTokenContractRegistrationControllerAuthority()
-        {
-            if (State.CrossChainTokenContractRegistrationController.Value == null)
-                State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
-            Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
         }
     }
 }

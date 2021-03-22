@@ -1,6 +1,4 @@
 ﻿using AElf.Standards.ACS0;
-using AElf.Standards.ACS1;
-using AElf.Standards.ACS3;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -28,7 +26,6 @@ namespace AElf.Contracts.Genesis
         
         public SingletonState<bool> Initialized { get; set; }
 
-        public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
     }

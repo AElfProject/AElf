@@ -1,19 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
 using AElf.Contracts.Genesis;
-using AElf.CrossChain;
-using AElf.CrossChain.Grpc;
 using AElf.CSharp.CodeOps;
-using AElf.EconomicSystem;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
-using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
-using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
-using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
@@ -35,28 +27,39 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
+<<<<<<< HEAD
         // typeof(CrossChainAElfModule),
         typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
         // typeof(TokenKernelAElfModule),
+=======
+        typeof(KernelAElfModule),
+        typeof(AEDPoSAElfModule),
+>>>>>>> 24965b91996ac95c5055d6da940c93be37faf6dd
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         // typeof(CSharpCodeOpsAElfModule),
         typeof(GrpcNetworkModule),
         typeof(RuntimeSetupAElfModule),
+<<<<<<< HEAD
         // typeof(GrpcCrossChainAElfModule),
         // typeof(GovernmentSystemAElfModule),
         // typeof(EconomicSystemAElfModule),
+=======
+>>>>>>> 24965b91996ac95c5055d6da940c93be37faf6dd
 
         //web api module
         typeof(WebWebAppAElfModule),
         typeof(ParallelExecutionModule)
+<<<<<<< HEAD
 
         //plugin
         // typeof(ExecutionPluginForMethodFeeModule),
         // typeof(ExecutionPluginForResourceFeeModule),
         // typeof(ExecutionPluginForCallThresholdModule)
+=======
+>>>>>>> 24965b91996ac95c5055d6da940c93be37faf6dd
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {

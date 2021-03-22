@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Linq;
 using AElf.Blockchains.MainChain;
-using AElf.Blockchains.SideChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -30,9 +29,6 @@ namespace AElf.Launcher
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
             switch (chainType)
             {
-                case ChainType.SideChain:
-                    AddApplication<SideChainAElfModule>(services);
-                    break;
                 default:
                     AddApplication<MainChainAElfModule>(services);
                     break;

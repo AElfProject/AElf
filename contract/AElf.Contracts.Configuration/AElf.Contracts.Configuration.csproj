@@ -35,9 +35,6 @@
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractBase Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf\Proto\acs1.proto</Link>
-        </ContractBase>
         <ContractBase Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf\Proto\configuration_contract.proto</Link>
         </ContractBase>

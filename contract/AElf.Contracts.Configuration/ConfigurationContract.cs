@@ -32,7 +32,6 @@ namespace AElf.Contracts.Configuration
         {
             AssertPerformedByConfigurationController();
             Assert(input != null, "invalid input");
-            Assert(CheckOrganizationExist(input),"Invalid authority input.");
             State.ConfigurationController.Value = input;
             return new Empty();
         }
