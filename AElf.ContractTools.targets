@@ -107,10 +107,10 @@
               SkipUnchangedFiles="true"/>
     </Target>
     <!-- Copy patched contract dll after publish to include in publish directory -->
-    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')"
-              SourceFiles="$(TargetDir)$(TargetName).dll.patched"
-              DestinationFiles="$(PublishDir)/$(TargetName).dll"
-              SkipUnchangedFiles="true"/>
-    </Target>
+<!--    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">-->
+<!--        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')"-->
+<!--              SourceFiles="$(TargetDir)$(TargetName).dll.patched"-->
+<!--              DestinationFiles="$(PublishDir)/$(TargetName).dll"-->
+<!--              SkipUnchangedFiles="true"/>-->
+<!--    </Target>-->
 </Project>
