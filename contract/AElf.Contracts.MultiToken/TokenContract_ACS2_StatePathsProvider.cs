@@ -1,7 +1,5 @@
 ﻿using AElf.Standards.ACS2;
-using System.Linq;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {

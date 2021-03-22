@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using AElf.Standards.ACS0;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
-using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -20,7 +14,6 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
-            Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
             AssertValidCreateInput(input);
             var tokenInfo = new TokenInfo
             {
@@ -33,19 +26,6 @@ namespace AElf.Contracts.MultiToken
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             };
             RegisterTokenInfo(tokenInfo);
-            if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
-            {
-                Assert(Context.Variables.NativeSymbol == input.Symbol, "Invalid native token input.");
-                State.NativeTokenSymbol.Value = input.Symbol;
-            }
-
-            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Select(m => m.Value);
-            var isSystemContractAddress = input.LockWhiteList.All(l => systemContractAddresses.Contains(l));
-            Assert(isSystemContractAddress, "Addresses in lock white list should be system contract addresses");
-            foreach (var address in input.LockWhiteList)
-            {
-                State.LockWhiteLists[input.Symbol][address] = true;
-            }
 
             Context.LogDebug(() => $"Token created: {input.Symbol}");
 
@@ -97,6 +77,54 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+            return new Empty();
+        }
+        
+        public override Empty TransferFrom(TransferFromInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+            // First check allowance.
+            var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
+            if (allowance < input.Amount)
+            {
+                Assert(false,
+                    $"[TransferFrom]Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}.\n" +
+                    $"From:{input.From}\tSpender:{Context.Sender}\tTo:{input.To}");
+            }
+
+            DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+            State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty Approve(ApproveInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+            State.Allowances[Context.Sender][input.Spender][input.Symbol] =
+                State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
+            Context.Fire(new Approved()
+            {
+                Owner = Context.Sender,
+                Spender = input.Spender,
+                Symbol = input.Symbol,
+                Amount = input.Amount
+            });
+            return new Empty();
+        }
+
+        public override Empty UnApprove(UnApproveInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+            var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
+            var amountOrAll = Math.Min(input.Amount, oldAllowance);
+            State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);
+            Context.Fire(new UnApproved()
+            {
+                Owner = Context.Sender,
+                Spender = input.Spender,
+                Symbol = input.Symbol,
+                Amount = amountOrAll
+            });
             return new Empty();
         }
     }
