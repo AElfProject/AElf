@@ -2,13 +2,10 @@
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CSharp.CodeOps;
-using AElf.EconomicSystem;
-using AElf.GovernmentSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Parallel;
-using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;

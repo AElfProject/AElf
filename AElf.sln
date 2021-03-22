@@ -117,7 +117,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.EconomicSystem", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.GovernmentSystem", "src\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj", "{A22F4A7C-1610-4595-B5F7-4EF8348FE3A9}"
 EndProject
-AAProject("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TransferWrapperContract", "contract\AElf.Contracts.TransferWrapperContract\AElf.Contracts.TransferWrapperContract.csproj", "{9A29772F-D2D1-4277-B69B-A283A3468D1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TransferWrapperContract", "contract\AElf.Contracts.TransferWrapperContract\AElf.Contracts.TransferWrapperContract.csproj", "{9A29772F-D2D1-4277-B69B-A283A3468D1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
