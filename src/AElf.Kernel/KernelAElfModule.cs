@@ -15,14 +15,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AElf.Kernel
 {
     [DependsOn(
-        typeof(CoreKernelAElfModule),
-        typeof(ChainControllerAElfModule),
-        typeof(SmartContractAElfModule),
-        typeof(NodeAElfModule),
-        typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule)
-        // typeof(ConfigurationAElfModule),
-        // typeof(ProposalAElfModule)
+            typeof(CoreKernelAElfModule),
+            typeof(ChainControllerAElfModule),
+            typeof(SmartContractAElfModule),
+            typeof(NodeAElfModule),
+            typeof(SmartContractExecutionAElfModule),
+            typeof(TransactionPoolAElfModule)
+            // typeof(ConfigurationAElfModule),
+            // typeof(ProposalAElfModule)
         )
     ]
     public class KernelAElfModule : AElfModule
@@ -31,6 +31,12 @@ namespace AElf.Kernel
         {
             context.Services.AddTransient(typeof(IConfigurationProcessor),
                 typeof(BlockTransactionLimitConfigurationProcessor));
+
+            Configure<BlockTransactionLimitOptions>(option =>
+            {
+                var txLimitOptions = context.Services.GetConfiguration().GetSection("Consensus");
+                option.TransactionLimit = int.Parse(txLimitOptions["TxLimit"]);
+            });
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
