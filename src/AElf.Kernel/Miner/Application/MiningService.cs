@@ -116,13 +116,12 @@ namespace AElf.Kernel.Miner.Application
                         requestMiningDto.PreviousBlockHeight, blockTime);
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
-                    _systemTransactionExtraDataProvider.SetSystemTransactionCount(systemTransactions.Count,
-                        block.Header);
+                    var systemTransactionCount = 1;
                     var txTotalCount = transactions.Count + systemTransactions.Count;
 
                     var pending = txTotalCount > requestMiningDto.TransactionCountLimit
                         ? transactions
-                            .Take(requestMiningDto.TransactionCountLimit - systemTransactions.Count)
+                            .Take(requestMiningDto.TransactionCountLimit - systemTransactionCount)
                             .ToList()
                         : transactions;
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,

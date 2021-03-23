@@ -49,7 +49,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
                 blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
             returnSets.AddRange(mergeResult.ExecutionReturnSets);
-            var conflictingSets = mergeResult.ConflictingReturnSets;
             
             var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
             var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
@@ -63,13 +62,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
 
             Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
-
-            if (conflictingSets.Count > 0 &&
-                returnSets.Count + conflictingSets.Count == transactionExecutingDto.Transactions.Count())
-            {
-                ProcessConflictingSets(conflictingSets);
-                returnSets.AddRange(conflictingSets);
-            }
 
             return returnSets;
         }
@@ -88,12 +80,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             var results = await Task.WhenAll(tasks);
             Logger.LogTrace("Executed parallelizables.");
 
-            var executionReturnSets = MergeResults(results, out var conflictingSets);
+            var executionReturnSets = MergeResults(results);
             Logger.LogTrace("Merged results from parallelizables.");
             return new ExecutionReturnSetMergeResult
             {
-                ExecutionReturnSets = executionReturnSets,
-                ConflictingReturnSets = conflictingSets
+                ExecutionReturnSets = executionReturnSets
             };
         }
 
@@ -202,35 +193,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         }
 
         private List<ExecutionReturnSet> MergeResults(
-            GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray,
-            out List<ExecutionReturnSet> conflictingSets)
+            GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
         {
             var returnSets = new List<ExecutionReturnSet>();
-            conflictingSets = new List<ExecutionReturnSet>();
-            var existingKeys = new HashSet<string>();
-            var readOnlyKeys = GetReadOnlyKeys(groupedExecutionReturnSetsArray);
             foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
             {
-                groupedExecutionReturnSets.AllKeys.ExceptWith(readOnlyKeys);
-                if (!existingKeys.Overlaps(groupedExecutionReturnSets.AllKeys))
-                {
-                    returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
-                    foreach (var key in groupedExecutionReturnSets.AllKeys)
-                    {
-                        existingKeys.Add(key);
-                    }
-                }
-                else
-                {
-                    conflictingSets.AddRange(groupedExecutionReturnSets.ReturnSets);
-                }
-            }
-
-            if (readOnlyKeys.Count == 0) return returnSets;
-            
-            foreach (var returnSet in returnSets.Concat(conflictingSets))
-            {
-                returnSet.StateAccesses.RemoveAll(k => readOnlyKeys.Contains(k.Key));
+                returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
             }
 
             return returnSets;

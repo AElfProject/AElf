@@ -34,18 +34,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
             private int TinyBlockSlotInterval => MiningInterval.Div(TinyBlocksCount);
             protected int MinersCount => CurrentRound.RealTimeMinersInformation.Count;
             /// <summary>
-            /// Give 3/5 of producing time for mining by default.
+            /// Give 9/10 of producing time for mining by default.
             /// </summary>
-            protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(3).Div(5);
+            protected int DefaultBlockMiningLimit => TinyBlockSlotInterval.Mul(9).Div(10);
             /// <summary>
             /// If this tiny block is the last one of current time slot, give half of producing time for mining.
             /// </summary>
-            protected int LastTinyBlockMiningLimit => TinyBlockSlotInterval.Div(2);
+            protected int LastTinyBlockMiningLimit => TinyBlockSlotInterval.Mul(9).Div(10);
             /// <summary>
             /// If this block is of consensus behaviour NEXT_TERM, the producing time is MiningInterval,
             /// so the limitation of mining is 8 times than DefaultBlockMiningLimit.
             /// </summary>
-            protected int LastBlockOfCurrentTermMiningLimit => MiningInterval.Mul(3).Div(5);
+            protected int LastBlockOfCurrentTermMiningLimit => MiningInterval.Mul(9).Div(10);
 
             protected CommandStrategyBase(Round currentRound, string pubkey, Timestamp currentBlockTime)
             {
