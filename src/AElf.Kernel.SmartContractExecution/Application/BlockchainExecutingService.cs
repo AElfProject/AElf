@@ -104,12 +104,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     
                 TransactionResultMap = new Dictionary<Hash, TransactionResult>()
             };
+            
+            Logger.LogDebug("GetExecuteBlockSetAsync - 1");
             if (block.TransactionIds.Any())
             {
                 set.TransactionMap = (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
                     .ToDictionary(p => p.GetHash(), p => p);
             }
             
+            Logger.LogDebug("GetExecuteBlockSetAsync - 2");
+
             foreach (var transactionId in block.TransactionIds)
             {
                 if ((set.TransactionResultMap[transactionId] =
@@ -123,6 +127,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
+            Logger.LogDebug("GetExecuteBlockSetAsync - 3");
+
+            
             return set;
         }
 
@@ -155,8 +162,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return null;
             }
 
+            Logger.LogDebug($"ProcessBlockAsync - 1");
+
             await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
                 block.Body.TransactionIds.ToList());
+
+            Logger.LogDebug($"ProcessBlockAsync - 2");
 
             return blockExecutedSet;
         }
