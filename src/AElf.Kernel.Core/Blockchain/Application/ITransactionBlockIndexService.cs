@@ -51,56 +51,75 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
         {
-            int slots = 10;
-            var tasks = new[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}.Select(index =>
-                UpdateBlockIndex(index, slots, blockIndex, txIds));
+            int slots = 4;
+            var listlist = new List<List<Hash>>(slots);
+            for (int i = 0; i < txIds.Count; i++)
+            {
+                int mod = i % slots;
+                if (mod >= listlist.Count)
+                    listlist.Add(new List<Hash>());
+                listlist[i].Add(txIds[i]);
+            }
+
+            var tasks = listlist.Select(txIdList =>
+                UpdateBlockIndex(blockIndex, txIdList));
             await Task.WhenAll(tasks);
         }
 
-        private async Task UpdateBlockIndex(int index, int slots, BlockIndex blockIndex, IList<Hash> txIds)
+        private async Task UpdateBlockIndex(BlockIndex blockIndex, IList<Hash> txIds)
         {
+            var notInProvider = new List<Hash>();
             var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
 
-            while (index < txIds.Count)
+            foreach (var txId in txIds)
             {
-                var txId = txIds[index];
-                index += slots;
-                var transactionBlockIndex = new TransactionBlockIndex
-                {
-                    BlockHash = blockIndex.BlockHash,
-                    BlockHeight = blockIndex.BlockHeight
-                };
+                if (!_transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndex))
+                    notInProvider.Add(txId);
+                transactionBlockIndexes.Add(txId, UpdateBlockIndex(blockIndex, transactionBlockIndex));
+            }
 
-                var preTransactionBlockIndex =
-                    await GetTransactionBlockIndexByTxIdAsync(txId);
+            var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(notInProvider);
 
-                if (preTransactionBlockIndex != null)
-                {
-                    if (preTransactionBlockIndex.BlockHash == blockIndex.BlockHash ||
-                        preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
-                            l.BlockHash == blockIndex.BlockHash))
-                    {
-                        return;
-                    }
-
-                    var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
-                    if (needToReplace)
-                    {
-                        transactionBlockIndex.BlockHash = preTransactionBlockIndex.BlockHash;
-                        transactionBlockIndex.BlockHeight = preTransactionBlockIndex.BlockHeight;
-                    }
-
-                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
-                        .PreviousExecutionBlockIndexList);
-                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(needToReplace
-                        ? blockIndex
-                        : new BlockIndex(preTransactionBlockIndex.BlockHash, preTransactionBlockIndex.BlockHeight));
-                }
-
-                transactionBlockIndexes.Add(txId, transactionBlockIndex);
+            for (int i = 0; i < notInProvider.Count; i++)
+            {
+                transactionBlockIndexes.Add(notInProvider[i], UpdateBlockIndex(blockIndex, notInProviderTbi[i]));
             }
 
             await AddTransactionBlockIndicesAsync(transactionBlockIndexes);
+        }
+
+        private TransactionBlockIndex UpdateBlockIndex(BlockIndex blockIndex, TransactionBlockIndex preTransactionBlockIndex)
+        {
+            var transactionBlockIndex = new TransactionBlockIndex
+            {
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
+            };
+
+            if (preTransactionBlockIndex != null)
+            {
+                if (preTransactionBlockIndex.BlockHash == blockIndex.BlockHash ||
+                    preTransactionBlockIndex.PreviousExecutionBlockIndexList.Any(l =>
+                        l.BlockHash == blockIndex.BlockHash))
+                {
+                    return preTransactionBlockIndex;
+                }
+
+                var needToReplace = preTransactionBlockIndex.BlockHeight > blockIndex.BlockHeight;
+                if (needToReplace)
+                {
+                    transactionBlockIndex.BlockHash = preTransactionBlockIndex.BlockHash;
+                    transactionBlockIndex.BlockHeight = preTransactionBlockIndex.BlockHeight;
+                }
+
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
+                    .PreviousExecutionBlockIndexList);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(needToReplace
+                    ? blockIndex
+                    : new BlockIndex(preTransactionBlockIndex.BlockHash, preTransactionBlockIndex.BlockHeight));
+            }
+
+            return transactionBlockIndex;
         }
 
 
