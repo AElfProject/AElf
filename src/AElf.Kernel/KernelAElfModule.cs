@@ -35,7 +35,11 @@ namespace AElf.Kernel
             Configure<BlockTransactionLimitOptions>(option =>
             {
                 var txLimitOptions = context.Services.GetConfiguration().GetSection("Consensus");
-                option.TransactionLimit = int.Parse(txLimitOptions["TxLimit"]);
+                var value = txLimitOptions["TxLimit"];
+                if (value != null && int.TryParse(value, out var limit))
+                {
+                    option.TransactionLimit = limit;
+                }
             });
         }
 
