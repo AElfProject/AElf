@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
-            ITransactionResultService transactionResultService, 
+            ITransactionResultService transactionResultService,
             ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
         {
             _transactionExecutingService = transactionExecutingService;
@@ -90,15 +90,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             // set txn results
             var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
-            
+
             // set blocks state
             blockStateSet.BlockHash = block.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-            
+
             // handle execution cases 
             await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
-            
+
             return new BlockExecutedSet
             {
                 Block = block,
@@ -108,7 +108,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
-            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection, BlockStateSet blockStateSet)
+            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection,
+            BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
@@ -116,10 +117,20 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
             }
-            
+
+            Logger.LogDebug("Sort orderedReturnSets - 1.");
+
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+            var txIndex = new Dictionary<Hash, int>();
+            for (int i = 0; i < allExecutedTransactionIds.Count; i++)
+            {
+                txIndex[allExecutedTransactionIds[i]] = i;
+            }
+            
+            Logger.LogDebug("Sort orderedReturnSets - 1.");
+
             var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+                .OrderBy(d => txIndex[d.TransactionId]).ToList();
 
             var block = new Block
             {
@@ -135,12 +146,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     TransactionIds = {allExecutedTransactionIds}
                 }
             };
-            
+
             Logger.LogTrace("Finish block field filling after execution.");
             return Task.FromResult(block);
         }
 
-        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
+        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader,
+            ExecutionReturnSetCollection executionReturnSetCollection)
         {
             return Task.CompletedTask;
         }
@@ -236,7 +248,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return blockStateSet;
         }
 
-        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
+        private async Task<List<TransactionResult>> SetTransactionResultsAsync(
+            ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
         {
             //save all transaction results
             var results = executionReturnSetCollection.GetExecutionReturnSetList()
