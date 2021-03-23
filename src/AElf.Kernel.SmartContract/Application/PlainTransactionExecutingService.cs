@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     catch (OperationCanceledException)
                     {
-                        Logger.LogTrace("Transaction canceled.");
+                        // Logger.LogTrace("Transaction canceled.");
                         if (cancellationToken.IsCancellationRequested)
                             break;
                         continue;
