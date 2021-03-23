@@ -58,7 +58,7 @@ namespace AElf.Kernel.Blockchain.Application
                 int mod = i % slots;
                 if (mod >= listlist.Count)
                     listlist.Add(new List<Hash>());
-                listlist[i].Add(txIds[i]);
+                listlist[mod].Add(txIds[i]);
             }
 
             var tasks = listlist.Select(txIdList =>
