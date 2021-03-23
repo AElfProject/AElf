@@ -74,7 +74,11 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var txId in txIds)
             {
                 if (!_transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndex))
+                {
                     notInProvider.Add(txId);
+                    continue;
+                }
+                
                 transactionBlockIndexes.Add(txId, UpdateBlockIndex(blockIndex, transactionBlockIndex));
             }
 
