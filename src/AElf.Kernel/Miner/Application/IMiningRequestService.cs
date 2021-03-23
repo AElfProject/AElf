@@ -33,12 +33,13 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
         {
+            var dur = requestMiningDto.BlockExecutionTime;
             if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,
-                requestMiningDto.BlockExecutionTime))
+                ref dur))
                 return null;
 
             var blockExecutionDuration =
-                CalculateBlockMiningDuration(requestMiningDto.BlockTime, requestMiningDto.BlockExecutionTime);
+                CalculateBlockMiningDuration(requestMiningDto.BlockTime, dur);
 
             var block = (await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
                 requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration)).Block;
@@ -47,14 +48,19 @@ namespace AElf.Kernel.Miner.Application
         }
 
         private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
-            Duration blockExecutionDuration)
+            ref Duration blockExecutionDuration)
         {
             if (miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) <
                 blockTime + blockExecutionDuration)
             {
                 Logger.LogDebug(
                     $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
-                return false;
+
+                if (miningDueTime < blockTime + Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)))
+                    return false;
+                
+                blockExecutionDuration = miningDueTime - Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)) - blockTime;
+                return true;
             }
 
             if (blockTime + blockExecutionDuration >= TimestampHelper.GetUtcNow()) return true;

@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionResultService _transactionResultService;
         public ILocalEventBus LocalEventBus { get; set; }
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
-        
+
         public FullBlockchainExecutingService(IBlockchainService blockchainService,
             IBlockValidationService blockValidationService,
             IBlockExecutingService blockExecutingService,
@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = blockExecutedSet.Block;
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
-            if (blockHashWithoutCache == blockHash) 
+            if (blockHashWithoutCache == blockHash)
                 return blockExecutedSet;
             Logger.LogDebug(
                 $"Block execution failed. Expected: {block}, actual: {executedBlock}");
@@ -100,36 +100,39 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var set = new BlockExecutedSet()
             {
                 Block = block,
-                TransactionMap = new Dictionary<Hash,Transaction>(),
-                    
+                TransactionMap = new Dictionary<Hash, Transaction>(),
+
                 TransactionResultMap = new Dictionary<Hash, TransactionResult>()
             };
-            
+
             Logger.LogDebug("GetExecuteBlockSetAsync - 1");
             if (block.TransactionIds.Any())
             {
                 set.TransactionMap = (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
                     .ToDictionary(p => p.GetHash(), p => p);
             }
-            
+
             Logger.LogDebug("GetExecuteBlockSetAsync - 2");
 
-            foreach (var transactionId in block.TransactionIds)
-            {
-                if ((set.TransactionResultMap[transactionId] =
-                        await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
-                    == null)
-                {
-                    Logger.LogWarning(
-                        $"Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
-
-                    return null;
-                }
-            }
+            set.TransactionResultMap =
+                (await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash))
+                .ToDictionary(p => p.TransactionId, p => p);
+            // foreach (var transactionId in block.TransactionIds)
+            // {
+            //     if ((set.TransactionResultMap[transactionId] =
+            //             await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
+            //         == null)
+            //     {
+            //         Logger.LogWarning(
+            //             $"Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
+            //
+            //         return null;
+            //     }
+            // }
 
             Logger.LogDebug("GetExecuteBlockSetAsync - 3");
 
-            
+
             return set;
         }
 

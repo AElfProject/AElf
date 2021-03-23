@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.Collections;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -23,6 +24,7 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
         private readonly ITransactionBlockIndexProvider _transactionBlockIndexProvider;
+        public ILogger<TransactionBlockIndexService> Logger { get; set; }
 
         public TransactionBlockIndexService(IBlockchainService blockchainService,
             ITransactionBlockIndexManager transactionBlockIndexManager,
@@ -49,9 +51,20 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
         {
+            int slots = 10;
+            var tasks = new[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}.Select(index =>
+                UpdateBlockIndex(index, slots, blockIndex, txIds));
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task UpdateBlockIndex(int index, int slots, BlockIndex blockIndex, IList<Hash> txIds)
+        {
             var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
-            foreach (var txId in txIds)
+
+            while (index < txIds.Count)
             {
+                var txId = txIds[index];
+                index += slots;
                 var transactionBlockIndex = new TransactionBlockIndex
                 {
                     BlockHash = blockIndex.BlockHash,
@@ -89,6 +102,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             await AddTransactionBlockIndicesAsync(transactionBlockIndexes);
         }
+
 
         public async Task<bool> ValidateTransactionBlockIndexExistsInBranchAsync(Hash txId, Hash chainBranchBlockHash)
         {
@@ -187,7 +201,7 @@ namespace AElf.Kernel.Blockchain.Application
         private async Task ClearRedundantBlockIndices(Hash txId, TransactionBlockIndex transactionBlockIndex,
             BlockIndex blockIndex, Chain chain)
         {
-            if (blockIndex.BlockHeight > chain.LastIrreversibleBlockHeight 
+            if (blockIndex.BlockHeight > chain.LastIrreversibleBlockHeight
                 || transactionBlockIndex.PreviousExecutionBlockIndexList.Count == 0)
             {
                 return;
