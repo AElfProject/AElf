@@ -42,8 +42,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<BlockExecutedSet> ExecuteBlockAsync(BlockHeader blockHeader,
             List<Transaction> nonCancellableTransactions)
         {
-            _systemTransactionExtraDataProvider.TryGetSystemTransactionCount(blockHeader,
-                out var systemTransactionCount);
+            var systemTransactionCount = 1;
             return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions.Take(systemTransactionCount),
                 nonCancellableTransactions.Skip(systemTransactionCount),
                 CancellationToken.None);

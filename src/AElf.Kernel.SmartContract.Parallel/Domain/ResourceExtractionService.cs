@@ -81,8 +81,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 if (contractResourceInfoCache.TryGetValue(transaction.To, out var contractResourceInfo))
                 {
-                    if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash &&
-                        resourceCache.ResourceInfo.IsNonparallelContractCode == contractResourceInfo.IsNonparallelContractCode)
+                    if (resourceCache.ResourceInfo.ContractHash == contractResourceInfo.CodeHash)
                     {
                         return new TransactionWithResourceInfo
                         {
@@ -98,8 +97,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 contractResourceInfoCache[transaction.To] = new ContractResourceInfo
                 {
-                    CodeHash = resourceInfo.ContractHash,
-                    IsNonparallelContractCode = resourceInfo.IsNonparallelContractCode
+                    CodeHash = resourceInfo.ContractHash
                 };
             }
 
@@ -129,22 +127,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     };
                 }
 
-                var nonparallelContractCode =
-                    await _nonparallelContractCodeProvider.GetNonparallelContractCodeAsync(chainContext, address);
-                if (nonparallelContractCode != null && nonparallelContractCode.CodeHash == executive.ContractHash)
-                {
-                    return new TransactionResourceInfo
-                    {
-                        TransactionId = transaction.GetHash(),
-                        ParallelType = ParallelType.NonParallelizable,
-                        ContractHash = executive.ContractHash,
-                        IsNonparallelContractCode = true
-                    };
-                }
-
                 if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache) &&
-                    executive.ContractHash == resourceCache.ResourceInfo.ContractHash &&
-                    resourceCache.ResourceInfo.IsNonparallelContractCode == false)
+                    executive.ContractHash == resourceCache.ResourceInfo.ContractHash)
                 {
                     return resourceCache.ResourceInfo;
                 }

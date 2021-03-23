@@ -21,13 +21,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         protected override async Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
         {
             await base.CleanUpReturnSetCollectionAsync(blockHeader, executionReturnSetCollection);
-            if (executionReturnSetCollection.Conflict.Count > 0)
-            {
-                await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
-                    blockHeader, executionReturnSetCollection.Executed.ToList(),
-                    executionReturnSetCollection.Conflict
-                ));
-            }
         }
     }
 }
