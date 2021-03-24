@@ -37,9 +37,7 @@ namespace AElf.Kernel.Miner.Application
             if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,
                 ref dur))
                 return null;
-
-            Logger.LogDebug($"Duration: {dur}");
-
+            
             var blockExecutionDuration =
                 CalculateBlockMiningDuration(requestMiningDto.BlockTime, dur);
 

@@ -99,6 +99,8 @@ namespace AElf.Kernel.Miner.Application
                 using (var cts = new CancellationTokenSource())
                 {
                     var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
+                    Logger.LogDebug($"Expiration time: {expirationTime}");
+
                     if (expirationTime < TimestampHelper.GetUtcNow())
                         cts.Cancel();
                     else
