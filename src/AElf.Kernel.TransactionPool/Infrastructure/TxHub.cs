@@ -44,7 +44,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
-        private List<ActionBlock<QueuedTransaction>> _actionBlocks = new List<ActionBlock<QueuedTransaction>>();
+        private ActionBlock<QueuedTransaction> _actionBlock;
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
             IOptionsSnapshot<TransactionOptions> transactionOptions,
@@ -56,7 +56,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            CreateQueuedTransactionBufferBlock();
+            _actionBlock = CreateQueuedTransactionBufferBlock();
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
@@ -79,8 +79,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return output;
             }
 
-            output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
-                .Take(transactionCount)
+            output.Transactions.AddRange(_validatedTransactions.Values.Take(transactionCount).OrderBy(x => x.EnqueueTime)
                 .Select(x => x.Transaction));
 
             return output;
@@ -100,10 +99,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                var index = queuedTransaction.TransactionId.ToInt64();
-                queuedTransaction.BucketIndex = Math.Abs(index % _transactionOptions.PoolParallelismDegree);
-                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
-                var sendResult = await actionBlock.SendAsync(queuedTransaction);
+                var sendResult = await _actionBlock.SendAsync(queuedTransaction);
                 if (sendResult) continue;
                 await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
                 {
@@ -257,7 +253,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Data flow
 
-        private void CreateQueuedTransactionBufferBlock()
+        private ActionBlock<QueuedTransaction> CreateQueuedTransactionBufferBlock()
         {
             var executionDataFlowBlockOptions = new ExecutionDataflowBlockOptions
             {
@@ -269,42 +265,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             // var updateBucketIndexTransformBlock =
             //     new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
             //         executionDataFlowBlockOptions);
-            int i = 0;
-            while (i < _transactionOptions.PoolParallelismDegree)
-            {
-                var validationTransformBlock = new ActionBlock<QueuedTransaction>(
-                    async queuedTransaction =>
-                        await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
-                    new ExecutionDataflowBlockOptions
-                    {
-                        BoundedCapacity = Math.Max(_transactionOptions.ActionBlockCapacity, 1), // cannot be zero
-                        EnsureOrdered = false,
-                        MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
-                    });
-                // var index = i;
-                // updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
-                //     queuedTransaction => queuedTransaction.BucketIndex == index);
-                i++;
-                
-                _actionBlocks.Add(validationTransformBlock);
-            }
+            var validationTransformBlock = new ActionBlock<QueuedTransaction>(
+                async queuedTransaction =>
+                    await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
+                new ExecutionDataflowBlockOptions
+                {
+                    BoundedCapacity = Math.Max(_transactionOptions.ActionBlockCapacity, 1), // cannot be zero
+                    EnsureOrdered = false,
+                    MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
+                });
 
             // updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
-            // return updateBucketIndexTransformBlock;
+            return validationTransformBlock;
         }
 
-        private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
-        {
-            var index = queuedTransaction.TransactionId.ToInt64();
-            queuedTransaction.BucketIndex = Math.Abs(index % _transactionOptions.PoolParallelismDegree);
-            if(index % 100000 < _actionBlocks.Count)
-            {
-                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
-                Logger.LogDebug($"UpdateBucketIndex Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
-            }
-            
-            return queuedTransaction;
-        }
 
         private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
