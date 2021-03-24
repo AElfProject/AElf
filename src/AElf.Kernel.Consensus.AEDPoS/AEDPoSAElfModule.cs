@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.Scheduler.FluentScheduler;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -16,7 +17,7 @@ using Volo.Abp.Threading;
 namespace AElf.Kernel.Consensus.AEDPoS
 {
     [DependsOn(
-        typeof(RxNetSchedulerAElfModule),
+        typeof(FluentSchedulerAElfModule),
         typeof(CoreConsensusAElfModule)
     )]
     // ReSharper disable once InconsistentNaming

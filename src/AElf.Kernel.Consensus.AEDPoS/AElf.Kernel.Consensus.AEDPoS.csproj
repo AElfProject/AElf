@@ -15,6 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
     </ItemGroup>
 
