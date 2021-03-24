@@ -337,12 +337,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if(queuedTransaction.TransactionId.ToInt64() % 100000 < _actionBlocks.Count)
-            {
-                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
-                Logger.LogDebug($"AcceptTransactionAsync Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
-            }
-            
+            // if(queuedTransaction.TransactionId.ToInt64() % 100000 < _actionBlocks.Count)
+            // {
+            //     var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
+            //     Logger.LogDebug($"AcceptTransactionAsync Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
+            // }
+            //
             if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
             {
                 return null;
