@@ -6,6 +6,8 @@ namespace AElf.Kernel.TransactionPool
         /// Transaction pool limit.
         /// </summary>
         public int PoolLimit { get; set; } = 5120;
+        
+        public int ActionBlockCapacity { get; set; } = 5120;
 
         /// <summary>
         /// Transaction processing data flow MaxDegreeOfParallelism for transaction pool.

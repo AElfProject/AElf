@@ -274,8 +274,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         await ProcessQueuedTransactionAsync(queuedTransaction, AcceptTransactionAsync),
                     new ExecutionDataflowBlockOptions
                     {
-                        BoundedCapacity = Math.Max(_transactionOptions.PoolLimit, 1), // cannot be zero
-                        EnsureOrdered = false
+                        BoundedCapacity = Math.Max(_transactionOptions.ActionBlockCapacity, 1), // cannot be zero
+                        EnsureOrdered = false,
+                        MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
                     });
                 var index = i;
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
@@ -293,10 +294,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var index = queuedTransaction.TransactionId.ToInt64();
             queuedTransaction.BucketIndex = Math.Abs(index % _transactionOptions.PoolParallelismDegree);
-            if(index % 1000 < _actionBlocks.Count)
+            if(index % 100000 < _actionBlocks.Count)
             {
                 var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
-                Logger.LogDebug($"Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
+                Logger.LogDebug($"UpdateBucketIndex Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
             }
             
             return queuedTransaction;
@@ -333,10 +334,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if(queuedTransaction.TransactionId.ToInt64() % 1000 < _actionBlocks.Count)
+            if(queuedTransaction.TransactionId.ToInt64() % 100000 < _actionBlocks.Count)
             {
                 var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
-                Logger.LogDebug($"Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
+                Logger.LogDebug($"AcceptTransactionAsync Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
             }
             
             if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
