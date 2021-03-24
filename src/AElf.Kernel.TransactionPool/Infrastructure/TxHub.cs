@@ -44,6 +44,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
+        private List<ActionBlock<QueuedTransaction>> _actionBlocks = new List<ActionBlock<QueuedTransaction>>();
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
             IOptionsSnapshot<TransactionOptions> transactionOptions,
@@ -280,6 +281,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
                     queuedTransaction => queuedTransaction.BucketIndex == index);
                 i++;
+                
+                _actionBlocks.Add(validationTransformBlock);
             }
 
             updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
@@ -288,8 +291,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
         {
-            queuedTransaction.BucketIndex =
-                Math.Abs(queuedTransaction.TransactionId.ToInt64() % _transactionOptions.PoolParallelismDegree);
+            var index = queuedTransaction.TransactionId.ToInt64();
+            queuedTransaction.BucketIndex = Math.Abs(index % _transactionOptions.PoolParallelismDegree);
+            if(index % 1000 < _actionBlocks.Count)
+            {
+                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
+                Logger.LogDebug($"Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
+            }
+            
             return queuedTransaction;
         }
 
@@ -324,6 +333,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
+            if(queuedTransaction.TransactionId.ToInt64() % 1000 < _actionBlocks.Count)
+            {
+                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
+                Logger.LogDebug($"Action block {queuedTransaction.BucketIndex} statue: {actionBlock.InputCount}, {actionBlock.Completion.Status}");
+            }
+            
             if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
             {
                 return null;
