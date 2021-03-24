@@ -38,6 +38,8 @@ namespace AElf.Kernel.Miner.Application
                 ref dur))
                 return null;
 
+            Logger.LogDebug($"Duration: {dur}");
+
             var blockExecutionDuration =
                 CalculateBlockMiningDuration(requestMiningDto.BlockTime, dur);
 
@@ -54,7 +56,7 @@ namespace AElf.Kernel.Miner.Application
                 blockTime + blockExecutionDuration)
             {
                 Logger.LogDebug(
-                    $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
+                    $"Mining time not enough. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
 
                 if (miningDueTime < blockTime + Duration.FromTimeSpan(TimeSpan.FromMilliseconds(250)))
                     return false;
