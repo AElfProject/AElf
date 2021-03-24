@@ -102,7 +102,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Block = block,
                 TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
-                TransactionResultMap = transactionResults.ToDictionary(p => p.TransactionId, p => p)
+                TransactionResults = transactionResults
             };
         }
 

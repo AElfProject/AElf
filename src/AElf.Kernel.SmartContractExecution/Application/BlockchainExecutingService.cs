@@ -102,7 +102,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Block = block,
                 TransactionMap = new Dictionary<Hash, Transaction>(),
 
-                TransactionResultMap = new Dictionary<Hash, TransactionResult>()
+                TransactionResults = new List<TransactionResult>()
             };
 
             Logger.LogDebug("GetExecuteBlockSetAsync - 1");
@@ -114,12 +114,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             Logger.LogDebug("GetExecuteBlockSetAsync - 2");
 
-            set.TransactionResultMap =
-                (await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash))
-                .ToDictionary(p => p.TransactionId, p => p);
+            set.TransactionResults = await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash);
             // foreach (var transactionId in block.TransactionIds)
             // {
-            //     if ((set.TransactionResultMap[transactionId] =
+            //     if ((set.TransactionResults[transactionId] =
             //             await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
             //         == null)
             //     {
