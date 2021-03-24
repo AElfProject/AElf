@@ -38,7 +38,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> _expiredByExpiryBlock =
             new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
 
-        private readonly TransformBlock<QueuedTransaction, QueuedTransaction> _processTransactionJobs;
+        // private readonly TransformBlock<QueuedTransaction, QueuedTransaction> _processTransactionJobs;
 
         private long _bestChainHeight = AElfConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
@@ -56,7 +56,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            _processTransactionJobs = CreateQueuedTransactionBufferBlock();
+            CreateQueuedTransactionBufferBlock();
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
@@ -100,7 +100,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                var sendResult = await _processTransactionJobs.SendAsync(queuedTransaction);
+                var index = queuedTransaction.TransactionId.ToInt64();
+                queuedTransaction.BucketIndex = Math.Abs(index % _transactionOptions.PoolParallelismDegree);
+                var actionBlock = _actionBlocks[(int) queuedTransaction.BucketIndex];
+                var sendResult = await actionBlock.SendAsync(queuedTransaction);
                 if (sendResult) continue;
                 await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
                 {
@@ -254,7 +257,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Data flow
 
-        private TransformBlock<QueuedTransaction, QueuedTransaction> CreateQueuedTransactionBufferBlock()
+        private void CreateQueuedTransactionBufferBlock()
         {
             var executionDataFlowBlockOptions = new ExecutionDataflowBlockOptions
             {
@@ -263,9 +266,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             };
             var linkOptions = new DataflowLinkOptions {PropagateCompletion = true};
 
-            var updateBucketIndexTransformBlock =
-                new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
-                    executionDataFlowBlockOptions);
+            // var updateBucketIndexTransformBlock =
+            //     new TransformBlock<QueuedTransaction, QueuedTransaction>(UpdateBucketIndex,
+            //         executionDataFlowBlockOptions);
             int i = 0;
             while (i < _transactionOptions.PoolParallelismDegree)
             {
@@ -278,16 +281,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         EnsureOrdered = false,
                         MaxDegreeOfParallelism = _transactionOptions.PoolParallelismDegree
                     });
-                var index = i;
-                updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
-                    queuedTransaction => queuedTransaction.BucketIndex == index);
+                // var index = i;
+                // updateBucketIndexTransformBlock.LinkTo(validationTransformBlock, linkOptions,
+                //     queuedTransaction => queuedTransaction.BucketIndex == index);
                 i++;
                 
                 _actionBlocks.Add(validationTransformBlock);
             }
 
-            updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
-            return updateBucketIndexTransformBlock;
+            // updateBucketIndexTransformBlock.LinkTo(DataflowBlock.NullTarget<QueuedTransaction>());
+            // return updateBucketIndexTransformBlock;
         }
 
         private QueuedTransaction UpdateBucketIndex(QueuedTransaction queuedTransaction)
