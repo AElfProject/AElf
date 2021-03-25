@@ -13,6 +13,6 @@ namespace AElf.Database
         Task SetAllAsync(IDictionary<string, byte[]> values);
         Task RemoveAllAsync(IList<string> keys);
         Task<bool> IsExistsAsync(string key);
-        bool IsConnected();
+        Task<bool> IsConnected();
     }
 }
