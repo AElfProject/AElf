@@ -92,6 +92,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             if (_bestChainHash == Hash.Empty)
                 return;
+            
+            await _transactionManager.AddTransactionsAsync(transactions.ToList());
+
 
             foreach (var transaction in transactions)
             {
@@ -102,15 +105,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                var sendResult = await AcceptTransactionAsync(queuedTransaction);
-                // if (sendResult) continue;
-                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                // {
-                //     TransactionId = transactionId,
-                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                //     Error = "Failed to enter tx hub."
-                // });
-                // Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
+                // var sendResult = await AcceptTransactionAsync(queuedTransaction);
+                var sendResult = await _actionBlock.SendAsync(queuedTransaction);
+                if (sendResult) continue;
+                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                {
+                    TransactionId = transactionId,
+                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                    Error = "Failed to enter tx hub."
+                });
+                Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
@@ -303,11 +307,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     "Transaction Pool is full.");
                 return false;
             }
-
-            if (await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId))
-            {
-                return false;
-            }
+            //
+            // if (await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId))
+            // {
+            //     return false;
+            // }
 
             return true;
         }
@@ -342,7 +346,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             // if (hasTransaction)
             //     return null;
 
-            await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (addSuccess)
             {

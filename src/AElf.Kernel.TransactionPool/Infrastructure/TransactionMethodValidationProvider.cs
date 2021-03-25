@@ -20,6 +20,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public bool ValidateWhileSyncing { get; } = false;
         public async Task<bool> ValidateTransactionAsync(Transaction transaction, IChainContext chainContext = null)
         {
+            return true;
             var isView = await _transactionReadOnlyExecutionService.IsViewTransactionAsync(chainContext, transaction);
             if (isView)
             {
