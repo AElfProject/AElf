@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         /// <summary>
         /// For multiple miners, return the length every mining time slot (which should be equal).
-        /// For single miner, return 4000 ms.
+        /// For single miner, return 10000 ms.
         /// </summary>
         /// <returns></returns>
         public int GetMiningInterval()
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (RealTimeMinersInformation.Count == 1)
             {
                 // Just appoint the mining interval for single miner.
-                return 4000;
+                return 10000;
             }
 
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
