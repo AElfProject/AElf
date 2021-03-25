@@ -102,15 +102,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Transaction = transaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                var sendResult = await _actionBlock.SendAsync(queuedTransaction);
-                if (sendResult) continue;
-                await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
-                {
-                    TransactionId = transactionId,
-                    TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
-                    Error = "Failed to enter tx hub."
-                });
-                Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
+                var sendResult = await AcceptTransactionAsync(queuedTransaction);
+                // if (sendResult) continue;
+                // await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
+                // {
+                //     TransactionId = transactionId,
+                //     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
+                //     Error = "Failed to enter tx hub."
+                // });
+                // Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
