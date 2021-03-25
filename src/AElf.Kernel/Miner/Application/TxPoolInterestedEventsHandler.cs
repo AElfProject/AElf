@@ -23,7 +23,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
         {
-            await _transactionPoolService.AddTransactionsAsync(eventData.Transactions);
+            _ = _transactionPoolService.AddTransactionsAsync(eventData.Transactions);
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
