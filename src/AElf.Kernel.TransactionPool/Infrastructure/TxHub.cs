@@ -79,6 +79,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return output;
             }
 
+            Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
+            Logger.LogDebug($"_allTransactions count: {_allTransactions.Count}");
+
             output.Transactions.AddRange(_validatedTransactions.Values.Take(transactionCount).OrderBy(x => x.EnqueueTime)
                 .Select(x => x.Transaction));
 
@@ -335,9 +338,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             // double check
-            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
-            if (hasTransaction)
-                return null;
+            // var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+            // if (hasTransaction)
+            //     return null;
 
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
             var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
@@ -364,17 +367,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<QueuedTransaction> UpdateQueuedTransactionRefBlockStatusAsync(
             QueuedTransaction queuedTransaction)
         {
-            var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
-            queuedTransaction.RefBlockStatus =
-                CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
-
-            if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+            // var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
+            // queuedTransaction.RefBlockStatus =
+            //     CheckRefBlockStatus(queuedTransaction.Transaction, prefix, _bestChainHeight);
+            //
+            // if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
+            // {
+            //     await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
+            //     {
+            //         Transaction = queuedTransaction.Transaction
+            //     });
+            // }
+            
+            await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
             {
-                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
-                {
-                    Transaction = queuedTransaction.Transaction
-                });
-            }
+                Transaction = queuedTransaction.Transaction
+            });
 
             return queuedTransaction;
         }
