@@ -358,7 +358,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private ConcurrentDictionary<Hash, QueuedTransaction> GetDict(Hash txId)
         {
-            int index = (int) txId.ToInt64() % _transactionOptions.PoolParallelismDegree;
+            int index = Math.Abs((int) txId.ToInt64()) % _transactionOptions.PoolParallelismDegree;
             return _dictList[index];
         }
 
