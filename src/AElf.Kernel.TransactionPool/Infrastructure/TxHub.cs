@@ -84,7 +84,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             // Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
             Logger.LogDebug($"_allTransactions count: {_allTransactions.Count}");
 
-            output.Transactions.AddRange(_validatedTransactions.Values.Take(transactionCount)
+            output.Transactions.AddRange(_allTransactions.Values.Take(transactionCount)
                 // .OrderBy(x => x.EnqueueTime)
                 .Select(x => x.Transaction));
 
