@@ -103,7 +103,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var res = new List<Transaction>();
             foreach (var dict in _dictList)
             {
-                if (transactionCount >= 0)
+                if (transactionCount <= 0)
                     return res;
                 
                 res.AddRange(dict.Values.Take(transactionCount)
