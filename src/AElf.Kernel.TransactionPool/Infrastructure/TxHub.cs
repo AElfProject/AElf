@@ -105,12 +105,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 if (transactionCount <= 0)
                     return res;
-                
-                res.AddRange(dict.Values.Take(transactionCount)
+
+                var take = dict.Count < transactionCount ? dict.Count : transactionCount;
+                res.AddRange(dict.Values.Take(take)
                     // .OrderBy(x => x.EnqueueTime)
                     .Select(x => x.Transaction));
 
-                transactionCount -= dict.Count < transactionCount ? dict.Count : transactionCount;
+                transactionCount -= take;
             }
 
             return res;
