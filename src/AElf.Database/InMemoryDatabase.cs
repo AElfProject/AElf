@@ -84,9 +84,9 @@ namespace AElf.Database
             return Task.FromResult(_dictionary.ContainsKey(key));
         }
 
-        public Task<bool> IsConnected()
+        public bool IsConnected()
         {
-            return Task.FromResult(true);
+            return true;
         }
     }
 }

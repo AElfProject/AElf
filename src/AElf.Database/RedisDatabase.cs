@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Database.RedisProtocol;
 using Volo.Abp;
 
 #pragma warning disable 1998
@@ -10,42 +11,42 @@ namespace AElf.Database
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        private readonly SCRedisLite _pooledRedisLite;
+        private readonly PooledRedisLite _pooledRedisLite;
 
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
             Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
             var endpoint = options.ConnectionString.ToRedisEndpoint();
-            _pooledRedisLite = new SCRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
+            _pooledRedisLite = new PooledRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
         }
 
         public async Task<bool> IsExistsAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await _pooledRedisLite.ExistsAsync(key);
+            return _pooledRedisLite.Exists(key);
         }
 
-        public async Task<bool> IsConnected()
+        public bool IsConnected()
         {
-            return await _pooledRedisLite.PingAsync();
+            return _pooledRedisLite.Ping();
         }
 
         public async Task<byte[]> GetAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await _pooledRedisLite.GetAsync(key);
+            return _pooledRedisLite.Get(key);
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            await _pooledRedisLite.SetAsync(key, bytes);
+            _pooledRedisLite.Set(key, bytes);
         }
 
         public async Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            await _pooledRedisLite.RemoveAsync(key);
+            _pooledRedisLite.Remove(key);
         }
 
         public async Task SetAllAsync(IDictionary<string, byte[]> values)
@@ -56,8 +57,7 @@ namespace AElf.Database
             {
                 Check.NotNullOrWhiteSpace(key, nameof(key));
             }
-            
-            await _pooledRedisLite.SetAllAsync(values);
+            _pooledRedisLite.SetAll(values);
         }
         
         public async Task<List<byte[]>> GetAllAsync(IList<string> keys)
@@ -69,7 +69,7 @@ namespace AElf.Database
                 Check.NotNullOrWhiteSpace(key, nameof(key));
             }
 
-            return (await _pooledRedisLite.GetAllAsync(keys.ToArray())).ToList();
+            return _pooledRedisLite.GetAll(keys.ToArray()).ToList();
         }
         
         public async Task RemoveAllAsync(IList<string> keys)
@@ -81,7 +81,7 @@ namespace AElf.Database
                 Check.NotNullOrWhiteSpace(key, nameof(key));
             }
 
-            await _pooledRedisLite.RemoveAllAsync(keys.ToArray());
+            _pooledRedisLite.RemoveAll(keys.ToArray());
         }
     }
 }

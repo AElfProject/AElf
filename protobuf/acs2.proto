@@ -18,6 +18,10 @@ service ACS2Base {
     rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetListResourceInfo (aelf.Transaction) returns (ResourceInfo) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ResourceInfo {
@@ -27,4 +31,8 @@ message ResourceInfo {
     repeated aelf.ScopedStatePath read_paths = 2;
     // Whether the transaction is not executed in parallel.
     bool non_parallelizable = 3;
+}
+
+message ResourceInfoList {
+    repeated ResourceInfo resource_info_list = 1;
 }
