@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -59,7 +60,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _actionBlock = CreateQueuedTransactionBufferBlock();
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash, int transactionCount)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
+            int transactionCount)
         {
             var output = new ExecutableTransactionSet
             {
@@ -71,7 +73,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 return output;
             }
-            
+
             if (blockHash != _bestChainHash)
             {
                 Logger.LogWarning(
@@ -79,10 +81,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return output;
             }
 
-            Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
+            // Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
             Logger.LogDebug($"_allTransactions count: {_allTransactions.Count}");
 
-            output.Transactions.AddRange(_validatedTransactions.Values.Take(transactionCount).OrderBy(x => x.EnqueueTime)
+            output.Transactions.AddRange(_validatedTransactions.Values.Take(transactionCount)
+                // .OrderBy(x => x.EnqueueTime)
                 .Select(x => x.Transaction));
 
             return output;
@@ -92,9 +95,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             if (_bestChainHash == Hash.Empty)
                 return;
-            
-            await _transactionManager.AddTransactionsAsync(transactions.ToList());
 
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            await _transactionManager.AddTransactionsAsync(transactions.ToList());
+            stopwatch.Stop();
+            Logger.LogDebug($"Add {transactions.Count()} tx elapsed {stopwatch.ElapsedMilliseconds}");
 
             foreach (var transaction in transactions)
             {
@@ -120,20 +126,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task UpdateTransactionPoolByBestChainAsync(Hash bestChainHash, long bestChainHeight)
         {
-            var minimumHeight = _allTransactions.Count == 0
-                ? 0
-                : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
-            var prefixes = await GetPrefixesByHeightAsync(minimumHeight, bestChainHash, bestChainHeight);
-            ResetCurrentCollections();
-            foreach (var queuedTransaction in _allTransactions.Values)
-            {
-                prefixes.TryGetValue(queuedTransaction.Transaction.RefBlockNumber, out var prefix);
-                queuedTransaction.RefBlockStatus =
-                    CheckRefBlockStatus(queuedTransaction.Transaction, prefix, bestChainHeight);
-                AddToCollection(queuedTransaction);
-            }
-
-            CleanTransactions(_expiredByExpiryBlock, bestChainHeight);
+            // var minimumHeight = _allTransactions.Count == 0
+            //     ? 0
+            //     : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
+            // var prefixes = await GetPrefixesByHeightAsync(minimumHeight, bestChainHash, bestChainHeight);
+            // ResetCurrentCollections();
+            // foreach (var queuedTransaction in _allTransactions.Values)
+            // {
+            //     prefixes.TryGetValue(queuedTransaction.Transaction.RefBlockNumber, out var prefix);
+            //     queuedTransaction.RefBlockStatus =
+            //         CheckRefBlockStatus(queuedTransaction.Transaction, prefix, bestChainHeight);
+            //     AddToCollection(queuedTransaction);
+            // }
+            //
+            // CleanTransactions(_expiredByExpiryBlock, bestChainHeight);
 
             _bestChainHash = bestChainHash;
             _bestChainHeight = bestChainHeight;
@@ -381,7 +387,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             //         Transaction = queuedTransaction.Transaction
             //     });
             // }
-            
+
             await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
             {
                 Transaction = queuedTransaction.Transaction
