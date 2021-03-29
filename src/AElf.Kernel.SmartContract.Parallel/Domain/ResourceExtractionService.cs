@@ -30,6 +30,9 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
             new ConcurrentDictionary<Hash, TransactionResourceCache>();
+        
+        private readonly ConcurrentDictionary<Address, ResourceInfo> _contractResourceCache =
+            new ConcurrentDictionary<Address, ResourceInfo>();
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService,
@@ -113,10 +116,28 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             IExecutive executive = null;
             var address = transaction.To;
+            // var txId = transaction.GetHash();
+            // if (_contractResourceCache.TryGetValue(address, out var cache))
+            // {
+            //     return new TransactionResourceInfo
+            //     {
+            //         TransactionId = txId,
+            //         WritePaths =
+            //         {
+            //             cache.WritePaths
+            //         },
+            //         ReadPaths = {cache.ReadPaths},
+            //         ParallelType = cache.NonParallelizable
+            //             ? ParallelType.NonParallelizable
+            //             : ParallelType.Parallelizable,
+            //         ContractHash = executive.ContractHash
+            //     };
+            // }
 
             try
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+                
                 if (!executive.IsParallelizable())
                 {
                     return new TransactionResourceInfo
@@ -133,10 +154,37 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return resourceCache.ResourceInfo;
                 }
 
-                var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
-                var resourceInfo = await executive.GetTransactionResourceInfoAsync(txContext, transaction.GetHash());
+                // var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
+                var resourceInfo = ExtractResourceInfo(transaction);
+                if (resourceInfo != null)
+                {
+                    _contractResourceCache.TryAdd(address, resourceInfo);
+                    return new TransactionResourceInfo
+                    {
+                        TransactionId = transaction.GetHash(),
+                        WritePaths =
+                        {
+                            resourceInfo.WritePaths
+                        },
+                        ReadPaths = {resourceInfo.ReadPaths},
+                        ParallelType = resourceInfo.NonParallelizable
+                            ? ParallelType.NonParallelizable
+                            : ParallelType.Parallelizable,
+                        ContractHash = executive.ContractHash
+                    };
+                }
+                else
+                {
+                    return new TransactionResourceInfo
+                    {
+                        TransactionId = transaction.GetHash(),
+                        ParallelType = ParallelType.NonParallelizable,
+                        ContractHash = executive.ContractHash
+                    };
+                }
+                
                 // Try storing in cache here
-                return resourceInfo;
+                // return resourceInfo;
             }
             catch (SmartContractFindRegistrationException)
             {
@@ -153,6 +201,48 @@ namespace AElf.Kernel.SmartContract.Parallel
                     await _smartContractExecutiveService.PutExecutiveAsync(chainContext, address, executive);
                 }
             }
+        }
+
+        private ResourceInfo ExtractResourceInfo(Transaction transaction)
+        {
+            switch (transaction.MethodName)
+            {
+                case ("Transfer"):
+                {
+                    var resourceInfo = new ResourceInfo
+                    {
+                        WritePaths =
+                        {
+                            GetPath(transaction.To, "Balances", transaction.From.ToString(), "args.Symbol"),
+                            // GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
+                        },
+                        ReadPaths =
+                        {
+                            GetPath(transaction.To, "TokenInfos", "args.Symbol"),
+                        }
+                    };
+
+                    return resourceInfo;
+                }
+
+                default:
+                    return new ResourceInfo {NonParallelizable = true};
+            }
+        }
+        
+        private ScopedStatePath GetPath(Address to, params string[] parts)
+        {
+            return new ScopedStatePath
+            {
+                Address = to,
+                Path = new StatePath
+                {
+                    Parts =
+                    {
+                        parts
+                    }
+                }
+            };
         }
 
         public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
