@@ -9,6 +9,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ParallelExecutionInterestedEventsHandler : ILocalEventHandler<TransactionAcceptedEvent>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+        ILocalEventHandler<BlockAcceptedEvent>,
         ITransientDependency
     {
         private readonly IResourceExtractionService _resourceExtractionService;
