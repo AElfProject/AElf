@@ -20,12 +20,12 @@ namespace AElf.WebApp.Application.Chain.Application
 
         public Task HandleEventAsync(TransactionValidationStatusChangedEvent eventData)
         {
-            _transactionResultStatusCacheProvider.ChangeTransactionResultStatus(eventData.TransactionId,
-                new TransactionValidateStatus
-                {
-                    TransactionResultStatus = eventData.TransactionResultStatus,
-                    Error = eventData.Error
-                });
+            // _transactionResultStatusCacheProvider.ChangeTransactionResultStatus(eventData.TransactionId,
+            //     new TransactionValidateStatus
+            //     {
+            //         TransactionResultStatus = eventData.TransactionResultStatus,
+            //         Error = eventData.Error
+            //     });
             return Task.CompletedTask;
         }
     }
