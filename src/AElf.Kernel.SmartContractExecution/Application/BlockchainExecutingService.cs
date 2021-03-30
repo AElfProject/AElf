@@ -143,11 +143,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var blockHash = block.GetHash();
             // Set the other blocks as bad block if found the first bad block
-            if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
-            {
-                Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
-                return null;
-            }
+            // if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
+            // {
+            //     Logger.LogDebug($"Block validate fails before execution. block hash : {blockHash}");
+            //     return null;
+            // }
 
             var blockExecutedSet = await ExecuteBlockAsync(block);
 
@@ -157,16 +157,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return null;
             }
 
-            if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
-            {
-                Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
-                return null;
-            }
+            // if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
+            // {
+            //     Logger.LogDebug($"Block validate fails after execution. block hash : {blockHash}");
+            //     return null;
+            // }
 
             Logger.LogDebug($"ProcessBlockAsync - 1");
 
-            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-                block.Body.TransactionIds.ToList());
+            // await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+            //     block.Body.TransactionIds.ToList());
 
             Logger.LogDebug($"ProcessBlockAsync - 2");
 
