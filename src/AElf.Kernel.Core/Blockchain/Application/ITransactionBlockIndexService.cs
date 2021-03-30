@@ -68,7 +68,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         private async Task UpdateBlockIndex(BlockIndex blockIndex, IList<Hash> txIds)
         {
-            var notInProvider = new List<Hash>();
+            var notInProvider = txIds.ToList();
             var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
 
             // foreach (var txId in txIds)
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Blockchain.Application
             //     transactionBlockIndexes.Add(txId, UpdateBlockIndex(blockIndex, transactionBlockIndex));
             // }
 
-            var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(txIds.ToList());
+            var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(notInProvider);
 
             for (int i = 0; i < notInProvider.Count; i++)
             {
