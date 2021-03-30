@@ -282,6 +282,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             ClearResourceCache(eventData.Block.TransactionIds);
+            
+            Logger.LogInformation($"Performance test: ResourceCache count {_resourceCache.Count}");
 
             await Task.CompletedTask;
         }

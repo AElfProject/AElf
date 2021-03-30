@@ -22,6 +22,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
 
         public void AddTransactionBlockIndex(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
         {
+            return;
             if (transactionBlockIndex == null)
                 return;
             _transactionBlockIndices[transactionId] = transactionBlockIndex;

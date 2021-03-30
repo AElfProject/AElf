@@ -71,18 +71,18 @@ namespace AElf.Kernel.Blockchain.Application
             var notInProvider = new List<Hash>();
             var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
 
-            foreach (var txId in txIds)
-            {
-                if (!_transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndex))
-                {
-                    notInProvider.Add(txId);
-                    continue;
-                }
-                
-                transactionBlockIndexes.Add(txId, UpdateBlockIndex(blockIndex, transactionBlockIndex));
-            }
+            // foreach (var txId in txIds)
+            // {
+            //     if (!_transactionBlockIndexProvider.TryGetTransactionBlockIndex(txId, out var transactionBlockIndex))
+            //     {
+            //         notInProvider.Add(txId);
+            //         continue;
+            //     }
+            //     
+            //     transactionBlockIndexes.Add(txId, UpdateBlockIndex(blockIndex, transactionBlockIndex));
+            // }
 
-            var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(notInProvider);
+            var notInProviderTbi = await _transactionBlockIndexManager.GetTransactionBlockIndexesAsync(txIds.ToList());
 
             for (int i = 0; i < notInProvider.Count; i++)
             {
@@ -178,10 +178,10 @@ namespace AElf.Kernel.Blockchain.Application
         private async Task AddTransactionBlockIndicesAsync(
             IDictionary<Hash, TransactionBlockIndex> transactionBlockIndices)
         {
-            foreach (var index in transactionBlockIndices)
-            {
-                _transactionBlockIndexProvider.AddTransactionBlockIndex(index.Key, index.Value);
-            }
+            // foreach (var index in transactionBlockIndices)
+            // {
+            //     _transactionBlockIndexProvider.AddTransactionBlockIndex(index.Key, index.Value);
+            // }
 
             await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(transactionBlockIndices);
         }
