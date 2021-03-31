@@ -51,19 +51,25 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
         {
-            int slots = 4;
-            var listlist = new List<List<Hash>>(slots);
-            for (int i = 0; i < txIds.Count; i++)
-            {
-                int mod = i % slots;
-                if (mod >= listlist.Count)
-                    listlist.Add(new List<Hash>());
-                listlist[mod].Add(txIds[i]);
-            }
+            // int slots = 4;
+            // var listlist = new List<List<Hash>>(slots);
+            // for (int i = 0; i < txIds.Count; i++)
+            // {
+            //     int mod = i % slots;
+            //     if (mod >= listlist.Count)
+            //         listlist.Add(new List<Hash>());
+            //     listlist[mod].Add(txIds[i]);
+            // }
+            //
+            // var tasks = listlist.Select(txIdList =>
+            //     UpdateBlockIndex(blockIndex, txIdList));
+            // await Task.WhenAll(tasks);
 
-            var tasks = listlist.Select(txIdList =>
-                UpdateBlockIndex(blockIndex, txIdList));
-            await Task.WhenAll(tasks);
+            var transactionBlockIndexes = txIds.ToDictionary(txId => txId,
+                txId => new TransactionBlockIndex
+                    {BlockHash = blockIndex.BlockHash, BlockHeight = blockIndex.BlockHeight});
+
+            await _transactionBlockIndexManager.SetTransactionBlockIndicesAsync(transactionBlockIndexes);
         }
 
         private async Task UpdateBlockIndex(BlockIndex blockIndex, IList<Hash> txIds)
