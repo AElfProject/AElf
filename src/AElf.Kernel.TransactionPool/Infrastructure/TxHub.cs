@@ -338,14 +338,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
             {
                 //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+                //    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
                 return false;
             }
 
             if (dict.Count >= _transactionOptions.PoolLimit / _transactionOptions.PoolParallelismDegree)
             {
                 //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                    "Transaction Pool is full.");
+                //    "Transaction Pool is full.");
                 return false;
             }
             //
