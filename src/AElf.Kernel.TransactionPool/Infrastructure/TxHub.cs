@@ -337,14 +337,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
             {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
                     $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
                 return false;
             }
 
             if (dict.Count >= _transactionOptions.PoolLimit / _transactionOptions.PoolParallelismDegree)
             {
-                await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
                     "Transaction Pool is full.");
                 return false;
             }
@@ -371,17 +371,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return null;
             }
 
-            var validationResult =
-                await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
-                {
-                    BlockHash = _bestChainHash,
-                    BlockHeight = _bestChainHeight
-                }, queuedTransaction.Transaction);
-            if (!validationResult)
-            {
-                Logger.LogDebug($"Transaction {queuedTransaction.TransactionId} validation failed.");
-                return null;
-            }
+            // var validationResult =
+            //     await _transactionValidationService.ValidateTransactionWhileCollectingAsync(new ChainContext
+            //     {
+            //         BlockHash = _bestChainHash,
+            //         BlockHeight = _bestChainHeight
+            //     }, queuedTransaction.Transaction);
+            // if (!validationResult)
+            // {
+            //     Logger.LogDebug($"Transaction {queuedTransaction.TransactionId} validation failed.");
+            //     return null;
+            // }
 
             // double check
             // var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
