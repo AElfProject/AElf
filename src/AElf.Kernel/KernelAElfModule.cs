@@ -31,16 +31,18 @@ namespace AElf.Kernel
         {
             context.Services.AddTransient(typeof(IConfigurationProcessor),
                 typeof(BlockTransactionLimitConfigurationProcessor));
+            
+            Configure<BlockTransactionLimitOptions>(context.Services.GetConfiguration().GetSection("BlockTransactionLimit"));
 
-            Configure<BlockTransactionLimitOptions>(option =>
-            {
-                var txLimitOptions = context.Services.GetConfiguration().GetSection("Consensus");
-                var value = txLimitOptions["TxLimit"];
-                if (value != null && int.TryParse(value, out var limit))
-                {
-                    option.TransactionLimit = limit;
-                }
-            });
+            // Configure<BlockTransactionLimitOptions>(option =>
+            // {
+            //     var txLimitOptions = context.Services.GetConfiguration().GetSection("Consensus");
+            //     var value = txLimitOptions["TxLimit"];
+            //     if (value != null && int.TryParse(value, out var limit))
+            //     {
+            //         option.TransactionLimit = limit;
+            //     }
+            // });
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

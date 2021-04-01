@@ -19,7 +19,7 @@ namespace AElf.Kernel.Miner
     internal class BlockTransactionLimitProvider : BlockExecutedDataBaseProvider<Int32Value>, IBlockTransactionLimitProvider,
         ISingletonDependency
     {
-        private readonly BlockTransactionLimitOptions _txLimitOptions;
+        private readonly IOptionsMonitor<BlockTransactionLimitOptions> _txLimitOptions;
         private const string BlockExecutedDataName = "BlockTransactionLimit";
         private readonly int _systemTransactionCount;
 
@@ -28,16 +28,16 @@ namespace AElf.Kernel.Miner
         public BlockTransactionLimitProvider(
             ICachedBlockchainExecutedDataService<Int32Value> cachedBlockchainExecutedDataService, 
             IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators,
-            IOptionsSnapshot<BlockTransactionLimitOptions> txLimitOptions) : base(
+            IOptionsMonitor<BlockTransactionLimitOptions> txLimitOptions) : base(
             cachedBlockchainExecutedDataService)
         {
-            _txLimitOptions = txLimitOptions.Value;
+            _txLimitOptions = txLimitOptions;
             _systemTransactionCount = systemTransactionGenerators.Count();
         }
 
         public Task<int> GetLimitAsync(IBlockIndex blockIndex)
         {
-            return Task.FromResult(_txLimitOptions.TransactionLimit);
+            return Task.FromResult(_txLimitOptions.CurrentValue.TransactionLimit);
         }
 
         public async Task SetLimitAsync(IBlockIndex blockIndex, int limit)
