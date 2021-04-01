@@ -101,18 +101,29 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private List<Transaction> GetTransactions(int transactionCount)
         {
             var res = new List<Transaction>();
-            
+
+            var count = transactionCount;
+            if (count > 1000)
+            {
+                count = transactionCount / _transactionOptions.PoolParallelismDegree;
+            }
+
             foreach (var dict in _dictList)
             {
-                if (transactionCount <= 0)
-                    return res;
-
-                var take = dict.Count < transactionCount ? dict.Count : transactionCount;
+                // if (transactionCount <= 0)
+                //     return res;
+                //
+                // var take = dict.Count < transactionCount ? dict.Count : transactionCount;
+                // res.AddRange(dict.Values.Take(take)
+                //     // .OrderBy(x => x.EnqueueTime)
+                //     .Select(x => x.Transaction));
+                //
+                // transactionCount -= take;
+                
+                var take = dict.Count < count ? dict.Count : count;
                 res.AddRange(dict.Values.Take(take)
                     // .OrderBy(x => x.EnqueueTime)
                     .Select(x => x.Transaction));
-
-                transactionCount -= take;
             }
 
             return res;
