@@ -30,8 +30,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly List<ConcurrentDictionary<Hash, QueuedTransaction>> _dictList =
             new List<ConcurrentDictionary<Hash, QueuedTransaction>>();
 
-        private readonly ConcurrentQueue<Transaction> _transactionQueue = new ConcurrentQueue<Transaction>();
-
         // private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions=
         //     new ConcurrentDictionary<Hash, QueuedTransaction>();
 
@@ -92,27 +90,18 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             // Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
-            Logger.LogDebug($"_allTransactions count: {_transactionQueue.Count}");
+            Logger.LogDebug($"_allTransactions count: {GetTxCount()}");
 
-            //List<Transaction> list = GetTransactions(transactionCount);
-            for (int i = 0; i < transactionCount; i++)
-            {
-                if (_transactionQueue.TryDequeue(out var tx))
-                {
-                    output.Transactions.Add(tx);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            
+            List<Transaction> list = GetTransactions(transactionCount);
+            output.Transactions.AddRange(list);
+
             return output;
         }
 
         private List<Transaction> GetTransactions(int transactionCount)
         {
             var res = new List<Transaction>();
+            
             foreach (var dict in _dictList)
             {
                 if (transactionCount <= 0)
@@ -141,37 +130,29 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            var enumerable = transactions as Transaction[] ?? transactions.ToArray();
-            await _transactionManager.AddTransactionsAsync(enumerable.ToList());
+            await _transactionManager.AddTransactionsAsync(transactions.ToList());
             stopwatch.Stop();
-            Logger.LogDebug($"Add {enumerable.Count()} tx elapsed {stopwatch.ElapsedMilliseconds}");
+            Logger.LogDebug($"Add {transactions.Count()} tx elapsed {stopwatch.ElapsedMilliseconds}");
 
-            foreach (var transaction in enumerable)
+            foreach (var transaction in transactions)
             {
-                // var queuedTransaction = new QueuedTransaction
-                // {
-                //     TransactionId = transactionId,
-                //     Transaction = transaction,
-                //     EnqueueTime = TimestampHelper.GetUtcNow()
-                // };
-                // // var sendResult = await AcceptTransactionAsync(queuedTransaction);
-                // var sendResult = await _actionBlock.SendAsync(queuedTransaction);
-                // if (sendResult) continue;
-                
-                _transactionQueue.Enqueue(transaction);
-                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
-                {
-                    Transaction = transaction
-                });
-                return;
                 var transactionId = transaction.GetHash();
+                var queuedTransaction = new QueuedTransaction
+                {
+                    TransactionId = transactionId,
+                    Transaction = transaction,
+                    EnqueueTime = TimestampHelper.GetUtcNow()
+                };
+                // var sendResult = await AcceptTransactionAsync(queuedTransaction);
+                var sendResult = await _actionBlock.SendAsync(queuedTransaction);
+                if (sendResult) continue;
                 await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
                 {
                     TransactionId = transactionId,
                     TransactionResultStatus = TransactionResultStatus.NodeValidationFailed,
                     Error = "Failed to enter tx hub."
                 });
-                //Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
+                Logger.LogWarning($"Process transaction:{queuedTransaction.TransactionId} failed.");
             }
         }
 
@@ -207,7 +188,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public Task CleanByTransactionIdsAsync(IEnumerable<Hash> transactionIds)
         {
-            //CleanTransactions(transactionIds);
+            CleanTransactions(transactionIds);
             return Task.CompletedTask;
         }
 
@@ -215,7 +196,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             return Task.FromResult(new TransactionPoolStatus
             {
-                AllTransactionCount = _transactionQueue.Count
+                AllTransactionCount = GetTxCount(),
                 // ValidatedTransactionCount = _validatedTransactions.Count
             });
         }
