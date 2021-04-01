@@ -161,17 +161,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             //     ? 0
             //     : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
             // var prefixes = await GetPrefixesByHeightAsync(minimumHeight, bestChainHash, bestChainHeight);
-            ResetCurrentCollections();
-            var dict = _dictList[(int) bestChainHeight % _transactionOptions.PoolParallelismDegree];
-            foreach (var queuedTransaction in dict.Values)
-            {
-                // prefixes.TryGetValue(queuedTransaction.Transaction.RefBlockNumber, out var prefix);
-                queuedTransaction.RefBlockStatus =
-                    CheckRefBlockStatus(queuedTransaction.Transaction, bestChainHeight);
-                AddToCollection(queuedTransaction);
-            }
-
-            CleanTransactions(_expiredByExpiryBlock, bestChainHeight);
+            // ResetCurrentCollections();
+            // var dict = _dictList[(int) bestChainHeight % _transactionOptions.PoolParallelismDegree];
+            // foreach (var queuedTransaction in dict.Values)
+            // {
+            //     // prefixes.TryGetValue(queuedTransaction.Transaction.RefBlockNumber, out var prefix);
+            //     queuedTransaction.RefBlockStatus =
+            //         CheckRefBlockStatus(queuedTransaction.Transaction, bestChainHeight);
+            //     AddToCollection(queuedTransaction);
+            // }
+            //
+            // CleanTransactions(_expiredByExpiryBlock, bestChainHeight);
 
             _bestChainHash = bestChainHash;
             _bestChainHeight = bestChainHeight;
@@ -235,10 +235,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         
         private static RefBlockStatus CheckRefBlockStatus(Transaction transaction, long bestChainHeight)
         {
-            if (transaction.GetExpiryBlockNumber() <= bestChainHeight)
-            {
-                return RefBlockStatus.RefBlockExpired;
-            }
+            // if (transaction.GetExpiryBlockNumber() <= bestChainHeight)
+            // {
+            //     return RefBlockStatus.RefBlockExpired;
+            // }
 
             // return transaction.RefBlockPrefix == prefix ? RefBlockStatus.RefBlockValid : RefBlockStatus.RefBlockInvalid;
             return RefBlockStatus.RefBlockValid;
