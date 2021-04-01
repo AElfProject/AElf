@@ -159,6 +159,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 // if (sendResult) continue;
                 
                 _transactionQueue.Enqueue(transaction);
+                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
+                {
+                    Transaction = transaction
+                });
                 return;
                 var transactionId = transaction.GetHash();
                 await LocalEventBus.PublishAsync(new TransactionValidationStatusChangedEvent
