@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public class GrouperOptions
     {
-        public int GroupingTimeOut { get; set; } = 500; // ms
+        public int GroupingTimeOut { get; set; } = 2000; // ms
         public int MaxTransactions { get; set; } = int.MaxValue; // Maximum transactions to group
     }
 
