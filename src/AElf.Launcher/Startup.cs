@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using AElf.Blockchains.MainChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
@@ -64,6 +65,8 @@ namespace AElf.Launcher
         // ReSharper disable once UnusedMember.Global
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            ThreadPool.SetMinThreads(70, 70);
+            
             var cultureInfo = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 
