@@ -36,11 +36,6 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\authority_info.proto">
