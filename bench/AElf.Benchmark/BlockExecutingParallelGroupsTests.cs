@@ -23,7 +23,7 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IMinerService _minerService;
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private List<Transaction> _systemTransactions;
         private List<Transaction> _prepareTransactions;
@@ -33,7 +33,7 @@ namespace AElf.Benchmark
 
         [Params(1, 2, 6, 10, 14, 18, 22)] public int GroupCount;
 
-        public int TransactionCount = 10000;
+        public int TransactionCount = 100;
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -42,7 +42,7 @@ namespace AElf.Benchmark
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _minerService = GetRequiredService<IMinerService>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
 
             _prepareTransactions = new List<Transaction>();
             _systemTransactions = new List<Transaction>();
@@ -51,49 +51,49 @@ namespace AElf.Benchmark
         }
 
         [IterationSetup]
-        public void IterationSetup()
+        public async Task IterationSetup()
         {
-            AsyncHelper.RunSync(async () =>
-            {
+            // AsyncHelper.RunSync(async () =>
+            // {
                 var chain = await _blockchainService.GetChainAsync();
                 var tokenAmount = TransactionCount / GroupCount;
                 (_prepareTransactions, _keyPairs) =
-                    await _osTestHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
-                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _prepareTransactions);
+                    await _benchmarkHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
+                _block = _benchmarkHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _prepareTransactions);
                 await _blockExecutingService.ExecuteBlockAsync(_block.Header, _prepareTransactions);
-                await _osTestHelper.BroadcastTransactions(_prepareTransactions);
+                await _benchmarkHelper.BroadcastTransactions(_prepareTransactions);
                 _block = (await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                     TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4))).Block;
 
-                _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
+                _systemTransactions = await _benchmarkHelper.GenerateTransferTransactions(1);
                 _cancellableTransactions =
-                    await _osTestHelper.GenerateTransactionsWithoutConflictAsync(_keyPairs, tokenAmount);
+                    await _benchmarkHelper.GenerateTransactionsWithoutConflictAsync(_keyPairs, tokenAmount);
                 chain = await _blockchainService.GetChainAsync();
-                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+                _block = _benchmarkHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                     _systemTransactions.Concat(_cancellableTransactions));
-            });
+            //});
         }
 
         [Benchmark]
-        public void ExecuteBlock()
+        public async Task ExecuteBlock()
         {
-            AsyncHelper.RunSync(async () =>
-            {
+            // AsyncHelper.RunSync(async () =>
+            // {
                 _block = (await _blockExecutingService.ExecuteBlockAsync(_block.Header,
                     _systemTransactions, _cancellableTransactions, CancellationToken.None)).Block;
-            });
+            //});
         }
 
         [IterationCleanup]
-        public void IterationCleanup()
+        public async Task IterationCleanup()
         {
-            AsyncHelper.RunSync(async () =>
-            {
+            // AsyncHelper.RunSync(async () =>
+            // {
                 await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
                 var transactionIds = _systemTransactions.Concat(_cancellableTransactions).Select(t => t.GetHash())
                     .ToList();
                 await RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-            });
+            //});
         }
     }
 }

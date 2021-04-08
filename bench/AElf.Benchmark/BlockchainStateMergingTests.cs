@@ -29,7 +29,7 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private ITransactionPoolService _transactionPoolService;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private Chain _chain;
         private ChainStateInfo _chainStateInfo;
@@ -48,7 +48,7 @@ namespace AElf.Benchmark
             _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockStateSetManger = GetRequiredService<IBlockStateSetManger>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
             _chainManager = GetRequiredService<IChainManager>();
             _blockManager = GetRequiredService<IBlockManager>();
             _transactionManager = GetRequiredService<ITransactionManager>();
@@ -78,9 +78,9 @@ namespace AElf.Benchmark
 
             for (var i = 0; i < BlockCount; i++)
             {
-                var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
-                await _osTestHelper.BroadcastTransactions(transactions);
-                var block = await _osTestHelper.MinedOneBlock();
+                var transactions = await _benchmarkHelper.GenerateTransferTransactions(TransactionCount);
+                await _benchmarkHelper.BroadcastTransactions(transactions);
+                var block = await _benchmarkHelper.MinedOneBlock();
                 _blocks.Add(block);
 
                 var blockState = await _blockStateSetManger.GetBlockStateSetAsync(block.GetHash());

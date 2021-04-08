@@ -23,7 +23,7 @@ namespace AElf.Benchmark
         private ITransactionManager _transactionManager;
         private ITransactionPoolService _transactionPoolService;
         private IBlockchainService _blockchainService;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private Chain _chain;
         private Block _block;
@@ -40,7 +40,7 @@ namespace AElf.Benchmark
             _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionPoolService = GetRequiredService<ITransactionPoolService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
 
             _chain = await _blockchainService.GetChainAsync();
         }
@@ -48,10 +48,10 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+            var transactions = await _benchmarkHelper.GenerateTransferTransactions(TransactionCount);
             await _transactionPoolService.AddTransactionsAsync(transactions);
             var chain = await _blockchainService.GetChainAsync();
-            _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            _block = _benchmarkHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             await _blockchainService.AddBlockAsync(_block);
             await _chainBlockLinks.SetAsync(
                 chain.Id.ToStorageKey() + KernelConstants.StorageKeySeparator + _block.GetHash().ToStorageKey(),

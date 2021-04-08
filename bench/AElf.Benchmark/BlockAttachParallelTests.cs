@@ -25,16 +25,16 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private IBlockAttachService _blockAttachService;
         private ITransactionManager _transactionManager;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private Chain _chain;
         private Block _prepareBlock;
         private Block _block;
         
-        [Params(100)]
+        [Params(1)]
         public int GroupCount;
 
-        public int TransactionCount = 100000;
+        public int TransactionCount = 100;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -46,7 +46,7 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
 
             _chain = await _blockchainService.GetChainAsync();
         }
@@ -58,17 +58,17 @@ namespace AElf.Benchmark
             {
                 var tokenAmount = TransactionCount / GroupCount;
                 var (prepareTransactions, keyPairs) =
-                    await _osTestHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
+                    await _benchmarkHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
                 _prepareBlock =
-                    _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, prepareTransactions);
+                    _benchmarkHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, prepareTransactions);
                 await _blockchainService.AddTransactionsAsync(prepareTransactions);
                 await _blockchainService.AddBlockAsync(_prepareBlock);
                 await _blockAttachService.AttachBlockAsync(_prepareBlock);
 
                 var cancellableTransactions =
-                    await _osTestHelper.GenerateTransactionsWithoutConflictAsync(keyPairs, tokenAmount);
+                    await _benchmarkHelper.GenerateTransactionsWithoutConflictAsync(keyPairs, tokenAmount);
                 var chain = await _blockchainService.GetChainAsync();
-                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+                _block = _benchmarkHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                     cancellableTransactions);
                 await _blockchainService.AddTransactionsAsync(cancellableTransactions);
                 await _blockchainService.AddBlockAsync(_block);

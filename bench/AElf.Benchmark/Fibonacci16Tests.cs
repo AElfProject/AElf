@@ -15,7 +15,7 @@ namespace AElf.Benchmark
     {
         private IBlockchainService _blockchainService;
         private ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private Transaction _transaction;
         private Address _contractAddress;
@@ -29,16 +29,16 @@ namespace AElf.Benchmark
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
 
-            _contractAddress = await _osTestHelper.DeployContract<PerformanceTestContract.PerformanceTestContract>();
+            _contractAddress = await _benchmarkHelper.DeployContract<PerformanceTestContract.PerformanceTestContract>();
             _chain = await _blockchainService.GetChainAsync();
         }
 
         [IterationSetup]
         public void IterationSetup()
         {
-            _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
+            _transaction = _benchmarkHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.Fibonacci), new UInt64Value
                 {
                     Value = 16

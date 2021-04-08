@@ -20,7 +20,7 @@ namespace AElf.Benchmark
         private IBlockchainService _blockchainService;
         private ITransactionPoolService _transactionPoolService;
         private ITransactionManager _transactionManager;
-        private OSTestHelper _osTestHelper;
+        private BenchmarkHelper _benchmarkHelper;
 
         private Chain _chain;
         private List<Transaction> _transactions;
@@ -31,7 +31,7 @@ namespace AElf.Benchmark
         public async Task GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _benchmarkHelper = GetRequiredService<BenchmarkHelper>();
             _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionPoolService = GetRequiredService<ITransactionPoolService>();
 
@@ -41,7 +41,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+            _transactions = await _benchmarkHelper.GenerateTransferTransactions(TransactionCount);
         }
 
         [Benchmark]
