@@ -4,7 +4,7 @@ namespace AElf.Kernel
 {
     public static class KernelConstants
     {
-        public const long ReferenceBlockValidPeriod = 2560;
+        public const long ReferenceBlockValidPeriod = 256;
         public const int ProtocolVersion = 1;
         public const int DefaultRunnerCategory = 0;
         public const int CodeCoverageRunnerCategory = 30;
