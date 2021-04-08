@@ -33,7 +33,7 @@ namespace AElf.Benchmark
 
         [Params(1, 2, 6, 10, 14, 18, 22)] public int GroupCount;
 
-        public int TransactionCount = 200;
+        public int TransactionCount = 10000;
 
         [GlobalSetup]
         public void GlobalSetup()

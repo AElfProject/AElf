@@ -96,12 +96,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
 
             // handle execution cases 
-            await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
+            ///await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
 
             return new BlockExecutedSet
             {
                 Block = block,
-                TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
+                //TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
                 TransactionResults = transactionResults
             };
         }

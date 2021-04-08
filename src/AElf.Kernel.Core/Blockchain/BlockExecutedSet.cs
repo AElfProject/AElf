@@ -8,7 +8,7 @@ namespace AElf.Kernel.Blockchain
         public Block Block { get; set; }
         public List<TransactionResult> TransactionResults { get; set; }
 
-        public IDictionary<Hash, Transaction> TransactionMap { get; set; }
+        //public IDictionary<Hash, Transaction> TransactionMap { get; set; }
 
         public long Height => Block.Height;
 
