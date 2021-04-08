@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="RIDER_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/.nuget/packages/secp256k1.native/0.1.20/runtimes/linux-x64/native/libsecp256k1.so" />
+    <content url="file://$USER_HOME$/.nuget/packages/secp256k1.native/0.1.20/runtimes/osx-x64/native/libsecp256k1.dylib" />
+    <content url="file://$USER_HOME$/.nuget/packages/secp256k1.native/0.1.20/runtimes/win-x64/native/secp256k1.dll" />
+    <content url="file://$USER_HOME$/.nuget/packages/secp256k1.native/0.1.20/runtimes/win-x86/native/secp256k1.dll" />
+    <content url="file://$USER_HOME$/.nuget/packages/volo.abp.aspnetcore/3.1.0/contentFiles/any/netcoreapp3.1/Properties" />
+    <content url="file://$MODULE_DIR$/../.." />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Bundled Protobuf Distribution" level="application" />
+  </component>
+</module>
