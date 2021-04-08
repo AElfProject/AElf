@@ -84,7 +84,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             var resultCollection = new ConcurrentBag<GroupedExecutionReturnSets>();
             
             System.Threading.Tasks.Parallel.ForEach(groupedTransactions,
-                new ParallelOptions {MaxDegreeOfParallelism = 10}, groupedTransaction =>
+                new ParallelOptions {MaxDegreeOfParallelism = 100}, groupedTransaction =>
                 {
                     AsyncHelper.RunSync(async () =>
                     {
