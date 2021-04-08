@@ -54,9 +54,9 @@ namespace AElf.Kernel
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            var transactionBlockIndexService =
-                context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
-            AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
+            // var transactionBlockIndexService =
+            //     context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
+            // AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
         }
     }
 

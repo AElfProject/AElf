@@ -68,12 +68,12 @@ namespace AElf.Runtime.CSharp
             try
             {
                 _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-                if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
-                {
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                    CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                    return Task.CompletedTask;
-                }
+                // if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
+                // {
+                //     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                //     CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
+                //     return Task.CompletedTask;
+                // }
 
                 Execute();
             }
@@ -89,9 +89,9 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            var observer =
-                new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
-                    CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
+            // var observer =
+            //     new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
+            //         CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
             
             try
             {
@@ -103,7 +103,7 @@ namespace AElf.Runtime.CSharp
                     );
                 }
                 
-                _smartContractProxy.SetExecutionObserver(observer);
+                //_smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 

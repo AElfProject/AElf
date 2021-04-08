@@ -99,8 +99,8 @@ namespace AElf.Benchmark
                 Issuer = ownAddress,
                 IsBurnable = true
             });
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                new SetPrimaryTokenSymbolInput {Symbol = _nativeSymbol});
+            // callList.Add(nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+            //     new SetPrimaryTokenSymbolInput {Symbol = _nativeSymbol});
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = _nativeSymbol,

@@ -36,12 +36,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Symbol = tokenSymbol
             });
             balanceBeforeDonate.Balance.ShouldBe(issueAmount);
-            var donateRet = await AEDPoSContractStub.Donate.SendAsync(new DonateInput
-            {
-                Symbol = tokenSymbol,
-                Amount = 1000
-            });
-            donateRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            // var donateRet = await AEDPoSContractStub.Donate.SendAsync(new DonateInput
+            // {
+            //     Symbol = tokenSymbol,
+            //     Amount = 1000
+            // });
+            // donateRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var balanceAfterDonate = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = BootMinerAddress,

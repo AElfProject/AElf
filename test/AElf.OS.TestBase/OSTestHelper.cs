@@ -429,12 +429,12 @@ namespace AElf.OS
                     }.ToByteString()
                 });
 
-            tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
-            {
-                MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
-                Params =
-                    new SetPrimaryTokenSymbolInput {Symbol = "ELF"}.ToByteString()
-            });
+            // tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+            // {
+            //     MethodName = nameof(TokenContractContainer.TokenContractStub.SetPrimaryTokenSymbol),
+            //     Params =
+            //         new SetPrimaryTokenSymbolInput {Symbol = "ELF"}.ToByteString()
+            // });
             tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
             {
                 MethodName = nameof(TokenContractContainer.TokenContractStub.Issue), Params = new IssueInput
@@ -446,11 +446,11 @@ namespace AElf.OS
                 }.ToByteString()
             });
 
-            tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
-            {
-                MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
-                Params = new Empty().ToByteString()
-            });
+            // tokenContractDto.AddGenesisTransactionMethodCall(new ContractInitializationMethodCall
+            // {
+            //     MethodName = nameof(TokenContractContainer.TokenContractStub.InitialCoefficients),
+            //     Params = new Empty().ToByteString()
+            // });
             dto.InitializationSmartContracts.Add(tokenContractDto);
 
             

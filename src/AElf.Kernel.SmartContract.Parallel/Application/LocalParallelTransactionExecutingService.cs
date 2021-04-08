@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Parallel.Application
 {
@@ -70,17 +72,36 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
             CancellationToken cancellationToken)
         {
-            var tasks = groupedTransactions.Select(
-                txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+            // var tasks = groupedTransactions.Select(
+            //     txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+            //     {
+            //         BlockHeader = blockHeader,
+            //         Transactions = txns,
+            //         PartialBlockStateSet = blockStateSet
+            //     }, cancellationToken));
+            // var results = await Task.WhenAll(tasks);
+            
+            var resultCollection = new ConcurrentBag<GroupedExecutionReturnSets>();
+
+            System.Threading.Tasks.Parallel.ForEach(groupedTransactions,
+                new ParallelOptions {MaxDegreeOfParallelism = 100}, groupedTransaction =>
                 {
-                    BlockHeader = blockHeader,
-                    Transactions = txns,
-                    PartialBlockStateSet = blockStateSet
-                }, cancellationToken));
-            var results = await Task.WhenAll(tasks);
+                    AsyncHelper.RunSync(async () =>
+                    {
+                        var processResult = await ExecuteAndPreprocessResult(new TransactionExecutingDto
+                        {
+                            BlockHeader = blockHeader,
+                            Transactions = groupedTransaction,
+                            PartialBlockStateSet = blockStateSet
+                        }, cancellationToken);
+
+                        resultCollection.Add(processResult);
+                    });
+                });
+
             Logger.LogTrace("Executed parallelizables.");
 
-            var executionReturnSets = MergeResults(results);
+            var executionReturnSets = MergeResults(resultCollection.ToList());
             Logger.LogTrace("Merged results from parallelizables.");
             return new ExecutionReturnSetMergeResult
             {
@@ -151,10 +172,25 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         {
             var executionReturnSets =
                 await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
-            var changeKeys =
-                    executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
-            var allKeys = new HashSet<string>(
-                executionReturnSets.SelectMany(s =>s.StateAccesses.Keys));
+            // var changeKeys =
+            //         executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys));
+            // var allKeys = new HashSet<string>(
+            //     executionReturnSets.SelectMany(s =>s.StateAccesses.Keys));
+            // var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
+
+            var allKeys = new HashSet<string>();
+            var changeKeys = new List<string>();
+
+            foreach (var executionReturnSet in executionReturnSets)
+            {
+                foreach (var stateAccess in executionReturnSet.StateAccesses)
+                {
+                    allKeys.Add(stateAccess.Key);
+                }
+                
+                changeKeys.AddRange(executionReturnSet.StateChanges.Keys);
+                changeKeys.AddRange(executionReturnSet.StateDeletes.Keys);
+            }
             var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
             
             return new GroupedExecutionReturnSets
@@ -193,7 +229,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         }
 
         private List<ExecutionReturnSet> MergeResults(
-            GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
+            List<GroupedExecutionReturnSets> groupedExecutionReturnSetsArray)
         {
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
