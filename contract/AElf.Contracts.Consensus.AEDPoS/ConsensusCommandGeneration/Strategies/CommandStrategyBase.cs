@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// <summary>
             /// In AElf Main Chain, miner will produce 8 blocks (as fast as possible) during every time slot by default.
             /// </summary>
-            private const int TinyBlocksCount = 1;
+            private const int TinyBlocksCount = 8;
             /// <summary>
             /// The minimum interval between two blocks of same time slot.
             /// </summary>

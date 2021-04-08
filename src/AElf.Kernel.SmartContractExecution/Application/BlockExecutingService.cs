@@ -89,6 +89,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             // set txn results
             var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
+            Logger.LogTrace("Set transaction result.");
 
             // set blocks state
             blockStateSet.BlockHash = block.GetHash();
