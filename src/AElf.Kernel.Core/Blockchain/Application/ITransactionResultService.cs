@@ -45,14 +45,16 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
-            var transactionBlockIndex =
-                await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
+            // var transactionBlockIndex =
+            //     await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
+            //
+            // if (transactionBlockIndex != null)
+            //     return await _transactionResultManager.GetTransactionResultAsync(transactionId,
+            //         transactionBlockIndex.BlockHash);
+            //
+            // return null;
 
-            if (transactionBlockIndex != null)
-                return await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    transactionBlockIndex.BlockHash);
-
-            return null;
+            return await _transactionResultManager.GetTransactionResultAsync(transactionId, null);
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)

@@ -165,10 +165,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             Logger.LogDebug($"ProcessBlockAsync - 1");
 
-            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-                 block.Body.TransactionIds.ToList());
-
-            Logger.LogDebug($"ProcessBlockAsync - 2");
+            // await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+            //      block.Body.TransactionIds.ToList());
+            //
+            // Logger.LogDebug($"ProcessBlockAsync - 2");
 
             return blockExecutedSet;
         }
