@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -19,19 +20,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockStateSetManger _blockStateSetManger;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly IExecutedTransactionResultCacheProvider _executedTransactionResultCacheProvider;
         public ILocalEventBus LocalEventBus { get; set; }
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
         public FullBlockchainExecutingService(IBlockchainService blockchainService,
             IBlockValidationService blockValidationService,
             IBlockExecutingService blockExecutingService,
-            ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger)
+            ITransactionResultService transactionResultService, IBlockStateSetManger blockStateSetManger, IExecutedTransactionResultCacheProvider executedTransactionResultCacheProvider)
         {
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
             _transactionResultService = transactionResultService;
             _blockStateSetManger = blockStateSetManger;
+            _executedTransactionResultCacheProvider = executedTransactionResultCacheProvider;
 
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -114,7 +117,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
             //
             // Logger.LogDebug("GetExecuteBlockSetAsync - 2");
 
-            set.TransactionResults = await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash);
+            var transactionResult = _executedTransactionResultCacheProvider.GetTransactionResults(block.GetHash());
+            if (transactionResult != null)
+            {
+                set.TransactionResults = transactionResult;
+            }
+            else
+            {
+                set.TransactionResults = await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash);
+            }
+
             // foreach (var transactionId in block.TransactionIds)
             // {
             //     if ((set.TransactionResults[transactionId] =

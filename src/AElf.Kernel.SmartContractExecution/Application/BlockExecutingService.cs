@@ -10,6 +10,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -24,18 +25,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
+        private readonly IExecutedTransactionResultCacheProvider _executedTransactionResultCacheProvider;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
             ITransactionResultService transactionResultService,
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+            IExecutedTransactionResultCacheProvider executedTransactionResultCacheProvider)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             _transactionResultService = transactionResultService;
             _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+            _executedTransactionResultCacheProvider = executedTransactionResultCacheProvider;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -126,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 txIndex[allExecutedTransactionIds[i]] = i;
             }
-            
+
             Logger.LogDebug("Sort orderedReturnSets - 1.");
 
             var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
@@ -261,6 +265,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }).ToList();
 
             await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
+            _executedTransactionResultCacheProvider.AddTransactionResults(blockHeader.GetHash(), results);
             return results;
         }
     }
