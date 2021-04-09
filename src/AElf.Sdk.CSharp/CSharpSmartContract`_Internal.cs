@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Types;
 using AElf.Kernel.SmartContract;
 
@@ -12,14 +13,14 @@ namespace AElf.Sdk.CSharp
             State = new TContractState();
             State.Path = new StatePath();;
         }
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
-            return State.GetChanges();
+            return await State.GetChanges();
         }
 
-        internal override void Cleanup()
+        internal override async Task Cleanup()
         {
-            State.Clear();
+            await State.Clear();
         }
 
         internal override void InternalInitialize(ISmartContractBridgeContext bridgeContext)

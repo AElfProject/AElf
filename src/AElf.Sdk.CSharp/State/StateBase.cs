@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AElf.Types;
 using AElf.Kernel.SmartContract;
 namespace AElf.Sdk.CSharp.State
@@ -36,11 +37,11 @@ namespace AElf.Sdk.CSharp.State
         {
         }
 
-        internal virtual void Clear()
+        internal virtual async Task Clear()
         {
         }
 
-        internal virtual TransactionExecutingStateSet GetChanges()
+        internal virtual async Task<TransactionExecutingStateSet> GetChanges()
         {
             return new TransactionExecutingStateSet();
         }

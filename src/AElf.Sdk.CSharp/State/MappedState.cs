@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -77,12 +78,12 @@ namespace AElf.Sdk.CSharp.State
             valuePair.Value = value;
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
             Cache = new Dictionary<TKey, ValuePair>();
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
@@ -150,17 +151,17 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
             Cache = new Dictionary<TKey1, MappedState<TKey2, TEntity>>();
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                var changes = kv.Value.GetChanges();
+                var changes = await kv.Value.GetChanges();
                 foreach (var kv1 in changes.Deletes)
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;
@@ -212,17 +213,17 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
             Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TEntity>>();
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                var changes = kv.Value.GetChanges();
+                var changes = await kv.Value.GetChanges();
                 foreach (var kv1 in changes.Deletes)
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;
@@ -274,17 +275,17 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
             Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TKey4, TEntity>>();
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                var changes = kv.Value.GetChanges();
+                var changes = await kv.Value.GetChanges();
                 foreach (var kv1 in changes.Deletes)
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;

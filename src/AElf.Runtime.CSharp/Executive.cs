@@ -58,12 +58,12 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        private void Cleanup()
+        private async Task Cleanup()
         {
-            _smartContractProxy.Cleanup();
+            await _smartContractProxy.Cleanup();
         }
 
-        public Task ApplyAsync(ITransactionContext transactionContext)
+        public async Task ApplyAsync(ITransactionContext transactionContext)
         {
             try
             {
@@ -75,17 +75,15 @@ namespace AElf.Runtime.CSharp
                 //     return Task.CompletedTask;
                 // }
 
-                Execute();
+                await Execute();
             }
             finally
             {
                 _hostSmartContractBridgeContext.TransactionContext = null;
             }
-
-            return Task.CompletedTask;
         }
 
-        public void Execute()
+        public async Task Execute()
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
@@ -109,7 +107,7 @@ namespace AElf.Runtime.CSharp
 
                 if (!handler.IsView())
                 {
-                    CurrentTransactionContext.Trace.StateSet = GetChanges();
+                    CurrentTransactionContext.Trace.StateSet = await GetChanges();
                 }
                 else
                 {
@@ -123,7 +121,7 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
-                Cleanup();
+                await Cleanup();
             }
 
             var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
@@ -205,9 +203,9 @@ namespace AElf.Runtime.CSharp
             }
         }
         
-        private TransactionExecutingStateSet GetChanges()
+        private async Task<TransactionExecutingStateSet> GetChanges()
         {
-            var changes = _smartContractProxy.GetChanges();
+            var changes = await _smartContractProxy.GetChanges();
 
             var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
             foreach (var key in changes.Writes.Keys)

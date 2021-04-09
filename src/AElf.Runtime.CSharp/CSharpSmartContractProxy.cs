@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using AElf.CSharp.CodeOps;
 using AElf.Types;
 using AElf.Kernel.SmartContract;
@@ -59,8 +60,8 @@ namespace AElf.Runtime.CSharp
 
 
 
-        private readonly Action _methodCleanup;
-        private readonly Func<TransactionExecutingStateSet> _methodGetChanges;
+        private readonly Func<Task> _methodCleanup;
+        private readonly Func<Task<TransactionExecutingStateSet>> _methodGetChanges;
         private readonly Action<ISmartContractBridgeContext> _methodInternalInitialize;
 
 
@@ -71,10 +72,10 @@ namespace AElf.Runtime.CSharp
         {
             var instanceType = instance.GetType();
 
-            _methodCleanup = CreateDelegate<Action>(instance, instanceType, nameof(Cleanup));
+            _methodCleanup = CreateDelegate<Func<Task>>(instance, instanceType, nameof(Cleanup));
 
             _methodGetChanges =
-                CreateDelegate<Func<TransactionExecutingStateSet>>(instance, instanceType, nameof(GetChanges));
+                CreateDelegate<Func<Task<TransactionExecutingStateSet>>>(instance, instanceType, nameof(GetChanges));
 
             _methodInternalInitialize =
                 CreateDelegate<Action<ISmartContractBridgeContext>>(instance, instanceType,
@@ -94,15 +95,15 @@ namespace AElf.Runtime.CSharp
             _methodInternalInitialize(context);
         }
 
-        public TransactionExecutingStateSet GetChanges()
+        public async Task<TransactionExecutingStateSet> GetChanges()
         {
-            return _methodGetChanges();
+            return await _methodGetChanges();
         }
 
-        internal void Cleanup()
+        internal async Task Cleanup()
         {
             _methodSetExecutionObserver?.Invoke(null);
-            _methodCleanup();
+            await _methodCleanup();
             ResetFields();
         }
 

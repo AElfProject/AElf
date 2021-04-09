@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using AElf.Types;
 
 namespace AElf.Sdk.CSharp.State
@@ -73,28 +74,46 @@ namespace AElf.Sdk.CSharp.State
             base.OnContextSet();
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
+            var tasks = new List<Task>();
             foreach (var kv in _propertyInfos)
             {
-                var propertyInfo = kv.Value;
-                ((StateBase) propertyInfo.GetValue(this)).Clear();
+                var task = Task.Run(async () =>
+                {
+                    var propertyInfo = kv.Value;
+                    await ((StateBase) propertyInfo.GetValue(this)).Clear();
+                });
+                tasks.Add(task);
             }
+
+            await Task.WhenAll(tasks);
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
-            var stateSet = new TransactionExecutingStateSet();
+            var tasks = new List<Task<TransactionExecutingStateSet>>();
             foreach (var kv in _propertyInfos)
             {
-                var propertyInfo = kv.Value;
-                var propertyValue = (StateBase) propertyInfo.GetValue(this);
-                var changes = propertyValue.GetChanges();
+                var task = Task.Run(async () =>
+                {
+                    var propertyInfo = kv.Value;
+                    var propertyValue = (StateBase) propertyInfo.GetValue(this);
+                    return await propertyValue.GetChanges();
+                });
+                
+                tasks.Add(task);
+            }
+
+            var states = await Task.WhenAll(tasks);
+            var stateSet = new TransactionExecutingStateSet();
+            foreach (var changes in states)
+            {
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
                 }
-                
+
                 foreach (var kv1 in changes.Deletes)
                 {
                     stateSet.Deletes[kv1.Key] = kv1.Value;

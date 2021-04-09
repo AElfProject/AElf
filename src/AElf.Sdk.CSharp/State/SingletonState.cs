@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -40,14 +41,14 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal override void Clear()
+        internal override async Task Clear()
         {
             Loaded = false;
             _originalValue = default;
             _value = _originalValue;
         }
 
-        internal override TransactionExecutingStateSet GetChanges()
+        internal override async Task<TransactionExecutingStateSet> GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             var key = Path.ToStateKey(Context.Self);
