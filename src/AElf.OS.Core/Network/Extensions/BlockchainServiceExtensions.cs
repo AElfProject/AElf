@@ -32,7 +32,7 @@ namespace AElf.OS.Network.Extensions
                     return new BlockWithTransactions { Header = block.Header, Transactions = { transactions } };
                 });
 
-            return (await Task.WhenAll(list)).ToList();
+            return (await Task.WhenAll(list).ConfigureAwait(false)).ToList();
         }
     }
 }

@@ -86,6 +86,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
+            var groupCount = string.Join(",", groupedTransactions.Parallelizables.Select(p => p.Count));
+            Logger.LogDebug($"GroupCount: {groupCount}");
             return groupedTransactions;
         }
 
