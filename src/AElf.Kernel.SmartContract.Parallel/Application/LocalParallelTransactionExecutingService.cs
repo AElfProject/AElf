@@ -72,18 +72,36 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
             CancellationToken cancellationToken)
         {
-            var tasks = groupedTransactions.Select(
-                txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+            // var tasks = groupedTransactions.Select(
+            //     txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
+            //     {
+            //         BlockHeader = blockHeader,
+            //         Transactions = txns,
+            //         PartialBlockStateSet = blockStateSet
+            //     }, cancellationToken));
+            // var results = await Task.WhenAll(tasks);
+            
+            var resultCollection = new ConcurrentBag<GroupedExecutionReturnSets>();
+            
+            System.Threading.Tasks.Parallel.ForEach(groupedTransactions,
+                new ParallelOptions {MaxDegreeOfParallelism = 100}, groupedTransaction =>
                 {
-                    BlockHeader = blockHeader,
-                    Transactions = txns,
-                    PartialBlockStateSet = blockStateSet
-                }, cancellationToken));
-            var results = await Task.WhenAll(tasks);
+                    AsyncHelper.RunSync(async () =>
+                    {
+                        var processResult = await ExecuteAndPreprocessResult(new TransactionExecutingDto
+                        {
+                            BlockHeader = blockHeader,
+                            Transactions = groupedTransaction,
+                            PartialBlockStateSet = blockStateSet
+                        }, cancellationToken);
+            
+                        resultCollection.Add(processResult);
+                    });
+                });
 
             Logger.LogTrace("Executed parallelizables.");
 
-            var executionReturnSets = MergeResults(results.ToList());
+            var executionReturnSets = MergeResults(resultCollection.ToList());
             Logger.LogTrace("Merged results from parallelizables.");
             return new ExecutionReturnSetMergeResult
             {
