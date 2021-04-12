@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                             BlockHeader = blockHeader,
                             Transactions = groupedTransaction,
                             PartialBlockStateSet = blockStateSet
-                        }, cancellationToken);
+                        }, cancellationToken).ConfigureAwait(false);
             
                         resultCollection.Add(processResult);
                     });
