@@ -96,7 +96,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             // Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
-            Logger.LogDebug($"_allTransactions count: {GetTxCount()}");
+            //Logger.LogDebug($"_allTransactions count: {GetTxCount()}");
 
             List<Transaction> list = GetTransactions(transactionCount);
             output.Transactions.AddRange(list);
@@ -108,12 +108,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var res = new List<Transaction>();
 
-            if (transactionCount == 0 || _groupedTxList.Count == 0)
+            if (transactionCount == 0 || _groupedTxList.IsEmpty)
                 return res;
             var count = transactionCount / _groupedTxList.Count;
             foreach (var dict in _groupedTxList.Values)
             {
-                var take = dict.Count < count ? dict.Count : count;
+                var c = dict.Count;
+                var take = c < count ? c : count;
                 res.AddRange(dict.Values.Take(take)
                     // .OrderBy(x => x.EnqueueTime)
                     .Select(x => x.Transaction));
@@ -310,7 +311,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     _groupedTxList[queuedTransaction.Transaction.From].TryRemove(queuedTransaction.TransactionId, out _);
 
-                    if (_groupedTxList[queuedTransaction.Transaction.From].Count == 0)
+                    if (_groupedTxList[queuedTransaction.Transaction.From].IsEmpty)
                     {
                         _groupedTxList.TryRemove(queuedTransaction.Transaction.From, out _);
                     }
