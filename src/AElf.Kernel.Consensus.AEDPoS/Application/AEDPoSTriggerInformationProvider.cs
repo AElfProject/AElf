@@ -15,7 +15,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IInValueCache _inValueCache;
         private readonly ISecretSharingService _secretSharingService;
 
-        private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
+        private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(async () =>
+            await _accountService.GetPublicKeyAsync().ConfigureAwait(false)));
 
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
