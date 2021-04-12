@@ -108,7 +108,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var res = new List<Transaction>();
 
-            if (transactionCount == 0)
+            if (transactionCount == 0 || _groupedTxList.Count == 0)
                 return res;
             var count = transactionCount / _groupedTxList.Count;
             foreach (var dict in _groupedTxList.Values)
