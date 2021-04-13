@@ -179,27 +179,27 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             //     executionReturnSets.SelectMany(s =>s.StateAccesses.Keys));
             // var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
 
-            var allKeys = new HashSet<string>();
-            var changeKeys = new List<string>();
-
-            foreach (var executionReturnSet in executionReturnSets)
-            {
-                foreach (var stateAccess in executionReturnSet.StateAccesses)
-                {
-                    allKeys.Add(stateAccess.Key);
-                }
-                
-                changeKeys.AddRange(executionReturnSet.StateChanges.Keys);
-                changeKeys.AddRange(executionReturnSet.StateDeletes.Keys);
-            }
-            var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
+            // var allKeys = new HashSet<string>();
+            // var changeKeys = new List<string>();
+            //
+            // foreach (var executionReturnSet in executionReturnSets)
+            // {
+            //     foreach (var stateAccess in executionReturnSet.StateAccesses)
+            //     {
+            //         allKeys.Add(stateAccess.Key);
+            //     }
+            //     
+            //     changeKeys.AddRange(executionReturnSet.StateChanges.Keys);
+            //     changeKeys.AddRange(executionReturnSet.StateDeletes.Keys);
+            // }
+            // var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
             
             return new GroupedExecutionReturnSets
             {
                 ReturnSets = executionReturnSets,
-                AllKeys = allKeys,
-                ChangeKeys = changeKeys,
-                ReadKeys = readKeys
+                // AllKeys = allKeys,
+                // ChangeKeys = changeKeys,
+                // ReadKeys = readKeys
             };
         }
 
