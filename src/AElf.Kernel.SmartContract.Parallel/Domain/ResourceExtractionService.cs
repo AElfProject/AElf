@@ -51,6 +51,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
+            Logger.LogTrace("Begin ResourceExtractionService.GetResourcesAsync");
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
             var transactionResourceList = new List<TransactionWithResourceInfo>();
             var contractResourceInfoCache = new Dictionary<Address, ContractResourceInfo>();
@@ -60,7 +61,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     await GetResourcesForOneWithCacheAsync(chainContext, t, ct, contractResourceInfoCache);
                 transactionResourceList.Add(transactionResourcePair);
             }
-
+            Logger.LogTrace("End ResourceExtractionService.GetResourcesAsync");
             return transactionResourceList;
         }
 
@@ -69,6 +70,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             Transaction transaction, CancellationToken ct,
             Dictionary<Address, ContractResourceInfo> contractResourceInfoCache)
         {
+            Logger.LogTrace("Begin ResourceExtractionService.GetResourcesForOneWithCacheAsync");
             if (ct.IsCancellationRequested)
                 return new TransactionWithResourceInfo
                 {
@@ -104,6 +106,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
             }
 
+            Logger.LogTrace("End ResourceExtractionService.GetResourcesForOneWithCacheAsync");
             return new TransactionWithResourceInfo
             {
                 Transaction = transaction,

@@ -35,7 +35,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken)
         {
-            Logger.LogTrace("Entered parallel ExecuteAsync.");
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteAsync");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
 
@@ -62,9 +62,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
                 groupedTransactions.TransactionsWithoutContract);
 
-            Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
-
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteAsync");
             return returnSets;
         }
 
@@ -72,6 +71,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
             CancellationToken cancellationToken)
         {
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
             // var tasks = groupedTransactions.Select(
             //     txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
             //     {
@@ -98,11 +98,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                         resultCollection.Add(processResult);
                     });
                 });
-
-            Logger.LogTrace("Executed parallelizables.");
-
+            
             var executionReturnSets = MergeResults(resultCollection.ToList());
-            Logger.LogTrace("Merged results from parallelizables.");
+            
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
+
             return new ExecutionReturnSetMergeResult
             {
                 ExecutionReturnSets = executionReturnSets
@@ -112,6 +112,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         private async Task<List<ExecutionReturnSet>> ExecuteNonParallelizableTransactionsAsync(List<Transaction> transactions,
             BlockHeader blockHeader, BlockStateSet blockStateSet, CancellationToken cancellationToken)
         {
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ExecuteNonParallelizableTransactionsAsync");
             var nonParallelizableReturnSets = await _planTransactionExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -121,12 +122,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                 }, 
                 cancellationToken);
         
-            Logger.LogTrace("Merged results from non-parallelizables.");
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteNonParallelizableTransactionsAsync");
             return nonParallelizableReturnSets;
         }
 
         private List<ExecutionReturnSet> ProcessTransactionsWithoutContract(List<Transaction> transactions)
         {
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.ProcessTransactionsWithoutContract");
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
             {
@@ -147,7 +149,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                 };
                 returnSets.Add(returnSet);
             }
-            
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.ProcessTransactionsWithoutContract");
             return returnSets;
         }
 
@@ -231,29 +233,32 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         private List<ExecutionReturnSet> MergeResults(
             List<GroupedExecutionReturnSets> groupedExecutionReturnSetsArray)
         {
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.MergeResults");
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var groupedExecutionReturnSets in groupedExecutionReturnSetsArray)
             {
                 returnSets.AddRange(groupedExecutionReturnSets.ReturnSets);
             }
-
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.MergeResults");
             return returnSets;
         }
 
         private BlockStateSet GetUpdatedBlockStateSet(ExecutionReturnSetCollection executionReturnSetCollection,
             TransactionExecutingDto transactionExecutingDto)
         {
+            Logger.LogTrace("Begin LocalParallelTransactionExecutingService.GetUpdatedBlockStateSet");
             var updatedPartialBlockStateSet = executionReturnSetCollection.ToBlockStateSet();
             if (transactionExecutingDto.PartialBlockStateSet != null)
             {
                 var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
+                Logger.LogTrace("Handle PartialBlockStateSet Changes");
                 foreach (var change in partialBlockStateSet.Changes)
                 {
                     if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
                     if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
                     updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
                 }
-
+                Logger.LogTrace("Handle PartialBlockStateSet Deletes");
                 foreach (var delete in partialBlockStateSet.Deletes)
                 {
                     if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
@@ -261,7 +266,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                     updatedPartialBlockStateSet.Deletes.Add(delete);
                 }
             }
-
+            Logger.LogTrace("End LocalParallelTransactionExecutingService.GetUpdatedBlockStateSet");
             return updatedPartialBlockStateSet;
         }
     }

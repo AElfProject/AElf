@@ -71,6 +71,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
             int transactionCount)
         {
+            Logger.LogTrace("Begin TxHub.GetExecutableTransactionSetAsync");
             var output = new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
@@ -94,7 +95,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             List<Transaction> list = GetTransactions(transactionCount);
             output.Transactions.AddRange(list);
-
+            Logger.LogTrace("End TxHub.GetExecutableTransactionSetAsync");
             return output;
         }
 

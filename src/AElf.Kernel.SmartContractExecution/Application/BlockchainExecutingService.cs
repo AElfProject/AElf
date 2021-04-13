@@ -41,6 +41,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task<BlockExecutionResult> ExecuteBlocksAsync(IEnumerable<Block> blocks)
         {
+            Logger.LogTrace("Begin FullBlockchainExecutingService.ExecuteBlocksAsync");
             var executionResult = new BlockExecutionResult();
             try
             {
@@ -70,13 +71,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Logger.LogDebug(
                     $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
             }
-
+            Logger.LogTrace("End FullBlockchainExecutingService.ExecuteBlocksAsync");
             return executionResult;
         }
 
 
         private async Task<BlockExecutedSet> ExecuteBlockAsync(Block block)
         {
+            Logger.LogTrace("Begin FullBlockchainExecutingService.ExecuteBlockAsync");
             var blockHash = block.GetHash();
 
             var blockState = await _blockStateSetManger.GetBlockStateSetAsync(blockHash);
@@ -91,6 +93,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = blockExecutedSet.Block;
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
+            
+            Logger.LogTrace("End FullBlockchainExecutingService.ExecuteBlockAsync");
+            
             if (blockHashWithoutCache == blockHash)
                 return blockExecutedSet;
             Logger.LogDebug(
@@ -153,6 +158,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         /// <returns>Block processing result is true if succeed, otherwise false.</returns>
         private async Task<BlockExecutedSet> ProcessBlockAsync(Block block)
         {
+            Logger.LogTrace("Begin FullBlockchainExecutingService.ProcessBlockAsync");
             var blockHash = block.GetHash();
             // Set the other blocks as bad block if found the first bad block
             // if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
@@ -181,7 +187,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             //      block.Body.TransactionIds.ToList());
             //
             // Logger.LogDebug($"ProcessBlockAsync - 2");
-
+            Logger.LogTrace("End FullBlockchainExecutingService.ProcessBlockAsync");
             return blockExecutedSet;
         }
     }

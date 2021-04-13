@@ -33,6 +33,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
         {
+            Logger.LogTrace("Begin MiningRequestService.RequestMiningAsync");
             var dur = requestMiningDto.BlockExecutionTime;
             if (!ValidateBlockMiningTime(requestMiningDto.BlockTime, requestMiningDto.MiningDueTime,
                 ref dur))
@@ -44,6 +45,7 @@ namespace AElf.Kernel.Miner.Application
             var block = (await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
                 requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration)).Block;
 
+            Logger.LogTrace("End MiningRequestService.RequestMiningAsync");
             return block;
         }
 
