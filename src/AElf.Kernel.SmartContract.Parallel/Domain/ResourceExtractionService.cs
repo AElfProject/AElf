@@ -70,7 +70,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             Transaction transaction, CancellationToken ct,
             Dictionary<Address, ContractResourceInfo> contractResourceInfoCache)
         {
-            Logger.LogTrace("Begin ResourceExtractionService.GetResourcesForOneWithCacheAsync");
             if (ct.IsCancellationRequested)
                 return new TransactionWithResourceInfo
                 {
@@ -106,7 +105,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                 };
             }
 
-            Logger.LogTrace("End ResourceExtractionService.GetResourcesForOneWithCacheAsync");
             return new TransactionWithResourceInfo
             {
                 Transaction = transaction,
