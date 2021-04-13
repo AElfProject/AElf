@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.Application
                     return;
                 }
 
-                Logger.LogDebug($"Lost an executive (no registration {address}), Pool count: {pool.Count}");
+                //Logger.LogDebug($"Lost an executive (no registration {address}), Pool count: {pool.Count}");
             }
             else
             {
@@ -96,12 +96,12 @@ namespace AElf.Kernel.SmartContract.Application
         public void CleanIdleExecutive()
         {
             var pools = _smartContractExecutiveProvider.GetExecutivePools();
-            Logger.LogDebug($"Pools count {pools.Count}");
+            //Logger.LogDebug($"Pools count {pools.Count}");
             var toBeRemoved = new List<Address>();
             foreach (var executivePool in pools)
             {
                 var executiveBag = executivePool.Value;
-                if (executiveBag.Count == 0)
+                if (executiveBag.IsEmpty)
                     continue;
                 
                 if (executiveBag.Count > ExecutiveClearLimit || executiveBag.Min(o => o.LastUsedTime) <

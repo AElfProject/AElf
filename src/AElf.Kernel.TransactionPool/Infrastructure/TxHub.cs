@@ -77,6 +77,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
             int transactionCount)
         {
+            Logger.LogDebug("Get executable transaction set");
             var output = new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
@@ -108,16 +109,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var res = new List<Transaction>();
 
-            if (transactionCount == 0 || _groupedTxList.IsEmpty)
+            var currentGroup = _groupedTxList.Count;
+            if (transactionCount == 0 || currentGroup == 0)
                 return res;
-            var count = transactionCount / _groupedTxList.Count;
-            foreach (var dict in _groupedTxList.Values)
+            var count = transactionCount / currentGroup;
+            foreach (var dict in _groupedTxList)
             {
-                var c = dict.Count;
-                var take = c < count ? c : count;
-                res.AddRange(dict.Values.Take(take)
+                var countPerGroup = dict.Value.Count;
+                var take = countPerGroup < count ? countPerGroup : count;
+                res.AddRange(dict.Value.Take(take)
                     // .OrderBy(x => x.EnqueueTime)
-                    .Select(x => x.Transaction));
+                    .Select(x => x.Value.Transaction));
             }
 
             return res;
@@ -305,18 +307,23 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
+            Logger.LogDebug("Clean transactions");
+            
             foreach (var transactionId in transactionIds)
             {
                 if (_txList.TryRemove(transactionId, out var queuedTransaction))
                 {
-                    _groupedTxList[queuedTransaction.Transaction.From].TryRemove(queuedTransaction.TransactionId, out _);
+                    var group = _groupedTxList[queuedTransaction.Transaction.From];
+                    group.TryRemove(queuedTransaction.TransactionId, out _);
 
-                    if (_groupedTxList[queuedTransaction.Transaction.From].IsEmpty)
+                    if (group.IsEmpty)
                     {
                         _groupedTxList.TryRemove(queuedTransaction.Transaction.From, out _);
                     }
                 }
             }
+            
+            Logger.LogDebug("Clean transactions finished");
         }
 
         #endregion
