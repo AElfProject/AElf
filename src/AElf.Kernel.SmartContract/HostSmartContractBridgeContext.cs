@@ -75,8 +75,8 @@ namespace AElf.Kernel.SmartContract
                 BlockHeight = TransactionContext.BlockHeight - 1,
                 StateCache = CachedStateProvider.Cache
             };
-            return AsyncHelper.RunSync(() =>
-                _smartContractBridgeService.GetAddressByContractNameAsync(chainContext, hash));
+            return AsyncHelper.RunSync(async () =>
+                await _smartContractBridgeService.GetAddressByContractNameAsync(chainContext, hash).ConfigureAwait(false));
         }
 
         public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
@@ -87,8 +87,8 @@ namespace AElf.Kernel.SmartContract
                 BlockHeight = TransactionContext.BlockHeight - 1,
                 StateCache = CachedStateProvider.Cache
             };
-            return AsyncHelper.RunSync(() =>
-                _smartContractBridgeService.GetSystemContractNameToAddressMappingAsync(chainContext));
+            return AsyncHelper.RunSync(async () =>
+                await _smartContractBridgeService.GetSystemContractNameToAddressMappingAsync(chainContext).ConfigureAwait(false));
         }
 
         public void Initialize(ITransactionContext transactionContext)
@@ -129,12 +129,12 @@ namespace AElf.Kernel.SmartContract
 
         public object ValidateStateSize(object obj)
         {
-            var stateSizeLimit = AsyncHelper.RunSync(() => _smartContractBridgeService.GetStateSizeLimitAsync(
+            var stateSizeLimit = AsyncHelper.RunSync(async () => await _smartContractBridgeService.GetStateSizeLimitAsync(
                 new ChainContext
                 {
                     BlockHash = _transactionContext.PreviousBlockHash, 
                     BlockHeight = _transactionContext.BlockHeight - 1
-                }));
+                }).ConfigureAwait(false));
             var size = SerializationHelper.Serialize(obj).Length;
             if (size > stateSizeLimit)
                 throw new StateOverSizeException($"State size {size} exceeds limit of {stateSizeLimit}.");
@@ -207,7 +207,7 @@ namespace AElf.Kernel.SmartContract
                     MethodName = methodName,
                     Params = args
                 };
-                return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
+                return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime).ConfigureAwait(false);
             });
 
             if (!trace.IsSuccessful())
@@ -281,8 +281,8 @@ namespace AElf.Kernel.SmartContract
 
         public List<Transaction> GetPreviousBlockTransactions()
         {
-            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockTransactions(
-                TransactionContext.PreviousBlockHash));
+            return AsyncHelper.RunSync(async () => await _smartContractBridgeService.GetBlockTransactions(
+                TransactionContext.PreviousBlockHash).ConfigureAwait(false));
         }
 
         public bool VerifySignature(Transaction tx)
@@ -306,7 +306,7 @@ namespace AElf.Kernel.SmartContract
                 IsPrivileged = false
             };
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
+            AsyncHelper.RunSync(async () => await _smartContractBridgeService.DeployContractAsync(contractDto).ConfigureAwait(false));
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
@@ -324,7 +324,7 @@ namespace AElf.Kernel.SmartContract
                 ContractName = null,
                 IsPrivileged = false
             };
-            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
+            AsyncHelper.RunSync(async () => await _smartContractBridgeService.UpdateContractAsync(contractDto).ConfigureAwait(false));
         }
     }
 }
