@@ -49,6 +49,7 @@ namespace AElf.Kernel.Miner.Application
         private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
             long previousBlockHeight)
         {
+            Logger.LogTrace("Begin MiningService.GenerateSystemTransactions");
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactionsAsync(address,
                 previousBlockHeight, previousBlockHash);
@@ -59,6 +60,7 @@ namespace AElf.Kernel.Miner.Application
             }
 
             await _blockchainService.AddTransactionsAsync(systemTransactions);
+            Logger.LogTrace("End MiningService.GenerateSystemTransactions");
 
             return systemTransactions;
         }
@@ -75,6 +77,7 @@ namespace AElf.Kernel.Miner.Application
         /// <returns></returns>
         private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
         {
+            Logger.LogTrace("Begin MiningService.GenerateBlock");
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
                 PreviousBlockHash = preBlockHash,
@@ -82,18 +85,23 @@ namespace AElf.Kernel.Miner.Application
                 BlockTime = expectedMiningTime
             });
             block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
+            Logger.LogTrace("End MiningService.GenerateBlock");
+
             return block;
         }
 
         private async Task SignBlockAsync(Block block)
         {
+            Logger.LogTrace("Begin MiningService.SignBlockAsync");
             var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
+            Logger.LogTrace("End MiningService.SignBlockAsync");
         }
 
         public async Task<BlockExecutedSet> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
             Timestamp blockTime)
         {
+            Logger.LogTrace("Begin MiningService.MineAsync");
             try
             {
                 using (var cts = new CancellationTokenSource())
@@ -116,8 +124,10 @@ namespace AElf.Kernel.Miner.Application
 
                     var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight, blockTime);
+                    
                     var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                         requestMiningDto.PreviousBlockHeight);
+                    
                     var systemTransactionCount = 1;
                     var txTotalCount = transactions.Count + systemTransactions.Count;
 
@@ -126,15 +136,20 @@ namespace AElf.Kernel.Miner.Application
                             .Take(requestMiningDto.TransactionCountLimit - systemTransactionCount)
                             .ToList()
                         : transactions;
+                    
                     var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                         systemTransactions, pending, cts.Token);
-
+                    
                     block = blockExecutedSet.Block;
+                    
                     await SignBlockAsync(block);
+                    
                     Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                           $"previous: {block.Header.PreviousBlockHash}, " +
                                           $"executed transactions: {block.Body.TransactionsCount}, " +
                                           $"not executed transactions {pending.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
+                    
+                    Logger.LogTrace("End MiningService.MineAsync");
                     return blockExecutedSet;
                 }
             }

@@ -41,6 +41,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task AttachBlockAsync(Block block)
         {
+            Logger.LogTrace("Begin BlockAttachService.AttachBlockAsync");
             var chain = await _blockchainService.GetChainAsync();
 
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
@@ -69,6 +70,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 await _blockExecutionResultProcessingService.ProcessBlockExecutionResultAsync(chain, executionResult);
             }
+            Logger.LogTrace("End BlockAttachService.AttachBlockAsync");
         }
     }
 }

@@ -77,7 +77,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
             int transactionCount)
         {
-            Logger.LogDebug("Get executable transaction set");
+            Logger.LogTrace("Begin TxHub.GetExecutableTransactionSetAsync");
             var output = new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
@@ -101,7 +101,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             List<Transaction> list = GetTransactions(transactionCount);
             output.Transactions.AddRange(list);
-
+            Logger.LogTrace("End TxHub.GetExecutableTransactionSetAsync");
             return output;
         }
 
@@ -307,7 +307,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
-            Logger.LogDebug("Clean transactions");
+            Logger.LogDebug("Begin clean transactions");
             
             foreach (var transactionId in transactionIds)
             {
@@ -323,7 +323,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
             }
             
-            Logger.LogDebug("Clean transactions finished");
+            Logger.LogDebug("End clean transactions");
         }
 
         #endregion
