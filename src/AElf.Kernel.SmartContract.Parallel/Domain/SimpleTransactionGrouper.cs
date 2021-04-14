@@ -23,8 +23,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             var groupedTransactions = transactions.GroupBy(t => t.From).Select(g => g.ToList()).ToList();
 
-            var groupCount = string.Join(",", groupedTransactions.Select(p => p.Count));
-            Logger.LogInformation($"Simple GroupCount: {groupCount}");
+            // var groupCount = string.Join(",", groupedTransactions.Select(p => p.Count));
+            // Logger.LogInformation($"Simple GroupCount: {groupCount}");
             
             Logger.LogTrace("Begin SimpleTransactionGrouper.GroupAsync");
             return new GroupedTransactions
