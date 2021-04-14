@@ -105,7 +105,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return new BlockExecutedSet
             {
                 Block = block,
-                //TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
+                Transactions = allExecutedTransactions,
                 TransactionResults = transactionResults
             };
         }

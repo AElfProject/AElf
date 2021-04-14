@@ -57,7 +57,7 @@ namespace AElf.Kernel
 
                 try
                 {
-                    var block = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
+                    var blockExecutedSet = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
                     {
                         BlockTime = eventData.BlockTime,
                         BlockExecutionTime = eventData.BlockExecutionTime,
@@ -66,17 +66,18 @@ namespace AElf.Kernel
                         PreviousBlockHeight = eventData.PreviousBlockHeight
                     });
                     
-                    if (block != null)
+                    if (blockExecutedSet.Block != null)
                     {
-                        await _blockchainService.AddBlockAsync(block);
+                        await _blockchainService.AddBlockAsync(blockExecutedSet.Block);
 
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockExecutedSet.Block),
                             KernelConstants.UpdateChainQueueName);
 
                         Logger.LogTrace("Begin publish block mined event.");
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
-                            BlockHeader = block.Header,
+                            BlockHeader = blockExecutedSet.Block.Header,
+                            Transactions = blockExecutedSet.Transactions
                         });
                         Logger.LogTrace("End publish block mined event.");
 

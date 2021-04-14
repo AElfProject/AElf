@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace AElf.Kernel.Miner.Application
 {
     public interface IMiningRequestService
     {
-        Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto);
+        Task<BlockExecutedSet> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto);
     }
 
     public class ConsensusRequestMiningDto
@@ -31,7 +32,7 @@ namespace AElf.Kernel.Miner.Application
             _minerService = minerService;
         }
 
-        public async Task<Block> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
+        public async Task<BlockExecutedSet> RequestMiningAsync(ConsensusRequestMiningDto requestMiningDto)
         {
             Logger.LogTrace("Begin MiningRequestService.RequestMiningAsync");
             var dur = requestMiningDto.BlockExecutionTime;
@@ -42,11 +43,11 @@ namespace AElf.Kernel.Miner.Application
             var blockExecutionDuration =
                 CalculateBlockMiningDuration(requestMiningDto.BlockTime, dur);
 
-            var block = (await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
-                requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration)).Block;
+            var blockExecutedSet = await _minerService.MineAsync(requestMiningDto.PreviousBlockHash,
+                requestMiningDto.PreviousBlockHeight, requestMiningDto.BlockTime, blockExecutionDuration);
 
             Logger.LogTrace("End MiningRequestService.RequestMiningAsync");
-            return block;
+            return blockExecutedSet;
         }
 
         private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
