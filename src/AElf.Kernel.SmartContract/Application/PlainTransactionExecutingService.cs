@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using AElf.Kernel.SmartContract.Domain;
@@ -361,6 +362,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = trace.TransactionId,
                 BlockNumber = blockHeight,
+                StorageKey = trace.TransactionId.ToStorageKey()
             };
             
             if (!trace.IsSuccessful())

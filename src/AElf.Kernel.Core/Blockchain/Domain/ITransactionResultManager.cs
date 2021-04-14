@@ -29,7 +29,7 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash)
         {
             await _transactionResultStore.SetAsync(
-                GetStorageKey(transactionResult.TransactionId),
+                transactionResult.StorageKey,
                 transactionResult);
         }
 
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Blockchain.Domain
             Hash disambiguationHash)
         {
             await _transactionResultStore.SetAllAsync(
-                transactionResults.ToDictionary(t => GetStorageKey(t.TransactionId), t => t));
+                transactionResults.ToDictionary(t => t.StorageKey, t => t));
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)

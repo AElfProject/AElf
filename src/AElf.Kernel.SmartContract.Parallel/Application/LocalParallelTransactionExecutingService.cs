@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
@@ -135,7 +136,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                 {
                     TransactionId = transaction.GetHash(),
                     Status = TransactionResultStatus.Failed,
-                    Error = "Invalid contract address."
+                    Error = "Invalid contract address.",
+                    StorageKey = transaction.GetHash().ToStorageKey()
                 };
                 Logger.LogDebug(result.Error);
 
@@ -161,6 +163,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                     TransactionId = conflictingSet.TransactionId,
                     Status = TransactionResultStatus.Conflict,
                     Error = "Parallel conflict",
+                    StorageKey = conflictingSet.TransactionId.ToStorageKey()
                 };
                 conflictingSet.Status = result.Status;
                 conflictingSet.TransactionResult = result;
