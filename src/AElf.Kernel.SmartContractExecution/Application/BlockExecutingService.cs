@@ -202,12 +202,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
         {
             Logger.LogTrace("Begin BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");
-            var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-                (executionReturn.TransactionId, executionReturn.Status));
             var nodes = new List<Hash>();
-            foreach (var (transactionId, status) in executionReturnSet)
+            foreach (var set in blockExecutionReturnSet)
             {
-                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+                nodes.Add(GetHashCombiningTransactionAndStatus(set.TransactionId, set.Status));
             }
 
             Logger.LogTrace("End BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");

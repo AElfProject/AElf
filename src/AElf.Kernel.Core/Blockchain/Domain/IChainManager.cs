@@ -301,7 +301,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LastIrreversibleBlockHeight = links.First().Height;
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
-                Logger.LogDebug(
+                Logger.LogInformation(
                     $"Setting chain lib height: {chain.LastIrreversibleBlockHeight}, chain lib hash: {chain.LastIrreversibleBlockHash}");
 
                 return true;
