@@ -27,8 +27,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionValidationService _transactionValidationService;
 
-        private readonly List<ConcurrentDictionary<Hash, QueuedTransaction>> _dictList =
-            new List<ConcurrentDictionary<Hash, QueuedTransaction>>();
+        // private readonly List<ConcurrentDictionary<Hash, QueuedTransaction>> _dictList =
+        //     new List<ConcurrentDictionary<Hash, QueuedTransaction>>();
+
+        private readonly ConcurrentDictionary<Address, ConcurrentDictionary<Hash, QueuedTransaction>> _groupedTxList =
+            new ConcurrentDictionary<Address, ConcurrentDictionary<Hash, QueuedTransaction>>();
+
+        private readonly ConcurrentDictionary<Hash, QueuedTransaction> _txList =
+            new ConcurrentDictionary<Hash, QueuedTransaction>();
 
         // private readonly ConcurrentDictionary<Hash, QueuedTransaction> _allTransactions=
         //     new ConcurrentDictionary<Hash, QueuedTransaction>();
@@ -62,10 +68,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionOptions = transactionOptions.Value;
             _actionBlock = CreateQueuedTransactionBufferBlock();
 
-            for (int i = 0; i < transactionOptions.Value.PoolParallelismDegree; i++)
-            {
-                _dictList.Add(new ConcurrentDictionary<Hash, QueuedTransaction>());
-            }
+            // for (int i = 0; i < transactionOptions.Value.PoolParallelismDegree; i++)
+            // {
+            //     _dictList.Add(new ConcurrentDictionary<Hash, QueuedTransaction>());
+            // }
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(Hash blockHash,
@@ -91,7 +97,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             // Logger.LogDebug($"_validatedTransactions count: {_validatedTransactions.Count}");
-            Logger.LogDebug($"_allTransactions count: {GetTxCount()}");
+            //Logger.LogDebug($"_allTransactions count: {GetTxCount()}");
 
             List<Transaction> list = GetTransactions(transactionCount);
             output.Transactions.AddRange(list);
@@ -103,17 +109,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var res = new List<Transaction>();
 
-            foreach (var dict in _dictList)
+            var currentGroup = _groupedTxList.Count;
+            if (transactionCount == 0 || currentGroup == 0)
+                return res;
+            var count = transactionCount / currentGroup;
+            foreach (var dict in _groupedTxList)
             {
-                if (transactionCount <= 0)
-                    return res;
-                
-                var take = dict.Count < transactionCount ? dict.Count : transactionCount;
-                res.AddRange(dict.Values.Take(take)
+                var countPerGroup = dict.Value.Count;
+                var take = countPerGroup < count ? countPerGroup : count;
+                res.AddRange(dict.Value.Take(take)
                     // .OrderBy(x => x.EnqueueTime)
-                    .Select(x => x.Transaction));
-                
-                transactionCount -= take;
+                    .Select(x => x.Value.Transaction));
             }
 
             return res;
@@ -121,7 +127,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private int GetTxCount()
         {
-            return _dictList.Sum(dict => dict.Count);
+            return _groupedTxList.Values.Sum(dict => dict.Count);
         }
 
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
@@ -204,8 +210,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)
         {
-            var dict = GetDict(transactionId);
-            dict.TryGetValue(transactionId, out var receipt);
+            _txList.TryGetValue(transactionId, out var receipt);
             return Task.FromResult(receipt);
         }
 
@@ -302,11 +307,23 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
+            Logger.LogDebug("Begin clean transactions");
+            
             foreach (var transactionId in transactionIds)
             {
-                var dict = GetDict(transactionId);
-                dict.TryRemove(transactionId, out _);
+                if (_txList.TryRemove(transactionId, out var queuedTransaction))
+                {
+                    var group = _groupedTxList[queuedTransaction.Transaction.From];
+                    group.TryRemove(queuedTransaction.TransactionId, out _);
+
+                    if (group.IsEmpty)
+                    {
+                        _groupedTxList.TryRemove(queuedTransaction.Transaction.From, out _);
+                    }
+                }
             }
+            
+            Logger.LogDebug("End clean transactions");
         }
 
         #endregion
@@ -329,22 +346,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         }
 
 
-        private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction,
-            ConcurrentDictionary<Hash, QueuedTransaction> dict)
+        private async Task<bool> VerifyTransactionAcceptableAsync(QueuedTransaction queuedTransaction)
         {
-            if (dict.ContainsKey(queuedTransaction.TransactionId))
+            if (_txList.ContainsKey(queuedTransaction.TransactionId))
             {
                 return false;
             }
 
-            if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
-            {
-                //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-                //    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
-                return false;
-            }
+            // if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
+            // {
+            //     //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+            //     //    $"Transaction expired.Transaction RefBlockNumber is {queuedTransaction.Transaction.RefBlockNumber},best chain height is {_bestChainHeight}");
+            //     return false;
+            // }
 
-            if (dict.Count >= _transactionOptions.PoolLimit / _transactionOptions.PoolParallelismDegree)
+            if (_txList.Count >= _transactionOptions.PoolLimit)
             {
                 //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
                 //    "Transaction Pool is full.");
@@ -359,16 +375,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return true;
         }
 
-        private ConcurrentDictionary<Hash, QueuedTransaction> GetDict(Hash txId)
-        {
-            int index = Math.Abs((int) txId.ToInt64()) % _transactionOptions.PoolParallelismDegree;
-            return _dictList[index];
-        }
+        // private ConcurrentDictionary<Hash, QueuedTransaction> GetDict(Transaction tx)
+        // {
+        //     int index = Math.Abs((int) txId.ToInt64()) % _transactionOptions.PoolParallelismDegree;
+        //     return _dictList[index];
+        // }
 
         private async Task<QueuedTransaction> AcceptTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            var dict = GetDict(queuedTransaction.TransactionId);
-            if (!await VerifyTransactionAcceptableAsync(queuedTransaction, dict))
+            if (!await VerifyTransactionAcceptableAsync(queuedTransaction))
             {
                 return null;
             }
@@ -390,7 +405,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             // if (hasTransaction)
             //     return null;
 
-            var addSuccess = dict.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+            _txList.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+            if (!_groupedTxList.TryGetValue(queuedTransaction.Transaction.From, out var groupedList))
+            {
+                groupedList = new ConcurrentDictionary<Hash, QueuedTransaction>();
+                _groupedTxList[queuedTransaction.Transaction.From] = groupedList;
+            }
+
+            var addSuccess = groupedList.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
             if (addSuccess)
             {
                 await UpdateQueuedTransactionRefBlockStatusAsync(queuedTransaction);

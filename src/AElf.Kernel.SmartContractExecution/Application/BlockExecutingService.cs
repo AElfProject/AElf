@@ -86,6 +86,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
+            Logger.LogTrace("Create block state set.");
             var blockStateSet =
                 CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
@@ -97,6 +98,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // set blocks state
             blockStateSet.BlockHash = block.GetHash();
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
+            Logger.LogTrace("Set block state set.");
 
             // handle execution cases 
             ///await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
