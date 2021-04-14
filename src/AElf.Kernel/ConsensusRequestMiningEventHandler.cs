@@ -66,7 +66,7 @@ namespace AElf.Kernel
                         PreviousBlockHeight = eventData.PreviousBlockHeight
                     });
                     
-                    if (blockExecutedSet.Block != null)
+                    if (blockExecutedSet != null)
                     {
                         await _blockchainService.AddBlockAsync(blockExecutedSet.Block);
 
