@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             // var groupCount = string.Join(",", groupedTransactions.Select(p => p.Count));
             // Logger.LogInformation($"Simple GroupCount: {groupCount}");
             
-            Logger.LogTrace("Begin SimpleTransactionGrouper.GroupAsync");
+            Logger.LogTrace("End SimpleTransactionGrouper.GroupAsync");
             return new GroupedTransactions
             {
                 Parallelizables = groupedTransactions

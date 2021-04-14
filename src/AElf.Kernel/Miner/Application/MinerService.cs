@@ -50,7 +50,6 @@ namespace AElf.Kernel.Miner.Application
             };
 
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
-            Logger.LogWarning($"tx limit: {limit}");
             
             if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
             {
