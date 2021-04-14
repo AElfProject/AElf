@@ -22,22 +22,22 @@ namespace AElf.Kernel.SmartContract.Parallel
             _taskQueueManager = taskQueueManager;
         }
 
-        public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
+        public Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
-            await _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
-            // return Task.CompletedTask;
+            //await _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
+            return Task.CompletedTask;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            await _resourceExtractionService.HandleBlockAcceptedAsync(eventData);
+            //await _resourceExtractionService.HandleBlockAcceptedAsync(eventData);
         }
 
         public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            _taskQueueManager.Enqueue(
-                async () => { await _resourceExtractionService.HandleNewIrreversibleBlockFoundAsync(eventData); },
-                KernelConstants.ChainCleaningQueueName);
+            // _taskQueueManager.Enqueue(
+            //     async () => { await _resourceExtractionService.HandleNewIrreversibleBlockFoundAsync(eventData); },
+            //     KernelConstants.ChainCleaningQueueName);
             
             return Task.CompletedTask;
         }

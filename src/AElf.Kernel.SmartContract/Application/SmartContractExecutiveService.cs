@@ -78,7 +78,7 @@ namespace AElf.Kernel.SmartContract.Application
                     return;
                 }
 
-                Logger.LogDebug($"Lost an executive (no registration {address}), Pool count: {pool.Count}");
+                //Logger.LogDebug($"Lost an executive (no registration {address}), Pool count: {pool.Count}");
             }
             else
             {

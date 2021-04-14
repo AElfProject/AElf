@@ -248,7 +248,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
         {
-            ClearResourceCache(transactionIds);
+            //ClearResourceCache(transactionIds);
         }
 
         #region Event Handler Methods

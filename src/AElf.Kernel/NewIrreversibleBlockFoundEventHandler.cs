@@ -65,30 +65,30 @@ namespace AElf.Kernel
                 await _blockchainStateService.RemoveBlockStateSetsAsync(discardedBlockHashes);
                 
                 // Clean chain branch
-                var chain = await _blockchainService.GetChainAsync();
-                var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
+                // var chain = await _blockchainService.GetChainAsync();
+                // var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
 
-                _taskQueueManager.Enqueue(
-                    async () =>
-                    {
-                        if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
-                        {
-                            await _blockchainService.CleanChainBranchAsync(discardedBranch);
-                        }
-
-                        await LocalEventBus.PublishAsync(new CleanBlockExecutedDataChangeHeightEventData
-                        {
-                            IrreversibleBlockHeight = irreversibleBlockHeight
-                        });
-                        _chainBlockLinkService.CleanCachedChainBlockLinks(irreversibleBlockHeight);
-                    },
-                    KernelConstants.UpdateChainQueueName);
+                // _taskQueueManager.Enqueue(
+                //     async () =>
+                //     {
+                //         if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
+                //         {
+                //             await _blockchainService.CleanChainBranchAsync(discardedBranch);
+                //         }
+                //
+                //         await LocalEventBus.PublishAsync(new CleanBlockExecutedDataChangeHeightEventData
+                //         {
+                //             IrreversibleBlockHeight = irreversibleBlockHeight
+                //         });
+                //         _chainBlockLinkService.CleanCachedChainBlockLinks(irreversibleBlockHeight);
+                //     },
+                //     KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
                 //await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
                 
                 // Clean idle executive
-                _smartContractExecutiveService.CleanIdleExecutive();
+                //_smartContractExecutiveService.CleanIdleExecutive();
             }, KernelConstants.ChainCleaningQueueName);
         }
     }

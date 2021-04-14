@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             context.Services
                 .AddSingleton<IParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
             context.Services.AddSingleton<ITransactionExecutingService, LocalParallelTransactionExecutingService>();
+            context.Services.AddSingleton<ITransactionGrouper, SimpleTransactionGrouper>();
         }
     }
 }
