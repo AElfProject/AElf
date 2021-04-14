@@ -270,8 +270,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     return p.TransactionResult;
                 }).ToList();
 
-            await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
             _executedTransactionResultCacheProvider.AddTransactionResults(blockHeader.GetHash(), results);
+            Task.Run(async () =>
+            {
+                await _transactionResultService.AddTransactionResultsAsync(results, blockHeader).ConfigureAwait(false);
+            });
             Logger.LogTrace("End BlockExecutingService.SetTransactionResultsAsync");
             return results;
         }
