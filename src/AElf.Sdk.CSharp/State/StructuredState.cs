@@ -8,23 +8,15 @@ namespace AElf.Sdk.CSharp.State
 {
     public class StructuredState : StateBase
     {
-        //private Dictionary<string, PropertyInfo> _propertyInfos;
-
-        //private Dictionary<string, Func<StateBase>> _stateFuncs;
         private Dictionary<string, StateBase> _states;
         
         public StructuredState()
         {
             DetectPropertyInfos();
-            //InitializeProperties();
         }
 
         private void DetectPropertyInfos()
         {
-            // _propertyInfos = this.GetType()
-            //     .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-            //     .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
-            //     .ToDictionary(x => x.Name, x => x);
             _states = this.GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))

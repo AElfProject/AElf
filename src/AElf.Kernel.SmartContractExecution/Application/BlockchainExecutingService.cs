@@ -108,19 +108,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var set = new BlockExecutedSet()
             {
                 Block = block,
-                //TransactionMap = new Dictionary<Hash, Transaction>(),
-
                 TransactionResults = new List<TransactionResult>()
             };
 
             Logger.LogDebug("GetExecuteBlockSetAsync - 1");
-            // if (block.TransactionIds.Any())
-            // {
-            //     set.TransactionMap = (await _blockchainService.GetTransactionsAsync(block.TransactionIds))
-            //         .ToDictionary(p => p.GetHash(), p => p);
-            // }
-            //
-            // Logger.LogDebug("GetExecuteBlockSetAsync - 2");
 
             var transactionResult = _executedTransactionResultCacheProvider.GetTransactionResults(block.GetHash());
             if (transactionResult != null)
@@ -131,19 +122,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 set.TransactionResults = await _transactionResultService.GetTransactionResultsAsync(block.Body.TransactionIds, blockHash);
             }
-
-            // foreach (var transactionId in block.TransactionIds)
-            // {
-            //     if ((set.TransactionResults[transactionId] =
-            //             await _transactionResultService.GetTransactionResultAsync(transactionId, blockHash))
-            //         == null)
-            //     {
-            //         Logger.LogWarning(
-            //             $"Fail to load transaction result. block hash : {blockHash}, tx id: {transactionId}");
-            //
-            //         return null;
-            //     }
-            // }
 
             Logger.LogDebug("GetExecuteBlockSetAsync - 3");
 
@@ -186,7 +164,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
             //      block.Body.TransactionIds.ToList());
             //
-            // Logger.LogDebug($"ProcessBlockAsync - 2");
             Logger.LogTrace("End FullBlockchainExecutingService.ProcessBlockAsync");
             return blockExecutedSet;
         }
