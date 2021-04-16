@@ -12,7 +12,7 @@ namespace AElf.OS.Handlers
 
         public Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
-            _ = NetworkService.BroadcastTransactionAsync(eventData.Transaction);
+            //_ = NetworkService.BroadcastTransactionAsync(eventData.Transaction);
             return Task.CompletedTask;
         }
     }

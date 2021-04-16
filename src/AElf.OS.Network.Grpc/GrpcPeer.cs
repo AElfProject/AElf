@@ -92,7 +92,7 @@ namespace AElf.OS.Network.Grpc
         public byte[] OutboundSessionId => Info.SessionId;
 
         public DnsEndPoint RemoteEndpoint { get; }
-        public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
+        public int BufferedTransactionsCount => 0;//_sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
@@ -104,14 +104,14 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
-        private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
+        //private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
         private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
-        private readonly ActionBlock<StreamJob> _sendTransactionJobs;
+        //private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
         public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
@@ -141,11 +141,11 @@ namespace AElf.OS.Network.Grpc
                 {
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
                 });
-            _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
-                new ExecutionDataflowBlockOptions
-                {
-                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
-                });
+            // _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
+            //     new ExecutionDataflowBlockOptions
+            //     {
+            //         BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
+            //     });
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -266,11 +266,11 @@ namespace AElf.OS.Network.Grpc
 
         public void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback)
         {
-            if (!IsReady)
-                throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
-                    NetworkExceptionType.NotConnected);
-
-            _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
+            // if (!IsReady)
+            //     throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
+            //         NetworkExceptionType.NotConnected);
+            //
+            // _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -389,20 +389,20 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         private async Task SendTransactionAsync(Transaction transaction)
         {
-            if (_transactionStreamCall == null)
-                _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
-
-            try
-            {
-                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
-            }
-            catch (RpcException)
-            {
-                _transactionStreamCall.Dispose();
-                _transactionStreamCall = null;
-
-                throw;
-            }
+            // if (_transactionStreamCall == null)
+            //     _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+            //
+            // try
+            // {
+            //     await _transactionStreamCall.RequestStream.WriteAsync(transaction);
+            // }
+            // catch (RpcException)
+            // {
+            //     _transactionStreamCall.Dispose();
+            //     _transactionStreamCall = null;
+            //
+            //     throw;
+            // }
         }
 
         /// <summary>
@@ -590,10 +590,10 @@ namespace AElf.OS.Network.Grpc
             // we complete but no need to await the jobs
             _sendAnnouncementJobs.Complete();
             _sendBlockJobs.Complete();
-            _sendTransactionJobs.Complete();
+            //_sendTransactionJobs.Complete();
 
             _announcementStreamCall?.Dispose();
-            _transactionStreamCall?.Dispose();
+            //_transactionStreamCall?.Dispose();
             _blockStreamCall?.Dispose();
 
             // send disconnect message if the peer is still connected and the connection

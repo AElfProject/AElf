@@ -44,7 +44,7 @@ namespace AElf.OS.Worker
 
         internal async Task DoReconnectionJobAsync()
         {
-            CheckNtpClockDrift();
+            //CheckNtpClockDrift();
                 
             await _networkService.CheckPeersHealthAsync();
             
