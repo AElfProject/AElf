@@ -27,12 +27,12 @@ namespace AElf.OS.Network.Grpc
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 5000;
         private const int CheckHealthTimeout = 1000;
-        private const int BlocksRequestTimeout = 10000;
+        private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTime = 1000;
 
-        private const int BlockCacheMaxItems = 1024;
+        private const int BlockCacheMaxItems = 24;
         private const int TransactionCacheMaxItems = 10_000;
 
         private const int QueuedTransactionTimeout = 10_000;
