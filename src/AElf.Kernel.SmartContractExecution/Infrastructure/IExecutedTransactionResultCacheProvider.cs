@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContractExecution.Infrastructure
     {
         private readonly MemoryCache _executedTransactionResultCache;
 
-        private const int ExpirationTime = 4000;
+        private const int ExpirationTime = 8000;
 
         public ExecutedTransactionResultCacheProvider()
         {
@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContractExecution.Infrastructure
 
         public void AddTransactionResults(Hash blockHash, List<TransactionResult> transactionResults)
         {
-            _executedTransactionResultCache.Set(blockHash, transactionResults, TimeSpan.FromSeconds(ExpirationTime));
+            _executedTransactionResultCache.Set(blockHash, transactionResults, TimeSpan.FromMilliseconds(ExpirationTime));
         }
     }
 }
