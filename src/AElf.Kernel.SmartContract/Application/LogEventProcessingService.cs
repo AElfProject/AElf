@@ -80,13 +80,13 @@ namespace AElf.Kernel.SmartContract.Application
                         await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value));
                         Logger.LogDebug($"Processor {processor.GetType().Name} done.");
                     }
-                    else
-                    {
-                        Logger.LogWarning(
-                            $"LogEvent maps happened to be empty and passed the filter.\n" +
-                            $"Block bloom: {blockBloom.Data.ToHex()}\n" +
-                            $"LogEvent bloom: {interestedEvent.Bloom.Data.ToHex()}");
-                    }
+                    // else
+                    // {
+                    //     Logger.LogWarning(
+                    //         $"LogEvent maps happened to be empty and passed the filter.\n" +
+                    //         $"Block bloom: {blockBloom.Data.ToHex()}\n" +
+                    //         $"LogEvent bloom: {interestedEvent.Bloom.Data.ToHex()}");
+                    // }
                 }
 
                 Logger.LogTrace("Finish apply log event processor.");
