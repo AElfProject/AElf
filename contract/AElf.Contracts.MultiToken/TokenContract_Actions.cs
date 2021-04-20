@@ -29,16 +29,16 @@ namespace AElf.Contracts.MultiToken
 
             Context.LogDebug(() => $"Token created: {input.Symbol}");
 
-            Context.Fire(new TokenCreated
-            {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = input.Decimals,
-                Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable,
-                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
-            });
+            // Context.Fire(new TokenCreated
+            // {
+            //     Symbol = input.Symbol,
+            //     TokenName = input.TokenName,
+            //     TotalSupply = input.TotalSupply,
+            //     Decimals = input.Decimals,
+            //     Issuer = input.Issuer,
+            //     IsBurnable = input.IsBurnable,
+            //     IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+            // });
 
             return new Empty();
         }
@@ -63,13 +63,13 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
-            Context.Fire(new Issued
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                To = input.To,
-                Memo = input.Memo
-            });
+            // Context.Fire(new Issued
+            // {
+            //     Symbol = input.Symbol,
+            //     Amount = input.Amount,
+            //     To = input.To,
+            //     Memo = input.Memo
+            // });
             return new Empty();
         }
 
@@ -102,13 +102,13 @@ namespace AElf.Contracts.MultiToken
             AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
-            Context.Fire(new Approved()
-            {
-                Owner = Context.Sender,
-                Spender = input.Spender,
-                Symbol = input.Symbol,
-                Amount = input.Amount
-            });
+            // Context.Fire(new Approved()
+            // {
+            //     Owner = Context.Sender,
+            //     Spender = input.Spender,
+            //     Symbol = input.Symbol,
+            //     Amount = input.Amount
+            // });
             return new Empty();
         }
 
@@ -118,13 +118,13 @@ namespace AElf.Contracts.MultiToken
             var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
             var amountOrAll = Math.Min(input.Amount, oldAllowance);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);
-            Context.Fire(new UnApproved()
-            {
-                Owner = Context.Sender,
-                Spender = input.Spender,
-                Symbol = input.Symbol,
-                Amount = amountOrAll
-            });
+            // Context.Fire(new UnApproved()
+            // {
+            //     Owner = Context.Sender,
+            //     Spender = input.Spender,
+            //     Symbol = input.Symbol,
+            //     Amount = amountOrAll
+            // });
             return new Empty();
         }
     }
