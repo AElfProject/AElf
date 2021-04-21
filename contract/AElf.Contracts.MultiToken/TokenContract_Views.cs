@@ -24,6 +24,7 @@ namespace AElf.Contracts.MultiToken
         [View]
         public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
         {
+            Assert(false, "Test contract.");
             return new GetAllowanceOutput()
             {
                 Symbol = input.Symbol,

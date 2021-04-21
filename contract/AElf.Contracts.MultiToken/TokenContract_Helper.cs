@@ -40,14 +40,14 @@ namespace AElf.Contracts.MultiToken
             AssertValidMemo(memo);
             ModifyBalance(from, symbol, -amount);
             ModifyBalance(to, symbol, amount);
-            Context.Fire(new Transferred
-            {
-                From = from,
-                To = to,
-                Symbol = symbol,
-                Amount = amount,
-                Memo = memo ?? string.Empty
-            });
+            // Context.Fire(new Transferred
+            // {
+            //     From = from,
+            //     To = to,
+            //     Symbol = symbol,
+            //     Amount = amount,
+            //     Memo = memo ?? string.Empty
+            // });
         }
 
         private void ModifyBalance(Address address, string symbol, long addAmount)
