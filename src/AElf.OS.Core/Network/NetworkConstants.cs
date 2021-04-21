@@ -36,7 +36,7 @@ namespace AElf.OS.Network
         public const int DefaultMaxBufferedBlockCount = 20;
         public const int DefaultMaxBufferedAnnouncementCount = 50;
 
-        public const int DefaultPeerReconnectionPeriod = 300_000; // 1 min
+        public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
         public const int DefaultMaximumReconnectionTime = 60_000 * 60 * 24; // 1 day
         public const int DefaultPeerRemovalSeconds = 300;
 
