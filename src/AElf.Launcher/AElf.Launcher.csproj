@@ -15,7 +15,7 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="3.1.0" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="4.3.0" />
         <PackageReference Include="Volo.Abp.Autofac" Version="3.1.0" />
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
