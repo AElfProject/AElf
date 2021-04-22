@@ -25,9 +25,9 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
-        private const int BlockRequestTimeout = 5000;
+        private const int BlockRequestTimeout = 10000;
         private const int CheckHealthTimeout = 1000;
-        private const int BlocksRequestTimeout = 5000;
+        private const int BlocksRequestTimeout = 10000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTime = 1000;
