@@ -232,12 +232,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             //     return false;
             // }
 
-            // if (_txList.Count >= _transactionOptions.PoolLimit)
-            // {
-            //     //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
-            //     //    "Transaction Pool is full.");
-            //     return false;
-            // }
+            if (_txList.Count >= _transactionOptions.PoolLimit)
+            {
+                //await PublishTransactionNodeValidationFailedEventAsync(queuedTransaction.TransactionId,
+                //    "Transaction Pool is full.");
+                return false;
+            }
             //
             // if (await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId))
             // {
