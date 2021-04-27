@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -59,7 +60,14 @@ namespace AElf.WebApp.MessageQueue
                 });
             }
 
-            await _distributedEventBus.PublishAsync(txResultList);
+            try
+            {
+                await _distributedEventBus.PublishAsync(txResultList);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Failed to publish events to mq service.\n{e.Message}");
+            }
         }
     }
 }
