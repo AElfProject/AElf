@@ -31,7 +31,7 @@ namespace AElf.WebApp.MessageQueue
         {
             if (!_messageQueueEnableOptions.Enable) return;
 
-            Logger.LogError($"Message of block height {eventData.Block.Height} sent.");
+            Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
             var txResultList = new TransactionResultListEto
             {
                 TransactionResults = new Dictionary<string, TransactionResultEto>()
