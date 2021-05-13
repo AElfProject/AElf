@@ -12,23 +12,22 @@ namespace AElf.WebApp.MessageQueue
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var configuration = context.Services.GetConfiguration();
+
+            Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
+
+            var messageQueueOptions = context.Services.GetRequiredServiceLazy<MessageQueueOptions>().Value;
+
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
-                options.ClientName = "AElf";
-                options.ExchangeName = "AElfExchange";
+                options.ClientName = messageQueueOptions.ClientName;
+                options.ExchangeName = messageQueueOptions.ExchangeName;
             });
 
             Configure<AbpRabbitMqOptions>(options =>
             {
-                options.Connections.Default.HostName = "localhost";
-                options.Connections.Default.Port = 5672;
-            });
-
-            var configuration = context.Services.GetConfiguration();
-            Configure<MessageQueueEnableOptions>(options =>
-            {
-                var consensusOptions = configuration.GetSection("MessageQueue");
-                consensusOptions.Bind(options);
+                options.Connections.Default.HostName = messageQueueOptions.HostName;
+                options.Connections.Default.Port = messageQueueOptions.Port;
             });
         }
     }

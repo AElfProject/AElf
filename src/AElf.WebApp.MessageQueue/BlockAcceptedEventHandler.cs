@@ -17,20 +17,20 @@ namespace AElf.WebApp.MessageQueue
     public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
     {
         private readonly IDistributedEventBus _distributedEventBus;
-        private readonly MessageQueueEnableOptions _messageQueueEnableOptions;
+        private readonly MessageQueueOptions _messageQueueOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
-            IOptionsSnapshot<MessageQueueEnableOptions> messageQueueEnableOptions)
+            IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions)
         {
             _distributedEventBus = distributedEventBus;
-            _messageQueueEnableOptions = messageQueueEnableOptions.Value;
+            _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            if (!_messageQueueEnableOptions.Enable) return;
+            if (!_messageQueueOptions.Enable) return;
 
             Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
             var txResultList = new TransactionResultListEto
