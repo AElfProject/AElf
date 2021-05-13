@@ -14,24 +14,20 @@ namespace AElf.WebApp.MessageQueue
         {
             var configuration = context.Services.GetConfiguration();
 
-            var messageQueueOptions = new MessageQueueOptions();
-
-            Configure<MessageQueueOptions>(options =>
-            {
-                configuration.GetSection("MessageQueue").Bind(options);
-                messageQueueOptions = options;
-            });
+            Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
 
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
-                options.ClientName = messageQueueOptions.ClientName;
-                options.ExchangeName = messageQueueOptions.ExchangeName;
+                var messageQueueConfig = configuration.GetSection("MessageQueue");
+                options.ClientName = messageQueueConfig.GetSection("ClientName").Value;
+                options.ExchangeName = messageQueueConfig.GetSection("ExchangeName").Value;
             });
 
             Configure<AbpRabbitMqOptions>(options =>
             {
-                options.Connections.Default.HostName = messageQueueOptions.HostName;
-                options.Connections.Default.Port = messageQueueOptions.Port;
+                var messageQueueConfig = configuration.GetSection("MessageQueue");
+                options.Connections.Default.HostName = messageQueueConfig.GetSection("HostName").Value;
+                options.Connections.Default.Port = int.Parse(messageQueueConfig.GetSection("Port").Value);
             });
         }
     }
