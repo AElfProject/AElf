@@ -14,9 +14,13 @@ namespace AElf.WebApp.MessageQueue
         {
             var configuration = context.Services.GetConfiguration();
 
-            Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
+            var messageQueueOptions = new MessageQueueOptions();
 
-            var messageQueueOptions = context.Services.GetRequiredServiceLazy<MessageQueueOptions>().Value;
+            Configure<MessageQueueOptions>(options =>
+            {
+                configuration.GetSection("MessageQueue").Bind(options);
+                messageQueueOptions = options;
+            });
 
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
