@@ -100,9 +100,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
             Logger.LogTrace("Set block state set.");
 
-            // handle execution cases 
-            ///await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
-
             Logger.LogTrace("End BlockExecutingService.ExecuteBlockAsync");
             return new BlockExecutedSet
             {

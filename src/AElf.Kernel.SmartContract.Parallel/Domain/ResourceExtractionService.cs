@@ -117,23 +117,6 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             IExecutive executive = null;
             var address = transaction.To;
-            // var txId = transaction.GetHash();
-            // if (_contractResourceCache.TryGetValue(address, out var cache))
-            // {
-            //     return new TransactionResourceInfo
-            //     {
-            //         TransactionId = txId,
-            //         WritePaths =
-            //         {
-            //             cache.WritePaths
-            //         },
-            //         ReadPaths = {cache.ReadPaths},
-            //         ParallelType = cache.NonParallelizable
-            //             ? ParallelType.NonParallelizable
-            //             : ParallelType.Parallelizable,
-            //         ContractHash = executive.ContractHash
-            //     };
-            // }
 
             try
             {
@@ -155,7 +138,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return resourceCache.ResourceInfo;
                 }
 
-                // var txContext = GetTransactionContext(chainContext, transaction.To, transaction.ToByteString());
                 var resourceInfo = ExtractResourceInfo(transaction);
                 if (resourceInfo != null)
                 {
@@ -248,7 +230,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
         {
-            //ClearResourceCache(transactionIds);
         }
 
         #region Event Handler Methods

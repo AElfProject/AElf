@@ -68,12 +68,6 @@ namespace AElf.Runtime.CSharp
             try
             {
                 _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-                // if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
-                // {
-                //     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                //     CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
-                //     return Task.CompletedTask;
-                // }
 
                 Execute();
             }
@@ -89,10 +83,7 @@ namespace AElf.Runtime.CSharp
         {
             var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
-            // var observer =
-            //     new ExecutionObserver(CurrentTransactionContext.ExecutionObserverThreshold.ExecutionCallThreshold,
-            //         CurrentTransactionContext.ExecutionObserverThreshold.ExecutionBranchThreshold);
-            
+
             try
             {
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
@@ -102,8 +93,6 @@ namespace AElf.Runtime.CSharp
                         string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
                     );
                 }
-                
-                //_smartContractProxy.SetExecutionObserver(observer);
                 
                 ExecuteTransaction(handler);
 

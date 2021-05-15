@@ -146,17 +146,8 @@ namespace AElf.OS.Network.Application
             if (IsOldBlock(blockWithTransactions.Header))
                 return;
             
-            // var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
-            //
-            // var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
-            // if (nextPeer != null)
-            //     EnqueueBlock(nextPeer, blockWithTransactions);
-
             foreach (var peer in _peerPool.GetPeers())
             {
-                // if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
-                //     continue;
-
                 EnqueueBlock(peer, blockWithTransactions);
             }
         }

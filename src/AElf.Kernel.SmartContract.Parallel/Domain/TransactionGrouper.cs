@@ -53,13 +53,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                         continue;
                     }
 
-                    // If timed out at this point, return all transactions as non-parallelizable
-                    // if (cts.IsCancellationRequested)
-                    // {
-                    //     groupedTransactions.NonParallelizables.Add(twr.Transaction);
-                    //     continue;
-                    // }
-
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.NonParallelizable)
                     {
                         groupedTransactions.NonParallelizables.Add(twr.Transaction);

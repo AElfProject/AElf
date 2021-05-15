@@ -26,24 +26,8 @@ namespace AElf.Sdk.CSharp.State
                      var instance = Activator.CreateInstance(type);
                      x.SetValue(this, instance);
                     return instance as StateBase;
-                    
-                    // var method = x.GetMethod.Name;
-                    // var del = Delegate.CreateDelegate(Type.GetType($"System.Func`1[[{x.GetMethod.ReturnType.AssemblyQualifiedName}]]"), this, method);
-                    // var func = (Func<StateBase>) del;
-                    // return func;
                 });
         }
-
-        // private void InitializeProperties()
-        // {
-        //     foreach (var kv in _propertyInfos)
-        //     {
-        //         var propertyInfo = kv.Value;
-        //         var type = propertyInfo.PropertyType;
-        //         var instance = Activator.CreateInstance(type);
-        //         propertyInfo.SetValue(this, instance);
-        //     }
-        // }
 
         internal override void OnPathSet()
         {

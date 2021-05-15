@@ -72,18 +72,6 @@ namespace AElf.OS.BlockSync.Application
         public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
         {
             return true;
-            
-            if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions))
-            {
-                return false;
-            }
-
-            if (!await ValidateTransactionAsync(blockWithTransactions))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)

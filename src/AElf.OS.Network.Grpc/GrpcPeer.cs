@@ -100,18 +100,13 @@ namespace AElf.OS.Network.Grpc
 
         private readonly BoundedExpirationCache _knownTransactionCache;
         private readonly BoundedExpirationCache _knownBlockCache;
-
-        //public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
-        //private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
-
-        //private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
+        
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
         private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
-        //private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
         public GrpcPeer(GrpcClient client, DnsEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
@@ -124,13 +119,6 @@ namespace AElf.OS.Network.Grpc
             _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedTransactionTimeout);
             _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedBlockTimeout);
 
-            // _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
-            // RecentRequestsRoundtripTimes =
-            //     new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
-            //
-            // _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
-            // _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
-
             _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
@@ -141,27 +129,11 @@ namespace AElf.OS.Network.Grpc
                 {
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
                 });
-            // _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
-            //     new ExecutionDataflowBlockOptions
-            //     {
-            //         BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
-            //     });
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
-            // foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
-            // {
-            //     var metricsToAdd = new List<RequestMetric>();
-            //
-            //     metrics.Add(roundtripTime.Key, metricsToAdd);
-            //     foreach (var requestMetric in roundtripTime.Value)
-            //     {
-            //         metricsToAdd.Add(requestMetric);
-            //     }
-            // }
-
             return metrics;
         }
 
@@ -266,11 +238,6 @@ namespace AElf.OS.Network.Grpc
 
         public void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback)
         {
-            // if (!IsReady)
-            //     throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
-            //         NetworkExceptionType.NotConnected);
-            //
-            // _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -389,20 +356,6 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         private async Task SendTransactionAsync(Transaction transaction)
         {
-            // if (_transactionStreamCall == null)
-            //     _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
-            //
-            // try
-            // {
-            //     await _transactionStreamCall.RequestStream.WriteAsync(transaction);
-            // }
-            // catch (RpcException)
-            // {
-            //     _transactionStreamCall.Dispose();
-            //     _transactionStreamCall = null;
-            //
-            //     throw;
-            // }
         }
 
         /// <summary>
@@ -444,24 +397,9 @@ namespace AElf.OS.Network.Grpc
 
         private async Task<TResp> RequestAsync<TResp>(Func<AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
-            // var metricsName = requestParams.MetricName;
-            // var timeRequest = !string.IsNullOrEmpty(metricsName);
-            // var requestStartTime = TimestampHelper.GetUtcNow();
-            //
-            // Stopwatch requestTimer = null;
-            //
-            // if (timeRequest)
-            //     requestTimer = Stopwatch.StartNew();
-
             try
             {
                 var response = await func();
-                // if (timeRequest)
-                // {
-                //     requestTimer.Stop();
-                //     RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
-                // }
-
                 return response;
             }
             catch (ObjectDisposedException ex)
@@ -478,22 +416,6 @@ namespace AElf.OS.Network.Grpc
 
                 throw HandleRpcException(rpcException, requestParams.ErrorMessage);
             }
-        }
-
-        private void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)
-        {
-            // var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
-            //
-            // while (metrics.Count >= MaxMetricsPerMethod)
-            //     metrics.TryDequeue(out _);
-            //
-            // metrics.Enqueue(new RequestMetric
-            // {
-            //     Info = grpcRequest.MetricInfo,
-            //     RequestTime = requestStartTime,
-            //     MethodName = grpcRequest.MetricName,
-            //     RoundTripTime = elapsedMilliseconds
-            // });
         }
 
         /// <summary>
@@ -590,10 +512,8 @@ namespace AElf.OS.Network.Grpc
             // we complete but no need to await the jobs
             _sendAnnouncementJobs.Complete();
             _sendBlockJobs.Complete();
-            //_sendTransactionJobs.Complete();
 
             _announcementStreamCall?.Dispose();
-            //_transactionStreamCall?.Dispose();
             _blockStreamCall?.Dispose();
 
             // send disconnect message if the peer is still connected and the connection

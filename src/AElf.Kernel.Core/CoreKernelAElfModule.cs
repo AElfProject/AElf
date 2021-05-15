@@ -23,7 +23,6 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
-            //services.AddTransient<IBlockValidationProvider, SystemTransactionValidationProvider>();
             
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
@@ -54,9 +53,6 @@ namespace AElf.Kernel
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            // var transactionBlockIndexService =
-            //     context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
-            // AsyncHelper.RunSync(transactionBlockIndexService.LoadTransactionBlockIndexAsync);
         }
     }
 

@@ -65,10 +65,6 @@ namespace AElf.Kernel.SmartContract.Application
                     };
                     try
                     {
-                        // var transactionExecutionTask = ExecuteOneAsync(singleTxExecutingDto,
-                        //     cancellationToken);
-                        //
-                        // trace = await transactionExecutionTask.WithCancellation(cancellationToken);
                         trace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken);
                     }
                     catch (OperationCanceledException)
@@ -163,21 +159,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                #region PreTransaction
-
-                // if (singleTxExecutingDto.Depth == 0)
-                // {
-                //     if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext,
-                //         singleTxExecutingDto.CurrentBlockTime,
-                //         internalChainContext, internalStateCache, cancellationToken))
-                //     {
-                //         trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                //         return trace;
-                //     }
-                // }
-
-                #endregion
-
                 await executive.ApplyAsync(txContext);
 
                 if (txContext.Trace.IsSuccessful())
@@ -186,21 +167,6 @@ namespace AElf.Kernel.SmartContract.Application
                         internalChainContext,
                         singleTxExecutingDto.OriginTransactionId,
                         cancellationToken);
-
-                #region PostTransaction
-
-                // if (singleTxExecutingDto.Depth == 0)
-                // {
-                //     if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext,
-                //         singleTxExecutingDto.CurrentBlockTime,
-                //         internalChainContext, internalStateCache, cancellationToken))
-                //     {
-                //         trace.ExecutionStatus = ExecutionStatus.Postfailed;
-                //         return trace;
-                //     }
-                // }
-
-                #endregion
             }
             catch (Exception ex)
             {

@@ -63,19 +63,10 @@ namespace AElf.Kernel
                 var discardedBlockHashes = _chainBlockLinkService.GetCachedChainBlockLinks()
                     .Where(b => b.Height <= irreversibleBlockHeight).Select(b => b.BlockHash).ToList();
                 await _blockchainStateService.RemoveBlockStateSetsAsync(discardedBlockHashes);
-                
-                // Clean chain branch
-                // var chain = await _blockchainService.GetChainAsync();
-                // var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
 
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
-                        // if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
-                        // {
-                        //     await _blockchainService.CleanChainBranchAsync(discardedBranch);
-                        // }
-                
                         await LocalEventBus.PublishAsync(new CleanBlockExecutedDataChangeHeightEventData
                         {
                             IrreversibleBlockHeight = irreversibleBlockHeight
@@ -83,12 +74,6 @@ namespace AElf.Kernel
                         _chainBlockLinkService.CleanCachedChainBlockLinks(irreversibleBlockHeight);
                     },
                     KernelConstants.UpdateChainQueueName);
-                
-                // Clean transaction block index cache
-                //await _transactionBlockIndexService.UpdateTransactionBlockIndicesByLibHeightAsync(irreversibleBlockHeight);
-                
-                // Clean idle executive
-                //_smartContractExecutiveService.CleanIdleExecutive();
             }, KernelConstants.ChainCleaningQueueName);
         }
     }
