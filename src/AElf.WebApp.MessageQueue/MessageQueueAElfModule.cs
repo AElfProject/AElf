@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Security;
 using System.Security.Authentication;
 using AElf.Modularity;
@@ -44,11 +45,8 @@ namespace AElf.WebApp.MessageQueue
                     AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch |
                                              SslPolicyErrors.RemoteCertificateChainErrors
                 };
-                options.Connections.Default.AuthMechanisms = new List<IAuthMechanismFactory>
-                {
-                    new ExternalMechanismFactory()
-                };
                 options.Connections.Default.VirtualHost = "/";
+                options.Connections.Default.Uri = new Uri(messageQueueConfig.GetSection("Uri").Value);
             });
         }
     }
