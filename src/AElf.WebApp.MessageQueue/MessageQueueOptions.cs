@@ -9,5 +9,6 @@ namespace AElf.WebApp.MessageQueue
         public string ExchangeName { get; set; } = "AElfExchange";
         public string UserName { get; set; } = "aelf";
         public string PassWord { get; set; } = "12345678";
+        public long StartPublishMessageHeight { get; set; }
     }
 }

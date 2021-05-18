@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using Google.Protobuf;
@@ -17,20 +18,26 @@ namespace AElf.WebApp.MessageQueue
     public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
     {
         private readonly IDistributedEventBus _distributedEventBus;
+        private readonly IBlockchainService _blockchainService;
         private readonly MessageQueueOptions _messageQueueOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
+            IBlockchainService blockchainService,
             IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions)
         {
             _distributedEventBus = distributedEventBus;
+            _blockchainService = blockchainService;
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            if (!_messageQueueOptions.Enable) return;
+            var chain = await _blockchainService.GetChainAsync();
+            if (!_messageQueueOptions.Enable ||
+                chain.BestChainHeight < _messageQueueOptions.StartPublishMessageHeight)
+                return;
 
             Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
             var txResultList = new TransactionResultListEto
