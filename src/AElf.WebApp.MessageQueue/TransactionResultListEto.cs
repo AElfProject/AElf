@@ -5,6 +5,8 @@ namespace AElf.WebApp.MessageQueue
     public class TransactionResultListEto
     {
         public Dictionary<string, TransactionResultEto> TransactionResults { get; set; }
+        public long StartBlockNumber { get; set; }
+        public long EndBlockNumber { get; set; }
     }
 
     public class TransactionResultEto
@@ -14,12 +16,6 @@ namespace AElf.WebApp.MessageQueue
         public string Status { get; set; }
 
         public LogEventEto[] Logs { get; set; }
-
-        public string Bloom { get; set; }
-
-        public long BlockNumber { get; set; }
-
-        public string BlockHash { get; set; }
 
         public string ReturnValue { get; set; }
 

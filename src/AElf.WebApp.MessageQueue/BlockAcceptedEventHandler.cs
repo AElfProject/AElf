@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -21,6 +20,8 @@ namespace AElf.WebApp.MessageQueue
         private readonly IBlockchainService _blockchainService;
         private readonly MessageQueueOptions _messageQueueOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
+
+        private List<BlockExecutedSet> _blockExecutedSets = new List<BlockExecutedSet>();
 
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
             IBlockchainService blockchainService,
@@ -39,21 +40,23 @@ namespace AElf.WebApp.MessageQueue
                 chain.BestChainHeight < _messageQueueOptions.StartPublishMessageHeight)
                 return;
 
-            Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
+            if (_blockExecutedSets.Count < _messageQueueOptions.PublishStep)
+            {
+                _blockExecutedSets.Add(eventData.BlockExecutedSet);
+                return;
+            }
+
             var txResultList = new TransactionResultListEto
             {
-                TransactionResults = new Dictionary<string, TransactionResultEto>()
+                TransactionResults = new Dictionary<string, TransactionResultEto>(),
+                StartBlockNumber = _blockExecutedSets.First().Height,
+                EndBlockNumber = _blockExecutedSets.Last().Height
             };
-            foreach (var resultPair in eventData.BlockExecutedSet.TransactionResultMap)
+            foreach (var resultPair in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
             {
                 txResultList.TransactionResults.Add(resultPair.Key.ToHex(), new TransactionResultEto
                 {
                     TransactionId = resultPair.Value.TransactionId.ToHex(),
-                    BlockHash = resultPair.Value.BlockHash.ToHex(),
-                    BlockNumber = resultPair.Value.BlockNumber,
-                    Bloom = resultPair.Value.Status == TransactionResultStatus.NotExisted ? null :
-                        resultPair.Value.Bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() :
-                        resultPair.Value.Bloom.ToBase64(),
                     Status = resultPair.Value.Status.ToString().ToUpper(),
                     Error = resultPair.Value.Error,
                     Logs = resultPair.Value.Logs.Select(l => new LogEventEto
@@ -69,12 +72,18 @@ namespace AElf.WebApp.MessageQueue
 
             try
             {
+                Logger.LogInformation("Start publish log events.");
                 await _distributedEventBus.PublishAsync(txResultList);
+                Logger.LogInformation("End publish log events.");
+
+                Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
             }
             catch (Exception e)
             {
                 Logger.LogError($"Failed to publish events to mq service.\n{e.Message}");
             }
+            
+            _blockExecutedSets = new List<BlockExecutedSet>();
         }
     }
 }
