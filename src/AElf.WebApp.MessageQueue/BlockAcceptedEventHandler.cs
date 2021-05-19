@@ -14,7 +14,7 @@ using Volo.Abp.EventBus.Distributed;
 
 namespace AElf.WebApp.MessageQueue
 {
-    public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
+    public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ISingletonDependency
     {
         private readonly IDistributedEventBus _distributedEventBus;
         private readonly IBlockchainService _blockchainService;
@@ -42,6 +42,8 @@ namespace AElf.WebApp.MessageQueue
 
             if (_blockExecutedSets.Count < _messageQueueOptions.PublishStep)
             {
+                Logger.LogInformation(
+                    $"Add new block info of height {eventData.Block.Height} to list, current list length: {_blockExecutedSets.Count}");
                 _blockExecutedSets.Add(eventData.BlockExecutedSet);
                 return;
             }
@@ -82,7 +84,7 @@ namespace AElf.WebApp.MessageQueue
             {
                 Logger.LogError($"Failed to publish events to mq service.\n{e.Message}");
             }
-            
+
             _blockExecutedSets = new List<BlockExecutedSet>();
         }
     }
