@@ -21,7 +21,7 @@ namespace AElf.WebApp.MessageQueue
         private readonly MessageQueueOptions _messageQueueOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
-        private List<BlockExecutedSet> _blockExecutedSets = new List<BlockExecutedSet>();
+        private List<BlockExecutedSet> _blockExecutedSets;
 
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
             IBlockchainService blockchainService,
@@ -31,6 +31,7 @@ namespace AElf.WebApp.MessageQueue
             _blockchainService = blockchainService;
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
+            _blockExecutedSets = new List<BlockExecutedSet>();
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -78,7 +79,9 @@ namespace AElf.WebApp.MessageQueue
                 await _distributedEventBus.PublishAsync(txResultList);
                 Logger.LogInformation("End publish log events.");
 
-                Logger.LogInformation($"Message of block height {eventData.Block.Height} sent.");
+                Logger.LogInformation(
+                    $"Messages of block height from {txResultList.StartBlockNumber} to {txResultList.EndBlockNumber} sent. " +
+                    $"Totally {txResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
             }
             catch (Exception e)
             {
