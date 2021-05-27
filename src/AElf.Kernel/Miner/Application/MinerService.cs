@@ -40,6 +40,7 @@ namespace AElf.Kernel.Miner.Application
             Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            Logger.LogTrace("Begin MinerService.MineAsync");
             var txList = new List<Transaction>();
             
             var chainContext = new ChainContext
@@ -49,6 +50,7 @@ namespace AElf.Kernel.Miner.Application
             };
 
             var limit = await _blockTransactionLimitProvider.GetLimitAsync(chainContext);
+            
             if (_transactionPackingOptionProvider.IsTransactionPackable(chainContext))
             {
                 var executableTransactionSet = await _transactionPoolService.GetExecutableTransactionSetAsync(
@@ -60,7 +62,9 @@ namespace AElf.Kernel.Miner.Application
 
             Logger.LogInformation(
                 $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
-            return await _miningService.MineAsync(
+            
+            Logger.LogTrace("Begin mine block.");
+            var blockExecuteSet = await _miningService.MineAsync(
                 new RequestMiningDto
                 {
                     PreviousBlockHash = previousBlockHash,
@@ -68,6 +72,9 @@ namespace AElf.Kernel.Miner.Application
                     BlockExecutionTime = blockExecutionTime,
                     TransactionCountLimit = limit
                 }, txList, blockTime);
+            Logger.LogTrace("End MinerService.MineAsync");
+
+            return blockExecuteSet;
         }
     }
 }

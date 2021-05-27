@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContractExecution
             var list = blockHashes
                 .Select(async blockHash => await blockchainService.GetBlockByHashAsync(blockHash));
 
-            return (await Task.WhenAll(list)).ToList();
+            return (await Task.WhenAll(list).ConfigureAwait(false)).ToList();
         }
     }
 }

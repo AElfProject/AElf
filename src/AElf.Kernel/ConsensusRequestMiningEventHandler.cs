@@ -47,6 +47,7 @@ namespace AElf.Kernel
         {
             _taskQueueManager.Enqueue(async () =>
             {
+                Logger.LogTrace("Begin ConsensusRequestMiningEventHandler.HandleEventAsync");
                 var chain = await _blockchainService.GetChainAsync();
                 if (eventData.PreviousBlockHash != chain.BestChainHash)
                 {
@@ -56,7 +57,7 @@ namespace AElf.Kernel
 
                 try
                 {
-                    var block = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
+                    var blockExecutedSet = await _miningRequestService.RequestMiningAsync(new ConsensusRequestMiningDto
                     {
                         BlockTime = eventData.BlockTime,
                         BlockExecutionTime = eventData.BlockExecutionTime,
@@ -65,20 +66,21 @@ namespace AElf.Kernel
                         PreviousBlockHeight = eventData.PreviousBlockHeight
                     });
                     
-                    if (block != null)
+                    if (blockExecutedSet != null)
                     {
-                        await _blockchainService.AddBlockAsync(block);
+                        await _blockchainService.AddBlockAsync(blockExecutedSet.Block);
 
-                        Logger.LogTrace("Before enqueue attach job.");
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockExecutedSet.Block),
                             KernelConstants.UpdateChainQueueName);
 
-                        Logger.LogTrace("Before publish block.");
-
+                        Logger.LogTrace("Begin publish block mined event.");
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
-                            BlockHeader = block.Header,
+                            BlockHeader = blockExecutedSet.Block.Header,
+                            Transactions = blockExecutedSet.Transactions
                         });
+                        Logger.LogTrace("End publish block mined event.");
+
                     }
                     else
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
@@ -88,6 +90,7 @@ namespace AElf.Kernel
                     await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     throw;
                 }
+                Logger.LogTrace("End ConsensusRequestMiningEventHandler.HandleEventAsync");
             }, KernelConstants.ConsensusRequestMiningQueueName);
 
             return Task.CompletedTask;

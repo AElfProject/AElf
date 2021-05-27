@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext, List<Transaction> transactions)
         {
-            Logger.LogTrace("Entered GroupAsync");
+            Logger.LogTrace("Begin TransactionGrouper.GroupAsync");
 
             var toBeGrouped = GetTransactionsToBeGrouped(transactions, out var groupedTransactions);
 
@@ -46,6 +46,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
                 Logger.LogTrace("Completed resource extraction.");
 
+                Logger.LogTrace("Begin group transactions");
                 foreach (var twr in txsWithResources)
                 {
                     if (twr.TransactionResourceInfo.ParallelType == ParallelType.InvalidContractAddress)
@@ -76,16 +77,18 @@ namespace AElf.Kernel.SmartContract.Parallel
 
                     parallelizables.Add(twr);
                 }
+                Logger.LogTrace("End group transactions");
 
                 groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
 
-                Logger.LogTrace("Completed transaction grouping.");
+                Logger.LogTrace("End TransactionGrouper.GroupAsync");
             }
 
             Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Parallelizables.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
-
+            
+            Logger.LogTrace("End TransactionGrouper.GroupAsync");
             return groupedTransactions;
         }
 
@@ -111,10 +114,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         private List<List<Transaction>> GroupParallelizables(List<TransactionWithResourceInfo> txsWithResources)
         {
+            Logger.LogTrace("Begin TransactionGrouper.GroupParallelizables");
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var transactionResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
             var readOnlyPaths = txsWithResources.GetReadOnlyPaths();
+            
+            Logger.LogTrace("Begin handle txsWithResources");
             foreach (var txWithResource in txsWithResources)
             {
                 UnionFindNode first = null;
@@ -143,6 +149,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     }
                 }
             }
+            Logger.LogTrace("End handle txsWithResources - 1");
 
             var grouped = new Dictionary<int, List<Transaction>>();
 
@@ -164,9 +171,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                 // Add transaction to its group
                 gTransactions.Add(transaction);
             }
+            Logger.LogTrace("End handle txsWithResources - 2");
 
             groups.AddRange(grouped.Values);
 
+            Logger.LogTrace("End TransactionGrouper.GroupParallelizables");
             return groups;
         }
     }

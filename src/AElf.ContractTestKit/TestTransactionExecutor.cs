@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -65,7 +66,7 @@ namespace AElf.ContractTestKit
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
-            return blockExecutedSet.TransactionResultMap[transaction.GetHash()];
+            return blockExecutedSet.TransactionResults.First(t => t.TransactionId == transaction.GetHash());
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)

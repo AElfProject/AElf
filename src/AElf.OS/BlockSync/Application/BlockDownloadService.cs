@@ -147,7 +147,7 @@ namespace AElf.OS.BlockSync.Application
             var taskList = peers.Select(async peer =>
                 await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey));
 
-            var hashCheckResult = await Task.WhenAll(taskList);
+            var hashCheckResult = await Task.WhenAll(taskList).ConfigureAwait(false);
 
             var confirmCount = 2 * peers.Count() / 3 + 1;
             var result = hashCheckResult.Where(r => r.Success)
