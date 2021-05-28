@@ -61,7 +61,7 @@ namespace AElf.Kernel.CodeCheck
                             .ProposalId;
                         // Cache proposal id to generate system approval transaction later
                         _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
-                    }).ConfigureAwait(false);
+                    });
                 }
             }
 

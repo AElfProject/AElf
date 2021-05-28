@@ -582,7 +582,7 @@ namespace AElf.Contracts.TestBase
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             var blockExecutedSet = await MineAsync(new List<Transaction> {tx}, blockTime);
-            var result = blockExecutedSet.TransactionResultMap[tx.GetHash()];
+            var result = blockExecutedSet.TransactionResults.First(t => t.TransactionId == tx.GetHash());
 
             return result;
         }

@@ -90,7 +90,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
             var blockExecutedSet = await _smartContractExecutionHelper.ExecuteTransactionAsync(transaction);
             
-            await ProcessTransactionResultsAsync(blockExecutedSet.TransactionResultMap.Values.ToArray(), blockExecutedSet.Block);
+            await ProcessTransactionResultsAsync(blockExecutedSet.TransactionResults.ToArray(), blockExecutedSet.Block);
 
             await ProcessCodeUpdateAsync(chain);
         }
@@ -119,7 +119,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockExecutedSet = await _smartContractExecutionHelper.ExecuteTransactionAsync(transaction, chain);
             
             var interestedEvent = await _codeUpdatedLogEventProcessor.GetInterestedEventAsync(chainContext);
-            foreach (var transactionResult in blockExecutedSet.TransactionResultMap.Values)
+            foreach (var transactionResult in blockExecutedSet.TransactionResults)
             {
                 var logEvent = transactionResult.Logs.First(l =>
                     l.Address == interestedEvent.LogEvent.Address && l.Name == interestedEvent.LogEvent.Name);

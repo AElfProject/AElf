@@ -110,7 +110,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task CheckBlockExecutedSetAsync(BlockExecutedSet blockExecutedSet, int transactionCount)
         {
             blockExecutedSet.Block.Body.TransactionIds.Count.ShouldBe(transactionCount);
-            blockExecutedSet.TransactionResultMap.Values.Select(t => t.Status)
+            blockExecutedSet.TransactionResults.Select(t => t.Status)
                 .ShouldAllBe(status => status == TransactionResultStatus.Mined);
             var blockStateSet = await _blockStateSetManger.GetBlockStateSetAsync(blockExecutedSet.GetHash());
             blockStateSet.ShouldNotBeNull();
@@ -120,7 +120,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             transactionResults.Count.ShouldBe(transactionCount);
             foreach (var transactionResult in transactionResults)
             {
-                blockExecutedSet.TransactionResultMap[transactionResult.TransactionId].ShouldBe(transactionResult);
+                blockExecutedSet.TransactionResults.First(t => t.TransactionId == transactionResult.TransactionId)
+                    .ShouldBe(transactionResult);
             }
         }
 

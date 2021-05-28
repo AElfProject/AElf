@@ -33,8 +33,8 @@ namespace AElf.Kernel.Miner.Application
                 PreviousBlockHeight = chain.BestChainHeight
             };
 
-            var block = await _miningRequestService.RequestMiningAsync(request);
-            block.ShouldBeNull();
+            var blockExecutedSet = await _miningRequestService.RequestMiningAsync(request);
+            blockExecutedSet.ShouldBeNull();
 
             request = new ConsensusRequestMiningDto
             {
@@ -44,8 +44,8 @@ namespace AElf.Kernel.Miner.Application
                 PreviousBlockHash = chain.BestChainHash,
                 PreviousBlockHeight = chain.BestChainHeight
             };
-            block = await _miningRequestService.RequestMiningAsync(request);
-            block.ShouldBeNull();
+            blockExecutedSet = await _miningRequestService.RequestMiningAsync(request);
+            blockExecutedSet.ShouldBeNull();
             
             request = new ConsensusRequestMiningDto
             {
@@ -55,7 +55,7 @@ namespace AElf.Kernel.Miner.Application
                 PreviousBlockHash = chain.BestChainHash,
                 PreviousBlockHeight = chain.BestChainHeight
             };
-            block = await _miningRequestService.RequestMiningAsync(request);
+            var block = (await _miningRequestService.RequestMiningAsync(request)).Block;
             block.ShouldNotBeNull();
             block.Header.PreviousBlockHash.ShouldBe(chain.BestChainHash);
             block.Header.Height.ShouldBe(chain.BestChainHeight + 1);
