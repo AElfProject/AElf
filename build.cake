@@ -198,7 +198,16 @@ Task("Upload-Coverage")
 Task("Upload-Coverage-Azure")
     .Does(() =>
 {
-    Codecov("./CodeCoverage/Cobertura.xml","$CODECOV_TOKEN");
+    var buildVersion = string.Format("{0}.build.{1}",
+        variableThatStores_GitVersion_FullSemVer,
+        BuildSystem.AppVeyor.Environment.Build.Number
+    );
+    var settings = new CodecovSettings {
+        Files = new[] { "./CodeCoverage/Cobertura.xml" },
+        EnvironmentVariables = new Dictionary<string,string> { { "APPVEYOR_BUILD_VERSION", buildVersion } },
+        Token = "$CODECOV_TOKEN"
+    };
+    Codecov(settings);
 });
 Task("Publish-MyGet")
     .IsDependentOn("Build-Release")
