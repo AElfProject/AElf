@@ -119,36 +119,50 @@ namespace AElf.Kernel.SmartContractExecution.Application
             BlockStateSet blockStateSet)
         {
             Logger.LogTrace("Begin BlockExecutingService.FillBlockAfterExecutionAsync");
+
             var bloom = new Bloom();
-            foreach (var returnSet in executionReturnSetCollection.Executed)
-            {
-                bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
-            }
-
-            Logger.LogTrace("Handle transaction ids");
-
+            var merkleTreeRootOfWorldState = new Hash();
+            var merkleTreeRootOfTransactionStatus = new Hash();
+            var merkleTreeRootOfTransactions = new Hash();
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var txIndex = new Dictionary<Hash, int>();
-            for (int i = 0; i < allExecutedTransactionIds.Count; i++)
-            {
-                txIndex[allExecutedTransactionIds[i]] = i;
-            }
 
-            Logger.LogTrace("Sort orderedReturnSets.");
-
-            var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-                .OrderBy(d => txIndex[d.TransactionId]).ToList();
-            
-            Logger.LogTrace("End sort orderedReturnSets.");
+            Parallel.Invoke(
+                () =>
+                {
+                    foreach (var returnSet in executionReturnSetCollection.Executed)
+                    {
+                        bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
+                    }
+                },
+                () =>
+                {
+                    merkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+                },
+                () =>
+                {
+                    
+                    var txIndex = new Dictionary<Hash, int>();
+                    for (int i = 0; i < allExecutedTransactionIds.Count; i++)
+                    {
+                        txIndex[allExecutedTransactionIds[i]] = i;
+                    }
+                    var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
+                        .OrderBy(d => txIndex[d.TransactionId]).ToList();
+                    merkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
+                },
+                () =>
+                {
+                    merkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
+                });
 
             var block = new Block
             {
                 Header = new BlockHeader(header)
                 {
                     Bloom = ByteString.CopyFrom(bloom.Data),
-                    MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet),
-                    MerkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets),
-                    MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds)
+                    MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState,
+                    MerkleTreeRootOfTransactionStatus = merkleTreeRootOfTransactionStatus,
+                    MerkleTreeRootOfTransactions = merkleTreeRootOfTransactions
                 },
                 Body = new BlockBody
                 {
