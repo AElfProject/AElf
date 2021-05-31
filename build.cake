@@ -1,5 +1,5 @@
 #tool nuget:?package=Codecov
-#addin nuget:?package=Cake.Codecov
+#addin nuget:?package=Cake.Codecov&version=0.8.0
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Debug");
 var rootPath     = "./";
