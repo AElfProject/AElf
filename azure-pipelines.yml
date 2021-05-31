@@ -35,7 +35,7 @@ jobs:
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
       reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
-  - script: PowerShell.exe -file build.ps1 -target=Upload-Coverage-Azure
+  - script: PowerShell.exe -file build.ps1 --target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
 # All tasks on Linux
 - job: build_all_linux
@@ -65,7 +65,7 @@ jobs:
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
       reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
-  - script: bash build.sh -target=Upload-Coverage-Azure
+  - script: bash build.sh --target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
 
 # All tasks on macOS
@@ -98,5 +98,5 @@ jobs:
       targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
       reporttypes: 'Cobertura'
       assemblyfilters: '-xunit*'
-  - script: bash build.sh -target=Upload-Coverage-Azure
+  - script: bash build.sh --target=Upload-Coverage-Azure
     displayName: 'Upload data to Codecov'
