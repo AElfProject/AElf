@@ -42,11 +42,10 @@ namespace AElf.WebApp.MessageQueue
                 return;
 
             _blockExecutedSets.Add(eventData.BlockExecutedSet);
-
-            if (_blockExecutedSets.Count <= _messageQueueOptions.PublishStep)
+            Logger.LogInformation(
+                $"Add new block info of height {eventData.Block.Height} to list, current list length: {_blockExecutedSets.Count}");
+            if (_blockExecutedSets.Count < _messageQueueOptions.PublishStep)
             {
-                Logger.LogInformation(
-                    $"Add new block info of height {eventData.Block.Height} to list, current list length: {_blockExecutedSets.Count}");
                 return;
             }
 
