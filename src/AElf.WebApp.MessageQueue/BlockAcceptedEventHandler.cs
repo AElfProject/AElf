@@ -41,11 +41,12 @@ namespace AElf.WebApp.MessageQueue
                 chain.BestChainHeight < _messageQueueOptions.StartPublishMessageHeight)
                 return;
 
-            if (_blockExecutedSets.Count < _messageQueueOptions.PublishStep)
+            _blockExecutedSets.Add(eventData.BlockExecutedSet);
+
+            if (_blockExecutedSets.Count <= _messageQueueOptions.PublishStep)
             {
                 Logger.LogInformation(
                     $"Add new block info of height {eventData.Block.Height} to list, current list length: {_blockExecutedSets.Count}");
-                _blockExecutedSets.Add(eventData.BlockExecutedSet);
                 return;
             }
 
