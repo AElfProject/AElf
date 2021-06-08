@@ -17,7 +17,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
         public ClusterClientService(ILoggerProvider loggerProvider)
         {
             Client = new ClientBuilder()
-                .UseLocalhostClustering(gatewayPorts: new[] {21111})
+                //.UseStaticClustering()
+                .UseLocalhostClustering(new []{21111})
                 .ConfigureLogging(builder => builder.AddProvider(loggerProvider))
                 .Build();
         }
