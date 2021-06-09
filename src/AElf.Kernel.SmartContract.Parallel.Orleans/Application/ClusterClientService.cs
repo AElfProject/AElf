@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
         public ClusterClientService(ILoggerProvider loggerProvider, IOptions<ClusterOptions> clusterOptions,
             IOptions<StaticGatewayListProviderOptions> gatewayOptions)
         {
-            
+            // TODO: Use storage clustering.
             Client = new ClientBuilder()
                 .UseStaticClustering(op => { op.Gateways = gatewayOptions.Value.Gateways; })
                 .ConfigureServices(services =>

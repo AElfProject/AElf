@@ -44,6 +44,7 @@ namespace AElf.ExecutionWorker
                     var primarySiloPort = Convert.ToInt32(context.Configuration
                         .GetSection("Orleans:ClusterMembership:PrimarySiloPort").Value);
 
+                    // TODO: Use storage clustering.
                     builder
                         .ConfigureDefaults()
                         .UseLocalhostClustering(siloPort, gatewayPort,
