@@ -231,14 +231,12 @@ namespace AElf.OS.Network.Grpc
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             
-            // remove any remaining connection to the peer (before the check
-            // that we have room for more connections)
+            // keep the healthy peer.
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
-                Logger.LogDebug($"{endpoint} - removing old peer {currentPeer}");
-                _peerPool.RemovePeer(pubkey);
-                await currentPeer.DisconnectAsync(false);
+                Logger.LogDebug($"Peer: {pubkey} already in peer pool, repeated connection {endpoint}");
+                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
             }
             
             try
