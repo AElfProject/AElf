@@ -29,31 +29,27 @@ namespace AElf.ExecutionWorker
             }
 
         }
-        
+
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(builder =>
+                .ConfigureLogging(builder => { builder.ClearProviders(); })
+                .ConfigureServices(s => s.AddApplication<ExecutionWorkerModule>())
+                .UseOrleans((context, builder) =>
                 {
-                    builder.ClearProviders();
-                })
-                .ConfigureServices(s=>s.AddApplication<ExecutionWorkerModule>())
-                .UseOrleans(builder =>
-                {
+                    var clusterId = context.Configuration.GetSection("Orleans:Cluster:ClusterId").Value;
+                    var serviceId = context.Configuration.GetSection("Orleans:Cluster:ServiceId").Value;
+                    var siloPort = Convert.ToInt32(context.Configuration.GetSection("Orleans:Endpoint:SiloPort").Value);
+                    var gatewayPort =
+                        Convert.ToInt32(context.Configuration.GetSection("Orleans:Endpoint:GatewayPort").Value);
+                    var primarySiloPort = Convert.ToInt32(context.Configuration
+                        .GetSection("Orleans:ClusterMembership:PrimarySiloPort").Value);
+
                     builder
                         .ConfigureDefaults()
-                        .UseLocalhostClustering(primarySiloEndpoint:new IPEndPoint(IPAddress.Loopback,11111))
-                        .Configure<ClusterOptions>(options =>
-                        {
-                            options.ClusterId = "dev";
-                            options.ServiceId = "dev";
-                        })
-                        .Configure<EndpointOptions>(options =>
-                        {
-                            options.AdvertisedIPAddress = IPAddress.Loopback;
-                            options.SiloPort = 11111;
-                            options.GatewayPort = 21111;
-                        })
-                        .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(TransactionExecutingGrain).Assembly).WithReferences())
+                        .UseLocalhostClustering(siloPort, gatewayPort,
+                            new IPEndPoint(IPAddress.Loopback, primarySiloPort), serviceId, clusterId)
+                        .ConfigureApplicationParts(parts =>
+                            parts.AddApplicationPart(typeof(TransactionExecutingGrain).Assembly).WithReferences())
                         .AddMemoryGrainStorage(name: "ArchiveStorage");
                 })
                 .UseAutofac();

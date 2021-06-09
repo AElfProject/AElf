@@ -6,7 +6,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel.Orleans.Core\AElf.Kernel.SmartContract.Parallel.Orleans.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
     </ItemGroup>
 
     <ItemGroup>
