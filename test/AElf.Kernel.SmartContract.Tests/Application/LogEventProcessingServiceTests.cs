@@ -51,7 +51,7 @@ namespace AElf.Kernel.SmartContract.Application
                 blockExecutedSetList.Add(new BlockExecutedSet
                 {
                     Block = _kernelTestHelper.GenerateBlock(9, HashHelper.ComputeFrom("PreviousBlockHash")),
-                    TransactionResultMap = new Dictionary<Hash, TransactionResult>()
+                    TransactionResults = new List<TransactionResult>()
                 });
                 await _logEventProcessingService.ProcessAsync(blockExecutedSetList);
 
@@ -103,9 +103,9 @@ namespace AElf.Kernel.SmartContract.Application
                 var result = _testLogEventProcessor.GetProcessedResult();
                 result.Count.ShouldBe(1);
                 result[13].Values.Count.ShouldBe(1);
-                result[13][blockExecutedSet13.TransactionResultMap[blockExecutedSet13.Block.Body.TransactionIds[3]]].Count
+                result[13][blockExecutedSet13.TransactionResults.First(t => t.TransactionId == blockExecutedSet13.Block.Body.TransactionIds[3])].Count
                     .ShouldBe(1);
-                result[13][blockExecutedSet13.TransactionResultMap[blockExecutedSet13.Block.Body.TransactionIds[3]]][0]
+                result[13][blockExecutedSet13.TransactionResults.First(t => t.TransactionId == blockExecutedSet13.Block.Body.TransactionIds[3])][0]
                     .ShouldBe(interestedLogEvent);
 
                 _testLogEventProcessor.CleanProcessedResult();
@@ -123,22 +123,22 @@ namespace AElf.Kernel.SmartContract.Application
                 var result = _testLogEventProcessor.GetProcessedResult();
                 result.Count.ShouldBe(2);
                 result[13].Values.Count.ShouldBe(1);
-                result[13][blockExecutedSet13.TransactionResultMap[blockExecutedSet13.Block.Body.TransactionIds[3]]].Count
+                result[13][blockExecutedSet13.TransactionResults.First(t => t.TransactionId == blockExecutedSet13.Block.Body.TransactionIds[3])].Count
                     .ShouldBe(1);
-                result[13][blockExecutedSet13.TransactionResultMap[blockExecutedSet13.Block.Body.TransactionIds[3]]][0]
+                result[13][blockExecutedSet13.TransactionResults.First(t => t.TransactionId == blockExecutedSet13.Block.Body.TransactionIds[3])][0]
                     .ShouldBe(interestedLogEvent);
 
                 result[14].Values.Count.ShouldBe(2);
-                result[14][blockExecutedSet14.TransactionResultMap[blockExecutedSet14.Block.Body.TransactionIds[1]]].Count
+                result[14][blockExecutedSet14.TransactionResults.First(t => t.TransactionId == blockExecutedSet14.Block.Body.TransactionIds[1])].Count
                     .ShouldBe(1);
-                result[14][blockExecutedSet14.TransactionResultMap[blockExecutedSet14.Block.Body.TransactionIds[1]]][0]
+                result[14][blockExecutedSet14.TransactionResults.First(t => t.TransactionId == blockExecutedSet14.Block.Body.TransactionIds[1])][0]
                     .ShouldBe(interestedLogEvent);
 
-                result[14][blockExecutedSet14.TransactionResultMap[blockExecutedSet14.Block.Body.TransactionIds[2]]].Count
+                result[14][blockExecutedSet14.TransactionResults.First(t => t.TransactionId == blockExecutedSet14.Block.Body.TransactionIds[2])].Count
                     .ShouldBe(2);
-                result[14][blockExecutedSet14.TransactionResultMap[blockExecutedSet14.Block.Body.TransactionIds[2]]][0]
+                result[14][blockExecutedSet14.TransactionResults.First(t => t.TransactionId == blockExecutedSet14.Block.Body.TransactionIds[2])][0]
                     .ShouldBe(interestedLogEvent);
-                result[14][blockExecutedSet14.TransactionResultMap[blockExecutedSet14.Block.Body.TransactionIds[2]]][1]
+                result[14][blockExecutedSet14.TransactionResults.First(t => t.TransactionId == blockExecutedSet14.Block.Body.TransactionIds[2])][1]
                     .ShouldBe(interestedLogEvent);
 
                 _testLogEventProcessor.CleanProcessedResult();
@@ -158,12 +158,9 @@ namespace AElf.Kernel.SmartContract.Application
             var block = _kernelTestHelper.GenerateBlock(blockHeight - 1, HashHelper.ComputeFrom("PreviousBlockHash"),
                 transactions);
             blockExecutedSet.Block = block;
-            blockExecutedSet.TransactionResultMap = new Dictionary<Hash, TransactionResult>
+            blockExecutedSet.TransactionResults = new List<TransactionResult>
             {
-                {
-                    transactions[0].GetHash(),
-                    new TransactionResult {TransactionId = transactions[0].GetHash(), Bloom = ByteString.Empty}
-                }
+                new TransactionResult {TransactionId = transactions[0].GetHash(), Bloom = ByteString.Empty}
             };
 
             var bloom = new Bloom();
@@ -181,7 +178,7 @@ namespace AElf.Kernel.SmartContract.Application
                 };
                 transactionResult.Logs.AddRange(logs);
 
-                blockExecutedSet.TransactionResultMap.Add(transactions[txIndex].GetHash(), transactionResult);
+                blockExecutedSet.TransactionResults.Add(transactionResult);
                 txIndex++;
             }
 

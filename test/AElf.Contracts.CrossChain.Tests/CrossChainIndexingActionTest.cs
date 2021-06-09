@@ -473,8 +473,8 @@ namespace AElf.Contracts.CrossChain.Tests
             var tx1 = CrossChainContractStub.ProposeCrossChainIndexing.GetTransaction(firstCrossChainBlockData);
             var tx2 = CrossChainContractStub.ProposeCrossChainIndexing.GetTransaction(secondCrossChainBlockData);
             var blockExecutedSet = await MineAsync(new List<Transaction> {tx1, tx2});
-            blockExecutedSet.TransactionResultMap[tx2.GetHash()].Status.ShouldBe(TransactionResultStatus.Failed);
-            blockExecutedSet.TransactionResultMap[tx2.GetHash()].Error.ShouldContain("Cannot execute this tx.");
+            blockExecutedSet.TransactionResults.First(t => t.TransactionId == tx2.GetHash()).Status.ShouldBe(TransactionResultStatus.Failed);
+            blockExecutedSet.TransactionResults.First(t => t.TransactionId == tx2.GetHash()).Error.ShouldContain("Cannot execute this tx.");
         }
         
         [Fact]
@@ -884,7 +884,7 @@ namespace AElf.Contracts.CrossChain.Tests
                 });
 
             var blockExecutedSet = await MineAsync(new List<Transaction> {releaseTx1, releaseTx2});
-            blockExecutedSet.TransactionResultMap[releaseTx2.GetHash()].Error.ShouldContain("Cannot execute this tx.");
+            blockExecutedSet.TransactionResults.First(t => t.TransactionId == releaseTx2.GetHash()).Error.ShouldContain("Cannot execute this tx.");
             
             await CrossChainContractStub.ReleaseCrossChainIndexingProposal.SendAsync(
                 new ReleaseCrossChainIndexingProposalInput

@@ -32,6 +32,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task ProcessBlockExecutionResultAsync(Chain chain, BlockExecutionResult blockExecutionResult)
         {
+            Logger.LogTrace("Begin BlockExecutionResultProcessingService.ProcessBlockExecutionResultAsync");
             if (blockExecutionResult.ExecutedFailedBlocks.Any() ||
                 blockExecutionResult.SuccessBlockExecutedSets.Count == 0 ||
                 blockExecutionResult.SuccessBlockExecutedSets.Last().Height < chain.BestChainHeight)
@@ -53,6 +54,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 BlockExecutedSets = blockExecutionResult.SuccessBlockExecutedSets
             });
+            
+            Logger.LogTrace("End BlockExecutionResultProcessingService.ProcessBlockExecutionResultAsync");
 
             Logger.LogInformation(
                 $"Attach blocks to best chain, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");

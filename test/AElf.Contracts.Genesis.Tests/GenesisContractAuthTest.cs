@@ -122,7 +122,7 @@ namespace AElf.Contracts.Genesis
                 var blockReturnSet = await Tester.MineAsync(new List<Transaction>
                     {releaseApprovedContractWithWrongSenderTx});
                 var noPermissionProposingTxResult =
-                    blockReturnSet.TransactionResultMap[releaseApprovedContractWithWrongSenderTx.GetHash()];
+                    blockReturnSet.TransactionResults.First(t => t.TransactionId == releaseApprovedContractWithWrongSenderTx.GetHash());
                 noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 noPermissionProposingTxResult.Error.ShouldContain("Invalid contract proposing status.");
             }
@@ -208,7 +208,7 @@ namespace AElf.Contracts.Genesis
                 var blockReturnSet = await Tester.MineAsync(new List<Transaction>
                     {releaseCodeCheckWithWrongSenderTx});
                 var noPermissionProposingTxResult =
-                    blockReturnSet.TransactionResultMap[releaseCodeCheckWithWrongSenderTx.GetHash()];
+                    blockReturnSet.TransactionResults.First(t => t.TransactionId == releaseCodeCheckWithWrongSenderTx.GetHash());
                 noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 noPermissionProposingTxResult.Error.ShouldContain("Invalid contract proposing status.");
             }
@@ -1127,7 +1127,7 @@ namespace AElf.Contracts.Genesis
                     });
                 var blockReturnSet = await SideChainTester.MineAsync(new List<Transaction> {noPermissionProposingTx});
                 var noPermissionProposingTxResult =
-                    blockReturnSet.TransactionResultMap[noPermissionProposingTx.GetHash()];
+                    blockReturnSet.TransactionResults.First(t => t.TransactionId == noPermissionProposingTx.GetHash());
                 noPermissionProposingTxResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 noPermissionProposingTxResult.Error.ShouldContain("No permission.");
             }

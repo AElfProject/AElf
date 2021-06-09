@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -40,14 +40,7 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            var blockWithTransactions =
-                await _blockchainService.GetBlockWithTransactionsByHashAsync(eventData.BlockHeader.GetHash());
-
-            if (blockWithTransactions == null)
-            {
-                Logger.LogWarning($"Could not find {eventData.BlockHeader.GetHash()}.");
-                return;
-            }
+            var blockWithTransactions = new BlockWithTransactions { Header = eventData.BlockHeader, Transactions = { eventData.Transactions }};
 
             Logger.LogDebug(
                 $"Got full block hash {eventData.BlockHeader.GetHash()}, height {eventData.BlockHeader.Height}");

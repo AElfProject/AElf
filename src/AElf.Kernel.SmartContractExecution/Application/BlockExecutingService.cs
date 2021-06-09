@@ -24,18 +24,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly ISystemTransactionExtraDataProvider _systemTransactionExtraDataProvider;
+        private readonly IBlockExecutionDataCacheProvider _blockExecutionDataCacheProvider;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService transactionExecutingService,
             IBlockchainStateService blockchainStateService,
-            ITransactionResultService transactionResultService, 
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+            ITransactionResultService transactionResultService,
+            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider,
+            IBlockExecutionDataCacheProvider blockExecutionDataCacheProvider)
         {
             _transactionExecutingService = transactionExecutingService;
             _blockchainStateService = blockchainStateService;
             _transactionResultService = transactionResultService;
             _systemTransactionExtraDataProvider = systemTransactionExtraDataProvider;
+            _blockExecutionDataCacheProvider = blockExecutionDataCacheProvider;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -53,14 +56,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
-            Logger.LogTrace("Entered ExecuteBlockAsync");
+            Logger.LogTrace("Begin BlockExecutingService.ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
             var nonCancellableReturnSets =
                 await _transactionExecutingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                     CancellationToken.None);
-            Logger.LogTrace("Executed non-cancellable txs");
 
             var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
@@ -76,13 +78,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     },
                     cancellationToken);
                 returnSetCollection.AddRange(cancellableReturnSets);
-                Logger.LogTrace("Executed cancellable txs");
             }
 
+            Logger.LogTrace("Create ExecutedCancellableTransactions HashSet");
             var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            Logger.LogTrace("Concat AllExecutedTransactions");
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
+            Logger.LogTrace("Create block state set.");
             var blockStateSet =
                 CreateBlockStateSet(blockHeader.PreviousBlockHash, blockHeader.Height, returnSetCollection);
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions, returnSetCollection,
@@ -90,64 +94,95 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             // set txn results
             var transactionResults = await SetTransactionResultsAsync(returnSetCollection, block.Header);
+            _blockExecutionDataCacheProvider.Add<List<Transaction>>(block.GetHash(), allExecutedTransactions);
             
             // set blocks state
             blockStateSet.BlockHash = block.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
+            Logger.LogTrace("Set block state set.");
             
             // handle execution cases 
             await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
-            
+
+            Logger.LogTrace("End BlockExecutingService.ExecuteBlockAsync");
             return new BlockExecutedSet
             {
                 Block = block,
-                TransactionMap = allExecutedTransactions.ToDictionary(p => p.GetHash(), p => p),
-                TransactionResultMap = transactionResults.ToDictionary(p => p.TransactionId, p => p)
+                Transactions = allExecutedTransactions,
+                TransactionResults = transactionResults
             };
         }
 
         private Task<Block> FillBlockAfterExecutionAsync(BlockHeader header,
-            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection, BlockStateSet blockStateSet)
+            IEnumerable<Transaction> transactions, ExecutionReturnSetCollection executionReturnSetCollection,
+            BlockStateSet blockStateSet)
         {
-            Logger.LogTrace("Start block field filling after execution.");
+            Logger.LogTrace("Begin BlockExecutingService.FillBlockAfterExecutionAsync");
+
             var bloom = new Bloom();
-            foreach (var returnSet in executionReturnSetCollection.Executed)
-            {
-                bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
-            }
-            
+            var merkleTreeRootOfWorldState = new Hash();
+            var merkleTreeRootOfTransactionStatus = new Hash();
+            var merkleTreeRootOfTransactions = new Hash();
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
-                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+
+            Parallel.Invoke(
+                () =>
+                {
+                    foreach (var returnSet in executionReturnSetCollection.Executed)
+                    {
+                        bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
+                    }
+                },
+                () =>
+                {
+                    merkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+                },
+                () =>
+                {
+                    
+                    var txIndex = new Dictionary<Hash, int>();
+                    for (int i = 0; i < allExecutedTransactionIds.Count; i++)
+                    {
+                        txIndex[allExecutedTransactionIds[i]] = i;
+                    }
+                    var orderedReturnSets = executionReturnSetCollection.GetExecutionReturnSetList()
+                        .OrderBy(d => txIndex[d.TransactionId]).ToList();
+                    merkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
+                },
+                () =>
+                {
+                    merkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
+                });
 
             var block = new Block
             {
                 Header = new BlockHeader(header)
                 {
                     Bloom = ByteString.CopyFrom(bloom.Data),
-                    MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet),
-                    MerkleTreeRootOfTransactionStatus = CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets),
-                    MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds)
+                    MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState,
+                    MerkleTreeRootOfTransactionStatus = merkleTreeRootOfTransactionStatus,
+                    MerkleTreeRootOfTransactions = merkleTreeRootOfTransactions
                 },
                 Body = new BlockBody
                 {
                     TransactionIds = {allExecutedTransactionIds}
                 }
             };
-            
-            Logger.LogTrace("Finish block field filling after execution.");
+
+            Logger.LogTrace("End BlockExecutingService.FillBlockAfterExecutionAsync");
             return Task.FromResult(block);
         }
 
-        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader, ExecutionReturnSetCollection executionReturnSetCollection)
+        protected virtual Task CleanUpReturnSetCollectionAsync(BlockHeader blockHeader,
+            ExecutionReturnSetCollection executionReturnSetCollection)
         {
             return Task.CompletedTask;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
         {
-            Logger.LogTrace("Start world state calculation.");
+            Logger.LogTrace("Begin BlockExecutingService.CalculateWorldStateMerkleTreeRoot");
             Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
             using (var hashAlgorithm = SHA256.Create())
@@ -160,6 +195,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
                 merkleTreeRootOfWorldState = Hash.LoadFromByteArray(hashAlgorithm.Hash);
             }
+            Logger.LogTrace("End BlockExecutingService.CalculateWorldStateMerkleTreeRoot");
 
             return merkleTreeRootOfWorldState;
         }
@@ -183,15 +219,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
         {
-            Logger.LogTrace("Start transaction status merkle tree root calculation.");
-            var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-                (executionReturn.TransactionId, executionReturn.Status));
+            Logger.LogTrace("Begin BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");
             var nodes = new List<Hash>();
-            foreach (var (transactionId, status) in executionReturnSet)
+            foreach (var set in blockExecutionReturnSet)
             {
-                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+                nodes.Add(GetHashCombiningTransactionAndStatus(set.TransactionId, set.Status));
             }
 
+            Logger.LogTrace("End BlockExecutingService.CalculateTransactionStatusMerkleTreeRoot");
             return BinaryMerkleTree.FromLeafNodes(nodes).Root;
         }
 
@@ -213,6 +248,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private BlockStateSet CreateBlockStateSet(Hash previousBlockHash, long blockHeight,
             ExecutionReturnSetCollection executionReturnSetCollection)
         {
+            Logger.LogTrace("Begin BlockExecutingService.CreateBlockStateSet");
             var blockStateSet = new BlockStateSet
             {
                 BlockHeight = blockHeight,
@@ -233,12 +269,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
+            Logger.LogTrace("End BlockExecutingService.CreateBlockStateSet");
             return blockStateSet;
         }
 
-        private async Task<List<TransactionResult>> SetTransactionResultsAsync(ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
+        private async Task<List<TransactionResult>> SetTransactionResultsAsync(
+            ExecutionReturnSetCollection executionReturnSetCollection, BlockHeader blockHeader)
         {
             //save all transaction results
+            Logger.LogTrace("Begin BlockExecutingService.SetTransactionResultsAsync");
             var results = executionReturnSetCollection.GetExecutionReturnSetList()
                 .Select(p =>
                 {
@@ -247,7 +286,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     return p.TransactionResult;
                 }).ToList();
 
+            _blockExecutionDataCacheProvider.Add<List<TransactionResult>>(blockHeader.GetHash(), results);
             await _transactionResultService.AddTransactionResultsAsync(results, blockHeader);
+            Logger.LogTrace("End BlockExecutingService.SetTransactionResultsAsync");
             return results;
         }
     }

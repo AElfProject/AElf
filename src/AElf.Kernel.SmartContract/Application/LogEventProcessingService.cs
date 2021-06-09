@@ -26,8 +26,15 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 var block = executedSet.Block;
                 // Should make sure tx results' order are same as tx ids in block body.
-                var txResults = executedSet.TransactionResultMap.Values
-                    .OrderBy(d => block.Body.TransactionIds.IndexOf(d.TransactionId)).ToList();
+                var txIndex = new Dictionary<Hash, int>();
+                var i = 0;
+                foreach (var id in block.TransactionIds)
+                {
+                    txIndex[id] = i;
+                    i++;
+                }
+                var txResults = executedSet.TransactionResults
+                    .OrderBy(d => txIndex[d.TransactionId]).ToList();
 
                 if (!txResults.Any()) continue;
 
@@ -77,7 +84,9 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (logEventsMap.Any())
                     {
+                        Logger.LogTrace($"Processor {processor.GetType().Name} start.");
                         await processor.ProcessAsync(block, logEventsMap.ToDictionary(m => m.Key, m => m.Value));
+                        Logger.LogTrace($"Processor {processor.GetType().Name} done.");
                     }
                     else
                     {

@@ -64,10 +64,8 @@ namespace AElf.Kernel.SmartContract.Application
                     };
                     try
                     {
-                        var transactionExecutionTask = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
-                            cancellationToken), cancellationToken);
-
-                        trace = await transactionExecutionTask.WithCancellation(cancellationToken);
+                        trace = await ExecuteOneAsync(singleTxExecutingDto, cancellationToken)
+                            .WithCancellation(cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
@@ -359,7 +357,7 @@ namespace AElf.Kernel.SmartContract.Application
             var txResult = new TransactionResult
             {
                 TransactionId = trace.TransactionId,
-                BlockNumber = blockHeight,
+                BlockNumber = blockHeight
             };
             
             if (!trace.IsSuccessful())

@@ -113,7 +113,7 @@ namespace AElf.Contracts.CrossChain.Tests
             {
                 tx
             });
-            (blockExecutedSet.TransactionResultMap[tx.GetHash()].Status == TransactionResultStatus.Failed).ShouldBe(
+            (blockExecutedSet.TransactionResults.First(t => t.TransactionId == tx.GetHash()).Status == TransactionResultStatus.Failed).ShouldBe(
                 withException);
         }
 

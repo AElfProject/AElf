@@ -11,6 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
+        Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionIds, Hash blockHash);
     }
 
     public interface ITransactionResultService : ITransactionResultQueryService
@@ -58,6 +59,11 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHash);
             return txResult;
+        }
+
+        public async Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> transactionIds, Hash blockHash)
+        {
+            return await _transactionResultManager.GetTransactionResultsAsync(transactionIds, blockHash);
         }
 
         public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,

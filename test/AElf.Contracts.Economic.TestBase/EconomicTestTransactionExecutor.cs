@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.Kernel;
@@ -49,7 +50,7 @@ namespace AElf.Contracts.Economic.TestBase
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
-            return blockExecutedSet.TransactionResultMap[transaction.GetHash()];
+            return blockExecutedSet.TransactionResults.First(t => t.TransactionId == transaction.GetHash());
         }
 
         public Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)

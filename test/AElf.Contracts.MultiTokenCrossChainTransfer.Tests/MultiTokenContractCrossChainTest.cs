@@ -40,7 +40,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var sideBlock = await SideChainTestKit.MineAsync(new List<Transaction> {validateTransaction});
-            var validateTransactionResult = sideBlock.TransactionResultMap[validateTransaction.GetHash()];
+            var validateTransactionResult = sideBlock.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined, validateTransactionResult.Error);
 
             //Main chain side chain index each other
@@ -68,7 +68,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var blockExecutedSet = await MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = blockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
             // Index main chain
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
@@ -112,7 +112,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = CrossChainSmartContractAddressNameProvider.Name
                 });
             var sideBlockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = sideBlockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = sideBlockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
 
             //Main chain side chain index each other
@@ -142,7 +142,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var sideBlockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = sideBlockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = sideBlockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
 
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
@@ -169,7 +169,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var blockExecutedSet = await MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = blockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
             // Index main chain
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
@@ -199,7 +199,7 @@ namespace AElf.Contracts.MultiToken
                 CreateTransactionForTokenCreation(SideChainTokenContractStub, SideChainTestKit.DefaultAccount.Address,
                     SymbolForTesting);
             var executedSet = await SideChainTestKit.MineAsync(new List<Transaction> {createTransaction});
-            var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = executedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
 
             var createdTokenInfo = await SideChainTokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -240,7 +240,7 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting);
             var blockExecutedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
 
             var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -332,13 +332,13 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting);
             var blockExecutedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
 
             var sideCreateTransaction = CreateTransactionForTokenCreation(SideChainTokenContractStub,
                 SideChainTestKit.DefaultAccount.Address, SymbolForTesting);
             blockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> {sideCreateTransaction});
-            var sideCreateResult = blockExecutedSet.TransactionResultMap[sideCreateTransaction.GetHash()];
+            var sideCreateResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == sideCreateTransaction.GetHash());
             Assert.True(sideCreateResult.Status == TransactionResultStatus.Mined, sideCreateResult.Error);
 
             var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -440,7 +440,7 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting, false);
             var blockExecutedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
             var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
@@ -457,7 +457,7 @@ namespace AElf.Contracts.MultiToken
                     IssueChainId = issueId
                 });
             blockExecutedSet = await MineAsync(new List<Transaction> {crossChainTransferTransaction});
-            var txResult2 = blockExecutedSet.TransactionResultMap[crossChainTransferTransaction.GetHash()];
+            var txResult2 = blockExecutedSet.TransactionResults.First(t => t.TransactionId == crossChainTransferTransaction.GetHash());
             txResult2.Error.ShouldContain("The token is not burnable");
         }
 
@@ -474,7 +474,7 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting);
             var executedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = executedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
 
             var createdTokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
@@ -632,7 +632,7 @@ namespace AElf.Contracts.MultiToken
                 });
             await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
             var blockExecutedSet = await MineAsync(new List<Transaction> {crossChainTransferTransaction});
-            var txResult = blockExecutedSet.TransactionResultMap[crossChainTransferTransaction.GetHash()];
+            var txResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == crossChainTransferTransaction.GetHash());
             txResult.Status.ShouldBe(TransactionResultStatus.Mined, txResult.Error);
 
             var height = blockExecutedSet.Height > _parentChainHeightOfCreation
@@ -677,7 +677,7 @@ namespace AElf.Contracts.MultiToken
                 });
             await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
             var blockExecutedSet = await MineAsync(new List<Transaction> {crossChainTransferTransaction});
-            var txResult = blockExecutedSet.TransactionResultMap[crossChainTransferTransaction.GetHash()];
+            var txResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == crossChainTransferTransaction.GetHash());
             txResult.Status.ShouldBe(TransactionResultStatus.Mined, txResult.Error);
 
             var height = blockExecutedSet.Height > _parentChainHeightOfCreation
@@ -713,7 +713,7 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting);
             var executedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = executedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = executedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             createResult.Status.ShouldBe(TransactionResultStatus.Mined, createResult.Error);
             await IssueTransactionAsync(SymbolForTesting, transferAmount);
 
@@ -729,7 +729,7 @@ namespace AElf.Contracts.MultiToken
                 });
             await BootMinerChangeRoundAsync(AEDPoSContractStub, true);
             var blockExecutedSet = await MineAsync(new List<Transaction> {crossChainTransferTransaction});
-            var txResult = blockExecutedSet.TransactionResultMap[crossChainTransferTransaction.GetHash()];
+            var txResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == crossChainTransferTransaction.GetHash());
             txResult.Status.ShouldBe(TransactionResultStatus.Mined, txResult.Error);
 
             var height = blockExecutedSet.Height > _parentChainHeightOfCreation
@@ -771,7 +771,7 @@ namespace AElf.Contracts.MultiToken
                 });
 
             var blockExecutedSet = await MineAsync(new List<Transaction> {crossChainTransferTransaction});
-            var txResult = blockExecutedSet.TransactionResultMap[crossChainTransferTransaction.GetHash()];
+            var txResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == crossChainTransferTransaction.GetHash());
             txResult.Status.ShouldBe(TransactionResultStatus.Mined, txResult.Error);
 
             var transferMerKlePath = GetTransactionMerklePathAndRoot(crossChainTransferTransaction, out var blockRoot);
@@ -800,7 +800,7 @@ namespace AElf.Contracts.MultiToken
             var createTransaction = CreateTransactionForTokenCreation(TokenContractStub,
                 DefaultAccount.Address, SymbolForTesting);
             var blockExecutedSet = await MineAsync(new List<Transaction> {createTransaction});
-            var createResult = blockExecutedSet.TransactionResultMap[createTransaction.GetHash()];
+            var createResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined, createResult.Error);
 
             var merklePath = GetTransactionMerklePathAndRoot(createTransaction, out var blockRoot);
@@ -931,7 +931,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var sideBlockExecutedSet = await SideChainTestKit.MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = sideBlockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = sideBlockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
 
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
@@ -955,7 +955,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var blockExecutedSet = await MineAsync(new List<Transaction> {validateTransaction});
-            var validateResult = blockExecutedSet.TransactionResultMap[validateTransaction.GetHash()];
+            var validateResult = blockExecutedSet.TransactionResults.First(t => t.TransactionId == validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined, validateResult.Error);
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction, out var blockRoot);
             var height = blockExecutedSet.Height > _parentChainHeightOfCreation
@@ -975,7 +975,7 @@ namespace AElf.Contracts.MultiToken
                     SystemContractHashName = TokenSmartContractAddressNameProvider.Name
                 });
             var executedSet = await SideChainTestKit.MineAsync(new List<Transaction> {validateTransaction1});
-            var validateResult = executedSet.TransactionResultMap[validateTransaction1.GetHash()];
+            var validateResult = executedSet.TransactionResults.First(t => t.TransactionId == validateTransaction1.GetHash());
             validateResult.Status.ShouldBe(TransactionResultStatus.Mined, validateResult.Error);
 
             var merklePath = GetTransactionMerklePathAndRoot(validateTransaction1, out var blockRoot);

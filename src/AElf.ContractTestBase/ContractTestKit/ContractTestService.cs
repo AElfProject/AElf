@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -59,7 +60,7 @@ namespace AElf.ContractTestBase.ContractTestKit
         public async Task<TransactionResult> ExecuteTransactionWithMiningAsync(Transaction transaction, Timestamp blockTime = null)
         {
             var blockExecutedSet = await MineAsync(new List<Transaction> {transaction}, blockTime);
-            var result = blockExecutedSet.TransactionResultMap[transaction.GetHash()];
+            var result = blockExecutedSet.TransactionResults.First(t => t.TransactionId == transaction.GetHash());
 
             return result;
         }

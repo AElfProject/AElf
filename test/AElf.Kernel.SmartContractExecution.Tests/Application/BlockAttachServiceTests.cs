@@ -63,8 +63,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var blockExecutedSet = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactions);
             await _blockchainService.AddBlockAsync(blockExecutedSet.Block);
-            _blockAttachService.AttachBlockAsync(blockExecutedSet.Block).ShouldThrow<Exception>();
-            
             await _blockchainService.AddTransactionsAsync(transactions);
             await _blockAttachService.AttachBlockAsync(blockExecutedSet.Block);
             var newChain = await _blockchainService.GetChainAsync();
