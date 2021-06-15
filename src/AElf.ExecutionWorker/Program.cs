@@ -27,7 +27,6 @@ namespace AElf.ExecutionWorker
                     Console.WriteLine(e);
                 logger.LogCritical(e, "program crashed");
             }
-
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -36,22 +35,18 @@ namespace AElf.ExecutionWorker
                 .ConfigureServices(s => s.AddApplication<ExecutionWorkerModule>())
                 .UseOrleans((context, builder) =>
                 {
-                    var clusterId = context.Configuration.GetSection("Orleans:Cluster:ClusterId").Value;
-                    var serviceId = context.Configuration.GetSection("Orleans:Cluster:ServiceId").Value;
-                    var siloPort = Convert.ToInt32(context.Configuration.GetSection("Orleans:Endpoint:SiloPort").Value);
-                    var gatewayPort =
-                        Convert.ToInt32(context.Configuration.GetSection("Orleans:Endpoint:GatewayPort").Value);
-                    var primarySiloPort = Convert.ToInt32(context.Configuration
-                        .GetSection("Orleans:ClusterMembership:PrimarySiloPort").Value);
+                    var invariant = context.Configuration.GetSection("Orleans:Membership:Invariant").Value;
+                    var connectionString = context.Configuration.GetSection("Orleans:Membership:ConnectionString").Value;
 
-                    // TODO: Use storage clustering.
                     builder
                         .ConfigureDefaults()
-                        .UseLocalhostClustering(siloPort, gatewayPort,
-                            new IPEndPoint(IPAddress.Loopback, primarySiloPort), serviceId, clusterId)
+                        .UseAdoNetClustering(o =>
+                        {
+                            o.Invariant = invariant;
+                            o.ConnectionString = connectionString;
+                        })
                         .ConfigureApplicationParts(parts =>
-                            parts.AddApplicationPart(typeof(TransactionExecutingGrain).Assembly).WithReferences())
-                        .AddMemoryGrainStorage(name: "ArchiveStorage");
+                            parts.AddApplicationPart(typeof(TransactionExecutingGrain).Assembly).WithReferences());
                 })
                 .UseAutofac();
     }

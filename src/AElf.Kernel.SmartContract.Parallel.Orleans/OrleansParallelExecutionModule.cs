@@ -15,8 +15,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            Configure<ClusterOptions>(configuration.GetSection("Orleans:Cluster"));
-            Configure<StaticGatewayListProviderOptions>(configuration.GetSection("Orleans:GatewayList"));
+            Configure<AdoNetClusteringClientOptions>(configuration.GetSection("Orleans:Membership"));
             
             context.Services.AddSingleton(_ => _.GetService<IClusterClientService>().Client);
             context.Services.AddSingleton<ITransactionExecutingService, OrleansParallelTransactionExecutingService>();
