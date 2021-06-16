@@ -19,19 +19,18 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
     {
         private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
 
-        public ILogger<TransactionExecutingGrain> Logger { get; set; }
+        private ILogger<TransactionExecutingGrain> _logger;
         
-        public TransactionExecutingGrain(IPlainTransactionExecutingService planTransactionExecutingService)
+        public TransactionExecutingGrain(IPlainTransactionExecutingService planTransactionExecutingService, ILogger<TransactionExecutingGrain> logger)
         {
             _planTransactionExecutingService = planTransactionExecutingService;
-            
-            Logger = NullLogger<TransactionExecutingGrain>.Instance;
+            _logger = logger;
         }
 
         public async Task<GroupedExecutionReturnSets> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken)
         {
-            Logger.LogTrace("Begin TransactionExecutingGrain.ExecuteAsync");
+            _logger.LogTrace("Begin TransactionExecutingGrain.ExecuteAsync");
             var executionReturnSets =
                 await _planTransactionExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken);
             var changeKeys =
@@ -40,7 +39,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                 executionReturnSets.SelectMany(s => s.StateAccesses.Keys));
             var readKeys = allKeys.Where(k => !changeKeys.Contains(k));
 
-            Logger.LogDebug("End TransactionExecutingGrain.ExecuteAsync");
+            _logger.LogTrace("End TransactionExecutingGrain.ExecuteAsync");
             return new GroupedExecutionReturnSets
             {
                 ReturnSets = executionReturnSets,
