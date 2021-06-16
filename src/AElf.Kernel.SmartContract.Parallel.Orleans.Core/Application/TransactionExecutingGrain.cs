@@ -9,12 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Core;
 using Orleans.Runtime;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
 {
+    [StatelessWorker]
     public class TransactionExecutingGrain : Grain, ITransactionExecutingGrain,ISingletonDependency
     {
         private readonly IPlainTransactionExecutingService _planTransactionExecutingService;

@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
             {
                 AsyncHelper.RunSync(async () =>
                 {
-                    var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
+                    var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.Empty);
                     var processResult = await grain.ExecuteAsync(new TransactionExecutingDto
                     {
                         BlockHeader = blockHeader,
