@@ -9,6 +9,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
     public interface ITransactionExecutingGrain : IGrainWithGuidKey
     {
         Task<GroupedExecutionReturnSets> ExecuteAsync(
-            TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken);
+            TransactionExecutingDto transactionExecutingDto, GrainCancellationToken cancellationToken);
     }
 }
