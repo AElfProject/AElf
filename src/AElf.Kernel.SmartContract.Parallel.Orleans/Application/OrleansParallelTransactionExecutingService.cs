@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
 using Orleans;
+using Orleans.Runtime;
 
 namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
 {
@@ -51,16 +52,24 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                 var tasks = groupedTransactions.Select(
                     txns =>
                     {
-                        var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
-                        return grain.ExecuteAsync(new TransactionExecutingDto
+                        try
                         {
-                            BlockHeader = blockHeader,
-                            Transactions = txns,
-                            PartialBlockStateSet = blockStateSet
-                        }, grainCancellationToken.Token);
+                            var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
+                            return grain.ExecuteAsync(new TransactionExecutingDto
+                            {
+                                BlockHeader = blockHeader,
+                                Transactions = txns,
+                                PartialBlockStateSet = blockStateSet
+                            }, grainCancellationToken.Token);
+                        }
+                        catch (GrainExtensionNotInstalledException ex)
+                        {
+                            Logger.LogWarning(ex,"Transaction executing grain failed");
+                            return Task.FromResult(new GroupedExecutionReturnSets());
+                        }
                     });
 
-                returnSets = await Task.WhenAll(tasks);
+                returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             var executionReturnSets = MergeResults(returnSets, out var conflictingSets);
