@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
 using Orleans;
+using Orleans.Runtime;
+using Orleans.Runtime.Messaging;
 
 namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
 {
@@ -19,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
     {
         private readonly IClusterClient _client;
 
-        public ILogger<OrleansParallelTransactionExecutingService> Logger { get; set; }
+        public new ILogger<OrleansParallelTransactionExecutingService> Logger { get; set; }
 
         public OrleansParallelTransactionExecutingService(ITransactionGrouper grouper,
             IPlainTransactionExecutingService planTransactionExecutingService, IClusterClient client)
@@ -46,21 +48,44 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
             Logger.LogTrace("Begin OrleansParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
             GroupedExecutionReturnSets[] returnSets;
             using (var grainCancellationToken = new GrainCancellationTokenSource())
-            using (cancellationToken.Register(async () => { await grainCancellationToken.Cancel(); }))
+            using (cancellationToken.Register(() => { AsyncHelper.RunSync(grainCancellationToken.Cancel); }))
             {
                 var tasks = groupedTransactions.Select(
                     txns =>
                     {
-                        var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
-                        return grain.ExecuteAsync(new TransactionExecutingDto
+                        try
                         {
-                            BlockHeader = blockHeader,
-                            Transactions = txns,
-                            PartialBlockStateSet = blockStateSet
-                        }, grainCancellationToken.Token);
+                            var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
+                            return grain.ExecuteAsync(new TransactionExecutingDto
+                            {
+                                BlockHeader = blockHeader,
+                                Transactions = txns,
+                                PartialBlockStateSet = blockStateSet
+                            }, grainCancellationToken.Token);
+                        }
+                        catch (ConnectionFailedException ex)
+                        {
+                            Logger.LogWarning(ex, "Transaction executing grain connection failed.");
+                        }
+                        catch (GrainExtensionNotInstalledException ex)
+                        {
+                            Logger.LogWarning(ex, "Transaction executing grain not installed failed.");
+                        }
+                        catch (OrleansException ex)
+                        {
+                            Logger.LogWarning(ex, "Transaction executing grain failed.");
+                        }
+
+                        return Task.FromResult(new GroupedExecutionReturnSets
+                        {
+                            ReturnSets = new List<ExecutionReturnSet>(),
+                            AllKeys = new HashSet<string>(),
+                            ChangeKeys = new List<string>(),
+                            ReadKeys = new List<string>()
+                        });
                     });
 
-                returnSets = await Task.WhenAll(tasks);
+                returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             var executionReturnSets = MergeResults(returnSets, out var conflictingSets);
