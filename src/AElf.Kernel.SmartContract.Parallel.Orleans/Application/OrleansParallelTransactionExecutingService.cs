@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
     {
         private readonly IClusterClient _client;
 
-        public ILogger<OrleansParallelTransactionExecutingService> Logger { get; set; }
+        public new ILogger<OrleansParallelTransactionExecutingService> Logger { get; set; }
 
         public OrleansParallelTransactionExecutingService(ITransactionGrouper grouper,
             IPlainTransactionExecutingService planTransactionExecutingService, IClusterClient client)
@@ -65,11 +65,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                         catch (GrainExtensionNotInstalledException ex)
                         {
                             Logger.LogWarning(ex,"Transaction executing grain failed");
-                            return Task.FromResult(new GroupedExecutionReturnSets());
+                            return Task.FromResult(new GroupedExecutionReturnSets
+                            {
+                                ReturnSets = new List<ExecutionReturnSet>(),
+                                AllKeys = new HashSet<string>(),
+                                ChangeKeys = new List<string>(),
+                                ReadKeys = new List<string>()
+                            });
                         }
                     });
 
-                returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
+                returnSets = await Task.WhenAll(tasks);
             }
 
             var executionReturnSets = MergeResults(returnSets, out var conflictingSets);
