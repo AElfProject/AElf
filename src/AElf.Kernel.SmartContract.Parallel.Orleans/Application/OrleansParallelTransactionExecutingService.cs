@@ -50,7 +50,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
             var grainCancellationToken = new GrainCancellationTokenSource();
             try
             {
-                using (cancellationToken.Register(() => { AsyncHelper.RunSync(grainCancellationToken.Cancel); }))
+                using (cancellationToken.Register(() =>
+                {
+                    try
+                    {
+                        AsyncHelper.RunSync(grainCancellationToken.Cancel);
+                    }
+                    catch (OrleansException e)
+                    {
+                        Logger.LogWarning(e, "Cancel grain executing failed.");
+                    }
+                }))
                 {
                     var tasks = groupedTransactions.Select(
                         txns =>
@@ -65,21 +75,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                                     PartialBlockStateSet = blockStateSet
                                 }, grainCancellationToken.Token);
                             }
-                            catch (ConnectionFailedException ex)
-                            {
-                                Logger.LogWarning(ex, "Transaction executing grain connection failed.");
-                            }
-                            catch (GrainExtensionNotInstalledException ex)
-                            {
-                                Logger.LogWarning(ex, "Transaction executing grain not installed failed.");
-                            }
                             catch (OrleansException ex)
                             {
-                                Logger.LogWarning(ex, "Transaction executing grain failed.");
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.LogWarning(ex, "Test executing grain failed.");
+                                Logger.LogWarning(ex, "Grain execute failed.");
                             }
 
                             return Task.FromResult(new GroupedExecutionReturnSets
@@ -96,13 +94,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
             }
             catch (OrleansException ex)
             {
-                Logger.LogWarning(ex, "Orleans transaction executing failed.");
+                Logger.LogWarning(ex, "Orleans execute failed.");
             }
-            catch (Exception ex)
-            {
-                Logger.LogWarning(ex, "Test executing grain failed 11.");
-            }
-            
 
             var executionReturnSets = MergeResults(returnSets, out var conflictingSets);
 
