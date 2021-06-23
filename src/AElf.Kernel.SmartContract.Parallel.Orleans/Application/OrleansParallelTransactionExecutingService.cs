@@ -45,26 +45,43 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
             }
 
             Logger.LogTrace("Begin OrleansParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
-            GroupedExecutionReturnSets[] returnSets;
-            using (var grainCancellationToken = new GrainCancellationTokenSource())
-            using (cancellationToken.Register(async () => { await grainCancellationToken.Cancel(); }))
+            GroupedExecutionReturnSets[] returnSets = new GroupedExecutionReturnSets[0];
+            try
             {
-                var tasks = groupedTransactions.Select(
-                    txns =>
+                using(var grainCancellationToken = new GrainCancellationTokenSource())
+                using (cancellationToken.Register(() =>
+                {
+                    try
                     {
-                        try
+                        if (grainCancellationToken != null)
                         {
-                            var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
-                            return grain.ExecuteAsync(new TransactionExecutingDto
-                            {
-                                BlockHeader = blockHeader,
-                                Transactions = txns,
-                                PartialBlockStateSet = blockStateSet
-                            }, grainCancellationToken.Token);
+                            AsyncHelper.RunSync(grainCancellationToken.Cancel);
                         }
-                        catch (GrainExtensionNotInstalledException ex)
+                    }
+                    catch (OrleansException e)
+                    {
+                        Logger.LogWarning(e, "Cancel grain executing failed.");
+                    }
+                }))
+                {
+                    var tasks = groupedTransactions.Select(
+                        txs =>
                         {
-                            Logger.LogWarning(ex,"Transaction executing grain failed");
+                            try
+                            {
+                                var grain = _client.GetGrain<ITransactionExecutingGrain>(Guid.NewGuid());
+                                return grain.ExecuteAsync(new TransactionExecutingDto
+                                {
+                                    BlockHeader = blockHeader,
+                                    Transactions = txs,
+                                    PartialBlockStateSet = blockStateSet
+                                }, grainCancellationToken.Token);
+                            }
+                            catch (OrleansException ex)
+                            {
+                                Logger.LogWarning(ex, "Grain execute failed.");
+                            }
+
                             return Task.FromResult(new GroupedExecutionReturnSets
                             {
                                 ReturnSets = new List<ExecutionReturnSet>(),
@@ -72,10 +89,14 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                                 ChangeKeys = new List<string>(),
                                 ReadKeys = new List<string>()
                             });
-                        }
-                    });
+                        }).ToList();
 
-                returnSets = await Task.WhenAll(tasks);
+                    returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+            }
+            catch (OrleansException ex)
+            {
+                Logger.LogWarning(ex, "Orleans execute failed.");
             }
 
             var executionReturnSets = MergeResults(returnSets, out var conflictingSets);
