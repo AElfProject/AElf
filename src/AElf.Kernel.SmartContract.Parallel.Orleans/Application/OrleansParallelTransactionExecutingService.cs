@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
 
             Logger.LogTrace("Begin OrleansParallelTransactionExecutingService.ExecuteParallelizableTransactionsAsync");
             GroupedExecutionReturnSets[] returnSets;
-            using (var grainCancellationToken = new GrainCancellationTokenSource())
+            var grainCancellationToken = new GrainCancellationTokenSource();
             using (cancellationToken.Register(() => { AsyncHelper.RunSync(grainCancellationToken.Cancel); }))
             {
                 var tasks = groupedTransactions.Select(
