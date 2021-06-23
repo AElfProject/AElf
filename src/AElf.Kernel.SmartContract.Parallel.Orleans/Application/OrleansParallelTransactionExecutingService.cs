@@ -77,6 +77,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                             {
                                 Logger.LogWarning(ex, "Transaction executing grain failed.");
                             }
+                            catch (Exception ex)
+                            {
+                                Logger.LogWarning(ex, "Test executing grain failed.");
+                            }
 
                             return Task.FromResult(new GroupedExecutionReturnSets
                             {
