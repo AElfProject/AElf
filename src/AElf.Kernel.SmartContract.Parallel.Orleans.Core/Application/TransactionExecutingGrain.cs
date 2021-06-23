@@ -10,7 +10,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
 {
-    public class TransactionExecutingGrain : Grain, ITransactionExecutingGrain,ISingletonDependency
+    public class TransactionExecutingGrain : Grain, ITransactionExecutingGrain
     {
         private readonly IPlainTransactionExecutingService _planTransactionExecutingService;
 
