@@ -91,12 +91,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                             });
                         }).ToList();
 
-                    returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    returnSets = await Task.WhenAll(tasks);
                 }
             }
             catch (OrleansException ex)
             {
                 Logger.LogWarning(ex, "Orleans transaction executing failed.");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Test executing grain failed 11.");
             }
             
 
