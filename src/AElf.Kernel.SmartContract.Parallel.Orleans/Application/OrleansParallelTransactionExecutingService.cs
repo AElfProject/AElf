@@ -83,7 +83,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Orleans.Application
                             ChangeKeys = new List<string>(),
                             ReadKeys = new List<string>()
                         });
-                    });
+                    }).ToList();
 
                 returnSets = await Task.WhenAll(tasks).ConfigureAwait(false);
             }
