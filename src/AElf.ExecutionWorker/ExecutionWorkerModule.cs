@@ -43,6 +43,8 @@ namespace AElf.ExecutionWorker
                 o.AdvertisedIPAddress = IPAddress.Parse(advertisedIPAddress);
                 o.SiloPort = Convert.ToInt32(siloPort);
                 o.GatewayPort = Convert.ToInt32(gatewayPort);
+                o.SiloListeningEndpoint = new IPEndPoint(IPAddress.Any, o.SiloPort);
+                o.GatewayListeningEndpoint = new IPEndPoint(IPAddress.Any, o.GatewayPort);
             });
         }
 
