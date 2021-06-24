@@ -13,6 +13,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold;
 using AElf.Kernel.SmartContract.ExecutionPluginForMethodFee;
 using AElf.Kernel.SmartContract.ExecutionPluginForResourceFee;
 using AElf.Kernel.SmartContract.Parallel;
+using AElf.Kernel.SmartContract.Parallel.Orleans;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -52,7 +53,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
         //web api module
         typeof(WebWebAppAElfModule),
-        typeof(ParallelExecutionModule),
+        typeof(OrleansParallelExecutionModule),
 
         //plugin
         typeof(ExecutionPluginForMethodFeeModule),
