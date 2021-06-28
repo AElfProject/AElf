@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,10 +11,12 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public class SimpleTransactionGrouper: ITransactionGrouper, ISingletonDependency
     {
+        private ISmartContractAddressService _smartContractAddressService;
         public ILogger<SimpleTransactionGrouper> Logger { get; set; }
 
-        public SimpleTransactionGrouper()
+        public SimpleTransactionGrouper(ISmartContractAddressService smartContractAddressService)
         {
+            _smartContractAddressService = smartContractAddressService;
             Logger = NullLogger<SimpleTransactionGrouper>.Instance;
         }
 
@@ -27,7 +30,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             Logger.LogDebug($"From {transactions.Count} transactions, grouped {groupedTransactions.Sum(p=>p.Count)} txs into " +
                             $"{groupedTransactions.Count} groups. ");
-            
+
             return new GroupedTransactions
             {
                 Parallelizables = groupedTransactions

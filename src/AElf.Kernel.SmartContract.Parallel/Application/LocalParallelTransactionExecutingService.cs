@@ -24,8 +24,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
-            IPlainTransactionExecutingService planTransactionExecutingService, 
-            ISystemTransactionExtraDataProvider systemTransactionExtraDataProvider)
+            IPlainTransactionExecutingService planTransactionExecutingService)
         {
             _grouper = grouper;
             _planTransactionExecutingService = planTransactionExecutingService;
@@ -68,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             return returnSets;
         }
 
-        private async Task<ExecutionReturnSetMergeResult> ExecuteParallelizableTransactionsAsync(
+        protected virtual async Task<ExecutionReturnSetMergeResult> ExecuteParallelizableTransactionsAsync(
             List<List<Transaction>> groupedTransactions, BlockHeader blockHeader, BlockStateSet blockStateSet,
             CancellationToken cancellationToken)
         {
@@ -175,17 +174,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             };
         }
 
-        private class GroupedExecutionReturnSets
-        {
-            public List<ExecutionReturnSet> ReturnSets { get; set; }
-
-            public HashSet<string> AllKeys { get; set; }
-            
-            public IEnumerable<string> ChangeKeys { get; set; }
-            
-            public IEnumerable<string> ReadKeys { get; set; }
-        }
-
         private HashSet<string> GetReadOnlyKeys(GroupedExecutionReturnSets[] groupedExecutionReturnSetsArray)
         {
             var readKeys = new HashSet<string>(groupedExecutionReturnSetsArray.SelectMany(s => s.ReadKeys));;
@@ -194,14 +182,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             return readKeys;
         }
 
-        private class ExecutionReturnSetMergeResult
-        {
-            public List<ExecutionReturnSet> ExecutionReturnSets { get; set; }
-            
-            public List<ExecutionReturnSet> ConflictingReturnSets { get; set; }
-        }
-
-        private List<ExecutionReturnSet> MergeResults(
+        protected List<ExecutionReturnSet> MergeResults(
             List<GroupedExecutionReturnSets> groupedExecutionReturnSetsArray)
         {
             Logger.LogTrace("Begin LocalParallelTransactionExecutingService.MergeResults");
@@ -240,5 +221,23 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
             Logger.LogTrace("End LocalParallelTransactionExecutingService.GetUpdatedBlockStateSet");
             return updatedPartialBlockStateSet;
         }
+    }
+    
+    public class ExecutionReturnSetMergeResult
+    {
+        public List<ExecutionReturnSet> ExecutionReturnSets { get; set; }
+            
+        public List<ExecutionReturnSet> ConflictingReturnSets { get; set; }
+    }
+    
+    public class GroupedExecutionReturnSets
+    {
+        public List<ExecutionReturnSet> ReturnSets { get; set; }
+
+        public HashSet<string> AllKeys { get; set; }
+            
+        public IEnumerable<string> ChangeKeys { get; set; }
+            
+        public IEnumerable<string> ReadKeys { get; set; }
     }
 }
