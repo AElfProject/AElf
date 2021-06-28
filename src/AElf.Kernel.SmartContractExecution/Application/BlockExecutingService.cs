@@ -61,7 +61,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var cancellable = cancellableTransactions.ToList();
             var nonCancellableReturnSets =
                 await _transactionExecutingService.ExecuteAsync(
-                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable, IsParallel = false},
                     CancellationToken.None);
 
             var returnSetCollection = new ExecutionReturnSetCollection(nonCancellableReturnSets);

@@ -44,25 +44,27 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             };
-            var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
 
             var returnSets = new List<ExecutionReturnSet>();
 
-            var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
-                blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
-            returnSets.AddRange(mergeResult.ExecutionReturnSets);
-            
-            var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
-            var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
-            
-            var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(groupedTransactions.NonParallelizables, blockHeader,
-                updatedPartialBlockStateSet, cancellationToken);
-            returnSets.AddRange(nonParallelizableReturnSets);
-        
-            var transactionWithoutContractReturnSets = ProcessTransactionsWithoutContract(
-                groupedTransactions.TransactionsWithoutContract);
+            if (transactionExecutingDto.IsParallel)
+            {
+                var groupedTransactions = await _grouper.GroupAs\ync(chainContext, transactions);
+                var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
+                    blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
+                returnSets.AddRange(mergeResult.ExecutionReturnSets);
+            }
+            else
+            {
+                var returnSetCollection = new ExecutionReturnSetCollection(returnSets);
+                var updatedPartialBlockStateSet = GetUpdatedBlockStateSet(returnSetCollection, transactionExecutingDto);
 
-            returnSets.AddRange(transactionWithoutContractReturnSets);
+                var nonParallelizableReturnSets = await ExecuteNonParallelizableTransactionsAsync(
+                    transactionExecutingDto.Transactions.ToList(), blockHeader,
+                    updatedPartialBlockStateSet, cancellationToken);
+                returnSets.AddRange(nonParallelizableReturnSets);
+            }
+
             Logger.LogTrace("End LocalParallelTransactionExecutingService.ExecuteAsync");
             return returnSets;
         }
