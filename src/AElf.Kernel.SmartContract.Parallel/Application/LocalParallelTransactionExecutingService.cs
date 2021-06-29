@@ -49,7 +49,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Application
 
             if (transactionExecutingDto.IsParallel)
             {
-                var groupedTransactions = await _grouper.GroupAs\ync(chainContext, transactions);
+                var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
                 var mergeResult = await ExecuteParallelizableTransactionsAsync(groupedTransactions.Parallelizables,
                     blockHeader, transactionExecutingDto.PartialBlockStateSet, cancellationToken);
                 returnSets.AddRange(mergeResult.ExecutionReturnSets);
