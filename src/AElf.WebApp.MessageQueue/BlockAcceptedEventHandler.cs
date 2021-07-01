@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -18,6 +22,7 @@ namespace AElf.WebApp.MessageQueue
     {
         private readonly IDistributedEventBus _distributedEventBus;
         private readonly IBlockchainService _blockchainService;
+        private readonly IMessageFilterService _messageFilterService;
         private readonly MessageQueueOptions _messageQueueOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
@@ -25,10 +30,12 @@ namespace AElf.WebApp.MessageQueue
 
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
             IBlockchainService blockchainService,
-            IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions)
+            IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions,
+            IMessageFilterService messageFilterService)
         {
             _distributedEventBus = distributedEventBus;
             _blockchainService = blockchainService;
+            _messageFilterService = messageFilterService;
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
             _blockExecutedSets = new List<BlockExecutedSet>();
@@ -41,7 +48,8 @@ namespace AElf.WebApp.MessageQueue
                 chain.BestChainHeight < _messageQueueOptions.StartPublishMessageHeight)
                 return;
 
-            _blockExecutedSets.Add(eventData.BlockExecutedSet);
+            _blockExecutedSets.Add(_messageFilterService.GetPublishBlockExecutedSet(eventData.BlockExecutedSet));
+
             Logger.LogInformation(
                 $"Add new block info of height {eventData.Block.Height} to list, current list length: {_blockExecutedSets.Count}");
             if (_blockExecutedSets.Count < _messageQueueOptions.PublishStep)
@@ -55,21 +63,22 @@ namespace AElf.WebApp.MessageQueue
                 StartBlockNumber = _blockExecutedSets.First().Height,
                 EndBlockNumber = _blockExecutedSets.Last().Height
             };
-            foreach (var resultPair in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
+
+            foreach (var (txId, txResult) in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
             {
-                txResultList.TransactionResults.Add(resultPair.Key.ToHex(), new TransactionResultEto
+                txResultList.TransactionResults.Add(txId.ToHex(), new TransactionResultEto
                 {
-                    TransactionId = resultPair.Value.TransactionId.ToHex(),
-                    Status = resultPair.Value.Status.ToString().ToUpper(),
-                    Error = resultPair.Value.Error,
-                    Logs = resultPair.Value.Logs.Select(l => new LogEventEto
+                    TransactionId = txResult.TransactionId.ToHex(),
+                    Status = txResult.Status.ToString().ToUpper(),
+                    Error = txResult.Error,
+                    Logs = txResult.Logs.Select(l => new LogEventEto
                     {
                         Address = l.Address.ToBase58(),
                         Name = l.Name,
                         Indexed = l.Indexed.Select(i => i.ToBase64()).ToArray(),
                         NonIndexed = l.NonIndexed.ToBase64()
                     }).ToArray(),
-                    ReturnValue = resultPair.Value.ReturnValue.ToHex()
+                    ReturnValue = txResult.ReturnValue.ToHex()
                 });
             }
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AElf.WebApp.MessageQueue
 {
     public class MessageQueueOptions
@@ -11,5 +13,14 @@ namespace AElf.WebApp.MessageQueue
         public string PassWord { get; set; } = "12345678";
         public long StartPublishMessageHeight { get; set; }
         public int PublishStep { get; set; } = 20;
+        public MessageFilter MessageFilter { get; set; }
+    }
+
+    public class MessageFilter
+    {
+        public MessageFilterMode Mode { get; set; }
+        public List<string> ToAddresses { get; set; }
+        public List<string> FromAddresses { get; set; }
+        public List<string> EventNames { get; set; }
     }
 }
