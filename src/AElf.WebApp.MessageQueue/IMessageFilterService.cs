@@ -30,9 +30,7 @@ namespace AElf.WebApp.MessageQueue
             var isToMatch = new Lazy<Func<List<string>, Hash, bool>>((toAddressList, txHash) =>
                 toAddressList.Contains(originBlockExecutedSet.TransactionMap[txHash].To.ToBase58()));
             var isEventNameMatch = new Lazy<Func<List<string>, TransactionResult, bool>>((eventNameList, txResult) =>
-            {
-                return txResult.Logs.Any(logEvent => eventNameList.Contains(logEvent.Name));
-            });
+                txResult.Logs.Any(logEvent => eventNameList.Contains(logEvent.Name)));
 
             var resultSet = new BlockExecutedSet
             {
