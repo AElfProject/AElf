@@ -30,65 +30,44 @@ namespace AElf.WebApp.MessageQueue
             var isToMatch = new Lazy<Func<List<string>, Hash, bool>>((toAddressList, txHash) =>
                 toAddressList.Contains(originBlockExecutedSet.TransactionMap[txHash].To.ToBase58()));
             var isEventNameMatch = new Lazy<Func<List<string>, TransactionResult, bool>>((eventNameList, txResult) =>
-                txResult.Logs
-                    .Select(logEvent => eventNameList.Contains(logEvent.Name)).FirstOrDefault());
+            {
+                return txResult.Logs.Any(logEvent => eventNameList.Contains(logEvent.Name));
+            });
 
             var resultSet = new BlockExecutedSet
             {
-                Block = originBlockExecutedSet.Block
-            };
-            switch (_messageQueueOptions.MessageFilter.Mode)
-            {
-                case MessageFilterMode.OnlyTo:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                Block = originBlockExecutedSet.Block,
+                TransactionResultMap = _messageQueueOptions.MessageFilter.Mode switch
+                {
+                    MessageFilterMode.OnlyTo => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.OnlyFrom:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.OnlyFrom => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.OnlyEventName:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.OnlyEventName => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.ToAndEventName:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.ToAndEventName => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key) &&
                                     isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.FromAndEventName:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.FromAndEventName => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
                                     isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.FromAndTo:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.FromAndTo => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
                                     isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                case MessageFilterMode.All:
-                    resultSet.TransactionResultMap = originBlockExecutedSet.TransactionResultMap
-                        .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
-                                    isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key) &&
-                                    isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
-                        .ToDictionary(p => p.Key, p => p.Value);
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    MessageFilterMode.All => originBlockExecutedSet.TransactionResultMap.Where(r =>
+                            isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
+                            isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key) &&
+                            isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
+                        .ToDictionary(p => p.Key, p => p.Value),
+                    _ => throw new ArgumentOutOfRangeException()
+                }
+            };
 
             return resultSet;
         }
