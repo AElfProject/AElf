@@ -24,6 +24,7 @@ namespace AElf.WebApp.MessageQueue
         private readonly IBlockchainService _blockchainService;
         private readonly IMessageFilterService _messageFilterService;
         private readonly MessageQueueOptions _messageQueueOptions;
+        private readonly ChainOptions _chainOptions;
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
         private List<BlockExecutedSet> _blockExecutedSets;
@@ -31,7 +32,8 @@ namespace AElf.WebApp.MessageQueue
         public BlockAcceptedEventHandler(IDistributedEventBus distributedEventBus,
             IBlockchainService blockchainService,
             IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions,
-            IMessageFilterService messageFilterService)
+            IMessageFilterService messageFilterService,
+            IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _distributedEventBus = distributedEventBus;
             _blockchainService = blockchainService;
@@ -39,6 +41,7 @@ namespace AElf.WebApp.MessageQueue
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
             _blockExecutedSets = new List<BlockExecutedSet>();
+            _chainOptions = chainOptions.Value;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -61,7 +64,8 @@ namespace AElf.WebApp.MessageQueue
             {
                 TransactionResults = new Dictionary<string, TransactionResultEto>(),
                 StartBlockNumber = _blockExecutedSets.First().Height,
-                EndBlockNumber = _blockExecutedSets.Last().Height
+                EndBlockNumber = _blockExecutedSets.Last().Height,
+                ChainId = _chainOptions.ChainId
             };
 
             foreach (var (txId, txResult) in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
