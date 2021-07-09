@@ -82,7 +82,8 @@ namespace AElf.WebApp.MessageQueue
                         Indexed = l.Indexed.Select(i => i.ToBase64()).ToArray(),
                         NonIndexed = l.NonIndexed.ToBase64()
                     }).ToArray(),
-                    ReturnValue = txResult.ReturnValue.ToHex()
+                    ReturnValue = txResult.ReturnValue.ToHex(),
+                    BlockNumber = txResult.BlockNumber
                 });
             }
 
