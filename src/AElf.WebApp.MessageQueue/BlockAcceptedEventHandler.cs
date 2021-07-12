@@ -166,13 +166,8 @@ namespace AElf.WebApp.MessageQueue
         {
             var contractInfo =
                 _eventHandleOptions.ParallelHandleEventInfo.FirstOrDefault(x =>
-                    CompareContractAddress(x.ContractName, logEventEto.Address));
+                    x.ContractName == logEventEto.Address);
             return contractInfo != null && contractInfo.EventNames.Any(x => x == logEventEto.Name);
-        }
-
-        private bool CompareContractAddress(string addressOne, string addressTwo)
-        {
-            return addressOne.Equals(addressTwo, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
