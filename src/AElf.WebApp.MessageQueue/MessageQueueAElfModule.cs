@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Security;
 using System.Security.Authentication;
 using AElf.Modularity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.BackgroundJobs.RabbitMQ;
 using Volo.Abp.EventBus.RabbitMq;
 using Volo.Abp.Modularity;
 using Volo.Abp.RabbitMQ;
 
 namespace AElf.WebApp.MessageQueue
 {
-    [DependsOn(typeof(AbpEventBusRabbitMqModule))]
+    [DependsOn(typeof(AbpEventBusRabbitMqModule),
+        typeof(AbpBackgroundJobsRabbitMqModule))]
     public class MessageQueueAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -20,6 +22,7 @@ namespace AElf.WebApp.MessageQueue
             var configuration = context.Services.GetConfiguration();
 
             Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
+            Configure<EventHandleOptions>(options => { configuration.GetSection("MessageHandle").Bind(options); });
 
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
@@ -47,6 +50,29 @@ namespace AElf.WebApp.MessageQueue
                 };
                 options.Connections.Default.VirtualHost = "/";
                 options.Connections.Default.Uri = new Uri(messageQueueConfig.GetSection("Uri").Value);
+            });
+
+            ConfigureParallelEventHandleQueue(configuration);
+        }
+
+        private void ConfigureParallelEventHandleQueue(IConfiguration configuration)
+        {
+            Configure<AbpBackgroundJobOptions>(options =>
+            {
+                options.IsJobExecutionEnabled = false;
+                options.AddJob(typeof(TransactionResultListEtoHandler));
+            });
+            
+            Configure<AbpRabbitMqBackgroundJobOptions>(options =>
+            {
+                var parallelQueueConfiguration = configuration.GetSection("EventHandleOptions");
+                var connection = parallelQueueConfiguration.GetSection("Connection").Value;
+                var queueName = parallelQueueConfiguration.GetSection("ParallelHandleQueue").Value;
+                if (!string.IsNullOrEmpty(queueName) && !string.IsNullOrEmpty(connection))
+                {
+                    options.JobQueues[typeof(TransactionResultListEto)] =
+                        new JobQueueConfiguration(typeof(TransactionResultListEto), queueName, connection);
+                }
             });
         }
     }

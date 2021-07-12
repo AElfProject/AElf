@@ -6,12 +6,10 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Distributed;
@@ -25,6 +23,9 @@ namespace AElf.WebApp.MessageQueue
         private readonly IMessageFilterService _messageFilterService;
         private readonly MessageQueueOptions _messageQueueOptions;
         private readonly ChainOptions _chainOptions;
+        private readonly EventHandleOptions _eventHandleOptions;
+        private readonly IBackgroundJobManager _parallelQueue;
+
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
         private List<BlockExecutedSet> _blockExecutedSets;
@@ -33,15 +34,18 @@ namespace AElf.WebApp.MessageQueue
             IBlockchainService blockchainService,
             IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions,
             IMessageFilterService messageFilterService,
-            IOptionsSnapshot<ChainOptions> chainOptions)
+            IOptionsSnapshot<ChainOptions> chainOptions,
+            IOptionsSnapshot<EventHandleOptions> eventHandleOptions, IBackgroundJobManager parallelQueue)
         {
             _distributedEventBus = distributedEventBus;
             _blockchainService = blockchainService;
             _messageFilterService = messageFilterService;
+            _parallelQueue = parallelQueue;
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
             _blockExecutedSets = new List<BlockExecutedSet>();
             _chainOptions = chainOptions.Value;
+            _eventHandleOptions = eventHandleOptions.Value;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -60,42 +64,25 @@ namespace AElf.WebApp.MessageQueue
                 return;
             }
 
-            var txResultList = new TransactionResultListEto
-            {
-                TransactionResults = new Dictionary<string, TransactionResultEto>(),
-                StartBlockNumber = _blockExecutedSets.First().Height,
-                EndBlockNumber = _blockExecutedSets.Last().Height,
-                ChainId = _chainOptions.ChainId
-            };
-
-            foreach (var (txId, txResult) in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
-            {
-                txResultList.TransactionResults.Add(txId.ToHex(), new TransactionResultEto
-                {
-                    TransactionId = txResult.TransactionId.ToHex(),
-                    Status = txResult.Status.ToString().ToUpper(),
-                    Error = txResult.Error,
-                    Logs = txResult.Logs.Select(l => new LogEventEto
-                    {
-                        Address = l.Address.ToBase58(),
-                        Name = l.Name,
-                        Indexed = l.Indexed.Select(i => i.ToBase64()).ToArray(),
-                        NonIndexed = l.NonIndexed.ToBase64()
-                    }).ToArray(),
-                    ReturnValue = txResult.ReturnValue.ToHex(),
-                    BlockNumber = txResult.BlockNumber
-                });
-            }
-
+            var (serialHandleTxResultList, parallelHandleTxResultList) = GetTransactionResultListEto(
+                _blockExecutedSets.First().Height, _blockExecutedSets.Last().Height, _chainOptions.ChainId);
             try
             {
                 Logger.LogInformation("Start publish log events.");
-                await _distributedEventBus.PublishAsync(txResultList);
+                if (serialHandleTxResultList.TransactionResults.Any())
+                {
+                    await _distributedEventBus.PublishAsync(serialHandleTxResultList);
+                }
+                else if (parallelHandleTxResultList.TransactionResults.Any())
+                {
+                    await _parallelQueue.EnqueueAsync(parallelHandleTxResultList);
+                }
+                
                 Logger.LogInformation("End publish log events.");
 
                 Logger.LogInformation(
-                    $"Messages of block height from {txResultList.StartBlockNumber} to {txResultList.EndBlockNumber} sent. " +
-                    $"Totally {txResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
+                    $"Messages of block height from {serialHandleTxResultList.StartBlockNumber} to {serialHandleTxResultList.EndBlockNumber} sent. " +
+                    $"Totally {serialHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
             }
             catch (Exception e)
             {
@@ -103,6 +90,89 @@ namespace AElf.WebApp.MessageQueue
             }
 
             _blockExecutedSets = new List<BlockExecutedSet>();
+        }
+
+        private (TransactionResultListEto, TransactionResultListEto) GetTransactionResultListEto(long startBlockNumber,
+            long endBlockNumber, int chainId)
+        {
+            var serialHandleTxResultList = new TransactionResultListEto
+            {
+                TransactionResults = new Dictionary<string, TransactionResultEto>(),
+                StartBlockNumber = startBlockNumber,
+                EndBlockNumber = endBlockNumber,
+                ChainId = chainId
+            };
+
+            var parallelHandleTxResultList = new TransactionResultListEto
+            {
+                TransactionResults = new Dictionary<string, TransactionResultEto>(),
+                StartBlockNumber = startBlockNumber,
+                EndBlockNumber = endBlockNumber,
+                ChainId = chainId
+            };
+
+            foreach (var (txId, txResult) in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
+            {
+                var logs = txResult.Logs.Select(l => new LogEventEto
+                {
+                    Address = l.Address.ToBase58(),
+                    Name = l.Name,
+                    Indexed = l.Indexed.Select(i => i.ToBase64()).ToArray(),
+                    NonIndexed = l.NonIndexed.ToBase64()
+                }).ToArray();
+                var parallelHandleEventEtos = new List<LogEventEto>();
+                var serialHandleEventEtos = new List<LogEventEto>();
+                foreach (var log in logs)
+                {
+                    if(IsEventHandleParallel(log))
+                        parallelHandleEventEtos.Add(log);
+                    else
+                        serialHandleEventEtos.Add(log);
+                }
+
+                if (serialHandleEventEtos.Any())
+                {
+                    serialHandleTxResultList.TransactionResults.Add(
+                        txId.ToHex(), new TransactionResultEto
+                        {
+                            TransactionId = txResult.TransactionId.ToHex(),
+                            Status = txResult.Status.ToString().ToUpper(),
+                            Error = txResult.Error,
+                            Logs = serialHandleEventEtos.ToArray(),
+                            ReturnValue = txResult.ReturnValue.ToHex(),
+                            BlockNumber = txResult.BlockNumber
+                        });
+                }
+
+                if (parallelHandleEventEtos.Any())
+                {
+                    parallelHandleTxResultList.TransactionResults.Add(
+                        txId.ToHex(), new TransactionResultEto
+                        {
+                            TransactionId = txResult.TransactionId.ToHex(),
+                            Status = txResult.Status.ToString().ToUpper(),
+                            Error = txResult.Error,
+                            Logs = parallelHandleEventEtos.ToArray(),
+                            ReturnValue = txResult.ReturnValue.ToHex(),
+                            BlockNumber = txResult.BlockNumber
+                        });
+                }
+            }
+
+            return (serialHandleTxResultList, parallelHandleTxResultList);
+        }
+
+        private bool IsEventHandleParallel(LogEventEto logEventEto)
+        {
+            var contractInfo =
+                _eventHandleOptions.ParallelHandleEventInfo.FirstOrDefault(x =>
+                    CompareContractAddress(x.ContractName, logEventEto.Address));
+            return contractInfo != null && contractInfo.EventNames.Any(x => x == logEventEto.Name);
+        }
+
+        private bool CompareContractAddress(string addressOne, string addressTwo)
+        {
+            return addressOne.Equals(addressTwo, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
