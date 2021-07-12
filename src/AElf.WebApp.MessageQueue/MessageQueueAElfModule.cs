@@ -22,7 +22,7 @@ namespace AElf.WebApp.MessageQueue
             var configuration = context.Services.GetConfiguration();
 
             Configure<MessageQueueOptions>(options => { configuration.GetSection("MessageQueue").Bind(options); });
-            Configure<EventHandleOptions>(options => { configuration.GetSection("MessageHandle").Bind(options); });
+            Configure<EventHandleOptions>(options => { configuration.GetSection("EventHandleOptions").Bind(options); });
 
             Configure<AbpRabbitMqEventBusOptions>(options =>
             {
