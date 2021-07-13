@@ -20,12 +20,16 @@ namespace AElf.WebApp.MessageQueue
 
         public bool IsEventHandleParallel(LogEventEto logEventEto)
         {
+            if (_isEventInParallelQueueDic == null)
+                return false;
             return _isEventInParallelQueueDic.TryGetValue(logEventEto.Address, out var eventsSet) &&
                    eventsSet.Contains(logEventEto.Name);
         }
 
         private Dictionary<string, HashSet<string>> InitializeParallelQueueEvent(EventHandleOptions option)
         {
+            if (option?.ParallelHandleEventInfo == null)
+                return null;
             var eventInParallelQueueDictionary = new Dictionary<string, HashSet<string>>();
             foreach (var contract in option.ParallelHandleEventInfo)
             {
