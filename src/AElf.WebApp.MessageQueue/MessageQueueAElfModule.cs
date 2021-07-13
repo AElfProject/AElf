@@ -59,7 +59,7 @@ namespace AElf.WebApp.MessageQueue
         {
             Configure<AbpBackgroundJobOptions>(options =>
             {
-                options.IsJobExecutionEnabled = true;
+                options.IsJobExecutionEnabled = false;
                 options.AddJob(typeof(TransactionResultListEtoHandler));
             });
             
