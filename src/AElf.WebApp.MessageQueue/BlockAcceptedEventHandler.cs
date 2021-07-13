@@ -72,17 +72,21 @@ namespace AElf.WebApp.MessageQueue
                 if (serialHandleTxResultList.TransactionResults.Any())
                 {
                     await _distributedEventBus.PublishAsync(serialHandleTxResultList);
+                    Logger.LogInformation("End publish log events.");
+
+                    Logger.LogInformation(
+                        $"Messages of block height from {serialHandleTxResultList.StartBlockNumber} to {serialHandleTxResultList.EndBlockNumber} sent. " +
+                        $"Totally {serialHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
                 }
                 else if (parallelHandleTxResultList.TransactionResults.Any())
                 {
                     await _parallelQueue.EnqueueAsync(parallelHandleTxResultList);
+                    Logger.LogInformation("End publish log events.");
+
+                    Logger.LogInformation(
+                        $"Messages of block height from {parallelHandleTxResultList.StartBlockNumber} to {parallelHandleTxResultList.EndBlockNumber} sent to Parallel queue. " +
+                        $"Totally {parallelHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
                 }
-
-                Logger.LogInformation("End publish log events.");
-
-                Logger.LogInformation(
-                    $"Messages of block height from {serialHandleTxResultList.StartBlockNumber} to {serialHandleTxResultList.EndBlockNumber} sent. " +
-                    $"Totally {serialHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
             }
             catch (Exception e)
             {
