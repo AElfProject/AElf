@@ -65,7 +65,19 @@ namespace AElf.WebApp.MessageQueue
             }
 
             var (serialHandleTxResultList, parallelHandleTxResultList) = GetTransactionResultListEto(
-                _blockExecutedSets.First().Height, _blockExecutedSets.Last().Height, _chainOptions.ChainId);
+                _blockExecutedSets, _chainOptions.ChainId);
+
+            Logger.LogInformation("statistic serial log :");
+            foreach (var eventLog in serialHandleTxResultList.TransactionResults.Values.SelectMany(eventLogs => eventLogs.Logs))
+            {
+                Logger.LogInformation($"eventLog contract: {eventLog.Address},  event name: {eventLog.Name}");
+            }
+            
+            Logger.LogInformation("statistic parallel log :");
+            foreach (var eventLog in parallelHandleTxResultList.TransactionResults.Values.SelectMany(eventLogs => eventLogs.Logs))
+            {
+                Logger.LogInformation($"eventLog contract: {eventLog.Address},  event name: {eventLog.Name}");
+            }
             try
             {
                 Logger.LogInformation("Start publish log events.");
@@ -96,9 +108,11 @@ namespace AElf.WebApp.MessageQueue
             _blockExecutedSets = new List<BlockExecutedSet>();
         }
 
-        private (TransactionResultListEto, TransactionResultListEto) GetTransactionResultListEto(long startBlockNumber,
-            long endBlockNumber, int chainId)
+        private (TransactionResultListEto, TransactionResultListEto) GetTransactionResultListEto(
+            IReadOnlyCollection<BlockExecutedSet> blockExecutedSets, int chainId)
         {
+            var startBlockNumber = blockExecutedSets.First().Height;
+            var endBlockNumber = blockExecutedSets.Last().Height;
             var serialHandleTxResultList = new TransactionResultListEto
             {
                 TransactionResults = new Dictionary<string, TransactionResultEto>(),
@@ -114,8 +128,9 @@ namespace AElf.WebApp.MessageQueue
                 EndBlockNumber = endBlockNumber,
                 ChainId = chainId
             };
-
-            foreach (var (txId, txResult) in _blockExecutedSets.SelectMany(s => s.TransactionResultMap))
+            
+            Logger.LogInformation("statistic filter log :");
+            foreach (var (txId, txResult) in blockExecutedSets.SelectMany(s => s.TransactionResultMap))
             {
                 var logs = txResult.Logs.Select(l => new LogEventEto
                 {
@@ -124,6 +139,17 @@ namespace AElf.WebApp.MessageQueue
                     Indexed = l.Indexed.Select(i => i.ToBase64()).ToArray(),
                     NonIndexed = l.NonIndexed.ToBase64()
                 }).ToArray();
+
+                if (logs.Any())
+                {
+                    Logger.LogInformation($"eventLog contract: {logs.First().Address}");
+                }
+
+                foreach (var log in logs)
+                {
+                    Logger.LogInformation($"eventLog Event: {log.Name}");
+                }
+                
                 var parallelHandleEventEtos = new List<LogEventEto>();
                 var serialHandleEventEtos = new List<LogEventEto>();
                 foreach (var log in logs)
