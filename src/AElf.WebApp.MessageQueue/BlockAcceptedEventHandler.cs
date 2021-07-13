@@ -23,8 +23,8 @@ namespace AElf.WebApp.MessageQueue
         private readonly IMessageFilterService _messageFilterService;
         private readonly MessageQueueOptions _messageQueueOptions;
         private readonly ChainOptions _chainOptions;
-        private readonly EventHandleOptions _eventHandleOptions;
         private readonly IBackgroundJobManager _parallelQueue;
+        private readonly IEventInParallelProvider _eventInParallelProvider;
 
         public ILogger<BlockAcceptedEventHandler> Logger { get; set; }
 
@@ -35,17 +35,17 @@ namespace AElf.WebApp.MessageQueue
             IOptionsSnapshot<MessageQueueOptions> messageQueueEnableOptions,
             IMessageFilterService messageFilterService,
             IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<EventHandleOptions> eventHandleOptions, IBackgroundJobManager parallelQueue)
+            IBackgroundJobManager parallelQueue, IEventInParallelProvider eventInParallelProvider)
         {
             _distributedEventBus = distributedEventBus;
             _blockchainService = blockchainService;
             _messageFilterService = messageFilterService;
             _parallelQueue = parallelQueue;
+            _eventInParallelProvider = eventInParallelProvider;
             _messageQueueOptions = messageQueueEnableOptions.Value;
             Logger = NullLogger<BlockAcceptedEventHandler>.Instance;
             _blockExecutedSets = new List<BlockExecutedSet>();
             _chainOptions = chainOptions.Value;
-            _eventHandleOptions = eventHandleOptions.Value;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -77,7 +77,7 @@ namespace AElf.WebApp.MessageQueue
                 {
                     await _parallelQueue.EnqueueAsync(parallelHandleTxResultList);
                 }
-                
+
                 Logger.LogInformation("End publish log events.");
 
                 Logger.LogInformation(
@@ -124,7 +124,7 @@ namespace AElf.WebApp.MessageQueue
                 var serialHandleEventEtos = new List<LogEventEto>();
                 foreach (var log in logs)
                 {
-                    if(IsEventHandleParallel(log))
+                    if (_eventInParallelProvider.IsEventHandleParallel(log))
                         parallelHandleEventEtos.Add(log);
                     else
                         serialHandleEventEtos.Add(log);
@@ -160,14 +160,6 @@ namespace AElf.WebApp.MessageQueue
             }
 
             return (serialHandleTxResultList, parallelHandleTxResultList);
-        }
-
-        private bool IsEventHandleParallel(LogEventEto logEventEto)
-        {
-            var contractInfo =
-                _eventHandleOptions.ParallelHandleEventInfo.FirstOrDefault(x =>
-                    x.ContractName == logEventEto.Address);
-            return contractInfo != null && contractInfo.EventNames.Any(x => x == logEventEto.Name);
         }
     }
 }
