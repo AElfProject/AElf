@@ -66,18 +66,6 @@ namespace AElf.WebApp.MessageQueue
 
             var (serialHandleTxResultList, parallelHandleTxResultList) = GetTransactionResultListEto(
                 _blockExecutedSets, _chainOptions.ChainId);
-
-            Logger.LogInformation("statistic serial log :");
-            foreach (var eventLog in serialHandleTxResultList.TransactionResults.Values.SelectMany(eventLogs => eventLogs.Logs))
-            {
-                Logger.LogInformation($"eventLog contract: {eventLog.Address},  event name: {eventLog.Name}");
-            }
-            
-            Logger.LogInformation("statistic parallel log :");
-            foreach (var eventLog in parallelHandleTxResultList.TransactionResults.Values.SelectMany(eventLogs => eventLogs.Logs))
-            {
-                Logger.LogInformation($"eventLog contract: {eventLog.Address},  event name: {eventLog.Name}");
-            }
             try
             {
                 Logger.LogInformation("Start publish log events.");
@@ -129,7 +117,6 @@ namespace AElf.WebApp.MessageQueue
                 ChainId = chainId
             };
             
-            Logger.LogInformation("statistic filter log :");
             foreach (var (txId, txResult) in blockExecutedSets.SelectMany(s => s.TransactionResultMap))
             {
                 var logs = txResult.Logs.Select(l => new LogEventEto
@@ -140,16 +127,6 @@ namespace AElf.WebApp.MessageQueue
                     NonIndexed = l.NonIndexed.ToBase64()
                 }).ToArray();
 
-                if (logs.Any())
-                {
-                    Logger.LogInformation($"eventLog contract: {logs.First().Address}");
-                }
-
-                foreach (var log in logs)
-                {
-                    Logger.LogInformation($"eventLog Event: {log.Name}");
-                }
-                
                 var parallelHandleEventEtos = new List<LogEventEto>();
                 var serialHandleEventEtos = new List<LogEventEto>();
                 foreach (var log in logs)
