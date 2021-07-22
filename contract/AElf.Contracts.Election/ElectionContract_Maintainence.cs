@@ -50,7 +50,7 @@ namespace AElf.Contracts.Election
 
             State.Initialized.Value = true;
 
-            CreateEmergencyResponseOrganizationIfNeeded();
+            CreateEmergencyResponseOrganization(new Empty());
 
             return new Empty();
         }
@@ -412,7 +412,6 @@ namespace AElf.Contracts.Election
 
         public override Empty RemoveEvilNode(StringValue input)
         {
-            CreateEmergencyResponseOrganizationIfNeeded();
             Assert(Context.Sender == State.EmergencyResponseOrganizationAddress.Value, "No permission.");
             UpdateCandidateInformation(new UpdateCandidateInformationInput
             {
@@ -425,18 +424,11 @@ namespace AElf.Contracts.Election
         /// <summary>
         /// Create a Parliament Organization to handle matters of urgency.
         /// </summary>
-        private void CreateEmergencyResponseOrganizationIfNeeded()
+        public override Empty CreateEmergencyResponseOrganization(Empty input)
         {
-            if (State.EmergencyResponseOrganizationAddress.Value != null)
-            {
-                return;
-            }
-
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+            Assert(State.EmergencyResponseOrganizationAddress.Value == null,
+                "Emergency Response Organization already created.");
+            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
 
             var createOrganizationInput = new CreateOrganizationInput
             {
@@ -454,6 +446,8 @@ namespace AElf.Contracts.Election
 
             State.EmergencyResponseOrganizationAddress.Value =
                 State.ParliamentContract.CalculateOrganizationAddress.Call(createOrganizationInput);
+
+            return new Empty();
         }
 
         private string GetNewestPubkey(string pubkey)
