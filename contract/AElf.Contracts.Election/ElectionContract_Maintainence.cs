@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -32,7 +34,7 @@ namespace AElf.Contracts.Election
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
-                Value = {input.MinerList.Select(ByteStringHelper.FromHexString)}
+                Value = { input.MinerList.Select(ByteStringHelper.FromHexString) }
             };
             foreach (var pubkey in input.MinerList)
             {
@@ -47,6 +49,9 @@ namespace AElf.Contracts.Election
             State.DataCentersRankingList.Value = new DataCenterRankingList();
 
             State.Initialized.Value = true;
+
+            CreateEmergencyResponseOrganizationIfNeeded();
+
             return new Empty();
         }
 
@@ -126,14 +131,14 @@ namespace AElf.Contracts.Election
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
-                AmountsMap = {amountsMap}
+                AmountsMap = { amountsMap }
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
                 Period = input.TermNumber,
-                AmountsMap = {amountsMap}
+                AmountsMap = { amountsMap }
             });
 
             return new Empty();
@@ -207,8 +212,9 @@ namespace AElf.Contracts.Election
                     IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey, true);
                     State.DataCentersRankingList.Value = rankingList;
                 }
+
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
-                Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
+                Context.Fire(new EvilMinerDetected { Pubkey = input.Pubkey });
                 State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
@@ -269,7 +275,7 @@ namespace AElf.Contracts.Election
                 "Pubkey is in already banned.");
 
             // Permission check.
-            Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
+            Assert(Context.Sender == GetCandidateAdmin(new StringValue { Value = input.OldPubkey }), "No permission.");
 
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
@@ -293,14 +299,14 @@ namespace AElf.Contracts.Election
                 rankingList.DataCenters.Add(input.NewPubkey, rankingList.DataCenters[input.OldPubkey]);
                 rankingList.DataCenters.Remove(input.OldPubkey);
                 State.DataCentersRankingList.Value = rankingList;
-                
+
                 // Notify Profit Contract to update backup subsidy profiting item.
                 if (State.ProfitContract.Value == null)
                 {
                     State.ProfitContract.Value =
                         Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
                 }
-                
+
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,
@@ -373,6 +379,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
+
             State.AEDPoSContract.RecordCandidateReplacement.Send(new RecordCandidateReplacementInput
             {
                 OldPubkey = oldPubkey,
@@ -400,7 +407,53 @@ namespace AElf.Contracts.Election
 
         public override StringValue GetNewestPubkey(StringValue input)
         {
-            return new StringValue {Value = GetNewestPubkey(input.Value)};
+            return new StringValue { Value = GetNewestPubkey(input.Value) };
+        }
+
+        public override Empty RemoveEvilNode(StringValue input)
+        {
+            CreateEmergencyResponseOrganizationIfNeeded();
+            Assert(Context.Sender == State.EmergencyResponseOrganizationAddress.Value, "No permission.");
+            UpdateCandidateInformation(new UpdateCandidateInformationInput
+            {
+                Pubkey = input.Value,
+                IsEvilNode = true
+            });
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Create a Parliament Organization to handle matters of urgency.
+        /// </summary>
+        private void CreateEmergencyResponseOrganizationIfNeeded()
+        {
+            if (State.EmergencyResponseOrganizationAddress.Value != null)
+            {
+                return;
+            }
+
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 9000,
+                    MinimalVoteThreshold = 9000,
+                    MaximalAbstentionThreshold = 1000,
+                    MaximalRejectionThreshold = 1000
+                },
+                ProposerAuthorityRequired = false,
+                ParliamentMemberProposingAllowed = true
+            };
+            State.ParliamentContract.CreateOrganization.Send(createOrganizationInput);
+
+            State.EmergencyResponseOrganizationAddress.Value =
+                State.ParliamentContract.CalculateOrganizationAddress.Call(createOrganizationInput);
         }
 
         private string GetNewestPubkey(string pubkey)
@@ -408,7 +461,7 @@ namespace AElf.Contracts.Election
             var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
             return State.InitialToNewestPubkeyMap[initialPubkey] ?? initialPubkey;
         }
-        
+
         private void SyncSubsidyInfoAfterReduceMiner()
         {
             var rankingList = State.DataCentersRankingList.Value;
@@ -429,6 +482,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(kv.Key))
                 });
             }
+
             State.DataCentersRankingList.Value = rankingList;
         }
     }

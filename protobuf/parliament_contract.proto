@@ -72,7 +72,7 @@ service ParliamentContract {
 message CreateOrganizationInput {
     // The threshold for releasing the proposal.
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
-    // Setting this to true can allow anyone to create proposals.
+    // Setting this to false will allow anyone creating proposals.
     bool proposer_authority_required = 2;
     // Setting this to true can allow parliament member to create proposals.
     bool parliament_member_proposing_allowed = 3;

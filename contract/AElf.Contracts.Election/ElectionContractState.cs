@@ -81,5 +81,7 @@ namespace AElf.Contracts.Election
         /// Initial pubkey -> Newest pubkey
         /// </summary>
         public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
+
+        public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
     }
 }
