@@ -91,6 +91,14 @@ service ElectionContract {
     rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
     
+    rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+    
+    rpc CreateEmergencyResponseOrganization (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;

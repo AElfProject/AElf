@@ -19,5 +19,7 @@ namespace AElf.OS.Network.Grpc
         public const int MaxSendBlockCountLimit = 50;
 
         public const string DefaultTlsCommonName = "aelf";
+
+        public const int DefaultDiscoveryMaxNodesToResponse = 10;
     }
 }
