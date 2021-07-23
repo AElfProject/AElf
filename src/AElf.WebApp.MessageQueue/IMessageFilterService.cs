@@ -29,8 +29,10 @@ namespace AElf.WebApp.MessageQueue
                     .TransactionMap[txHash].From.ToBase58()));
             var isToMatch = new Lazy<Func<List<string>, Hash, bool>>((toAddressList, txHash) =>
                 toAddressList.Contains(originBlockExecutedSet.TransactionMap[txHash].To.ToBase58()));
-            var isEventNameMatch = new Lazy<Func<List<string>, TransactionResult, bool>>((eventNameList, txResult) =>
-                txResult.Logs.Any(logEvent => eventNameList.Contains(logEvent.Name)));
+            var isEventNameMatch = new Lazy<Func<List<AddressEventName>, TransactionResult, bool>>(
+                (eventNameList, txResult) =>
+                    txResult.Logs.Any(logEvent => eventNameList.Any(x =>
+                        x.EventAddress == logEvent.Address.ToBase58() && x.EventNames.Contains(logEvent.Name))));
 
             var resultSet = new BlockExecutedSet
             {
@@ -44,15 +46,15 @@ namespace AElf.WebApp.MessageQueue
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key))
                         .ToDictionary(p => p.Key, p => p.Value),
                     MessageFilterMode.OnlyEventName => originBlockExecutedSet.TransactionResultMap
-                        .Where(r => isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
+                        .Where(r => isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNamesWithAddress, r.Value))
                         .ToDictionary(p => p.Key, p => p.Value),
                     MessageFilterMode.ToAndEventName => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key) &&
-                                    isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
+                                    isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNamesWithAddress, r.Value))
                         .ToDictionary(p => p.Key, p => p.Value),
                     MessageFilterMode.FromAndEventName => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
-                                    isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
+                                    isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNamesWithAddress, r.Value))
                         .ToDictionary(p => p.Key, p => p.Value),
                     MessageFilterMode.FromAndTo => originBlockExecutedSet.TransactionResultMap
                         .Where(r => isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
@@ -61,7 +63,7 @@ namespace AElf.WebApp.MessageQueue
                     MessageFilterMode.All => originBlockExecutedSet.TransactionResultMap.Where(r =>
                             isFromMatch.Value(_messageQueueOptions.MessageFilter.FromAddresses, r.Key) &&
                             isToMatch.Value(_messageQueueOptions.MessageFilter.ToAddresses, r.Key) &&
-                            isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNames, r.Value))
+                            isEventNameMatch.Value(_messageQueueOptions.MessageFilter.EventNamesWithAddress, r.Value))
                         .ToDictionary(p => p.Key, p => p.Value),
                     _ => throw new ArgumentOutOfRangeException()
                 }

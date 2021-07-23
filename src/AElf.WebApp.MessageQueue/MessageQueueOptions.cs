@@ -21,6 +21,13 @@ namespace AElf.WebApp.MessageQueue
         public MessageFilterMode Mode { get; set; }
         public List<string> ToAddresses { get; set; }
         public List<string> FromAddresses { get; set; }
-        public List<string> EventNames { get; set; }
+        
+        public List<AddressEventName> EventNamesWithAddress { get; set; }
+    }
+
+    public class AddressEventName
+    {
+        public string EventAddress { get; set; }
+        public List<string> EventNames { get; set; } 
     }
 }
