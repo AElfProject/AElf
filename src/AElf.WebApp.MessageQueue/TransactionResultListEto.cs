@@ -14,18 +14,14 @@ namespace AElf.WebApp.MessageQueue
     public class TransactionResultEto
     {
         public string TransactionId { get; set; }
-
         public string Status { get; set; }
-
         public LogEventEto[] Logs { get; set; }
-
         public string ReturnValue { get; set; }
-
         public string Error { get; set; }
-        
         public long BlockNumber { get; set; }
         public string MethodName { get; set; }
         public DateTime BlockTime { get; set; }
+        public LogEventEto TransactionFeeLog { get; set; }
     }
 
     public class LogEventEto
