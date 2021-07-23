@@ -37,6 +37,7 @@ namespace AElf.WebApp.MessageQueue
             var resultSet = new BlockExecutedSet
             {
                 Block = originBlockExecutedSet.Block,
+                TransactionMap =  originBlockExecutedSet.TransactionMap,
                 TransactionResultMap = _messageQueueOptions.MessageFilter.Mode switch
                 {
                     MessageFilterMode.OnlyTo => originBlockExecutedSet.TransactionResultMap

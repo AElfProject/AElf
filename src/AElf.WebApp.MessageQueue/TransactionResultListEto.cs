@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AElf.WebApp.MessageQueue
@@ -23,6 +24,10 @@ namespace AElf.WebApp.MessageQueue
         public string Error { get; set; }
         
         public long BlockNumber { get; set; }
+        public string MethodName { get; set; }
+        public DateTime BlockTime { get; set; }
+        public string AddressFrom { get; set; }
+        public string AddressTo { get; set; }
     }
 
     public class LogEventEto
