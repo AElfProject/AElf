@@ -7,7 +7,6 @@ using AElf.Kernel.Blockchain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -175,9 +174,7 @@ namespace AElf.WebApp.MessageQueue
                 ReturnValue = txResult.ReturnValue.ToHex(),
                 BlockNumber = txResult.BlockNumber,
                 MethodName = tx.MethodName,
-                BlockTime = block.Header.Time.ToDateTime(),
-                AddressFrom = tx.From.ToBase58(),
-                AddressTo = tx.To.ToBase58()
+                BlockTime = block.Header.Time.ToDateTime()
             };
         }
     }
