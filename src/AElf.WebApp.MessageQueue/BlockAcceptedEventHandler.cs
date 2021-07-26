@@ -174,8 +174,7 @@ namespace AElf.WebApp.MessageQueue
                 ReturnValue = txResult.ReturnValue.ToHex(),
                 BlockNumber = txResult.BlockNumber,
                 MethodName = tx.MethodName,
-                BlockTime = block.Header.Time.ToDateTime(),
-                TransactionFeeLog = logList.FirstOrDefault(x => x.Name == "TransactionFeeCharged")
+                BlockTime = block.Header.Time.ToDateTime()
             };
         }
     }
