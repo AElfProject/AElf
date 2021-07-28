@@ -16,13 +16,16 @@ namespace AElf.Kernel.CodeCheck
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ICodeCheckService _codeCheckService;
         private readonly IProposalService _proposalService;
-        
+        private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
+
         public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
-            ICodeCheckService codeCheckService, IProposalService proposalService)
+            ICodeCheckService codeCheckService, IProposalService proposalService,
+            ICheckedCodeHashProvider checkedCodeHashProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _codeCheckService = codeCheckService;
             _proposalService = proposalService;
+            _checkedCodeHashProvider = checkedCodeHashProvider;
         }
 
         public override Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
@@ -32,9 +35,9 @@ namespace AElf.Kernel.CodeCheck
 
             var address = _smartContractAddressService.GetZeroSmartContractAddress();
             if (address == null) return null;
-            
+
             InterestedEvent = GetInterestedEvent<CodeCheckRequired>(address);
-            
+
             return Task.FromResult(InterestedEvent);
         }
 
@@ -52,7 +55,8 @@ namespace AElf.Kernel.CodeCheck
                         eventData.MergeFrom(logEvent);
                         var codeCheckResult = await _codeCheckService.PerformCodeCheckAsync(
                             eventData.Code.ToByteArray(),
-                            transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category, eventData.IsSystemContract);
+                            transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
+                            eventData.IsSystemContract);
                         if (!codeCheckResult)
                             return;
 
@@ -61,6 +65,12 @@ namespace AElf.Kernel.CodeCheck
                             .ProposalId;
                         // Cache proposal id to generate system approval transaction later
                         _proposalService.AddNotApprovedProposal(proposalId, transactionResult.BlockNumber);
+
+                        await _checkedCodeHashProvider.AddCodeHashAsync(new BlockIndex
+                        {
+                            BlockHash = block.GetHash(),
+                            BlockHeight = block.Height
+                        }, HashHelper.ComputeFrom(eventData.Code.ToByteArray()));
                     });
                 }
             }
