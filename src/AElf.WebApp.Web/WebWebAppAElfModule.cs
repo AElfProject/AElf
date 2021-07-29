@@ -119,8 +119,6 @@ namespace AElf.WebApp.Web
             });
             
             app.UseMvcWithDefaultRouteAndArea();
-            app.UseAuthentication();
-            app.UseAuthorization();
         }
     }
 
