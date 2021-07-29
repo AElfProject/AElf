@@ -91,7 +91,7 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
 
-    rpc GetContractCodeHashListByDeployBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
+    rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
         option (aelf.is_view) = true;
     }
 }

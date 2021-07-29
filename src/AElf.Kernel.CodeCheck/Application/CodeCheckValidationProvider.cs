@@ -45,7 +45,7 @@ namespace AElf.Kernel.CodeCheck.Application
                 BlockHash = blockHash,
                 BlockHeight = block.Header.Height,
                 ContractAddress = genesisContractAddress
-            }).GetContractCodeHashListByDeployBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
+            }).GetContractCodeHashListByDeployingBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
 
             return codeHashList.Value.All(codeHash => _checkedCodeHashProvider.IsCodeHashExists(new BlockIndex
             {
