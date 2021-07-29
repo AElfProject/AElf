@@ -21,6 +21,8 @@ namespace AElf.WebApp.MessageQueue
         public long BlockNumber { get; set; }
         public string MethodName { get; set; }
         public DateTime BlockTime { get; set; }
+        public string FromAddress { get; set; }
+        public string ToAddress { get; set; }
     }
 
     public class LogEventEto

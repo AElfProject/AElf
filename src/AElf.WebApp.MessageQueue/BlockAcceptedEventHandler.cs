@@ -174,7 +174,9 @@ namespace AElf.WebApp.MessageQueue
                 ReturnValue = txResult.ReturnValue.ToHex(),
                 BlockNumber = txResult.BlockNumber,
                 MethodName = tx.MethodName,
-                BlockTime = block.Header.Time.ToDateTime()
+                BlockTime = block.Header.Time.ToDateTime(),
+                FromAddress = tx.From.ToBase58(),
+                ToAddress = tx.To.ToBase58()
             };
         }
     }
