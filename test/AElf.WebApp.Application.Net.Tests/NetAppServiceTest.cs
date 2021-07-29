@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
@@ -57,15 +58,32 @@ namespace AElf.WebApp.Application.Net.Tests
                 { "address","127.0.0.1:1680"}
             };
             
-            var responseTrue = await PostResponseAsObjectAsync<bool>("/api/net/peer", parameters);
-            responseTrue.ShouldBeFalse();
+            //failed
+            await PostResponseAsStringAsync("/api/net/peer", parameters, basicAuth: new BasicAuth
+                {
+                    UserName = BasicAuth.DefaultUserName,
+                    Password = "123"
+                },expectedStatusCode: HttpStatusCode.Unauthorized);
+
+            //success
+            var response =
+                await PostResponseAsObjectAsync<bool>("/api/net/peer", parameters, basicAuth: BasicAuth.Default);
+            response.ShouldBeFalse();
+            
+            
         }
 
         [Fact]
         public async Task RemovePeer_CancelsReconnection_EvenIfPeerNotInPool()
         {
             _reconnectionService.SchedulePeerForReconnection("127.0.0.1:3000");
-            await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address=127.0.0.1:3000");
+            await DeleteResponseAsStringAsync($"/api/net/peer?address=127.0.0.1:3000", basicAuth: new BasicAuth
+            {
+                UserName = BasicAuth.DefaultUserName,
+                Password = "123"
+            }, expectedStatusCode: HttpStatusCode.Unauthorized);
+            await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address=127.0.0.1:3000",
+                basicAuth: BasicAuth.Default);
             _reconnectionService.GetPeersReadyForReconnection(null).ShouldBeEmpty();
         }
 
@@ -134,7 +152,7 @@ namespace AElf.WebApp.Application.Net.Tests
             var peerTwo = BuildPeer(ipAddressTwo, twoPubkey, connectionTime, false);
             _peerPool.TryAddPeer(peerTwo);
             
-            var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address={ipAddressOne}");
+            var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address={ipAddressOne}", basicAuth:BasicAuth.Default);
             response.ShouldBeTrue();
             
             var peers = await GetResponseAsObjectAsync<List<PeerDto>>("/api/net/peers");
