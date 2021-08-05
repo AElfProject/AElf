@@ -18,10 +18,8 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> RewardHash { get; set; }
 
         public SingletonState<Hash> BasicRewardHash { get; set; }
-        public SingletonState<Hash> VotesWeightRewardHash { get; set; }
-        public SingletonState<Hash> ReElectionRewardHash { get; set; }
-
-        public SingletonState<MinerReElectionInformation> MinerReElectionInformation { get; set; }
+        public SingletonState<Hash> WelcomeRewardHash { get; set; }
+        public SingletonState<Hash> FlexibleRewardHash { get; set; }
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
@@ -35,5 +33,10 @@ namespace AElf.Contracts.Treasury
         public MappedState<long, Dividends> DonatedDividends { get; set; }
 
         public SingletonState<long> MiningReward { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Latest Mined Term Number.
+        /// </summary>
+        public MappedState<string, long> LatestMinedTerm { get; set; }
     }
 }

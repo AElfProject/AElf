@@ -137,7 +137,10 @@ namespace AElf.Contracts.Profit
             Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
+            if (scheme == null)
+            {
+                return new Empty();
+            }
 
             // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
