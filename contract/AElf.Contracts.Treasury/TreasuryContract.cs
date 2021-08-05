@@ -505,7 +505,7 @@ namespace AElf.Contracts.Treasury
             if (producedBlocksCount < averageProducedBlocksCount.Div(5).Mul(4))
             {
                 // If count < (4/5) * average_count, then ratio will be (count / average_count)
-                return producedBlocksCount.Div(averageProducedBlocksCount).Mul(producedBlocksCount);
+                return producedBlocksCount.Mul(producedBlocksCount).Div(averageProducedBlocksCount);
             }
 
             return producedBlocksCount;
