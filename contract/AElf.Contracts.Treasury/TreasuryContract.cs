@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS10;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
@@ -462,6 +460,9 @@ namespace AElf.Contracts.Treasury
                 });
             }
 
+            var averageProducedBlocksCount = CalculateAverage(previousTermInformation.Last().RealTimeMinersInformation
+                .Values
+                .Select(i => i.ProducedBlocks).ToList());
             // Manage weights of `MinerBasicReward`
             State.ProfitContract.AddBeneficiaries.Send(new AddBeneficiariesInput
             {
@@ -469,13 +470,45 @@ namespace AElf.Contracts.Treasury
                 EndPeriod = previousTermInformation.Last().TermNumber,
                 BeneficiaryShares =
                 {
-                    previousTermInformation.Last().RealTimeMinersInformation.Values.Select(i => new BeneficiaryShare
+                    previousTermInformation.Last().RealTimeMinersInformation.Values.Select(i =>
                     {
-                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Pubkey)),
-                        Shares = i.ProducedBlocks
+                        var shares = CalculateShares(i.ProducedBlocks, averageProducedBlocksCount);
+                        return new BeneficiaryShare
+                        {
+                            Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Pubkey)),
+                            Shares = shares
+                        };
                     })
                 }
             });
+        }
+
+        /// <summary>
+        /// Just to make sure not using double type.
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private long CalculateAverage(List<long> list)
+        {
+            var sum = list.Sum();
+            return sum.Div(list.Count);
+        }
+
+        private long CalculateShares(long producedBlocksCount, long averageProducedBlocksCount)
+        {
+            if (producedBlocksCount < averageProducedBlocksCount.Div(5).Mul(4))
+            {
+                // If count < (4/5) * average_count, then ratio will be (count / average_count)
+                return producedBlocksCount.Div(averageProducedBlocksCount).Mul(producedBlocksCount);
+            }
+
+            if (producedBlocksCount < averageProducedBlocksCount.Div(2))
+            {
+                // If count < (1/2) * average_count, then this node won't share Basic Miner Reward.
+                return 0;
+            }
+
+            return producedBlocksCount;
         }
 
         private void UpdateWelcomeRewardWeights(Round previousTermInformation, List<string> newElectedMiners)
