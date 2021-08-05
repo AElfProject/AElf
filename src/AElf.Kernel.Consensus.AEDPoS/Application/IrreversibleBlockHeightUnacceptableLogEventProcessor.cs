@@ -1,29 +1,28 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Txn.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using AElf.CSharp.Core.Extension;
+using AElf.Kernel.Blockchain.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public class IrreversibleBlockHeightUnacceptableLogEventProcessor : LogEventProcessorBase,
         IBlockAcceptedLogEventProcessor
     {
-        private readonly ITransactionPackingOptionProvider _transactionPackingOptionProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainService _blockchainService;
 
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
-            ITransactionPackingOptionProvider transactionPackingOptionProvider,
-            ISmartContractAddressService smartContractAddressService)
+            ISmartContractAddressService smartContractAddressService,
+            IBlockchainService blockchainService)
         {
-            _transactionPackingOptionProvider = transactionPackingOptionProvider;
             _smartContractAddressService = smartContractAddressService;
+            _blockchainService = blockchainService;
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
@@ -45,27 +44,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return InterestedEvent;
         }
 
-        protected override Task ProcessLogEventAsync(Block block, LogEvent logEvent)
+        protected override async Task ProcessLogEventAsync(Block block, LogEvent logEvent)
         {
             var distanceToLib = new IrreversibleBlockHeightUnacceptable();
             distanceToLib.MergeFrom(logEvent);
 
-            var blockIndex = new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            };
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, false);
+                var chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.ResetChainToLibAsync(chain);
             }
-            else
-            {
-                _transactionPackingOptionProvider.SetTransactionPackingOptionAsync(blockIndex, true);
-            }
-
-            return Task.CompletedTask;
         }
     }
 }
