@@ -381,13 +381,6 @@ namespace AElf.Contracts.Treasury
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                SchemeId = State.BasicRewardHash.Value,
-                Period = termNumber,
-                AmountsMap = {amountsMap}
-            });
-
-            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
-            {
                 SchemeId = State.WelcomeRewardHash.Value,
                 Period = termNumber,
                 AmountsMap = {amountsMap}
@@ -396,6 +389,13 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.FlexibleRewardHash.Value,
+                Period = termNumber,
+                AmountsMap = {amountsMap}
+            });
+
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
+            {
+                SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
                 AmountsMap = {amountsMap}
             });
