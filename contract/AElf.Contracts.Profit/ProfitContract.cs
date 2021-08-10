@@ -103,6 +103,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
+            Assert(scheme.SubSchemes.All(s => s.SchemeId != input.SubSchemeId), $"Sub scheme {input.SubSchemeId} already exist.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
@@ -137,13 +138,16 @@ namespace AElf.Contracts.Profit
             Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            if (scheme == null)
-            {
-                return new Empty();
-            }
+            Assert(scheme != null, "Scheme not found.");
 
             // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
+
+            var shares = scheme.SubSchemes.SingleOrDefault(d => d.SchemeId == input.SubSchemeId);
+            if (shares == null)
+            {
+                return new Empty();
+            }
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
@@ -152,8 +156,6 @@ namespace AElf.Contracts.Profit
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             // Remove profit details
             State.ProfitDetailsMap[input.SchemeId][subSchemeVirtualAddress] = new ProfitDetails();
-
-            var shares = scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId);
             scheme.SubSchemes.Remove(shares);
             scheme.TotalShares = scheme.TotalShares.Sub(shares.Shares);
             State.SchemeInfos[input.SchemeId] = scheme;

@@ -47,7 +47,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             // ReElectionReward (Shares 1) -> Reward
             reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.ReElectionReward]);
             reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.ReElectionReward]).Shares
-                .ShouldBe(ElectionContractConstants.ReElectionRewardWeight);
+                .ShouldBe(ElectionContractConstants.WelfareRewardWeight);
 
             // Check the balance of Treasury
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

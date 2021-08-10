@@ -577,7 +577,7 @@ namespace AElf.Contracts.Treasury
             {
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
-                    SchemeId = State.WelcomeRewardHash.Value,
+                    SchemeId = State.FlexibleRewardHash.Value,
                     SubSchemeId = State.WelfareHash.Value,
                     SubSchemeShares = 1
                 });
@@ -586,7 +586,7 @@ namespace AElf.Contracts.Treasury
             {
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
-                    SchemeId = State.WelcomeRewardHash.Value,
+                    SchemeId = State.FlexibleRewardHash.Value,
                     SubSchemeId = State.BasicRewardHash.Value,
                     SubSchemeShares = 1
                 });
@@ -704,14 +704,14 @@ namespace AElf.Contracts.Treasury
                 },
                 WelcomeRewardProportionInfo = new SchemeProportionInfo
                 {
-                    SchemeId = State.FlexibleRewardHash.Value,
+                    SchemeId = State.WelcomeRewardHash.Value,
                     Proportion = weightSetting.WelcomeRewardWeight
                         .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
                 }
             };
             weightProportion.FlexibleRewardProportionInfo = new SchemeProportionInfo
             {
-                SchemeId = State.WelcomeRewardHash.Value,
+                SchemeId = State.FlexibleRewardHash.Value,
                 Proportion = TreasuryContractConstants.OneHundredPercent
                     .Sub(weightProportion.BasicMinerRewardProportionInfo.Proportion)
                     .Sub(weightProportion.WelcomeRewardProportionInfo.Proportion)

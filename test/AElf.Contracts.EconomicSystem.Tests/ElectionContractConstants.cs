@@ -8,7 +8,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         
         public const int BasicMinerRewardWeight = 2;
         public const int VotesWeightRewardWeight = 1;
-        public const int ReElectionRewardWeight = 1;
+        public const int WelfareRewardWeight = 1;
 
     }
 }
