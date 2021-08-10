@@ -50,7 +50,10 @@ namespace AElf.Contracts.Election
 
             State.Initialized.Value = true;
 
-            CreateEmergencyResponseOrganization(new Empty());
+            if (Context.Sender == Context.GetZeroSmartContractAddress())
+            {
+                CreateEmergencyResponseOrganization(new Empty());
+            }
 
             return new Empty();
         }
@@ -428,7 +431,9 @@ namespace AElf.Contracts.Election
         {
             Assert(State.EmergencyResponseOrganizationAddress.Value == null,
                 "Emergency Response Organization already created.");
-            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
+            Assert(
+                Context.Sender == GetParliamentDefaultAddress() ||
+                Context.Sender == Context.GetZeroSmartContractAddress(), "No permission.");
 
             var createOrganizationInput = new CreateOrganizationInput
             {
