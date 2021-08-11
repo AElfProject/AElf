@@ -5,6 +5,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Standards.ACS0;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.CodeCheck.Application
 {
@@ -14,6 +16,8 @@ namespace AElf.Kernel.CodeCheck.Application
         private readonly IContractReaderFactory<ACS0Container.ACS0Stub> _contractReaderFactory;
         private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
 
+        public ILogger<CodeCheckValidationProvider> Logger { get; set; }
+
         public CodeCheckValidationProvider(ISmartContractAddressService smartContractAddressService,
             IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
             ICheckedCodeHashProvider checkedCodeHashProvider)
@@ -21,6 +25,8 @@ namespace AElf.Kernel.CodeCheck.Application
             _smartContractAddressService = smartContractAddressService;
             _contractReaderFactory = contractReaderFactory;
             _checkedCodeHashProvider = checkedCodeHashProvider;
+
+            Logger = NullLogger<CodeCheckValidationProvider>.Instance;
         }
 
         public Task<bool> ValidateBeforeAttachAsync(IBlock block)
@@ -35,6 +41,10 @@ namespace AElf.Kernel.CodeCheck.Application
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
+            {
+                return true;
+            }
             var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var deployedBloom = new ContractDeployed().ToLogEvent(genesisContractAddress).GetBloom();
             if (!deployedBloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()))) return true;
@@ -47,6 +57,7 @@ namespace AElf.Kernel.CodeCheck.Application
                 ContractAddress = genesisContractAddress
             }).GetContractCodeHashListByDeployingBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
 
+            Logger.LogInformation($"block hash: {block}");
             return codeHashList.Value.All(codeHash => _checkedCodeHashProvider.IsCodeHashExists(new BlockIndex
             {
                 BlockHash = blockHash,

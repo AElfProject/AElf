@@ -228,3 +228,7 @@ message ReleaseContractInput {
 message ContractCodeHashList {
     repeated aelf.Hash value = 1;
 }
+
+message ContractCodeHashMap {
+    map<int64, ContractCodeHashList> value = 1;
+}

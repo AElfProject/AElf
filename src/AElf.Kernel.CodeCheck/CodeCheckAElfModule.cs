@@ -14,6 +14,7 @@ namespace AElf.Kernel.CodeCheck
         {
             context.Services
                 .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+            //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
             context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
             context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
         }

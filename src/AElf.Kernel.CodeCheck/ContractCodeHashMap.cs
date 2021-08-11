@@ -1,23 +1,21 @@
-using System.Collections.Generic;
 using System.Linq;
-using AElf.Standards.ACS0;
 using AElf.Types;
 
-namespace AElf.Kernel.CodeCheck
+namespace AElf.Standards.ACS0
 {
-    internal class ContractCodeHashMap : Dictionary<long, ContractCodeHashList>
+    internal partial class ContractCodeHashMap
     {
         public void TryAdd(long blockHeight, Hash codeHash)
         {
-            if (ContainsKey(blockHeight))
+            if (Value.ContainsKey(blockHeight))
             {
-                var value = this[blockHeight];
-                value.Value.Add(codeHash);
-                this[blockHeight] = value;
+                var hashList = Value[blockHeight];
+                hashList.Value.Add(codeHash);
+                Value[blockHeight] = hashList;
             }
             else
             {
-                this[blockHeight] = new ContractCodeHashList
+                Value[blockHeight] = new ContractCodeHashList
                 {
                     Value = { codeHash }
                 };
@@ -26,14 +24,14 @@ namespace AElf.Kernel.CodeCheck
 
         public bool ContainsValue(Hash codeHash)
         {
-            return Values.SelectMany(l => l.Value).Contains(codeHash);
+            return Value.Values.SelectMany(l => l.Value).Contains(codeHash);
         }
 
         public void RemoveValuesBeforeLibHeight(long libHeight)
         {
-            foreach (var key in Keys.Where(k => k <= libHeight))
+            foreach (var key in Value.Keys.Where(k => k <= libHeight))
             {
-                Remove(key);
+                Value.Remove(key);
             }
         }
     }
