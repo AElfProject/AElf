@@ -472,7 +472,19 @@ namespace AElf.Contracts.Treasury
                 {
                     previousTermInformation.Last().RealTimeMinersInformation.Values.Select(i =>
                     {
-                        var shares = CalculateShares(i.ProducedBlocks, averageProducedBlocksCount);
+                        long shares;
+                        if (State.IsReplacedEvilMiner[i.Pubkey])
+                        {
+                            // The new miner may have more shares than his actually contributes, but it's ok.
+                            shares = i.ProducedBlocks;
+                            // Clear the state asap.
+                            State.IsReplacedEvilMiner.Remove(i.Pubkey);
+                        }
+                        else
+                        {
+                            shares = CalculateShares(i.ProducedBlocks, averageProducedBlocksCount);
+                        }
+
                         return new BeneficiaryShare
                         {
                             Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(i.Pubkey)),
@@ -882,6 +894,8 @@ namespace AElf.Contracts.Treasury
             var latestMinedTerm = State.LatestMinedTerm[input.OldPubkey];
             State.LatestMinedTerm[input.NewPubkey] = latestMinedTerm;
             State.LatestMinedTerm.Remove(input.OldPubkey);
+
+            State.IsReplacedEvilMiner[input.NewPubkey] = true;
 
             return new Empty();
         }

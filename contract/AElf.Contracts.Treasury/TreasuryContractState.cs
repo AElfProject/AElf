@@ -38,5 +38,7 @@ namespace AElf.Contracts.Treasury
         /// Pubkey -> Latest Mined Term Number.
         /// </summary>
         public MappedState<string, long> LatestMinedTerm { get; set; }
+
+        public MappedState<string, bool> IsReplacedEvilMiner { get; set; }
     }
 }
