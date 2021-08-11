@@ -38,6 +38,11 @@ namespace AElf.Kernel.CodeCheck.Application
         public bool IsCodeHashExists(BlockIndex blockIndex, Hash codeHash)
         {
             var codeHashMap = GetBlockExecutedData(blockIndex);
+            if (codeHashMap == null)
+            {
+                return false;
+            }
+
             var result = codeHashMap.ContainsValue(codeHash);
             Logger.LogInformation($"Is {codeHash} exists in height {blockIndex.BlockHeight}: {result}");
             return result;
@@ -47,6 +52,11 @@ namespace AElf.Kernel.CodeCheck.Application
         {
             Logger.LogInformation($"Removing code hash list below height {libHeight}");
             var codeHashMap = GetBlockExecutedData(blockIndex);
+            if (codeHashMap == null)
+            {
+                return;
+            }
+
             codeHashMap.RemoveValuesBeforeLibHeight(libHeight);
             await AddBlockExecutedDataAsync(blockIndex, codeHashMap);
         }
