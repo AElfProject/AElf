@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.TestBase;
 using AElf.Contracts.Treasury;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -77,21 +79,6 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
                     amount.ShouldBe(shouldIncrease + balancesBefore[keyPair]);
                 }
-            }
-
-            // First 7 core data centers can profit from votes weight reward.
-            {
-                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
-                    AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
-                    {
-                        Owner = Address.FromPublicKey(k.PublicKey),
-                        Symbol = EconomicTestConstants.TokenSymbol
-                    })).Balance);
-                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
-                var votesWeightReward = distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 7;
-                await CheckBalancesAsync(firstSevenCoreDataCenters,
-                    votesWeightReward - EconomicTestConstants.TransactionFeeOfClaimProfit,
-                    balancesBefore);
             }
 
             // First 10 voters can profit from citizen welfare.
@@ -172,22 +159,46 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
                 await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
-                var secondTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 2})
+
+                // Term 2.
+                var secondTermInformation = ConsensusStub.GetPreviousTermInformation
+                    .CallAsync(new Int64Value { Value = 2 })
                     .Result;
-                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3})
+                var producedBlocksOfSecondTerm = secondTermInformation.RealTimeMinersInformation.Values
+                    .Select(i => i.ProducedBlocks).ToList();
+                var totalProducedBlocksOfSecondTerm = producedBlocksOfSecondTerm.Sum();
+                var averageOfSecondTerm = totalProducedBlocksOfSecondTerm.Div(producedBlocksOfSecondTerm.Count);
+                var sharesDictOfSecondTerm = new Dictionary<string, long>();
+                foreach (var pubkey in secondTermInformation.RealTimeMinersInformation.Keys)
+                {
+                    var producedBlocks = secondTermInformation.RealTimeMinersInformation[pubkey].ProducedBlocks;
+                    sharesDictOfSecondTerm.Add(pubkey, CalculateShares(producedBlocks, averageOfSecondTerm));
+                }
+                var totalSharesOfSecondTerm = sharesDictOfSecondTerm.Values.Sum();
+
+                // Term 3.
+                var thirdTermInformation = ConsensusStub.GetPreviousTermInformation
+                    .CallAsync(new Int64Value { Value = 3 })
                     .Result;
-                var totalBlocksOfSecondTerm = secondTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
-                var totalBlocksOfThirdTerm = thirdTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
+                var producedBlocksOfThirdTerm = thirdTermInformation.RealTimeMinersInformation.Values
+                    .Select(i => i.ProducedBlocks).ToList();
+                var totalProducedBlocksOfThirdTerm = producedBlocksOfThirdTerm.Sum();
+                var averageOfThirdTerm = totalProducedBlocksOfThirdTerm.Div(producedBlocksOfThirdTerm.Count);
+                var sharesDictOfThirdTerm = new Dictionary<string, long>();
+                foreach (var pubkey in thirdTermInformation.RealTimeMinersInformation.Keys)
+                {
+                    var producedBlocks = thirdTermInformation.RealTimeMinersInformation[pubkey].ProducedBlocks;
+                    sharesDictOfThirdTerm.Add(pubkey, CalculateShares(producedBlocks, averageOfThirdTerm));
+                }
+                var totalSharesOfThirdTerm = sharesDictOfThirdTerm.Values.Sum();
                 foreach (var keyPair in firstSevenCoreDataCenters)
                 {
                     var shouldIncreaseForSecondTerm =
                         distributionInformationOfSecondTerm[SchemeType.MinerBasicReward].Amount *
-                        secondTermInformation.RealTimeMinersInformation[keyPair.PublicKey.ToHex()]
-                            .ProducedBlocks / totalBlocksOfSecondTerm;
+                        sharesDictOfSecondTerm[keyPair.PublicKey.ToHex()] / totalSharesOfSecondTerm;
                     var shouldIncreaseForThirdTerm =
                         distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount *
-                        thirdTermInformation.RealTimeMinersInformation[keyPair.PublicKey.ToHex()]
-                            .ProducedBlocks / totalBlocksOfThirdTerm;
+                        sharesDictOfThirdTerm[keyPair.PublicKey.ToHex()] / totalSharesOfThirdTerm;
                     var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
                     amount.ShouldBe(shouldIncreaseForSecondTerm + shouldIncreaseForThirdTerm + balancesBefore[keyPair]);
                 }
@@ -204,50 +215,42 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 await ClaimProfits(lastTwelveCoreDataCenters, _schemes[SchemeType.MinerBasicReward].SchemeId);
                 var thirdTermInformation = ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3})
                     .Result;
-                var totalBlocks = thirdTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks);
+                var producedBlocksOfThirdTerm = thirdTermInformation.RealTimeMinersInformation.Values
+                    .Select(i => i.ProducedBlocks).ToList();
+                var totalProducedBlocksOfThirdTerm = producedBlocksOfThirdTerm.Sum();
+                var averageOfThirdTerm = totalProducedBlocksOfThirdTerm.Div(producedBlocksOfThirdTerm.Count);
+                var sharesDictOfThirdTerm = new Dictionary<string, long>();
+                foreach (var pubkey in thirdTermInformation.RealTimeMinersInformation.Keys)
+                {
+                    var producedBlocks = thirdTermInformation.RealTimeMinersInformation[pubkey].ProducedBlocks;
+                    sharesDictOfThirdTerm.Add(pubkey, CalculateShares(producedBlocks, averageOfThirdTerm));
+                }
+                var totalSharesOfThirdTerm = sharesDictOfThirdTerm.Values.Sum();
                 foreach (var keyPair in lastTwelveCoreDataCenters)
                 {
                     var shouldIncrease = distributionInformationOfThirdTerm[SchemeType.MinerBasicReward].Amount *
-                                         thirdTermInformation.RealTimeMinersInformation[keyPair.PublicKey.ToHex()]
-                                             .ProducedBlocks / totalBlocks -
+                                         CalculateShares(sharesDictOfThirdTerm[keyPair.PublicKey.ToHex()],
+                                             averageOfThirdTerm) / totalSharesOfThirdTerm -
                                          EconomicTestConstants.TransactionFeeOfClaimProfit;
                     var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
                     amount.ShouldBe(shouldIncrease + balancesBefore[keyPair]);
                 }
             }
 
-            // First 7 core data centers can profit from votes weight reward.
+            // Last 2 core data centers can profit from welcome reward (of only term 3)
             {
-                var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
+                var lastTwoCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(22).Take(2).ToList();
+                var balancesBefore = lastTwoCoreDataCenters.ToDictionary(k => k, k =>
                     AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                     {
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
-                var votesWeightRewardInSecondTerm =
-                    distributionInformationOfSecondTerm[SchemeType.VotesWeightReward].Amount / 7; // amount / 14 * 2
-                var votesWeightRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 12; // amount / (7 + 17) * 2
-                await CheckBalancesAsync(firstSevenCoreDataCenters,
-                    votesWeightRewardInSecondTerm + votesWeightRewardInThirdTerm -
-                    EconomicTestConstants.TransactionFeeOfClaimProfit,
-                    balancesBefore);
-            }
-
-            // Last 10 core data centers can also profit from votes weight reward. (But less.)
-            {
-                var balancesBefore = lastTwelveCoreDataCenters.ToDictionary(k => k, k =>
-                    AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
-                    {
-                        Owner = Address.FromPublicKey(k.PublicKey),
-                        Symbol = EconomicTestConstants.TokenSymbol
-                    })).Balance);
-                await ClaimProfits(lastTwelveCoreDataCenters, _schemes[SchemeType.VotesWeightReward].SchemeId);
-                var votesWeightRewardInThirdTerm =
-                    distributionInformationOfThirdTerm[SchemeType.VotesWeightReward].Amount / 24; // amount / (7 + 17)
-                await CheckBalancesAsync(lastTwelveCoreDataCenters,
-                    votesWeightRewardInThirdTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
+                await ClaimProfits(lastTwoCoreDataCenters, _schemes[SchemeType.WelcomeReward].SchemeId);
+                var welcomeRewardInThirdTerm =
+                    distributionInformationOfThirdTerm[SchemeType.WelcomeReward].Amount / 10;
+                await CheckBalancesAsync(lastTwoCoreDataCenters,
+                    welcomeRewardInThirdTerm - EconomicTestConstants.TransactionFeeOfClaimProfit,
                     balancesBefore);
             }
 

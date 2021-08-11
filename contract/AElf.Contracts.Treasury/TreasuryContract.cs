@@ -51,8 +51,8 @@ namespace AElf.Contracts.Treasury
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {
-                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Weight Reward",
-                "Re-Election Reward"
+                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Flexible Reward",
+                "Welcome Reward"
             };
             for (var i = 0; i < 7; i++)
             {
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
-                    // Subsidy, Votes Weight Reward and Re-Election Reward can remove beneficiary directly (due to replaceable.)
+                    // Subsidy, Flexible Reward and Welcome Reward can remove beneficiary directly (due to replaceable.)
                     CanRemoveBeneficiaryDirectly = new List<int> {2, 5, 6}.Contains(i)
                 });
             }

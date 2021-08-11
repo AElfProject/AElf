@@ -428,7 +428,7 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash subsidy_hash = 3;
     // The scheme id of votes reward.
     aelf.Hash votes_reward_hash = 4;
-    // The scheme id of re-election reward.
+    // The scheme id of Welcome reward.
     aelf.Hash re_election_reward_hash = 5;
 }
 

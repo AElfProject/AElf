@@ -41,13 +41,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.BasicMinerReward]).Shares
                 .ShouldBe(ElectionContractConstants.BasicMinerRewardWeight);
             // VotesWeightReward (Shares 1) -> Reward
-            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.VotesWeightReward]);
-            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.VotesWeightReward]).Shares
-                .ShouldBe(ElectionContractConstants.VotesWeightRewardWeight);
+            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.FlexibleReward]);
+            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.FlexibleReward]).Shares
+                .ShouldBe(ElectionContractConstants.FlexibleRewardWeight);
             // ReElectionReward (Shares 1) -> Reward
-            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.ReElectionReward]);
-            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.ReElectionReward]).Shares
-                .ShouldBe(ElectionContractConstants.WelfareRewardWeight);
+            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.WelcomeReward]);
+            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.WelcomeReward]).Shares
+                .ShouldBe(ElectionContractConstants.WelcomeRewardWeight);
 
             // Check the balance of Treasury
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
