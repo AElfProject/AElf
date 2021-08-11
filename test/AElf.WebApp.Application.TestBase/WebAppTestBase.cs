@@ -83,7 +83,7 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<HttpResponseMessage> PostResponseAsync(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null)
+            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null, string reason = null)
         {
             version = !string.IsNullOrWhiteSpace(version) ? $";v={version}" : string.Empty;
             if (basicAuth != null)
@@ -99,6 +99,7 @@ namespace AElf.WebApp.Application
 
             var response = await Client.PostAsync(url, content);
             response.StatusCode.ShouldBe(expectedStatusCode);
+            if (reason != null) response.ReasonPhrase.ShouldBe(reason);
             return response;
         }
 
@@ -120,7 +121,7 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<HttpResponseMessage> DeleteResponseAsync(string url, string version = null,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK,BasicAuth basicAuth = null)
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK,BasicAuth basicAuth = null, string reason = null)
         {
             version = !string.IsNullOrWhiteSpace(version) ? $";v={version}" : string.Empty;
             Client.DefaultRequestHeaders.Accept.Clear();
@@ -133,6 +134,7 @@ namespace AElf.WebApp.Application
             
             var response = await Client.DeleteAsync(url);
             response.StatusCode.ShouldBe(expectedStatusCode);
+            if(reason != null) response.ReasonPhrase.ShouldBe(reason);
             return response;
         }
     }

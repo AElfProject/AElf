@@ -4,7 +4,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using AElf.WebApp.Application.Chain;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -14,13 +16,19 @@ namespace AElf.WebApp.Web
     {
         private readonly BasicAuthOptions _basicAuthOptions;
         
-        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptionsSnapshot<BasicAuthOptions> basicAuthOptions) : base(options, logger, encoder, clock)
+        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptionsMonitor<BasicAuthOptions> basicAuthOptions) : base(options, logger, encoder, clock)
         {
-            _basicAuthOptions = basicAuthOptions.Value;
+            _basicAuthOptions = basicAuthOptions.CurrentValue;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            if (string.IsNullOrWhiteSpace(_basicAuthOptions.UserName) || string.IsNullOrWhiteSpace(_basicAuthOptions.Password))
+            {
+                Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = Error.NeedBasicAuth;
+                return Task.FromResult(AuthenticateResult.Fail(Error.NeedBasicAuth));
+            }
+            
             if (!Request.Headers.ContainsKey("Authorization"))
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization Header"));
 
