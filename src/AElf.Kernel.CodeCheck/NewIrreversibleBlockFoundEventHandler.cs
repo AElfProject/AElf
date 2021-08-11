@@ -6,8 +6,8 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.CodeCheck
 {
-    public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
-        ITransientDependency
+    public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>
+        //, ITransientDependency // Not remove code hash list for now, hash list won't be so much.
     {
         private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
 
