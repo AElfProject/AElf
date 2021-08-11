@@ -8,6 +8,8 @@ using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.Proposal.Application;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel.SmartContract.Application;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.CodeCheck
 {
@@ -17,6 +19,7 @@ namespace AElf.Kernel.CodeCheck
         private readonly ICodeCheckService _codeCheckService;
         private readonly IProposalService _proposalService;
         private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
+        public ILogger<CodeCheckRequiredLogEventProcessor> Logger { get; set; }
 
         public CodeCheckRequiredLogEventProcessor(ISmartContractAddressService smartContractAddressService,
             ICodeCheckService codeCheckService, IProposalService proposalService,
@@ -26,6 +29,8 @@ namespace AElf.Kernel.CodeCheck
             _codeCheckService = codeCheckService;
             _proposalService = proposalService;
             _checkedCodeHashProvider = checkedCodeHashProvider;
+
+            Logger = NullLogger<CodeCheckRequiredLogEventProcessor>.Instance;
         }
 
         public override Task<InterestedEvent> GetInterestedEventAsync(IChainContext chainContext)
@@ -43,6 +48,7 @@ namespace AElf.Kernel.CodeCheck
 
         public override Task ProcessAsync(Block block, Dictionary<TransactionResult, List<LogEvent>> logEventsMap)
         {
+            Logger.LogInformation("Start handling CodeCheckRequired log event.");
             foreach (var events in logEventsMap)
             {
                 var transactionResult = events.Key;
@@ -57,6 +63,7 @@ namespace AElf.Kernel.CodeCheck
                             eventData.Code.ToByteArray(),
                             transactionResult.BlockHash, transactionResult.BlockNumber, eventData.Category,
                             eventData.IsSystemContract);
+                        Logger.LogInformation($"Code check result: {codeCheckResult}");
                         if (!codeCheckResult)
                             return;
 
