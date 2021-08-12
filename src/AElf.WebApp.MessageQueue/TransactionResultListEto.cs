@@ -23,6 +23,7 @@ namespace AElf.WebApp.MessageQueue
         public DateTime BlockTime { get; set; }
         public string FromAddress { get; set; }
         public string ToAddress { get; set; }
+        public string BlockHash { get; set; }
     }
 
     public class LogEventEto
