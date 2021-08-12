@@ -22,6 +22,8 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Authorization;
+using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
 
 namespace AElf.WebApp.Web
@@ -36,6 +38,8 @@ namespace AElf.WebApp.Web
         {
             //var hostingEnvironment = context.Services.GetHostingEnvironment();
             //var configuration = context.Services.GetConfiguration();
+            
+            context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
             ConfigureAutoApiControllers();
             
