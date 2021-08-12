@@ -6,6 +6,8 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AElf.WebApp.Application.Chain;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,6 +25,12 @@ namespace AElf.WebApp.Web
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            var endpoint = Context.GetEndpoint();
+            if (endpoint?.Metadata?.GetMetadata<IAuthorizeData>() == null)
+            {
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+            
             if (string.IsNullOrWhiteSpace(_basicAuthOptions.UserName) || string.IsNullOrWhiteSpace(_basicAuthOptions.Password))
             {
                 Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = Error.NeedBasicAuth;
