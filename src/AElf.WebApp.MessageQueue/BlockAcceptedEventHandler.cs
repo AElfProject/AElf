@@ -144,15 +144,14 @@ namespace AElf.WebApp.MessageQueue
 
                     if (serialHandleEventEtos.Any())
                     {
-                        
-                        serialHandleTxResultList.TransactionResults.Add(
+                        serialHandleTxResultList.TransactionResults.TryAdd(
                             txId.ToHex(), GenerateTransactionResultEto(blockExecutedInfo.Block,
                                 blockExecutedInfo.TransactionMap[txId], txResult, serialHandleEventEtos));
                     }
 
                     if (parallelHandleEventEtos.Any())
                     {
-                        parallelHandleTxResultList.TransactionResults.Add(
+                        parallelHandleTxResultList.TransactionResults.TryAdd(
                             txId.ToHex(),
                             GenerateTransactionResultEto(blockExecutedInfo.Block,
                                 blockExecutedInfo.TransactionMap[txId], txResult, parallelHandleEventEtos));
