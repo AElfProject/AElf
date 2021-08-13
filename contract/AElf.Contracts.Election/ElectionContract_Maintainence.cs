@@ -50,11 +50,6 @@ namespace AElf.Contracts.Election
 
             State.Initialized.Value = true;
 
-            if (Context.Sender == Context.GetZeroSmartContractAddress())
-            {
-                CreateEmergencyResponseOrganization(new Empty());
-            }
-
             return new Empty();
         }
 
@@ -431,10 +426,15 @@ namespace AElf.Contracts.Election
         {
             Assert(State.EmergencyResponseOrganizationAddress.Value == null,
                 "Emergency Response Organization already created.");
-            Assert(
-                Context.Sender == GetParliamentDefaultAddress() ||
-                Context.Sender == Context.GetZeroSmartContractAddress(), "No permission.");
+            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
 
+            CreateEmergencyResponseOrganization();
+
+            return new Empty();
+        }
+
+        private void CreateEmergencyResponseOrganization()
+        {
             var createOrganizationInput = new CreateOrganizationInput
             {
                 ProposalReleaseThreshold = new ProposalReleaseThreshold
@@ -451,8 +451,6 @@ namespace AElf.Contracts.Election
 
             State.EmergencyResponseOrganizationAddress.Value =
                 State.ParliamentContract.CalculateOrganizationAddress.Call(createOrganizationInput);
-
-            return new Empty();
         }
 
         private string GetNewestPubkey(string pubkey)
