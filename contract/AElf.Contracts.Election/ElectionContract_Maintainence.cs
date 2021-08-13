@@ -433,6 +433,13 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty SetEmergencyResponseOrganizationAddress(Address input)
+        {
+            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
+            State.EmergencyResponseOrganizationAddress.Value = input;
+            return new Empty();
+        }
+
         private void CreateEmergencyResponseOrganization()
         {
             var createOrganizationInput = new CreateOrganizationInput

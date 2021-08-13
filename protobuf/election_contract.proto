@@ -96,6 +96,9 @@ service ElectionContract {
     
     rpc CreateEmergencyResponseOrganization (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetEmergencyResponseOrganizationAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
 
     // Views
     
