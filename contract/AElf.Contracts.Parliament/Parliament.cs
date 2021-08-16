@@ -58,14 +58,14 @@ namespace AElf.Contracts.Parliament
 
         public override BoolValue ValidateAddressIsParliamentMember(Address address)
         {
-            return new BoolValue {Value = ValidateParliamentMemberAuthority(address)};
+            return new BoolValue { Value = ValidateParliamentMemberAuthority(address) };
         }
 
         public override BoolValue ValidateProposerInWhiteList(ValidateProposerInWhiteListInput input)
         {
-            return new BoolValue {Value = ValidateAddressInWhiteList(input.Proposer)};
+            return new BoolValue { Value = ValidateAddressInWhiteList(input.Proposer) };
         }
-        
+
         public override ProposerWhiteList GetProposerWhiteList(Empty input)
         {
             var res = new ProposerWhiteList();
@@ -76,7 +76,7 @@ namespace AElf.Contracts.Parliament
 
         public override BoolValue ValidateOrganizationExist(Address input)
         {
-            return new BoolValue {Value = State.Organizations[input] != null};
+            return new BoolValue { Value = State.Organizations[input] != null };
         }
 
         public override ProposalIdList GetNotVotedProposals(ProposalIdList input)
@@ -244,7 +244,7 @@ namespace AElf.Contracts.Parliament
             Context.SendVirtualInlineBySystemContract(
                 CalculateVirtualHash(organization.OrganizationHash, organization.CreationToken), proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
-            Context.Fire(new ProposalReleased {ProposalId = proposalId});
+            Context.Fire(new ProposalReleased { ProposalId = proposalId });
             State.Proposals.Remove(proposalId);
 
             return new Empty();
@@ -297,13 +297,25 @@ namespace AElf.Contracts.Parliament
             foreach (var proposalId in input.ProposalIds)
             {
                 var proposal = State.Proposals[proposalId];
-                if (proposal == null || !CheckProposalNotExpired(proposal)) 
+                if (proposal == null || !CheckProposalNotExpired(proposal))
                     continue;
                 Approve(proposalId);
                 Context.LogDebug(() => $"Proposal {proposalId} approved by {Context.Sender}");
             }
 
             return new Empty();
+        }
+
+        public override Empty CreateEmergencyResponseOrganization(Empty input)
+        {
+            AssertSenderAddressWith(State.DefaultOrganizationAddress.Value);
+            CreateEmergencyResponseOrganization();
+            return new Empty();
+        }
+
+        public override Address GetEmergencyResponseOrganizationAddress(Empty input)
+        {
+            return State.EmergencyResponseOrganizationAddress.Value;
         }
     }
 }

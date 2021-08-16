@@ -190,7 +190,8 @@ namespace AElf.Contracts.Election
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             Assert(
-                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) ==
+                Context.Sender || Context.Sender == GetEmergencyResponseOrganizationAddress(),
                 "Only consensus contract can update candidate information.");
 
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
@@ -225,6 +226,25 @@ namespace AElf.Contracts.Election
                 candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.Pubkey] = candidateInformation;
             return new Empty();
+        }
+
+        private Address GetEmergencyResponseOrganizationAddress()
+        {
+            if (State.EmergencyResponseOrganizationAddress.Value != null)
+            {
+                return State.EmergencyResponseOrganizationAddress.Value;
+            }
+
+            if (State.ParliamentContract.Value == null)
+            {
+                State.ParliamentContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+            }
+
+            State.EmergencyResponseOrganizationAddress.Value =
+                State.ParliamentContract.GetEmergencyResponseOrganizationAddress.Call(new Empty());
+
+            return State.EmergencyResponseOrganizationAddress.Value;
         }
 
         public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
@@ -410,54 +430,13 @@ namespace AElf.Contracts.Election
 
         public override Empty RemoveEvilNode(StringValue input)
         {
-            Assert(Context.Sender == State.EmergencyResponseOrganizationAddress.Value, "No permission.");
+            Assert(Context.Sender == GetEmergencyResponseOrganizationAddress(), "No permission.");
             UpdateCandidateInformation(new UpdateCandidateInformationInput
             {
                 Pubkey = input.Value,
                 IsEvilNode = true
             });
             return new Empty();
-        }
-
-        /// <summary>
-        /// Create a Parliament Organization to handle matters of urgency.
-        /// </summary>
-        public override Empty CreateEmergencyResponseOrganization(Empty input)
-        {
-            Assert(State.EmergencyResponseOrganizationAddress.Value == null,
-                "Emergency Response Organization already created.");
-            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
-
-            CreateEmergencyResponseOrganization();
-
-            return new Empty();
-        }
-
-        public override Empty SetEmergencyResponseOrganizationAddress(Address input)
-        {
-            Assert(Context.Sender == GetParliamentDefaultAddress(), "No permission.");
-            State.EmergencyResponseOrganizationAddress.Value = input;
-            return new Empty();
-        }
-
-        private void CreateEmergencyResponseOrganization()
-        {
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ProposalReleaseThreshold = new ProposalReleaseThreshold
-                {
-                    MinimalApprovalThreshold = 9000,
-                    MinimalVoteThreshold = 9000,
-                    MaximalAbstentionThreshold = 1000,
-                    MaximalRejectionThreshold = 1000
-                },
-                ProposerAuthorityRequired = false,
-                ParliamentMemberProposingAllowed = true
-            };
-            State.ParliamentContract.CreateOrganization.Send(createOrganizationInput);
-
-            State.EmergencyResponseOrganizationAddress.Value =
-                State.ParliamentContract.CalculateOrganizationAddress.Call(createOrganizationInput);
         }
 
         private string GetNewestPubkey(string pubkey)
