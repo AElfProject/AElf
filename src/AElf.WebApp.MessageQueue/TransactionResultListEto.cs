@@ -5,7 +5,7 @@ namespace AElf.WebApp.MessageQueue
 {
     public class TransactionResultListEto
     {
-        public Dictionary<string, TransactionResultEto> TransactionResults { get; set; }
+        public Dictionary<string, List<TransactionResultEto>> TransactionResults { get; set; }
         public long StartBlockNumber { get; set; }
         public long EndBlockNumber { get; set; }
         public int ChainId { get; set; }

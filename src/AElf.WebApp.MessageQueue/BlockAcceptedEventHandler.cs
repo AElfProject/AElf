@@ -77,7 +77,7 @@ namespace AElf.WebApp.MessageQueue
 
                     Logger.LogInformation(
                         $"Messages of block height from {serialHandleTxResultList.StartBlockNumber} to {serialHandleTxResultList.EndBlockNumber} sent to serial queue. " +
-                        $"Totally {serialHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
+                        $"Totally {serialHandleTxResultList.TransactionResults.Values.SelectMany(x => x).Sum(t => t.Logs.Length)} log events.");
                 }
 
                 if (parallelHandleTxResultList.TransactionResults.Any())
@@ -88,7 +88,7 @@ namespace AElf.WebApp.MessageQueue
 
                     Logger.LogInformation(
                         $"Messages of block height from {parallelHandleTxResultList.StartBlockNumber} to {parallelHandleTxResultList.EndBlockNumber} sent to parallel queue. " +
-                        $"Totally {parallelHandleTxResultList.TransactionResults.Values.Sum(t => t.Logs.Length)} log events.");
+                        $"Totally {parallelHandleTxResultList.TransactionResults.Values.SelectMany(x => x).Sum(t => t.Logs.Length)} log events.");
                 }
             }
             catch (Exception e)
@@ -106,7 +106,7 @@ namespace AElf.WebApp.MessageQueue
             var endBlockNumber = blockExecutedSets.Last().Height;
             var serialHandleTxResultList = new TransactionResultListEto
             {
-                TransactionResults = new Dictionary<string, TransactionResultEto>(),
+                TransactionResults = new Dictionary<string, List<TransactionResultEto>>(),
                 StartBlockNumber = startBlockNumber,
                 EndBlockNumber = endBlockNumber,
                 ChainId = chainId
@@ -114,7 +114,7 @@ namespace AElf.WebApp.MessageQueue
 
             var parallelHandleTxResultList = new TransactionResultListEto
             {
-                TransactionResults = new Dictionary<string, TransactionResultEto>(),
+                TransactionResults = new Dictionary<string, List<TransactionResultEto>>(),
                 StartBlockNumber = startBlockNumber,
                 EndBlockNumber = endBlockNumber,
                 ChainId = chainId
@@ -144,21 +144,31 @@ namespace AElf.WebApp.MessageQueue
 
                     if (serialHandleEventEtos.Any())
                     {
-                        serialHandleTxResultList.TransactionResults.TryAdd(
-                            txId.ToHex(), GenerateTransactionResultEto(blockExecutedInfo.Block,
-                                blockExecutedInfo.TransactionMap[txId], txResult, serialHandleEventEtos));
+                        UpdateResultList(serialHandleTxResultList, txId, blockExecutedInfo.Block,
+                            blockExecutedInfo.TransactionMap[txId], txResult, serialHandleEventEtos);
                     }
 
                     if (parallelHandleEventEtos.Any())
                     {
-                        parallelHandleTxResultList.TransactionResults.TryAdd(
-                            txId.ToHex(),
-                            GenerateTransactionResultEto(blockExecutedInfo.Block,
-                                blockExecutedInfo.TransactionMap[txId], txResult, parallelHandleEventEtos));
+                        UpdateResultList(parallelHandleTxResultList, txId, blockExecutedInfo.Block,
+                            blockExecutedInfo.TransactionMap[txId], txResult, serialHandleEventEtos);
                     }
                 }
             }
             return (serialHandleTxResultList, parallelHandleTxResultList);
+        }
+
+        private void UpdateResultList(TransactionResultListEto transactionResultListEto, Hash txId, IBlock block, Transaction tx,
+            TransactionResult txResult, List<LogEventEto> logList)
+        {
+            if (!transactionResultListEto.TransactionResults.TryGetValue(txId.ToHex(),
+                out var transactionResultEtosList))
+            {
+                transactionResultEtosList = new List<TransactionResultEto>();
+                transactionResultListEto.TransactionResults.Add(txId.ToHex(), transactionResultEtosList);
+            }
+            transactionResultEtosList.Add(GenerateTransactionResultEto(block,
+                tx, txResult, logList));
         }
 
         private TransactionResultEto GenerateTransactionResultEto(IBlock block, Transaction tx,
