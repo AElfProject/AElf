@@ -351,7 +351,7 @@ namespace AElf.Contracts.Election
         public override MinerReplacementInformation GetMinerReplacementInformation(
             GetMinerReplacementInformationInput input)
         {
-            var evilMinersPubKeys = GetEvilMinersPublicKey(input.CurrentMinerList);
+            var evilMinersPubKeys = GetEvilMinersPubkeys(input.CurrentMinerList);
             Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys.");
             var alternativeCandidates = new List<string>();
             var latestSnapshot = GetPreviousTermSnapshotWithNewestPubkey();
@@ -390,9 +390,10 @@ namespace AElf.Contracts.Election
             };
         }
 
-        private List<string> GetEvilMinersPublicKey(IEnumerable<string> currentMinerList)
+        private List<string> GetEvilMinersPubkeys(IEnumerable<string> currentMinerList)
         {
-            var evilMinersPubKey = new List<string>();
+            var evilMinersPubKey =
+                State.InitialMiners.Value.Value.Select(p => p.ToHex()).Where(p => State.BannedPubkeyMap[p]).ToList();
 
             if (State.Candidates.Value == null || !State.Candidates.Value.Value.Any())
             {
