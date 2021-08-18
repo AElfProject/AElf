@@ -797,13 +797,13 @@ namespace AElf.Contracts.Treasury
             var oldWeightSetting = State.DividendPoolWeightSetting.Value ?? new DividendPoolWeightSetting();
             var parentSchemeId = State.TreasuryHash.Value;
             // Register or reset `MinerReward` to `Treasury`
-            SendToProfitContractToResetWeight(parentSchemeId, State.RewardHash.Value,
+            ResetWeight(parentSchemeId, State.RewardHash.Value,
                 oldWeightSetting.MinerRewardWeight, newWeightSetting.MinerRewardWeight);
             // Register or reset `BackupSubsidy` to `Treasury`
-            SendToProfitContractToResetWeight(parentSchemeId, State.SubsidyHash.Value,
+            ResetWeight(parentSchemeId, State.SubsidyHash.Value,
                 oldWeightSetting.BackupSubsidyWeight, newWeightSetting.BackupSubsidyWeight);
             // Register or reset `CitizenWelfare` to `Treasury`
-            SendToProfitContractToResetWeight(parentSchemeId, State.WelfareHash.Value,
+            ResetWeight(parentSchemeId, State.WelfareHash.Value,
                 oldWeightSetting.CitizenWelfareWeight, newWeightSetting.CitizenWelfareWeight);
         }
 
@@ -812,17 +812,17 @@ namespace AElf.Contracts.Treasury
             var oldWeightSetting = State.MinerRewardWeightSetting.Value ?? new MinerRewardWeightSetting();
             var parentSchemeId = State.RewardHash.Value;
             // Register or reset `MinerBasicReward` to `MinerReward`
-            SendToProfitContractToResetWeight(parentSchemeId, State.BasicRewardHash.Value,
+            ResetWeight(parentSchemeId, State.BasicRewardHash.Value,
                 oldWeightSetting.BasicMinerRewardWeight, newWeightSetting.BasicMinerRewardWeight);
             // Register or reset `WelcomeRewardWeight` to `MinerReward`
-            SendToProfitContractToResetWeight(parentSchemeId, State.WelcomeRewardHash.Value,
+            ResetWeight(parentSchemeId, State.WelcomeRewardHash.Value,
                 oldWeightSetting.WelcomeRewardWeight, newWeightSetting.WelcomeRewardWeight);
             // Register or reset `FlexibleRewardWeight` to `MinerReward`
-            SendToProfitContractToResetWeight(parentSchemeId, State.FlexibleRewardHash.Value,
+            ResetWeight(parentSchemeId, State.FlexibleRewardHash.Value,
                 oldWeightSetting.FlexibleRewardWeight, newWeightSetting.FlexibleRewardWeight);
         }
 
-        private void SendToProfitContractToResetWeight(Hash parentSchemeId, Hash subSchemeId, int oldWeight,
+        private void ResetWeight(Hash parentSchemeId, Hash subSchemeId, int oldWeight,
             int newWeight)
         {
             if (oldWeight == newWeight)
