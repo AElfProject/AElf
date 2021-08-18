@@ -156,7 +156,9 @@ namespace AElf.Contracts.Parliament
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(ValidateAddressInWhiteList(Context.Sender) || ValidateParliamentMemberAuthority(Context.Sender),
+            Assert(
+                ValidateAddressInWhiteList(Context.Sender) || ValidateParliamentMemberAuthority(Context.Sender) ||
+                State.DefaultOrganizationAddress.Value == Context.Sender,
                 "Unauthorized to create organization.");
             var organizationAddress = CreateNewOrganization(input);
 
