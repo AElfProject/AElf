@@ -310,6 +310,8 @@ namespace AElf.Contracts.Parliament
 
         public override Empty CreateEmergencyResponseOrganization(Empty input)
         {
+            Assert(State.EmergencyResponseOrganizationAddress.Value == null,
+                "Emergency Response Organization already exists.");
             AssertSenderAddressWith(State.DefaultOrganizationAddress.Value);
             CreateEmergencyResponseOrganization();
             return new Empty();
