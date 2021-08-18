@@ -48,7 +48,7 @@ namespace AElf.Contracts.Treasury
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
             // Create profit schemes: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
-            // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
+            // `MinerBasicReward`, `WelcomeReward`, `FlexibleReward`
             var profitItemNameList = new List<string>
             {
                 "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Flexible Reward",
@@ -141,12 +141,18 @@ namespace AElf.Contracts.Treasury
             
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
-            var newElectedMiners = victories.Where(p => State.LatestMinedTerm[p] == 0).ToList();
+            var initialMinerList = GetInitialMinerList();
+            var newElectedMiners = victories.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
 
             UpdateStateBeforeDistribution(previousTermInformation, newElectedMiners);
             ReleaseTreasurySubProfitItems(input.PeriodNumber);
             UpdateStateAfterDistribution(previousTermInformation, victories);
             return new Empty();
+        }
+
+        private List<string> GetInitialMinerList()
+        {
+            return State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
         }
 
         public override Empty Donate(DonateInput input)
@@ -426,9 +432,11 @@ namespace AElf.Contracts.Treasury
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
 
-            UpdateBasicMinerRewardWeights(new List<Round> {previousPreviousTermInformation, previousTermInformation});
+            State.HasNewMiner[previousTermInformation.TermNumber.Add(1)] = true;
+
+            UpdateBasicMinerRewardWeights(new List<Round> { previousPreviousTermInformation, previousTermInformation });
             UpdateWelcomeRewardWeights(previousTermInformation, newElectedMiners);
-            UpdateFlexibleRewardWeights(newElectedMiners);
+            UpdateFlexibleRewardWeights(State.HasNewMiner[previousTermInformation.TermNumber]);
         }
 
         private void UpdateStateAfterDistribution(Round previousTermInformation, List<string> victories)
@@ -572,7 +580,7 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void UpdateFlexibleRewardWeights(List<string> newElectedMiners)
+        private void UpdateFlexibleRewardWeights(bool hasNewMiner)
         {
             State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
             {
@@ -585,7 +593,7 @@ namespace AElf.Contracts.Treasury
                 SubSchemeId = State.BasicRewardHash.Value
             });
 
-            if (newElectedMiners.Any())
+            if (hasNewMiner)
             {
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {

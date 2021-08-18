@@ -90,12 +90,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check amount distributed to each scheme.
             {
-                // Miner Basic Reward: 10%
+                // Miner Basic Reward: 10% + 5% （from Flexible Reward）
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount / 10);
+                    amount.ShouldBe(distributedAmount / 10 + distributedAmount / 20);
                 }
 
                 // Backup Subsidy: 5%
@@ -106,12 +106,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(distributedAmount / 20);
                 }
 
-                // Citizen Welfare: -75% (Burned) + (-5%) (from Flexible Reward)
+                // Citizen Welfare: -75% (Burned)
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.CitizenWelfare].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount * 4 / 5);
+                    amount.ShouldBe(-distributedAmount * 3 / 4);
                 }
 
                 // Flexible Reward: 5%
