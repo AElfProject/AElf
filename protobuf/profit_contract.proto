@@ -262,7 +262,7 @@ message DistributedProfitsInfo {
     // The total amount of shares in this scheme at the current period.
     int64 total_shares = 1;
     // The contributed amount in this scheme at the current period.
-    map<string, sint64> amounts_map = 2;
+    map<string, sint64> amounts_map = 2;//Token symbol -> Amount
     // Whether released.
     bool is_released = 3;
 }
