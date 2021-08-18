@@ -14,15 +14,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<IrreversibleBlockHeightUnacceptableLogEventProcessor> Logger { get; set; }
 
         public IrreversibleBlockHeightUnacceptableLogEventProcessor(
             ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
+            _taskQueueManager = taskQueueManager;
 
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventProcessor>.Instance;
         }
@@ -52,8 +54,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                var chain = await _blockchainService.GetChainAsync();
-                await _blockchainService.ResetChainToLibAsync(chain);
+                Logger.LogDebug("Will rollback to lib height.");
+                _taskQueueManager.Enqueue(
+                    async () =>
+                    {
+                        var chain = await _blockchainService.GetChainAsync();
+                        await _blockchainService.ResetChainToLibAsync(chain);
+                    }, KernelConstants.UpdateChainQueueName);
             }
         }
     }
