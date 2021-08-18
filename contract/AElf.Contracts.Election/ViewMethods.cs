@@ -392,8 +392,9 @@ namespace AElf.Contracts.Election
 
         private List<string> GetEvilMinersPubkeys(IEnumerable<string> currentMinerList)
         {
-            var evilMinersPubKey =
-                State.InitialMiners.Value.Value.Select(p => p.ToHex()).Where(p => State.BannedPubkeyMap[p]).ToList();
+            var evilMinersPubKey = State.InitialMiners.Value == null
+                ? new List<string>()
+                : State.InitialMiners.Value.Value.Select(p => p.ToHex()).Where(p => State.BannedPubkeyMap[p]).ToList();
 
             if (State.Candidates.Value == null || !State.Candidates.Value.Value.Any())
             {

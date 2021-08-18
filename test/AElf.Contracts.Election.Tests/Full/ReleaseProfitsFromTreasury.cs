@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
+using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -113,7 +115,7 @@ namespace AElf.Contracts.Election
                     releasedInformation.TotalShares.ShouldBe(
                         previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount / 10);
+                        .ShouldBe(rewardAmount / 10 + rewardAmount / 20);
                 }
 
                 // Amount of basic reward.
@@ -165,7 +167,7 @@ namespace AElf.Contracts.Election
                     releasedInformation.TotalShares.ShouldBe(0);
                     // 75% + 5%
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(-rewardAmount * 4 / 5);
+                        .ShouldBe(-rewardAmount * 3 / 4);
                 }
 
                 // Amount of citizen welfare.
@@ -220,9 +222,9 @@ namespace AElf.Contracts.Election
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
                     releasedInformation.TotalShares.ShouldBe(totalProducedBlocks);
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount / 5);
+                        .ShouldBe(rewardAmount / 10 + rewardAmount / 20);
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount / 5 *
+                    updatedBasicReward += releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol] *
                         previousTermInformation
                             .RealTimeMinersInformation[ValidationDataCenterKeyPairs[0].PublicKey.ToHex()]
                             .ProducedBlocks / totalProducedBlocks;
@@ -260,7 +262,7 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount * 3 / 4);
+                        .ShouldBe(rewardAmount * 4 / 5);
 
                     // Amount of citizen welfare.
                     var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
@@ -350,11 +352,11 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
                     releasedInformation.TotalShares.ShouldBe(totalProducedBlocks);
-                    // 10% + 5% (from Flexible Reward) + 5% (from Welcome Reward)
+                    // 10% + 5% (from Flexible Reward)
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount / 5);
+                        .ShouldBe(rewardAmount / 10 + rewardAmount / 20);
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount / 5 *
+                    updatedBasicReward += releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol] *
                         previousTermInformation
                             .RealTimeMinersInformation[ValidationDataCenterKeyPairs[0].PublicKey.ToHex()]
                             .ProducedBlocks / totalProducedBlocks;
@@ -366,7 +368,7 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount * 3 / 4);
+                        .ShouldBe(rewardAmount * 4 / 5);
 
                     // Amount of citizen welfare.
                     var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
@@ -655,6 +657,34 @@ namespace AElf.Contracts.Election
             var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
             var minedBlocks = previousRound.GetMinedBlocks();
             return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
+        }
+        
+        /// <summary>
+        /// Just to make sure not using double type.
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private long CalculateAverage(List<long> list)
+        {
+            var sum = list.Sum();
+            return sum.Div(list.Count);
+        }
+
+        private long CalculateShares(long producedBlocksCount, long averageProducedBlocksCount)
+        {
+            if (producedBlocksCount < averageProducedBlocksCount.Div(2))
+            {
+                // If count < (1/2) * average_count, then this node won't share Basic Miner Reward.
+                return 0;
+            }
+
+            if (producedBlocksCount < averageProducedBlocksCount.Div(5).Mul(4))
+            {
+                // If count < (4/5) * average_count, then ratio will be (count / average_count)
+                return producedBlocksCount.Mul(producedBlocksCount).Div(averageProducedBlocksCount);
+            }
+
+            return producedBlocksCount;
         }
     }
 }
