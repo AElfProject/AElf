@@ -80,10 +80,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 x.SchemeId == minerRewardWeightSetting.BasicMinerRewardProportionInfo.SchemeId);
             basicMinerRewardScheme.Shares.ShouldBe(2);
             var reElectionRewardScheme = subSchemes.Single(x =>
-                x.SchemeId == minerRewardWeightSetting.ReElectionRewardProportionInfo.SchemeId);
+                x.SchemeId == minerRewardWeightSetting.WelcomeRewardProportionInfo.SchemeId);
             reElectionRewardScheme.Shares.ShouldBe(1);
             var votesWeightRewardScheme = subSchemes.Single(x =>
-                x.SchemeId == minerRewardWeightSetting.VotesWeightRewardProportionInfo.SchemeId);
+                x.SchemeId == minerRewardWeightSetting.FlexibleRewardProportionInfo.SchemeId);
             votesWeightRewardScheme.Shares.ShouldBe(1);
         }
 
@@ -123,8 +123,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             
             var defaultMinerRewardWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             defaultMinerRewardWeightSetting.BasicMinerRewardProportionInfo.Proportion.ShouldBe(50);
-            defaultMinerRewardWeightSetting.ReElectionRewardProportionInfo.Proportion.ShouldBe(25);
-            defaultMinerRewardWeightSetting.VotesWeightRewardProportionInfo.Proportion.ShouldBe(25);
+            defaultMinerRewardWeightSetting.WelcomeRewardProportionInfo.Proportion.ShouldBe(25);
+            defaultMinerRewardWeightSetting.FlexibleRewardProportionInfo.Proportion.ShouldBe(25);
 
             var treasuryScheme = await ProfitContractStub.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
@@ -427,20 +427,22 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var defaultWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             defaultWeightSetting.BasicMinerRewardProportionInfo.Proportion.ShouldBe(50);
-            defaultWeightSetting.ReElectionRewardProportionInfo.Proportion.ShouldBe(25);
-            defaultWeightSetting.VotesWeightRewardProportionInfo.Proportion.ShouldBe(25);
+            defaultWeightSetting.WelcomeRewardProportionInfo.Proportion.ShouldBe(25);
+            defaultWeightSetting.FlexibleRewardProportionInfo.Proportion.ShouldBe(25);
             var newWeightSetting = new MinerRewardWeightSetting
             {
                 BasicMinerRewardWeight = 1,
-                ReElectionRewardWeight = 1,
-                VotesWeightRewardWeight = 8
+                WelcomeRewardWeight = 1,
+                FlexibleRewardWeight = 8
             };
             await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
                 nameof(TreasuryContractStub.SetMinerRewardWeightSetting), newWeightSetting);
+
             var updatedWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BasicMinerRewardProportionInfo.Proportion.ShouldBe(10);
-            updatedWeightSetting.ReElectionRewardProportionInfo.Proportion.ShouldBe(10);
-            updatedWeightSetting.VotesWeightRewardProportionInfo.Proportion.ShouldBe(80);
+            updatedWeightSetting.WelcomeRewardProportionInfo.Proportion.ShouldBe(10);
+            updatedWeightSetting.FlexibleRewardProportionInfo.Proportion.ShouldBe(80);
+
             var minerRewardProfit =
                 await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
@@ -448,12 +450,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var basicMinerRewardScheme = subSchemes.Single(x =>
                 x.SchemeId == updatedWeightSetting.BasicMinerRewardProportionInfo.SchemeId);
             basicMinerRewardScheme.Shares.ShouldBe(1);
-            var reElectionRewardScheme = subSchemes.Single(x =>
-                x.SchemeId == updatedWeightSetting.ReElectionRewardProportionInfo.SchemeId);
-            reElectionRewardScheme.Shares.ShouldBe(1);
-            var votesWeightRewardScheme = subSchemes.Single(x =>
-                x.SchemeId == updatedWeightSetting.VotesWeightRewardProportionInfo.SchemeId);
-            votesWeightRewardScheme.Shares.ShouldBe(8);
+            var welcomeRewardScheme = subSchemes.Single(x =>
+                x.SchemeId == updatedWeightSetting.WelcomeRewardProportionInfo.SchemeId);
+            welcomeRewardScheme.Shares.ShouldBe(1);
+            var flexibleRewardScheme = subSchemes.Single(x =>
+                x.SchemeId == updatedWeightSetting.FlexibleRewardProportionInfo.SchemeId);
+            flexibleRewardScheme.Shares.ShouldBe(8);
         }
 
         [Fact]

@@ -129,7 +129,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var miningRewardPerBlock = GetMiningRewardPerBlock();
-            var amount = previousRound.GetMinedBlocks().Mul(miningRewardPerBlock);
+            var minedBlocks = previousRound.GetMinedBlocks();
+            var amount = minedBlocks.Mul(miningRewardPerBlock);
             State.TreasuryContract.UpdateMiningReward.Send(new Int64Value {Value = miningRewardPerBlock});
 
             if (amount > 0)

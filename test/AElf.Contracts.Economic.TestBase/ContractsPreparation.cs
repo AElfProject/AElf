@@ -338,8 +338,8 @@ namespace AElf.Contracts.Economic.TestBase
                     {ProfitType.Treasury, profitIds[0]},
                     {ProfitType.MinerReward, profitIds[1]},
                     {ProfitType.BasicMinerReward, profitIds[2]},
-                    {ProfitType.VotesWeightReward, profitIds[3]},
-                    {ProfitType.ReElectionReward, profitIds[4]},
+                    {ProfitType.FlexibleReward, profitIds[3]},
+                    {ProfitType.WelcomeReward, profitIds[4]},
                 };
             }
             {

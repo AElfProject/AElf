@@ -103,6 +103,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Scheme not found.");
             // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
+            Assert(scheme.SubSchemes.All(s => s.SchemeId != input.SubSchemeId), $"Sub scheme {input.SubSchemeId} already exist.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
@@ -142,6 +143,12 @@ namespace AElf.Contracts.Profit
             // ReSharper disable once PossibleNullReferenceException
             Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
 
+            var shares = scheme.SubSchemes.SingleOrDefault(d => d.SchemeId == input.SubSchemeId);
+            if (shares == null)
+            {
+                return new Empty();
+            }
+
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
             Assert(subScheme != null, "Sub scheme not found.");
@@ -149,8 +156,6 @@ namespace AElf.Contracts.Profit
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             // Remove profit details
             State.ProfitDetailsMap[input.SchemeId][subSchemeVirtualAddress] = new ProfitDetails();
-
-            var shares = scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId);
             scheme.SubSchemes.Remove(shares);
             scheme.TotalShares = scheme.TotalShares.Sub(shares.Shares);
             State.SchemeInfos[input.SchemeId] = scheme;
@@ -665,18 +670,22 @@ namespace AElf.Contracts.Profit
         public override Empty ClaimProfits(ClaimProfitsInput input)
         {
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
+            if (scheme == null)
+            {
+                throw new AssertionException("Scheme not found.");
+            }
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
-            Assert(profitDetails != null, "Profit details not found.");
+            if (profitDetails == null)
+            {
+                throw new AssertionException("Profit details not found.");
+            }
 
             Context.LogDebug(
                 () => $"{Context.Sender} is trying to profit from {input.SchemeId.ToHex()} for {beneficiary}.");
 
-            // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
                 d.LastProfitPeriod == 0 ? d.EndPeriod >= d.StartPeriod : d.EndPeriod >= d.LastProfitPeriod).ToList();
-            // ReSharper disable once PossibleNullReferenceException
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
@@ -700,6 +709,24 @@ namespace AElf.Contracts.Profit
 
             State.ProfitDetailsMap[input.SchemeId][beneficiary] = new ProfitDetails {Details = {availableDetails}};
 
+            return new Empty();
+        }
+
+        public override Empty ClaimProfitsByPeriod(ClaimProfitsByPeriodInput input)
+        {
+            var scheme = State.SchemeInfos[input.SchemeId];
+            if (scheme == null)
+            {
+                throw new AssertionException("Scheme not found.");
+            }
+            var beneficiary = input.Beneficiary ?? Context.Sender;
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
+            if (profitDetails == null)
+            {
+                throw new AssertionException("Profit details not found.");
+            }
+            
+            // TODO
             return new Empty();
         }
 

@@ -208,7 +208,7 @@ namespace AElf.Contracts.Election
                 if (rankingList.DataCenters.ContainsKey(input.Pubkey))
                 {
                     rankingList.DataCenters[input.Pubkey] = 0;
-                    IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, input.Pubkey, true);
+                    UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, input.Pubkey, true);
                     State.DataCentersRankingList.Value = rankingList;
                 }
 
@@ -218,6 +218,20 @@ namespace AElf.Contracts.Election
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
                 State.Candidates.Value = candidates;
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey))
+                });
+                if (State.BasicMinerHash.Value == null)
+                {
+                    SetBasicMinerHash();
+                }
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.BasicMinerHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey))
+                });
                 return new Empty();
             }
 
@@ -280,9 +294,26 @@ namespace AElf.Contracts.Election
             State.TreasuryHash.Value = input.TreasuryHash;
             State.WelfareHash.Value = input.WelfareHash;
             State.SubsidyHash.Value = input.SubsidyHash;
-            State.ReElectionRewardHash.Value = input.ReElectionRewardHash;
-            State.VotesRewardHash.Value = input.VotesRewardHash;
+            State.WelcomeHash.Value = input.WelcomeHash;
+            State.FlexibleHash.Value = input.FlexibleHash;
+            State.BasicMinerHash.Value = input.BasicMinerHash;
             return new Empty();
+        }
+
+        private void SetBasicMinerHash()
+        {
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+
+            var schemeIdsManagingByTreasuryContract = State.ProfitContract.GetManagingSchemeIds.Call(
+                new GetManagingSchemeIdsInput
+                {
+                    Manager = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                }).SchemeIds;
+            State.BasicMinerHash.Value = schemeIdsManagingByTreasuryContract[2];
         }
 
         public override Empty ReplaceCandidatePubkey(ReplaceCandidatePubkeyInput input)

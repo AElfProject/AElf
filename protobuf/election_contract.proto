@@ -431,10 +431,12 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash welfare_hash = 2;
     // The scheme id of subsidy reward.
     aelf.Hash subsidy_hash = 3;
-    // The scheme id of votes reward.
-    aelf.Hash votes_reward_hash = 4;
-    // The scheme id of re-election reward.
-    aelf.Hash re_election_reward_hash = 5;
+    // The scheme id of welcome reward.
+    aelf.Hash welcome_hash = 4;
+    // The scheme id of flexible reward.
+    aelf.Hash flexible_hash = 5;
+    // The scheme id of basic miner reward.
+    aelf.Hash basic_miner_hash = 6;
 }
 
 message DataCenterRankingList {
