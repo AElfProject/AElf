@@ -435,8 +435,6 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash welcome_hash = 4;
     // The scheme id of flexible reward.
     aelf.Hash flexible_hash = 5;
-    // The scheme id of basic miner reward.
-    aelf.Hash basic_miner_hash = 6;
 }
 
 message DataCenterRankingList {

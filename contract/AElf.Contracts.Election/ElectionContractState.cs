@@ -11,7 +11,6 @@ namespace AElf.Contracts.Election
         public BoolState VotingEventRegistered { get; set; }
 
         public SingletonState<Hash> TreasuryHash { get; set; }
-        public SingletonState<Hash> BasicMinerHash { get; set; }
         public SingletonState<Hash> WelfareHash { get; set; }
         public SingletonState<Hash> SubsidyHash { get; set; }
         public SingletonState<Hash> FlexibleHash { get; set; }

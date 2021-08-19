@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -223,15 +224,6 @@ namespace AElf.Contracts.Election
                     SchemeId = State.SubsidyHash.Value,
                     Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey))
                 });
-                if (State.BasicMinerHash.Value == null)
-                {
-                    SetBasicMinerHash();
-                }
-                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-                {
-                    SchemeId = State.BasicMinerHash.Value,
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey))
-                });
                 return new Empty();
             }
 
@@ -296,24 +288,7 @@ namespace AElf.Contracts.Election
             State.SubsidyHash.Value = input.SubsidyHash;
             State.WelcomeHash.Value = input.WelcomeHash;
             State.FlexibleHash.Value = input.FlexibleHash;
-            State.BasicMinerHash.Value = input.BasicMinerHash;
             return new Empty();
-        }
-
-        private void SetBasicMinerHash()
-        {
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
-
-            var schemeIdsManagingByTreasuryContract = State.ProfitContract.GetManagingSchemeIds.Call(
-                new GetManagingSchemeIdsInput
-                {
-                    Manager = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
-                }).SchemeIds;
-            State.BasicMinerHash.Value = schemeIdsManagingByTreasuryContract[2];
         }
 
         public override Empty ReplaceCandidatePubkey(ReplaceCandidatePubkeyInput input)
