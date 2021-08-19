@@ -378,8 +378,10 @@ namespace AElf.Contracts.Election
             if (diff > 0)
             {
                 var takeAmount = Math.Min(diff, State.InitialMiners.Value.Value.Count);
-                var selectedInitialMiners = State.InitialMiners.Value.Value.Where(k =>
-                    !input.CurrentMinerList.Contains(k.ToHex())).Take(takeAmount).Select(k => k.ToHex());
+                var selectedInitialMiners = State.InitialMiners.Value.Value
+                    .Select(k => k.ToHex())
+                    .Where(k => !State.BannedPubkeyMap[k])
+                    .Where(k => !input.CurrentMinerList.Contains(k)).Take(takeAmount);
                 alternativeCandidates.AddRange(selectedInitialMiners);
             }
 
