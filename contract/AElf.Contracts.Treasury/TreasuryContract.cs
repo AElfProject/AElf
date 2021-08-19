@@ -905,12 +905,6 @@ namespace AElf.Contracts.Treasury
 
             State.IsReplacedEvilMiner[input.NewPubkey] = true;
 
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-            {
-                SchemeId = State.BasicRewardHash.Value,
-                Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.OldPubkey))
-            });
-
             return new Empty();
         }
     }
