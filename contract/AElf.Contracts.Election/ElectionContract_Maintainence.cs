@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.Parliament;
 using AElf.Contracts.Profit;
-using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
-using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
