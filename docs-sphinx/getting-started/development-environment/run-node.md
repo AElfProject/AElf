@@ -85,6 +85,17 @@ The *NodeAccount* field corresponds to the address, you also have to enter the p
 
 This is a configuration that is used to specify the initial miners for the DPoS consensus, for now just configure one, it's the accounts public key that was printed during the account creation.
 
+```json
+{
+  "BasicAuth": {
+    "UserName" : "user",
+    "Password": "pass123"
+  },
+}
+```
+
+This is a configuration that is used for basic authentication of web API.Note that you need to set your own user name and password.
+
 Note that if your Redis server is on another host listening on a different port than the default, you will also have to configure the connection strings (port/db number):
 
 ```json
