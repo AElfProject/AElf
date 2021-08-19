@@ -46,7 +46,6 @@ namespace AElf.Contracts.Election
                 WelfareHash = HashHelper.ComputeFrom("Welfare"),
                 WelcomeHash = HashHelper.ComputeFrom("Welcome"),
                 FlexibleHash = HashHelper.ComputeFrom("Flexible"),
-                BasicMinerHash = HashHelper.ComputeFrom("BasicMiner")
             });
             setSchemeIdRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             setSchemeIdRet.TransactionResult.Error.ShouldContain("Treasury profit ids already set.");
