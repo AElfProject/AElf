@@ -352,7 +352,7 @@ namespace AElf.Contracts.Election
             GetMinerReplacementInformationInput input)
         {
             var evilMinersPubKeys = GetEvilMinersPubkeys(input.CurrentMinerList);
-            Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys.");
+            Context.LogDebug(() => $"Got {evilMinersPubKeys.Count} evil miners pubkeys from {input.CurrentMinerList}");
             var alternativeCandidates = new List<string>();
             var latestSnapshot = GetPreviousTermSnapshotWithNewestPubkey();
             // Check out election snapshot.
@@ -394,28 +394,7 @@ namespace AElf.Contracts.Election
 
         private List<string> GetEvilMinersPubkeys(IEnumerable<string> currentMinerList)
         {
-            var evilMinersPubKey = State.InitialMiners.Value == null
-                ? new List<string>()
-                : State.InitialMiners.Value.Value.Select(p => p.ToHex()).Where(p => State.BannedPubkeyMap[p]).ToList();
-
-            if (State.Candidates.Value == null || !State.Candidates.Value.Value.Any())
-            {
-                return evilMinersPubKey;
-            }
-
-            // If one miner is not a candidate anymore.
-            var candidates = State.Candidates.Value.Value.Select(p => p.ToHex())
-                .ToList();
-            if (candidates.Any())
-            {
-                var keys = currentMinerList.Where(pubkey =>
-                    !candidates.Contains(pubkey) &&
-                    !State.InitialMiners.Value.Value.Contains(
-                        ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey))));
-                evilMinersPubKey.AddRange(keys);
-            }
-
-            return evilMinersPubKey;
+            return currentMinerList.Where((p => State.BannedPubkeyMap[p])).ToList();
         }
 
         private int GetValidationDataCenterCount()
