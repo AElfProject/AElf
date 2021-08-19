@@ -432,7 +432,10 @@ namespace AElf.Contracts.Treasury
                 Value = previousTermInformation.TermNumber.Sub(1)
             });
 
-            State.HasNewMiner[previousTermInformation.TermNumber.Add(1)] = true;
+            if (newElectedMiners.Any())
+            {
+                State.HasNewMiner[previousTermInformation.TermNumber.Add(1)] = true;
+            }
 
             UpdateBasicMinerRewardWeights(new List<Round> { previousPreviousTermInformation, previousTermInformation });
             UpdateWelcomeRewardWeights(previousTermInformation, newElectedMiners);
