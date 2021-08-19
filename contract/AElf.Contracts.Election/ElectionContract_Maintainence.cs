@@ -434,6 +434,12 @@ namespace AElf.Contracts.Election
         public override Empty RemoveEvilNode(StringValue input)
         {
             Assert(Context.Sender == GetEmergencyResponseOrganizationAddress(), "No permission.");
+            var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value));
+            Assert(
+                State.Candidates.Value.Value.Select(p => p.ToHex()).Contains(input.Value) ||
+                State.InitialMiners.Value.Value.Select(p => p.ToHex()).Contains(input.Value),
+                "Cannot remove normal node.");
+            Assert(!State.BannedPubkeyMap[input.Value], $"{input.Value} already banned.");
             UpdateCandidateInformation(new UpdateCandidateInformationInput
             {
                 Pubkey = input.Value,
