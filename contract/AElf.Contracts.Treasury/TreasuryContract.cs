@@ -143,7 +143,14 @@ namespace AElf.Contracts.Treasury
                 .ToList();
             var initialMinerList = GetInitialMinerList();
             var newElectedMiners = victories.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
-
+            if (newElectedMiners.Any())
+            {
+                Context.LogDebug(() => $"New elected miners: {newElectedMiners.Aggregate((l, r) => $"l\nr")}");
+            }
+            else
+            {
+                Context.LogDebug(() => "No new elected miner.");
+            }
             UpdateStateBeforeDistribution(previousTermInformation, newElectedMiners);
             ReleaseTreasurySubProfitItems(input.PeriodNumber);
             UpdateStateAfterDistribution(previousTermInformation, victories);
@@ -437,6 +444,7 @@ namespace AElf.Contracts.Treasury
                 State.HasNewMiner[previousTermInformation.TermNumber.Add(1)] = true;
             }
 
+            Context.LogDebug(() => $"Will update weights after term {previousTermInformation.TermNumber}");
             UpdateBasicMinerRewardWeights(new List<Round> { previousPreviousTermInformation, previousTermInformation });
             UpdateWelcomeRewardWeights(previousTermInformation, newElectedMiners);
             UpdateFlexibleRewardWeights(State.HasNewMiner[previousTermInformation.TermNumber]);
@@ -552,6 +560,7 @@ namespace AElf.Contracts.Treasury
 
             if (newElectedMiners.Any())
             {
+                Context.LogDebug(() => "Welcome reward will go to new miners.");
                 var newBeneficiaries = new AddBeneficiariesInput
                 {
                     SchemeId = State.WelcomeRewardHash.Value,
@@ -574,6 +583,7 @@ namespace AElf.Contracts.Treasury
             }
             else
             {
+                Context.LogDebug(() => "Welcome reward will go to Basic Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
                     SchemeId = State.WelcomeRewardHash.Value,
@@ -598,6 +608,7 @@ namespace AElf.Contracts.Treasury
 
             if (hasNewMiner)
             {
+                Context.LogDebug(() => "Flexible reward will go to Welfare Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
                     SchemeId = State.FlexibleRewardHash.Value,
@@ -607,6 +618,7 @@ namespace AElf.Contracts.Treasury
             }
             else
             {
+                Context.LogDebug(() => "Flexible reward will go to Basic Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
                     SchemeId = State.FlexibleRewardHash.Value,
