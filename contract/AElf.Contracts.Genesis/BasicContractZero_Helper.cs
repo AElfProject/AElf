@@ -67,6 +67,11 @@ namespace AElf.Contracts.Genesis
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
 
+            var contractCodeHashList =
+                State.ContractCodeHashListMap[Context.CurrentHeight] ?? new ContractCodeHashList();
+            contractCodeHashList.Value.Add(codeHash);
+            State.ContractCodeHashListMap[Context.CurrentHeight] = contractCodeHashList;
+
             return contractAddress;
         }
         

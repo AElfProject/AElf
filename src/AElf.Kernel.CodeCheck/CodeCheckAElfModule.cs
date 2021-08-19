@@ -1,5 +1,6 @@
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.CodeCheck.Application;
 using AElf.Kernel.CodeCheck.Infrastructure;
-using AElf.Kernel.Proposal;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,8 +12,11 @@ namespace AElf.Kernel.CodeCheck
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+            context.Services
+                .AddSingleton<IBlocksExecutionSucceededLogEventProcessor, CodeCheckRequiredLogEventProcessor>();
+            //context.Services.AddSingleton<IBlockAcceptedLogEventProcessor, ContractDeployedLogEventProcessor>();
             context.Services.AddSingleton<IContractAuditorContainer, ContractAuditorContainer>();
+            context.Services.AddSingleton<IBlockValidationProvider, CodeCheckValidationProvider>();
         }
     }
 }

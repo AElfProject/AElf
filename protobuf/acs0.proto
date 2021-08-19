@@ -90,6 +90,10 @@ service ACS0 {
     rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ContractInfo
@@ -219,4 +223,12 @@ message ReleaseContractInput {
     aelf.Hash proposal_id = 1;
     // The id of the proposed contract.
     aelf.Hash proposed_contract_input_hash = 2;
+}
+
+message ContractCodeHashList {
+    repeated aelf.Hash value = 1;
+}
+
+message ContractCodeHashMap {
+    map<int64, ContractCodeHashList> value = 1;
 }
