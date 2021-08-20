@@ -143,16 +143,21 @@ namespace AElf.Contracts.Election
             var termNumber = State.CurrentTermNumber.Value.Sub(1);
             var snapshot = State.Snapshots[termNumber];
             if (snapshot == null) return null;
-            var invalidCandidates = snapshot.ElectionResult.Where(r => r.Value <= 0).Select(r => r.Key);
+            var invalidCandidates = snapshot.ElectionResult.Where(r => r.Value <= 0).Select(r => r.Key).ToList();
+            Context.LogDebug(() => $"Invalid candidates count: {invalidCandidates.Count}");
             foreach (var invalidCandidate in invalidCandidates)
             {
-                Context.LogDebug(() => $"Invalid candidate: {invalidCandidate}");
+                Context.LogDebug(() => $"Invalid candidate detected: {invalidCandidate}");
                 if (snapshot.ElectionResult.ContainsKey(invalidCandidate))
                 {
                     snapshot.ElectionResult.Remove(invalidCandidate);
                 }
             }
+
+            if (!snapshot.ElectionResult.Any()) return snapshot;
+
             var bannedCandidates = snapshot.ElectionResult.Keys.Where(IsPubkeyBanned).ToList();
+            Context.LogDebug(() => $"Banned candidates count: {bannedCandidates.Count}");
             if (!bannedCandidates.Any()) return snapshot;
             Context.LogDebug(() => "Getting snapshot and there's miner replaced during current term.");
             foreach (var bannedCandidate in bannedCandidates)
