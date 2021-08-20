@@ -147,7 +147,10 @@ namespace AElf.Contracts.Election
             foreach (var invalidCandidate in invalidCandidates)
             {
                 Context.LogDebug(() => $"Invalid candidate: {invalidCandidate}");
-                snapshot.ElectionResult.Remove(invalidCandidate);
+                if (snapshot.ElectionResult.ContainsKey(invalidCandidate))
+                {
+                    snapshot.ElectionResult.Remove(invalidCandidate);
+                }
             }
             var bannedCandidates = snapshot.ElectionResult.Keys.Where(IsPubkeyBanned).ToList();
             if (!bannedCandidates.Any()) return snapshot;
@@ -160,7 +163,10 @@ namespace AElf.Contracts.Election
                     snapshot.ElectionResult.ContainsKey(newestPubkey)) continue;
                 var electionResult = snapshot.ElectionResult[bannedCandidate];
                 snapshot.ElectionResult.Add(newestPubkey, electionResult);
-                snapshot.ElectionResult.Remove(bannedCandidate);
+                if (snapshot.ElectionResult.ContainsKey(bannedCandidate))
+                {
+                    snapshot.ElectionResult.Remove(bannedCandidate);
+                }
             }
 
             return snapshot;
