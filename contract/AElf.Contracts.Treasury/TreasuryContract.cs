@@ -144,6 +144,13 @@ namespace AElf.Contracts.Treasury
             var initialMinerList = GetInitialMinerList();
             var newElectedMiners = victories;
             newElectedMiners.AddRange(previousTermInformation.RealTimeMinersInformation.Keys);
+            var replaceCandidates = State.ReplaceCandidateMap[input.PeriodNumber];
+            if (replaceCandidates != null)
+            {
+                Context.LogDebug(() => $"New miners from replace candidate map: {replaceCandidates.Value.Aggregate((l, r) => $"{l}\n{r}")}");
+                newElectedMiners.AddRange(replaceCandidates.Value);
+                State.ReplaceCandidateMap.Remove(input.PeriodNumber);
+            }
             newElectedMiners = newElectedMiners.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
             if (newElectedMiners.Any())
             {
@@ -916,9 +923,18 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
 
-            var latestMinedTerm = State.LatestMinedTerm[input.OldPubkey];
-            State.LatestMinedTerm[input.NewPubkey] = latestMinedTerm;
-            State.LatestMinedTerm.Remove(input.OldPubkey);
+            if (!input.IsOldPubkeyEvil)
+            {
+                var latestMinedTerm = State.LatestMinedTerm[input.OldPubkey];
+                State.LatestMinedTerm[input.NewPubkey] = latestMinedTerm;
+                State.LatestMinedTerm.Remove(input.OldPubkey);
+            }
+            else
+            {
+                var replaceCandidates = State.ReplaceCandidateMap[input.CurrentTermNumber] ?? new StringList();
+                replaceCandidates.Value.Add(input.NewPubkey);
+                State.ReplaceCandidateMap[input.CurrentTermNumber] = replaceCandidates;
+            }
 
             State.IsReplacedEvilMiner[input.NewPubkey] = true;
 

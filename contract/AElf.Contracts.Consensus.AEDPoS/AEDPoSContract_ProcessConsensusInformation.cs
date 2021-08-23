@@ -157,6 +157,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
+            var newPubkeys = nextRound.RealTimeMinersInformation.Keys
+                .Except(currentRound.RealTimeMinersInformation.Keys).ToList();
+            if (newPubkeys.Any())
+            {
+                foreach (var newPubkey in newPubkeys)
+                {
+                    State.TreasuryContract.RecordMinerReplacement.Send(new RecordMinerReplacementInput
+                    {
+                        CurrentTermNumber = currentRound.TermNumber,
+                        NewPubkey = newPubkey,
+                        IsOldPubkeyEvil = true
+                    });
+                }
+            }
+
             AddRoundInformation(nextRound);
 
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");

@@ -40,6 +40,7 @@ namespace AElf.Contracts.Treasury
         public MappedState<string, long> LatestMinedTerm { get; set; }
 
         public MappedState<string, bool> IsReplacedEvilMiner { get; set; }
+        public MappedState<long, StringList> ReplaceCandidateMap { get; set; }
 
         public MappedState<long, bool> HasNewMiner { get; set; }
     }
