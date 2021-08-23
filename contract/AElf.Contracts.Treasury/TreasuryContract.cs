@@ -142,10 +142,12 @@ namespace AElf.Contracts.Treasury
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
             var initialMinerList = GetInitialMinerList();
-            var newElectedMiners = victories.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
+            var newElectedMiners = victories;
+            newElectedMiners.AddRange(previousTermInformation.RealTimeMinersInformation.Keys);
+            newElectedMiners = newElectedMiners.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
             if (newElectedMiners.Any())
             {
-                Context.LogDebug(() => $"New elected miners: {newElectedMiners.Aggregate((l, r) => $"l\nr")}");
+                Context.LogDebug(() => $"New elected miners: {newElectedMiners.Aggregate((l, r) => $"{l}\n{r}")}");
             }
             else
             {
