@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -240,6 +241,20 @@ namespace AElf.Kernel.SmartContract
                 To = toAddress,
                 MethodName = methodName,
                 Params = args
+            });
+            FireLogEvent(new LogEvent
+            {
+                Address = Self,
+                Name = "_VirtualAddress",
+                Indexed =
+                {
+                    // From hash
+                    fromVirtualAddress.ToByteString(),
+                    // Contract address
+                    Self.ToByteString(),
+                    // Sender address
+                    Sender.ToByteString()
+                }
             });
         }
 

@@ -373,7 +373,7 @@ namespace AElf.Contracts.Election
             var alternativeCandidates = new List<string>();
             var latestSnapshot = GetPreviousTermSnapshotWithNewestPubkey();
             // Check out election snapshot.
-            if (latestSnapshot != null)
+            if (latestSnapshot != null && latestSnapshot.ElectionResult.Any())
             {
                 Context.LogDebug(() => $"Previous term snapshot:\n{latestSnapshot}");
                 var maybeNextCandidates = latestSnapshot.ElectionResult
