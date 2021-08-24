@@ -26,7 +26,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var newCandidates = MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(18).ToList();
             await NodesAnnounceElection(newCandidates);
             await BlockMiningService.MineBlockToNextTermAsync();
-            UpdateParliamentStubs(newCandidates.Take(17));
+
+            var miners = newCandidates.Take(17).ToList();
+            //UpdateParliamentStubs(miners);
+
+            await BlockMiningService.MineBlockToNextRoundAsync();
+
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
@@ -51,8 +56,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = eroAddress
             });
-            await BlockMiningService.MineBlockToNextTermAsync();
-           var currentRound = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            await BlockMiningService.MineBlockToNextRoundAsync();
+            miners.Remove(MissionedECKeyPairs.ValidationDataCenterKeyPairs.First());
+            miners.Add(MissionedECKeyPairs.ValidationDataCenterKeyPairs.Skip(17).Take(1).First());
+            UpdateParliamentStubs(miners);
+
+            var currentRound = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
             currentRound.RealTimeMinersInformation.Keys.ShouldNotContain(evilNodePubkey);
         }
 

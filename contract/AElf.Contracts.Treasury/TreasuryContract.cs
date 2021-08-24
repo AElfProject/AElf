@@ -93,8 +93,8 @@ namespace AElf.Contracts.Treasury
             State.SubsidyHash.Value = managingSchemeIds[2];
             State.WelfareHash.Value = managingSchemeIds[3];
             State.BasicRewardHash.Value = managingSchemeIds[4];
-            State.WelcomeRewardHash.Value = managingSchemeIds[5];
-            State.FlexibleRewardHash.Value = managingSchemeIds[6];
+            State.VotesWeightRewardHash.Value = managingSchemeIds[5];
+            State.ReElectionRewardHash.Value = managingSchemeIds[6];
 
             var electionContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
@@ -404,14 +404,14 @@ namespace AElf.Contracts.Treasury
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                SchemeId = State.WelcomeRewardHash.Value,
+                SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
                 AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                SchemeId = State.FlexibleRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
                 AmountsMap = {amountsMap}
             });
@@ -558,13 +558,13 @@ namespace AElf.Contracts.Treasury
                 .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
             var possibleWelcomeBeneficiaries = new RemoveBeneficiariesInput
             {
-                SchemeId = State.WelcomeRewardHash.Value,
+                SchemeId = State.VotesWeightRewardHash.Value,
                 Beneficiaries = { previousMinerAddresses }
             };
             State.ProfitContract.RemoveBeneficiaries.Send(possibleWelcomeBeneficiaries);
             State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
             {
-                SchemeId = State.WelcomeRewardHash.Value,
+                SchemeId = State.VotesWeightRewardHash.Value,
                 SubSchemeId = State.BasicRewardHash.Value
             });
 
@@ -573,7 +573,7 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => "Welcome reward will go to new miners.");
                 var newBeneficiaries = new AddBeneficiariesInput
                 {
-                    SchemeId = State.WelcomeRewardHash.Value,
+                    SchemeId = State.VotesWeightRewardHash.Value,
                     EndPeriod = previousTermInformation.TermNumber.Add(1)
                 };
                 foreach (var minerAddress in newElectedMiners.Select(miner =>
@@ -596,7 +596,7 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => "Welcome reward will go to Basic Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
-                    SchemeId = State.WelcomeRewardHash.Value,
+                    SchemeId = State.VotesWeightRewardHash.Value,
                     SubSchemeId = State.BasicRewardHash.Value,
                     SubSchemeShares = 1
                 });
@@ -607,12 +607,12 @@ namespace AElf.Contracts.Treasury
         {
             State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
             {
-                SchemeId = State.FlexibleRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 SubSchemeId = State.WelfareHash.Value
             });
             State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
             {
-                SchemeId = State.FlexibleRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 SubSchemeId = State.BasicRewardHash.Value
             });
 
@@ -621,7 +621,7 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => "Flexible reward will go to Welfare Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
-                    SchemeId = State.FlexibleRewardHash.Value,
+                    SchemeId = State.ReElectionRewardHash.Value,
                     SubSchemeId = State.WelfareHash.Value,
                     SubSchemeShares = 1
                 });
@@ -631,7 +631,7 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => "Flexible reward will go to Basic Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
                 {
-                    SchemeId = State.FlexibleRewardHash.Value,
+                    SchemeId = State.ReElectionRewardHash.Value,
                     SubSchemeId = State.BasicRewardHash.Value,
                     SubSchemeShares = 1
                 });
@@ -749,14 +749,14 @@ namespace AElf.Contracts.Treasury
                 },
                 WelcomeRewardProportionInfo = new SchemeProportionInfo
                 {
-                    SchemeId = State.WelcomeRewardHash.Value,
+                    SchemeId = State.VotesWeightRewardHash.Value,
                     Proportion = weightSetting.WelcomeRewardWeight
                         .Mul(TreasuryContractConstants.OneHundredPercent).Div(weightSum)
                 }
             };
             weightProportion.FlexibleRewardProportionInfo = new SchemeProportionInfo
             {
-                SchemeId = State.FlexibleRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 Proportion = TreasuryContractConstants.OneHundredPercent
                     .Sub(weightProportion.BasicMinerRewardProportionInfo.Proportion)
                     .Sub(weightProportion.WelcomeRewardProportionInfo.Proportion)
@@ -848,10 +848,10 @@ namespace AElf.Contracts.Treasury
             ResetWeight(parentSchemeId, State.BasicRewardHash.Value,
                 oldWeightSetting.BasicMinerRewardWeight, newWeightSetting.BasicMinerRewardWeight);
             // Register or reset `WelcomeRewardWeight` to `MinerReward`
-            ResetWeight(parentSchemeId, State.WelcomeRewardHash.Value,
+            ResetWeight(parentSchemeId, State.VotesWeightRewardHash.Value,
                 oldWeightSetting.WelcomeRewardWeight, newWeightSetting.WelcomeRewardWeight);
             // Register or reset `FlexibleRewardWeight` to `MinerReward`
-            ResetWeight(parentSchemeId, State.FlexibleRewardHash.Value,
+            ResetWeight(parentSchemeId, State.ReElectionRewardHash.Value,
                 oldWeightSetting.FlexibleRewardWeight, newWeightSetting.FlexibleRewardWeight);
         }
 

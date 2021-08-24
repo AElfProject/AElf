@@ -18,8 +18,16 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> RewardHash { get; set; }
 
         public SingletonState<Hash> BasicRewardHash { get; set; }
-        public SingletonState<Hash> WelcomeRewardHash { get; set; }
-        public SingletonState<Hash> FlexibleRewardHash { get; set; }
+
+        /// <summary>
+        /// -> Welcome Reward
+        /// </summary>
+        public SingletonState<Hash> VotesWeightRewardHash { get; set; }
+
+        /// <summary>
+        /// -> Flexible Reward
+        /// </summary>
+        public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
