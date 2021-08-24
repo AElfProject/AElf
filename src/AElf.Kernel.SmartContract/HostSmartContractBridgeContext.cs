@@ -245,7 +245,7 @@ namespace AElf.Kernel.SmartContract
             FireLogEvent(new LogEvent
             {
                 Address = Self,
-                Name = "_VirtualAddress",
+                Name = "__VirtualAddress",
                 Indexed =
                 {
                     // From hash

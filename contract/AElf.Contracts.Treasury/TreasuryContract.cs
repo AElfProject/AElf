@@ -138,37 +138,38 @@ namespace AElf.Contracts.Treasury
             {
                 Value = input.PeriodNumber
             });
-            
-            var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
-                .ToList();
-            var initialMinerList = GetInitialMinerList();
-            var newElectedMiners = victories;
-            newElectedMiners.AddRange(previousTermInformation.RealTimeMinersInformation.Keys);
+
+            var currentMinerList = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                .Select(p => p.ToHex()).ToList();
+            var maybeNewElectedMiners = new List<string>();
+            maybeNewElectedMiners.AddRange(currentMinerList);
+            maybeNewElectedMiners.AddRange(previousTermInformation.RealTimeMinersInformation.Keys);
             var replaceCandidates = State.ReplaceCandidateMap[input.PeriodNumber];
             if (replaceCandidates != null)
             {
                 Context.LogDebug(() => $"New miners from replace candidate map: {replaceCandidates.Value.Aggregate((l, r) => $"{l}\n{r}")}");
-                newElectedMiners.AddRange(replaceCandidates.Value);
+                maybeNewElectedMiners.AddRange(replaceCandidates.Value);
                 State.ReplaceCandidateMap.Remove(input.PeriodNumber);
             }
-            newElectedMiners = newElectedMiners.Where(p => State.LatestMinedTerm[p] == 0 && !initialMinerList.Contains(p)).ToList();
-            if (newElectedMiners.Any())
+            maybeNewElectedMiners = maybeNewElectedMiners.Where(p => State.LatestMinedTerm[p] == 0 && !GetInitialMinerList().Contains(p)).ToList();
+            if (maybeNewElectedMiners.Any())
             {
-                Context.LogDebug(() => $"New elected miners: {newElectedMiners.Aggregate((l, r) => $"{l}\n{r}")}");
+                Context.LogDebug(() => $"New elected miners: {maybeNewElectedMiners.Aggregate((l, r) => $"{l}\n{r}")}");
             }
             else
             {
                 Context.LogDebug(() => "No new elected miner.");
             }
-            UpdateStateBeforeDistribution(previousTermInformation, newElectedMiners);
+            UpdateStateBeforeDistribution(previousTermInformation, maybeNewElectedMiners);
             ReleaseTreasurySubProfitItems(input.PeriodNumber);
-            UpdateStateAfterDistribution(previousTermInformation, victories);
+            UpdateStateAfterDistribution(previousTermInformation, currentMinerList);
             return new Empty();
         }
 
         private List<string> GetInitialMinerList()
         {
-            return State.AEDPoSContract.GetPreviousTermMinerPubkeyList.Call(new Empty()).Pubkeys.ToList();
+            return State.AEDPoSContract.GetRoundInformation.Call(new Int64Value { Value = 1 }).RealTimeMinersInformation
+                .Keys.ToList();
         }
 
         public override Empty Donate(DonateInput input)
@@ -459,11 +460,11 @@ namespace AElf.Contracts.Treasury
             UpdateFlexibleRewardWeights(State.HasNewMiner[previousTermInformation.TermNumber]);
         }
 
-        private void UpdateStateAfterDistribution(Round previousTermInformation, List<string> victories)
+        private void UpdateStateAfterDistribution(Round previousTermInformation, List<string> currentMinerList)
         {
-            foreach (var victory in victories)
+            foreach (var miner in currentMinerList)
             {
-                State.LatestMinedTerm[victory] = previousTermInformation.TermNumber;
+                State.LatestMinedTerm[miner] = previousTermInformation.TermNumber;
             }
         }
 

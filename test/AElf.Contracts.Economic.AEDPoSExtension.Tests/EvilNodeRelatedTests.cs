@@ -9,6 +9,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
 using AElf.GovernmentSystem;
 using AElf.Kernel;
+using AElf.Kernel.Proposal;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -18,8 +19,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
     public class EvilNodeRelatedTests : EconomicTestBase
     {
-        [Fact(Skip = "Need to find another way to mark someone as evil node.")]
-        public async Task MarkEvilNodeTest()
+        [Fact(Skip = "Need fix.")]
+        internal async Task MarkEvilNodeTest()
         {
             UpdateParliamentStubs(MissionedECKeyPairs.InitialKeyPairs);
             var newCandidates = MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(18).ToList();
@@ -28,23 +29,31 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             UpdateParliamentStubs(newCandidates.Take(17));
             var defaultOrganizationAddress =
                 await ParliamentStubs.First().GetDefaultOrganizationAddress.CallAsync(new Empty());
-            var evilNodePubkey = MissionedECKeyPairs.ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
             await ParliamentReachAnAgreementAsync(new CreateProposalInput
             {
-                ToAddress = ContractAddresses[ElectionSmartContractAddressNameProvider.Name],
-                ContractMethodName = nameof(ElectionStub.UpdateCandidateInformation),
-                Params = new UpdateCandidateInformationInput
-                {
-                    Pubkey = evilNodePubkey,
-                    IsEvilNode = true
-                }.ToByteString(),
+                ToAddress = ContractAddresses[ParliamentSmartContractAddressNameProvider.Name],
+                ContractMethodName = "CreateEmergencyResponseOrganization",
+                Params = new Empty().ToByteString(),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                 OrganizationAddress = defaultOrganizationAddress
             });
-            await BlockMiningService.MineBlockToNextRoundAsync();
-//            await BlockMiningService.MineBlockToNextRoundAsync();
-//            var currentRound = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-//            currentRound.RealTimeMinersInformation.Keys.ShouldNotContain(evilNodePubkey);
+            var eroAddress =
+                await ParliamentStubs.First().GetEmergencyResponseOrganizationAddress.CallAsync(new Empty());
+            var evilNodePubkey = MissionedECKeyPairs.ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            await EmergencyResponseOrganizationReachAnAgreementAsync(new CreateProposalInput
+            {
+                ToAddress = ContractAddresses[ElectionSmartContractAddressNameProvider.Name],
+                ContractMethodName = nameof(ElectionStub.RemoveEvilNode),
+                Params = new StringValue
+                {
+                    Value = evilNodePubkey
+                }.ToByteString(),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                OrganizationAddress = eroAddress
+            });
+            await BlockMiningService.MineBlockToNextTermAsync();
+           var currentRound = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            currentRound.RealTimeMinersInformation.Keys.ShouldNotContain(evilNodePubkey);
         }
 
         private async Task NodesAnnounceElection(List<ECKeyPair> nodeAccounts)
