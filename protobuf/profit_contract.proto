@@ -43,9 +43,6 @@ service ProfitContract {
     rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {
     }
 
-    rpc ClaimProfitsByPeriod (ClaimProfitsByPeriodInput) returns (google.protobuf.Empty) {
-    }
-
     // Distribute profits to schemes, including its sub scheme according to period and  token symbol, 
     // should be called by the manager. 
     rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) {
@@ -193,15 +190,6 @@ message ClaimProfitsInput {
     aelf.Hash scheme_id = 1;
     // The address of beneficiary.
     aelf.Address beneficiary = 2;
-}
-
-message ClaimProfitsByPeriodInput {
-    // The scheme id.
-    aelf.Hash scheme_id = 1;
-    // The address of beneficiary.
-    aelf.Address beneficiary = 2;
-    // Target period number.
-    int64 period = 3;
 }
 
 message DistributeProfitsInput {

@@ -712,51 +712,6 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        public override Empty ClaimProfitsByPeriod(ClaimProfitsByPeriodInput input)
-        {
-            var scheme = State.SchemeInfos[input.SchemeId];
-            if (scheme == null)
-            {
-                throw new AssertionException("Scheme not found.");
-            }
-
-            var beneficiary = input.Beneficiary ?? Context.Sender;
-            var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
-            if (profitDetails == null)
-            {
-                throw new AssertionException("Profit details not found.");
-            }
-
-            var targetDetail = profitDetails.Details.SingleOrDefault(d => d.StartPeriod == input.Period);
-            if (targetDetail == null)
-            {
-                return new Empty();
-            }
-
-            var shares = targetDetail.Shares;
-            var virtualAddress = GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
-            var distributedProfits = State.DistributedProfitsMap[virtualAddress];
-            foreach (var amountPair in distributedProfits.AmountsMap)
-            {
-                var symbol = amountPair.Key;
-                var amount = amountPair.Value.Mul(shares).Div(distributedProfits.TotalShares);
-                if (amount > 0)
-                {
-                    Context.SendVirtualInline(
-                        GeneratePeriodVirtualAddressFromHash(input.SchemeId, input.Period),
-                        State.TokenContract.Value,
-                        nameof(State.TokenContract.Transfer), new TransferInput
-                        {
-                            To = beneficiary,
-                            Symbol = symbol,
-                            Amount = amount
-                        }.ToByteString());
-                }
-            }
-
-            return new Empty();
-        }
-
         private Dictionary<string, long> ProfitAllPeriods(Scheme scheme, ProfitDetail profitDetail, Address beneficiary,
             bool isView = false, string targetSymbol = null)
         {
