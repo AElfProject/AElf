@@ -227,7 +227,7 @@ message ProfitDetail {
     int64 shares = 3;
     // The last period number that the beneficiary received the profit.
     int64 last_profit_period = 4;
-    // Whether the weight  has been removed.
+    // Whether the weight has been removed.
     bool is_weight_removed = 5;
 }
 

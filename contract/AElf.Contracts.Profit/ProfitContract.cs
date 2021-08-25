@@ -719,6 +719,7 @@ namespace AElf.Contracts.Profit
             {
                 throw new AssertionException("Scheme not found.");
             }
+
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
             if (profitDetails == null)
