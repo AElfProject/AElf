@@ -369,7 +369,7 @@ namespace AElf.Contracts.Election
                         await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
                     // 75% + 5% (from Flexible Reward)
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount * 4 / 5);
+                        .ShouldBe(rewardAmount * 3 / 4);
 
                     // Amount of citizen welfare.
                     var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
