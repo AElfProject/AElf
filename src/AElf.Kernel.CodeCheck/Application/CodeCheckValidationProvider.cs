@@ -7,6 +7,7 @@ using AElf.Standards.ACS0;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.CodeCheck.Application
 {
@@ -15,16 +16,19 @@ namespace AElf.Kernel.CodeCheck.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IContractReaderFactory<ACS0Container.ACS0Stub> _contractReaderFactory;
         private readonly ICheckedCodeHashProvider _checkedCodeHashProvider;
+        private readonly CodeCheckOptions _codeCheckOptions;
 
         public ILogger<CodeCheckValidationProvider> Logger { get; set; }
 
         public CodeCheckValidationProvider(ISmartContractAddressService smartContractAddressService,
             IContractReaderFactory<ACS0Container.ACS0Stub> contractReaderFactory,
-            ICheckedCodeHashProvider checkedCodeHashProvider)
+            ICheckedCodeHashProvider checkedCodeHashProvider,
+            IOptionsSnapshot<CodeCheckOptions> codeCheckOptions)
         {
             _smartContractAddressService = smartContractAddressService;
             _contractReaderFactory = contractReaderFactory;
             _checkedCodeHashProvider = checkedCodeHashProvider;
+            _codeCheckOptions = codeCheckOptions.Value;
 
             Logger = NullLogger<CodeCheckValidationProvider>.Instance;
         }
@@ -41,10 +45,11 @@ namespace AElf.Kernel.CodeCheck.Application
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Header.Height == AElfConstants.GenesisBlockHeight)
+            if (block.Header.Height == AElfConstants.GenesisBlockHeight || !_codeCheckOptions.CodeCheckEnabled)
             {
                 return true;
             }
+
             var genesisContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var deployedBloom = new ContractDeployed().ToLogEvent(genesisContractAddress).GetBloom();
             if (!deployedBloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()))) return true;
@@ -56,6 +61,11 @@ namespace AElf.Kernel.CodeCheck.Application
                 BlockHeight = block.Header.Height,
                 ContractAddress = genesisContractAddress
             }).GetContractCodeHashListByDeployingBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
+
+            if (codeHashList == null)
+            {
+                return true;
+            }
 
             Logger.LogInformation($"block hash: {block}");
             return codeHashList.Value.All(codeHash => _checkedCodeHashProvider.IsCodeHashExists(new BlockIndex
