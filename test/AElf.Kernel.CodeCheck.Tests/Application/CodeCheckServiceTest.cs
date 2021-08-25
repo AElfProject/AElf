@@ -29,7 +29,7 @@ namespace AElf.Kernel.CodeCheck.Tests
         {
             _codeCheckOptions.CodeCheckEnabled = false;
             var result = await _codeCheckService.PerformCodeCheckAsync(null, null, 0, 0, false);
-            result.ShouldBeFalse();
+            result.ShouldBeTrue();
         }
         
         [Fact]

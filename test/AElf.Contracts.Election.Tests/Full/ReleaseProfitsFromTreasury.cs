@@ -352,9 +352,9 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
                     releasedInformation.TotalShares.ShouldBe(totalProducedBlocks);
-                    // 10% + 5% (from Welcome Reward)
+                    // 10% + 5% (from Welcome Reward) + 5% (from Flexible Reward)
                     releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount / 10 + rewardAmount / 20);
+                        .ShouldBe(rewardAmount / 10 + rewardAmount / 20 + rewardAmount / 20);
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
                     updatedBasicReward += releasedInformation.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol] *
                         previousTermInformation
