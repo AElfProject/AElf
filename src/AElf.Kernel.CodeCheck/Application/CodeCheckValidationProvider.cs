@@ -47,6 +47,7 @@ namespace AElf.Kernel.CodeCheck.Application
         {
             if (block.Header.Height == AElfConstants.GenesisBlockHeight || !_codeCheckOptions.CodeCheckEnabled)
             {
+                Logger.LogInformation($"CodeCheckEnabled: {_codeCheckOptions.CodeCheckEnabled}");
                 return true;
             }
 
@@ -62,8 +63,9 @@ namespace AElf.Kernel.CodeCheck.Application
                 ContractAddress = genesisContractAddress
             }).GetContractCodeHashListByDeployingBlockHeight.CallAsync(new Int64Value { Value = block.Header.Height });
 
-            if (codeHashList == null)
+            if (codeHashList == null || !codeHashList.Value.Any())
             {
+                Logger.LogInformation($"CodeHashList is empty.");
                 return true;
             }
 

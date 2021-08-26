@@ -242,20 +242,6 @@ namespace AElf.Kernel.SmartContract
                 MethodName = methodName,
                 Params = args
             });
-            FireLogEvent(new LogEvent
-            {
-                Address = Self,
-                Name = "__VirtualAddress",
-                Indexed =
-                {
-                    // From hash
-                    fromVirtualAddress.ToByteString(),
-                    // Contract address
-                    Self.ToByteString(),
-                    // Sender address
-                    Sender.ToByteString()
-                }
-            });
         }
 
         public void SendVirtualInlineBySystemContract(Hash fromVirtualAddress, Address toAddress, string methodName,
