@@ -457,7 +457,7 @@ namespace AElf.Contracts.Treasury
             Context.LogDebug(() => $"Will update weights after term {previousTermInformation.TermNumber}");
             UpdateBasicMinerRewardWeights(new List<Round> { previousPreviousTermInformation, previousTermInformation });
             UpdateWelcomeRewardWeights(previousTermInformation, newElectedMiners);
-            UpdateFlexibleRewardWeights(State.HasNewMiner[previousTermInformation.TermNumber]);
+            UpdateFlexibleRewardWeights(previousTermInformation);
         }
 
         private void UpdateStateAfterDistribution(Round previousTermInformation, List<string> currentMinerList)
@@ -603,7 +603,7 @@ namespace AElf.Contracts.Treasury
             }
         }
         
-        private void UpdateFlexibleRewardWeights(bool hasNewMiner)
+        private void UpdateFlexibleRewardWeights(Round previousTermInformation)
         {
             State.ProfitContract.RemoveSubScheme.Send(new RemoveSubSchemeInput
             {
@@ -615,8 +615,18 @@ namespace AElf.Contracts.Treasury
                 SchemeId = State.ReElectionRewardHash.Value,
                 SubSchemeId = State.BasicRewardHash.Value
             });
+            if (State.ProfitContract.GetScheme.Call(State.ReElectionRewardHash.Value).TotalShares > 0)
+            {
+                var previousMinerAddresses = previousTermInformation.RealTimeMinersInformation.Keys
+                    .Select(k => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k))).ToList();
+                State.ProfitContract.RemoveBeneficiaries.Send(new RemoveBeneficiariesInput
+                {
+                    SchemeId = State.ReElectionRewardHash.Value,
+                    Beneficiaries = { previousMinerAddresses }
+                });
+            }
 
-            if (hasNewMiner)
+            if (State.HasNewMiner[previousTermInformation.TermNumber])
             {
                 Context.LogDebug(() => "Flexible reward will go to Welfare Reward.");
                 State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
