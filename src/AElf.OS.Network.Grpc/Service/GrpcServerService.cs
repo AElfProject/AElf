@@ -336,12 +336,13 @@ namespace AElf.OS.Network.Grpc
             if (request == null)
                 return new NodeList();
 
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
+            var nodesCount = Math.Min(request.MaxCount, GrpcConstants.DefaultDiscoveryMaxNodesToResponse);
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {nodesCount} nodes.");
 
             NodeList nodes;
             try
             {
-                nodes = await _nodeManager.GetRandomNodesAsync(request.MaxCount);
+                nodes = await _nodeManager.GetRandomNodesAsync(nodesCount);
             }
             catch (Exception e)
             {

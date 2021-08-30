@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -65,9 +66,9 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<T> PostResponseAsObjectAsync<T>(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null)
         {
-            var strResponse = await PostResponseAsStringAsync(url, paramters, version, expectedStatusCode);
+            var strResponse = await PostResponseAsStringAsync(url, paramters, version, expectedStatusCode, basicAuth);
             return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -75,16 +76,21 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<string> PostResponseAsStringAsync(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null)
         {
-            var response = await PostResponseAsync(url, paramters, version, expectedStatusCode);
+            var response = await PostResponseAsync(url, paramters, version, expectedStatusCode, basicAuth);
             return await response.Content.ReadAsStringAsync();
         }
 
         protected async Task<HttpResponseMessage> PostResponseAsync(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null, string reason = null)
         {
             version = !string.IsNullOrWhiteSpace(version) ? $";v={version}" : string.Empty;
+            if (basicAuth != null)
+            {
+                var byteArray = Encoding.ASCII.GetBytes($"{basicAuth.UserName}:{basicAuth.Password}");
+                Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+            }
 
             Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var paramsStr = JsonConvert.SerializeObject(paramters);
@@ -93,13 +99,14 @@ namespace AElf.WebApp.Application
 
             var response = await Client.PostAsync(url, content);
             response.StatusCode.ShouldBe(expectedStatusCode);
+            if (reason != null) response.ReasonPhrase.ShouldBe(reason);
             return response;
         }
 
         protected async Task<T> DeleteResponseAsObjectAsync<T>(string url, string version = null,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK, BasicAuth basicAuth = null)
         {
-            var strResponse = await DeleteResponseAsStringAsync(url, version, expectedStatusCode);
+            var strResponse = await DeleteResponseAsStringAsync(url, version, expectedStatusCode, basicAuth);
             return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -107,22 +114,45 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<string> DeleteResponseAsStringAsync(string url, string version = null,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK,BasicAuth basicAuth = null)
         {
-            var response = await DeleteResponseAsync(url, version, expectedStatusCode);
+            var response = await DeleteResponseAsync(url, version, expectedStatusCode,basicAuth);
             return await response.Content.ReadAsStringAsync();
         }
 
         protected async Task<HttpResponseMessage> DeleteResponseAsync(string url, string version = null,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK,BasicAuth basicAuth = null, string reason = null)
         {
             version = !string.IsNullOrWhiteSpace(version) ? $";v={version}" : string.Empty;
             Client.DefaultRequestHeaders.Accept.Clear();
             Client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse($"application/json{version}"));
+            if (basicAuth != null)
+            {
+                var byteArray = Encoding.ASCII.GetBytes($"{basicAuth.UserName}:{basicAuth.Password}");
+                Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+            }
             
             var response = await Client.DeleteAsync(url);
             response.StatusCode.ShouldBe(expectedStatusCode);
+            if(reason != null) response.ReasonPhrase.ShouldBe(reason);
             return response;
         }
+    }
+
+    public class BasicAuth
+    {
+        public static readonly string DefaultUserName = "user";
+
+        public static string DefaultPassword = "password";
+
+        public static readonly BasicAuth Default = new BasicAuth
+        {
+            UserName = DefaultUserName,
+            Password = DefaultPassword
+        };
+
+        public string UserName { get; set; }
+        
+        public string Password { get; set; }
     }
 }

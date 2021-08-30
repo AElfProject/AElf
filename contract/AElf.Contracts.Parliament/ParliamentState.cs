@@ -22,5 +22,7 @@ namespace AElf.Contracts.Parliament
 
         public SingletonState<ProposerWhiteList> ProposerWhiteList { get; set; }
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
     }
 }

@@ -306,13 +306,13 @@ namespace AElf.Contracts.Election
                 });
             }
             else
-                IsCandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
+                CandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
             
             if (dataCenterList.DataCenters.ContainsKey(oldVoteOptionPublicKey))
             {
                 dataCenterList.DataCenters[oldVoteOptionPublicKey] =
                     dataCenterList.DataCenters[oldVoteOptionPublicKey].Sub(votingRecord.Amount);
-                IsUpdateDataCenterAfterMemberVoteAmountChange(dataCenterList, oldVoteOptionPublicKey);
+                UpdateDataCenterAfterMemberVoteAmountChanged(dataCenterList, oldVoteOptionPublicKey);
             }
 
             State.DataCentersRankingList.Value = dataCenterList;
@@ -373,22 +373,21 @@ namespace AElf.Contracts.Election
             if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
             rankingList.DataCenters[newestPubkey] =
                 rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
-            IsUpdateDataCenterAfterMemberVoteAmountChange(rankingList, newestPubkey);
+            UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, newestPubkey);
             State.DataCentersRankingList.Value = rankingList;
 
             return new Empty();
         }
 
-        private bool IsUpdateDataCenterAfterMemberVoteAmountChange(DataCenterRankingList rankingList, string member,
+        private void UpdateDataCenterAfterMemberVoteAmountChanged(DataCenterRankingList rankingList, string targetMember,
             bool isForceReplace = false)
         {
-            var amountAfterWithdraw = rankingList.DataCenters[member];
+            var amountAfterWithdraw = rankingList.DataCenters[targetMember];
             if(isForceReplace)
                 Assert(amountAfterWithdraw == 0, "should update vote amount in data center firstly");
-            else
-                if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
-                    return false;
-            
+            else if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
+                return;
+
             var validCandidates = State.Candidates.Value.Value.Select(x => x.ToHex())
                 .Where(c => !rankingList.DataCenters.ContainsKey(c) && State.CandidateVotes[c] != null)
                 .OrderByDescending(x => State.CandidateVotes[x].ObtainedActiveVotedVotesAmount);
@@ -404,7 +403,7 @@ namespace AElf.Contracts.Election
 
             if (isForceReplace)
             {
-                rankingList.DataCenters.Remove(member);
+                rankingList.DataCenters.Remove(targetMember);
                 if (maxVoteCandidateOutDataCenter == null)
                 {
                     maxVoteCandidateOutDataCenter = State.Candidates.Value.Value.Select(x => x.ToHex())
@@ -419,33 +418,31 @@ namespace AElf.Contracts.Election
             else
             {
                 if (maxVoteAmountOutOfDataCenter <= amountAfterWithdraw)
-                    return false;
-                rankingList.DataCenters.Remove(member);
+                    return;
+                rankingList.DataCenters.Remove(targetMember);
             }
             if (maxVoterPublicKeyStringOutOfDataCenter != null)
             {
                 rankingList.DataCenters[maxVoterPublicKeyStringOutOfDataCenter] = maxVoteAmountOutOfDataCenter;
             }
 
-            NotifyProfitReplaceCandidateInDataCenter(member, maxVoterPublicKeyStringOutOfDataCenter);
-            return true;
+            NotifyProfitReplaceCandidateInDataCenter(targetMember, maxVoterPublicKeyStringOutOfDataCenter);
         }
 
-        private bool IsCandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate,
+        private void CandidateReplaceMemberInDataCenter(DataCenterRankingList rankingList, string candidate,
             long voteAmount)
         {
             var dateCenter = rankingList.DataCenters;
             if (dateCenter.Count < GetValidationDataCenterCount())
-                return false;
+                return;
             if (dateCenter.ContainsKey(candidate))
-                return false;
+                return;
             var list = dateCenter.ToList();
             var minimumVoteCandidateInDataCenter = list.OrderBy(x => x.Value).First();
-            if (voteAmount <= minimumVoteCandidateInDataCenter.Value) return false;
+            if (voteAmount <= minimumVoteCandidateInDataCenter.Value) return;
             dateCenter.Remove(minimumVoteCandidateInDataCenter.Key);
             dateCenter[candidate] = voteAmount;
             NotifyProfitReplaceCandidateInDataCenter(minimumVoteCandidateInDataCenter.Key, candidate);
-            return true;
         }
 
         private void NotifyProfitReplaceCandidateInDataCenter(string oldCandidateInDataCenter,

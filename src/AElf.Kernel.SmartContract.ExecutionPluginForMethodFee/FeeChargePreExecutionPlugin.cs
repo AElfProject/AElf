@@ -14,11 +14,13 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
 {
-    internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin, ISingletonDependency
+    internal class FeeChargePreExecutionPlugin : SmartContractExecutionPluginBase, IPreExecutionPlugin,
+        ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IPrimaryTokenFeeService _txFeeService;
         private readonly ITransactionSizeFeeSymbolsProvider _transactionSizeFeeSymbolsProvider;
+
         private readonly IContractReaderFactory<TokenContractImplContainer.TokenContractImplStub>
             _contractReaderFactory;
 
@@ -48,10 +50,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     BlockHeight = transactionContext.BlockHeight - 1
                 };
 
-                var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(chainContext,
+                var tokenContractAddress = await _smartContractAddressService.GetAddressByContractNameAsync(
+                    chainContext,
                     TokenSmartContractAddressNameProvider.StringName);
 
-                if (transactionContext.BlockHeight < AElfConstants.GenesisBlockHeight + 1 || tokenContractAddress == null)
+                if (transactionContext.BlockHeight < AElfConstants.GenesisBlockHeight + 1 ||
+                    tokenContractAddress == null)
                 {
                     return new List<Transaction>();
                 }
@@ -66,14 +70,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     Sender = transactionContext.Transaction.From,
                     ContractAddress = tokenContractAddress
                 });
-                    
+
                 if (transactionContext.Transaction.To == tokenContractAddress &&
                     transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
                 {
                     // Skip ChargeTransactionFees itself 
                     return new List<Transaction>();
                 }
-                
+
                 var txCost = await _txFeeService.CalculateFeeAsync(transactionContext, chainContext);
                 var chargeTransactionFeesInput = new ChargeTransactionFeesInput
                 {
@@ -81,7 +85,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
                     ContractAddress = transactionContext.Transaction.To,
                     TransactionSizeFee = txCost,
                 };
-                
+
                 var transactionSizeFeeSymbols =
                     await _transactionSizeFeeSymbolsProvider.GetTransactionSizeFeeSymbolsAsync(chainContext);
                 if (transactionSizeFeeSymbols != null)
@@ -105,7 +109,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForMethodFee
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Failed to generate ChargeTransactionFees tx.");
+                Logger.LogError($"Failed to generate ChargeTransactionFees tx. {e.Message}");
                 throw;
             }
         }

@@ -28,7 +28,7 @@ namespace AElf.Kernel.CodeCheck.Application
         public async Task<bool> PerformCodeCheckAsync(byte[] code, Hash blockHash, long blockHeight, int category, bool isSystemContract)
         {
             if (!_codeCheckOptions.CodeCheckEnabled)
-                return false;
+                return true;
 
             var requiredAcs =
                 await _requiredAcsProvider.GetRequiredAcsInContractsAsync(blockHash, blockHeight);

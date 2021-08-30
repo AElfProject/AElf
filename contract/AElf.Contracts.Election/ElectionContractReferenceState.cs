@@ -15,6 +15,6 @@ namespace AElf.Contracts.Election
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState AEDPoSContract { get; set; }
         internal ParliamentContractContainer.ParliamentContractReferenceState ParliamentContract { get; set; }
-        internal DividendPoolContractContainer.DividendPoolContractReferenceState DividendPoolContract{ get; set; }
+        internal DividendPoolContractContainer.DividendPoolContractReferenceState DividendPoolContract { get; set; }
     }
 }

@@ -80,6 +80,11 @@ namespace AElf.Contracts.Genesis
             return State.CodeCheckController.Value;
         }
 
+        public override ContractCodeHashList GetContractCodeHashListByDeployingBlockHeight(Int64Value input)
+        {
+            return State.ContractCodeHashListMap[input.Value];
+        }
+
         #endregion Views
 
         #region Actions
