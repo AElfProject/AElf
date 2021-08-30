@@ -91,6 +91,11 @@ service ElectionContract {
     rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
     }
     
+    rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    
     // Get all candidates’ public keys.
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
@@ -426,10 +431,10 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash welfare_hash = 2;
     // The scheme id of subsidy reward.
     aelf.Hash subsidy_hash = 3;
-    // The scheme id of votes reward.
-    aelf.Hash votes_reward_hash = 4;
-    // The scheme id of re-election reward.
-    aelf.Hash re_election_reward_hash = 5;
+    // The scheme id of welcome reward.
+    aelf.Hash welcome_hash = 4;
+    // The scheme id of flexible reward.
+    aelf.Hash flexible_hash = 5;
 }
 
 message DataCenterRankingList {

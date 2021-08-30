@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool;
 using AElf.WebApp.Application.Chain.Infrastructure;
@@ -95,8 +96,9 @@ namespace AElf.WebApp.Application.Chain
             }
             catch (Exception e)
             {
+                using var detail = new StringReader(e.Message);
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString(), e.Message);
+                    Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
             }
         }
 
@@ -140,8 +142,9 @@ namespace AElf.WebApp.Application.Chain
             }
             catch (Exception e)
             {
+                using var detail = new StringReader(e.Message);
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                    Error.InvalidTransaction.ToString(), e.Message);
+                    Error.InvalidTransaction.ToString(), await detail.ReadLineAsync());
             }
         }
 

@@ -156,6 +156,26 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             await ParliamentStubs.First().Release.SendAsync(proposalId);
         }
         
+        internal async Task EmergencyResponseOrganizationReachAnAgreementAsync(CreateProposalInput createProposalInput)
+        {
+            var createProposalTx = ParliamentStubs.First().CreateProposal.GetTransaction(createProposalInput);
+            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            {
+                createProposalTx
+            });
+            var proposalId = new Hash();
+            proposalId.MergeFrom(TransactionTraceProvider.GetTransactionTrace(createProposalTx.GetHash()).ReturnValue);
+            var approvals = new List<Transaction>();
+            foreach (var stub in ParliamentStubs)
+            {
+                approvals.Add(stub.Approve.GetTransaction(proposalId));
+            }
+            
+            await BlockMiningService.MineBlockAsync(approvals);
+
+            await ParliamentStubs.First().Release.SendAsync(proposalId);
+        }
+        
         internal void UpdateParliamentStubs(IEnumerable<ECKeyPair> keyPairs)
         {
             ParliamentStubs.Clear();

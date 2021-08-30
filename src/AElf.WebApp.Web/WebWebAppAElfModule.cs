@@ -6,10 +6,12 @@ using AElf.Modularity;
 using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Application.Net;
 using Google.Protobuf;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -20,6 +22,8 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Authorization;
+using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
 
 namespace AElf.WebApp.Web
@@ -34,6 +38,8 @@ namespace AElf.WebApp.Web
         {
             //var hostingEnvironment = context.Services.GetHostingEnvironment();
             //var configuration = context.Services.GetConfiguration();
+            
+            context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
             ConfigureAutoApiControllers();
             
@@ -61,6 +67,13 @@ namespace AElf.WebApp.Web
                 };
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
+            
+            context.Services.AddAuthentication("BasicAuthentication")
+                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+            
+            var configuration = context.Services.GetConfiguration();
+
+            Configure<BasicAuthOptions>(options => { configuration.GetSection("BasicAuth").Bind(options); });
         }
 
         private void ConfigureAutoApiControllers()

@@ -33,6 +33,10 @@ service ParliamentContract {
     rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
     }
 
+    // Creates an organization to handle emergency events.
+    rpc CreateEmergencyResponseOrganization (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
     // Get the organization according to the organization address.
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
@@ -67,12 +71,16 @@ service ParliamentContract {
     rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
         option (aelf.is_view) = true;
     }
+    
+    rpc GetEmergencyResponseOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateOrganizationInput {
     // The threshold for releasing the proposal.
     acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
-    // Setting this to true can allow anyone to create proposals.
+    // Setting this to false will allow anyone creating proposals.
     bool proposer_authority_required = 2;
     // Setting this to true can allow parliament member to create proposals.
     bool parliament_member_proposing_allowed = 3;

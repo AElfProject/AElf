@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockStateSet.BlockHash = block.GetHash();
             Logger.LogTrace("Set block state set.");
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-            
+
             // handle execution cases 
             await CleanUpReturnSetCollectionAsync(block.Header, returnSetCollection);
             

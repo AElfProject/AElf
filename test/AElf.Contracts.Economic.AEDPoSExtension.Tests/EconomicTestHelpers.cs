@@ -57,9 +57,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 await ProfitStub.GetScheme.CallAsync(treasuryScheme.SubSchemes[2].SchemeId));
             schemes.Add(SchemeType.MinerBasicReward,
                 await ProfitStub.GetScheme.CallAsync(minerRewardScheme.SubSchemes[0].SchemeId));
-            schemes.Add(SchemeType.VotesWeightReward,
+            schemes.Add(SchemeType.WelcomeReward,
                 await ProfitStub.GetScheme.CallAsync(minerRewardScheme.SubSchemes[1].SchemeId));
-            schemes.Add(SchemeType.ReElectionReward,
+            schemes.Add(SchemeType.FlexibleReward,
                 await ProfitStub.GetScheme.CallAsync(minerRewardScheme.SubSchemes[2].SchemeId));
             return schemes;
         }
@@ -103,8 +103,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             CitizenWelfare,
 
             MinerBasicReward,
-            VotesWeightReward,
-            ReElectionReward
+            WelcomeReward,
+            FlexibleReward
         }
 
         internal List<AEDPoSContractImplContainer.AEDPoSContractImplStub> ConvertKeyPairsToConsensusStubs(

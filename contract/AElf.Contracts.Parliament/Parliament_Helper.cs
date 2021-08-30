@@ -202,7 +202,7 @@ namespace AElf.Contracts.Parliament
         {
             return Context.GenerateId(Context.Self, input.Token ?? HashHelper.ComputeFrom(input));
         }
-        
+
         private Hash CreateNewProposal(CreateProposalInput input)
         {
             Hash proposalId = GenerateProposalId(input);
@@ -221,7 +221,7 @@ namespace AElf.Contracts.Parliament
             Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
             State.Proposals[proposalId] = proposal;
             Context.Fire(new ProposalCreated
-                {ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress});
+                { ProposalId = proposalId, OrganizationAddress = input.OrganizationAddress });
             return proposalId;
         }
 
@@ -265,12 +265,30 @@ namespace AElf.Contracts.Parliament
                 OrganizationHash = organizationHash
             };
         }
-        
+
         private Hash CalculateVirtualHash(Hash organizationHash, Hash creationToken)
         {
             return creationToken == null
                 ? organizationHash
                 : HashHelper.ConcatAndCompute(organizationHash, creationToken);
+        }
+
+        private void CreateEmergencyResponseOrganization()
+        {
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ProposalReleaseThreshold = new ProposalReleaseThreshold
+                {
+                    MinimalApprovalThreshold = 9000,
+                    MinimalVoteThreshold = 9000,
+                    MaximalAbstentionThreshold = 1000,
+                    MaximalRejectionThreshold = 1000
+                },
+                ProposerAuthorityRequired = false,
+                ParliamentMemberProposingAllowed = true
+            };
+
+            State.EmergencyResponseOrganizationAddress.Value = CreateOrganization(createOrganizationInput);
         }
     }
 }

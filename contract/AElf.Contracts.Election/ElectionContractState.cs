@@ -13,8 +13,8 @@ namespace AElf.Contracts.Election
         public SingletonState<Hash> TreasuryHash { get; set; }
         public SingletonState<Hash> WelfareHash { get; set; }
         public SingletonState<Hash> SubsidyHash { get; set; }
-        public SingletonState<Hash> VotesRewardHash { get; set; }
-        public SingletonState<Hash> ReElectionRewardHash { get; set; }
+        public SingletonState<Hash> FlexibleHash { get; set; }
+        public SingletonState<Hash> WelcomeHash { get; set; }
 
         public MappedState<string, ElectorVote> ElectorVotes { get; set; }
 
@@ -81,5 +81,7 @@ namespace AElf.Contracts.Election
         /// Initial pubkey -> Newest pubkey
         /// </summary>
         public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
+
+        public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
     }
 }

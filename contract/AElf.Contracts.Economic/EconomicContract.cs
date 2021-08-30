@@ -205,8 +205,8 @@ namespace AElf.Contracts.Economic
             State.ElectionContract.SetTreasurySchemeIds.Send(new SetTreasurySchemeIdsInput
             {
                 TreasuryHash = schemeIdsManagingByTreasuryContract[0],
-                VotesRewardHash = schemeIdsManagingByTreasuryContract[3],
-                ReElectionRewardHash = schemeIdsManagingByTreasuryContract[4],
+                WelcomeHash = schemeIdsManagingByTreasuryContract[3],
+                FlexibleHash = schemeIdsManagingByTreasuryContract[4],
                 SubsidyHash = schemeIdsManagingByElectionContract[0],
                 WelfareHash = schemeIdsManagingByElectionContract[1]
             });
