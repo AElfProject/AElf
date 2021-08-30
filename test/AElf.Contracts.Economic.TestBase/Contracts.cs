@@ -19,7 +19,7 @@ namespace AElf.Contracts.Economic.TestBase
         Vote,
         TokenHolder
     }
-    
+
     public enum TestContracts
     {
         BasicFunction,
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Economic.TestBase
         MethodCallThreshold,
         ResourceSpender
     }
-    
+
     public enum ProfitType
     {
         Treasury,
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Economic.TestBase
         BackupSubsidy,
         CitizenWelfare,
         BasicMinerReward,
-        VotesWeightReward,
-        ReElectionReward
+        WelcomeReward,
+        FlexibleReward,
     }
 }

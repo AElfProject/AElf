@@ -87,6 +87,11 @@ namespace AElf.WebApp.Application
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddTransient<ITransactionSizeFeeSymbolsProvider, TransactionSizeFeeSymbolsProvider>();
             context.Services.Replace(ServiceDescriptor.Singleton<ITransactionExecutingService, PlainTransactionExecutingService>());
+            Configure<BasicAuthOptions>(options =>
+            {
+                options.UserName = BasicAuth.DefaultUserName;
+                options.Password = BasicAuth.DefaultPassword;
+            });
         }
     }
 }

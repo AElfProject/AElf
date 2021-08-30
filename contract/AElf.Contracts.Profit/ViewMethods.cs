@@ -36,7 +36,6 @@ namespace AElf.Contracts.Profit
 
         public override DistributedProfitsInfo GetDistributedProfitsInfo(SchemePeriod input)
         {
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             var releasedProfitsVirtualAddress = GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
             return State.DistributedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
             {

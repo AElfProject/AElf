@@ -880,6 +880,15 @@ HTTP Code Description Schema
 ========= =========== =======
 **200**   Success     boolean
 ========= =========== =======
+**401**   Unauthorized     
+========= =========== =======
+
+.. _security-1:
+
+Security
+^^^^^^^^
+
+- Basic Authentication
 
 .. _consumes-6:
 
@@ -937,6 +946,15 @@ HTTP Code Description Schema
 ========= =========== =======
 **200**   Success     boolean
 ========= =========== =======
+**401**   Unauthorized     
+========= =========== =======
+
+.. _security-1:
+
+Security
+^^^^^^^^
+
+- Basic Authentication
 
 .. _produces-19:
 

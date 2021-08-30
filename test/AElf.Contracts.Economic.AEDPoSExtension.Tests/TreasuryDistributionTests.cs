@@ -6,6 +6,7 @@ using AElf.Contracts.Election;
 using AElf.Contracts.Profit;
 using AElf.ContractTestKit;
 using AElf.ContractTestKit.AEDPoSExtension;
+using AElf.CSharp.Core;
 using AElf.TestBase;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -89,12 +90,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check amount distributed to each scheme.
             {
-                // Miner Basic Reward: 10%
+                // Miner Basic Reward: 10% + 5% （from Flexible Reward）
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount / 10);
+                    amount.ShouldBe(distributedAmount / 10 + distributedAmount / 20);
                 }
 
                 // Backup Subsidy: 5%
@@ -113,20 +114,20 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     amount.ShouldBe(-distributedAmount * 3 / 4);
                 }
 
-                // Votes Weight Reward: -5% (Burned)
+                // Flexible Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.WelcomeReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount / 20);
+                    amount.ShouldBe(distributedAmount / 20);
                 }
 
-                // Re-Election Reward: -5% (Burned)
+                // Welcome Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.ReElectionReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.FlexibleReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount / 20);
+                    amount.ShouldBe(distributedAmount / 20);
                 }
                 return distributedAmount;
             }
@@ -224,12 +225,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     };
                 }
 
-                // Citizen Welfare: 75%
+                // Citizen Welfare: 75% + 5% (from Flexible Reward)
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.CitizenWelfare].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount * 3 / 4);
+                    amount.ShouldBe(distributedAmount * 4 / 5);
                     var totalShares = distributedInformation.TotalShares;
                     totalShares.ShouldBePositive();
 
@@ -240,32 +241,33 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     };
                 }
 
-                // Votes Weight Reward: 5%
+                // Welcome Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.WelcomeReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 20);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(7000);
+                    // Went to miners. Now there are 10 miners.
+                    totalShares.ShouldBe(10);
 
-                    information[SchemeType.VotesWeightReward] = new DistributionInformation
+                    information[SchemeType.WelcomeReward] = new DistributionInformation
                     {
                         Amount = amount,
                         TotalShares = totalShares
                     };
                 }
 
-                // Re-Election Reward: 5%
+                // Flexible Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.ReElectionReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.FlexibleReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 20);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(5);
+                    totalShares.ShouldBe(1);
 
-                    information[SchemeType.ReElectionReward] = new DistributionInformation
+                    information[SchemeType.FlexibleReward] = new DistributionInformation
                     {
                         Amount = amount,
                         TotalShares = totalShares
@@ -352,8 +354,11 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var totalShares = distributedInformation.TotalShares;
                     var previousTermInformation =
                         ConsensusStub.GetPreviousTermInformation.CallAsync(new Int64Value {Value = 3}).Result;
-                    totalShares.ShouldBe(
-                        previousTermInformation.RealTimeMinersInformation.Values.Sum(i => i.ProducedBlocks));
+                    var producedBlocks = previousTermInformation.RealTimeMinersInformation.Values
+                        .Select(i => i.ProducedBlocks).ToList();
+                    var average = CalculateAverage(producedBlocks);
+                    var shares = producedBlocks.Select(i => CalculateShares(i, average)).ToList();
+                    totalShares.ShouldBe(shares.Sum());
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
@@ -378,12 +383,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     };
                 }
 
-                // Citizen Welfare: 75%
+                // Citizen Welfare: 75% + 5% (from Flexible Reward)
                 {
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.CitizenWelfare].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount * 3 / 4);
+                    amount.ShouldBe(distributedAmount * 4 / 5);
                     var totalShares = distributedInformation.TotalShares;
                     totalShares.ShouldBePositive();
 
@@ -394,32 +399,33 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     };
                 }
 
-                // Votes Weight Reward: 5%
+                // Welcome Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.WelcomeReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 20);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(7000 + 17000);
+                    // Went to 2 new miners -> Welcome
+                    totalShares.ShouldBe(2);
 
-                    information[SchemeType.VotesWeightReward] = new DistributionInformation
+                    information[SchemeType.WelcomeReward] = new DistributionInformation
                     {
                         Amount = amount,
                         TotalShares = totalShares
                     };
                 }
 
-                // Re-Election Reward: 5%
+                // Flexible Reward: 5%
                 {
                     var distributedInformation =
-                        await GetDistributedInformationAsync(_schemes[SchemeType.ReElectionReward].SchemeId, period);
+                        await GetDistributedInformationAsync(_schemes[SchemeType.FlexibleReward].SchemeId, period);
                     var amount = distributedInformation.AmountsMap[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 20);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(11);
+                    totalShares.ShouldBe(1);
 
-                    information[SchemeType.ReElectionReward] = new DistributionInformation
+                    information[SchemeType.FlexibleReward] = new DistributionInformation
                     {
                         Amount = amount,
                         TotalShares = totalShares
@@ -428,6 +434,34 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
 
             return information;
+        }
+        
+        /// <summary>
+        /// Just to make sure not using double type.
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private long CalculateAverage(List<long> list)
+        {
+            var sum = list.Sum();
+            return sum.Div(list.Count);
+        }
+
+        private long CalculateShares(long producedBlocksCount, long averageProducedBlocksCount)
+        {
+            if (producedBlocksCount < averageProducedBlocksCount.Div(2))
+            {
+                // If count < (1/2) * average_count, then this node won't share Basic Miner Reward.
+                return 0;
+            }
+
+            if (producedBlocksCount < averageProducedBlocksCount.Div(5).Mul(4))
+            {
+                // If count < (4/5) * average_count, then ratio will be (count / average_count)
+                return producedBlocksCount.Mul(producedBlocksCount).Div(averageProducedBlocksCount);
+            }
+
+            return producedBlocksCount;
         }
     }
 }
