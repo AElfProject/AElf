@@ -336,8 +336,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     isMinerListChanged = true;
                 }
-
-                Context.LogDebug(() => "Finished miner replacement process.");
             }
 
             currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound,
