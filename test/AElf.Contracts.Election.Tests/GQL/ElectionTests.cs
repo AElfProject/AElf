@@ -44,13 +44,12 @@ namespace AElf.Contracts.Election
                 SubsidyHash = HashHelper.ComputeFrom("Subsidy"),
                 TreasuryHash = HashHelper.ComputeFrom("Treasury"),
                 WelfareHash = HashHelper.ComputeFrom("Welfare"),
-                VotesRewardHash = HashHelper.ComputeFrom("VotesReward"),
-                ReElectionRewardHash = HashHelper.ComputeFrom("ReElectionReward")
+                WelcomeHash = HashHelper.ComputeFrom("Welcome"),
+                FlexibleHash = HashHelper.ComputeFrom("Flexible"),
             });
             setSchemeIdRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             setSchemeIdRet.TransactionResult.Error.ShouldContain("Treasury profit ids already set.");
         }
-
 
         #region AnnounceElection
 

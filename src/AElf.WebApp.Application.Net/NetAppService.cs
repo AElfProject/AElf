@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Types;
 using AElf.WebApp.Application.Net.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Services;
 using Volo.Abp.ObjectMapping;
 
@@ -42,6 +43,7 @@ namespace AElf.WebApp.Application.Net
         /// Attempts to add a node to the connected network nodes
         /// </summary>
         /// <returns>true/false</returns>
+        [Authorize]
         public async Task<bool> AddPeerAsync(AddPeerInput input)
         {
             return await _networkService.AddTrustedPeerAsync(input.Address);
@@ -52,6 +54,7 @@ namespace AElf.WebApp.Application.Net
         /// </summary>
         /// <param name="address">ip address</param>
         /// <returns></returns>
+        [Authorize]
         public async Task<bool> RemovePeerAsync(string address)
         {
             _reconnectionService.CancelReconnection(address);

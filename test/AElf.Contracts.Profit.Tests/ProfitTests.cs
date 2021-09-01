@@ -354,24 +354,6 @@ namespace AElf.Contracts.Profit
                     });
                 removeSubSchemeResult.TransactionResult.Error.ShouldContain("Two schemes cannot be same");
             }
-
-            //scheme dose not exit
-            {
-                var removeSubSchemeResult = await creator.RemoveSubScheme.SendWithExceptionAsync(
-                    new RemoveSubSchemeInput
-                    {
-                        SchemeId = schemeId,
-                        SubSchemeId = new Hash(),
-                    });
-                removeSubSchemeResult.TransactionResult.Error.ShouldContain("Scheme not found");
-
-                removeSubSchemeResult = await creator.RemoveSubScheme.SendWithExceptionAsync(new RemoveSubSchemeInput
-                {
-                    SchemeId = new Hash(),
-                    SubSchemeId = subSchemeId1,
-                });
-                removeSubSchemeResult.TransactionResult.Error.ShouldContain("Scheme not found");
-            }
         }
 
         [Fact]

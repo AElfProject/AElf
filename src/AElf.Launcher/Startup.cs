@@ -72,6 +72,8 @@ namespace AElf.Launcher
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseCors(DefaultCorsPolicyName);
 
             app.InitializeApplication();
