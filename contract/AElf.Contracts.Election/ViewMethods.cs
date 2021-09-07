@@ -428,5 +428,13 @@ namespace AElf.Contracts.Election
         {
             return new StringValue {Value = State.CandidateReplacementMap[input.Value]};
         }
+
+        public override BoolValue IsElectionEnabled(Empty input)
+        {
+            return new BoolValue
+            {
+                Value = State.ElectionEnabled.Value
+            };
+        }
     }
 }
