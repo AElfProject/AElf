@@ -83,5 +83,7 @@ namespace AElf.Contracts.Election
         public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
 
         public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
+
+        public BoolState ElectionEnabled { get; set; }
     }
 }

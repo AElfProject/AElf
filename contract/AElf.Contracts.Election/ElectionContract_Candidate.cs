@@ -25,6 +25,7 @@ namespace AElf.Contracts.Election
         /// <returns></returns>
         public override Empty AnnounceElection(Address input)
         {
+            Assert(State.ElectionEnabled.Value, "Election is temporally disable.");
             var recoveredPublicKey = Context.RecoverPublicKey();
             AnnounceElection(recoveredPublicKey);
 
@@ -43,6 +44,13 @@ namespace AElf.Contracts.Election
                 RegisterCandidateToSubsidyProfitScheme();
             }
 
+            return new Empty();
+        }
+
+        public override Empty EnableElection(Empty input)
+        {
+            AssertSenderAddressWith(GetParliamentDefaultAddress());
+            State.ElectionEnabled.Value = true;
             return new Empty();
         }
 

@@ -93,6 +93,9 @@ service ElectionContract {
     
     rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
+    
+    rpc EnableElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 
     // Views
     
