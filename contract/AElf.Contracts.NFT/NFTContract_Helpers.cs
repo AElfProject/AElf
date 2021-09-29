@@ -1,4 +1,3 @@
-using System;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -32,7 +31,9 @@ namespace AElf.Contracts.NFT
                 State.NftCount.Value = 10000;
             }
 
-            return $"{GetPrefix(nftType)}{GenerateSymbolNumber()}";
+            var number = GenerateSymbolNumber();
+            State.IsUsedMap[number] = true;
+            return $"{GetPrefix(nftType)}{number}";
         }
 
         private string GetPrefix(NFTType nftType)
@@ -54,7 +55,7 @@ namespace AElf.Contracts.NFT
             return "XX";
         }
 
-        private string GenerateSymbolNumber()
+        private long GenerateSymbolNumber()
         {
             var length = GetCurrentNumberLength();
             var from = 1L;
@@ -62,14 +63,21 @@ namespace AElf.Contracts.NFT
             {
                 from = from.Mul(10);
             }
+
             var randomBytes = State.RandomNumberProviderContract.GetRandomBytes.Call(new Int64Value
             {
                 Value = Context.CurrentHeight.Sub(1)
             }.ToBytesValue());
             var randomHash =
-                HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(Context.Sender), HashHelper.ComputeFrom(randomBytes));
-            var randomNumber = Context.ConvertHashToInt64(randomHash, from, from.Mul(10));
-            return randomNumber.ToString();
+                HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(Context.Sender),
+                    HashHelper.ComputeFrom(randomBytes));
+            long randomNumber;
+            do
+            {
+                randomNumber = Context.ConvertHashToInt64(randomHash, from, from.Mul(10));
+            } while (State.IsUsedMap[randomNumber]);
+
+            return randomNumber;
         }
 
         private int GetCurrentNumberLength()

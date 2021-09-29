@@ -501,5 +501,12 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[input.Symbol] = tokenInfo;
             return new Empty();
         }
+
+        public override Empty SetNFTContractAddress(Address input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.NFTContractAddress.Value = input;
+            return new Empty();
+        }
     }
 }
