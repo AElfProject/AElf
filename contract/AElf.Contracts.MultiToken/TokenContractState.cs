@@ -1,4 +1,3 @@
-using AElf.Standards.ACS1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -49,5 +48,7 @@ namespace AElf.Contracts.MultiToken
 
         public SingletonState<long> ClaimTransactionFeeExecuteHeight { get; set; }
         public SingletonState<long> DonateResourceTokenExecuteHeight { get; set; }
+
+        public SingletonState<Address> NFTContractAddress { get; set; }
     }
 }

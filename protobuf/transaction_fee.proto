@@ -12,13 +12,11 @@ service TransactionFee {
 
 // Messages
 
-message TransactionSizeFeeSymbols
-{
+message TransactionSizeFeeSymbols {
     repeated TransactionSizeFeeSymbol transaction_size_fee_symbol_list = 1;
 }
 
-message TransactionSizeFeeSymbol
-{
+message TransactionSizeFeeSymbol {
     string token_symbol = 1;
     int32 base_token_weight = 2;
     int32 added_token_weight = 3;

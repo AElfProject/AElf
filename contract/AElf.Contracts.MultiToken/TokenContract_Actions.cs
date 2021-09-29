@@ -49,8 +49,10 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId,
+                ExternalInfo = input.ExternalInfo
             };
+            Assert(input.Symbol.All(IsValidCreateSymbolChar), "Invalid symbol.");
             RegisterTokenInfo(tokenInfo);
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
@@ -70,13 +72,14 @@ namespace AElf.Contracts.MultiToken
 
             Context.Fire(new TokenCreated
             {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = input.Decimals,
-                Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable,
-                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+                Symbol = tokenInfo.Symbol,
+                TokenName = tokenInfo.TokenName,
+                TotalSupply = tokenInfo.TotalSupply,
+                Decimals = tokenInfo.Decimals,
+                Issuer = tokenInfo.Issuer,
+                IsBurnable = tokenInfo.IsBurnable,
+                IssueChainId = tokenInfo.IssueChainId,
+                ExternalInfo = tokenInfo.ExternalInfo
             });
 
             return new Empty();
@@ -157,7 +160,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId,
+                ExternalInfo = new ExternalInfo {Value = {validateTokenInfoExistsInput.ExternalInfo}}
             };
             RegisterTokenInfo(tokenInfo);
 
@@ -169,7 +173,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId,
+                ExternalInfo = new ExternalInfo {Value = {validateTokenInfoExistsInput.ExternalInfo}}
             });
 
             return new Empty();
