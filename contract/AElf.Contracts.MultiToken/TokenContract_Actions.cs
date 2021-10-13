@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using AElf.Standards.ACS0;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -134,6 +132,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfo(input);
             return new Empty();
         }
 

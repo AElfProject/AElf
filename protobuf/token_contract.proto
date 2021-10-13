@@ -474,6 +474,11 @@ message ChargeTransactionFeesOutput {
     string charging_information = 2;
 }
 
+message CallbackInfo {
+    aelf.Address contract_address = 1;
+    string method_name = 2;
+}
+
 message ExtraTokenListModified {
     option (aelf.is_event) = true;
     // Transaction fee token information.

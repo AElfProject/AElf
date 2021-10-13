@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using AElf.Contracts.Parliament;
 using AElf.Sdk.CSharp;
@@ -7,7 +6,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using System.Text;
 using AElf.Standards.ACS0;
-using AElf.Standards.ACS1;
 using AElf.Standards.ACS7;
 using AElf.CSharp.Core;
 
@@ -37,7 +35,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
             return tokenInfo;
         }
-        
+
         private void AssertValidSymbolAndAmount(string symbol, long amount)
         {
             Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),
@@ -75,6 +73,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(false,
                     $"Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
             }
+
             var target = before.Add(addAmount);
             State.Balances[address][symbol] = target;
         }
@@ -104,9 +103,10 @@ namespace AElf.Contracts.MultiToken
             return validatedAddress;
         }
 
-        private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress, params string[] validMethodNames)
+        private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress,
+            params string[] validMethodNames)
         {
-            var validateResult = validMethodNames.Contains(originalTransaction.MethodName) 
+            var validateResult = validMethodNames.Contains(originalTransaction.MethodName)
                                  && originalTransaction.To == validAddress;
             Assert(validateResult, "Invalid transaction.");
         }
@@ -180,8 +180,32 @@ namespace AElf.Contracts.MultiToken
         private void CheckCrossChainTokenContractRegistrationControllerAuthority()
         {
             if (State.CrossChainTokenContractRegistrationController.Value == null)
-                State.CrossChainTokenContractRegistrationController.Value = GetCrossChainTokenContractRegistrationController();
-            Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender, "No permission.");
+                State.CrossChainTokenContractRegistrationController.Value =
+                    GetCrossChainTokenContractRegistrationController();
+            Assert(State.CrossChainTokenContractRegistrationController.Value.OwnerAddress == Context.Sender,
+                "No permission.");
+        }
+
+        private void DealWithExternalInfo(TransferInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.CallbackExternalInfoKey))
+            {
+                var callbackInfo =
+                    JsonParser.Default.Parse<CallbackInfo>(
+                        tokenInfo.ExternalInfo.Value[TokenContractConstants.CallbackExternalInfoKey]);
+                Context.SendInline(callbackInfo.ContractAddress, callbackInfo.MethodName, input);
+            }
+
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LogEventExternalInfoKey))
+            {
+                Context.FireLogEvent(new LogEvent
+                {
+                    Name = tokenInfo.ExternalInfo.Value[TokenContractConstants.LogEventExternalInfoKey],
+                    Address = Context.Self,
+                    NonIndexed = input.ToByteString()
+                });
+            }
         }
     }
 }

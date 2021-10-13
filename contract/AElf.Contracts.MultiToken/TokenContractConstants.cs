@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-
 namespace AElf.Contracts.MultiToken
 {
     public static class TokenContractConstants
@@ -13,5 +10,8 @@ namespace AElf.Contracts.MultiToken
 
         public const string PayTxFeeSymbolListName = "SymbolListToPayTxFee";
         public const string PayRentalSymbolListName = "SymbolListToPayRental";
+
+        public const string CallbackExternalInfoKey = "aelf_callback";
+        public const string LogEventExternalInfoKey = "aelf_log_event";
     }
 }
