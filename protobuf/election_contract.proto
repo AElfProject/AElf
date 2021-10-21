@@ -46,15 +46,21 @@ service ElectionContract {
     // sharing the bonus in the future. And return the vote id.
     rpc Vote (VoteMinerInput) returns (aelf.Hash) {
     }
-    
+
+    rpc VoteWithExpiredVotes (VoteMinerInput) returns (aelf.Hash) {
+    }
+
     // Before the end time, you are able to change your vote target to other candidates.
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
-    
+
     // After the lock time, your locked tokens will be unlocked and you can withdraw them according to the vote id.
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc AssistWithdraw (AssistWithdrawInput) returns (google.protobuf.Empty) {
+    }
+
     // Update candidate information by consensus contract.
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
@@ -489,6 +495,11 @@ message ReplaceCandidatePubkeyInput {
 message SetCandidateAdminInput {
     string pubkey = 1;
     aelf.Address admin = 2;
+}
+
+message AssistWithdrawInput {
+    string pubkey = 1;
+    aelf.Hash vote_id = 2;
 }
 
 message EvilMinerDetected {

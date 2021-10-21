@@ -48,7 +48,9 @@ namespace AElf.Contracts.Vote
                 StartTimestamp = input.StartTimestamp,
                 EndTimestamp = input.EndTimestamp,
                 RegisterTimestamp = Context.CurrentBlockTime,
-                Options = {input.Options}
+                Options = {input.Options},
+                IsQuadratic = input.IsQuadratic,
+                TicketCost = input.TicketCost
             };
 
             State.VotingItems[votingItemId] = votingItem;
@@ -64,16 +66,18 @@ namespace AElf.Contracts.Vote
 
             Context.Fire(new VotingItemRegistered
             {
-                Sponsor = Context.Sender,
+                Sponsor = votingItem.Sponsor,
                 VotingItemId = votingItemId,
-                AcceptedCurrency = input.AcceptedCurrency,
-                IsLockToken = input.IsLockToken,
-                TotalSnapshotNumber = input.TotalSnapshotNumber,
-                CurrentSnapshotNumber = 1,
-                CurrentSnapshotStartTimestamp = input.StartTimestamp,
-                StartTimestamp = input.StartTimestamp,
-                EndTimestamp = input.EndTimestamp,
-                RegisterTimestamp = Context.CurrentBlockTime,
+                AcceptedCurrency = votingItem.AcceptedCurrency,
+                IsLockToken = votingItem.IsLockToken,
+                TotalSnapshotNumber = votingItem.TotalSnapshotNumber,
+                CurrentSnapshotNumber = votingItem.CurrentSnapshotNumber,
+                CurrentSnapshotStartTimestamp = votingItem.StartTimestamp,
+                StartTimestamp = votingItem.StartTimestamp,
+                EndTimestamp = votingItem.EndTimestamp,
+                RegisterTimestamp = votingItem.RegisterTimestamp,
+                IsQuadratic = votingItem.IsQuadratic,
+                TicketCost = votingItem.TicketCost
             });
 
             return new Empty();
@@ -88,11 +92,22 @@ namespace AElf.Contracts.Vote
         public override Empty Vote(VoteInput input)
         {
             var votingItem = AssertValidVoteInput(input);
+            var amount = 0L;
+            if (!votingItem.IsQuadratic)
+            {
+                amount = input.Amount;
+            }
+            else
+            {
+                var currentVotesCount = State.QuadraticVotesCountMap[input.VoteId].Add(1);
+                State.QuadraticVotesCountMap[input.VoteId] = currentVotesCount;
+                amount = votingItem.TicketCost.Mul(currentVotesCount);
+            }
 
             var votingRecord = new VotingRecord
             {
                 VotingItemId = input.VotingItemId,
-                Amount = input.Amount,
+                Amount = amount,
                 SnapshotNumber = votingItem.CurrentSnapshotNumber,
                 Option = input.Option,
                 IsWithdrawn = false,
@@ -103,7 +118,7 @@ namespace AElf.Contracts.Vote
 
             State.VotingRecords[input.VoteId] = votingRecord;
 
-            UpdateVotingResult(votingItem, input.Option, input.Amount);
+            UpdateVotingResult(votingItem, input.Option, votingItem.IsQuadratic ? 1 : amount);
             UpdateVotedItems(input.VoteId, votingRecord.Voter, votingItem);
 
             if (votingItem.IsLockToken)
@@ -114,7 +129,7 @@ namespace AElf.Contracts.Vote
                     Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     LockId = input.VoteId,
-                    Amount = input.Amount
+                    Amount = amount
                 });
             }
 
@@ -187,7 +202,10 @@ namespace AElf.Contracts.Vote
         public override Empty Withdraw(WithdrawInput input)
         {
             var votingRecord = State.VotingRecords[input.VoteId];
-            Assert(votingRecord != null, "Voting record not found.");
+            if (votingRecord == null)
+            {
+                throw new AssertionException("Voting record not found.");
+            }
             var votingItem = State.VotingItems[votingRecord.VotingItemId];
 
             if (votingItem.IsLockToken)

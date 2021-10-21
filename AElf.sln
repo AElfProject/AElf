@@ -361,6 +361,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFT", "contr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.StableToken", "contract\AElf.Contracts.StableToken\AElf.Contracts.StableToken.csproj", "{3BA5CAB0-833E-430F-977C-FE6AD9C95127}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AirDrop", "contract\AElf.Contracts.AirDrop\AElf.Contracts.AirDrop.csproj", "{FBDEC45F-3B35-457B-B16F-8EE60937C4B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1035,6 +1037,10 @@ Global
 		{3BA5CAB0-833E-430F-977C-FE6AD9C95127}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BA5CAB0-833E-430F-977C-FE6AD9C95127}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BA5CAB0-833E-430F-977C-FE6AD9C95127}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1217,5 +1223,6 @@ Global
 		{B64C5954-9CC0-4A0B-9453-92324B51C23D} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{0ECCF46E-3989-4A7E-BA31-4E73D7515578} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{3BA5CAB0-833E-430F-977C-FE6AD9C95127} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 	EndGlobalSection
 EndGlobal
