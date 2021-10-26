@@ -114,7 +114,7 @@ namespace AElf.Contracts.MultiToken
 
             tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            
+
             Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
@@ -132,7 +132,14 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
-            DealWithExternalInfo(input);
+            DealWithExternalInfoDuringTransfer(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = input.To,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                Memo = input.Memo
+            });
             return new Empty();
         }
 
@@ -297,6 +304,14 @@ namespace AElf.Contracts.MultiToken
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
             DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            DealWithExternalInfoDuringLocking(new TransferFromInput
+            {
+                From = input.Address,
+                To = virtualAddress,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage
+            });
             return new Empty();
         }
 
@@ -314,6 +329,14 @@ namespace AElf.Contracts.MultiToken
                 Amount = input.Amount,
                 Memo = input.Usage,
             });
+            DealWithExternalInfoDuringUnlock(new TransferFromInput
+            {
+                From = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress),
+                To = input.Address,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage
+            });
             return new Empty();
         }
 
@@ -327,6 +350,7 @@ namespace AElf.Contracts.MultiToken
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+                    DealWithExternalInfoDuringTransfer(input);
                     return new Empty();
                 }
 
@@ -336,6 +360,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfoDuringTransfer(input);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }
@@ -434,6 +459,14 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
 
+            var transferFromInput = new TransferFromInput
+            {
+                From = Context.Origin,
+                To = Context.Sender,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                Memo = input.Memo
+            };
             // First check allowance.
             var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
@@ -441,6 +474,7 @@ namespace AElf.Contracts.MultiToken
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+                    DealWithExternalInfoDuringTransfer(transferFromInput);
                     return new Empty();
                 }
 
@@ -450,6 +484,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfoDuringTransfer(transferFromInput);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }
@@ -505,6 +540,20 @@ namespace AElf.Contracts.MultiToken
         {
             AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
             State.NFTContractAddress.Value = input;
+            return new Empty();
+        }
+
+        public override Empty ResetExternalInfo(ResetExternalInfoInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo.Issuer == Context.Sender, "No permission to reset external info.");
+            tokenInfo.ExternalInfo = input.ExternalInfo;
+            State.TokenInfos[input.Symbol] = tokenInfo;
+            Context.Fire(new ExternalInfoChanged
+            {
+                Symbol = input.Symbol,
+                ExternalInfo = input.ExternalInfo
+            });
             return new Empty();
         }
     }

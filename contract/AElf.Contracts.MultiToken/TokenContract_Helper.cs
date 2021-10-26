@@ -186,17 +186,50 @@ namespace AElf.Contracts.MultiToken
                 "No permission.");
         }
 
-        private void DealWithExternalInfo(TransferInput input)
+        private void DealWithExternalInfoDuringLocking(TransferFromInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
-            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.CallbackExternalInfoKey))
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LockCallbackExternalInfoKey))
             {
                 var callbackInfo =
                     JsonParser.Default.Parse<CallbackInfo>(
-                        tokenInfo.ExternalInfo.Value[TokenContractConstants.CallbackExternalInfoKey]);
+                        tokenInfo.ExternalInfo.Value[TokenContractConstants.LockCallbackExternalInfoKey]);
                 Context.SendInline(callbackInfo.ContractAddress, callbackInfo.MethodName, input);
             }
 
+            FireExternalLogEvent(tokenInfo, input);
+        }
+
+        private void DealWithExternalInfoDuringTransfer(TransferFromInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
+            {
+                var callbackInfo =
+                    JsonParser.Default.Parse<CallbackInfo>(
+                        tokenInfo.ExternalInfo.Value[TokenContractConstants.TransferCallbackExternalInfoKey]);
+                Context.SendInline(callbackInfo.ContractAddress, callbackInfo.MethodName, input);
+            }
+
+            FireExternalLogEvent(tokenInfo, input);
+        }
+
+        private void DealWithExternalInfoDuringUnlock(TransferFromInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
+            {
+                var callbackInfo =
+                    JsonParser.Default.Parse<CallbackInfo>(
+                        tokenInfo.ExternalInfo.Value[TokenContractConstants.TransferCallbackExternalInfoKey]);
+                Context.SendInline(callbackInfo.ContractAddress, callbackInfo.MethodName, input);
+            }
+
+            FireExternalLogEvent(tokenInfo, input);
+        }
+
+        private void FireExternalLogEvent(TokenInfo tokenInfo, TransferFromInput input)
+        {
             if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LogEventExternalInfoKey))
             {
                 Context.FireLogEvent(new LogEvent

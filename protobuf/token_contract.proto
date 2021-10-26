@@ -124,11 +124,14 @@ service TokenContract {
     // This method is used to initialize the governance organization for some functions, 
     // including: the coefficient of the user transaction fee calculation formula, 
     // the coefficient of the contract developer resource fee calculation formula, and the side chain rental fee.
-    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    rpc InitializeAuthorizedController (google.protobuf.Empty) returns (google.protobuf.Empty){
     }
-    
+
     // The Parliament will have the authority to set NFT Contract Address.
-    rpc SetNFTContractAddress(aelf.Address) returns (google.protobuf.Empty){
+    rpc SetNFTContractAddress (aelf.Address) returns (google.protobuf.Empty){
+    }
+
+    rpc ResetExternalInfo (ResetExternalInfoInput) returns (google.protobuf.Empty){
     }
 
     // Query token information.
@@ -609,6 +612,11 @@ message ChangeTokenIssuerInput
     aelf.Address new_token_Issuer = 2;
 }
 
+message ResetExternalInfoInput {
+    string symbol = 1;
+    ExternalInfo external_info = 2;
+}
+
 message Transferred {
     option (aelf.is_event) = true;
     // The source address of the transferred token.
@@ -663,7 +671,6 @@ message ChainPrimaryTokenSymbolSet {
     // The symbol of token. 
     string token_symbol = 1;
 }
-
 
 message CalculateFeeAlgorithmUpdated {
     option (aelf.is_event) = true;
@@ -755,4 +762,10 @@ message CrossChainReceived {
     int32 issue_chain_id = 7;
     // The parent chain height of the transfer transaction.
     int64 parent_chain_height = 8;
+}
+
+message ExternalInfoChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    ExternalInfo external_info = 2;
 }
