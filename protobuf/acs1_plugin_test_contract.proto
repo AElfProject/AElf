@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "acs1.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract";
+
+service Contract {
+    option (aelf.csharp_state) = "AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.TestContract.ContractState";
+    option (aelf.base) = "acs1.proto";
+    rpc DummyMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}

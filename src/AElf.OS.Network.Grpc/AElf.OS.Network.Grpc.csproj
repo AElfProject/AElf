@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.OS.Network.Grpc</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>gRPC implementations of AElf's network communication layer.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Grpc" Version="2.31.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.31.0" />
+      <PackageReference Include="GuerrillaNtp" Version="1.4.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\protobuf\peer_service.proto">
+        <Link>Protobuf/peer_service.proto</Link>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf" />
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
+
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Protobuf ProtoRoot="../../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated" />
+        </ItemGroup>
+    </Target>
+
+</Project>

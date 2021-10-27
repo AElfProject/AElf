@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.CrossChain</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>CrossChain is a contract that implements cross-chain related features, especially 
+            indexing.</Description>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs11.proto">
+            <Link>Protobuf\Proto\reference\acs11.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\reference\association_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\cross_chain_contract_impl.proto">
+            <Link>Protobuf\Proto\cross_chain_contract_impl.proto</Link>
+            <SystemContract>true</SystemContract>
+        </ContractCode>
+    </ItemGroup>
+</Project>

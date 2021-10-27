@@ -1,0 +1,313 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.BasicSecurity";
+
+service BasicSecurityContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicSecurity.BasicSecurityContractState";
+    option (aelf.base) = "acs1.proto";
+    
+    //Actions
+    rpc InitialBasicSecurityContract(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc TestBoolState(BoolInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestInt32State(Int32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestUInt32State(UInt32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestInt64State(Int64Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestUInt64State(UInt64Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestStringState(StringInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestEnumState(Int32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestBytesState(BytesInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestInt32SingletonState(Int32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestBytesSingletonState(BytesInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestProtobufState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestSingletonState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestComplex1State(Complex1Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestComplex2State(Complex2Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestMappedState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped1State(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped2State(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped3State(Complex3Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestExecuteExternalMethod(Int64Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestOriginAddress(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc TestResetFields(ResetInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestResetNestedFields(ResetNestedInput) returns (ResetNestedOutput) {
+    }
+    rpc TestResetOtherTypeFields(ResetNestedInput) returns (ResetOtherTypeNestedOutput) {
+    }
+    rpc TestWhileInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestWhileInfiniteLoopWithState(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoop(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForInfiniteLoopInSeparateClass(Int32Input) returns (Int32Output) {
+    }
+    rpc TestForeachInfiniteLoop(ListInput) returns (Int32Output) {
+    }
+    rpc TestInfiniteRecursiveCall (Int32Input) returns (google.protobuf.Empty) { }
+    rpc TestInfiniteRecursiveCallInSeparateClass (Int32Input) returns (google.protobuf.Empty) { }
+
+    //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryBoolState(google.protobuf.Empty) returns (BoolOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryInt32SingletonState(google.protobuf.Empty) returns (Int32Output){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryInt32State(google.protobuf.Empty) returns (Int32Output){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryUInt32State(google.protobuf.Empty) returns (UInt32Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryInt64State(google.protobuf.Empty) returns (Int64Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryUInt64State(google.protobuf.Empty) returns (UInt64Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryStringState(google.protobuf.Empty) returns (StringOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryBytesState(google.protobuf.Empty) returns (BytesOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryBytesSingletonState(google.protobuf.Empty) returns (BytesOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryProtobufState(google.protobuf.Empty) returns (ProtobufOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryComplex1State(google.protobuf.Empty) returns (Complex1Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryComplex2State(google.protobuf.Empty) returns (Complex2Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMappedState(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMappedState1(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMappedState2(ProtobufInput) returns (ProtobufMessage) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMappedState3(Complex3Input) returns (TradeMessage) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryExternalMethod1(aelf.Address) returns (Int64Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryExternalMethod2(aelf.Address) returns (Int64Output) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryFields(google.protobuf.Empty) returns (ResetOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryConst(google.protobuf.Empty) returns (ConstOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryNestedFields(google.protobuf.Empty) returns (ResetNestedOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryEnumState(google.protobuf.Empty) returns (google.protobuf.Int32Value){
+        option (aelf.is_view) = true;
+    }
+    rpc CheckNonContractTypesStaticFieldsReset(google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckFieldsAlreadyReset(google.protobuf.Empty) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
+}
+
+//Input
+message BoolInput {
+    bool bool_value = 1;
+}
+
+message Int32Input {
+    int32 int32_value = 1;
+}
+
+message UInt32Input {
+    uint32 u_int32_value = 1;
+}
+
+message Int64Input {
+    int64 int64_value = 1;
+}
+
+message UInt64Input {
+    uint64 u_int64_value = 1;
+}
+
+message StringInput {
+    string string_value = 1;
+}
+
+message BytesInput {
+    bytes bytes_value = 1;
+}
+
+message ProtobufInput {
+    ProtobufMessage protobuf_value = 1;
+}
+
+message Complex1Input {
+    bool bool_value = 1;
+    int32 int32_value = 2;
+}
+
+message Complex2Input {
+    BoolInput bool_data = 1;
+    Int32Input int32_data = 2;
+}
+
+message Complex3Input {
+    string from = 1;
+    string pair_a = 2;
+    string to = 3;
+    string pair_b = 4;
+    TradeMessage trade_details = 5;
+}
+
+message ResetInput {
+    int64 int64_value = 1;
+    int32 int32_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+}
+
+message TradeMessage {
+    int64 from_amount = 1;
+    int64 to_amount = 2;
+    google.protobuf.Timestamp timestamp = 3;
+    string memo = 4;
+}
+
+message ProtobufMessage {
+    string string_value = 1;
+    bool bool_value = 2;
+    int64 int64_value = 3;
+}
+
+message ResetNestedInput {
+    int32 int32_value = 1;
+    string string_value = 2;
+}
+
+message ListInput {
+    repeated int32 list =1;
+}
+
+//Output
+message BoolOutput {
+    bool bool_value = 1;
+}
+
+message Int32Output {
+    int32 int32_value = 1;
+}
+
+message UInt32Output {
+    uint32 u_int32_value = 1;
+}
+
+message UInt64Output {
+    uint64 u_int64_value = 1;
+}
+
+message Int64Output {
+    int64 int64_value = 1;
+}
+
+message StringOutput {
+    string string_value = 1;
+}
+
+message BytesOutput {
+    bytes bytes_value = 1;
+}
+
+message ProtobufOutput {
+    ProtobufMessage protobuf_value = 1;
+}
+
+message ProtobufListOutput {
+    repeated ProtobufMessage collection = 1;
+}
+
+message Complex1Output {
+    bool bool_value = 1;
+    int32 int32_value = 2;
+}
+
+message Complex2Output {
+    BoolOutput bool_data = 1;
+    Int32Output int32_data = 2;
+}
+
+message ResetOutput {
+    int64 int64_value = 1;
+    int32 int32_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    repeated int32 list =5;
+}
+
+message ConstOutput {
+    int64 int64_const = 1;
+    string string_const =2;
+}
+
+message ResetNestedOutput {
+    int32 int32_value = 1;
+    string string_value = 2;
+}
+
+message ResetOtherTypeNestedOutput {
+    int32 basic_type_number = 1;
+    int32 basic_type_static_number = 2;
+    int32 type_number = 3;
+    int32 type_const = 4;
+    string string_value = 5;
+}
+
+enum StateEnum{
+    FOO = 0;
+    BAR = 1;
+    BAZ = 2;
+}

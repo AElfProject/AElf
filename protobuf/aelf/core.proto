@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Types";
+
+message Transaction {
+    // The address of the sender of the transaction.
+    Address from = 1;
+    // The address of the contract when calling a contract.
+    Address to = 2;
+    // The height of the referenced block hash.
+    int64 ref_block_number = 3;
+    // The first four bytes of the referenced block hash.
+    bytes ref_block_prefix = 4;
+    // The name of a method in the smart contract at the To address.
+    string method_name = 5;
+    // The parameters to pass to the smart contract method.
+    bytes params = 6;
+    // When signing a transaction it’s actually a subset of the fields: from/to and the target method as well as 
+    // the parameter that were given. It also contains the reference block number and prefix.
+    bytes signature = 10000;
+}
+
+message StatePath {
+    // The partial path of the state path.
+    repeated string parts = 1;
+}
+
+message ScopedStatePath {
+    // The scope address, which will be the contract address.
+    Address address = 1;
+    // The path of contract state.
+    StatePath path = 2;
+}
+
+enum TransactionResultStatus {
+    // The execution result of the transaction does not exist.
+    NOT_EXISTED = 0;
+    // The transaction is in the transaction pool waiting to be packaged.
+    PENDING = 1;
+    // Transaction execution failed.
+    FAILED = 2;
+    // The transaction was successfully executed and successfully packaged into a block.
+    MINED = 3;
+    // When executed in parallel, there are conflicts with other transactions.
+    CONFLICT = 4;
+    // The transaction is waiting for validation.
+    PENDING_VALIDATION = 5;
+    // Transaction validation failed.
+    NODE_VALIDATION_FAILED = 6;
+}
+
+message TransactionResult {
+    // The transaction id.
+    Hash transaction_id = 1;
+    // The transaction result status.
+    TransactionResultStatus status = 2;
+    // The log events.
+    repeated LogEvent logs = 3;
+    // Bloom filter for transaction logs. A transaction log event can be defined in the contract and stored 
+    // in the bloom filter after the transaction is executed. Through this filter, we can quickly search for 
+    // and determine whether a log exists in the transaction result.
+    bytes bloom = 4;
+    // The return value of the transaction execution.
+    bytes return_value = 5;
+    // The height of the block hat packages the transaction.
+    int64 block_number = 6;
+    // The hash of the block hat packages the transaction.
+    Hash block_hash = 7;
+    // Failed execution error message.
+    string error = 10;
+}
+
+message LogEvent {
+    // The contract address.
+    Address address = 1;
+    // The name of the log event.
+    string name = 2;
+    // The indexed data, used to calculate bloom.
+    repeated bytes indexed = 3;
+    // The non indexed data.
+    bytes non_indexed = 4;
+}
+
+message SmartContractRegistration {
+    // The category of contract code(0: C#).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+    // The hash of the contract code.
+    Hash code_hash = 3;
+    // Whether it is a system contract.
+    bool is_system_contract = 4;
+    // The version of the current contract.
+    int32 version = 5;
+}
+
+message TransactionExecutingStateSet {
+    // The changed states.
+    map<string, bytes> writes = 1;
+    // The read states.
+    map<string, bool> reads = 2;
+    // The deleted states.
+    map<string, bool> deletes = 3;
+}
+
+message Address
+{
+    bytes value = 1;
+}
+
+message Hash
+{
+    bytes value = 1;
+}
+
+message SInt32Value
+{
+    sint32 value = 1;
+}
+
+message SInt64Value
+{
+    sint64 value = 1;
+}
+
+message MerklePath {
+    // The merkle path nodes.
+    repeated MerklePathNode merkle_path_nodes = 1;
+}
+
+message MerklePathNode{
+    // The node hash.
+    Hash hash = 1;
+    // Whether it is a left child node.
+    bool is_left_child_node = 2;
+}
+
+message BinaryMerkleTree {
+    // The leaf nodes.
+    repeated Hash nodes = 1;
+    // The root node hash.
+    Hash root = 2;
+    // The count of leaf node.
+    int32 leaf_count = 3;
+}

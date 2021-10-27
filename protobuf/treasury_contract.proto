@@ -1,0 +1,149 @@
+/**
+ * Treasury contract.
+ */
+syntax = "proto3";
+
+package Treasury;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.Treasury";
+
+service TreasuryContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+
+    // Initialize treasury contract.
+    rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    // Initialize the sub-item of the bonus scheme.
+    rpc InitialMiningRewardProfitItem (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    // Donate all tokens owned by the sender.
+    rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the dividend weight of the sub-item of the dividend item.
+    rpc SetDividendPoolWeightSetting (DividendPoolWeightSetting) returns (google.protobuf.Empty){
+    }
+    
+    // Set the miner reward weight.
+    rpc SetMinerRewardWeightSetting (MinerRewardWeightSetting) returns (google.protobuf.Empty){
+    }
+    
+    // Set the reward for mining.
+    rpc UpdateMiningReward (google.protobuf.Int64Value) returns (google.protobuf.Empty){
+    }
+    
+    // Change the governance authority information for treasury contract.
+    rpc ChangeTreasuryController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // AEDPoS Contract can notify Treasury Contract to aware miner replacement happened.
+    rpc RecordMinerReplacement (RecordMinerReplacementInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Used to estimate the revenue weight of 10000 tokens voted by users.
+    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the scheme id of treasury.
+    rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the weight percentage of dividend pool items.
+    rpc GetDividendPoolWeightProportion (google.protobuf.Empty) returns (DividendPoolWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the weight percentage of the dividend item for miner.
+    rpc GetMinerRewardWeightProportion (google.protobuf.Empty) returns (MinerRewardWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governance authority information.
+    rpc GetTreasuryController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message GetWelfareRewardAmountSampleInput {
+    // Token lock time.
+    repeated int64 value = 1;
+}
+
+message GetWelfareRewardAmountSampleOutput {
+    // The weight calculated.
+    repeated int64 value = 1;
+}
+
+message DonateAllInput {
+    // The token symbol to donate.
+    string symbol = 1;
+}
+
+message MinerReElectionInformation {
+    // The reappointment information for miner.
+    map<string, int64> continual_appointment_times = 1;
+}
+
+message DividendPoolWeightSetting {
+    // The dividend weight for citizen.
+    int32 citizen_welfare_weight = 1;
+    // The dividend weight for backup nodes.
+    int32 backup_subsidy_weight = 2;
+    // The dividend weight for miners.
+    int32 miner_reward_weight = 3;
+}
+
+message MinerRewardWeightSetting {
+    // The dividend weight for all current miners.
+    int32 basic_miner_reward_weight = 1;
+    // The dividend weight for new miners.
+    int32 welcome_reward_weight = 2;
+    // The dividend weight for the flexible scheme.
+    int32 flexible_reward_weight = 3;
+}
+
+message SchemeProportionInfo {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // Dividend weight percentage.
+    int32 proportion = 2;
+}
+
+message DividendPoolWeightProportion {
+    // The proportion of citizen welfare.
+    SchemeProportionInfo citizen_welfare_proportion_info = 1;
+    // The proportion of candidate nodes.
+    SchemeProportionInfo backup_subsidy_proportion_info = 2;
+    // The proportion of miner
+    SchemeProportionInfo miner_reward_proportion_info = 3;
+}
+
+message MinerRewardWeightProportion {
+    // The proportion of the basic income of the miner.
+    SchemeProportionInfo basic_miner_reward_proportion_info = 1;
+    // The proportion of the vote of the miner.
+    SchemeProportionInfo welcome_reward_proportion_info = 2;
+    // The proportion of the reappointment of the miner.
+    SchemeProportionInfo flexible_reward_proportion_info = 3;
+}
+
+message RecordMinerReplacementInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+    int64 current_term_number = 3;
+    bool is_old_pubkey_evil = 4;
+}
+
+message StringList {
+    repeated string value = 1;
+}

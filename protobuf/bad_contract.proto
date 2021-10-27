@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Runtime.CSharp.Tests.BadContract";
+
+service BadContract {
+    option (aelf.csharp_state) = "AElf.Runtime.CSharp.Tests.BadContract.BadContractState";
+
+    rpc UpdateDoubleState (DoubleInput) returns (google.protobuf.Empty) { }
+    
+    rpc UpdateFloatState (FloatInput) returns (google.protobuf.Empty) { }
+    
+    rpc UpdateStateWithRandom (google.protobuf.Empty) returns (RandomOutput) { }
+    
+    rpc UpdateStateWithCurrentTime (google.protobuf.Empty) returns (DateTimeOutput) { }
+    
+    rpc WriteFileToNode (FileInfoInput) returns (google.protobuf.Empty) { }
+    
+    rpc InitLargeArray (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc InitLargeStringDynamic (InitLargeStringDynamicInput) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteLoop (google.protobuf.Int32Value) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteLoopInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestInfiniteRecursiveCall (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+
+    rpc TestInfiniteRecursiveCallInSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestGetHashCodeCall (google.protobuf.Empty) returns (google.protobuf.Int32Value) { }
+}
+
+message DoubleInput {
+    double double_value = 1;
+}
+
+message FloatInput {
+    float float_value = 1;
+}
+
+message RandomOutput {
+    int32 random_value = 1;
+}
+
+message DateTimeOutput {
+    google.protobuf.Timestamp date_time_value = 1;
+}
+
+message FileInfoInput {
+    string file_path = 1;
+    string file_content = 2;
+}
+
+message InitLargeStringDynamicInput {
+    int32 string_size_value = 1;
+}

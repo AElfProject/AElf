@@ -1,0 +1,80 @@
+/**
+ * AElf Standards ACS10(Dividend Pool Standard)
+ *
+ * Used to construct a dividend pool in the contract.
+ */
+syntax = "proto3";
+
+package acs10;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+import public "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+
+option (aelf.identity) = "acs10";
+option csharp_namespace = "AElf.Standards.ACS10";
+
+service DividendPoolContract {
+    // Donates tokens from the caller to the treasury. If the tokens are not native tokens in the current chain, 
+    // they will be first converted to the native token.
+    rpc Donate (DonateInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Release dividend pool according the period number.
+    rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the token symbols dividend pool supports.
+    rpc SetSymbolList (SymbolList) returns (google.protobuf.Empty) {
+    }
+
+    // Query the token symbols dividend pool supports.
+    rpc GetSymbolList (google.protobuf.Empty) returns (SymbolList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the balance of undistributed tokens whose symbols are included in the symbol list.
+    rpc GetUndistributedDividends (google.protobuf.Empty) returns (Dividends) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the dividend information according to the height.
+    rpc GetDividends (google.protobuf.Int64Value) returns (Dividends) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message DonateInput {
+    // The token symbol to donate.
+    string symbol = 1;
+    // The amount to donate.
+    int64 amount = 2;
+}
+
+message ReleaseInput {
+    // The period number to release.
+    int64 period_number = 1;
+}
+
+message SymbolList {
+    // The token symbol list.
+    repeated string value = 1;
+}
+
+message Dividends {
+    // The dividends, symbol -> amount.
+    map<string, int64> value = 1;
+}
+
+message DonationReceived {
+    option (aelf.is_event) = true;
+    // The address of donors.
+    aelf.Address from = 1;
+    // The address of dividend pool.
+    aelf.Address pool_contract = 2;
+    // The token symbol Donated.
+    string symbol = 3;
+    // The amount Donated.
+    int64 amount = 4;
+}

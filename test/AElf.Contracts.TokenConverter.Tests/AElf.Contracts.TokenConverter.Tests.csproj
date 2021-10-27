@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>AElf.Contracts.TokenConverter</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit.AEDPoSExtension\AElf.ContractTestKit.AEDPoSExtension.csproj" />
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+      <ContractStub Include="..\..\protobuf\token_contract.proto">
+        <Link>Protobuf\Proto\token_contract.proto</Link>
+      </ContractStub>
+        <ContractMessage Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\token_converter_contract_impl.proto">
+            <Link>Protobuf\Proto\token_converter_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\parliament_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_contract_impl.proto">
+            <Link>Protobuf\Proto\parliament_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\acs10.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\treasury_contract_impl.proto">
+            <Link>Protobuf\Proto\treasury_contract_impl.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props" />
+</Project>

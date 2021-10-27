@@ -1,0 +1,307 @@
+/**
+ * Vote contract.
+ */
+syntax = "proto3";
+
+package Vote;
+
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Vote";
+
+service VoteContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
+
+    // Create a voting activity.
+    rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
+    }
+    
+    // After successfully creating a voting activity, others are able to vote.
+    rpc Vote (VoteInput) returns (google.protobuf.Empty) {
+    }
+    
+    // A voter can withdraw the token after the lock time.
+    rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Save the result of the specified number of votes and generates a new round votes.
+    rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Add an option to a voting activity.
+    rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
+    }
+
+    // Remove an option from a voting activity.
+    rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {
+    }
+
+    // Add multiple options to a voting activity.
+    rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {
+    }
+
+    // Remove multiple options from a voting activity.
+    rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Get a voting activity information.
+    rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get a voting result according to the provided voting activity id and snapshot number.
+    rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Gets the latest result according to the voting activity id.
+    rpc GetLatestVotingResult (aelf.Hash) returns (VotingResult) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the voting record according to vote id.
+    rpc GetVotingRecord (aelf.Hash) returns (VotingRecord) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the voting record according to vote ids.
+    rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get all voted information according to voter address.
+    rpc GetVotedItems (aelf.Address) returns (VotedItems) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the vote ids according to voting activity id.
+    rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message VotingRegisterInput {
+    // The start time of the voting.
+    google.protobuf.Timestamp start_timestamp = 1;
+    // The end time of the voting.
+    google.protobuf.Timestamp end_timestamp = 2;
+    // The token symbol which will be accepted.
+    string accepted_currency = 3;
+    // Whether the vote will lock token.
+    bool is_lock_token = 4;
+    // The total number of snapshots of the vote.
+    int64 total_snapshot_number = 5;
+    // The list of options.
+    repeated string options = 6;
+}
+
+message VotingItem {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The token symbol which will be accepted.
+    string accepted_currency = 2;
+    // Whether the vote will lock token.
+    bool is_lock_token = 3;
+    // The current snapshot number.
+    int64 current_snapshot_number = 4;
+    // The total snapshot number.
+    int64 total_snapshot_number = 5;
+    // The list of options.
+    repeated string options = 6;
+    // The register time of the voting activity.
+    google.protobuf.Timestamp register_timestamp = 7;
+    // The start time of the voting.
+    google.protobuf.Timestamp start_timestamp = 8;
+    // The end time of the voting.
+    google.protobuf.Timestamp end_timestamp = 9;
+    // The start time of current round of the voting.
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    // The sponsor address of the voting activity.
+    aelf.Address sponsor = 11;
+}
+
+message VoteInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The address of voter.
+    aelf.Address voter = 2;
+    // The amount of vote.
+    int64 amount = 3;
+    // The option to vote.
+    string option = 4;
+    // The vote id.
+    aelf.Hash vote_id = 5;
+    // Whether vote others.
+    bool is_change_target = 6;
+}
+
+message WithdrawInput {
+    // The vote id.
+    aelf.Hash vote_id = 1;
+}
+
+message GetVotingResultInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The snapshot number.
+    int64 snapshot_number = 2;
+}
+
+message VotingResult {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The voting result, option -> amount of votes,
+    map<string, int64> results = 2;
+    // The snapshot number.
+    int64 snapshot_number = 3;
+    // The total number of voters.
+    int64 voters_count = 4;
+    // The start time of this snapshot.
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    // The end time of this snapshot.
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
+    // Total votes received during the process of this snapshot.
+    int64 votes_amount = 7;
+}
+
+message TakeSnapshotInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The snapshot number to take.
+    int64 snapshot_number = 2;
+}
+
+message VotingRecord {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The address of voter.
+    aelf.Address voter = 2;
+    // The snapshot number.
+    int64 snapshot_number = 3;
+    // The amount of vote.
+    int64 amount = 4;
+    // The time of withdraw.
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    // The time of vote.
+    google.protobuf.Timestamp vote_timestamp = 6;
+    // Whether the vote had been withdrawn.
+    bool is_withdrawn = 7;
+    // The option voted.
+    string option = 8;
+    // Whether vote others.
+    bool is_change_target = 9;
+}
+
+message AddOptionInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The new option to add.
+    string option = 2;
+}
+
+message RemoveOptionInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The option to remove.
+    string option = 2;
+}
+
+message AddOptionsInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The new options to add.
+    repeated string options = 2;
+}
+
+message RemoveOptionsInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The options to remove.
+    repeated string options = 2;
+}
+
+message VotedItems {
+    // The voted ids.
+    map<string, VotedIds> voted_item_vote_ids = 1;
+}
+
+message VotedIds {
+    // The active vote ids.
+    repeated aelf.Hash active_votes = 1;
+    // The withdrawn vote ids.
+    repeated aelf.Hash withdrawn_votes = 2;
+}
+
+message GetVotingIdsInput {
+    // The address of voter.
+    aelf.Address voter = 1;
+    // The voting activity id.
+    aelf.Hash voting_item_id = 2;
+}
+
+message GetVotingItemInput {
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+}
+
+message GetVotingRecordsInput {
+    // The vote ids.
+    repeated aelf.Hash ids = 1;
+}
+
+message VotingRecords {
+    // The voting records.
+    repeated VotingRecord records = 1;
+}
+
+message Voted {
+    option (aelf.is_event) = true;
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The address of voter.
+    aelf.Address voter = 2;
+    // The snapshot number.
+    int64 snapshot_number = 3;
+    // The amount of vote.
+    int64 amount = 4;
+    // The time of vote.
+    google.protobuf.Timestamp vote_timestamp = 5;
+    // The option voted.
+    string option = 6;
+    // The vote id.
+    aelf.Hash vote_id = 7;
+}
+
+message Withdrawn {
+    option (aelf.is_event) = true;
+    // The vote id.
+    aelf.Hash vote_id = 1;
+}
+
+message VotingItemRegistered {
+    option (aelf.is_event) = true;
+    // The voting activity id.
+    aelf.Hash voting_item_id = 1;
+    // The token symbol which will be accepted.
+    string accepted_currency = 2;
+    // Whether the vote will lock token.
+    bool is_lock_token = 3;
+    // The current snapshot number.
+    int64 current_snapshot_number = 4;
+    // The total number of snapshots of the vote.
+    int64 total_snapshot_number = 5;
+    // The register time of the voting activity.
+    google.protobuf.Timestamp register_timestamp = 6;
+    // The start time of the voting.
+    google.protobuf.Timestamp start_timestamp = 7;
+    // The end time of the voting.
+    google.protobuf.Timestamp end_timestamp = 8;
+    // The start time of current round of the voting.
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 9;
+    // The sponsor address of the voting activity.
+    aelf.Address sponsor = 10;
+}

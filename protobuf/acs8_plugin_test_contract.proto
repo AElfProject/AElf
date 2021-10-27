@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import public "aelf/core.proto";
+import "aelf/options.proto";
+import "acs8.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract";
+
+service Contract {
+    option (aelf.csharp_state) = "AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.Tests.TestContract.ContractState";
+    option (aelf.base) = "acs8.proto";
+    rpc CpuConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc StoConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc TrafficConsumingMethod (TrafficConsumingMethodInput) returns (google.protobuf.Empty) {
+    }
+    rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}
+
+message TrafficConsumingMethodInput {
+    google.protobuf.BytesValue blob = 1;
+}

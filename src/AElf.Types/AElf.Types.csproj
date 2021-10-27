@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf</RootNamespace>
+        <PackageId>AElf.Types</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Basic types for AElf.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.13.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\aelf\core.proto">
+            <Link>Protobuf\Proto\core.proto</Link>
+        </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\aelf\options.proto">
+            <Link>Protobuf\Proto\options.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+</Project>

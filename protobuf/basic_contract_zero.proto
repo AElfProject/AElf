@@ -1,0 +1,71 @@
+/**
+ * Genesis contract.
+ */
+syntax = "proto3";
+
+package Zero;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.Genesis";
+
+service BasicContractZero {
+    option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
+    
+    // Initialize the genesis contract.
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set initial controller address for CodeCheckController and ContractDeploymentController.
+    rpc SetInitialControllerAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    // Modify the contract deployment controller authority. 
+    // Note: Only old controller has permission to do this.
+    rpc ChangeContractDeploymentController (AuthorityInfo) returns (google.protobuf.Empty) {
+    } 
+    
+    // Modify the contract code check controller authority. 
+    // Note: Only old controller has permission to do this.
+    rpc ChangeCodeCheckController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Query the ContractDeploymentController authority info.
+    rpc GetContractDeploymentController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the CodeCheckController authority info.
+    rpc GetCodeCheckController(google.protobuf.Empty) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput{
+    // Whether contract deployment/update requires authority.
+    bool contract_deployment_authority_required = 1;
+}
+
+message ContractProposingInput{
+    // The address of proposer for contract deployment/update.
+    aelf.Address proposer = 1;
+    // The status of proposal.
+    ContractProposingInputStatus status = 2;
+    // The expiration time of proposal.
+    google.protobuf.Timestamp expired_time = 3;
+}
+
+enum ContractProposingInputStatus {
+    // Proposal is proposed.
+    PROPOSED = 0;
+    // Proposal is approved by parliament.
+    APPROVED = 1;
+    // Code check is proposed.
+    CODE_CHECK_PROPOSED = 2;
+    // Passed code checks.
+    CODE_CHECKED = 3;
+}

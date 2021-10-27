@@ -1,0 +1,70 @@
+/**
+ * AElf Standards ACS4(Consensus Standard)
+ *
+ * Used to customize consensus mechanisms.
+ */
+syntax = "proto3";
+
+package acs4;
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option (aelf.identity) = "acs4";
+option csharp_namespace = "AElf.Standards.ACS4";
+
+service ConsensusContract {
+    // Generate a consensus command based on the consensus contract state and the input public key.
+    rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Generate consensus extra data when a block is generated. 
+    rpc GetConsensusExtraData (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Generate consensus system transactions when a block is generated. 
+    // Each block will contain only one consensus transaction, which is used to write the latest consensus information 
+    // to the State database.
+    rpc GenerateConsensusTransactions (google.protobuf.BytesValue) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Before executing the block, verify that the consensus information in the block header is correct.
+    rpc ValidateConsensusBeforeExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    
+    // After executing the block, verify that the state information written to the consensus is correct.
+    rpc ValidateConsensusAfterExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ConsensusCommand {
+    // Time limit of mining next block.
+    int32 limit_milliseconds_of_mining_block = 1;
+    // Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
+    bytes hint = 2;
+    // The time of arrange mining.
+    google.protobuf.Timestamp arranged_mining_time = 3;
+    // The expiration time of mining.
+    google.protobuf.Timestamp mining_due_time = 4;
+}
+
+message ValidationResult {
+    // Is successful.
+    bool success = 1;
+    // The error message.
+    string message = 2;
+    // Whether to trigger mining again.
+    bool is_re_trigger = 3;
+}
+
+message TransactionList {
+    // Consensus system transactions.
+    repeated aelf.Transaction transactions = 1;
+}

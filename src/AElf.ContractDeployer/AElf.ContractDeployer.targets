@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    </PropertyGroup>
+    <PropertyGroup>
+        <ContractManifestFileName>Contracts.manifest</ContractManifestFileName>
+    </PropertyGroup>
+
+    <Target Name="CreateContractsManifest" AfterTargets="ResolveReferences" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <ContractProject Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>
+            <ContractPackage Include="@(PackageReference)" Condition="'%(PackageReference.OutputItemType)' == 'Contract'"/>
+        </ItemGroup>
+        <MSBuild Projects="@(ContractProject)" Targets="GetTargetPath">
+            <Output TaskParameter="TargetOutputs" ItemName="ContractDlls"/>
+        </MSBuild>
+        <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
+        <WriteLinesToFile Condition="@(ContractProject) != ''" File="$(ContractManifestFileName)" Lines="%(Filename)"/>
+        <WriteLinesToFile Condition="@(ContractPackage) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
+        <ItemGroup Condition="Exists($(ContractManifestFileName))">
+            <EmbeddedResource Include="$(ContractManifestFileName)"/>
+        </ItemGroup>
+        <ItemGroup>
+            <ContractAssets Include="@(ContractDlls)"/>
+            <ContractAssets Include="%(ContractDlls.RootDir)%(ContractDlls.Directory)%(ContractDlls.Filename).pdb" Condition="'@(ContractDlls)' != ''"/>
+        </ItemGroup>
+    </Target>
+    <Target Name="CopyContractAssets" AfterTargets="AfterBuild">
+        <Copy SourceFiles="@(ContractAssets)" DestinationFolder="$(OutDir)" ContinueOnError="true"/>
+    </Target>
+</Project>

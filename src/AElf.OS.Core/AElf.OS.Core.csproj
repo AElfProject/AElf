@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.OS</RootNamespace>
+        <PackageId>AElf.OS.Core</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Core module for the OS layer.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\network_types.proto">
+            <Link>Protobuf\Proto\network_types.proto</Link>
+        </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+        <ContractMessage Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel.SmartContractExecution</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Smart contract execution related components.</Description>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Configuration\AElf.Kernel.Configuration.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\execution.proto">
+            <Link>Protobuf\Proto\execution.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+</Project>

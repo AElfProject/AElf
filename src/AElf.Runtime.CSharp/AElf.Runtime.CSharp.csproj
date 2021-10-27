@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
+        <PackageId>AElf.Runtime.CSharp</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Primitives for the C# smart contracts runtime.</Description>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE;UNIT_TEST</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.CSharp.CodeOps\AElf.CSharp.CodeOps.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Mono.Cecil" Version="0.11.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\descriptor_equivalent.proto">
+            <Link>Protobuf\Proto\descriptor_equivalent.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+</Project>

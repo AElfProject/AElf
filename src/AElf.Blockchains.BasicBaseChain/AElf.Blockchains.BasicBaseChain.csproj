@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <PackageId>AElf.Blockchains.BasicBaseChain</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Base AElf Module for different chain types.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain\AElf.CrossChain.csproj" />
+        <ProjectReference Include="..\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\AElf.GovernmentSystem\AElf.GovernmentSystem.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
+        <ProjectReference Include="..\AElf.WebApp.Web\AElf.WebApp.Web.csproj" />
+        <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
+    </ItemGroup>
+
+</Project>

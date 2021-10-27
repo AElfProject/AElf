@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+
+option csharp_namespace = "AElf.Kernel.SmartContract";
+
+message TransactionResourceInfo {
+    repeated aelf.ScopedStatePath write_paths = 1;
+    repeated aelf.ScopedStatePath read_paths = 2;
+    ParallelType parallel_type = 3;
+    aelf.Hash transaction_id = 4;
+    aelf.Hash contract_hash = 5;
+    bool is_nonparallel_contract_code = 6;
+}
+
+enum ParallelType {
+    PARALLELIZABLE = 0;
+    NON_PARALLELIZABLE = 1;
+    INVALID_CONTRACT_ADDRESS = 2;
+}
+
+message NonparallelContractCode{
+    aelf.Hash code_hash = 1;
+}

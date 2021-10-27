@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.SmartContract.Metadata";
+
+message DataAccessPath {
+    enum AccessMode {
+        UNDEFINED = 0;
+        READ = 1;
+        WRITE = 2;
+    }
+    repeated string path = 1;
+    AccessMode mode = 2;
+}
+
+message InlineCall {
+    repeated string address_path = 1;
+    string method_name = 2;
+}

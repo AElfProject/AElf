@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "acs2.proto";
+
+option csharp_namespace = "AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract";
+
+service TestContract {
+    option (aelf.csharp_state) = "AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract.TestContractState";
+    option (aelf.base) = "acs2.proto";
+}

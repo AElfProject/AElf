@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package aelf;
+
+import "google/protobuf/descriptor.proto";
+
+option csharp_namespace = "AElf";
+
+// All aelf custom options field numbers are like 50yxxx
+// where y stands for the custom options type:
+// 0 - FileOptions
+// 1 - MessageOptions
+// 2 - FieldOptions
+// 3 - EnumOptions
+// 4 - EnumValueOptions
+// 5 - ServiceOptions
+// 6 - MethodOptions
+
+extend google.protobuf.FileOptions {
+    string identity = 500001;
+}
+
+extend google.protobuf.ServiceOptions {
+    repeated string base = 505001;
+    string csharp_state = 505030;
+}
+
+extend google.protobuf.MethodOptions {
+    bool is_view = 506001;
+}
+
+extend google.protobuf.MessageOptions {
+    bool is_event = 50100;
+}
+
+extend google.protobuf.FieldOptions {
+    bool is_indexed = 502001;
+}

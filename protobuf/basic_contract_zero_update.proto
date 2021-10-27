@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package Zero;
+
+import "aelf/options.proto";
+import "acs0.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.GenesisUpdate";
+
+service BasicContractZero {
+    option (aelf.csharp_state) = "AElf.Contracts.GenesisUpdate.BasicContractZeroState";
+    option (aelf.base) = "acs0.proto";
+    
+    rpc GetContractDeploymentAuthorityRequired (google.protobuf.Empty) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc ChangeGenesisOwnerAddress (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeInput{
+    bool contract_deployment_authority_required = 1;
+}

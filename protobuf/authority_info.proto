@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+
+message AuthorityInfo {
+    // The contract address of the controller.
+    aelf.Address contract_address = 1;
+    // The address of the owner of the contract.
+    aelf.Address owner_address = 2;
+}

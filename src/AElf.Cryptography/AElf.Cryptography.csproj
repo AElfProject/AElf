@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Cryptography</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Cryptographic primitives used in AElf.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
+        <PackageReference Include="Secp256k1.Net" Version="0.1.55" />
+        <PackageReference Include="Secp256k1.Native" Version="0.1.20" />
+        <PackageReference Include="Virgil.Crypto" Version="2.4.10" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+    </ItemGroup>
+</Project>

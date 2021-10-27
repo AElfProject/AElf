@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Runtime.CSharp.Tests.TestContract";
+
+service TestContract {
+    option (aelf.csharp_state) = "AElf.Runtime.CSharp.Tests.TestContract.TestContractState";
+    //Actions
+    rpc TestBoolState(BoolInput) returns (BoolOutput) {
+    }
+    rpc TestInt32State(Int32Input) returns (Int32Output) {
+    }
+    rpc TestUInt32State(UInt32Input) returns (UInt32Output) {
+    }
+    rpc TestInt64State(Int64Input) returns (Int64Output) {
+    }
+    rpc TestUInt64State(UInt64Input) returns (UInt64Output) {
+    }
+    rpc TestStringState(StringInput) returns (StringOutput) {
+    }
+    rpc TestBytesState(BytesInput) returns (BytesOutput) {
+    }
+    rpc TestProtobufState(ProtobufInput) returns (ProtobufOutput) {
+    }
+    rpc TestComplex1State(Complex1Input) returns (Complex1Output) {
+    }
+    rpc TestComplex2State(Complex2Input) returns (Complex2Output) {
+    }
+    rpc TestMappedState(ProtobufInput) returns (ProtobufListOutput) {
+    }
+    rpc TestMapped1State(Complex3Input) returns (TradeMessage) {
+    }
+    rpc TestReadonlyState(BoolInput) returns (BoolOutput) {
+    }
+    rpc TestArrayIterateForeach(google.protobuf.Empty) returns (StringOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc TestViewMethod(google.protobuf.Empty) returns (Int32Output) {
+        option (aelf.is_view) = true;
+    }
+}
+
+//Input
+message BoolInput {
+    bool bool_value = 1;
+}
+
+message Int32Input {
+    int32 int32_value = 1;
+}
+
+message UInt32Input {
+    uint32 u_int32_value = 1;
+}
+
+message Int64Input {
+    int64 int64_value = 1;
+}
+
+message UInt64Input {
+    uint64 u_int64_value = 1;
+}
+
+message StringInput {
+    string string_value = 1;
+}
+
+message BytesInput {
+    bytes bytes_value = 1;
+}
+
+message ProtobufInput {
+    ProtobufMessage protobuf_value = 1;
+}
+
+message Complex1Input {
+    bool bool_value = 1;
+    int32 int32_value = 2;
+}
+
+message Complex2Input {
+    BoolInput bool_data = 1;
+    Int32Input int32_data = 2;
+}
+
+message Complex3Input {
+    string from = 1;
+    string pair_a = 2;
+    string to = 3;
+    string pair_b = 4;
+    TradeMessage trade_details = 5;
+}
+
+message TradeMessage {
+    int64 from_amount = 1;
+    int64 to_amount = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+message ProtobufMessage {
+    string string_value = 1;
+    bool bool_value = 2;
+    int64 int64_value = 3;
+}
+
+//Output
+message BoolOutput {
+    bool bool_value = 1;
+}
+
+message Int32Output {
+    int32 int32_value = 1;
+}
+
+message UInt32Output {
+    uint32 u_int32_value = 1;
+}
+
+message UInt64Output {
+    uint64 u_int64_value = 1;
+}
+
+message Int64Output {
+    int64 int64_value = 1;
+}
+
+message StringOutput {
+    string string_value = 1;
+}
+
+message BytesOutput {
+    bytes bytes_value = 1;
+}
+
+message ProtobufOutput {
+    ProtobufMessage protobuf_value = 1;
+}
+
+message ProtobufListOutput {
+    repeated ProtobufMessage collection = 1;
+}
+
+message Complex1Output {
+    bool bool_value = 1;
+    int32 int32_value = 2;
+}
+
+message Complex2Output {
+    BoolOutput bool_data = 1;
+    Int32Output int32_data = 2;
+}

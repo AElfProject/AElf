@@ -1,0 +1,51 @@
+/**
+ * AElf Standards ACS5(Method Calling Threshold Contract Standard)
+ *
+ * To avoid DDOS attacks, all contracts should theoretically implement AElf Standards ACS5, 
+ * setting a threshold for expensive methods. There are two types of call thresholds: check balance only, 
+ * and check balance and allowance at the same time.
+ */
+syntax = "proto3";
+
+package acs5;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs5";
+option csharp_namespace = "AElf.Standards.ACS5";
+
+service ThresholdSettingContract {
+    // Set the threshold for method calling.
+    rpc SetMethodCallingThreshold (SetMethodCallingThresholdInput) returns (google.protobuf.Empty) {
+    }
+
+    // Get the threshold for method calling.
+    rpc GetMethodCallingThreshold (google.protobuf.StringValue) returns (MethodCallingThreshold) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message MethodCallingThreshold {
+    // The threshold for method calling, token symbol -> amount. 
+    map<string, int64> symbol_to_amount = 1;
+    // The type of threshold check.
+    ThresholdCheckType threshold_check_type = 2;
+}
+
+message SetMethodCallingThresholdInput {
+    // The method name to check.
+    string method = 1;
+    // The threshold for method calling, token symbol -> amount.
+    map<string, int64> symbol_to_amount = 2;
+    // The type of threshold check.
+    ThresholdCheckType threshold_check_type = 3;
+}
+
+enum ThresholdCheckType {
+    // Check balance only.
+    BALANCE = 0;
+    // Check balance and allowance at the same time.
+    ALLOWANCE = 1;
+}

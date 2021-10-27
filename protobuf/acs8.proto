@@ -1,0 +1,35 @@
+/**
+ * AElf Standards ACS8(Transaction Resource Token Fee Standard)
+ *
+ * ACS8 has some similarities to ACS1, both of them are charge transaction fee standard.
+ * The difference is that ACS1 charges the user a transaction fee, ACS8 charges the called contract, 
+ * and the transaction fee charged by ACS8 is the specified four tokens: WRITE, READ, STORAGE, TRAFFIC.
+ * In another word, if a contract declares that it inherits from ACS8, each transaction in this contract will 
+ * charge four kinds of resource token.
+ */
+syntax = "proto3";
+
+package acs8;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs8";
+option csharp_namespace = "AElf.Standards.ACS8";
+
+service ResourceConsumptionContract {
+    // Buy one of the four resource coins, which consumes the ELF balance in the contract account 
+    // (you can recharge it yourself, or you can collect the user’s ELF tokens as a profit to be self-sufficient).
+    rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message BuyResourceTokenInput {
+    // The symbol token you want to buy.
+    string symbol = 1;
+    // The amount you want to buy.
+    int64 amount = 2;
+    // Limit of cost. If the token required for buy exceeds this value, the buy will be abandoned.
+    // And 0 is no limit.
+    int64 pay_limit = 3; 
+}

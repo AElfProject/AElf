@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+import "acs1.proto";
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Performance";
+
+service PerformanceContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Performance.PerformanceContractState";
+    option (aelf.base) = "acs1.proto";
+    
+    //Actions
+    rpc InitialPerformanceContract (InitialPerformanceInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc WriteKContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc Write1KContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc Write2KContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc Write5KContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc Write10KContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc ComputeLevel (NumberInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc ComputeLevel1 (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    rpc ComputeLevel2 (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    rpc ComputeLevel3 (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    rpc ComputeLevel4 (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    rpc InfiniteLoopWhile (NumberInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc InfiniteLoopFor (NumberInput) returns (google.protobuf.Empty) {
+    }
+    
+    //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryReadInfo (aelf.Address) returns (ReadOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc QueryFibonacci(NumberInput) returns (NumberOutput){
+        option (aelf.is_view) = true;
+    }
+}
+
+//Input
+message InitialPerformanceInput {
+    string contract_name = 1;
+    aelf.Address manager = 2;
+}
+
+message WriteInput {
+    bytes content = 1;
+}
+
+message NumberInput {
+    int64 number = 1;
+}
+
+//Output
+message ReadOutput {
+    string content = 1;
+}
+
+message NumberOutput {
+    int64 number = 1;
+    int64 result = 2;
+}

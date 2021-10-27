@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
+        <PatcherDir>..\..\scripts\patcher</PatcherDir>
+        <PatcherProjectName>AElf.ContractDeployer</PatcherProjectName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(ProtoBaseDir)\aelf\*">
+            <Link>Protobuf\Proto\aelf/*</Link>
+        </None>
+    </ItemGroup>
+
+    <Choose>
+        <When Condition="!$([MSBuild]::IsOsPlatform(Windows))">
+            <PropertyGroup>
+                <GenerateContractBaseCommand>../../scripts/generate_contract_base.sh</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>../../scripts/generate_contract_code.sh</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>../../scripts/generate_contract_reference.sh</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>../../scripts/generate_contract_stub.sh</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>../../scripts/generate_event_only.sh</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </When>
+        <Otherwise>
+            <PropertyGroup>
+                <GenerateContractBaseCommand>..\..\scripts\generate_contract_base.bat</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>..\..\scripts\generate_contract_code.bat</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>..\..\scripts\generate_contract_reference.bat</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>..\..\scripts\generate_contract_stub.bat</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>..\..\scripts\generate_event_only.bat</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </Otherwise>
+    </Choose>
+    
+    <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
+        <PropertyGroup>
+            <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
+            <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
+        </PropertyGroup>
+        <PropertyGroup>
+            <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
+            <GenerateCommonMessageCommand>protoc --proto_path=../../protobuf --csharp_out=$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateCommonMessageCommand>
+        </PropertyGroup>
+        <PropertyGroup>
+            <IsContract Condition="'@(ContractCode)' != ''">true</IsContract>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <Compile Remove="Protobuf/Generated/*.cs"/>
+        </ItemGroup>
+        <RemoveDir Directories="Protobuf\Generated"/>
+
+        <MakeDir Condition="@(ContractInternal) != '' Or @(CommonMessage) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
+        <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
+        <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
+        <Exec Condition="@(ContractBase) != '' And $(IsContract) != '' AND '$(IsContract)' " Command="$(GenerateContractBaseCommand) %(Identity) "/>
+        <Exec Condition="@(ContractBase) != '' And %(ContractBase.PublicAccessibility) == 'true'" Command="$(GenerateContractBaseCommand) %(Identity) "/>
+        <Exec Condition="@(ContractBase) != '' And $(IsContract) == '' And %(ContractBase.PublicAccessibility) != 'true'" Command="$(GenerateContractBaseCommand) %(Identity) internal_access"/>
+        <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
+        <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
+        <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
+        <Exec Condition="@(ContractMessage) != ''" Command="$(GenerateContractMessageCommand) %(Identity)"/>
+        <ItemGroup>
+            <Compile Remove="Protobuf/Generated/*.cs"/>
+            <Compile Include="Protobuf/Generated/*.cs"/>
+        </ItemGroup>
+    </Target>
+
+    <!-- Build patcher before building the contract -->
+    <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <IsContract Condition="'@(ContractCode)' != ''">true</IsContract>
+            <IsSystemContract Condition="'@(ContractCode)' != '' And %(ContractCode.SystemContract) != '' And %(ContractCode.SystemContract)">true</IsSystemContract>
+        </PropertyGroup>
+        <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'"
+                 Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
+    </Target>
+    <!-- Patch the contract dll after building the contract -->
+    <Target Name="PatchContractCode" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="AfterBuild">
+        <PropertyGroup>
+            <CmdPatchOverwrite></CmdPatchOverwrite>
+            <CmdPatchOverwrite Condition="'$(PatchOverwrite)' != '' AND '$(PatchOverwrite)'">-w </CmdPatchOverwrite>
+            <CmdSkipAudit></CmdSkipAudit>
+            <CmdSkipAudit Condition="'$(SkipAudit)' != '' AND '$(SkipAudit)'">-s </CmdSkipAudit>
+            <CmdTreatAsSystemContract></CmdTreatAsSystemContract>
+            <CmdTreatAsSystemContract Condition="'$(IsSystemContract)' != '' AND '$(IsSystemContract)'">-t </CmdTreatAsSystemContract>
+        </PropertyGroup>
+        <Exec WorkingDirectory="$(PatcherDir)"
+              Command="dotnet $(PatcherProjectName).dll $(CmdPatchOverwrite)$(CmdSkipAudit)$(CmdTreatAsSystemContract)-p $(TargetDir)$(TargetName).dll"
+              ConsoleToMSBuild="true">
+            <Output TaskParameter="ConsoleOutput" ItemName="PatchContractCodeOutput"/>
+        </Exec>
+        <Message Text="$(PatchContractCodeOutput)"/>
+    </Target>
+    <!-- Move dlls before codecov injection in travis -->
+    <Target Name="CopyNonCodeCovContractDll" Condition="'$(IsContract)' != '' AND '$(IsContract)'" AfterTargets="PatchContractCode">
+        <PropertyGroup>
+            <LauncherTargetDir>../../src/AElf.Launcher/contracts</LauncherTargetDir>
+        </PropertyGroup>
+        <Copy SourceFiles="$(TargetDir)$(TargetName).dll"
+              DestinationFolder="$(LauncherTargetDir)"
+              SkipUnchangedFiles="true"/>
+        <Copy Condition="Exists('$(TargetDir)$(TargetName).dll.patched')"
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched"
+              DestinationFolder="../../test/patched"
+              SkipUnchangedFiles="true"/>
+    </Target>
+    <!-- Copy patched contract dll after publish to include in publish directory -->
+    <Target Name="CopyPatchedContractCodeToPublish" AfterTargets="Publish">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)' AND Exists('$(TargetDir)$(TargetName).dll.patched')"
+              SourceFiles="$(TargetDir)$(TargetName).dll.patched"
+              DestinationFiles="$(PublishDir)/$(TargetName).dll"
+              SkipUnchangedFiles="true"/>
+    </Target>
+</Project>

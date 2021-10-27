@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.GovernmentSystem</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Projects for AElf Government System contracts releated stuff.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Proposal\AElf.Kernel.Proposal.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\acs5.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\election_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\referendum_contract.proto">
+            <Link>Protobuf\Proto\referendum_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_contract.proto">
+            <Link>Protobuf\Proto\association_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+</Project>

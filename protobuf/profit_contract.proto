@@ -1,0 +1,331 @@
+/**
+ * Profit contract.
+ */
+syntax = "proto3";
+
+package Profit;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Profit";
+
+service ProfitContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
+
+    // Create a scheme for profit distribution, and return the created scheme id.
+    rpc CreateScheme (CreateSchemeInput) returns (aelf.Hash) {
+    }
+    
+    // Add beneficiary to scheme.
+    rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+
+    // Remove beneficiary from scheme.
+    rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Batch add beneficiary to scheme.
+    rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty) {
+    }
+
+    // Batch remove beneficiary from scheme.
+    rpc RemoveBeneficiaries (RemoveBeneficiariesInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Contribute profit to a scheme.
+    rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // The beneficiary draws tokens from the scheme.
+    rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {
+    }
+
+    // Distribute profits to schemes, including its sub scheme according to period and  token symbol, 
+    // should be called by the manager. 
+    rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Add sub scheme to a scheme. 
+    // This will effectively add the specified sub-scheme as a beneficiary of the parent scheme.
+    rpc AddSubScheme (AddSubSchemeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Remove sub scheme from a scheme.
+    rpc RemoveSubScheme (RemoveSubSchemeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Reset the manager of a scheme.
+    rpc ResetManager (ResetManagerInput) returns (google.protobuf.Empty) {
+    }
+
+    // Get all schemes managed by the specified manager.
+    rpc GetManagingSchemeIds (GetManagingSchemeIdsInput) returns (CreatedSchemeIds) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get scheme according to scheme id.
+    rpc GetScheme (aelf.Hash) returns (Scheme) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the virtual address of the number of period of the scheme.
+    rpc GetSchemeAddress (SchemePeriod) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the distributed profit information for the specified period.
+    rpc GetDistributedProfitsInfo (SchemePeriod) returns (DistributedProfitsInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the beneficiary's profit information on the scheme.
+    rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the amount of profit according to token symbol. (up to 10 periods).
+    rpc GetProfitAmount (GetProfitAmountInput) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query all profit (up to 10 periods).
+    rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateSchemeInput {
+    // Period of profit distribution.
+    int64 profit_receiving_due_period_count = 1;
+    // Whether all the schemes balance will be distributed during distribution each period.
+    bool is_release_all_balance_every_time_by_default = 2;
+    // Delay distribute period.
+    int32 delay_distribute_period_count = 3;
+    // The manager of this scheme, the default is the creator.
+    aelf.Address manager = 4;
+    // Whether you can directly remove the beneficiary.
+    bool can_remove_beneficiary_directly = 5;
+    // Use to generate scheme id.
+    aelf.Hash token = 6;
+}
+
+message Scheme {
+    // The virtual address of the scheme.
+    aelf.Address virtual_address = 1;
+    // The total weight of the scheme.
+    int64 total_shares = 2;
+    // The manager of the scheme.
+    aelf.Address manager = 3;
+    // The current period.
+    int64 current_period = 4;
+    // Sub schemes information.
+    repeated SchemeBeneficiaryShare sub_schemes = 5;
+    // Whether you can directly remove the beneficiary.
+    bool can_remove_beneficiary_directly = 6;
+    // Period of profit distribution.
+    int64 profit_receiving_due_period_count = 7;
+    // Whether all the schemes balance will be distributed during distribution each period.
+    bool is_release_all_balance_every_time_by_default = 8;
+    // The is of the scheme.
+    aelf.Hash scheme_id = 9;
+    // Delay distribute period.
+    int32 delay_distribute_period_count = 10;
+    // Record the scheme's current total share for deferred distribution of benefits, period -> total shares.
+    map<int64, int64> cached_delay_total_shares = 11;
+    // The received token symbols.
+    repeated string received_token_symbols = 12;
+}
+
+message SchemeBeneficiaryShare {
+    // The id of the sub scheme.
+    aelf.Hash scheme_id = 1;
+    // The weight of the sub scheme. 
+    int64 shares = 2;
+}
+
+message AddBeneficiaryInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The beneficiary information.
+    BeneficiaryShare beneficiary_share = 2;
+    // The end period which the beneficiary receives the profit.
+    int64 end_period = 3;
+}
+
+message RemoveBeneficiaryInput {
+    // The address of beneficiary.
+    aelf.Address beneficiary = 1;
+    // The scheme id.
+    aelf.Hash scheme_id = 2;
+}
+
+message AddBeneficiariesInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The beneficiary information.
+    repeated BeneficiaryShare beneficiary_shares = 2;
+    // The end period which the beneficiary receives the profit.
+    int64 end_period = 3;
+}
+
+message RemoveBeneficiariesInput {
+    // The addresses of beneficiary.
+    repeated aelf.Address beneficiaries = 1;
+    // The scheme id.
+    aelf.Hash scheme_id = 2;
+}
+
+message BeneficiaryShare {
+    // The address of beneficiary.
+    aelf.Address beneficiary = 1;
+    // The profit weight of the beneficiary in the scheme.
+    int64 shares = 2;
+}
+
+message ClaimProfitsInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The address of beneficiary.
+    aelf.Address beneficiary = 2;
+}
+
+message DistributeProfitsInput {
+    // The scheme id to distribute.
+    aelf.Hash scheme_id = 1;
+    // The period number to distribute, should be the current period.
+    int64 period = 2;
+    // The amount to distribute, symbol -> amount.
+    map<string, int64> amounts_map = 3;
+}
+
+message ProfitDetails {
+    // The profit information.
+    repeated ProfitDetail details = 1;
+}
+
+message ProfitDetail {
+    // The start period number.
+    int64 start_period = 1;
+    // The end period number.
+    int64 end_period = 2;
+    // The weight of the proceeds on the current period of the scheme.
+    int64 shares = 3;
+    // The last period number that the beneficiary received the profit.
+    int64 last_profit_period = 4;
+    // Whether the weight has been removed.
+    bool is_weight_removed = 5;
+}
+
+message ContributeProfitsInput {
+    // The scheme id to contribute.
+    aelf.Hash scheme_id = 1;
+    // The amount to contribute.
+    int64 amount = 2;
+    // The number of periods in which the income is used for dividends.
+    int64 period = 3;
+    // The token symbol to contribute.
+    string symbol = 4;
+}
+
+message AddSubSchemeInput {
+    // The parent scheme id.
+    aelf.Hash scheme_id = 1;
+    // The sub scheme id.
+    aelf.Hash sub_scheme_id = 2;
+    // The profit weight of sub scheme.
+    int64 sub_scheme_shares = 3;
+}
+
+message RemoveSubSchemeInput {
+    // The parent scheme id.
+    aelf.Hash scheme_id = 1;
+    // The sub scheme id.
+    aelf.Hash sub_scheme_id = 2;
+}
+
+message DistributedProfitsInfo {
+    // The total amount of shares in this scheme at the current period.
+    int64 total_shares = 1;
+    // The contributed amount in this scheme at the current period.
+    map<string, sint64> amounts_map = 2;//Token symbol -> Amount
+    // Whether released.
+    bool is_released = 3;
+}
+
+message CreatedSchemeIds {
+    // The scheme ids.
+    repeated aelf.Hash scheme_ids = 1;
+}
+
+message GetManagingSchemeIdsInput {
+    // The manager address.
+    aelf.Address manager = 1;
+}
+
+message SchemePeriod {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The period number.
+    int64 period = 2;
+}
+
+message GetProfitDetailsInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The address of beneficiary.
+    aelf.Address beneficiary = 2;
+}
+
+message ResetManagerInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The address of new manager.
+    aelf.Address new_manager = 2;
+}
+
+message GetProfitAmountInput {
+    // The scheme id.
+    aelf.Hash scheme_id = 1;
+    // The token symbol.
+    string symbol = 2;
+    // The beneficiary's address.
+    aelf.Address beneficiary = 3;
+}
+
+message ReceivedProfitsMap {
+    // The collection of profits received, token symbol -> amount.
+    map<string, int64> value = 1;
+}
+
+message SchemeCreated {
+    option (aelf.is_event) = true;
+    // The virtual address of the created scheme.
+    aelf.Address virtual_address = 1;
+    // The manager of the created scheme.
+    aelf.Address manager = 2;
+    // Period of profit distribution.
+    int64 profit_receiving_due_period_count = 3;
+    // Whether all the schemes balance will be distributed during distribution each period.
+    bool is_release_all_balance_every_time_by_default = 4;
+    // The id of the created scheme.
+    aelf.Hash scheme_id = 5;
+}
+
+message ProfitsClaimed {
+    option (aelf.is_event) = true;
+    // The beneficiary's address claimed.
+    aelf.Address beneficiary = 1;
+    // The token symbol claimed.
+    string symbol = 2;
+    // The amount claimed.
+    int64 amount = 3;
+    // The period number claimed.
+    int64 period = 4;
+    // The shares of the claimer.
+    int64 claimer_shares = 5;
+    // The total shares at the current period.
+    int64 total_shares = 6;
+}

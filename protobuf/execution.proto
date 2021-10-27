@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Kernel.SmartContractExecution";
+
+message ExecutionObserverThreshold
+{
+    int32 execution_call_threshold = 1;
+    int32 execution_branch_threshold = 2;
+}

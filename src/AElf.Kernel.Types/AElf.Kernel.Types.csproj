@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.Kernel</RootNamespace>
+        <PackageId>AElf.Kernel.Types</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Basic (core) kernel and chain types.
+        </Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\kernel.proto">
+            <Link>Protobuf\Proto\kernel.proto</Link>
+        </CommonMessage>
+        <CommonMessage Include="..\..\protobuf\metadata.proto">
+            <Link>Protobuf\Proto\metadata.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+</Project>

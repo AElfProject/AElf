@@ -1,0 +1,122 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Modularity;
+using AElf.OS.Handlers;
+using AElf.OS.Network;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Types;
+using AElf.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Volo.Abp;
+using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
+
+namespace AElf.OS.BlockSync
+{
+    [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
+    public class BlockSyncTestAElfModule : AElfModule
+    {
+        private readonly Dictionary<Hash, Block> _peerBlockList = new Dictionary<Hash, Block>();
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddSingleton(o =>
+            {
+                var networkServiceMock = new Mock<INetworkService>();
+                networkServiceMock
+                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>()))
+                    .Returns<Hash, int>((hash, peer) =>
+                    {
+                        BlockWithTransactions result = null;
+                        if (hash != Hash.Empty)
+                        {
+                            var blockchainService = context.Services.GetServiceLazy<IBlockchainService>().Value;
+                            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+                            result = new BlockWithTransactions {Header = _peerBlockList[chain.BestChainHash].Header};
+                        }
+
+                        return Task.FromResult(new Response<BlockWithTransactions>(result));
+                    });
+
+                networkServiceMock
+                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
+                        It.IsAny<string>()))
+                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubkey) =>
+                    {
+                        var result = new List<BlockWithTransactions>();
+
+                        if (peerPubkey == "AbnormalPeer")
+                            throw new Exception("Get blocks failed.");
+                        
+                        if (peerPubkey == "NetworkException")
+                            return Task.FromResult(new Response<List<BlockWithTransactions>>());
+
+                        var hash = previousBlockHash;
+
+                        while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
+                        {
+                            result.Add(new BlockWithTransactions {Header = block.Header});
+
+                            hash = block.GetHash();
+                        }
+
+                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
+                    });
+
+                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns<string>(
+                    (peerPubkey) =>
+                    {
+                        if (peerPubkey == "RemovedPeer")
+                        {
+                            return null;
+                        }
+
+                        return new PeerInfo();
+                    });
+
+                return networkServiceMock.Object;
+            });
+
+            context.Services.AddSingleton<PeerConnectedEventHandler>();
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
+            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
+
+            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+            var previousBlockHash = chain.BestChainHash;
+            var height = chain.BestChainHeight;
+
+            foreach (var block in osTestHelper.BestBranchBlockList)
+            {
+                _peerBlockList.Add(block.Header.PreviousBlockHash, block);
+            }
+
+            var bestBranchHeight = height;
+
+            for (var i = bestBranchHeight; i < bestBranchHeight + 20; i++)
+            {
+                var block = osTestHelper.GenerateBlock(previousBlockHash, height);
+
+                // no choice need to execute the block to finalize it.
+                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(),
+                        new List<Transaction>(), CancellationToken.None))
+                    .Block;
+
+                previousBlockHash = newBlock.GetHash();
+                height++;
+
+                _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
+            }
+        }
+    }
+}

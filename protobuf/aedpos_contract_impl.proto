@@ -1,0 +1,31 @@
+/**
+ * AEDPoS contract.
+ *
+ * Used to managing block producers and synchronizing data.
+ * 
+ * Implement AElf Standards ACS1, ACS4, ACS6, ACS10 and ACS11.
+ */
+syntax = "proto3";
+
+package AEDPoSImpl;
+
+import "acs1.proto";
+import "acs4.proto";
+import "acs6.proto";
+import "acs10.proto";
+import "acs11.proto";
+import "aedpos_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
+
+service AEDPoSContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEDPoS.AEDPoSContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs4.proto";
+    option (aelf.base) = "acs6.proto";
+    // Dividend pool for side chain.
+    option (aelf.base) = "acs10.proto";
+    // Interact with Cross Chain module.
+    option (aelf.base) = "acs11.proto";
+    option (aelf.base) = "aedpos_contract.proto";
+}

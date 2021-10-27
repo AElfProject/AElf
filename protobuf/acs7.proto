@@ -1,0 +1,292 @@
+/**
+ * AElf Standards ACS7(Contract CrossChain Standard)
+ *
+ * ACS7 is for cross chain related contract implementation.
+ */
+syntax = "proto3";
+
+package acs7;
+
+import public "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import public "google/protobuf/timestamp.proto";
+
+option (aelf.identity) = "acs7";
+option csharp_namespace = "AElf.Standards.ACS7";
+
+service ACS7 {
+
+    // Propose once cross chain indexing.
+    rpc ProposeCrossChainIndexing(CrossChainBlockData) returns (google.protobuf.Empty) {
+    }
+    
+    // Release the proposed indexing if already approved.
+    rpc ReleaseCrossChainIndexingProposal(ReleaseCrossChainIndexingProposalInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Request side chain creation.
+    rpc RequestSideChainCreation(SideChainCreationRequest) returns (google.protobuf.Empty){
+    }
+    
+    // Release the side chain creation request if already approved and it will call the method CreateSideChain.
+    rpc ReleaseSideChainCreation(ReleaseSideChainCreationInput) returns (google.protobuf.Empty){
+    }
+    
+    // Create the side chain and returns the newly created side chain ID.
+    // Only SideChainLifetimeController is permitted to invoke this method.
+    rpc CreateSideChain (CreateSideChainInput) returns (google.protobuf.Int32Value) {
+    }
+
+    // Recharge for the specified side chain.
+    rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Dispose a side chain according to side chain id. 
+    // Only SideChainLifetimeController is permitted to invoke this method.
+    rpc DisposeSideChain (google.protobuf.Int32Value) returns (google.protobuf.Int32Value) {
+    }
+
+    // Adjust side chain indexing fee. Only IndexingFeeController is permitted to invoke this method.
+    rpc AdjustIndexingFeePrice(AdjustIndexingFeeInput)returns(google.protobuf.Empty){
+    }
+
+    // Verify cross chain transaction.
+    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Gets all the side chain id and height of the current chain.
+    rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (ChainIdAndHeightDict) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get indexing information of side chains.
+    rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get id and recorded height of all chains.
+    rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (ChainIdAndHeightDict) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get block data of indexed side chain according to height.
+    rpc GetIndexedSideChainBlockDataByHeight (google.protobuf.Int64Value) returns (IndexedSideChainBlockData) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get merkle path bound up with side chain according to height.
+    rpc GetBoundParentChainHeightAndMerklePathByHeight (google.protobuf.Int64Value) returns (CrossChainMerkleProofContext) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get initialization data for specified side chain.
+    rpc GetChainInitializationData (google.protobuf.Int32Value) returns (ChainInitializationData) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message SideChainBlockData {
+    // The height of side chain block.
+    int64 height = 1;
+    // The hash of side chain block.
+    aelf.Hash block_header_hash = 2;
+    // The merkle tree root computing from transactions status in side chain block.
+    aelf.Hash transaction_status_merkle_tree_root = 3;
+    // The id of side chain.
+    int32 chain_id = 4;
+}
+
+message RechargeInput {
+    // The chain id to recharge.
+    int32 chain_id = 1;
+    // The amount to recharge.
+    int64 amount = 2;
+}
+
+message ParentChainBlockData {
+    // The height of parent chain.
+    int64 height = 1;
+    // The merkle tree root computing from side chain roots.
+    CrossChainExtraData cross_chain_extra_data = 2;
+    // The parent chain id.
+    int32 chain_id = 3;
+    // The merkle tree root computing from transactions status in parent chain block.
+    aelf.Hash transaction_status_merkle_tree_root = 4;
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<int64, aelf.MerklePath> indexed_merkle_path = 5;
+    // Extra data map.
+    map<string, bytes> extra_data = 6;
+}
+
+message CrossChainExtraData {
+    // Merkle tree root of side chain block transaction status root.
+    aelf.Hash transaction_status_merkle_tree_root = 1;
+}
+
+message ChainIdAndHeightDict {
+    // A collection of chain ids and heights, where the key is the chain id and the value is the height.
+    map<int32, int64> id_height_dict = 1;
+}
+
+message SideChainIndexingInformationList {
+    // A list contains indexing information of side chains.
+    repeated SideChainIndexingInformation indexing_information_list = 1;
+}
+
+message SideChainIndexingInformation {
+    // The side chain id.
+    int32 chain_id = 1;
+    // The indexed height.
+    int64 indexed_height = 2;
+}
+
+message CrossChainBlockData {
+    // The side chain block data list to index.
+    repeated SideChainBlockData side_chain_block_data_list = 1;
+    // The parent chain block data list to index.
+    repeated ParentChainBlockData parent_chain_block_data_list = 2;
+}
+
+message CrossChainMerkleProofContext {
+    // The height of parent chain bound up with side chain.
+    int64 bound_parent_chain_height = 1;
+    // The merkle path generated from parent chain.
+    aelf.MerklePath merkle_path_from_parent_chain = 2;
+}
+
+message ChainInitializationData {
+    // The id of side chain.
+    int32 chain_id = 1;
+    // The side chain creator.
+    aelf.Address creator = 2;
+    // The timestamp for side chain creation.
+    google.protobuf.Timestamp creation_timestamp = 3;
+    // The height of side chain creation on parent chain.
+    int64 creation_height_on_parent_chain = 4;
+    // Creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+    bool chain_creator_privilege_preserved = 5;
+    // Parent chain token contract address.
+    aelf.Address parent_chain_token_contract_address = 6;
+    // Initial consensus information.
+    ChainInitializationConsensusInfo chain_initialization_consensus_info = 7;
+    // The native token info.
+    bytes native_token_info_data = 8;
+    // The resource token information.
+    ResourceTokenInfo resource_token_info = 9;
+    // The chain primary token information.
+    ChainPrimaryTokenInfo chain_primary_token_info = 10;
+}
+
+message ResourceTokenInfo{
+    // The resource token information.
+    bytes resource_token_list_data = 1;
+    // The initial resource token amount.
+    map<string, int32> initial_resource_amount = 2;
+}
+
+message ChainPrimaryTokenInfo{
+    // The side chain primary token data.
+    bytes chain_primary_token_data = 1;
+    // The side chain primary token initial issue list.
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 2;
+}
+
+message ChainInitializationConsensusInfo{
+    // Initial consensus data.
+    bytes initial_consensus_data = 1;
+}
+
+message SideChainCreationRequest {
+    // The cross chain indexing price.
+    int64 indexing_price = 1;
+    // Initial locked balance for a new side chain.
+    int64 locked_token_amount = 2;
+    // Creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+    bool is_privilege_preserved = 3;
+    // Side chain token information.
+    SideChainTokenCreationRequest side_chain_token_creation_request = 4;
+    // A list of accounts and amounts that will be issued when the chain starts.
+    repeated SideChainTokenInitialIssue side_chain_token_initial_issue_list = 5;
+    // The initial rent resources.
+    map<string, int32> initial_resource_amount = 6;
+}
+
+message SideChainTokenCreationRequest{
+    // Token symbol of the side chain to be created
+    string side_chain_token_symbol = 1;
+    // Token name of the side chain to be created
+    string side_chain_token_name = 2;
+    // Token total supply of the side chain to be created
+    int64 side_chain_token_total_supply = 3;
+    // Token decimals of the side chain to be created
+    int32 side_chain_token_decimals = 4;
+}
+
+message SideChainTokenInitialIssue{
+    // The account that will be issued.
+    aelf.Address address = 1;
+    // The amount that will be issued.
+    int64 amount = 2;
+}
+
+message IndexedParentChainBlockData {
+    // The height of the local chain when indexing the parent chain.
+    int64 local_chain_height = 1;
+    // Parent chain block data.
+    repeated acs7.ParentChainBlockData parent_chain_block_data_list = 2;
+}
+
+message IndexedSideChainBlockData{
+    // Side chain block data.
+    repeated acs7.SideChainBlockData side_chain_block_data_list = 1;
+}
+
+message ReleaseCrossChainIndexingProposalInput{
+    // List of chain ids to release.
+    repeated int32 chain_id_list = 1;
+}
+
+message CreateSideChainInput{
+    // The request information of the side chain creation.
+    SideChainCreationRequest side_chain_creation_request = 1;
+    // The proposer of the side chain creation.
+    aelf.Address proposer = 2;
+}
+
+message ReleaseSideChainCreationInput {
+    // The proposal id of side chain creation.
+    aelf.Hash proposal_id = 1;
+}
+
+message AdjustIndexingFeeInput{
+    // The side chain id to adjust.
+    int32 side_chain_id = 1;
+    // The new price of indexing fee.
+    int64 indexing_fee = 2;
+}
+
+message SideChainBlockDataIndexed{
+    option (aelf.is_event) = true;
+}
+
+message CrossChainIndexingDataProposedEvent{
+    option (aelf.is_event) = true;
+    // Proposed cross chain data to be indexed.
+    acs7.CrossChainBlockData proposed_cross_chain_data = 1;
+    // The proposal id.
+    aelf.Hash proposal_id = 2;
+}
+
+message VerifyTransactionInput {
+    // The cross chain transaction id to verify.
+    aelf.Hash transaction_id = 1;
+    // The merkle path of the transaction.
+    aelf.MerklePath path = 2;
+    // The height of parent chain that indexing this transaction.
+    int64 parent_chain_height = 3;
+    // The chain if to verify.
+    int32 verified_chain_id = 4;
+}

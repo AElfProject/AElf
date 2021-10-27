@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "acs8.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.TransactionFees";
+
+service TransactionFeesContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.TransactionFees.TransactionFeesContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs8.proto";
+    
+    //action
+    rpc InitializeFeesContract (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    rpc MessCpuStoConsuming (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    rpc MessCpuNetConsuming (NetBytesInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc MessNetStoConsuming (NetBytesInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc FailCpuStoConsuming (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    rpc FailCpuNetConsuming (NetBytesInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc FailNetStoConsuming (NetBytesInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc FailInlineTransfer (TransferInput) returns (google.protobuf.Empty) {
+    }
+    
+    //below for acs8 test
+    rpc ReadCpuCountTest (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
+    
+    rpc WriteRamCountTest (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
+    
+    rpc NoReadWriteCountTest (google.protobuf.StringValue) returns (google.protobuf.Empty){
+    }
+    
+    rpc ComplexCountTest (ReadWriteInput) returns (google.protobuf.Empty) {
+    }
+    
+    //view
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc QueryContractResource(google.protobuf.Empty) returns (ResourcesOutput) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message NetBytesInput {
+    google.protobuf.BytesValue net_package = 1;
+}
+
+message TransferInput {
+    aelf.Address to = 1;
+    sint64 amount = 2;
+    string memo = 3;
+}
+
+message ReadWriteInput {
+    int32 read = 1;
+    int32 write = 2;
+}
+
+message ResourcesOutput {
+    repeated TokenInfo resources = 1;
+}
+
+message TokenInfo {
+    string symbol = 1;
+    sint64 amount = 2;
+}

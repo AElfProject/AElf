@@ -1,0 +1,504 @@
+/**
+ * Election contract.
+ */
+syntax = "proto3";
+
+package Election;
+
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "aelf/options.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.Election";
+
+service ElectionContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+
+    // Initialize the election contract.
+    rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Register a new voting item through vote contract.
+    rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    // Take snapshot according to term number, and distribute profits.
+    rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
+    }
+    
+    // To be a block producer, a user should first register to be a candidate and lock some token as a deposit. 
+    // If the data center is not full, the user will be added in automatically and get one weight 
+    // for sharing bonus in the future.
+    rpc AnnounceElection (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    // A candidate is able to quit the election provided he is not currently elected. If you quit successfully, 
+    // the candidate will get his locked tokens back and will not receive anymore bonus.
+    rpc QuitElection (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+    
+    // Used for voting for a candidate to be elected. The tokens you vote with will be locked until the end time. 
+    // According to the number of token you voted and its lock time, you can get corresponding weight for 
+    // sharing the bonus in the future. And return the vote id.
+    rpc Vote (VoteMinerInput) returns (aelf.Hash) {
+    }
+    
+    // Before the end time, you are able to change your vote target to other candidates.
+    rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
+    }
+    
+    // After the lock time, your locked tokens will be unlocked and you can withdraw them according to the vote id.
+    rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    
+    // Update candidate information by consensus contract.
+    rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Batch update candidate information by consensus contract.
+    rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Update the count of miner by consensus contract.
+    rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the treasury profit ids.
+    rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the weight of vote interest.
+    rpc SetVoteWeightInterest (VoteWeightInterestList) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the weight of lock time and votes in the calculation of voting weight.
+    rpc SetVoteWeightProportion (VoteWeightProportion) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the controller for the weight of vote interest.
+    rpc ChangeVoteWeightInterestController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Candidate admin can replace candidate pubkey with a new pubkey.
+    rpc ReplaceCandidatePubkey (ReplaceCandidatePubkeyInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set admin address of candidate (mostly supply)
+    rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    
+    // Get all candidates’ public keys.
+    rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get all candidates whose number of votes is greater than 0.
+    rpc GetVotedCandidates (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get a candidate’s information. 
+    rpc GetCandidateInformation (google.protobuf.StringValue) returns (CandidateInformation) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the victories of the latest term.
+    rpc GetVictories (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the snapshot of term according to term number.
+    rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the count of miner.
+    rpc GetMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the election result according to term id.
+    rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the voter information according to voter public key.
+    rpc GetElectorVote (google.protobuf.StringValue) returns (ElectorVote) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Gets the voter information including the active voting records (excluding withdrawn voting records.).
+    rpc GetElectorVoteWithRecords (google.protobuf.StringValue) returns (ElectorVote) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Gets the voter information including the active and withdrawn voting records.
+    rpc GetElectorVoteWithAllRecords (google.protobuf.StringValue) returns (ElectorVote) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get voting information for candidate according to the public key of the candidate.
+    rpc GetCandidateVote (google.protobuf.StringValue) returns (CandidateVote) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get voting information for candidate according to the public key of the candidate.
+    rpc GetCandidateVoteWithRecords (google.protobuf.StringValue) returns (CandidateVote) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get voting information for candidate according to the public key of the candidate 
+    // (including the active and withdrawn voting records).
+    rpc GetCandidateVoteWithAllRecords (google.protobuf.StringValue) returns (CandidateVote) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the total number of voters.
+    rpc GetVotersCount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the total number of vote token.
+    rpc GetVotesAmount (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get candidate information according to the index and length.
+    rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the voting item id of miner election.
+    rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the data center ranking list.
+    rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the weight of vote interest.
+    rpc GetVoteWeightSetting (google.protobuf.Empty) returns (VoteWeightInterestList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the weight of lock time and votes in the calculation of voting weight.
+    rpc GetVoteWeightProportion (google.protobuf.Empty) returns (VoteWeightProportion) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Used to calculate the bonus weights that users can get by voting.
+    rpc GetCalculateVoteWeight (VoteInformation) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the controller for the weight of vote interest.
+    rpc GetVoteWeightInterestController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Inspect the evil nodes included in the specified miners and return to the replacement node.
+    rpc GetMinerReplacementInformation (GetMinerReplacementInformationInput) returns (MinerReplacementInformation) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query candidate admin.
+    rpc GetCandidateAdmin (google.protobuf.StringValue) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the newest pubkey of an old pubkey.
+    rpc GetNewestPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the old pubkey.
+    rpc GetReplacedPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitialElectionContractInput {
+    // Minimum number of seconds for locking.
+    int64 minimum_lock_time = 1;
+    // Maximum number of seconds for locking.
+    int64 maximum_lock_time = 2;
+    // The current miner list.
+    repeated string miner_list = 3;
+    // The number of seconds per term.
+    int64 time_each_term = 4;
+    // The interval second that increases the number of miners.
+    int64 miner_increase_interval = 5;
+}
+
+message GetTermSnapshotInput {
+    // The term number.
+    int64 term_number = 1;
+}
+
+message UpdateCandidateInformationInput {
+    // The candidate public key.
+    string pubkey = 1;
+    // The number of blocks recently produced.
+    int64 recently_produced_blocks = 2;
+    // The number of time slots recently missed.
+    int64 recently_missed_time_slots = 3;
+    // Is it a evil node. If true will remove the candidate.
+    bool is_evil_node = 4;
+}
+
+message UpdateMultipleCandidateInformationInput {
+    // The candidate information to update.
+    repeated UpdateCandidateInformationInput value = 1;
+}
+
+message TakeElectionSnapshotInput {
+    // The term number to take snapshot.
+    int64 term_number = 1;
+    // The number of mined blocks of this term.
+    int64 mined_blocks = 2;
+    // The end round number of this term.
+    int64 round_number = 3;
+}
+
+message VoteMinerInput {
+    // The candidate public key.
+    string candidate_pubkey = 1;
+    // The amount token to vote.
+    int64 amount = 2;
+    // The end timestamp of this vote.
+    google.protobuf.Timestamp end_timestamp = 3;
+    // Used to generate vote id.
+    aelf.Hash token = 4;
+}
+
+message ChangeVotingOptionInput {
+    // The vote id to change.
+    aelf.Hash vote_id = 1;
+    // The new candidate public key.
+    string candidate_pubkey = 2;
+}
+
+message UpdateTermNumberInput {
+    // The term number.
+    int64 term_number = 1;
+}
+
+message GetElectionResultInput {
+    // The term number.
+    int64 term_number = 1;
+}
+
+message ElectionResult {
+    // The term number
+    int64 term_number = 1;
+    // The election result, candidates’ public key -> number of votes.
+    map<string, int64> results = 2;
+    // Whether an election is currently being held.
+    bool is_active = 3;
+}
+
+message ElectorVote {
+    // The active voting record ids.
+    repeated aelf.Hash active_voting_record_ids = 1;
+    // The voting record ids that were withdrawn.
+    repeated aelf.Hash withdrawn_voting_record_ids = 2;
+    // The total number of active votes.
+    int64 active_voted_votes_amount = 3;
+    // The total number of votes (including the number of votes withdrawn).
+    int64 all_voted_votes_amount = 4;
+    // The active voting records.
+    repeated ElectionVotingRecord active_voting_records = 5;
+    // The voting records that were withdrawn.
+    repeated ElectionVotingRecord withdrawn_votes_records = 6;
+    // Public key for voter.
+    bytes pubkey = 7;
+}
+
+message CandidateVote {
+    // The active voting record ids obtained.
+    repeated aelf.Hash obtained_active_voting_record_ids = 1;
+    // The active voting record ids that were withdrawn.
+    repeated aelf.Hash obtained_withdrawn_voting_record_ids = 2;
+    // The total number of active votes obtained.
+    int64 obtained_active_voted_votes_amount = 3;
+    // The total number of votes obtained.
+    int64 all_obtained_voted_votes_amount = 4;
+    // The active voting records.
+    repeated ElectionVotingRecord obtained_active_voting_records = 5;
+    // The voting records that were withdrawn.
+    repeated ElectionVotingRecord obtained_withdrawn_votes_records = 6;
+    // Public key for candidate.
+    bytes pubkey = 7;
+}
+
+message CandidateInformation {
+    // Candidate’s public key.
+    string pubkey = 1;
+    // The number of terms that the candidate is elected.
+    repeated int64 terms = 2;
+    // The number of blocks the candidate has produced.
+    int64 produced_blocks = 3;
+    // The time slot for which the candidate failed to produce blocks.
+    int64 missed_time_slots = 4;
+    // The count of continual appointment.
+    int64 continual_appointment_count = 5;
+    // The transaction id when the candidate announced.
+    aelf.Hash announcement_transaction_id = 6;
+    // Indicate whether the candidate can be elected in the current term.
+    bool is_current_candidate = 7;
+}
+
+message CandidateDetail {
+    // The candidate information.
+    CandidateInformation candidate_information = 1;
+    // The number of votes a candidate has obtained.
+    int64 obtained_votes_amount = 2;
+}
+
+message ElectionVotingRecord {
+    // The address of voter.
+    aelf.Address voter = 1;
+    // The public key of candidate.
+    string candidate = 2;
+    // Amount of voting.
+    int64 amount = 3;
+    // The term number of voting.
+    int64 term_number = 4;
+    // The vote id.
+    aelf.Hash vote_id = 5;
+    // Vote lock time.
+    int64 lock_time = 6;
+    // The unlock timestamp.
+    google.protobuf.Timestamp unlock_timestamp = 7;
+    // The withdraw timestamp.
+    google.protobuf.Timestamp withdraw_timestamp = 8;
+    // The vote timestamp.
+    google.protobuf.Timestamp vote_timestamp = 9;
+    // Indicates if the vote has been withdrawn.
+    bool is_withdrawn = 10;
+    // Vote weight for sharing bonus.
+    int64 weight = 11;
+    // Whether vote others.
+    bool is_change_target = 12;
+}
+
+message PageInformation {
+    // The start index.
+    int32 start = 1;
+    // The number of records.
+    int32 length = 2;
+}
+
+message PubkeyList {
+    // Candidates’ public keys
+    repeated bytes value = 1;
+}
+
+message TermSnapshot {
+    // The end round number of this term.
+    int64 end_round_number = 1;
+    // The number of blocks mined in this term. 
+    int64 mined_blocks = 2;
+    // The election result, candidates’ public key -> number of votes.
+    map<string, int64> election_result = 3;
+}
+
+message UpdateMinersCountInput {
+    // The count of miner.
+    int32 miners_count = 1;
+}
+
+message GetPageableCandidateInformationOutput {
+    // The details of the candidates.
+    repeated CandidateDetail value = 1;
+}
+
+message SetTreasurySchemeIdsInput {
+    // The scheme id of treasury reward.
+    aelf.Hash treasury_hash = 1;
+    // The scheme id of welfare reward.
+    aelf.Hash welfare_hash = 2;
+    // The scheme id of subsidy reward.
+    aelf.Hash subsidy_hash = 3;
+    // The scheme id of welcome reward.
+    aelf.Hash welcome_hash = 4;
+    // The scheme id of flexible reward.
+    aelf.Hash flexible_hash = 5;
+}
+
+message DataCenterRankingList {
+    // The top n * 5 candidates with vote amount, candidate public key -> vote amount.
+    map<string, int64> data_centers = 1;
+}
+
+message VoteWeightInterest{
+    // Number of days locked.
+    int32 day = 1;
+    // Locked interest.
+    int32 interest = 2;
+    int32 capital = 3;
+}
+
+message VoteWeightInterestList {
+    // The weight of vote interest.
+    repeated VoteWeightInterest vote_weight_interest_infos = 1;
+}
+
+message VoteWeightProportion {
+    // The weight of lock time.
+    int32 time_proportion = 1;
+    // The weight of the votes cast.
+    int32 amount_proportion = 2;
+}
+
+message VoteInformation{
+    // Amount of voting.
+    int64 amount = 1;
+    // Vote lock time.
+    int64 lock_time = 2;
+}
+
+message GetMinerReplacementInformationInput {
+    // The current miner list to inspect.
+    repeated string current_miner_list = 1;
+}
+
+message MinerReplacementInformation {
+    // The alternative candidate public keys.
+    repeated string alternative_candidate_pubkeys = 1;
+    // The evil miner public keys.
+    repeated string evil_miner_pubkeys = 2;
+}
+
+message ReplaceCandidatePubkeyInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+}
+
+message SetCandidateAdminInput {
+    string pubkey = 1;
+    aelf.Address admin = 2;
+}
+
+message EvilMinerDetected {
+    option (aelf.is_event) = true;
+    // The public key of evil miner.
+    string pubkey = 1;
+}
+
+message CandidatePubkeyReplaced {
+    option (aelf.is_event) = true;
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+}

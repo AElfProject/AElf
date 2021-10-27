@@ -1,0 +1,52 @@
+/**
+ * AElf Standards ACS9 (Contract Profit Dividend Standard)
+ *
+ * Used for developers implement a profit divided mechanism on the AElf side chain.
+ */
+syntax = "proto3";
+
+package acs9;
+
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs9";
+option csharp_namespace = "AElf.Standards.ACS9";
+
+service ContractProfitsContract {
+    // Used for the developer to collect the profits from the contract，
+    // and the profits will be distributed in this method. 
+    rpc TakeContractProfits (TakeContractProfitsInput) returns (google.protobuf.Empty) { 
+    }
+
+    // Query the config of profit.
+    rpc GetProfitConfig (google.protobuf.Empty) returns (ProfitConfig) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the profits of the contract so far.
+    rpc GetProfitsAmount (google.protobuf.Empty) returns (ProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message TakeContractProfitsInput {
+    // The token symbol to take.
+    string symbol = 1;
+    // The amount to take.
+    int64 amount = 2;
+}
+
+message ProfitConfig { 
+    // The portion of the profit that will be donated to the dividend pool each time the developer receives the profit.
+    int32 donation_parts_per_hundred = 1; 
+    // The profit token symbol list.
+    repeated string profits_token_symbol_list = 2;
+    // The token symbol that the user can lock them to claim the profit.
+    string staking_token_symbol = 3;
+}
+
+message ProfitsMap {
+    // The profits, token symbol -> amount.
+    map<string, int64> value = 1;
+}

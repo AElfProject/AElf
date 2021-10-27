@@ -1,0 +1,148 @@
+/**
+ * Parliament contract.
+ */
+syntax = "proto3";
+
+package Parliament;
+
+import "acs3.proto";
+import public "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Parliament";
+
+service ParliamentContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
+    
+    // Initialize parliament proposer whitelist and create the first parliament organization 
+    // with specific proposer_authority_required.
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
+    }
+
+    // Create an organization and return its address.  
+    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
+    }
+    
+    // Batch approval proposal.
+    rpc ApproveMultiProposals(ProposalIdList) returns (google.protobuf.Empty){
+    }
+
+    // Creates an organization by system contract and return its address. 
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
+
+    // Creates an organization to handle emergency events.
+    rpc CreateEmergencyResponseOrganization (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    // Get the organization according to the organization address.
+    rpc GetOrganization (aelf.Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the default organization address.
+    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Validates if the provided address is a parliament member.
+    rpc ValidateAddressIsParliamentMember(aelf.Address) returns (google.protobuf.BoolValue){
+         option (aelf.is_view) = true;
+    }
+    
+    // Returns the list of whitelisted proposers.
+    rpc GetProposerWhiteList(google.protobuf.Empty) returns (acs3.ProposerWhiteList){
+        option (aelf.is_view) = true;
+    }
+    
+    // Filter still pending ones not yet voted by the sender from provided proposals.
+    rpc GetNotVotedPendingProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
+    
+    // Filter not yet voted ones by the sender from provided proposals.
+    rpc GetNotVotedProposals(ProposalIdList) returns (ProposalIdList){
+        option (aelf.is_view) = true;
+    }
+    
+    // Calculates with input and return the organization address.
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetEmergencyResponseOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateOrganizationInput {
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    // Setting this to false will allow anyone creating proposals.
+    bool proposer_authority_required = 2;
+    // Setting this to true can allow parliament member to create proposals.
+    bool parliament_member_proposing_allowed = 3;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 4;
+}
+
+message Organization {
+    // Indicates if proposals need authority to be created.
+    bool proposer_authority_required = 1;
+    // The organization address.
+    aelf.Address organization_address = 2;
+    // The organization id.
+    aelf.Hash organization_hash = 3;
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 4;
+    // Indicates if parliament member can propose to this organization.
+    bool parliament_member_proposing_allowed = 5;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 6;
+}
+
+message ProposalInfo {
+    // The proposal ID.
+    aelf.Hash proposal_id = 1;
+    // The method that this proposal will call when being released.
+    string contract_method_name = 2;
+    // The address of the target contract.
+    aelf.Address to_address = 3;
+    // The parameters of the release transaction.
+    bytes params = 4;
+    // The date at which this proposal will expire.
+    google.protobuf.Timestamp expired_time = 5;
+    // The address of the proposer of this proposal.
+    aelf.Address proposer = 6;
+    // The address of this proposals organization.
+    aelf.Address organization_address = 7;
+    // Address list of approved.
+    repeated aelf.Address approvals = 8;
+    // Address list of rejected.
+    repeated aelf.Address rejections = 9;
+    // Address list of abstained.
+    repeated aelf.Address abstentions = 10;
+    // Url is used for proposal describing.
+    string proposal_description_url = 11;
+}
+
+message InitializeInput{
+    // Privileged proposer would be the first address in parliament proposer whitelist.
+    aelf.Address privileged_proposer = 1;
+    // The setting indicates if proposals need authority to be created for first/default parliament organization.
+    bool proposer_authority_required = 2;
+}
+
+message ProposalIdList{
+    // The list of proposal ids.
+    repeated aelf.Hash proposal_ids = 1;
+}
+
+message CreateOrganizationBySystemContractInput {
+    // The parameters of creating organization.
+    CreateOrganizationInput organization_creation_input = 1;
+    // The organization address callback method which replies the organization address to caller contract.
+    string organization_address_feedback_method = 2;
+}

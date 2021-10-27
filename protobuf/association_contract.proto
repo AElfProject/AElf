@@ -1,0 +1,144 @@
+/**
+ * Association contract.
+ */
+syntax = "proto3";
+
+package Association;
+
+import "acs3.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Association";
+
+service AssociationContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Association.AssociationState";
+    
+    // Create an organization and return its address.  
+    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
+    }
+    
+    // Creates an organization by system contract and return its address. 
+    rpc CreateOrganizationBySystemContract(CreateOrganizationBySystemContractInput) returns (aelf.Address){
+    }
+    
+    // Add organization members.
+    rpc AddMember(aelf.Address) returns (google.protobuf.Empty){
+    }
+    
+    // Remove organization members.
+    rpc RemoveMember(aelf.Address) returns (google.protobuf.Empty){
+    }
+    
+    // Replace organization member with a new member.
+    rpc ChangeMember(ChangeMemberInput) returns (google.protobuf.Empty){
+    }
+    
+    // Get the organization according to the organization address.
+    rpc GetOrganization (aelf.Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Calculate the input and return the organization address.
+    rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateOrganizationInput{
+    // Initial organization members.
+    OrganizationMemberList organization_member_list = 1;
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    // The proposer whitelist.
+    acs3.ProposerWhiteList proposer_white_list = 3;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 4;
+}
+
+message Organization{
+    // The organization members.
+    OrganizationMemberList organization_member_list = 1;
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    // The proposer whitelist.
+    acs3.ProposerWhiteList proposer_white_list = 3;
+    // The address of organization.
+    aelf.Address organization_address = 4;
+    // The organizations id.
+    aelf.Hash organization_hash = 5;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 6;
+}
+
+message ProposalInfo {
+    // The proposal ID.
+    aelf.Hash proposal_id = 1;
+    // The method that this proposal will call when being released.
+    string contract_method_name = 2;
+    // The address of the target contract.
+    aelf.Address to_address = 3;
+    // The parameters of the release transaction.
+    bytes params = 4;
+    // The date at which this proposal will expire.
+    google.protobuf.Timestamp expired_time = 5;
+    // The address of the proposer of this proposal.
+    aelf.Address proposer = 6;
+    // The address of this proposals organization.
+    aelf.Address organization_address = 7;
+    // Address list of approved.
+    repeated aelf.Address approvals = 8;
+    // Address list of rejected.
+    repeated aelf.Address rejections = 9;
+    // Address list of abstained.
+    repeated aelf.Address abstentions = 10;
+    // Url is used for proposal describing.
+    string proposal_description_url = 11;
+}
+
+message OrganizationMemberList {
+    // The address of organization members.
+    repeated aelf.Address organization_members = 1;
+}
+
+message ChangeMemberInput{
+    // The old member address.
+    aelf.Address old_member = 1;
+    // The new member address.
+    aelf.Address new_member = 2;
+}
+
+message CreateOrganizationBySystemContractInput {
+    // The parameters of creating organization.
+    CreateOrganizationInput organization_creation_input = 1;
+    // The organization address callback method which replies the organization address to caller contract.
+    string organization_address_feedback_method = 2;
+}
+
+message MemberAdded{
+    option (aelf.is_event) = true;
+    // The added member address.
+    aelf.Address member = 1;
+    // The organization address.
+    aelf.Address organization_address = 2 [(aelf.is_indexed) = true];    
+}
+
+message MemberRemoved{
+    option (aelf.is_event) = true;
+    // The removed member address.
+    aelf.Address member = 1;
+    // The organization address.
+    aelf.Address organization_address = 2 [(aelf.is_indexed) = true];
+}
+
+message MemberChanged{
+    option (aelf.is_event) = true;
+    // The old member address.
+    aelf.Address old_member = 1;
+    // The new member address.
+    aelf.Address new_member = 2;
+    // The organization address.
+    aelf.Address organization_address = 3 [(aelf.is_indexed) = true];
+}

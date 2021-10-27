@@ -1,0 +1,207 @@
+/**
+ * AElf Standards ACS3(Contract Proposal Standard)
+ *
+ * Used for governance through proposals.
+ */
+syntax = "proto3";
+
+package acs3;
+
+import public "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import public "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs3";
+option csharp_namespace = "AElf.Standards.ACS3";
+
+service AuthorizationContract {
+    // Create a proposal for which organization members can vote. 
+    // When the proposal is released, a transaction will be sent to the specified contract.
+    // Return id of the newly created proposal.
+    rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
+    }
+    
+    // Approve a proposal according to the proposal ID.
+    rpc Approve (aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    
+    // Reject a proposal according to the proposal ID.
+    rpc Reject(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+
+    // Abstain a proposal according to the proposal ID.
+    rpc Abstain(aelf.Hash) returns (google.protobuf.Empty){
+    }
+
+    // Release a proposal according to the proposal ID and send a transaction to the specified contract.
+    rpc Release(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    
+    // Change the thresholds associated with proposals.
+    // All fields will be overwritten by the input value and this will affect all current proposals of the organization. 
+    // Note: only the organization can execute this through a proposal.
+    rpc ChangeOrganizationThreshold(ProposalReleaseThreshold)returns(google.protobuf.Empty) {
+    }
+    
+    // Change the white list of organization proposer.
+    // This method overrides the list of whitelisted proposers.
+    rpc ChangeOrganizationProposerWhiteList(ProposerWhiteList) returns (google.protobuf.Empty){
+    }
+    
+    // Create a proposal by system contracts,
+    // and return id of the newly created proposal.
+    rpc CreateProposalBySystemContract(CreateProposalBySystemContractInput) returns (aelf.Hash){
+    }
+    
+    // Remove the specified proposal. If the proposal is in effect, the cleanup fails.
+    rpc ClearProposal(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    
+    // Get the proposal according to the proposal ID.
+    rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Check the existence of an organization.
+    rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
+    
+    // Check if the proposer is whitelisted.
+    rpc ValidateProposerInWhiteList(ValidateProposerInWhiteListInput) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateProposalInput {
+    // The name of the method to call after release.
+    string contract_method_name = 1;
+    // The address of the contract to call after release.
+    aelf.Address to_address = 2;
+    // The parameter of the method to be called after the release.
+    bytes params = 3;
+    // The timestamp at which this proposal will expire.
+    google.protobuf.Timestamp expired_time = 4;
+    // The address of the organization.
+    aelf.Address organization_address = 5;
+    // Url is used for proposal describing.
+    string proposal_description_url = 6;
+    // The token is for proposal id generation and with this token, proposal id can be calculated before proposing.
+    aelf.Hash token = 7;
+}
+
+message ProposalOutput {
+    // The id of the proposal.
+    aelf.Hash proposal_id = 1;
+    // The method that this proposal will call when being released.
+    string contract_method_name = 2;
+    // The address of the target contract.
+    aelf.Address to_address = 3;
+    // The parameters of the release transaction.
+    bytes params = 4;
+    // The date at which this proposal will expire.
+    google.protobuf.Timestamp expired_time = 5;
+    // The address of this proposals organization.
+    aelf.Address organization_address = 6;
+    // The address of the proposer of this proposal.
+    aelf.Address proposer = 7;
+    // Indicates if this proposal is releasable.
+    bool to_be_released = 8;
+    // Approval count for this proposal.
+    int64 approval_count = 9;
+    // Rejection count for this proposal.
+    int64 rejection_count = 10;
+    // Abstention count for this proposal.
+    int64 abstention_count = 11;
+}
+
+message ProposalReleaseThreshold {
+    // The value for the minimum approval threshold.
+    int64 minimal_approval_threshold = 1;
+    // The value for the maximal rejection threshold.
+    int64 maximal_rejection_threshold = 2;
+    // The value for the maximal abstention threshold.
+    int64 maximal_abstention_threshold = 3;
+    // The value for the minimal vote threshold.
+    int64 minimal_vote_threshold = 4;
+}
+
+message ProposerWhiteList{
+    // The address of the proposers
+    repeated aelf.Address proposers = 1;
+}
+
+message OrganizationHashAddressPair{
+    // The id of organization.
+    aelf.Hash organization_hash = 1;
+    // The address of organization.
+    aelf.Address organization_address = 2;
+}
+
+message CreateProposalBySystemContractInput {
+    // The parameters of creating proposal.
+    acs3.CreateProposalInput proposal_input =1;
+    // The actor that trigger the call.
+    aelf.Address origin_proposer = 2;
+}
+
+message ValidateProposerInWhiteListInput{
+    // The address to search/check.
+    aelf.Address proposer = 1;
+    // The address of the organization.
+    aelf.Address organization_address = 2;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    // The id of the created proposal.
+    aelf.Hash proposal_id = 1;
+    // The organization address of the created proposal.
+    aelf.Address organization_address=2 [(aelf.is_indexed) = true];
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    // The id of the released proposal.
+    aelf.Hash proposal_id = 1;
+    // The organization address of the released proposal.
+    aelf.Address organization_address=2 [(aelf.is_indexed) = true];
+}
+
+message OrganizationCreated{
+    option (aelf.is_event) = true;
+    // The address of the created organization.
+    aelf.Address organization_address = 1;
+}
+
+message ReceiptCreated {
+    option (aelf.is_event) = true;
+    // The id of the proposal.
+    aelf.Hash proposal_id = 1;
+    // The sender address.
+    aelf.Address address = 2;
+    // The type of receipt(Approve, Reject or Abstain).
+    string receipt_type = 3;
+    // The timestamp of this method call.
+    google.protobuf.Timestamp time = 4;
+    // The address of the organization.
+    aelf.Address organization_address = 5 [(aelf.is_indexed) = true];
+}
+
+message OrganizationWhiteListChanged{
+    option (aelf.is_event) = true;
+    // The organization address.
+    aelf.Address organization_address = 1;
+    // The new proposer whitelist.
+    ProposerWhiteList proposer_white_list = 2;
+}
+
+message OrganizationThresholdChanged{
+    option (aelf.is_event) = true;
+    // The organization address
+    aelf.Address organization_address = 1;
+    // The new release threshold.
+    ProposalReleaseThreshold proposer_release_threshold = 2;
+}

@@ -1,0 +1,23 @@
+/**
+ * Election contract.
+ *
+ * Used for voting for Block Producers.
+ * 
+ * Implement AElf Standards ACS1.
+ */
+syntax = "proto3";
+
+package ElectionImpl;
+
+import "acs1.proto";
+import "election_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Election";
+
+service ElectionContractImpl {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+    
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "election_contract.proto";
+}

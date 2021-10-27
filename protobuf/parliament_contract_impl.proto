@@ -1,0 +1,26 @@
+/**
+ * Parliament contract.
+ *
+ * The production nodes use the Parliament contract to govern important matters. 
+ * In the initial state, the production nodes are members of the parliament, 
+ * and only when two-thirds of the production nodes vote in favor of a given decision, will it be executed.
+ * 
+ * Implement AElf Standards ACS1 and ACS3.
+ */
+syntax = "proto3";
+
+package ParliamentImpl;
+
+import "acs1.proto";
+import "acs3.proto";
+import "parliament_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Parliament";
+
+service ParliamentContractImpl {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Parliament.ParliamentState";
+    option (aelf.base) = "acs3.proto";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "parliament_contract.proto";
+}

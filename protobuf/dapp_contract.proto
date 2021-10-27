@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "google/protobuf/timestamp.proto";
+import "acs1.proto";
+import "acs9.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.DApp";
+
+service DApp {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.DApp.DAppContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs9.proto";
+    
+    // Actions
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitializeForUnitTest (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc SignUp (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Deposit (DepositInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
+    }
+    rpc Use (Record) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeInput {
+    aelf.Address profit_receiver = 1;
+    string symbol = 2;
+}
+
+message DepositInput {
+    sint64 amount = 1;
+}
+
+message WithdrawInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message Record {
+    RecordType type = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string description = 3;
+    string symbol = 4;
+}
+
+message Profile {
+    aelf.Address user_address = 1;
+    repeated Record records = 2;
+}
+
+message RecordAdded {
+    option (aelf.is_event) = true;
+    Record record = 1;
+}
+
+enum RecordType {
+    SIGN_UP = 0; 
+    DEPOSIT = 1;
+    WITHDRAW = 2;
+    USE = 3;
+}

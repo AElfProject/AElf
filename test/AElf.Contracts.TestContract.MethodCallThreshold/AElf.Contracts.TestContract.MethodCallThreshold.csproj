@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.TestContract.MethodCallThreshold</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.MethodCallThreshold</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\reference\acs10.proto</Link>
+            <PublicAccessibility>true</PublicAccessibility>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_method_call_threshold_contract.proto">
+            <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
+

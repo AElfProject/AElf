@@ -1,0 +1,739 @@
+/**
+ * MultiToken contract.
+ */
+syntax = "proto3";
+
+package token;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.MultiToken";
+
+service TokenContract {
+    // Create a new token.
+    rpc Create (CreateInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Issuing some amount of tokens to an address is the action of increasing that addresses balance 
+    // for the given token. The total amount of issued tokens must not exceed the total supply of the token 
+    // and only the issuer (creator) of the token can issue tokens. 
+    // Issuing tokens effectively increases the circulating supply.
+    rpc Issue (IssueInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Transferring tokens simply is the action of transferring a given amount of tokens from one address to another. 
+    // The origin or source address is the signer of the transaction. 
+    // The balance of the sender must be higher than the amount that is transferred.
+    rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
+    }
+    
+    // The TransferFrom action will transfer a specified amount of tokens from one address to another. 
+    // For this operation to succeed the from address needs to have approved (see allowances) enough tokens 
+    // to Sender of this transaction. If successful the amount will be removed from the allowance.
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) {
+    }
+
+    // The approve action increases the allowance from the Sender to the Spender address, 
+    // enabling the Spender to call TransferFrom.
+    rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This is the reverse operation for Approve, it will decrease the allowance.
+    rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This method can be used to lock tokens.
+    rpc Lock (LockInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This is the reverse operation of locking, it un-locks some previously locked tokens.
+    rpc Unlock (UnlockInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This action will burn the specified amount of tokens, removing them from the token’s Supply.
+    rpc Burn (BurnInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the issuer of the specified token. Only the original issuer can change it.
+    rpc ChangeTokenIssuer (ChangeTokenIssuerInput) returns (google.protobuf.Empty) {
+    }
+
+    // Set the primary token of side chain.
+    rpc SetPrimaryTokenSymbol (SetPrimaryTokenSymbolInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This interface is used for cross-chain transfer.
+    rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This method is used to receive cross-chain transfers.
+    rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
+    }
+    
+    // The side chain creates tokens.
+    rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
+    }
+    
+    // When the side chain is started, the side chain is initialized with the parent chain information.
+    rpc InitializeFromParentChain (InitializeFromParentChainInput) returns (google.protobuf.Empty) {
+    }
+
+    // Handle the transaction fees charged by ChargeTransactionFees.
+    rpc ClaimTransactionFees (TotalTransactionFeesMap) returns (google.protobuf.Empty) {
+    }
+    
+    // Used to collect transaction fees.
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (ChargeTransactionFeesOutput) {
+    }
+
+    // Check the token threshold.
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    }
+
+    // Initialize coefficients of every type of tokens supporting charging fee.
+    rpc InitialCoefficients (google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
+    
+    // Processing resource token received.
+    rpc DonateResourceToken (TotalResourceTokensMaps) returns (google.protobuf.Empty) {
+    }
+    
+    // A transaction resource fee is charged to implement the ACS8 standards.
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Verify that the resource token are sufficient.
+    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the list of tokens to pay transaction fees.
+    rpc SetSymbolsToPayTxSizeFee (SymbolListToPayTxSizeFee) returns (google.protobuf.Empty){
+    }
+    
+    // Update the coefficient of the transaction fee calculation formula.
+    rpc UpdateCoefficientsForSender (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Update the coefficient of the transaction fee calculation formula.
+    rpc UpdateCoefficientsForContract (UpdateCoefficientsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // This method is used to initialize the governance organization for some functions, 
+    // including: the coefficient of the user transaction fee calculation formula, 
+    // the coefficient of the contract developer resource fee calculation formula, and the side chain rental fee.
+    rpc InitializeAuthorizedController(google.protobuf.Empty) returns (google.protobuf.Empty){
+    }
+
+    // Query token information.
+    rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query native token information.
+    rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query resource token information.
+    rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the balance at the specified address.
+    rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the account's allowance for other addresses
+    rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Check whether the token is in the whitelist of an address, 
+    // which can be called TransferFrom to transfer the token under the condition of not being credited.
+    rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the information for a lock.
+    rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the address of receiving token in cross-chain transfer.
+    rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the name of the primary Token.
+    rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the coefficient of the transaction fee calculation formula.
+    rpc GetCalculateFeeCoefficientsForContract (google.protobuf.Int32Value) returns (CalculateFeeCoefficients) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query the coefficient of the transaction fee calculation formula.
+    rpc GetCalculateFeeCoefficientsForSender (google.protobuf.Empty) returns (CalculateFeeCoefficients) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query tokens that can pay transaction fees.
+    rpc GetSymbolsToPayTxSizeFee (google.protobuf.Empty) returns (SymbolListToPayTxSizeFee){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the hash of the last input of ClaimTransactionFees.
+    rpc GetLatestTotalTransactionFeesMapHash (google.protobuf.Empty) returns (aelf.Hash){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the hash of the last input of DonateResourceToken.
+    rpc GetLatestTotalResourceTokensMapsHash (google.protobuf.Empty) returns (aelf.Hash){
+        option (aelf.is_view) = true;
+    }
+    rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message TokenInfo {
+    // The symbol of the token.f
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The current supply of the token.
+    int64 supply = 3;
+    // The total supply of the token.
+    int64 total_supply = 4;
+    // The precision of the token.
+    int32 decimals = 5;
+    // The address that created the token.
+    aelf.Address issuer = 6;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+    // The amount of issued tokens.
+    int64 issued = 9;
+}
+
+message CreateInput {
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // A whitelist address list used to lock tokens.
+    repeated aelf.Address lock_white_list = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+}
+
+message SetPrimaryTokenSymbolInput {
+    // The symbol of the token.
+    string symbol = 1;
+}
+
+message IssueInput {
+    // The token symbol to issue.
+    string symbol = 1;
+    // The token amount to issue.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+    // The target address to issue.
+    aelf.Address to = 4;
+}
+
+message TransferInput {
+    // The receiver of the token.
+    aelf.Address to = 1;
+    // The token symbol to transfer.
+    string symbol = 2;
+    // The amount to to transfer.
+    int64 amount = 3;
+    // The memo.
+    string memo = 4;
+}
+
+message LockInput {
+    // The one want to lock his token.
+    aelf.Address address = 1; 
+    // Id of the lock.
+    aelf.Hash lock_id = 2;
+    // The symbol of the token to lock.
+    string symbol = 3;
+    // a memo.
+    string usage = 4;
+    // The amount of tokens to lock.
+    int64 amount = 5;
+}
+
+message UnlockInput {
+    // The one want to un-lock his token.
+    aelf.Address address = 1;
+    // Id of the lock.
+    aelf.Hash lock_id = 2;
+    // The symbol of the token to un-lock.
+    string symbol = 3;
+    // a memo.
+    string usage = 4;
+    // The amount of tokens to un-lock.
+    int64 amount = 5;
+}
+
+message TransferFromInput {
+    // The source address of the token.
+    aelf.Address from = 1;
+    // The destination address of the token.
+    aelf.Address to = 2;
+    // The symbol of the token to transfer.
+    string symbol = 3;
+    // The amount to transfer.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+}
+
+message ApproveInput {
+    // The address that allowance will be increased. 
+    aelf.Address spender = 1;
+    // The symbol of token to approve.
+    string symbol = 2;
+    // The amount of token to approve.
+    int64 amount = 3;
+}
+
+message UnApproveInput {
+    // The address that allowance will be decreased. 
+    aelf.Address spender = 1;
+    // The symbol of token to un-approve.
+    string symbol = 2;
+    // The amount of token to un-approve.
+    int64 amount = 3;
+}
+
+message BurnInput {
+    // The symbol of token to burn.
+    string symbol = 1;
+    // The amount of token to burn.
+    int64 amount = 2;
+}
+
+message ChargeResourceTokenInput {
+    // Collection of charge resource token, Symbol->Amount.
+    map<string, int64> cost_dic = 1;
+    // The sender of the transaction.
+    aelf.Address caller = 2;
+}
+
+message TransactionFeeBill {
+    // The transaction fee dictionary, Symbol->fee.
+    map<string, int64> fees_map = 1;
+}
+
+message CheckThresholdInput {
+    // The sender of the transaction.
+    aelf.Address sender = 1;
+    // The threshold to set, Symbol->Threshold.
+    map<string, int64> symbol_to_threshold = 2;
+    // Whether to check the allowance.
+    bool is_check_allowance = 3;
+}
+
+message GetTokenInfoInput {
+    // The symbol of token.
+    string symbol = 1;
+}
+
+message GetBalanceInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The target address of the query.
+    aelf.Address owner = 2;
+}
+
+message GetBalanceOutput {
+    // The symbol of token.
+    string symbol = 1;
+    // The target address of the query.
+    aelf.Address owner = 2;
+    // The balance of the owner.
+    int64 balance = 3;
+}
+
+message GetAllowanceInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The address of the token owner.
+    aelf.Address owner = 2;
+    // The address of the spender.
+    aelf.Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    // The symbol of token.
+    string symbol = 1;
+    // The address of the token owner.
+    aelf.Address owner = 2;
+    // The address of the spender.
+    aelf.Address spender = 3;
+    // The amount of allowance.
+    int64 allowance = 4;
+}
+
+message CrossChainTransferInput {
+    // The receiver of transfer.
+    aelf.Address to = 1;
+    // The symbol of token.
+    string symbol = 2;
+    // The amount of token to transfer.
+    int64 amount = 3;
+    // The memo.
+    string memo = 4;
+    // The destination chain id.
+    int32 to_chain_id = 5;
+    // The chain id of the token.
+    int32 issue_chain_id = 6;
+}
+
+message CrossChainReceiveTokenInput {
+    // The source chain id.
+    int32 from_chain_id = 1;
+    // The height of the transfer transaction.
+    int64 parent_chain_height = 2;
+    // The raw bytes of the transfer transaction.
+    bytes transfer_transaction_bytes = 3;
+    // The merkle path created from the transfer transaction.
+    aelf.MerklePath merkle_path = 4;
+}
+
+message IsInWhiteListInput {
+    // The symbol of token. 
+    string symbol = 1;
+    // The address to check.
+    aelf.Address address = 2;
+}
+
+message SymbolToPayTxSizeFee{
+    // The symbol of token. 
+    string token_symbol = 1;
+    // The charge weight of primary token.
+    int32 base_token_weight = 2;
+    // The new added token charge weight. For example, the charge weight of primary Token is set to 1. 
+    // The newly added token charge weight is set to 10. If the transaction requires 1 unit of primary token, 
+    // the user can also pay for 10 newly added tokens.
+    int32 added_token_weight = 3;
+}
+
+message SymbolListToPayTxSizeFee{
+    // Transaction fee token information.
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 1;
+}
+
+message ChargeTransactionFeesInput {
+    // The method name of transaction.
+    string method_name = 1;
+    // The contract address of transaction.
+    aelf.Address contract_address = 2;
+    // The amount of transaction size fee.
+    int64 transaction_size_fee = 3;
+    // Transaction fee token information.
+    repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 4;
+}
+
+message ChargeTransactionFeesOutput {
+    // Whether the charge was successful.
+    bool success = 1;
+    // The charging information.
+    string charging_information = 2;
+}
+
+message ExtraTokenListModified {
+    option (aelf.is_event) = true;
+    // Transaction fee token information.
+    SymbolListToPayTxSizeFee symbol_list_to_pay_tx_size_fee = 1;
+}
+
+message GetLockedAmountInput {
+    // The address of the lock.
+    aelf.Address address = 1;
+    // The token symbol.
+    string symbol = 2;
+    // The id of the lock.
+    aelf.Hash lock_id = 3;
+}
+
+message GetLockedAmountOutput {
+    // The address of the lock.
+    aelf.Address address = 1;
+    // The token symbol.
+    string symbol = 2;
+    // The id of the lock.
+    aelf.Hash lock_id = 3;
+    // The locked amount.
+    int64 amount = 4;
+}
+
+message TokenInfoList {
+    // List of token information.
+    repeated TokenInfo value = 1;
+}
+
+message GetCrossChainTransferTokenContractAddressInput {
+    // The chain id.
+    int32 chainId = 1;
+}
+
+message CrossChainCreateTokenInput {
+    // The chain id of the chain on which the token was created.
+    int32 from_chain_id = 1;
+    // The height of the transaction that created the token.
+    int64 parent_chain_height = 2;
+    // The transaction that created the token.
+    bytes transaction_bytes = 3;
+    // The merkle path created from the transaction that created the transaction.
+    aelf.MerklePath merkle_path = 4;
+}
+
+message InitializeFromParentChainInput {
+    // The amount of resource.
+    map<string, int32> resource_amount = 1;
+    // The token contract addresses.
+    map<int32, aelf.Address> registered_other_token_contract_addresses = 2;
+    // The creator the side chain.
+    aelf.Address creator = 3;
+}
+
+message UpdateCoefficientsInput {
+    // The specify pieces gonna update.
+    repeated int32 piece_numbers = 1;
+    // Coefficients of one single type.
+    CalculateFeeCoefficients coefficients = 2;
+}
+
+enum FeeTypeEnum {
+    READ = 0;
+    STORAGE = 1;
+    WRITE = 2;
+    TRAFFIC = 3;
+    TX = 4;
+}
+
+message CalculateFeePieceCoefficients {
+    // Coefficients of one single piece.
+    // The first char is its type: liner / power.
+    // The second char is its piece upper bound.
+    repeated int32 value = 1;
+}
+
+message CalculateFeeCoefficients {
+    // The resource fee type, like READ, WRITE, etc.
+    int32 fee_token_type = 1;
+    // Coefficients of one single piece.
+    repeated CalculateFeePieceCoefficients piece_coefficients_list = 2;
+}
+
+message AllCalculateFeeCoefficients {
+    // The coefficients of fee Calculation.
+    repeated CalculateFeeCoefficients value = 1;
+}
+
+message TotalTransactionFeesMap
+{
+    // Token dictionary that charge transaction fee, Symbol->Amount.
+    map<string, int64> value = 1;
+    // The hash of the block processing the transaction.
+    aelf.Hash block_hash = 2;
+    // The height of the block processing the transaction.
+    int64 block_height = 3;
+}
+
+message TotalResourceTokensMaps {
+    // Resource tokens to charge.
+    repeated ContractTotalResourceTokens value = 1;
+    // The hash of the block processing the transaction.
+    aelf.Hash block_hash = 2;
+    // The height of the block processing the transaction.
+    int64 block_height = 3;
+}
+
+message ContractTotalResourceTokens {
+    // The contract address.
+    aelf.Address contract_address = 1;
+    // Resource tokens to charge.
+    TotalResourceTokensMap tokens_map = 2;
+}
+
+message TotalResourceTokensMap
+{
+    // Resource token dictionary, Symbol->Amount.
+    map<string, int64> value = 1;
+}
+
+message ChangeTokenIssuerInput
+{
+    // The token symbol.
+    string symbol = 1;
+    // The new token issuer for change.
+    aelf.Address new_token_Issuer = 2;
+}
+
+message Transferred {
+    option (aelf.is_event) = true;
+    // The source address of the transferred token.
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    // The destination address of the transferred token.
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    // The symbol of the transferred token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of the transferred token.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+}
+
+message Approved {
+    option (aelf.is_event) = true;
+    // The address of the token owner.
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    // The address that allowance be increased. 
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    // The symbol of approved token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of approved token.
+    int64 amount = 4;
+}
+
+message UnApproved {
+    option (aelf.is_event) = true;
+    // The address of the token owner.
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    // The address that allowance be decreased. 
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    // The symbol of un-approved token.
+    string symbol = 3 [(aelf.is_indexed) = true];
+    // The amount of un-approved token.
+    int64 amount = 4;
+}
+
+message Burned
+{
+    option (aelf.is_event) = true;
+    // The address who wants to burn token.
+    aelf.Address burner = 1 [(aelf.is_indexed) = true];
+    // The symbol of burned token. 
+    string symbol = 2 [(aelf.is_indexed) = true];
+    // The amount of burned token. 
+    int64 amount = 3;
+}
+
+message ChainPrimaryTokenSymbolSet {
+    option (aelf.is_event) = true;
+    // The symbol of token. 
+    string token_symbol = 1;
+}
+
+
+message CalculateFeeAlgorithmUpdated {
+    option (aelf.is_event) = true;
+    // All calculate fee coefficients after modification.
+    AllCalculateFeeCoefficients all_type_fee_coefficients = 1;
+}
+
+message RentalCharged {
+    option (aelf.is_event) = true;
+    // The symbol of rental fee charged.
+    string symbol = 1;
+    // The amount of rental fee charged.
+    int64 amount = 2;
+}
+
+message RentalAccountBalanceInsufficient {
+    option (aelf.is_event) = true;
+    // The symbol of insufficient rental account balance.
+    string symbol = 1;
+    // The balance of the account.
+    int64 amount = 2;
+}
+
+message TokenCreated {
+    option (aelf.is_event) = true;
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token.
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // The chain id of the token.
+    int32 issue_chain_id = 7;
+}
+
+message Issued {
+    option (aelf.is_event) = true;
+    // The symbol of issued token.
+    string symbol = 1;
+    // The amount of issued token.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+    // The issued target address.
+    aelf.Address to = 4;
+}
+
+message CrossChainTransferred {
+    option (aelf.is_event) = true;
+    // The source address of the transferred token.
+    aelf.Address from = 1;
+    // The destination address of the transferred token.
+    aelf.Address to = 2;
+    // The symbol of the transferred token.
+    string symbol = 3;
+    // The amount of the transferred token.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+    // The destination chain id.
+    int32 to_chain_id = 6;
+    // The chain id of the token.
+    int32 issue_chain_id = 7;
+}
+
+message CrossChainReceived {
+    option (aelf.is_event) = true;
+    // The source address of the transferred token.
+    aelf.Address from = 1;
+    // The destination address of the transferred token.
+    aelf.Address to = 2;
+    // The symbol of the received token.
+    string symbol = 3;
+    // The amount of the received token.
+    int64 amount = 4;
+    // The memo.
+    string memo = 5;
+    // The destination chain id.
+    int32 from_chain_id = 6;
+    // The chain id of the token.
+    int32 issue_chain_id = 7;
+    // The parent chain height of the transfer transaction.
+    int64 parent_chain_height = 8;
+}

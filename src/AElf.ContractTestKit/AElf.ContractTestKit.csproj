@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <PackageId>AElf.ContractTestKit</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Contract testing kit.</Description>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!--Conflict with genesis contract-->
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.ContractDeployer\AElf.ContractDeployer.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee\AElf.Kernel.SmartContract.ExecutionPluginForResourceFee.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="..\..\protobuf\kernel.proto">
+            <Link>Protobuf\Proto\kernel.proto</Link>
+        </None>
+        <ContractMessage Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractMessage>
+        <CommonMessage Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </CommonMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero_impl.proto">
+            <Link>Protobuf\Proto\basic_contract_zero_impl.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
+        <PackageReference Include="Moq" Version="4.14.5" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="3.1.0" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="3.1.0" />
+        <PackageReference Include="xunit.assert" Version="2.4.1" />
+    </ItemGroup>
+</Project>

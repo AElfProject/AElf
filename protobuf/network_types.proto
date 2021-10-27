@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.OS.Network";
+
+import "google/protobuf/timestamp.proto";
+import "aelf/core.proto";
+import "kernel.proto";
+
+// Messages related to block propagation/syncing
+
+message BlockAnnouncement {
+    aelf.Hash block_hash = 1;
+    int64 block_height = 2;
+}
+
+message BlockWithTransactions {
+    aelf.BlockHeader header = 1;
+    repeated aelf.Transaction transactions = 2;
+}
+
+message LibAnnouncement{
+    aelf.Hash lib_hash = 1;
+    int64 lib_height = 2;
+}
+
+message BlocksRequest {
+    aelf.Hash previous_block_hash = 1;
+    int32 count = 2;
+}
+
+message BlockList {
+    repeated BlockWithTransactions blocks = 1;
+}
+
+message BlockRequest {
+    aelf.Hash hash = 1;
+}
+
+message BlockReply {
+    string error = 1;
+    BlockWithTransactions block = 2;
+}
+
+// Messages related to handshaking
+
+message Handshake {
+    HandshakeData handshake_data = 1;
+    bytes signature = 2;
+    bytes session_id = 3;
+}
+
+message HandshakeData {
+    int32 chain_id = 1;
+    int32 version = 2;
+    int32 listening_port = 3;
+    bytes pubkey = 4;
+    aelf.Hash best_chain_hash = 5;
+    int64 best_chain_height = 6;
+    aelf.Hash last_irreversible_block_hash = 7;
+    int64 last_irreversible_block_height = 8;
+    google.protobuf.Timestamp time = 9;
+}
+
+message HandshakeRequest {
+    Handshake handshake = 1;
+}
+
+message HandshakeReply {
+    Handshake handshake = 1;
+    HandshakeError error = 2;
+}
+
+enum HandshakeError {
+    HANDSHAKE_OK = 0;
+    CHAIN_MISMATCH = 1;
+    PROTOCOL_MISMATCH = 2;
+    WRONG_SIGNATURE = 3;
+    REPEATED_CONNECTION = 4;
+    CONNECTION_REFUSED = 5;
+    INVALID_CONNECTION = 6;
+    SIGNATURE_TIMEOUT = 7;
+}
+
+message ConfirmHandshakeRequest {
+}
+
+// Messages related to disconnection
+
+message DisconnectReason {
+    Reason why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
+// Messages related to peer discovery
+
+message NodeInfo {
+    string endpoint = 1;
+    bytes pubkey = 2;
+}
+
+message NodeList {
+    repeated NodeInfo nodes = 1;
+}
+
+message NodesRequest {
+    int32 max_count = 1;
+}

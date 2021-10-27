@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-option csharp_namespace = "AElf.Serialization.Protobuf.Generated";
-
-message ProtoAccount
-{
-    bytes address = 1;
-}

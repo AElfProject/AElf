@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+import "acs7.proto";
+
+option csharp_namespace = "AElf.CrossChain";
+
+message CrossChainRequest {
+    int32 chain_id = 1; // own chain id
+    int64 next_height = 2;
+}
+
+message CrossChainExtraData {
+    aelf.Hash transaction_status_merkle_tree_root = 1; // Merkle tree root of side chain block transaction roots
+}
+
+message HandShake {
+    int32 listening_port = 1;
+    int32 chain_id = 2;
+}
+
+message HandShakeReply {
+    HandShakeStatus status = 1;
+    enum HandShakeStatus{
+        SUCCESS = 0;
+        INVALID_HANDSHAKE_REQUEST = 1;
+        FATAL = 2;
+    }
+}
+
+message SideChainInitializationRequest{
+    int32 chain_id = 1;
+}
+
+service ParentChainRpc {
+    rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
+    rpc RequestChainInitializationDataFromParentChain (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
+}
+
+service SideChainRpc{
+    rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+}
+
+service BasicCrossChainRpc{
+    rpc CrossChainHandShake (HandShake) returns (HandShakeReply) {}
+}
+
+

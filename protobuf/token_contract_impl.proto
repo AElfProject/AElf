@@ -1,0 +1,238 @@
+/**
+ * MultiToken contract.
+ *
+ * The MultiToken contract is mainly used to manage the user's account and transaction fees related Settings.
+ * 
+ * Implement AElf Standards ACS1 and ACS2.
+ */
+syntax = "proto3";
+
+package tokenimpl;
+
+import "aelf/core.proto";
+import "acs1.proto";
+import "acs2.proto";
+import "token_contract.proto";
+// Because implementation uses this proto file.
+import "transaction_fee.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.MultiToken";
+
+service TokenContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+    option (aelf.base) = "token_contract.proto";
+    
+    // Transfer resource tokens to designated contract address.
+    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Take token from contract address.
+    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+    }
+
+    // Register the token contract address for cross chain.
+    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the receiver address of the side chain transaction fee.
+    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    // Validates if the token exist.
+    rpc ValidateTokenInfoExists(ValidateTokenInfoExistsInput) returns (google.protobuf.Empty){
+    }
+    
+    // Update the rental unit price of the side chain.
+    rpc UpdateRental (UpdateRentalInput) returns (google.protobuf.Empty) {
+    }
+
+    // Set the amount of resources fee per minute for the side chain.
+    rpc UpdateRentedResources (UpdateRentedResourcesInput) returns (google.protobuf.Empty) {
+    }
+
+    // Transfer Token to the specified contract.
+    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the governance organization of side chain rental.
+    rpc ChangeSideChainRentalController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the governance organization for tokens to pay transaction fees.
+    rpc ChangeSymbolsToPayTXSizeFeeController(AuthorityInfo) returns (google.protobuf.Empty){
+    }
+    
+    // Change the governance organization for cross-chain token contract address registration.
+    rpc ChangeCrossChainTokenContractRegistrationController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the governance organization of the coefficient of the user transaction fee calculation formula.
+    rpc ChangeUserFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the governance organization of the coefficient of the developer's transaction resource fee calculation formula.
+    rpc ChangeDeveloperController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+
+    // Get the address of fee receiver.
+    rpc GetFeeReceiver (google.protobuf.Empty) returns (aelf.Address){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the amount of resources usage currently.
+    rpc GetResourceUsage (google.protobuf.Empty) returns (ResourceUsage) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governance organization for tokens to pay transaction fees.
+    rpc GetSymbolsToPayTXSizeFeeController(google.protobuf.Empty) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governance organization of the 
+    rpc GetCrossChainTokenContractRegistrationController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governance organization that calculates the formula coefficient 
+    // for the transaction cost the user sends the contract.
+    rpc GetUserFeeController(google.protobuf.Empty) returns (UserFeeController){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governing organization of the formula coefficients for calculating developer contract transaction fee.
+    rpc GetDeveloperFeeController (google.protobuf.Empty) returns (DeveloperFeeController) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the organization that governs the side chain rental fee.
+    rpc GetSideChainRentalControllerCreateInfo (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Compute the virtual address for locking.
+    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query how much resource tokens should be paid currently.
+    rpc GetOwningRental (google.protobuf.Empty) returns (OwningRental) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the unit price of the side chain resource cost, resource cost = unit price * quantity, 
+    // the quantity can be queried through GetResourceUsage.
+    rpc GetOwningRentalUnitValue (google.protobuf.Empty) returns (OwningRentalUnitValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message AdvanceResourceTokenInput {
+    // The contract address to transfer.
+    aelf.Address contract_address = 1;
+    // The resource token symbol to transfer.
+    string resource_token_symbol = 2;
+    // The amount of resource token to transfer.
+    int64 amount = 3;
+}
+
+message TakeResourceTokenBackInput {
+    // The contract address to take back.
+    aelf.Address contract_address = 1;
+    // The resource token symbol to take back.
+    string resource_token_symbol = 2;
+    // The amount of resource token to take back.
+    int64 amount = 3;
+}
+
+message RegisterCrossChainTokenContractAddressInput{
+    // The source chain id.
+    int32 from_chain_id = 1;
+    // The parent chain height of the transaction.
+    int64 parent_chain_height = 2;
+    // The raw bytes of the transfer transaction.
+    bytes transaction_bytes = 3;
+    // The merkle path created from the transaction.
+    aelf.MerklePath merkle_path = 4;
+    // The token contract address.
+    aelf.Address token_contract_address = 5;
+}
+
+message ValidateTokenInfoExistsInput{
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The precision of the token.
+    int32 decimals = 4;
+    // The address that created the token.
+    aelf.Address issuer = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // The chain id of the token.
+    int32 issue_chain_id = 7;
+}
+
+message UpdateRentalInput {
+    // The unit price of resource tokens, symbol -> unit price.
+    map<string, int64> rental = 1;
+}
+
+message UpdateRentedResourcesInput {
+    // Amount of resource tokens consumed per minute, symbol -> resource consumption.
+    map<string, int32> resource_amount = 1;
+}
+
+message ResourceUsage {
+    // The amount of resource tokens usage, symbol -> amount.
+    map<string, int32> value = 1;
+}
+
+message GetVirtualAddressForLockingInput {
+    // The address of the lock. 
+    aelf.Address address = 1;
+    // The id of the lock. 
+    aelf.Hash lock_id = 2;
+}
+
+message OwningRental {
+    // The amount of resource tokens owed, symbol -> amount.
+    map<string, int64> resource_amount = 1;
+}
+
+message OwningRentalUnitValue {
+    // Resource unit price, symbol -> unit price.
+    map<string, int64> resource_unit_value = 1;
+}
+
+message TransferToContractInput {
+    // The symbol of token.
+    string symbol = 1;
+    // The amount of token.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+}
+
+message UserFeeController{
+    // The association that governs the organization.
+    AuthorityInfo root_controller = 1;
+    // The parliament organization of members.
+    AuthorityInfo parliament_controller = 2;
+    // The referendum organization of members.
+    AuthorityInfo referendum_controller = 3;
+}
+
+message DeveloperFeeController {
+    // The association that governs the organization.
+    AuthorityInfo root_controller = 1;
+    // The parliament organization of members.
+    AuthorityInfo parliament_controller = 2;
+    // The developer organization of members.
+    AuthorityInfo developer_controller = 3;
+}

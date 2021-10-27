@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package aelf;
+
+import "google/protobuf/timestamp.proto";
+import "aelf/core.proto";
+
+option csharp_namespace = "AElf.Kernel";
+
+enum TransactionStatus {
+    UNKNOWN_TRANSACTION_STATUS = 0;
+    TRANSACTION_EXECUTING = 1;
+    TRANSACTION_EXECUTED = 2;
+}
+
+message StateValue {
+    bytes current_value = 1;
+    bytes original_value = 2;
+}
+
+message StateChange {
+    StatePath state_path = 1;
+    StateValue state_value = 2;
+}
+
+// For failed transactions, its status follows the Min of
+// its own status and its inline transactions'
+enum ExecutionStatus {
+    UNDEFINED = 0;
+    // Successful =>
+    EXECUTED = 1;
+
+    // Failed =>
+    //   Infrastructure reasons
+    CANCELED = -1;
+    SYSTEM_ERROR = -2;
+
+    //   Contract reasons
+    CONTRACT_ERROR = -10;
+    EXCEEDED_MAX_CALL_DEPTH = -11;
+
+    // Pre-failed
+    PREFAILED = -99;
+    
+    // Post-failed
+    POSTFAILED = -199;
+}
+
+message TransactionTrace {
+    Hash transaction_id = 1;
+    bytes return_value = 2;
+    string error = 3;
+    repeated Transaction pre_transactions = 4;
+    repeated TransactionTrace pre_traces = 5;
+    repeated Transaction inline_transactions = 6;
+    repeated TransactionTrace inline_traces = 7;
+    repeated Transaction post_transactions = 8;
+    repeated TransactionTrace post_traces = 9;
+    repeated LogEvent logs = 10;
+    int64 elapsed = 11;
+    ExecutionStatus execution_status = 12;
+    TransactionExecutingStateSet state_set = 13;
+}
+
+message ExecutionReturnSet {
+    Hash transaction_id = 1;
+    TransactionResultStatus status = 2;
+    map<string, bytes> state_changes = 3;
+    map<string, bool> state_accesses = 4;
+    bytes bloom = 5;
+    bytes return_value = 6;
+    map<string, bool> state_deletes = 7;
+    TransactionResult transaction_result = 8;
+}
+
+message BlockHeaderList {
+    repeated BlockHeader headers = 1;
+}
+
+message BlockHeader {
+    int32 version = 1;
+    int32 chain_id = 2;
+    Hash previous_block_hash = 3;
+    Hash merkle_tree_root_of_transactions = 4;
+    Hash merkle_tree_root_of_world_state = 5;
+    bytes bloom = 6;
+    int64 height = 7;
+    map<string, bytes> extra_data = 8;
+    google.protobuf.Timestamp time = 9;
+    Hash merkle_tree_root_of_transaction_status = 10;
+    bytes signer_pubkey = 9999;
+    bytes signature = 10000;
+}
+
+message BlockBody {
+    repeated Hash transaction_ids = 1;
+}
+
+message Block {
+    BlockHeader header = 1;
+    BlockBody body = 2;
+}
+
+message VersionedState {
+    string key = 1;
+    bytes value = 2;
+    int64 block_height = 3;
+    Hash block_hash = 4;
+    Hash origin_block_hash = 5;
+}
+
+message BlockStateSet {
+    Hash block_hash = 1;
+    Hash previous_hash = 2;
+    int64 block_height = 3;
+    map<string, bytes> changes = 4;
+    repeated string deletes = 5;
+    map<string, bytes> block_executed_data = 6;
+}
+
+enum ChainStateMergingStatus {
+    COMMON = 0;
+    MERGING = 1;
+    MERGED = 2;
+}
+
+message ChainStateInfo {
+    int32 chain_id = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
+    Hash merging_block_hash = 4;
+    ChainStateMergingStatus status = 5;
+}
+
+enum ChainBlockLinkExecutionStatus {
+    EXECUTION_NONE = 0;
+    EXECUTION_SUCCESS = 1;
+    EXECUTION_FAILED = 2;
+}
+
+message ChainBlockLink {
+    Hash block_hash = 1;
+    int64 height = 2;
+    Hash previous_block_hash = 3;
+    ChainBlockLinkExecutionStatus execution_status = 4;
+    bool is_irreversible_block = 5;
+    bool is_linked = 6;
+    bool is_light_block = 7; //no block body
+}
+
+message Chain {
+    int32 id = 1;
+    Hash genesis_block_hash = 2;
+    Hash longest_chain_hash = 3;
+    int64 longest_chain_height = 4;
+    map<string, int64> branches = 5;
+    map<string, string> not_linked_blocks = 6;
+    Hash last_irreversible_block_hash = 7;
+    int64 last_irreversible_block_height = 8;
+    Hash best_chain_hash = 9;
+    int64 best_chain_height = 10;
+}
+
+message ChainBlockIndex {
+    Hash block_hash = 1;
+}
+
+message BlockIndex{
+    Hash block_hash = 1;
+    int64 block_height = 2;
+}
+
+message TransactionBlockIndex {
+    Hash block_hash = 1;
+    int64 block_height = 2;
+    repeated BlockIndex previous_execution_block_index_list = 3;
+}
+
+message SmartContractAddress{
+    Address address = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
+}

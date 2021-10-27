@@ -1,0 +1,257 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "acs1.proto";
+import "acs2.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
+
+service BasicFunctionWithParallelContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicFunctionWithParallel.BasicFunctionWithParallelContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+    //Actions
+    rpc InitialBasicFunctionWithParallelContract(InitialBasicFunctionWithParallelContractInput) returns (google.protobuf.Empty){
+    }
+    rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
+    }
+    rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
+    }
+    rpc LockToken(LockTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc UnlockToken(UnlockTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc IncreaseWinMoney(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
+    }
+    rpc IncreaseValue(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallel(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailed(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelFailed(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedParallelWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelWithFailedInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPrePluginAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPrePluginAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValue(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveValueParallel(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveValueFromInlineWithPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueFromPrePlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueFromPostPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueParallelFromPostPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueWithPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc SetValue(SetValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetAfterRemoveValue(SetAfterRemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveAfterSetValue(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
+    }
+    rpc ComplexChangeWithDeleteValue1(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
+    rpc ComplexChangeWithDeleteValue2(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
+    rpc ComplexChangeWithDeleteValue3(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput) returns (TwoUserMoneyOut) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetValue(GetValueInput) returns (GetValueOutput){
+        option (aelf.is_view) = true;
+    }
+}
+
+message MessageValue{
+    string string_value = 1;
+    int64 int64_value = 2;
+}
+
+//Input
+message InitialBasicFunctionWithParallelContractInput {
+    string contract_name = 1;
+    int64 min_value = 2;
+    int64 max_value = 3;
+    int64 mortgage_value = 4;
+    aelf.Address manager = 5;
+}
+
+message BetLimitInput {
+    int64 min_value = 1;
+    int64 max_value = 2;
+}
+
+message BetInput {
+    int64 int64_value = 1;
+}
+
+message LockTokenInput{
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+
+message UnlockTokenInput {
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+
+message IncreaseWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
+}
+
+message QueryTwoUserWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
+}
+
+message SetValueInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    MessageValue message_value = 4;
+}
+
+message RemoveValueInput{
+    string key = 1;
+    string memo = 2;
+}
+
+message SetAfterRemoveValueInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    MessageValue message_value = 4;
+}
+
+message RemoveAfterSetValueInput{
+    string key =1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    MessageValue message_value = 4;
+}
+
+message GetValueInput{
+    string key = 1;
+}
+
+message IncreaseValueInput{
+    string key = 1;
+    string memo = 2;
+}
+
+message ComplexChangeInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    MessageValue message_value = 4;
+}
+//Output
+
+message MoneyOutput {
+    int64 int64_value = 1;
+}
+
+message BetStatus {
+    bool bool_value = 1;
+}
+
+message TwoUserMoneyOut{
+    int64 first_int64_value = 1;
+    int64 second_int64_value = 2;
+}
+
+message GetValueOutput{
+    int64 int64_value = 1;
+    string string_value = 2;
+    MessageValue message_value = 3;
+}
+

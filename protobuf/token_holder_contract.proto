@@ -1,0 +1,132 @@
+/**
+ * TokenHolder contract.
+ */
+syntax = "proto3";
+
+package TokenHolder;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TokenHolder";
+
+service TokenHolderContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.TokenHolder.TokenHolderContractState";
+    
+    // Create a scheme for distributing bonus.
+    rpc CreateScheme (CreateTokenHolderProfitSchemeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Add a beneficiary to a scheme.
+    rpc AddBeneficiary (AddTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Removes a beneficiary from a scheme.
+    // Note: amount > 0: update the weight of the beneficiary, amount = 0: remove the beneficiary.
+    rpc RemoveBeneficiary (RemoveTokenHolderBeneficiaryInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Contribute profit to a scheme.
+    rpc ContributeProfits (ContributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // To distribute the profits of the scheme, the stakeholders of the project may go to receive dividends.
+    rpc DistributeProfits (DistributeProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // The user registers a bonus project.
+    rpc RegisterForProfits (RegisterForProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // After the lockup time expires, the user can withdraw token.
+    rpc Withdraw (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    
+    // After DistributeProfits the holder can get his dividend.
+    rpc ClaimProfits (ClaimProfitsInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Query the details of the specified scheme.
+    rpc GetScheme (aelf.Address) returns (TokenHolderProfitScheme) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the dividends available to the holder.
+    rpc GetProfitsMap (ClaimProfitsInput) returns (ReceivedProfitsMap) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateTokenHolderProfitSchemeInput {
+    // The token symbol.
+    string symbol = 1;
+    // Minimum lock time for holding token.
+    int64 minimum_lock_minutes = 2;
+    // Threshold setting for releasing dividends.
+    map<string, int64> auto_distribute_threshold = 3;
+}
+
+message AddTokenHolderBeneficiaryInput {
+    // Beneficiary's address.
+    aelf.Address beneficiary = 1;
+    // The weight of the beneficiary's dividends in the scheme.
+    int64 shares = 2;
+}
+
+message RemoveTokenHolderBeneficiaryInput {
+    // Beneficiary's address.
+    aelf.Address beneficiary = 1;
+    // The amount of weights to remove.
+    int64 amount = 2;
+}
+
+message ContributeProfitsInput {
+    // The manager of the scheme.
+    aelf.Address scheme_manager = 1;
+    // The amount of token to contribute.
+    int64 amount = 2;
+    // The symbol of token to contribute.
+    string symbol = 3;
+}
+
+message DistributeProfitsInput {
+    // The manager of the scheme.
+    aelf.Address scheme_manager = 1;
+    // The token to distribute, symbol -> amount.
+    map<string, int64> amounts_map = 2;
+}
+
+message RegisterForProfitsInput {
+    // The manager of the scheme.
+    aelf.Address scheme_manager = 1;
+    // The amount of token holding.
+    int64 amount = 2;
+}
+
+message ClaimProfitsInput {
+    // The manager of the scheme.
+    aelf.Address scheme_manager = 1;
+    // Beneficiary's address.
+    aelf.Address beneficiary = 2;
+}
+
+message TokenHolderProfitScheme {
+    // The token symbol.
+    string symbol = 1;
+    // The scheme id.
+    aelf.Hash scheme_id = 2;
+    // The current dividend period.
+    int64 period = 3;
+    // Minimum lock time for holding token.
+    int64 minimum_lock_minutes = 4;
+    // Threshold setting for releasing dividends.
+    map<string, int64> auto_distribute_threshold = 5;
+}
+
+message ReceivedProfitsMap {
+    // The amount of token the beneficiary can get, symbol -> amount.
+    map<string, int64> value = 1;
+}

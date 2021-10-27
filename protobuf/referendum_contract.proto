@@ -1,0 +1,129 @@
+/**
+ * Referendum contract.
+ */
+syntax = "proto3";
+
+package Referendum;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "aelf/core.proto";
+import "acs3.proto";
+
+option csharp_namespace = "AElf.Contracts.Referendum";
+
+service ReferendumContract {
+
+    option (aelf.csharp_state) = "AElf.Contracts.Referendum.ReferendumState";
+
+    // Unlock the token used for voting according to proposal id.
+    rpc ReclaimVoteToken (aelf.Hash) returns (google.protobuf.Empty) {
+    }
+
+    // Create an organization and return its address.  
+    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
+    }
+
+    // Creates an organization by system contract and return its address. 
+    rpc CreateOrganizationBySystemContract (CreateOrganizationBySystemContractInput) returns (aelf.Address) {
+    }
+
+    // Get the organization according to the organization address.
+    rpc GetOrganization (aelf.Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+
+    // Calculate the input and return the organization address.
+    rpc CalculateOrganizationAddress (CreateOrganizationInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get the virtual address of a proposal based on the proposal id.
+    rpc GetProposalVirtualAddress (aelf.Hash) returns (aelf.Address) {
+    }
+}
+
+message CreateOrganizationInput {
+    // The token used during proposal operations.
+    string token_symbol = 1;
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 2;
+    // The proposer whitelist.
+    acs3.ProposerWhiteList proposer_white_list = 3;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 4;
+}
+
+message Organization {
+    // The threshold for releasing the proposal.
+    acs3.ProposalReleaseThreshold proposal_release_threshold = 1;
+    // The token used during proposal operations.
+    string token_symbol = 2;
+    // The address of organization.
+    aelf.Address organization_address = 3;
+    // The organizations id.
+    aelf.Hash organization_hash = 4;
+    // The proposer whitelist.
+    acs3.ProposerWhiteList proposer_white_list = 5;
+    // The creation token is for organization address generation.
+    aelf.Hash creation_token = 6;
+}
+
+message Receipt {
+    // The amount of token locked.
+    int64 amount = 1;
+    // The symbol of token locked.
+    string token_symbol = 2;
+    // The lock id.
+    aelf.Hash lock_id = 3;
+}
+
+message ProposalInfo {
+    // The proposal ID.
+    aelf.Hash proposal_id = 1;
+    // The method that this proposal will call when being released.
+    string contract_method_name = 2;
+    // The address of the target contract.
+    aelf.Address to_address = 3;
+    // The parameters of the release transaction.
+    bytes params = 4;
+    // The date at which this proposal will expire.
+    google.protobuf.Timestamp expired_time = 5;
+    // The address of the proposer of this proposal.
+    aelf.Address proposer = 6;
+    // The address of this proposals organization.
+    aelf.Address organization_address = 7;
+    // The count of approved.
+    int64 approval_count = 8;
+    // The count of rejected.
+    int64 rejection_count = 9;
+    // The count of abstained.
+    int64 abstention_count = 10;
+    // Url is used for proposal describing.
+    string proposal_description_url = 11;
+}
+
+message CreateOrganizationBySystemContractInput {
+    // The parameters of creating organization.
+    CreateOrganizationInput organization_creation_input = 1;
+    // The organization address callback method which replies the organization address to caller contract.
+    string organization_address_feedback_method = 2;
+}
+
+message ReferendumReceiptCreated {
+    option (aelf.is_event) = true;
+    // The id of the proposal.
+    aelf.Hash proposal_id = 1;
+    // The sender address.
+    aelf.Address address = 2;
+    // The symbol of token locked.
+    string symbol = 3;
+    // The amount of token locked.
+    int64 amount = 4;
+    // The type of receipt(Approve, Reject or Abstain).
+    string receipt_type = 5;
+    // The timestamp of this method call.
+    google.protobuf.Timestamp time = 6;
+    // The address of the organization.
+    aelf.Address organization_address = 7 [(aelf.is_indexed) = true];
+}

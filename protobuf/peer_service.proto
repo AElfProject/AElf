@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.OS.Network.Grpc";
+
+import "network_types.proto";
+import "aelf/core.proto";
+
+service PeerService {
+
+    rpc Ping (PingRequest) returns (PongReply) {}
+    rpc CheckHealth (HealthCheckRequest) returns (HealthCheckReply) {}
+    
+    rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+    rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
+
+    rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
+    
+    rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
+    rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
+
+    rpc LibAnnouncementBroadcastStream (stream LibAnnouncement) returns (VoidReply) {}
+
+    rpc GetNodes (NodesRequest) returns (NodeList) {}
+
+    rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
+    rpc ConfirmHandshake (ConfirmHandshakeRequest) returns (VoidReply) {}
+
+    rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+}
+
+// **** No reply *****
+
+message VoidReply {
+}
+
+message PingRequest {
+}
+
+message PongReply {
+}
+
+message HealthCheckRequest {
+}
+
+message HealthCheckReply {
+}
+

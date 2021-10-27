@@ -1,0 +1,23 @@
+/**
+ * Economic contract.
+ *
+ * The Economic contract establishes the economic system of the AElf. When the block chain starts to work, 
+ * this contract will initialize other contracts related to economic activities.
+ * 
+ * Implement AElf Standards ACS1.
+ */
+syntax = "proto3";
+
+package EconomicImpl;
+
+import "aelf/core.proto";
+import "acs1.proto";
+import "economic_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Economic";
+
+service EconomicContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "economic_contract.proto";
+}

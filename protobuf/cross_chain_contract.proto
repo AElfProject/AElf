@@ -1,0 +1,266 @@
+/**
+ * Cross-Chain contract.
+ */
+syntax = "proto3";
+
+package CrossChain;
+
+import "acs7.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.CrossChain";
+
+service CrossChainContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
+    
+    // Propose once cross chain indexing.
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    } 
+    
+    // Set the initial SideChainLifetimeController address which should be parliament organization by default.
+    rpc SetInitialSideChainLifetimeControllerAddress(aelf.Address) returns (google.protobuf.Empty){
+    }
+    
+    // Set the initial CrossChainIndexingController address which should be parliament organization by default.
+    rpc SetInitialIndexingControllerAddress(aelf.Address) returns (google.protobuf.Empty){
+    }
+    
+    // Change the cross chain indexing controller.
+    rpc ChangeCrossChainIndexingController(AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Change the lifetime controller of the side chain.
+    rpc ChangeSideChainLifetimeController(AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Change indexing fee adjustment controller for specific side chain.
+    rpc ChangeSideChainIndexingFeeController(ChangeSideChainIndexingFeeControllerInput) returns (google.protobuf.Empty){
+    }
+    
+    // When the indexing proposal is released, clean up the pending proposal.
+    rpc AcceptCrossChainIndexingProposal(AcceptCrossChainIndexingProposalInput) returns (google.protobuf.Empty){
+    }
+    
+    // Get the side chain creator address according to side chain id.
+    rpc GetSideChainCreator (google.protobuf.Int32Value) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the current status of side chain according to side chain id.
+    rpc GetChainStatus (google.protobuf.Int32Value) returns (GetChainStatusOutput) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the side chain height according to side chain id.
+    rpc GetSideChainHeight (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }   
+    
+    // Get the height of parent chain.
+    rpc GetParentChainHeight (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get the chain id of parent chain.
+    rpc GetParentChainId (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the balance of side chain indexing according to side chain id.
+    rpc GetSideChainBalance (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the fee debt of side chain indexing according to side chain id.
+    rpc GetSideChainIndexingFeeDebt (google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the status of the current indexing proposal.
+    rpc GetIndexingProposalStatus (google.protobuf.Empty) returns (GetIndexingProposalStatusOutput) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get the side chain indexing fee price according to side chain id.
+    rpc GetSideChainIndexingFeePrice(google.protobuf.Int32Value) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the lifetime controller of the side chain.
+    rpc GetSideChainLifetimeController(google.protobuf.Empty) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the cross chain indexing controller.
+    rpc GetCrossChainIndexingController(google.protobuf.Empty) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+
+    // Get the indexing fee controller of side chain according to side chain id.
+    rpc GetSideChainIndexingFeeController(google.protobuf.Int32Value) returns (AuthorityInfo){
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    // The id of parent chain.
+    int32 parent_chain_id = 1;
+    // The height of side chain created on parent chain.
+    int64 creation_height_on_parent_chain = 2;
+    // True if chain privilege needed, otherwise false.
+    bool is_privilege_preserved = 3;
+}
+
+message SideChainCreatedEvent {
+    option (aelf.is_event) = true;
+    // The proposer who propose to create the side chain.
+    aelf.Address creator = 1;
+    // The created side chain id.
+    int32 chainId = 2;
+}
+
+message Disposed {
+    option (aelf.is_event) = true;
+    // The disposed side chain id.
+    int32 chain_id = 1;
+}
+
+message ProposedCrossChainIndexing{
+    // The collection of chain indexing proposal, the key is chain id.
+    map<int32, ChainIndexingProposal> chain_indexing_proposal_collections = 1;
+}
+
+message ChainIndexingProposal{
+    // The id of cross chain indexing proposal.
+    aelf.Hash proposal_id = 1;
+    // The proposer of cross chain indexing.
+    aelf.Address proposer = 2;
+    // The cross chain data proposed.
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 3;
+    // The status of of cross chain indexing proposal.
+    CrossChainIndexingProposalStatus status = 4;
+    // The chain id of the indexing.
+    int32 chain_id = 5;
+}
+
+message GetIndexingProposalStatusOutput{
+    // The collection of pending indexing proposal, the key is chain id.
+    map<int32, PendingChainIndexingProposalStatus> chain_indexing_proposal_status = 1;
+}
+
+message PendingChainIndexingProposalStatus{
+    // The id of cross chain indexing proposal. 
+    aelf.Hash proposal_id = 1;
+    // The proposer of cross chain indexing.
+    aelf.Address proposer = 2;
+    // True if the proposal can be released, otherwise false.
+    bool to_be_released = 3;
+    // The cross chain data proposed.
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    // The proposal expiration time.
+    google.protobuf.Timestamp expired_time = 5;
+}
+
+message GetPendingCrossChainIndexingProposalOutput{
+    // The proposal id of cross chain indexing.
+    aelf.Hash proposal_id = 1;
+    // The proposer of cross chain indexing proposal.
+    aelf.Address proposer = 2;
+    // True if the proposal can be released, otherwise false.
+    bool to_be_released = 3;
+    // The cross chain data proposed.
+    acs7.CrossChainBlockData proposed_cross_chain_block_data = 4;
+    // The proposal expiration time.
+    google.protobuf.Timestamp expired_time = 5;
+}
+
+enum CrossChainIndexingProposalStatus{
+    NON_PROPOSED = 0;
+    // The proposal is pending.
+    PENDING = 1;
+    // The proposal has been released.
+    ACCEPTED = 2;
+}
+
+enum SideChainStatus
+{
+    // Currently no meaning.
+    FATAL = 0;
+    // The side chain is being indexed.
+    ACTIVE = 1;
+    // The side chain is in debt for indexing fee.
+    INDEXING_FEE_DEBT = 2;
+    // The side chain is disposed.
+    TERMINATED = 3;
+}
+
+message SideChainInfo {
+    // The proposer who propose to create the side chain.
+    aelf.Address proposer = 1;
+    // The status of side chain.
+    SideChainStatus side_chain_status = 2;
+    // The side chain id.
+    int32 side_chain_id = 3;
+    // The time of side chain created.
+    google.protobuf.Timestamp creation_timestamp = 4;
+    // The height of side chain created on parent chain.
+    int64 creation_height_on_parent_chain = 5;
+    // The price of indexing fee.
+    int64 indexing_price = 6;
+    // True if chain privilege needed, otherwise false.
+    bool is_privilege_preserved = 7;
+    // creditor and amounts for the chain indexing fee debt 
+    map<string, int64> arrears_info = 8;
+    // The controller of indexing fee.
+    AuthorityInfo indexing_fee_controller = 9;
+}
+
+message GetChainStatusOutput{
+    // The status of side chain.
+    SideChainStatus status = 1;
+}
+
+message SideChainCreationRequestState{
+    // The parameters of creating side chain.
+    acs7.SideChainCreationRequest side_chain_creation_request = 1;
+    // The expiration date of the proposal.
+    google.protobuf.Timestamp expired_time = 2;
+    // The proposer who proposed to create the side chain.
+    aelf.Address proposer = 3;
+}
+
+message ChangeSideChainIndexingFeeControllerInput{
+    // The side chain id.
+    int32 chain_id = 1;
+    // The changed controller of indexing fee.
+    AuthorityInfo authority_info = 2;
+}
+
+message SideChainLifetimeControllerChanged{
+    option (aelf.is_event) = true;
+    // The changed controller of side chain lifetime.
+    AuthorityInfo authority_info = 1;
+}
+
+message CrossChainIndexingControllerChanged{
+    option (aelf.is_event) = true;
+    // The changed controller of indexing.
+    AuthorityInfo authority_info = 1;
+}
+
+message SideChainIndexingFeeControllerChanged{
+    option (aelf.is_event) = true;
+    // The side chain id.
+    int32 chain_id = 1 [(aelf.is_indexed) = true];
+    // The changed controller of side chain indexing fee.
+    AuthorityInfo authority_info = 2;
+}
+
+message AcceptCrossChainIndexingProposalInput{
+    // The chain id of accepted indexing.
+    int32 chain_id = 1;
+}

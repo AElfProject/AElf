@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.TransactionFeeCharging";
+
+service TransactionFeeChargingContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.TransactionFeeCharging.TransactionFeeChargingContractState";
+    option (aelf.base) = "acs1.proto";
+    
+    rpc InitializeTransactionFeeChargingContract (InitializeTransactionFeeChargingContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc SupposedToFail (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc IssueToTokenConvert (IssueAmount) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeTransactionFeeChargingContractInput {
+    string symbol = 1;
+}
+message IssueAmount {
+    string symbol = 1;
+    sint64 amount = 2;
+}

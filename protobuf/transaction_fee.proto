@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package aelf;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+
+option csharp_namespace = "AElf.Contracts.MultiToken";
+
+service TransactionFee {
+}
+
+// Messages
+
+message TransactionSizeFeeSymbols
+{
+    repeated TransactionSizeFeeSymbol transaction_size_fee_symbol_list = 1;
+}
+
+message TransactionSizeFeeSymbol
+{
+    string token_symbol = 1;
+    int32 base_token_weight = 2;
+    int32 added_token_weight = 3;
+}
+
+// Events
+
+message TransactionFeeCharged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message ResourceTokenCharged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address contract_address = 3;
+}
+
+message ResourceTokenOwned {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 amount = 2;
+    aelf.Address contract_address = 3;
+}

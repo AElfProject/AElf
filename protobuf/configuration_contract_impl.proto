@@ -1,0 +1,23 @@
+/**
+ * Configuration contract.
+ *
+ * Used to manage the configuration on the block chain.
+ * 
+ * Implement AElf Standards ACS1.
+ */
+syntax = "proto3";
+
+package ConfigurationImpl;
+
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+import "configuration_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Configuration";
+
+service ConfigurationImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "configuration_contract.proto";
+}

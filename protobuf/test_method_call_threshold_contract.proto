@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "acs5.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.MethodCallThreshold";
+
+service MethodCallThresholdContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.MethodCallThreshold.MethodCallThresholdContractState";
+    option (aelf.base) = "acs5.proto";
+    
+    rpc InitializeMethodCallThresholdContract (InitializeMethodCallThresholdContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc FeelingLucky (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeMethodCallThresholdContractInput {
+    string symbol = 1;
+}

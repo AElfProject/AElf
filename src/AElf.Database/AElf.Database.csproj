@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Database</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Types and definitions of the data access layer.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.Data" Version="3.1.0" />
+    </ItemGroup>
+</Project>

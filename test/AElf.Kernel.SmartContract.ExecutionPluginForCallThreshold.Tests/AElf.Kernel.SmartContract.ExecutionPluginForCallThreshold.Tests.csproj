@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <PropertyGroup>
+        <!--Conflict with genesis contract-->
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.ContractTestKit\AElf.ContractTestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\..\src\AElf.EconomicSystem\AElf.EconomicSystem.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests\AElf.Kernel.SmartContract.ExecutionPluginForMethodFee.Tests.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForCallThreshold.Tests.TestContract.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractReference>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\acs5.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs5_plugin_test_contract.proto">
+            <Link>Protobuf\Proto\acs5_plugin_test_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+</Project>

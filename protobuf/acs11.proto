@@ -1,0 +1,31 @@
+/**
+ * AElf Standards ACS11(Consensus Standard)
+ *
+ * Used to customize consensus mechanisms for cross chain.
+ */
+syntax = "proto3";
+
+package acs11;
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs11";
+option csharp_namespace = "AElf.Standards.ACS11";
+
+service CrossChainInteractionContract {
+    // Update the consensus information of the side chain.
+    rpc UpdateInformationFromCrossChain (google.protobuf.BytesValue) returns (google.protobuf.Empty) {
+    }
+    
+    // Get the current miner list and consensus round information.
+    rpc GetChainInitializationInformation (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Verify that the input address is the current miner.
+    rpc CheckCrossChainIndexingPermission (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}

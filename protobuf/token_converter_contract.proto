@@ -1,0 +1,193 @@
+/**
+ * TokenConvert contract.
+ */
+syntax = "proto3";
+
+package TokenConverter;
+
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "aelf/core.proto";
+import "authority_info.proto";
+
+option csharp_namespace = "AElf.Contracts.TokenConverter";
+
+service TokenConverterContract {
+
+    option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+
+    // Initialize TokenConvert contract.
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetConnector (Connector) returns (google.protobuf.Empty) {
+    }
+    
+    // After establishing bancor model of token and base token, you can buy token through this method.
+    rpc Buy (BuyInput) returns (google.protobuf.Empty) {
+    }
+    
+    // After establishing bancor model of token and base token, you can sell token through this method.
+    rpc Sell (SellInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the fee rate for buy/sell (fee amount = cost * feeRate).
+    rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+    
+    // Before calling the EnableConnector, the connector controller can update the pair connector through this method.
+    rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
+    }
+    
+    // Add a pair connector for new token and the base token.
+    rpc AddPairConnector(PairConnectorParam) returns (google.protobuf.Empty){
+    }
+    
+    // After adding a pair, you need to call this method to enable it before buy and sell token.
+    rpc EnableConnector (ToBeConnectedTokenInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the governance authority information for TokenConvert contract. 
+    rpc ChangeConnectorController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Query the pair connector according to token symbol.
+    rpc GetPairConnector (TokenSymbol) returns (PairConnector) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the fee rate for buy/sell.
+    rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the symbol of base token.
+    rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query how much the base token need be deposited before enabling the connector.
+    rpc GetNeededDeposit(ToBeConnectedTokenInfo) returns (DepositInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query how much the base token have been deposited.
+    rpc GetDepositConnectorBalance(google.protobuf.StringValue) returns (google.protobuf.Int64Value){
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the governance authority information for TokenConvert contract. 
+    rpc GetControllerForManageConnector (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query whether the token can be sold.
+    rpc IsSymbolAbleToSell (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message Connector {
+    // The token symbol.
+    string symbol = 1;
+    // The virtual balance for base token.
+    int64 virtual_balance = 2;
+    // The calculated weight value for this Connector.
+    string weight = 3;
+    // Whether to use Virtual Balance.
+    bool is_virtual_balance_enabled = 4; 
+    // Whether the connector is enabled.
+    bool is_purchase_enabled = 5;
+    // Indicates its related connector, the pair connector includes a new created token connector and the base token connector.
+    string related_symbol = 6;
+    // Indicates if the connector is base token connector.
+    bool is_deposit_account = 7;
+}
+
+message TokenSymbol {
+    // The token symbol.
+    string symbol = 1;
+}
+
+message InitializeInput {
+    // Base token symbol, default is the native token symbol.
+    string base_token_symbol = 1;
+    // The fee rate for buy/sell.
+    string fee_rate = 2;
+    // The default added connectors.
+    repeated Connector connectors = 3;
+}
+
+message BuyInput {
+    // The token symbol you want to buy.
+    string symbol = 1;
+    // The amount you want to buy.
+    int64 amount = 2;
+    // Limit of cost. If the token required for buy exceeds this value, the buy will be abandoned.
+    // And 0 is no limit.
+    int64 pay_limit = 3; 
+}
+
+message SellInput {
+    // The token symbol you want to sell.
+    string symbol = 1;
+    // The amount you want to sell.
+    int64 amount = 2;
+    // Limits on tokens obtained by selling. If the token obtained is less than this value, the sale will be abandoned.
+    // And 0 is no limit.
+    int64 receive_limit = 3;
+}
+
+message TokenBought {
+    option (aelf.is_event) = true;
+    // The token symbol bought.
+    string symbol = 1 [(aelf.is_indexed) = true];
+    // The amount bought.
+    int64 bought_amount = 2;
+    // The total cost of the base token.
+    int64 base_amount = 3;
+    // The fee amount.
+    int64 fee_amount =4;
+}
+
+message TokenSold {
+    option (aelf.is_event) = true;
+    // The token symbol sold.
+    string symbol = 1 [(aelf.is_indexed) = true];
+    // The amount sold.
+    int64 sold_amount = 2;
+    // The total received of the base token.
+    int64 base_amount = 3;
+    // The fee amount.
+    int64 fee_amount =4;    
+}
+message PairConnectorParam {
+    // The token symbol.
+    string resource_connector_symbol = 1;
+    // The weight value of this token in the Bancor model.
+    string resource_weight = 2;
+    // This token corresponds to the value of base token.
+    int64 native_virtual_balance = 3;
+    // The weight value of base token in Bancor model.
+    string native_weight = 4;
+}
+
+message ToBeConnectedTokenInfo{
+    // The token symbol.
+    string token_symbol = 1;
+    // Specifies the number of tokens to convert to the TokenConvert contract.
+    int64 amount_to_token_convert = 2;
+}
+message DepositInfo{
+    // How much more base Token is needed as the deposit.
+    int64 need_amount = 1;
+    // How many tokens are not on the TokenConvert address.
+    int64 amount_out_of_token_convert = 2;
+}
+message PairConnector{
+    // The connector of the specified token.
+    Connector resource_connector = 1;
+    // The related connector.
+    Connector deposit_connector = 2;
+}

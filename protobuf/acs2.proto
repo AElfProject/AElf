@@ -1,0 +1,30 @@
+/**
+ * AElf Standards ACS2(Parallel Execution Standard)
+ *
+ * Used to provide information for parallel execution of transactions.
+ */
+syntax = "proto3";
+
+package acs2;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+
+option (aelf.identity) = "acs2";
+option csharp_namespace = "AElf.Standards.ACS2";
+
+service ACS2Base {
+    // Gets the resource information that the transaction execution depends on.
+    rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ResourceInfo {
+    // The state path that depends on when writing.
+    repeated aelf.ScopedStatePath write_paths = 1;
+    // The state path that depends on when reading.
+    repeated aelf.ScopedStatePath read_paths = 2;
+    // Whether the transaction is not executed in parallel.
+    bool non_parallelizable = 3;
+}

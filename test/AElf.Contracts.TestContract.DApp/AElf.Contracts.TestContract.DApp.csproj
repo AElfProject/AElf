@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_holder_contract.proto">
+            <Link>Protobuf\Proto\reference\token_holder_contract.proto</Link>
+        </ContractReference>
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractBase>
+        <ContractReference Include="..\..\protobuf\token_contract_impl.proto">
+            <Link>Protobuf\Proto\reference\token_contract_impl.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs10.proto">
+            <Link>Protobuf\Proto\reference\acs10.proto</Link>
+        </ContractReference>
+
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs2.proto">
+            <Link>Protobuf\Proto\acs2.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs9.proto">
+            <Link>Protobuf\Proto\acs9.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+            <Link>Protobuf\Proto\transaction_fee.proto</Link>
+        </ContractBase>
+
+        <ContractCode Include="..\..\protobuf\dapp_contract.proto">
+            <Link>Protobuf\Proto\dapp_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+</Project>

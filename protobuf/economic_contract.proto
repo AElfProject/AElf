@@ -1,0 +1,62 @@
+/**
+ * Economic contract.
+ */
+syntax = "proto3";
+
+package Economic;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Economic";
+
+service EconomicContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
+    
+    // Only ZeroContract is able to issue the native token.
+    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
+    }
+    
+    // It will initialize other contracts related to economic activities (For instance, create the native token). 
+    // This transaction only can be send once because after the first sending, its state will be set to initialized.
+    rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitialEconomicSystemInput {
+    // The native token symbol.
+    string native_token_symbol = 1;
+    // The native token name.
+    string native_token_name = 2;
+    // The native token total supply.
+    int64 native_token_total_supply = 3;
+    // The accuracy of the native token.
+    int32 native_token_decimals = 4;
+    // It indicates if the token is burnable.
+    bool is_native_token_burnable = 5;
+    // It determines how much native token is used to reward the miners.
+    int64 mining_reward_total_amount = 6;
+    // todo : remove unused fields
+    int64 transaction_size_fee_unit_price = 7;
+}
+
+message IssueNativeTokenInput {
+    // The amount of token.
+    int64 amount = 1;
+    // The memo.
+    string memo = 2;
+    // The recipient of the token.
+    aelf.Address to = 3;
+}
+
+message IssueResourceTokenInput {
+    // The symbol of resource token.
+    string symbol = 1;
+    // The amount of resource token.
+    int64 amount = 2;
+    // The memo.
+    string memo = 3;
+    // The recipient of the token.
+    aelf.Address to = 4;
+}

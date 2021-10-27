@@ -1,0 +1,234 @@
+/**
+ * AElf Standards ACS0(Contract Deployment Standard)
+ *
+ * Used to manage the deployment and update of contracts.
+ */
+syntax = "proto3";
+
+package acs0;
+option csharp_namespace = "AElf.Standards.ACS0";
+
+import public "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service ACS0 {
+    // Deploy a system smart contract on chain and return the address of the system contract deployed.
+    rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {
+    }
+    
+    // Deploy a smart contract on chain and return the address of the contract deployed.
+    rpc DeploySmartContract (ContractDeploymentInput) returns (aelf.Address) {
+    }
+    
+    // Update a smart contract on chain.
+    rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
+    }
+    
+    // Create a proposal to deploy a new contract and returns the id of the proposed contract.
+    rpc ProposeNewContract (ContractDeploymentInput) returns (aelf.Hash) {
+    }
+    
+    // Create a proposal to check the code of a contract and return the id of the proposed contract.
+    rpc ProposeContractCodeCheck (ContractCodeCheckInput) returns (aelf.Hash) {
+    }
+    
+    // Create a proposal to update the specified contract
+    // and return the id of the proposed contract.
+    rpc ProposeUpdateContract (ContractUpdateInput) returns (aelf.Hash) {
+    }
+    
+    // Release the contract proposal which has been approved.
+    rpc ReleaseApprovedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Release the proposal which has passed the code check.
+    rpc ReleaseCodeCheckedContract (ReleaseContractInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Validate whether the input system contract exists.
+    rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
+    }
+    
+    // Set authority of contract deployment.
+    rpc SetContractProposerRequiredState (google.protobuf.BoolValue) returns (google.protobuf.Empty) {
+    }
+    
+    // Get the current serial number of genesis contract 
+    // (corresponds to the serial number that will be given to the next deployed contract).
+    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get detailed information about the specified contract.
+    rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get author of the specified contract.
+    rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the code hash of the contract about the specified address.
+    rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the address of a system contract by its name.
+    rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the registration of a smart contract by its address.
+    rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the registration of a smart contract by code hash.
+    rpc GetSmartContractRegistrationByCodeHash (aelf.Hash) returns (aelf.SmartContractRegistration) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc GetContractCodeHashListByDeployingBlockHeight (google.protobuf.Int64Value) returns (ContractCodeHashList) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ContractInfo
+{
+    // The serial number of the contract.
+    int64 serial_number = 1;
+    // The author of the contract, this is the person who deployed the contract.
+    aelf.Address author = 2;
+    // The category of contract code(0: C#).
+    sint32 category = 3;
+    // The hash of the contract code.
+    aelf.Hash code_hash = 4;
+    // Whether it is a system contract.
+    bool is_system_contract = 5;
+    // The version of the current contract.
+    int32 version = 6;
+}
+
+message ContractDeploymentInput {
+    // The category of contract code(0: C#).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+}
+
+message SystemContractDeploymentInput {
+    message SystemTransactionMethodCall {
+        // The method name of system transaction.
+        string method_name = 1;
+        // The params of system transaction method.
+        bytes params = 2;
+    }
+    message SystemTransactionMethodCallList {
+        // The list of system transactions.
+        repeated SystemTransactionMethodCall value = 1;
+    }
+    // The category of contract code(0: C#).
+    sint32 category = 1;
+    // The byte array of the contract code.
+    bytes code = 2;
+    // The name of the contract. It has to be unique.
+    aelf.Hash name = 3;
+    // An initial list of transactions for the system contract,
+    // which is executed in sequence when the contract is deployed.
+    SystemTransactionMethodCallList transaction_method_call_list = 4;
+}
+
+message ContractUpdateInput {
+    // The contract address that needs to be updated.
+    aelf.Address address = 1;
+    // The byte array of the new contract code.
+    bytes code = 2;
+}
+
+message ContractCodeCheckInput{
+    // The byte array of the contract code to be checked.
+    bytes contract_input = 1;
+    // Whether the input contract is to be deployed or updated.
+    bool is_contract_deployment = 2;
+    // Method to call after code check complete(DeploySmartContract or UpdateSmartContract).
+    string code_check_release_method = 3;
+    // The id of the proposed contract.
+    aelf.Hash proposed_contract_input_hash = 4;
+    // The category of contract code(0: C#).
+    sint32 category = 5;
+    // Indicates if the contract is the system contract.
+    bool is_system_contract = 6;
+}
+
+message ContractProposed
+{
+    option (aelf.is_event) = true;
+    // The id of the proposed contract.
+    aelf.Hash proposed_contract_input_hash = 1;
+}
+
+message ContractDeployed
+{
+    option (aelf.is_event) = true;
+    // The author of the contract, this is the person who deployed the contract. 
+    aelf.Address author = 1 [(aelf.is_indexed) = true];
+    // The hash of the contract code.
+    aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
+    // The address of the contract.
+    aelf.Address address = 3;
+    // The version of the current contract.
+    int32 version = 4;
+    // The name of the contract. It has to be unique.
+    aelf.Hash Name = 5;
+}
+
+message CodeCheckRequired
+{
+    option (aelf.is_event) = true;
+    // The byte array of the contract code.
+    bytes code = 1;
+    // The id of the proposed contract.
+    aelf.Hash proposed_contract_input_hash = 2;
+    // The category of contract code(0: C#).
+    sint32 category = 3;
+    // Indicates if the contract is the system contract.
+    bool is_system_contract = 4;
+}
+
+message CodeUpdated
+{
+    option (aelf.is_event) = true;
+    // The address of the updated contract.
+    aelf.Address address = 1 [(aelf.is_indexed) = true];
+    // The byte array of the old contract code.
+    aelf.Hash old_code_hash = 2;
+    // The byte array of the new contract code.
+    aelf.Hash new_code_hash = 3;
+    // The version of the current contract.
+    int32 version = 4;
+}
+
+message ValidateSystemContractAddressInput {
+    // The name hash of the contract.
+    aelf.Hash system_contract_hash_name = 1;
+    // The address of the contract.
+    aelf.Address address = 2;
+}
+
+message ReleaseContractInput {
+    // The hash of the proposal.
+    aelf.Hash proposal_id = 1;
+    // The id of the proposed contract.
+    aelf.Hash proposed_contract_input_hash = 2;
+}
+
+message ContractCodeHashList {
+    repeated aelf.Hash value = 1;
+}
+
+message ContractCodeHashMap {
+    map<int64, ContractCodeHashList> value = 1;
+}

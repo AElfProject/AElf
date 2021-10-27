@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="..\..\common.props" />
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.CrossChain.Grpc</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Grpc implementation of cross-chain communication functionality.</Description>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="..\..\protobuf\crosschain_rpc.proto">
+            <Link>.\Protobuf\crosschain_rpc.proto</Link>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc" Version="2.31.0" />
+        <PackageReference Include="Grpc.Tools" Version="2.31.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
+    <Target Name="Gen_rpc" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Protobuf ProtoRoot="../../protobuf" Include="crosschain_rpc.proto" OutputDir="./Protobuf/Generated" />
+        </ItemGroup>
+    </Target>
+</Project>

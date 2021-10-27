@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+         <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <PackageId>AElf.Kernel.FeeCalculation</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Fee Calculation Project.</Description>
+    </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+    </ItemGroup>
+     <ItemGroup> 
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractBase>
+         <ContractBase Include="..\..\protobuf\transaction_fee.proto">
+             <Link>Protobuf\Proto\transaction_fee.proto</Link>
+         </ContractBase>
+    </ItemGroup>
+
+</Project>

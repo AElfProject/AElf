@@ -1,0 +1,440 @@
+/**
+ * AEDPoS contract.
+ */
+syntax = "proto3";
+
+package AEDPoS;
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "authority_info.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
+
+service AEDPoSContract {
+    
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEDPoS.AEDPoSContractState";
+    
+    // Initialize the consensus contract. 
+    rpc InitialAElfConsensusContract (InitialAElfConsensusContractInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Initializes the consensus information in the first round.
+    rpc FirstRound (Round) returns (google.protobuf.Empty) {
+    }
+    
+    // Update consensus information.
+    rpc UpdateValue (UpdateValueInput) returns (google.protobuf.Empty) {
+    }
+
+    // Update consensus information, create a new round.
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
+    }
+
+    // Update consensus information, create a new term.
+    rpc NextTerm (Round) returns (google.protobuf.Empty) {
+    }
+
+    // Update consensus tiny block information.
+    rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Set the maximum count of miners, by default, is unlimited. 
+    // If you want to control the count of miners, you need to set it through parliament.
+    rpc SetMaximumMinersCount (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
+    
+    // The authority information for SetMaximumMinersCount, by default, is governed by parliament.
+    rpc ChangeMaximumMinersCountController (AuthorityInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // Election Contract can notify AEDPoS Contract to aware candidate replacement happened.
+    rpc RecordCandidateReplacement (RecordCandidateReplacementInput) returns (google.protobuf.Empty) {
+    }
+
+    // Get the list of current miners.
+    rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the list of current miners (hexadecimal format).
+    rpc GetCurrentMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the list of current miners and current round number.
+    rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get information of the round according to round number.
+    rpc GetRoundInformation (google.protobuf.Int64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the current round number.
+    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the current round information.
+    rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the previous round information.
+    rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the current term number.
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the welfare reward the current term.
+    rpc GetCurrentTermMiningReward (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the list of miners according to term number.
+    rpc GetMinerList (GetMinerListInput) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the list of miner in previous term.
+    rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the amount of mined blocks in previous term.
+    rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the miner that produces the next block.
+    rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Check to see if the account address is on the miner list for the current round.
+    rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the left time before the next election takes effects (seconds).
+    rpc GetNextElectCountDown (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get term information according term number.
+    rpc GetPreviousTermInformation (google.protobuf.Int64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get random hash (Keep this for compatibility).
+    rpc GetRandomHash (google.protobuf.Int64Value) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the maximum of tiny blocks produced by a miner each round.
+    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Get the maximum count of miners.
+    rpc GetMaximumMinersCount (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the authority information for SetMaximumMinersCount.
+    rpc GetMaximumMinersCountController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Gets the list of miners in the main chain.
+    rpc GetMainChainCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Get the list of miners in the previous term.
+    rpc GetPreviousTermMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    
+    // Query the current mining reward for each block.
+    rpc GetCurrentMiningRewardPerBlock (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitialAElfConsensusContractInput {
+    // Whether not to change the term.
+    bool is_term_stay_one = 1;
+    // Is a side chain.
+    bool is_side_chain = 2;
+    // The number of seconds per term.
+    int64 period_seconds = 3;
+    // The interval second that increases the number of miners.
+    int64 miner_increase_interval = 4;
+}
+
+message UpdateValueInput {
+    // Calculated from current in value.
+    aelf.Hash out_value = 1;
+    // Calculated from current in value and signatures of previous round.
+    aelf.Hash signature = 2;
+    // To ensure the values to update will be apply to correct round by comparing round id.
+    int64 round_id = 3;
+    // Publish previous in value for validation previous signature and previous out value.
+    aelf.Hash previous_in_value = 4;
+    // The actual mining time, miners must fill actual mining time when they do the mining.
+    google.protobuf.Timestamp actual_mining_time = 5;
+    // The supposed order of mining for the next round.
+    int32 supposed_order_of_next_round = 6;
+    // The tuning order of mining for the next round, miner public key -> order.
+    map<string, int32> tune_order_information = 7;
+    // The encrypted pieces of InValue.
+    map<string, bytes> encrypted_pieces = 8;
+    // The decrypted pieces of InValue.
+    map<string, bytes> decrypted_pieces = 9;
+    // The amount of produced blocks.
+    int64 produced_blocks = 10;
+    // The InValue in the previous round, miner public key -> InValue.
+    map<string, aelf.Hash> miners_previous_in_values = 11;
+    // The irreversible block height that miner recorded.
+    int64 implied_irreversible_block_height = 12;
+}
+
+message MinerList {
+    // The miners public key list.
+    repeated bytes pubkeys = 1;
+}
+
+message PubkeyList {
+    // The miners public key list.
+    repeated string pubkeys = 1;
+}
+
+message TermNumberLookUp {
+    // Term number -> Round number.
+    map<int64, int64> map = 1;
+}
+
+message Candidates {
+    // The candidate public keys.
+    repeated bytes pubkeys = 1;
+}
+
+message Round {
+    // The round number.
+    int64 round_number = 1;
+    // Current miner information, miner public key -> miner information.
+    map<string, MinerInRound> real_time_miners_information = 2;
+    // The round number on the main chain
+    int64 main_chain_miners_round_number = 3;
+    // The time from chain start to current round (seconds).
+    int64 blockchain_age = 4;
+    // The miner public key that produced the extra block in the previous round.
+    string extra_block_producer_of_previous_round = 5;
+    // The current term number.
+    int64 term_number = 6;
+    // The height of the confirmed irreversible block.
+    int64 confirmed_irreversible_block_height = 7;
+    // The round number of the confirmed irreversible block.
+    int64 confirmed_irreversible_block_round_number = 8;
+    // Is miner list different from the the miner list in the previous round.
+    bool is_miner_list_just_changed = 9;
+    // The round id, calculated by summing block producers’ expecting time (second).
+    int64 round_id_for_validation = 10;
+}
+
+message MinerInRound {
+    // The order of the miner producing block.
+    int32 order = 1;
+    // Is extra block producer in the current round.
+    bool is_extra_block_producer = 2;
+    // Generated by secret sharing and used for validation between miner.
+    aelf.Hash in_value = 3;
+    // Calculated from current in value.
+    aelf.Hash out_value = 4;
+    // Calculated from current in value and signatures of previous round.
+    aelf.Hash signature = 5;
+    // The expected mining time.
+    google.protobuf.Timestamp expected_mining_time = 6;
+    // The amount of produced blocks.
+    int64 produced_blocks = 7;
+    // The amount of missed time slots.
+    int64 missed_time_slots = 8;
+    // The public key of this miner.
+    string pubkey = 9;
+    // The InValue of the previous round.
+    aelf.Hash previous_in_value = 10;
+    // The supposed order of mining for the next round.
+    int32 supposed_order_of_next_round = 11;
+    // The final order of mining for the next round.
+    int32 final_order_of_next_round = 12;
+    // The actual mining time, miners must fill actual mining time when they do the mining.
+    repeated google.protobuf.Timestamp actual_mining_times = 13;
+    // The encrypted pieces of InValue.
+    map<string, bytes> encrypted_pieces = 14;
+    // The decrypted pieces of InValue.
+    map<string, bytes> decrypted_pieces = 15;
+    // The amount of produced tiny blocks.
+    int64 produced_tiny_blocks = 16;
+    // The irreversible block height that current miner recorded.
+    int64 implied_irreversible_block_height = 17;
+}
+
+message AElfConsensusHeaderInformation {
+    // The sender public key.
+    bytes sender_pubkey = 1;
+    // The round information.
+    Round round = 2;
+    // The behaviour of consensus.
+    AElfConsensusBehaviour behaviour = 3;
+}
+
+message AElfConsensusHint {
+    // The behaviour of consensus.
+    AElfConsensusBehaviour behaviour = 1;
+    // The round id.
+    int64 round_id = 2;
+    // The previous round id.
+    int64 previous_round_id = 3;
+}
+
+enum AElfConsensusBehaviour {
+    UPDATE_VALUE = 0;
+    NEXT_ROUND = 1;
+    NEXT_TERM = 2;
+    NOTHING = 3;
+    TINY_BLOCK = 4;
+}
+
+message AElfConsensusTriggerInformation {
+    // The miner public key.
+    bytes pubkey = 1;
+    // The InValue for current round.
+    aelf.Hash in_value = 2;
+    // The InValue for previous round.
+    aelf.Hash previous_in_value = 3;
+    // The behaviour of consensus.
+    AElfConsensusBehaviour behaviour = 4;
+    // The encrypted pieces of InValue.
+    map<string, bytes> encrypted_pieces = 5;
+    // The decrypted pieces of InValue.
+    map<string, bytes> decrypted_pieces = 6;
+    // The revealed InValues.
+    map<string, aelf.Hash> revealed_in_values = 7;
+}
+
+message TermInfo {
+    int64 term_number = 1;
+    int64 round_number = 2;
+}
+
+message MinerListWithRoundNumber {
+    // The list of miners.
+    MinerList miner_list = 1;
+    // The round number.
+    int64 round_number = 2;
+}
+
+message TinyBlockInput {
+    // The round id.
+    int64 round_id = 1;
+    // The actual mining time.
+    google.protobuf.Timestamp actual_mining_time = 2;
+    // Count of blocks currently produced
+    int64 produced_blocks = 3;
+}
+
+message VoteMinersCountInput {
+    int32 miners_count = 1;
+    int64 amount = 2;
+}
+
+message ConsensusInformation {
+    bytes value = 1;
+}
+
+message GetMinerListInput {
+    // The term number.
+    int64 term_number = 1;
+}
+
+message RandomNumberRequestInformation {
+    int64 target_round_number = 1;// The random hash is likely generated during this round.
+    int64 order = 2;
+    int64 expected_block_height = 3;
+}
+
+message HashList {
+    repeated aelf.Hash values = 1;
+}
+
+message LatestPubkeyToTinyBlocksCount {
+    // The miner public key.
+    string pubkey = 1;
+    // The count of blocks the miner produced.
+    int64 blocks_count = 2;
+}
+
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    // The irreversible block height found.
+    int64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
+}
+
+message IrreversibleBlockHeightUnacceptable {
+    option (aelf.is_event) = true;
+    // Distance to the height of the last irreversible block.
+    int64 distance_to_irreversible_block_height = 1;
+}
+
+message MiningInformationUpdated {
+    option (aelf.is_event) = true;
+    // The miner public key.
+    string pubkey = 1 [(aelf.is_indexed) = true];
+    // The current block time.
+    google.protobuf.Timestamp mining_time = 2 [(aelf.is_indexed) = true];
+    // The behaviour of consensus.
+    string behaviour = 3 [(aelf.is_indexed) = true];
+    // The current block height.
+    int64 block_height = 4 [(aelf.is_indexed) = true];
+    // The previous block hash.
+    aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
+}
+
+message SecretSharingInformation {
+    option (aelf.is_event) = true;
+    // The previous round information.
+    Round previous_round = 1 [(aelf.is_indexed) = true];
+    // The current round id.
+    int64 current_round_id = 2;
+    // The previous round id.
+    int64 previous_round_id = 3;
+}
+
+message MiningRewardGenerated {
+    option (aelf.is_event) = true;
+    // The number of term the mining reward is generated.
+    int64 term_number = 1 [(aelf.is_indexed) = true];
+    // The amount of mining reward.
+    int64 amount = 2;
+}
+
+message MinerReplaced {
+    option (aelf.is_event) = true;
+    // The new miner public key.
+    string new_miner_pubkey = 1;
+}
+
+message RecordCandidateReplacementInput {
+    string old_pubkey = 1;
+    string new_pubkey = 2;
+}

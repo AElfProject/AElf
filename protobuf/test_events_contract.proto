@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "acs1.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Events";
+
+service EventsContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Events.EventsContractState";
+    option (aelf.base) = "acs1.proto";
+    
+    //Actions
+    rpc InitializeEvents(InitializeInput) returns (google.protobuf.Empty){
+    }
+    rpc IssueOrder(OrderInput) returns (google.protobuf.Empty) {
+    }
+    rpc DealOrder(DealOrderInput) returns (google.protobuf.Empty) {
+    }
+    rpc CancelOrder(aelf.Hash) returns (google.protobuf.Empty) {
+    }
+    rpc InlineTransferFrom(InlineTransferFromInput) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
+        option (aelf.is_view) = true;
+    }
+    rpc QueryIssueOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryDoneOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCanceledOrders(google.protobuf.Empty) returns (OrdersOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryOrderById(aelf.Hash) returns (OrderInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryOrderSubOrders(aelf.Hash) returns (DealtOrders) {
+        option (aelf.is_view) = true;
+    }
+}
+
+enum OrderStatus {
+    CREATED = 0;
+    CANCELED = 1;
+    ONGOING = 2;
+    DONE = 3;    
+}
+
+//Input
+message InitializeInput {
+    aelf.Address manager = 1;
+}
+
+message OrderInput {
+    string symbol_paid = 1;
+    string symbol_obtain = 2;
+    sint64 balance_paid = 3;
+    sint64 balance_obtain = 4;
+}
+
+message DealtOrders {
+    aelf.Hash order_id = 1;
+    repeated DealtOrder sub_orders = 2;
+}
+
+message DealtOrder {
+    aelf.Address dealer = 1;
+    sint64 amount = 2;
+}
+
+message DealOrderInput {
+    aelf.Hash order_id = 1;
+    sint64 amount = 2;
+}
+
+message InlineTransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
+}
+
+//Output
+message OrdersOutput {
+    repeated OrderInfo orders = 1;
+}
+
+message OrderIds {
+    repeated aelf.Hash ids = 1;
+}
+
+message OrderInfo {
+    aelf.Hash order_id = 1;
+    aelf.Address issuer = 2;
+    string symbol_paid = 3;
+    string symbol_obtain = 4;
+    sint64 balance_paid = 5;
+    sint64 balance_obtain = 6;
+    sint64 balance_achieved = 7;
+    OrderStatus status = 8;
+}
+
+//Event
+message OrderIssued {
+    option (aelf.is_event) = true;
+    aelf.Address issuer = 1 [(aelf.is_indexed) = true];
+    string symbol_paid = 2;
+    string symbol_obtain = 3;
+    sint64 balance_paid = 4;
+    sint64 balance_obtain = 5;
+}
+
+message OrderDealt {
+    option (aelf.is_event) = true;
+    aelf.Address dealer = 1 [(aelf.is_indexed) = true];
+    aelf.Hash order_id = 2;
+    sint64 amount = 3;
+}
+
+message OrderCanceled {
+    option (aelf.is_event) = true;
+    aelf.Hash order_id = 1;
+}
+
+message Transferred {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+    string memo = 5;
+}
