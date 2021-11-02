@@ -1,3 +1,4 @@
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFT
@@ -14,10 +15,24 @@ namespace AElf.Contracts.NFT
                 Symbol = symbol,
                 Decimals = 0, // Fixed
                 Issuer = Context.Sender,
-                IsBurnable = true,
+                IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId,
                 TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply
+                TotalSupply = input.TotalSupply,
+                ExternalInfo = new MultiToken.ExternalInfo
+                {
+                    Value = {input.ExternalInfo.Value}
+                }
+            });
+            Context.Fire(new NFTCreated
+            {
+                Symbol = symbol,
+                Issuer = Context.Sender,
+                IsBurnable = input.IsBurnable,
+                IssueChainId = input.IssueChainId,
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                ExternalInfo = input.ExternalInfo
             });
             return new Empty();
         }

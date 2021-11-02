@@ -46,6 +46,21 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty AnnounceElectionFor(StringValue input)
+        {
+            var pubkey = input.Value;
+            AnnounceElection(ByteArrayHelper.HexStringToByteArray(pubkey));
+            State.CandidateAdmins[pubkey] = Context.Sender;
+            LockCandidateNativeToken();
+            AddCandidateAsOption(pubkey);
+            if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
+            {
+                State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
+                RegisterCandidateToSubsidyProfitScheme();
+            }
+            return new Empty();
+        }
+
         private void AnnounceElection(byte[] recoveredPubkey)
         {
             var pubkey = recoveredPubkey.ToHex();

@@ -32,7 +32,7 @@ namespace AElf.Contracts.NFT
             }
 
             var number = GenerateSymbolNumber();
-            State.IsUsedMap[number] = true;
+            State.IsCreatedMap[number] = true;
             return $"{GetPrefix(nftType)}{number}";
         }
 
@@ -75,7 +75,7 @@ namespace AElf.Contracts.NFT
             do
             {
                 randomNumber = Context.ConvertHashToInt64(randomHash, from, from.Mul(10));
-            } while (State.IsUsedMap[randomNumber]);
+            } while (State.IsCreatedMap[randomNumber]);
 
             return randomNumber;
         }
