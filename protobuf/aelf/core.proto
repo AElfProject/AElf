@@ -145,3 +145,17 @@ message BinaryMerkleTree {
     // The count of leaf node.
     int32 leaf_count = 3;
 }
+
+message Int256Value {
+    uint64 u0 = 1;
+    uint64 u1 = 2;
+    uint64 u2 = 3;
+    uint64 u3 = 4;
+}
+
+message UInt256Value {
+    uint64 u0 = 1;
+    uint64 u1 = 2;
+    uint64 u2 = 3;
+    uint64 u3 = 4;
+}
