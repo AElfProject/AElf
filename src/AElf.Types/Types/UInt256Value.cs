@@ -4,15 +4,21 @@ using System.Runtime.InteropServices;
 
 namespace AElf.Types
 {
-    public partial class UInt256Value : IComparable, IComparable<UInt256Value>, IInteger<UInt256Value>
+    [StructLayout(LayoutKind.Explicit)]
+    public readonly struct UInt256Value : IComparable, IComparable<UInt256Value>, IInteger<UInt256Value>
     {
+        [FieldOffset(0)] public readonly ulong U0;
+        [FieldOffset(8)] public readonly ulong U1;
+        [FieldOffset(16)] public readonly ulong U2;
+        [FieldOffset(24)] public readonly ulong U3;
+
         private uint r0 => (uint) U0;
         private uint r1 => (uint) (U0 >> 32);
         private uint r2 => (uint) U1;
         private uint r3 => (uint) (U1 >> 32);
 
-        public static readonly UInt256Value Zero = new UInt256Value(0ul, 0ul, 0ul, 0ul);
-        public static readonly UInt256Value One = new UInt256Value(1ul, 0ul, 0ul, 0ul);
+        public static readonly UInt256Value Zero = new UInt256Value(0ul);
+        public static readonly UInt256Value One = new UInt256Value(1ul);
 
         public static readonly UInt256Value MinValue = Zero;
         public static readonly UInt256Value MaxValue = ~Zero;
@@ -21,16 +27,43 @@ namespace AElf.Types
         public bool IsOne => ((U0 ^ 1UL) | U1 | U2 | U3) == 0;
         public bool IsZeroOrOne => ((U0 >> 1) | U1 | U2 | U3) == 0;
         public UInt256Value ZeroValue => Zero;
-        public bool IsUint64 => (this.U1 | this.U2 | this.U3) == 0;
+        public bool IsUint64 => (U1 | U2 | U3) == 0;
+        public (ulong value, bool overflow) UlongWithOverflow => (U0, (U1 | U2 | U3) != 0);
 
         #region Ctor
 
-        public UInt256Value(ulong U0, ulong U1, ulong U2, ulong U3)
+        public UInt256Value(ulong u0 = 0, ulong u1 = 0, ulong u2 = 0, ulong u3 = 0)
         {
-            this.U0 = U0;
-            this.U1 = U1;
-            this.U2 = U2;
-            this.U3 = U3;
+            U0 = u0;
+            U1 = u1;
+            U2 = u2;
+            U3 = u3;
+        }
+
+        public UInt256Value(uint r0, uint r1, uint r2, uint r3, uint r4, uint r5, uint r6, uint r7)
+        {
+            U0 = (ulong) r1 << 32 | r0;
+            U1 = (ulong) r3 << 32 | r2;
+            U2 = (ulong) r5 << 32 | r4;
+            U3 = (ulong) r7 << 32 | r6;
+        }
+
+        public UInt256Value(ReadOnlySpan<ulong> data, bool isBigEndian = false)
+        {
+            if (isBigEndian)
+            {
+                U3 = data[0];
+                U2 = data[1];
+                U1 = data[2];
+                U0 = data[3];
+            }
+            else
+            {
+                U0 = data[0];
+                U1 = data[1];
+                U2 = data[2];
+                U3 = data[3];
+            }
         }
 
         #endregion
@@ -77,6 +110,17 @@ namespace AElf.Types
         {
             res = a - b - borrow;
             borrow = ((~a & b) | ~(a ^ b) & res) >> 63;
+        }
+
+        public static bool SubtractUnderflow(in UInt256Value a, in UInt256Value b, out UInt256Value res)
+        {
+            ulong borrow = 0;
+            SubtractWithBorrow(a[0], b[0], ref borrow, out ulong z0);
+            SubtractWithBorrow(a[1], b[1], ref borrow, out ulong z1);
+            SubtractWithBorrow(a[2], b[2], ref borrow, out ulong z2);
+            SubtractWithBorrow(a[3], b[3], ref borrow, out ulong z3);
+            res = new UInt256Value(z0, z1, z2, z3);
+            return borrow != 0;
         }
 
         #endregion
@@ -589,7 +633,7 @@ namespace AElf.Types
 
         public static UInt256Value operator &(in UInt256Value a, in UInt256Value b)
         {
-            And(a, b, out UInt256Value res);
+            And(a, b, out var res);
             return res;
         }
 
@@ -629,6 +673,7 @@ namespace AElf.Types
 
         #endregion
 
+        #region + - * /
 
         public static UInt256Value operator +(in UInt256Value a, in UInt256Value b)
         {
@@ -644,7 +689,7 @@ namespace AElf.Types
 
         public static UInt256Value operator -(in UInt256Value a, in UInt256Value b)
         {
-            if (SubtractUnderflow(in a, in b, out UInt256Value c))
+            if (SubtractUnderflow(in a, in b, out var c))
             {
                 throw new ArithmeticException($"Underflow in subtraction {a} - {b}");
             }
@@ -652,22 +697,30 @@ namespace AElf.Types
             return c;
         }
 
-        public static bool SubtractUnderflow(in UInt256Value a, in UInt256Value b, out UInt256Value res)
+        public static UInt256Value operator *(UInt256Value a, UInt256Value b)
         {
-            ulong borrow = 0;
-            SubtractWithBorrow(a[0], b[0], ref borrow, out ulong z0);
-            SubtractWithBorrow(a[1], b[1], ref borrow, out ulong z1);
-            SubtractWithBorrow(a[2], b[2], ref borrow, out ulong z2);
-            SubtractWithBorrow(a[3], b[3], ref borrow, out ulong z3);
-            res = new UInt256Value(z0, z1, z2, z3);
-            return borrow != 0;
+            Mul(in a, in b, out var c);
+            return c;
         }
+
+        public static UInt256Value operator /(UInt256Value a, UInt256Value b)
+        {
+            Div(in a, in b, out var c);
+            return c;
+        }
+
+        #endregion
 
         public static bool operator ==(in UInt256Value a, in UInt256Value b) => a.Equals(b);
 
         public static bool operator !=(in UInt256Value a, in UInt256Value b) => !(a == b);
 
         public static bool operator <(in UInt256Value a, in UInt256Value b)
+        {
+            return LessThan(in a, in b);
+        }
+
+        public static bool operator >(in UInt256Value a, in UInt256Value b)
         {
             return LessThan(in a, in b);
         }
@@ -684,11 +737,6 @@ namespace AElf.Types
             return a.U0 < b.U0;
         }
 
-        public static bool operator >(in UInt256Value a, in UInt256Value b)
-        {
-            return LessThan(in a, in b);
-        }
-
         #endregion
 
         public ulong this[int index]
@@ -698,13 +746,13 @@ namespace AElf.Types
                 switch (index)
                 {
                     case 0:
-                        return this.U0;
+                        return U0;
                     case 1:
-                        return this.U1;
+                        return U1;
                     case 2:
-                        return this.U2;
+                        return U2;
                     case 3:
-                        return this.U3;
+                        return U3;
                 }
 
                 throw new IndexOutOfRangeException();
@@ -727,6 +775,23 @@ namespace AElf.Types
             }
 
             return Equals(other) ? 0 : 1;
+        }
+
+        public static explicit operator ulong(UInt256Value a)
+        {
+            if (a.U1 > 0 || a.U2 > 0 || a.U3 > 0)
+            {
+                throw new OverflowException("Cannot convert UInt256Value to ulong.");
+            }
+
+            return a.U0;
+        }
+
+        public static implicit operator UInt256Value(ulong value) => new UInt256Value(value);
+
+        public override string ToString()
+        {
+            return $"{U0}{U1}{U2}{U3}";
         }
     }
 }
