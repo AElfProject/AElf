@@ -428,5 +428,11 @@ namespace AElf.Contracts.Election
         {
             return new StringValue {Value = State.CandidateReplacementMap[input.Value]};
         }
+
+        public override Address GetSponsor(StringValue input)
+        {
+            return State.SponsorMap[input.Value] ??
+                   Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value));
+        }
     }
 }

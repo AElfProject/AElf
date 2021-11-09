@@ -1,4 +1,6 @@
 using System;
+using System.Buffers.Binary;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -789,9 +791,19 @@ namespace AElf.Types
 
         public static implicit operator UInt256Value(ulong value) => new UInt256Value(value);
 
+        public static explicit operator BigInteger(UInt256Value value)
+        {
+            Span<byte> bytes = stackalloc byte[32];
+            BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(0, 8), value.U0);
+            BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(8, 8), value.U1);
+            BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(16, 8), value.U2);
+            BinaryPrimitives.WriteUInt64LittleEndian(bytes.Slice(24, 8), value.U3);
+            return new BigInteger(bytes.ToArray());
+        }
+
         public override string ToString()
         {
-            return $"{U0}{U1}{U2}{U3}";
+            return ((BigInteger) this).ToString();
         }
     }
 }

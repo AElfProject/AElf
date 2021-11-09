@@ -83,5 +83,10 @@ namespace AElf.Contracts.Election
         public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
 
         public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Sponsor address (who will pay announce election fee for this pubkey)
+        /// </summary>
+        public MappedState<string, Address> SponsorMap { get; set; }
     }
 }

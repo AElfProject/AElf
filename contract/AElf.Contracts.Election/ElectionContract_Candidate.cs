@@ -29,6 +29,7 @@ namespace AElf.Contracts.Election
             AnnounceElection(recoveredPublicKey);
 
             var pubkey = recoveredPublicKey.ToHex();
+            var address = Address.FromPublicKey(recoveredPublicKey);
 
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
             State.CandidateAdmins[pubkey] = input;
@@ -40,7 +41,7 @@ namespace AElf.Contracts.Election
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
             {
                 State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
-                RegisterCandidateToSubsidyProfitScheme();
+                RegisterCandidateToSubsidyProfitScheme(address);
             }
 
             return new Empty();
@@ -49,22 +50,26 @@ namespace AElf.Contracts.Election
         public override Empty AnnounceElectionFor(StringValue input)
         {
             var pubkey = input.Value;
-            AnnounceElection(ByteArrayHelper.HexStringToByteArray(pubkey));
+            var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(pubkey);
+            var address = Address.FromPublicKey(pubkeyBytes);
+            AnnounceElection(pubkeyBytes);
             State.CandidateAdmins[pubkey] = Context.Sender;
             LockCandidateNativeToken();
             AddCandidateAsOption(pubkey);
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
             {
                 State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
-                RegisterCandidateToSubsidyProfitScheme();
+                RegisterCandidateToSubsidyProfitScheme(address);
             }
+
+            State.SponsorMap[input.Value] = Context.Sender;
             return new Empty();
         }
 
-        private void AnnounceElection(byte[] recoveredPubkey)
+        private void AnnounceElection(byte[] pubkeyBytes)
         {
-            var pubkey = recoveredPubkey.ToHex();
-            var pubkeyByteString = ByteString.CopyFrom(recoveredPubkey);
+            var pubkey = pubkeyBytes.ToHex();
+            var pubkeyByteString = ByteString.CopyFrom(pubkeyBytes);
 
             Assert(!State.InitialMiners.Value.Value.Contains(pubkeyByteString),
                 "Initial miner cannot announce election.");
@@ -105,10 +110,10 @@ namespace AElf.Contracts.Election
             // Lock the token from sender for deposit of announce election
             var lockId = Context.OriginTransactionId;
             var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
-            var announcePubkeyAddress = Context.Sender;
+            var sponsorAddress = Context.Sender;
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
-                From = announcePubkeyAddress,
+                From = sponsorAddress,
                 To = lockVirtualAddress,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
@@ -132,7 +137,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void RegisterCandidateToSubsidyProfitScheme()
+        private void RegisterCandidateToSubsidyProfitScheme(Address candidatePubkey)
         {
             if (State.ProfitContract.Value == null)
             {
@@ -144,7 +149,7 @@ namespace AElf.Contracts.Election
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Context.Sender, Shares = 1}
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = candidatePubkey, Shares = 1}
             });
         }
 
@@ -173,7 +178,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = lockVirtualAddress,
-                To = Address.FromPublicKey(pubkeyBytes),
+                To = State.SponsorMap[input.Value] ?? Address.FromPublicKey(pubkeyBytes),
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 Memo = "Quit election."

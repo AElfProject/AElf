@@ -234,6 +234,10 @@ service ElectionContract {
     rpc GetReplacedPubkey (google.protobuf.StringValue) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
+
+    rpc GetSponsor (google.protobuf.StringValue) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
