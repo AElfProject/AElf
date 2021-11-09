@@ -115,9 +115,19 @@ namespace AElf.Contracts.Parliament
             Assert(CheckSenderIsParliamentMember(currentParliament), "Unauthorized member.");
         }
 
-        private bool CheckSenderIsParliamentMember(IEnumerable<Address> currentParliament)
+        private bool CheckSenderIsParliamentMember(List<Address> currentParliament)
         {
-            return currentParliament.Any(r => r.Equals(Context.Sender));
+            var isParliamentMember = currentParliament.Any(r => r.Equals(Context.Sender));
+            if (isParliamentMember)
+            {
+                return true;
+            }
+
+            var managedPubkey = State.ElectionContract.GetManagedPubkey.Call(Context.Sender);
+            if (string.IsNullOrEmpty(managedPubkey.Value)) return false;
+
+            var managedCandidate = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(managedPubkey.Value));
+            return currentParliament.Any(r => r.Equals(managedCandidate));
         }
 
         private bool Validate(Organization organization)

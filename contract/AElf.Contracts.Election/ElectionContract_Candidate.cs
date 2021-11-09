@@ -33,6 +33,7 @@ namespace AElf.Contracts.Election
 
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
             State.CandidateAdmins[pubkey] = input;
+            State.ManagedCandidatePubkeyMap[input] = pubkey;
 
             LockCandidateNativeToken();
 
@@ -47,13 +48,15 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty AnnounceElectionFor(StringValue input)
+        public override Empty AnnounceElectionFor(AnnounceElectionForInput input)
         {
-            var pubkey = input.Value;
+            var pubkey = input.Pubkey;
             var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(pubkey);
             var address = Address.FromPublicKey(pubkeyBytes);
             AnnounceElection(pubkeyBytes);
-            State.CandidateAdmins[pubkey] = Context.Sender;
+            var admin = input.Admin ?? Context.Sender;
+            State.CandidateAdmins[pubkey] = admin;
+            State.ManagedCandidatePubkeyMap[admin] = pubkey;
             LockCandidateNativeToken();
             AddCandidateAsOption(pubkey);
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
@@ -62,7 +65,7 @@ namespace AElf.Contracts.Election
                 RegisterCandidateToSubsidyProfitScheme(address);
             }
 
-            State.SponsorMap[input.Value] = Context.Sender;
+            State.CandidateSponsorMap[input.Pubkey] = Context.Sender;
             return new Empty();
         }
 
@@ -178,7 +181,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = lockVirtualAddress,
-                To = State.SponsorMap[input.Value] ?? Address.FromPublicKey(pubkeyBytes),
+                To = State.CandidateSponsorMap[input.Value] ?? Address.FromPublicKey(pubkeyBytes),
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 Memo = "Quit election."
@@ -257,6 +260,7 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateAdmins[initialPubkey] = input.Admin;
+            State.ManagedCandidatePubkeyMap[input.Admin] = initialPubkey;
             return new Empty();
         }
 

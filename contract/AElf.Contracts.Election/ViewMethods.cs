@@ -431,8 +431,16 @@ namespace AElf.Contracts.Election
 
         public override Address GetSponsor(StringValue input)
         {
-            return State.SponsorMap[input.Value] ??
+            return State.CandidateSponsorMap[input.Value] ??
                    Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value));
+        }
+
+        public override StringValue GetManagedPubkey(Address input)
+        {
+            return new StringValue
+            {
+                Value = State.ManagedCandidatePubkeyMap[input]
+            };
         }
     }
 }

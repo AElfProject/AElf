@@ -51,5 +51,10 @@ namespace AElf.Contracts.Treasury
         public MappedState<long, StringList> ReplaceCandidateMap { get; set; }
 
         public MappedState<long, bool> HasNewMiner { get; set; }
+
+        /// <summary>
+        /// Miner / Backup Pubkey -> Profits Receiver Address
+        /// </summary>
+        public MappedState<string, Address> ProfitsReceiverMap { get; set; }
     }
 }
