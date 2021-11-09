@@ -956,6 +956,12 @@ namespace AElf.Contracts.Treasury
 
         public override Empty SetProfitsReceiver(SetProfitsReceiverInput input)
         {
+            if (State.ElectionContract.Value == null)
+            {
+                State.ElectionContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+            }
+
             var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
             Assert(Context.Sender == admin, "No permission.");
             State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;

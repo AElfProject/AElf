@@ -140,7 +140,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void RegisterCandidateToSubsidyProfitScheme(Address candidatePubkey)
+        private void RegisterCandidateToSubsidyProfitScheme(Address candidateAddress)
         {
             if (State.ProfitContract.Value == null)
             {
@@ -152,7 +152,7 @@ namespace AElf.Contracts.Election
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = candidatePubkey, Shares = 1}
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = candidateAddress, Shares = 1}
             });
         }
 

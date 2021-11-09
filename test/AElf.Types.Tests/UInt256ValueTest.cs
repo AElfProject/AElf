@@ -16,13 +16,5 @@ namespace AElf.Types.Tests
             var timesTwo = new UInt256Value(ulong.MaxValue - 1, 1);
             (foo * new UInt256Value(2)).ShouldBe(timesTwo);
         }
-
-        [Fact]
-        public void BigIntegerTest()
-        {
-            var foo = new UInt256Value(ulong.MaxValue, 1);
-            var bar = (BigInteger) foo;
-            bar.ToString().ShouldBe("1");
-        }
     }
 }

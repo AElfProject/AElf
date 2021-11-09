@@ -189,6 +189,7 @@ namespace AElf.Contracts.MultiToken
         private void DealWithExternalInfoDuringLocking(TransferFromInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo == null) return;
             if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.LockCallbackExternalInfoKey))
             {
                 var callbackInfo =
@@ -203,6 +204,7 @@ namespace AElf.Contracts.MultiToken
         private void DealWithExternalInfoDuringTransfer(TransferFromInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo == null) return;
             if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
             {
                 var callbackInfo =
@@ -217,6 +219,7 @@ namespace AElf.Contracts.MultiToken
         private void DealWithExternalInfoDuringUnlock(TransferFromInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
+            if (tokenInfo.ExternalInfo == null) return;
             if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
             {
                 var callbackInfo =
