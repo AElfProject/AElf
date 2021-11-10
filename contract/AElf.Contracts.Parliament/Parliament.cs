@@ -184,9 +184,9 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Approve(Hash input)
         {
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
-            AssertSenderIsParliamentMember();
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
 
             proposal.Approvals.Add(Context.Sender);
             State.Proposals[input] = proposal;
@@ -203,9 +203,10 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Reject(Hash input)
         {
-            AssertSenderIsParliamentMember();
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
+
             proposal.Rejections.Add(Context.Sender);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
@@ -221,9 +222,9 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Abstain(Hash input)
         {
-            AssertSenderIsParliamentMember();
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
             proposal.Abstentions.Add(Context.Sender);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()

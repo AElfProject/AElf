@@ -109,25 +109,34 @@ namespace AElf.Contracts.Parliament
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
-        private void AssertSenderIsParliamentMember()
+        private Address GetAndCheckActualParliamentMemberAddress()
         {
             var currentParliament = GetCurrentMinerList();
-            Assert(CheckSenderIsParliamentMember(currentParliament), "Unauthorized member.");
-        }
 
-        private bool CheckSenderIsParliamentMember(List<Address> currentParliament)
-        {
-            var isParliamentMember = currentParliament.Any(r => r.Equals(Context.Sender));
-            if (isParliamentMember)
+            if (currentParliament.Any(r => r.Equals(Context.Sender)))
             {
-                return true;
+                return Context.Sender;
+            }
+
+            if (State.ElectionContract.Value == null)
+            {
+                State.ElectionContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             }
 
             var managedPubkey = State.ElectionContract.GetManagedPubkey.Call(Context.Sender);
-            if (string.IsNullOrEmpty(managedPubkey.Value)) return false;
+            if (string.IsNullOrEmpty(managedPubkey.Value))
+            {
+                throw new AssertionException("Unauthorized sender.");
+            }
 
-            var managedCandidate = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(managedPubkey.Value));
-            return currentParliament.Any(r => r.Equals(managedCandidate));
+            var actualMemberAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(managedPubkey.Value));
+            if (!currentParliament.Any(r => r.Equals(actualMemberAddress)))
+            {
+                throw new AssertionException("Unauthorized sender.");
+            }
+
+            return actualMemberAddress;
         }
 
         private bool Validate(Organization organization)
@@ -178,9 +187,9 @@ namespace AElf.Contracts.Parliament
             return proposal;
         }
 
-        private void AssertProposalNotYetVotedBySender(ProposalInfo proposal)
+        private void AssertProposalNotYetVotedByMember(ProposalInfo proposal, Address parliamentMemberAddress)
         {
-            Assert(!CheckProposalAlreadyVotedBy(proposal, Context.Sender), "Already approved.");
+            Assert(!CheckProposalAlreadyVotedBy(proposal, parliamentMemberAddress), "Already approved.");
         }
 
         private bool CheckProposalAlreadyVotedBy(ProposalInfo proposal, Address address)
