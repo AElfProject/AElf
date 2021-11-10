@@ -32,6 +32,7 @@ namespace AElf.Contracts.Election
             var address = Address.FromPublicKey(recoveredPublicKey);
 
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
+            Assert(State.ManagedCandidatePubkeyMap[input] == null, "Pubkey should only be set once.");
             State.CandidateAdmins[pubkey] = input;
             State.ManagedCandidatePubkeyMap[input] = pubkey;
 
@@ -205,6 +206,8 @@ namespace AElf.Contracts.Election
                 UpdateDataCenterAfterMemberVoteAmountChanged(dataCenterList, pubkey, true);
                 State.DataCentersRankingList.Value = dataCenterList;
             }
+
+            State.ManagedCandidatePubkeyMap.Remove(Context.Sender);
 
             return new Empty();
         }
