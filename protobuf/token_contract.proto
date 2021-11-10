@@ -133,6 +133,11 @@ service TokenContract {
 
     rpc ResetExternalInfo (ResetExternalInfoInput) returns (google.protobuf.Empty){
     }
+    
+    rpc AddAddressToCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveAddressFromCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
+    }
 
     // Query token information.
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -205,6 +210,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc IsTokenAvailableForMethodFee (google.protobuf.StringValue) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsInCreateTokenWhiteList (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
 }

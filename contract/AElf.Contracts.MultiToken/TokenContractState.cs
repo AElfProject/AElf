@@ -50,5 +50,7 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<long> DonateResourceTokenExecuteHeight { get; set; }
 
         public SingletonState<Address> NFTContractAddress { get; set; }
+
+        public MappedState<Address, bool> CreateTokenWhiteListMap { get; set; }
     }
 }

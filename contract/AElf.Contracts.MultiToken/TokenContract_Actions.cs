@@ -37,6 +37,11 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            if (Context.Origin != Context.Sender)
+            {
+                Assert(IsAddressInCreateTokenWhiteList(Context.Sender), "No permission to create token via inline tx.");
+            }
+
             Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
             AssertValidCreateInput(input);
             var tokenInfo = new TokenInfo
@@ -554,6 +559,20 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 ExternalInfo = input.ExternalInfo
             });
+            return new Empty();
+        }
+
+        public override Empty AddAddressToCreateTokenWhiteList(Address input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.CreateTokenWhiteListMap[input] = true;
+            return new Empty();
+        }
+
+        public override Empty RemoveAddressFromCreateTokenWhiteList(Address input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.CreateTokenWhiteListMap.Remove(input);
             return new Empty();
         }
     }

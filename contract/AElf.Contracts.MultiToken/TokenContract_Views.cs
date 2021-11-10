@@ -124,7 +124,7 @@ namespace AElf.Contracts.MultiToken
         {
             var targetTokenCoefficient =
                 State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
-                    x.FeeTokenType == (int)FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
+                    x.FeeTokenType == (int) FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
             return targetTokenCoefficient;
         }
 
@@ -213,11 +213,29 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
+        public override BoolValue IsInCreateTokenWhiteList(Address input)
+        {
+            return new BoolValue
+            {
+                Value = IsAddressInCreateTokenWhiteList(input)
+            };
+        }
+
         private bool IsTokenAvailableForMethodFee(string symbol)
         {
             var tokenInfo = State.TokenInfos[symbol];
             if (tokenInfo == null) throw new AssertionException("Token is not found.");
             return tokenInfo.IsBurnable;
+        }
+
+        private bool IsAddressInCreateTokenWhiteList(Address address)
+        {
+            if (address == GetDefaultParliamentController().OwnerAddress)
+            {
+                return true;
+            }
+
+            return State.CreateTokenWhiteListMap[address];
         }
     }
 }
