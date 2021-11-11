@@ -120,8 +120,15 @@ namespace AElf.Contracts.Parliament
 
             if (State.ElectionContract.Value == null)
             {
-                State.ElectionContract.Value =
+                var electionContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+                if (electionContractAddress == null)
+                {
+                    // Election Contract not deployed.
+                    throw new AssertionException("Unauthorized sender.");
+                }
+
+                State.ElectionContract.Value = electionContractAddress;
             }
 
             var managedPubkey = State.ElectionContract.GetManagedPubkey.Call(Context.Sender);

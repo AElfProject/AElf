@@ -385,7 +385,7 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
             var transactionResult = await ParliamentContractStub.Approve.SendWithExceptionAsync(proposalId);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Unauthorized member.").ShouldBeTrue();
+            transactionResult.TransactionResult.Error.Contains("Unauthorized sender.").ShouldBeTrue();
         }
 
         [Fact]
@@ -446,7 +446,7 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
             var transactionResult1 =
                 await ParliamentContractStub.Reject.SendWithExceptionAsync(proposalId);
-            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized member");
+            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized sender");
         }
         
         [Fact]
@@ -529,7 +529,7 @@ namespace AElf.Contracts.Parliament
             ParliamentContractStub = GetParliamentContractTester(TesterKeyPair);
             var transactionResult1 =
                 await ParliamentContractStub.Abstain.SendWithExceptionAsync(proposalId);
-            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized member");
+            transactionResult1.TransactionResult.Error.ShouldContain("Unauthorized sender");
         }
         
         [Fact]

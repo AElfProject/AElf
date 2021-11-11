@@ -230,7 +230,10 @@ namespace AElf.Contracts.MultiToken
 
         private bool IsAddressInCreateTokenWhiteList(Address address)
         {
-            if (address == GetDefaultParliamentController().OwnerAddress)
+            if (address == Context.GetZeroSmartContractAddress() ||
+                address == GetDefaultParliamentController().OwnerAddress || address ==
+                Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName) ||
+                address == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
             {
                 return true;
             }
