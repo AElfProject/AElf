@@ -70,7 +70,7 @@ namespace AElf.Contracts.Election
         /// <summary>
         /// Admin address -> Pubkey
         /// </summary>
-        public MappedState<Address, string> ManagedCandidatePubkeyMap { get; set; }
+        public MappedState<Address, PubkeyList> ManagedCandidatePubkeysMap { get; set; }
 
         /// <summary>
         /// Pubkey -> Newest pubkey

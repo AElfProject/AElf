@@ -124,20 +124,25 @@ namespace AElf.Contracts.Parliament
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
                 if (electionContractAddress == null)
                 {
-                    // Election Contract not deployed.
+                    // Election Contract not deployed - only possible in test environment.
                     throw new AssertionException("Unauthorized sender.");
                 }
 
                 State.ElectionContract.Value = electionContractAddress;
             }
 
-            var managedPubkey = State.ElectionContract.GetManagedPubkey.Call(Context.Sender);
-            if (string.IsNullOrEmpty(managedPubkey.Value))
+            var managedPubkey = State.ElectionContract.GetManagedPubkeys.Call(Context.Sender);
+            if (!managedPubkey.Value.Any())
             {
                 throw new AssertionException("Unauthorized sender.");
             }
 
-            var actualMemberAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(managedPubkey.Value));
+            if (managedPubkey.Value.Count > 1)
+            {
+                throw new AssertionException("Admin with multiple managed pubkeys cannot handle proposal.");
+            }
+
+            var actualMemberAddress = Address.FromPublicKey(managedPubkey.Value.Single().ToByteArray());
             if (!currentParliament.Any(r => r.Equals(actualMemberAddress)))
             {
                 throw new AssertionException("Unauthorized sender.");

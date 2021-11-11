@@ -32,9 +32,11 @@ namespace AElf.Contracts.Election
             var address = Address.FromPublicKey(recoveredPublicKey);
 
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
-            Assert(State.ManagedCandidatePubkeyMap[input] == null, "Pubkey should only be set once.");
+            Assert(State.ManagedCandidatePubkeysMap[input] == null, "Pubkey should only be set once.");
             State.CandidateAdmins[pubkey] = input;
-            State.ManagedCandidatePubkeyMap[input] = pubkey;
+            var managedPubkeys = State.ManagedCandidatePubkeysMap[input] ?? new PubkeyList();
+            managedPubkeys.Value.Add(ByteString.CopyFrom(recoveredPublicKey));
+            State.ManagedCandidatePubkeysMap[input] = managedPubkeys;
 
             LockCandidateNativeToken();
 
@@ -57,7 +59,9 @@ namespace AElf.Contracts.Election
             AnnounceElection(pubkeyBytes);
             var admin = input.Admin ?? Context.Sender;
             State.CandidateAdmins[pubkey] = admin;
-            State.ManagedCandidatePubkeyMap[admin] = pubkey;
+            var managedPubkeys = State.ManagedCandidatePubkeysMap[admin] ?? new PubkeyList();
+            managedPubkeys.Value.Add(ByteString.CopyFrom(pubkeyBytes));
+            State.ManagedCandidatePubkeysMap[admin] = managedPubkeys;
             LockCandidateNativeToken();
             AddCandidateAsOption(pubkey);
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
@@ -207,7 +211,7 @@ namespace AElf.Contracts.Election
                 State.DataCentersRankingList.Value = dataCenterList;
             }
 
-            State.ManagedCandidatePubkeyMap.Remove(Context.Sender);
+            State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
 
             return new Empty();
         }
@@ -263,7 +267,9 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateAdmins[initialPubkey] = input.Admin;
-            State.ManagedCandidatePubkeyMap[input.Admin] = initialPubkey;
+            var managedPubkeys = State.ManagedCandidatePubkeysMap[input.Admin] ?? new PubkeyList();
+            managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(initialPubkey)));
+            State.ManagedCandidatePubkeysMap[input.Admin] = managedPubkeys;
             return new Empty();
         }
 

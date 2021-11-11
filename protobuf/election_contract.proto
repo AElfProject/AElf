@@ -239,7 +239,7 @@ service ElectionContract {
         option (aelf.is_view) = true;
     }
     
-    rpc GetManagedPubkey (aelf.Address) returns (google.protobuf.StringValue) {
+    rpc GetManagedPubkeys (aelf.Address) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
 }

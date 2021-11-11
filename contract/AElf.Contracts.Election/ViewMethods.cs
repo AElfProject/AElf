@@ -435,12 +435,9 @@ namespace AElf.Contracts.Election
                    Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value));
         }
 
-        public override StringValue GetManagedPubkey(Address input)
+        public override PubkeyList GetManagedPubkeys(Address input)
         {
-            return new StringValue
-            {
-                Value = State.ManagedCandidatePubkeyMap[input]
-            };
+            return State.ManagedCandidatePubkeysMap[input];
         }
     }
 }
