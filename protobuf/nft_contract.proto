@@ -22,7 +22,11 @@ service NFTContract {
     option (aelf.base) = "acs2.proto";
 
     // Create a new nft type.
-    rpc Create (CreateInput) returns (google.protobuf.Empty) {
+    rpc CreateNFT (CreateNFTInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetNFTInfo (google.protobuf.StringValue) returns (NFTInfo) {
+        option (aelf.is_view) = true;
     }
 }
 
@@ -47,7 +51,7 @@ message NFTInfo {
     ExternalInfo external_info = 10;
 }
 
-message CreateInput {
+message CreateNFTInput {
     // The symbol of the token.
     NFTType nft_type = 1;
     // The full name of the token.
@@ -55,7 +59,7 @@ message CreateInput {
     // The total supply of the token.
     int64 total_supply = 3;
     // The address that created the token.
-    aelf.Address issuer = 5;
+    aelf.Address creator = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
     // A whitelist address list used to lock tokens.
@@ -69,9 +73,14 @@ message CreateInput {
 enum NFTType {
     ANY = 0;
     ART = 1;
-    GAME = 2;
-    CERT = 3;
-    TICKET = 4;
+    MUSIC = 2;
+    DOMAIN_NAMES = 3;
+    VIRTUAL_WORLDS = 4;
+    TRADING_CARDS = 5;
+    COLLECTABLES = 6;
+    SPORTS = 7;
+    UTILITY = 8;
+    CERTIFICATE = 9;
 }
 
 message ExternalInfo {

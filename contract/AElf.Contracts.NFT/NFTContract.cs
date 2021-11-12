@@ -5,7 +5,7 @@ namespace AElf.Contracts.NFT
 {
     public partial class NFTContract : NFTContractContainer.NFTContractBase
     {
-        public override Empty Create(CreateInput input)
+        public override Empty CreateNFT(CreateNFTInput input)
         {
             MakeSureTokenContractAddressSet();
             MakeSureRandomNumberProviderContractAddressSet();

@@ -1,3 +1,4 @@
+using System;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -44,12 +45,22 @@ namespace AElf.Contracts.NFT
                     return "XX";
                 case NFTType.Art:
                     return "AR";
-                case NFTType.Game:
-                    return "GM";
-                case NFTType.Cert:
+                case NFTType.Music:
+                    return "MU";
+                case NFTType.DomainNames:
+                    return "DN";
+                case NFTType.VirtualWorlds:
+                    return "VW";
+                case NFTType.TradingCards:
+                    return "TC";
+                case NFTType.Collectables:
+                    return "CO";
+                case NFTType.Sports:
+                    return "SP";
+                case NFTType.Utility:
+                    return "UT";
+                case NFTType.Certificate:
                     return "CE";
-                case NFTType.Ticket:
-                    return "TI";
             }
 
             return "XX";
