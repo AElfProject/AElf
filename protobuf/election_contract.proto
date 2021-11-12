@@ -101,6 +101,9 @@ service ElectionContract {
     
     rpc RemoveEvilNode (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
+    
+    rpc EnableElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 
     // Views
     
@@ -240,6 +243,10 @@ service ElectionContract {
     }
     
     rpc GetManagedPubkeys (aelf.Address) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+
+    rpc IsElectionEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
 }

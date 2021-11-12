@@ -93,5 +93,7 @@ namespace AElf.Contracts.Election
         /// Pubkey -> Sponsor address (who will pay announce election fee for this pubkey)
         /// </summary>
         public MappedState<string, Address> CandidateSponsorMap { get; set; }
+
+        public BoolState ElectionEnabled { get; set; }
     }
 }
