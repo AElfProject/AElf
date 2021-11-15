@@ -61,6 +61,7 @@ namespace AElf.Contracts.Election
 
         public override Empty AnnounceElectionFor(AnnounceElectionForInput input)
         {
+            Assert(State.ElectionEnabled.Value, "Election is temporally disable.");
             var pubkey = input.Pubkey;
             var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(pubkey);
             var address = Address.FromPublicKey(pubkeyBytes);
