@@ -33,7 +33,7 @@ namespace AElf.Contracts.Election
             var address = Address.FromPublicKey(recoveredPublicKey);
 
             Assert(input.Value.Any(), "Admin is needed while announcing election.");
-            Assert(State.ManagedCandidatePubkeysMap[input] == null, "Pubkey should only be set once.");
+            Assert(State.ManagedCandidatePubkeysMap[address] == null, "Candidate cannot be others' admin.");
             State.CandidateAdmins[pubkey] = input;
             var managedPubkeys = State.ManagedCandidatePubkeysMap[input] ?? new PubkeyList();
             managedPubkeys.Value.Add(ByteString.CopyFrom(recoveredPublicKey));
@@ -219,7 +219,18 @@ namespace AElf.Contracts.Election
                 State.DataCentersRankingList.Value = dataCenterList;
             }
 
-            State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+            var managedCandidatePubkey = State.ManagedCandidatePubkeysMap[Context.Sender];
+            managedCandidatePubkey.Value.Remove(ByteString.CopyFrom(pubkeyBytes));
+            if (managedCandidatePubkey.Value.Any())
+            {
+                State.ManagedCandidatePubkeysMap[Context.Sender] = managedCandidatePubkey;
+            }
+            else
+            {
+                State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+            }
+
+            State.CandidateSponsorMap.Remove(pubkey);
 
             return new Empty();
         }
