@@ -43,12 +43,14 @@ message NFTInfo {
     aelf.Address issuer = 6;
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
-    // The chain id of the token.
+    // The chain to mint this token.
     int32 issue_chain_id = 8;
-    // The amount of issued tokens.
-    int64 issued = 9;
-    // The external information of the token.
-    ExternalInfo external_info = 10;
+    // The amount of minted tokens.
+    int64 minted = 9;
+    // The meta data of this nft.
+    Metadata metadata = 10;
+    // The current owner of this nft.
+    aelf.Address owner = 11;
 }
 
 message CreateNFTInput {
