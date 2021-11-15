@@ -1,0 +1,58 @@
+/**
+ * NFT Market Contract.
+ */
+syntax = "proto3";
+
+package NFTMarket;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "acs2.proto";
+import "transaction_fee.proto";
+import "authority_info.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.NFTMarket";
+
+service NFTMarketContract {
+    option (aelf.csharp_state) = "AElf.Contracts.NFTMarket.NFTMarketContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+
+    // Create a new nft type.
+    rpc List (ListInput) returns (google.protobuf.Empty) {
+    }
+    rpc Delist (DelistInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc Buy (BuyInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetDealInfo (google.protobuf.StringValue) returns (DealInfo) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ListInput {
+    
+}
+
+message DelistInput {
+    
+}
+
+message BuyInput {
+    
+}
+
+message DealInfo {
+    
+}
+
+// Events
+
+message NFTListed {
+    option (aelf.is_event) = true;
+}

@@ -5,7 +5,7 @@ namespace AElf.Contracts.NFT
 {
     public partial class NFTContract : NFTContractContainer.NFTContractBase
     {
-        public override Empty CreateNFT(CreateNFTInput input)
+        public override Empty Create(CreateInput input)
         {
             MakeSureTokenContractAddressSet();
             MakeSureRandomNumberProviderContractAddressSet();
@@ -21,7 +21,7 @@ namespace AElf.Contracts.NFT
                 TotalSupply = input.TotalSupply,
                 ExternalInfo = new MultiToken.ExternalInfo
                 {
-                    Value = {input.ExternalInfo.Value}
+                    Value = {input.MetaData.Value}
                 }
             });
             Context.Fire(new NFTCreated
@@ -32,7 +32,8 @@ namespace AElf.Contracts.NFT
                 IssueChainId = input.IssueChainId,
                 TokenName = input.TokenName,
                 TotalSupply = input.TotalSupply,
-                ExternalInfo = input.ExternalInfo
+                MinerList = input.MinerList,
+                MetaData = input.MetaData
             });
             return new Empty();
         }

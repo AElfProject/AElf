@@ -22,12 +22,44 @@ service NFTContract {
     option (aelf.base) = "acs2.proto";
 
     // Create a new nft type.
-    rpc CreateNFT (CreateNFTInput) returns (google.protobuf.Empty) {
+    rpc Create (CreateInput) returns (google.protobuf.Empty) {
+    }
+    rpc Mint (MintInput) returns (google.protobuf.Empty) {
+    }
+    rpc AddMinter (AddMinterInput) returns (google.protobuf.Empty) {
     }
 
     rpc GetNFTInfo (google.protobuf.StringValue) returns (NFTInfo) {
         option (aelf.is_view) = true;
     }
+}
+
+message CreateInput {
+    // The symbol of the token.
+    NFTType nft_type = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The total supply of the token.
+    int64 total_supply = 3;
+    // The address that created the token.
+    aelf.Address creator = 5;
+    // A flag indicating if this token is burnable.
+    bool is_burnable = 6;
+    // A whitelist address list used to lock tokens.
+    repeated aelf.Address lock_white_list = 7;
+    // The chain id of the token.
+    int32 issue_chain_id = 8;
+    // The miners of this token.
+    MinterList miner_list = 9;
+    // The metadata of the token.
+    Metadata meta_data = 10;
+}
+
+message MinterList {
+    repeated aelf.Address value = 1;
+}
+
+message MintInput {
 }
 
 message NFTInfo {
@@ -47,29 +79,12 @@ message NFTInfo {
     int32 issue_chain_id = 8;
     // The amount of minted tokens.
     int64 minted = 9;
-    // The meta data of this nft.
-    Metadata metadata = 10;
+    // The miners of this token.
+    MinterList miner_list = 10;
+    // The metadata of the token.
+    Metadata meta_data = 11;
     // The current owner of this nft.
-    aelf.Address owner = 11;
-}
-
-message CreateNFTInput {
-    // The symbol of the token.
-    NFTType nft_type = 1;
-    // The full name of the token.
-    string token_name = 2;
-    // The total supply of the token.
-    int64 total_supply = 3;
-    // The address that created the token.
-    aelf.Address creator = 5;
-    // A flag indicating if this token is burnable.
-    bool is_burnable = 6;
-    // A whitelist address list used to lock tokens.
-    repeated aelf.Address lock_white_list = 7;
-    // The chain id of the token.
-    int32 issue_chain_id = 8;
-    // The external information of the token.
-    ExternalInfo external_info = 9;
+    aelf.Address owner = 12;
 }
 
 enum NFTType {
@@ -85,8 +100,13 @@ enum NFTType {
     CERTIFICATE = 9;
 }
 
-message ExternalInfo {
+message Metadata {
     map<string, string> value = 1;
+}
+
+message AddMinterInput {
+    MinterList minter_list = 1;
+    string symbol = 2;
 }
 
 // Events
@@ -105,6 +125,8 @@ message NFTCreated {
     bool is_burnable = 5;
     // The chain id of the token.
     int32 issue_chain_id = 6;
-    // The external information of the token.
-    ExternalInfo external_info = 7;
+    // The miners of this token.
+    MinterList miner_list = 9;
+    // The metadata of the token.
+    Metadata meta_data = 10;
 }
