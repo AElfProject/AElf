@@ -220,11 +220,11 @@ namespace AElf.Contracts.MultiToken
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
             if (tokenInfo.ExternalInfo == null) return;
-            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.TransferCallbackExternalInfoKey))
+            if (tokenInfo.ExternalInfo.Value.ContainsKey(TokenContractConstants.UnlockCallbackExternalInfoKey))
             {
                 var callbackInfo =
                     JsonParser.Default.Parse<CallbackInfo>(
-                        tokenInfo.ExternalInfo.Value[TokenContractConstants.TransferCallbackExternalInfoKey]);
+                        tokenInfo.ExternalInfo.Value[TokenContractConstants.UnlockCallbackExternalInfoKey]);
                 Context.SendInline(callbackInfo.ContractAddress, callbackInfo.MethodName, input);
             }
 

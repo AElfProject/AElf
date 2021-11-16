@@ -93,20 +93,20 @@ namespace AElf.Contracts.NFT
 
         private int GetCurrentNumberLength()
         {
-            if (State.SymbolNumberLength.Value == 0)
+            if (State.CurrentSymbolNumberLength.Value == 0)
             {
-                State.SymbolNumberLength.Value = NumberMinLength;
+                State.CurrentSymbolNumberLength.Value = NumberMinLength;
             }
 
             var currentCount = State.NftCount.Value;
             var upper = currentCount.Mul(3).Div(2);
-            if (upper.ToString().Length > State.SymbolNumberLength.Value)
+            if (upper.ToString().Length > State.CurrentSymbolNumberLength.Value)
             {
-                State.SymbolNumberLength.Value = upper.ToString().Length;
+                State.CurrentSymbolNumberLength.Value = upper.ToString().Length;
                 return upper.ToString().Length;
             }
 
-            return State.SymbolNumberLength.Value;
+            return State.CurrentSymbolNumberLength.Value;
         }
     }
 }

@@ -24,9 +24,11 @@ service NFTContract {
     // Create a new nft type.
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc Mint (MintInput) returns (google.protobuf.Empty) {
+    rpc Mint (MintInput) returns (aelf.Hash) {
     }
-    rpc AddMinter (AddMinterInput) returns (google.protobuf.Empty) {
+    rpc AddMinters (AddMintersInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveMiners (RemoveMinersInput) returns (google.protobuf.Empty) {
     }
 
     rpc GetNFTInfo (google.protobuf.StringValue) returns (NFTInfo) {
@@ -49,10 +51,10 @@ message CreateInput {
     repeated aelf.Address lock_white_list = 7;
     // The chain id of the token.
     int32 issue_chain_id = 8;
-    // The miners of this token.
-    MinterList miner_list = 9;
     // The metadata of the token.
-    Metadata meta_data = 10;
+    Metadata meta_data = 9;
+    // Base Uri.
+    string base_uri = 10;
 }
 
 message MinterList {
@@ -60,31 +62,51 @@ message MinterList {
 }
 
 message MintInput {
+    string symbol = 1;
+    aelf.Address owner = 2;
+    string uri = 3;
+    string token_name = 4;
+    Metadata metadata = 5;
 }
 
-message NFTInfo {
-    // The symbol of the token.f
+message NFTBaseInfo {
+    // The symbol of the token.
     string symbol = 1;
-    // The full name of the token.
-    string token_name = 2;
-    // The current supply of the token.
-    int64 supply = 3;
-    // The total supply of the token.
-    int64 total_supply = 4;
-    // The address that created the token.
-    aelf.Address issuer = 6;
+    // The minted number of the token.
+    int64 minted_count = 2;
+    // The total number of the token.
+    int64 created_count = 3;
+    // The address that creat the token.
+    aelf.Address creator = 4;
+    // Base Uri.
+    string base_uri = 5;
+    // The minters of this token.
+    MinterList minter_list = 6;
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
     // The chain to mint this token.
     int32 issue_chain_id = 8;
-    // The amount of minted tokens.
-    int64 minted = 9;
-    // The miners of this token.
-    MinterList miner_list = 10;
     // The metadata of the token.
-    Metadata meta_data = 11;
+    Metadata metadata = 9;
+}
+
+message NFTInfo {
+    // The symbol of the token.
+    string symbol = 1;
+    // The full name of the token.
+    string token_name = 2;
+    // The order of this token.
+    int64 number = 3;
+    // The address that creat the base token.
+    aelf.Address creator = 4;
+    // The address that mint this token.
+    aelf.Address minter = 5;
+    // The metadata of the token.
+    Metadata metadata = 8;
     // The current owner of this nft.
-    aelf.Address owner = 12;
+    aelf.Address owner = 9;
+    // Token Uri.
+    string uri = 10;
 }
 
 enum NFTType {
@@ -104,7 +126,12 @@ message Metadata {
     map<string, string> value = 1;
 }
 
-message AddMinterInput {
+message AddMintersInput {
+    MinterList minter_list = 1;
+    string symbol = 2;
+}
+
+message RemoveMinersInput {
     MinterList minter_list = 1;
     string symbol = 2;
 }
@@ -125,8 +152,13 @@ message NFTCreated {
     bool is_burnable = 5;
     // The chain id of the token.
     int32 issue_chain_id = 6;
-    // The miners of this token.
-    MinterList miner_list = 9;
     // The metadata of the token.
-    Metadata meta_data = 10;
+    Metadata meta_data = 7;
+    // Base Uri.
+    string base_uri = 8;
+}
+
+message NFTMinted {
+    option (aelf.is_event) = true;
+
 }
