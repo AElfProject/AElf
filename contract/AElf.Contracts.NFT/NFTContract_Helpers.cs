@@ -1,4 +1,3 @@
-using System;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -27,9 +26,9 @@ namespace AElf.Contracts.NFT
 
         private string GetSymbol(NFTType nftType)
         {
-            if (State.NftCount.Value == 0)
+            if (State.NftProtocolNumber.Value == 0)
             {
-                State.NftCount.Value = 10000;
+                State.NftProtocolNumber.Value = 10000000;
             }
 
             var number = GenerateSymbolNumber();
@@ -98,7 +97,7 @@ namespace AElf.Contracts.NFT
                 State.CurrentSymbolNumberLength.Value = NumberMinLength;
             }
 
-            var currentCount = State.NftCount.Value;
+            var currentCount = State.NftProtocolNumber.Value;
             var upper = currentCount.Mul(3).Div(2);
             if (upper.ToString().Length > State.CurrentSymbolNumberLength.Value)
             {

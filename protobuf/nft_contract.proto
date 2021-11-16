@@ -8,7 +8,6 @@ package nft;
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "acs1.proto";
-import "acs2.proto";
 import "transaction_fee.proto";
 import "authority_info.proto";
 import "google/protobuf/empty.proto";
@@ -19,19 +18,36 @@ option csharp_namespace = "AElf.Contracts.NFT";
 service NFTContract {
     option (aelf.csharp_state) = "AElf.Contracts.NFT.NFTContractState";
     option (aelf.base) = "acs1.proto";
-    option (aelf.base) = "acs2.proto";
 
     // Create a new nft type.
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
     rpc Mint (MintInput) returns (aelf.Hash) {
     }
+    rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
+    }
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) {
+    }
+    rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
+    }
+    rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
+    }
+    rpc Burn (BurnInput) returns (google.protobuf.Empty) {
+    }
+    rpc Assemble (AssembleInput) returns (google.protobuf.Empty) {
+    }
+    rpc Disassemble (DisassembleInput) returns (google.protobuf.Empty) {
+    }
+
     rpc AddMinters (AddMintersInput) returns (google.protobuf.Empty) {
     }
     rpc RemoveMiners (RemoveMinersInput) returns (google.protobuf.Empty) {
     }
 
-    rpc GetNFTInfo (google.protobuf.StringValue) returns (NFTInfo) {
+    rpc GetNFTInfo (GetNFTInfoInput) returns (NFTInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNFTInfoByTokenHash (aelf.Hash) returns (NFTInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -57,6 +73,44 @@ message CreateInput {
     string base_uri = 10;
 }
 
+message TransferInput {
+    aelf.Address to = 1;
+    string symbol = 2;
+    int64 token_id = 3;
+    string memo = 4;
+}
+
+message TransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    int64 token_id = 4;
+    string memo = 5;
+}
+
+message ApproveInput {
+    aelf.Address spender = 1;
+    string symbol = 2;
+    int64 token_id = 3;
+}
+
+message UnApproveInput {
+    aelf.Address spender = 1;
+    string symbol = 2;
+    int64 token_id = 3;
+}
+
+message BurnInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
+message AssembleInput {
+}
+
+message DisassembleInput {
+}
+
 message MinterList {
     repeated aelf.Address value = 1;
 }
@@ -65,11 +119,11 @@ message MintInput {
     string symbol = 1;
     aelf.Address owner = 2;
     string uri = 3;
-    string token_name = 4;
+    string alias = 4;
     Metadata metadata = 5;
 }
 
-message NFTBaseInfo {
+message NFTProtocolInfo {
     // The symbol of the token.
     string symbol = 1;
     // The minted number of the token.
@@ -95,8 +149,8 @@ message NFTInfo {
     string symbol = 1;
     // The full name of the token.
     string token_name = 2;
-    // The order of this token.
-    int64 number = 3;
+    // Actually is the order of this token.
+    int64 token_id = 3;
     // The address that creat the base token.
     aelf.Address creator = 4;
     // The address that mint this token.
@@ -107,6 +161,10 @@ message NFTInfo {
     aelf.Address owner = 9;
     // Token Uri.
     string uri = 10;
+    // Base Uri.
+    string base_uri = 11;
+    // Alias
+    string alias = 12;
 }
 
 enum NFTType {
@@ -136,9 +194,14 @@ message RemoveMinersInput {
     string symbol = 2;
 }
 
+message GetNFTInfoInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
 // Events
 
-message NFTCreated {
+message NFTProtocolCreated {
     option (aelf.is_event) = true;
     // The symbol of the token.
     string symbol = 1;

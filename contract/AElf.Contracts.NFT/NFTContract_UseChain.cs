@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -15,20 +14,19 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = input.Symbol
             });
-            var minterList = GetMinterList(tokenInfo);
-            Assert(minterList.Value.Contains(Context.Sender), "No permission to mint.");
-            Assert(tokenInfo.IssueChainId == Context.ChainId, "Incorrect chain.");
-            var tokenHash = CalculateTokenHash(input.Symbol, input.TokenName);
-            Assert(State.NftInfoMap[tokenHash] == null,
-                $"{input.Symbol} NFT with name {input.TokenName} already minted.");
-
-            var baseInfo = State.NftBaseInfoMap[input.Symbol];
-            if (baseInfo == null)
+            var protocolInfo = State.NftProtocolMap[input.Symbol];
+            if (protocolInfo == null)
             {
                 throw new AssertionException($"Invalid NFT Token symbol: {input.Symbol}");
             }
 
-            var nftMetadata = baseInfo.Metadata;
+            var tokenId = protocolInfo.MintedCount.Add(1);
+            var minterList = GetMinterList(tokenInfo);
+            Assert(minterList.Value.Contains(Context.Sender), "No permission to mint.");
+            Assert(tokenInfo.IssueChainId == Context.ChainId, "Incorrect chain.");
+            var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
+
+            var nftMetadata = protocolInfo.Metadata;
             foreach (var pair in input.Metadata.Value)
             {
                 nftMetadata.Value.Add(pair.Key, pair.Value);
@@ -38,10 +36,11 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner ?? Context.Sender,
+                BaseUri = protocolInfo.BaseUri,
                 Uri = input.Uri,
-                TokenName = input.TokenName,
-                Number = baseInfo.MintedCount.Add(1),
-                Creator = baseInfo.Creator,
+                TokenName = tokenInfo.TokenName,
+                TokenId = tokenId,
+                Creator = protocolInfo.Creator,
                 Metadata = nftMetadata,
                 Minter = Context.Sender
             };
@@ -49,13 +48,80 @@ namespace AElf.Contracts.NFT
             return tokenHash;
         }
 
-        private Hash CalculateTokenHash(string symbol, string tokenName)
+        public override Empty Transfer(TransferInput input)
         {
-            return HashHelper.ComputeFrom($"{symbol}{tokenName}");
+            var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftInfo = State.NftInfoMap[tokenHash];
+            Assert(nftInfo.Owner == Context.Sender, "No permission.");
+            nftInfo.Owner = input.To;
+            State.NftInfoMap[tokenHash] = nftInfo;
+            return new Empty();
+        }
+
+        public override Empty TransferFrom(TransferFromInput input)
+        {
+            var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftInfo = State.NftInfoMap[tokenHash];
+            // Need to make sure this nft is still owned by the From address
+            Assert(nftInfo.Owner == input.From && State.IsApprovedMap[tokenHash][input.From][Context.Sender],
+                "No permission.");
+            nftInfo.Owner = input.To;
+            State.NftInfoMap[tokenHash] = nftInfo;
+            return new Empty();
+        }
+
+        public override Empty Approve(ApproveInput input)
+        {
+            var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftInfo = State.NftInfoMap[tokenHash];
+            Assert(nftInfo.Owner == Context.Sender, "No permission.");
+            State.IsApprovedMap[tokenHash][Context.Sender][input.Spender] = true;
+            return new Empty();
+        }
+
+        public override Empty UnApprove(UnApproveInput input)
+        {
+            var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftInfo = State.NftInfoMap[tokenHash];
+            Assert(nftInfo.Owner == Context.Sender, "No permission.");
+            State.IsApprovedMap[tokenHash][Context.Sender].Remove(input.Spender);
+            return new Empty();
+        }
+
+        private Hash CalculateTokenHash(string symbol, long tokenId)
+        {
+            return HashHelper.ComputeFrom($"{symbol}{tokenId}");
         }
 
         public override Empty AddMinters(AddMintersInput input)
         {
+            var protocolInfo = State.NftProtocolMap[input.Symbol];
+            Assert(Context.Sender == protocolInfo.Creator, "No permission.");
+            foreach (var minter in input.MinterList.Value)
+            {
+                if (!protocolInfo.MinterList.Value.Contains(minter))
+                {
+                    protocolInfo.MinterList.Value.Add(minter);
+                }
+            }
+
+            State.NftProtocolMap[input.Symbol] = protocolInfo;
+            return new Empty();
+        }
+
+        public override Empty RemoveMiners(RemoveMinersInput input)
+        {
+            var protocolInfo = State.NftProtocolMap[input.Symbol];
+            Assert(Context.Sender == protocolInfo.Creator, "No permission.");
+            foreach (var minter in input.MinterList.Value)
+            {
+                if (protocolInfo.MinterList.Value.Contains(minter))
+                {
+                    protocolInfo.MinterList.Value.Remove(minter);
+                }
+            }
+
+            State.NftProtocolMap[input.Symbol] = protocolInfo;
             return new Empty();
         }
 

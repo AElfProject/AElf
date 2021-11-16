@@ -30,7 +30,7 @@ namespace AElf.Contracts.NFT
             };
             State.TokenContract.Create.Send(tokenCreateInput);
 
-            var baseInfo = new NFTBaseInfo
+            var protocolInfo = new NFTProtocolInfo
             {
                 Symbol = symbol,
                 BaseUri = input.BaseUri,
@@ -38,9 +38,9 @@ namespace AElf.Contracts.NFT
                 Creator = Context.Sender,
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}}
             };
-            State.NftBaseInfoMap[symbol] = baseInfo;
+            State.NftProtocolMap[symbol] = protocolInfo;
 
-            Context.Fire(new NFTCreated
+            Context.Fire(new NFTProtocolCreated
             {
                 Symbol = tokenCreateInput.Symbol,
                 Issuer = tokenCreateInput.Issuer,
@@ -48,8 +48,8 @@ namespace AElf.Contracts.NFT
                 IssueChainId = tokenCreateInput.IssueChainId,
                 TokenName = tokenCreateInput.TokenName,
                 TotalSupply = tokenCreateInput.TotalSupply,
-                MetaData = baseInfo.Metadata,
-                BaseUri = baseInfo.BaseUri
+                MetaData = protocolInfo.Metadata,
+                BaseUri = protocolInfo.BaseUri
             });
 
             return new Empty();
