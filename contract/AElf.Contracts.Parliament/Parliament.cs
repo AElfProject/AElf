@@ -191,7 +191,7 @@ namespace AElf.Contracts.Parliament
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Approve),
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Parliament
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Reject),
@@ -227,7 +227,7 @@ namespace AElf.Contracts.Parliament
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Abstain),
