@@ -187,8 +187,7 @@ namespace AElf.Contracts.Parliament
             var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
             AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
-
-            proposal.Approvals.Add(Context.Sender);
+            proposal.Approvals.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
@@ -206,8 +205,7 @@ namespace AElf.Contracts.Parliament
             var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
             AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
-
-            proposal.Rejections.Add(Context.Sender);
+            proposal.Rejections.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
@@ -225,7 +223,7 @@ namespace AElf.Contracts.Parliament
             var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
             AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
-            proposal.Abstentions.Add(Context.Sender);
+            proposal.Abstentions.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {

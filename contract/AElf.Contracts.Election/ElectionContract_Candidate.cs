@@ -270,10 +270,10 @@ namespace AElf.Contracts.Election
             Assert(!IsPubkeyBanned(input.Pubkey), "Pubkey is already banned.");
 
             // Permission check
-            var initialPubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
+            var pubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
             if (Context.Sender != GetParliamentDefaultAddress())
             {
-                if (State.CandidateAdmins[initialPubkey] == null)
+                if (State.CandidateAdmins[pubkey] == null)
                 {
                     // If admin is not set before (due to old contract code)
                     Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
@@ -281,15 +281,29 @@ namespace AElf.Contracts.Election
                 }
                 else
                 {
-                    var oldCandidateAdmin = State.CandidateAdmins[initialPubkey];
+                    var oldCandidateAdmin = State.CandidateAdmins[pubkey];
                     Assert(Context.Sender == oldCandidateAdmin, "No permission.");
                 }
             }
 
-            State.CandidateAdmins[initialPubkey] = input.Admin;
-            var managedPubkeys = State.ManagedCandidatePubkeysMap[input.Admin] ?? new PubkeyList();
-            managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(initialPubkey)));
-            State.ManagedCandidatePubkeysMap[input.Admin] = managedPubkeys;
+            State.CandidateAdmins[pubkey] = input.Admin;
+
+            var pubkeyByteString = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey));
+
+            var newAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[input.Admin] ?? new PubkeyList();
+            if (!newAdminManagedPubkeys.Value.Contains(pubkeyByteString))
+            {
+                newAdminManagedPubkeys.Value.Add(pubkeyByteString);
+            }
+            State.ManagedCandidatePubkeysMap[input.Admin] = newAdminManagedPubkeys;
+
+            var oldAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender] ?? new PubkeyList();
+            if (oldAdminManagedPubkeys.Value.Contains(pubkeyByteString))
+            {
+                oldAdminManagedPubkeys.Value.Remove(pubkeyByteString);
+            }
+            State.ManagedCandidatePubkeysMap[Context.Sender] = oldAdminManagedPubkeys;
+
             return new Empty();
         }
 

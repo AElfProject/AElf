@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -371,6 +372,24 @@ namespace AElf.Contracts.Election
 
             //     Ban old pubkey.
             State.BannedPubkeyMap[input.OldPubkey] = true;
+            
+            // Update profits receiver if needed.
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
+            var profitsReceiver =
+                State.TreasuryContract.GetProfitsReceiver.Call(new StringValue {Value = input.OldPubkey});
+            if (!profitsReceiver.Value.IsEmpty)
+            {
+                State.TreasuryContract.SetProfitsReceiver.Send(new SetProfitsReceiverInput
+                {
+                    Pubkey = input.NewPubkey,
+                    ProfitsReceiverAddress = profitsReceiver
+                });
+            }
 
             Context.Fire(new CandidatePubkeyReplaced
             {
@@ -407,9 +426,9 @@ namespace AElf.Contracts.Election
                 NewPubkey = newPubkey
             });
 
+            var oldPubkeyByteString = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey));
             // Notify Vote Contract to replace option if this is not the initial miner case.
-            if (!State.InitialMiners.Value.Value.Contains(
-                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey))))
+            if (!State.InitialMiners.Value.Value.Contains(oldPubkeyByteString))
             {
                 State.VoteContract.RemoveOption.Send(new RemoveOptionInput
                 {
@@ -422,6 +441,14 @@ namespace AElf.Contracts.Election
                     Option = newPubkey
                 });
             }
+
+            State.CandidateSponsorMap[newPubkey] = State.CandidateSponsorMap[oldPubkey];
+            State.CandidateSponsorMap.Remove(oldPubkey);
+
+            var managedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender];
+            managedPubkeys.Value.Remove(oldPubkeyByteString);
+            managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey)));
+            State.ManagedCandidatePubkeysMap[Context.Sender] = managedPubkeys;
 
             Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
         }

@@ -963,7 +963,7 @@ namespace AElf.Contracts.Treasury
             }
 
             var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
-            Assert(Context.Sender == admin, "No permission.");
+            Assert(Context.Origin == admin, "No permission.");
             State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
             return new Empty();
         }
