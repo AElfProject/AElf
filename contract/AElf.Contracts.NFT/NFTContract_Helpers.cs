@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -106,6 +107,15 @@ namespace AElf.Contracts.NFT
             }
 
             return State.CurrentSymbolNumberLength.Value;
+        }
+        
+        private void AssertMetadataKeysAreCorrect(IEnumerable<string> metadataKeys)
+        {
+            var reservedMetadataKey = GetNftMetadataReservedKeys();
+            foreach (var metadataKey in metadataKeys)
+            {
+                Assert(!reservedMetadataKey.Contains(metadataKey), $"Metadata key {metadataKey} is reserved.");
+            }
         }
     }
 }

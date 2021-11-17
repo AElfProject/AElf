@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Types;
 
 namespace AElf.Contracts.NFT
@@ -13,6 +14,17 @@ namespace AElf.Contracts.NFT
         public override NFTInfo GetNFTInfoByTokenHash(Hash input)
         {
             return State.NftInfoMap[input];
+        }
+
+        private List<string> GetNftMetadataReservedKeys()
+        {
+            return new List<string>
+            {
+                NftTypeMetadataKey,
+                NftBaseUriMetadataKey,
+                AssembledNftsKey,
+                AssembledFtsKey
+            };
         }
     }
 }
