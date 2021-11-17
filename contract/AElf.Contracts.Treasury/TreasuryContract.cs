@@ -964,11 +964,13 @@ namespace AElf.Contracts.Treasury
 
             var admin = State.ElectionContract.GetCandidateAdmin.Call(new StringValue {Value = input.Pubkey});
             Assert(Context.Origin == admin, "No permission.");
+            var previousProfitsReceiver = State.ProfitsReceiverMap[input.Pubkey];
             State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
             State.ElectionContract.SetProfitsReceiver.Send(new Election.SetProfitsReceiverInput
             {
                 CandidateAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
-                ReceiverAddress = input.ProfitsReceiverAddress
+                ReceiverAddress = input.ProfitsReceiverAddress,
+                PreviousReceiverAddress = previousProfitsReceiver ?? new Address()
             });
             return new Empty();
         }

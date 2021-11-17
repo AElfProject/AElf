@@ -508,6 +508,15 @@ namespace AElf.Contracts.Election
         public override Empty SetProfitsReceiver(SetProfitsReceiverInput input)
         {
             Assert(State.TreasuryContract.Value == Context.Sender, "No permission.");
+            if (input.PreviousReceiverAddress.Value.Any())
+            {
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = input.PreviousReceiverAddress
+                });
+            }
+
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
