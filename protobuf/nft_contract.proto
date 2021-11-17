@@ -80,6 +80,7 @@ message TransferInput {
     string symbol = 2;
     int64 token_id = 3;
     string memo = 4;
+    int64 amount = 5;
 }
 
 message TransferFromInput {
@@ -88,23 +89,27 @@ message TransferFromInput {
     string symbol = 3;
     int64 token_id = 4;
     string memo = 5;
+    int64 amount = 6;
 }
 
 message ApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
     int64 token_id = 3;
+    int64 amount = 4;
 }
 
 message UnApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
     int64 token_id = 3;
+    int64 amount = 4;
 }
 
 message BurnInput {
     string symbol = 1;
     int64 token_id = 2;
+    int64 amount = 3;
 }
 
 message AssembleInput {
@@ -132,6 +137,7 @@ message MintInput {
     string uri = 3;
     string alias = 4;
     Metadata metadata = 5;
+    int64 quantity = 6;
 }
 
 message NFTProtocolInfo {
@@ -170,8 +176,8 @@ message NFTInfo {
     aelf.Address minter = 5;
     // The metadata of the token.
     Metadata metadata = 8;
-    // The current owner of this nft.
-    aelf.Address owner = 9;
+    // Minted amount.
+    int64 quantity = 9;
     // Token Uri.
     string uri = 10;
     // Base Uri.
@@ -225,7 +231,7 @@ message RecastInput {
 }
 
 message AssembledNfts {
-    repeated aelf.Hash value = 1;
+    map<string, int64> value = 1;
 }
 
 message AssembledFts {

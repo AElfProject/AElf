@@ -1,6 +1,6 @@
 namespace AElf.Contracts.NFTMarket
 {
-    public class NFTMarketContract : NFTMarketContractContainer.NFTMarketContractBase
+    public partial class NFTMarketContract : NFTMarketContractContainer.NFTMarketContractBase
     {
         
     }
