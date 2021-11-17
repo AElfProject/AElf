@@ -967,7 +967,7 @@ namespace AElf.Contracts.Treasury
             State.ProfitsReceiverMap[input.Pubkey] = input.ProfitsReceiverAddress;
             State.ElectionContract.SetProfitsReceiver.Send(new Election.SetProfitsReceiverInput
             {
-                CandidateAddress = Context.Origin,
+                CandidateAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
                 ReceiverAddress = input.ProfitsReceiverAddress
             });
             return new Empty();
