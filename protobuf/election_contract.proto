@@ -104,6 +104,9 @@ service ElectionContract {
     
     rpc EnableElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     
@@ -522,6 +525,11 @@ message AssistWithdrawInput {
 message AnnounceElectionForInput {
     string pubkey = 1;
     aelf.Address admin = 2;
+}
+
+message SetProfitsReceiverInput {
+    aelf.Address candidate_address = 1;
+    aelf.Address receiver_address = 2;
 }
 
 message EvilMinerDetected {
