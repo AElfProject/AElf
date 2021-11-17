@@ -22,12 +22,20 @@ service NFTMarketContract {
     option (aelf.base) = "acs2.proto";
 
     // Create a new nft type.
-    rpc List (ListInput) returns (google.protobuf.Empty) {
+    rpc ListWithFixedPrice (ListWithFixedPriceInput) returns (google.protobuf.Empty) {
     }
+    rpc ListWithEnglishAuction (ListWithEnglishAuctionInput) returns (google.protobuf.Empty) {
+    }
+    rpc ListWithDutchAuction (ListWithDutchAuctionInput) returns (google.protobuf.Empty) {
+    }
+
     rpc Delist (DelistInput) returns (google.protobuf.Empty) {
     }
 
     rpc Buy (BuyInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc SetServiceFee (Price) returns (google.protobuf.Empty) {
     }
 
     rpc GetDealInfo (google.protobuf.StringValue) returns (DealInfo) {
@@ -35,8 +43,31 @@ service NFTMarketContract {
     }
 }
 
-message ListInput {
-    
+message ListWithFixedPriceInput {
+    NFTList nft_list = 1;
+    string symbol = 2;
+    int64 price = 3;
+    google.protobuf.Timestamp start_time = 4;
+    int64 duration_minutes = 5;
+    aelf.Address reserve_for = 6;
+}
+
+message ListWithEnglishAuctionInput {
+    NFTList nft_list = 1;
+    string symbol = 2;
+    int64 starting_price = 3;
+    int64 reserve_price = 4;
+    google.protobuf.Timestamp start_time = 5;
+    int64 duration_minutes = 6;
+}
+
+message ListWithDutchAuctionInput {
+    NFTList nft_list = 1;
+    string symbol = 2;
+    int64 starting_price = 3;
+    int64 ending_price = 4;
+    google.protobuf.Timestamp start_time = 5;
+    int64 duration_minutes = 6;
 }
 
 message DelistInput {
@@ -49,6 +80,22 @@ message BuyInput {
 
 message DealInfo {
     
+}
+
+message NFTList {
+    repeated aelf.Hash value = 1;
+}
+
+enum ListType {
+    NOT_LISTED = 0;
+    FIXED_PRICE = 1;
+    ENGLISH_AUCTION = 2;
+    DUTCH_AUCTION = 3;
+}
+
+message Price {
+    string symbol = 1;
+    int64 amount = 2;
 }
 
 // Events
