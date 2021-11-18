@@ -367,6 +367,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFTMarket", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MiningPool", "contract\AElf.Contracts.MiningPool\AElf.Contracts.MiningPool.csproj", "{0CCF89DC-7B1C-4B76-9C12-C3F29C3AFAA8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFT.Tests", "test\AElf.Contracts.NFT.Tests\AElf.Contracts.NFT.Tests.csproj", "{7E07BD13-74BF-4FD7-A294-07E664C47100}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1053,6 +1055,10 @@ Global
 		{0CCF89DC-7B1C-4B76-9C12-C3F29C3AFAA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CCF89DC-7B1C-4B76-9C12-C3F29C3AFAA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CCF89DC-7B1C-4B76-9C12-C3F29C3AFAA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E07BD13-74BF-4FD7-A294-07E664C47100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E07BD13-74BF-4FD7-A294-07E664C47100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E07BD13-74BF-4FD7-A294-07E664C47100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E07BD13-74BF-4FD7-A294-07E664C47100}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1238,5 +1244,6 @@ Global
 		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{0CCF89DC-7B1C-4B76-9C12-C3F29C3AFAA8} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{7E07BD13-74BF-4FD7-A294-07E664C47100} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
