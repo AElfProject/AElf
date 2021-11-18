@@ -365,6 +365,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AirDrop", "c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFTMarket", "contract\AElf.Contracts.NFTMarket\AElf.Contracts.NFTMarket.csproj", "{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.QuadraticFunding", "contract\AElf.Contracts.QuadraticFunding\AElf.Contracts.QuadraticFunding.csproj", "{BB0442A7-ABF2-4763-8F12-86C9C7BD7748}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1047,6 +1049,10 @@ Global
 		{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0442A7-ABF2-4763-8F12-86C9C7BD7748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0442A7-ABF2-4763-8F12-86C9C7BD7748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0442A7-ABF2-4763-8F12-86C9C7BD7748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0442A7-ABF2-4763-8F12-86C9C7BD7748}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1231,5 +1237,6 @@ Global
 		{3BA5CAB0-833E-430F-977C-FE6AD9C95127} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{FBDEC45F-3B35-457B-B16F-8EE60937C4B7} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{4F0FEB76-5EB6-4AFC-9222-21DD22884A3B} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{BB0442A7-ABF2-4763-8F12-86C9C7BD7748} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 	EndGlobalSection
 EndGlobal

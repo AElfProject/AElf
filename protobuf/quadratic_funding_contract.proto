@@ -1,0 +1,178 @@
+/**
+ * Quadratic Funding Contract.
+ */
+syntax = "proto3";
+
+package QuadraticFunding;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "acs2.proto";
+import "transaction_fee.proto";
+import "authority_info.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.QuadraticFunding";
+
+service QuadraticFundingContract {
+    option (aelf.csharp_state) = "AElf.Contracts.QuadraticFunding.QuadraticFundingContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+
+    // Only Owner.
+    rpc RoundOver (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc BanProject (BanProjectInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetTaxPoint (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+    rpc SetInterval (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+    rpc SetVotingUnit (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+    rpc RoundStart (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+
+    // Others.
+    rpc Donate (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+    rpc UploadProject (google.protobuf.Int64Value) returns (google.protobuf.Empty) {
+    }
+    rpc Vote (VoteInput) returns (google.protobuf.Empty) {
+    }
+    rpc TakeOutGrants (TakeOutGrantsInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetAllProjects (google.protobuf.Int64Value) returns (ProjectList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetRankingList (google.protobuf.Int64Value) returns (RankingList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPagedRankingList (GetPagedRankingListInput) returns (RankingList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetRoundInfo (google.protobuf.Int64Value) returns (RoundInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingCost (GetVotingCostInput) returns (VotingCost) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetGrandsOf (google.protobuf.Int64Value) returns (Grands) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProjectOf (google.protobuf.Int64Value) returns (Project) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    aelf.Address owner = 1;
+    string vote_symbol = 2;
+}
+
+message BanProjectInput {
+    int64 project_id = 1;
+    bool ban = 2;
+}
+
+message VoteInput {
+    int64 project_id = 1;
+    int64 votes = 2;
+}
+
+message TakeOutGrantsInput {
+    int64 project_id = 1;
+    int64 amount = 2;
+}
+
+message Project {
+    int64 round = 1;
+    google.protobuf.Timestamp create_at = 2;
+    // map<string, int64> votes = 3; // Use State.VotedMap to record `votes`.
+    int64 total_votes = 4;
+    int64 grants = 5;
+    int64 support_area = 6;
+    int64 withdrew = 7;
+}
+
+message ProjectList {
+    repeated int64 value = 1;
+}
+
+message GetPagedRankingListInput {
+    int64 round = 1;
+    int64 page = 2;
+    int64 size = 3;
+}
+
+message RankingList {
+    int64 unit = 1;
+    repeated int64 projects = 2;
+    repeated int64 votes = 3;
+    repeated int64 support = 4;
+    repeated int64 grants = 5;
+}
+
+message RoundInfo {
+    google.protobuf.Timestamp start_from = 1;
+    google.protobuf.Timestamp end_at = 2;
+    int64 support = 3;
+    int64 pre_tax_support = 4;
+}
+
+message GetVotingCostInput {
+    aelf.Address from = 1;
+    int64 project_id = 2;
+    int64 votes = 3;
+}
+
+message VotingCost {
+    int64 cost = 1;
+    bool votable = 2;
+}
+
+message Grands {
+    int64 rest = 1;
+    int64 total = 2;
+}
+
+// Events
+
+message ProjectBanned {
+    option (aelf.is_event) = true;
+    int64 project = 1;
+    bool ban = 2;
+}
+
+message TaxPointChanged {
+    option (aelf.is_event) = true;
+    int64 tax_point = 1;
+}
+
+message RoundIntervalChanged {
+    option (aelf.is_event) = true;
+    int64 interval = 1;
+}
+
+message VotingUnitChanged {
+    option (aelf.is_event) = true;
+    int64 voting_unit = 1;
+}
+
+message Voted {
+    option (aelf.is_event) = true;
+    aelf.Address account = 1;
+    int64 project = 2;
+    int64 vote = 3;
+}
