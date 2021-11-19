@@ -79,6 +79,7 @@ service QuadraticFundingContract {
 message InitializeInput {
     aelf.Address owner = 1;
     string vote_symbol = 2;
+    int64 basic_voting_unit = 3;
 }
 
 message BanProjectInput {

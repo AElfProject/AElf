@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -29,7 +30,6 @@ namespace AElf.Contracts.QuadraticFunding
         public override Empty BanProject(BanProjectInput input)
         {
             AssertSenderIsOwner();
-            ;
             var project = State.ProjectMap[input.ProjectId];
             var currentRound = State.CurrentRound.Value;
             Assert(project.Round == currentRound, "Incorrect round.");
@@ -90,6 +90,7 @@ namespace AElf.Contracts.QuadraticFunding
 
         public override Empty RoundStart(Empty input)
         {
+            AssertSenderIsOwner();
             var currentRound = State.CurrentRound.Value;
             Assert(State.EndTimeMap[currentRound] == null, "Round already start.");
             State.VotingUnitMap[currentRound] = State.BasicVotingUnit.Value;
@@ -102,7 +103,12 @@ namespace AElf.Contracts.QuadraticFunding
         {
             var amount = State.Tax.Value;
             State.Tax.Value = 0;
-
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                To = State.Owner.Value,
+                Amount = amount,
+                Symbol = State.VoteSymbol.Value
+            });
             return new Empty();
         }
 
