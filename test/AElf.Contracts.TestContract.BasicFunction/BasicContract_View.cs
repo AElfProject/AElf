@@ -56,12 +56,12 @@ namespace AElf.Contracts.TestContract.BasicFunction
             };
         }
 
-        public override UInt256Value GetUInt256ValueSquare(Empty input)
+        public override UInt256Value GetUInt256StateValue(Empty input)
         {
             return State.UInt256State.Value;
         }
 
-        public override Int256Value GetInt256ValueSquare(Empty input)
+        public override Int256Value GetInt256StateValue(Empty input)
         {
             return State.Int256State.Value;
         }

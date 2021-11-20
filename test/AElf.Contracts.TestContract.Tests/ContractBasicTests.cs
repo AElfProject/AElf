@@ -400,7 +400,7 @@ namespace AElf.Contract.TestContract
                 })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var bigInt = (await TestBasicFunctionContractStub.GetUInt256ValueSquare.CallAsync(
+                var bigInt = (await TestBasicFunctionContractStub.GetUInt256StateValue.CallAsync(
                     new Empty())).Value;
                 var result = "1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
                 result = result.Replace("_", string.Empty);
@@ -414,7 +414,7 @@ namespace AElf.Contract.TestContract
                 })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var bigInt = (await TestBasicFunctionContractStub.GetInt256ValueSquare.CallAsync(
+                var bigInt = (await TestBasicFunctionContractStub.GetInt256StateValue.CallAsync(
                     new Empty())).Value;
                 var result = "1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
                 result = result.Replace("_", string.Empty);
@@ -436,7 +436,7 @@ namespace AElf.Contract.TestContract
                     })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var bigInt = (await TestBasicFunctionContractStub.GetInt256ValueSquare.CallAsync(
+                var bigInt = (await TestBasicFunctionContractStub.GetInt256StateValue.CallAsync(
                     new Empty())).Value;
                 var result = "-1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
                 result = result.Replace("_", string.Empty);

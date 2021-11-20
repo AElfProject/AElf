@@ -57,9 +57,9 @@ service BasicFunctionContract {
     rpc GetResourceInfo (aelf.Transaction) returns (OtherResourceInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetUInt256ValueSquare (google.protobuf.Empty) returns (aelf.UInt256Value) {
+    rpc GetUInt256StateValue (google.protobuf.Empty) returns (aelf.UInt256Value) {
     }
-    rpc GetInt256ValueSquare (google.protobuf.Empty) returns (aelf.Int256Value) {
+    rpc GetInt256StateValue (google.protobuf.Empty) returns (aelf.Int256Value) {
     }
 }
 
