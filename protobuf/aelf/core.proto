@@ -145,3 +145,11 @@ message BinaryMerkleTree {
     // The count of leaf node.
     int32 leaf_count = 3;
 }
+
+message Int256Value {
+    string value = 1;
+}
+
+message UInt256Value {
+    string value = 1;
+}

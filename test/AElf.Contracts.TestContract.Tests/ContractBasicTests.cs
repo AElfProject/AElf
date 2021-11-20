@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
@@ -387,6 +388,60 @@ namespace AElf.Contract.TestContract
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await _blockchainService.AddBlockAsync(block);
             return block;
+        }
+
+        [Fact]
+        public async Task BigIntegerTest()
+        {
+            {
+                var transactionResult = (await TestBasicFunctionContractStub.UInt256ValueSquare.SendAsync(new UInt256Value
+                {
+                    Value = "1_0000_0000_0000_0000_0000"
+                })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var bigInt = (await TestBasicFunctionContractStub.GetUInt256ValueSquare.CallAsync(
+                    new Empty())).Value;
+                var result = "1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
+                result = result.Replace("_", string.Empty);
+                bigInt.ShouldBe(result);
+            }
+
+            {
+                var transactionResult = (await TestBasicFunctionContractStub.Int256ValueSquare.SendAsync(new Int256Value
+                {
+                    Value = "-1_0000_0000_0000_0000_0000"
+                })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var bigInt = (await TestBasicFunctionContractStub.GetInt256ValueSquare.CallAsync(
+                    new Empty())).Value;
+                var result = "1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
+                result = result.Replace("_", string.Empty);
+                bigInt.ShouldBe(result);
+            }
+
+            {
+                var transactionResult = (await TestBasicFunctionContractStub.Int256ValueMultiple.SendAsync(
+                    new Int256ValueMultipleInput
+                    {
+                        Value1 = new Int256Value
+                        {
+                            Value = "-1_0000_0000_0000_0000_0000"
+                        },
+                        Value2 = new Int256Value
+                        {
+                            Value = "1_0000_0000_0000_0000_0000"
+                        }
+                    })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var bigInt = (await TestBasicFunctionContractStub.GetInt256ValueSquare.CallAsync(
+                    new Empty())).Value;
+                var result = "-1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
+                result = result.Replace("_", string.Empty);
+                bigInt.ShouldBe(result);
+            }
         }
     }
 }

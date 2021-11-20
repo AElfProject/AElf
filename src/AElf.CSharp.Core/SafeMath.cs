@@ -1,4 +1,8 @@
-﻿namespace AElf.CSharp.Core
+﻿using System;
+using System.Numerics;
+using AElf.Types;
+
+namespace AElf.CSharp.Core
 {
     /// <summary>
     /// Helper methods for safe math operations that explicitly check for overflow.
@@ -19,7 +23,7 @@
         {
             checked
             {
-                return a / b;    
+                return a / b;
             }
         }
 
@@ -37,10 +41,10 @@
             {
                 return a + b;
             }
-        }        
+        }
 
         #endregion int
-        
+
         #region uint
 
         public static uint Mul(this uint a, uint b)
@@ -55,7 +59,7 @@
         {
             checked
             {
-                return a / b;    
+                return a / b;
             }
         }
 
@@ -73,10 +77,10 @@
             {
                 return a + b;
             }
-        }        
+        }
 
         #endregion uint
-        
+
         #region long
 
         public static long Mul(this long a, long b)
@@ -109,10 +113,10 @@
             {
                 return a + b;
             }
-        }        
+        }
 
         #endregion long
-        
+
         #region ulong
 
         public static ulong Mul(this ulong a, ulong b)
@@ -127,7 +131,7 @@
         {
             checked
             {
-                return a / b;    
+                return a / b;
             }
         }
 
@@ -135,7 +139,7 @@
         {
             checked
             {
-                return a - b;    
+                return a - b;
             }
         }
 
@@ -145,9 +149,104 @@
             {
                 return a + b;
             }
-        }        
+        }
 
         #endregion ulong
 
+        #region UInt256 / Int256
+
+        public static UInt256Value Mul(this UInt256Value a, UInt256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new UInt256Value
+            {
+                Value = (aBigInt * bBigInt).ToString()
+            };
+        }
+
+        public static UInt256Value Div(this UInt256Value a, UInt256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new UInt256Value
+            {
+                Value = (aBigInt / bBigInt).ToString()
+            };
+        }
+
+        public static UInt256Value Sub(this UInt256Value a, UInt256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new UInt256Value
+            {
+                Value = (aBigInt - bBigInt).ToString()
+            };
+        }
+
+        public static UInt256Value Add(this UInt256Value a, UInt256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new UInt256Value
+            {
+                Value = (aBigInt + bBigInt).ToString()
+            };
+        }
+        
+        
+        public static Int256Value Mul(this Int256Value a, Int256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new Int256Value
+            {
+                Value = (aBigInt * bBigInt).ToString()
+            };
+        }
+
+        public static Int256Value Div(this Int256Value a, Int256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new Int256Value
+            {
+                Value = (aBigInt / bBigInt).ToString()
+            };
+        }
+
+        public static Int256Value Sub(this Int256Value a, Int256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new Int256Value
+            {
+                Value = (aBigInt - bBigInt).ToString()
+            };
+        }
+
+        public static Int256Value Add(this Int256Value a, Int256Value b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return new Int256Value
+            {
+                Value = (aBigInt + bBigInt).ToString()
+            };
+        }
+
+        private static BigInteger ConvertStringToBigInteger(string str)
+        {
+            str = str.Replace("_", string.Empty);
+            if (BigInteger.TryParse(str, out var bigInteger))
+            {
+                return bigInteger;
+            }
+
+            throw new ArgumentException("Incorrect arguments.");
+        }
+
+        #endregion
     }
 }

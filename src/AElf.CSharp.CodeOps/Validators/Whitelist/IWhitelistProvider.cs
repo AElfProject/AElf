@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Numerics;
 using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -39,7 +40,6 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
                 .Assembly(System.Reflection.Assembly.Load("System.ObjectModel"), Trust.Partial)
                 .Assembly(System.Reflection.Assembly.Load("System.Linq"), Trust.Full)
                 .Assembly(System.Reflection.Assembly.Load("System.Collections"), Trust.Full)
-                .Assembly(System.Reflection.Assembly.Load("System.Numerics"), Trust.Full)
                 .Assembly(System.Reflection.Assembly.Load("Google.Protobuf"), Trust.Full)
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
@@ -137,6 +137,7 @@ namespace AElf.CSharp.CodeOps.Validators.Whitelist
                     .Type(nameof(Encoding), Permission.Denied, member => member
                         .Member(nameof(Encoding.UTF8), Permission.Allowed)
                         .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
+                .Namespace("System.Numerics", Permission.Allowed)
                 ;
         }
 
