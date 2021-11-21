@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 
 namespace AElf.Types
 {
@@ -65,6 +66,30 @@ namespace AElf.Types
             {
                 Value = value.ToString()
             };
+        }
+
+        public static implicit operator BigInteger(UInt256Value value)
+        {
+            return ConvertStringToBigInteger(value.Value);
+        }
+        
+        public static implicit operator Int256Value(UInt256Value value)
+        {
+            return new Int256Value
+            {
+                Value = value.Value
+            };
+        }
+
+        private static BigInteger ConvertStringToBigInteger(string str)
+        {
+            str = str.Replace("_", string.Empty);
+            if (BigInteger.TryParse(str, out var bigInteger))
+            {
+                return bigInteger;
+            }
+
+            throw new ArgumentException("Incorrect arguments.");
         }
     }
 }

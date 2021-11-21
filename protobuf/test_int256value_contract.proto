@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Int256Value";
+
+service Int256ValueContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Int256Value.Int256ValueContractState";
+    
+    //Actions
+    rpc UInt256ValueAdd (UInt256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc UInt256ValueSub (UInt256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc UInt256ValueMul (UInt256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc UInt256ValueDiv (UInt256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc UInt256ValuePow (UInt256ValueInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc Int256ValueAdd (Int256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Int256ValueSub (Int256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Int256ValueMul (Int256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Int256ValueDiv (Int256ValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Int256ValuePow (Int256ValueInput) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc UInt256StateValue (google.protobuf.Empty) returns (aelf.UInt256Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc Int256StateValue (google.protobuf.Empty) returns (aelf.Int256Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message UInt256ValueInput {
+    aelf.UInt256Value foo = 1;
+    aelf.UInt256Value bar = 2;
+}
+
+message UInt256ValuePowInput {
+    aelf.UInt256Value value = 1;
+    int32 exponent = 2;
+}
+
+message Int256ValueInput {
+    aelf.Int256Value foo = 1;
+    aelf.Int256Value bar = 2;
+}
+
+message Int256ValuePowInput {
+    aelf.Int256Value value = 1;
+    int32 exponent = 2;
+}
