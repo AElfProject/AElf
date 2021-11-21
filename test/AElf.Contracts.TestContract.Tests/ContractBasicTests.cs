@@ -6,6 +6,7 @@ using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
+using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -442,6 +443,41 @@ namespace AElf.Contract.TestContract
                 result = result.Replace("_", string.Empty);
                 bigInt.ShouldBe(result);
             }
+
+            {
+    
+            }
+        }
+
+        [Fact]
+        public void Int256ValueInternalTest()
+        {
+            var foo = new Int256Value
+            {
+                Value = "100_0000_0000_0000_0000_0000_0000_0000"
+            };
+            foo.Mul(10).ShouldBe(new Int256Value
+            {
+                Value = "1000_0000_0000_0000_0000_0000_0000_0000".Replace("_", string.Empty)
+            });
+
+            Int256Value bar = "-200_0000_0000_0000_0000_0000_0000_0000";
+            bar.Div("10").ShouldBe(new Int256Value
+            {
+                Value = "-20_0000_0000_0000_0000_0000_0000_0000".Replace("_", string.Empty)
+            });
+
+            foo.Mul(bar).ShouldBe(new Int256Value
+            {
+                Value = "-2_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000".Replace("_",
+                    string.Empty)
+            });
+
+            Int256Value also = 200_0000L;
+            also.Mul(10).ShouldBe(new Int256Value
+            {
+                Value = "2000_0000".Replace("_", string.Empty)
+            });
         }
     }
 }
