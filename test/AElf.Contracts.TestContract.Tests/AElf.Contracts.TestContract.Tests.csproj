@@ -83,6 +83,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.Int256Value\AElf.Contracts.TestContract.Int256Value.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -96,7 +101,7 @@
             <Link>Protobuf\Proto\transaction_fee.proto</Link>
         </ContractMessage>
         <ContractStub Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\stub/acs0.proto</Link>
+            <Link>Protobuf\Proto\stub\acs0.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
@@ -123,13 +128,13 @@
             <Link>Protobuf\Proto\test_transaction_fees_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
-            <Link>Protobuf\Proto\stub/test_basic_function_contract.proto</Link>
+            <Link>Protobuf\Proto\stub\test_basic_function_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_update_contract.proto">
-            <Link>Protobuf\Proto\stub/test_basic_update_contract.proto</Link>
+            <Link>Protobuf\Proto\stub\test_basic_update_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_security_contract.proto">
-            <Link>Protobuf\Proto\stub/test_basic_security_contract.proto</Link>
+            <Link>Protobuf\Proto\stub\test_basic_security_contract.proto</Link>
         </ContractStub>
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
@@ -142,6 +147,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_int256value_contract.proto">
+            <Link>Protobuf\Proto\stub\test_int256value_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

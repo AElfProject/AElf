@@ -443,10 +443,6 @@ namespace AElf.Contract.TestContract
                 result = result.Replace("_", string.Empty);
                 bigInt.ShouldBe(result);
             }
-
-            {
-    
-            }
         }
 
         [Fact]

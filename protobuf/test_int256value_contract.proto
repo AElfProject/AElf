@@ -19,7 +19,7 @@ service Int256ValueContract {
     }
     rpc UInt256ValueDiv (UInt256ValueInput) returns (google.protobuf.Empty) {
     }
-    rpc UInt256ValuePow (UInt256ValueInput) returns (google.protobuf.Empty) {
+    rpc UInt256ValuePow (UInt256ValuePowInput) returns (google.protobuf.Empty) {
     }
     
     rpc Int256ValueAdd (Int256ValueInput) returns (google.protobuf.Empty) {
@@ -30,14 +30,14 @@ service Int256ValueContract {
     }
     rpc Int256ValueDiv (Int256ValueInput) returns (google.protobuf.Empty) {
     }
-    rpc Int256ValuePow (Int256ValueInput) returns (google.protobuf.Empty) {
+    rpc Int256ValuePow (Int256ValuePowInput) returns (google.protobuf.Empty) {
     }
 
     //View
-    rpc UInt256StateValue (google.protobuf.Empty) returns (aelf.UInt256Value) {
+    rpc GetUInt256StateValue (google.protobuf.Empty) returns (aelf.UInt256Value) {
         option (aelf.is_view) = true;
     }
-    rpc Int256StateValue (google.protobuf.Empty) returns (aelf.Int256Value) {
+    rpc GetInt256StateValue (google.protobuf.Empty) returns (aelf.Int256Value) {
         option (aelf.is_view) = true;
     }
 }
