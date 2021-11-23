@@ -10,7 +10,7 @@ using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestContract.BasicUpdate;
-using AElf.Contracts.TestContract.Int256Value;
+using AElf.Contracts.TestContract.BigIntValue;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
@@ -53,7 +53,7 @@ namespace AElf.Contract.TestContract
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
-        protected Address Int256ValueContractAddress { get; set; }
+        protected Address BigIntValueContractAddress { get; set; }
 
         internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
@@ -61,7 +61,7 @@ namespace AElf.Contract.TestContract
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
 
-        internal Int256ValueContractContainer.Int256ValueContractStub Int256ValueContractStub { get; set; }
+        internal BigIntValueContractContainer.BigIntValueContractStub BigIntValueContractStub { get; set; }
 
         internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -96,10 +96,10 @@ namespace AElf.Contract.TestContract
                 keyPair);
         }
         
-        internal Int256ValueContractContainer.Int256ValueContractStub GetInt256ValueContractStub(
+        internal BigIntValueContractContainer.BigIntValueContractStub GetBigIntValueContractStub(
             ECKeyPair keyPair)
         {
-            return GetTester<Int256ValueContractContainer.Int256ValueContractStub>(Int256ValueContractAddress,
+            return GetTester<BigIntValueContractContainer.BigIntValueContractStub>(BigIntValueContractAddress,
                 keyPair);
         }
 
@@ -132,13 +132,13 @@ namespace AElf.Contract.TestContract
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
             
             //deploy test contract3
-            Int256ValueContractAddress = AsyncHelper.RunSync(async () =>
+            BigIntValueContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     Codes.Single(kv => kv.Key.EndsWith("Int256Value")).Value,
                     TestInt256ValueContractSystemName,
                     DefaultSenderKeyPair));
-            Int256ValueContractStub = GetInt256ValueContractStub(DefaultSenderKeyPair);
+            BigIntValueContractStub = GetBigIntValueContractStub(DefaultSenderKeyPair);
         }
 
         protected void InitializePatchedContracts()

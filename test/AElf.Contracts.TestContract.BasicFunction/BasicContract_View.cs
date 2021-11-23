@@ -55,15 +55,5 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 Address = Context.Self
             };
         }
-
-        public override UInt256Value GetUInt256StateValue(Empty input)
-        {
-            return State.UInt256State.Value;
-        }
-
-        public override Int256Value GetInt256StateValue(Empty input)
-        {
-            return State.Int256State.Value;
-        }
     }
 }

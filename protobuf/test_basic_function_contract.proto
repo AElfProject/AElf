@@ -25,12 +25,6 @@ service BasicFunctionContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc UInt256ValueSquare (aelf.UInt256Value) returns (google.protobuf.Empty) {
-    }
-    rpc Int256ValueSquare (aelf.Int256Value) returns (google.protobuf.Empty) {
-    }
-    rpc Int256ValueMultiple (Int256ValueMultipleInput) returns (google.protobuf.Empty) {
-    }
 
     //View
     rpc GetContractName(google.protobuf.Empty) returns (google.protobuf.StringValue){
@@ -56,10 +50,6 @@ service BasicFunctionContract {
     }
     rpc GetResourceInfo (aelf.Transaction) returns (OtherResourceInfo) {
         option (aelf.is_view) = true;
-    }
-    rpc GetUInt256StateValue (google.protobuf.Empty) returns (aelf.UInt256Value) {
-    }
-    rpc GetInt256StateValue (google.protobuf.Empty) returns (aelf.Int256Value) {
     }
 }
 
@@ -127,9 +117,4 @@ message TransferTokenToContractInput {
 
 message OtherResourceInfo{
     aelf.Address address = 1;
-}
-
-message Int256ValueMultipleInput {
-    aelf.Int256Value value1 = 1;
-    aelf.Int256Value value2 = 2;
 }

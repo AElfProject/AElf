@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.TestContract.Int256Value;
+using AElf.Contracts.TestContract.BigIntValue;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -18,7 +18,7 @@ namespace AElf.Contract.TestContract
         public async Task BasicOperationTest()
         {
             {
-                var transactionResult = (await Int256ValueContractStub.Int256ValueAdd.SendAsync(new Int256ValueInput
+                var transactionResult = (await BigIntValueContractStub.Add.SendAsync(new BigIntValueInput
                 {
                     Foo =
                         "100_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000",
@@ -26,10 +26,26 @@ namespace AElf.Contract.TestContract
                 })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var result = (await Int256ValueContractStub.GetInt256StateValue.CallAsync(
+                var result = (await BigIntValueContractStub.Get.CallAsync(
                     new Empty())).Value;
                 result.ShouldBe(
                     "100_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0100"
+                        .Replace("_", string.Empty));
+            }
+
+            {
+                var transactionResult = (await BigIntValueContractStub.Sub.SendAsync(new BigIntValueInput
+                {
+                    Foo =
+                        "100_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0100",
+                    Bar = "100"
+                })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var result = (await BigIntValueContractStub.Get.CallAsync(
+                    new Empty())).Value;
+                result.ShouldBe(
+                    "100_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000"
                         .Replace("_", string.Empty));
             }
         }

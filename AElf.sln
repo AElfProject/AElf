@@ -369,7 +369,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MiningPool",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFT.Tests", "test\AElf.Contracts.NFT.Tests\AElf.Contracts.NFT.Tests.csproj", "{7E07BD13-74BF-4FD7-A294-07E664C47100}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Int256Value", "test\AElf.Contracts.TestContract.Int256Value\AElf.Contracts.TestContract.Int256Value.csproj", "{F50AF512-69E2-46B5-87C6-E058CE2C2D8A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BigIntValue", "test\AElf.Contracts.TestContract.BigIntValue\AElf.Contracts.TestContract.BigIntValue.csproj", "{F50AF512-69E2-46B5-87C6-E058CE2C2D8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

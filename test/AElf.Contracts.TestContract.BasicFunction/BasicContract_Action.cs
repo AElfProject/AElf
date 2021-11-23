@@ -146,23 +146,5 @@ namespace AElf.Contracts.TestContract.BasicFunction
 
             return new Empty();
         }
-
-        public override Empty UInt256ValueSquare(UInt256Value input)
-        {
-            State.UInt256State.Value = input.Mul(input);
-            return new Empty();
-        }
-
-        public override Empty Int256ValueSquare(Int256Value input)
-        {
-            State.Int256State.Value = input.Mul(input);
-            return new Empty();
-        }
-
-        public override Empty Int256ValueMultiple(Int256ValueMultipleInput input)
-        {
-            State.Int256State.Value = input.Value1.Mul(input.Value2);
-            return new Empty();
-        }
     }
 }

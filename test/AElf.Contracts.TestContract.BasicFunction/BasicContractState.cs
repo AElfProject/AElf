@@ -20,8 +20,5 @@ namespace AElf.Contracts.TestContract.BasicFunction
         public MappedState<Address, long> LoserHistory { get; set; }
         
         public MappedState<string, MethodFees> TransactionFees { get; set; }
-
-        public SingletonState<UInt256Value> UInt256State { get; set; }
-        public SingletonState<Int256Value> Int256State { get; set; }
     }
 }

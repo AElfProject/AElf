@@ -2,7 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.TestContract.Int256Value</PackageId>
+        <PackageId>AElf.Contracts.TestContract.BigIntValue</PackageId>
+        <RootNamespace>AElf.Contracts.TestContract.BigIntValue</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -18,8 +19,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\test_int256value_contract.proto">
-            <Link>Protobuf\Proto\test_int256value_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\test_big_int_value_contract.proto">
+            <Link>Protobuf\Proto\test_big_int_value_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

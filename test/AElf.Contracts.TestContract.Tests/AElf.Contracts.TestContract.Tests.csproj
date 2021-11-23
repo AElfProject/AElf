@@ -83,7 +83,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.Int256Value\AElf.Contracts.TestContract.Int256Value.csproj">
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BigIntValue\AElf.Contracts.TestContract.BigIntValue.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -148,8 +148,8 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\test_int256value_contract.proto">
-            <Link>Protobuf\Proto\stub\test_int256value_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\test_big_int_value_contract.proto">
+            <Link>Protobuf\Proto\stub\test_big_int_value_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

@@ -4,14 +4,22 @@ using System.Numerics;
 
 namespace AElf.Types
 {
-    public partial class UInt256Value
+    public partial class BigIntValue
     {
-        public static implicit operator UInt256Value(string str)
+        public static implicit operator BigIntValue(string str)
         {
-            if (str.All(c => '0' <= c || c <= '9' || c == '_'))
+            if (str.All(c => '0' <= c || c <= '9' || c == '_' || c == '-'))
             {
+                if (str.Contains('-'))
+                {
+                    if (!str.StartsWith("-") || str.Count(c => c == '-') > 1)
+                    {
+                        throw new ArgumentException("Invalid big integer string.");
+                    }
+                }
+
                 str = str.Replace("_", string.Empty);
-                return new UInt256Value
+                return new BigIntValue
                 {
                     Value = str
                 };
@@ -20,67 +28,59 @@ namespace AElf.Types
             throw new ArgumentException("Invalid big integer string.");
         }
 
-        public static implicit operator UInt256Value(ushort value)
+        public static implicit operator BigIntValue(ushort value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator UInt256Value(short value)
+        public static implicit operator BigIntValue(short value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator UInt256Value(uint value)
+        public static implicit operator BigIntValue(uint value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator UInt256Value(int value)
+        public static implicit operator BigIntValue(int value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator UInt256Value(ulong value)
+        public static implicit operator BigIntValue(ulong value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator UInt256Value(long value)
+        public static implicit operator BigIntValue(long value)
         {
-            return new UInt256Value
+            return new BigIntValue
             {
                 Value = value.ToString()
             };
         }
 
-        public static implicit operator BigInteger(UInt256Value value)
+        public static implicit operator BigInteger(BigIntValue value)
         {
             return ConvertStringToBigInteger(value.Value);
         }
         
-        public static implicit operator Int256Value(UInt256Value value)
-        {
-            return new Int256Value
-            {
-                Value = value.Value
-            };
-        }
-
         private static BigInteger ConvertStringToBigInteger(string str)
         {
             str = str.Replace("_", string.Empty);

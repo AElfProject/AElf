@@ -146,10 +146,6 @@ message BinaryMerkleTree {
     int32 leaf_count = 3;
 }
 
-message Int256Value {
-    string value = 1;
-}
-
-message UInt256Value {
+message BigIntValue {
     string value = 1;
 }
