@@ -11,7 +11,7 @@ namespace AElf.Contracts.NFT
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty Create(CreateInput input)
+        public override StringValue Create(CreateInput input)
         {
             MakeSureTokenContractAddressSet();
             MakeSureRandomNumberProviderContractAddressSet();
@@ -52,7 +52,10 @@ namespace AElf.Contracts.NFT
                 BaseUri = protocolInfo.BaseUri
             });
 
-            return new Empty();
+            return new StringValue
+            {
+                Value = symbol
+            };
         }
 
         private ExternalInfo GetTokenExternalInfo(CreateInput input)

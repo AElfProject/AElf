@@ -20,7 +20,7 @@ service NFTContract {
     option (aelf.base) = "acs1.proto";
 
     // Create a new nft type.
-    rpc Create (CreateInput) returns (google.protobuf.Empty) {
+    rpc Create (CreateInput) returns (google.protobuf.StringValue) {
     }
     rpc Mint (MintInput) returns (aelf.Hash) {
     }
@@ -50,6 +50,21 @@ service NFTContract {
         option (aelf.is_view) = true;
     }
     rpc GetNFTInfoByTokenHash (aelf.Hash) returns (NFTInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBalanceByTokenHash (GetBalanceByTokenHashInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllowanceByTokenHash (GetAllowanceByTokenHashInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc CalculateTokenHash (CalculateTokenHashInput) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
 }
@@ -140,6 +155,48 @@ message MintInput {
     int64 quantity = 6;
 }
 
+message GetBalanceInput {
+    aelf.Address owner = 1;
+    string symbol = 2;
+    int64 token_id = 3;
+}
+
+message GetBalanceByTokenHashInput {
+    aelf.Address owner = 1;
+    aelf.Hash token_hash = 2;
+}
+
+message GetBalanceOutput {
+    aelf.Address owner = 1;
+    aelf.Hash token_hash = 2;
+    int64 balance = 3;
+}
+
+message GetAllowanceInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    aelf.Address spender = 4;
+}
+
+message GetAllowanceByTokenHashInput {
+    aelf.Hash token_hash = 1;
+    aelf.Address owner = 2;
+    aelf.Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    aelf.Hash token_hash = 1;
+    int64 allowance = 2;
+    aelf.Address owner = 3;
+    aelf.Address spender = 4;
+}
+
+message CalculateTokenHashInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
 message NFTProtocolInfo {
     // The symbol of the token.
     string symbol = 1;
@@ -151,8 +208,6 @@ message NFTProtocolInfo {
     aelf.Address creator = 4;
     // Base Uri.
     string base_uri = 5;
-    // The minters of this token.
-    MinterList minter_list = 6;
     // A flag indicating if this token is burnable.
     bool is_burnable = 7;
     // The chain to mint this token.

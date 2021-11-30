@@ -7,9 +7,9 @@ using Xunit;
 
 namespace AElf.Contract.TestContract
 {
-    public class Int256ValueTests : TestContractTestBase
+    public class BigIntValueTests : TestContractTestBase
     {
-        public Int256ValueTests()
+        public BigIntValueTests()
         {
             InitializeTestContracts();
         }

@@ -19,7 +19,7 @@ namespace AElf.Contracts.NFT
         public MappedState<string, NFTProtocolInfo> NftProtocolMap { get; set; }
 
         /// <summary>
-        /// Token Hash -> From Address -> Spender Address -> Approved Amount
+        /// Token Hash -> Owner Address -> Spender Address -> Approved Amount
         /// Need to record approved by whom.
         /// </summary>
         public MappedState<Hash, Address, Address, long> ApprovedAmountMap { get; set; }

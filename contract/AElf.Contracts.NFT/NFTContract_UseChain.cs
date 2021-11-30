@@ -53,9 +53,10 @@ namespace AElf.Contracts.NFT
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var nftInfo = State.NftInfoMap[tokenHash];
             var nftProtocolInfo = State.NftProtocolMap[input.Symbol];
+            var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
                 State.BalanceMap[tokenHash][Context.Sender] > input.Amount &&
-                nftProtocolInfo.MinterList.Value.Contains(Context.Sender),
+                minterList.Value.Contains(Context.Sender),
                 "No permission.");
             nftProtocolInfo.MintedCount = nftProtocolInfo.MintedCount.Sub(input.Amount);
             nftInfo.Quantity = nftInfo.Quantity.Sub(input.Amount);
@@ -101,13 +102,13 @@ namespace AElf.Contracts.NFT
                 {
                     var symbol = pair.Key;
                     var amount = pair.Value;
-                    var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    var balance = State.TokenContract.GetBalance.Call(new MultiToken.GetBalanceInput()
                     {
                         Owner = Context.Sender,
                         Symbol = symbol
                     }).Balance;
                     Assert(balance >= amount, $"Insufficient balance of {symbol}");
-                    var allowance = State.TokenContract.GetAllowance.Call((new GetAllowanceInput
+                    var allowance = State.TokenContract.GetAllowance.Call((new MultiToken.GetAllowanceInput()
                     {
                         Owner = Context.Sender,
                         Spender = Context.Self,
@@ -177,10 +178,10 @@ namespace AElf.Contracts.NFT
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var nftInfo = State.NftInfoMap[tokenHash];
             Assert(nftInfo.Quantity == 1, "Do not support recast.");
-            var nftProtocolInfo = State.NftProtocolMap[input.Symbol];
+            var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
-                State.BalanceMap[tokenHash][Context.Sender] > 0 &&
-                nftProtocolInfo.MinterList.Value.Contains(Context.Sender),
+                State.BalanceMap[tokenHash][Context.Sender] == 0 &&
+                minterList.Value.Contains(Context.Sender),
                 "No permission.");
             if (input.Alias != null)
             {
@@ -245,15 +246,17 @@ namespace AElf.Contracts.NFT
         {
             var protocolInfo = State.NftProtocolMap[input.Symbol];
             Assert(Context.Sender == protocolInfo.Creator, "No permission.");
+            var minterList = State.MinterListMap[protocolInfo.Symbol] ?? new MinterList();
+
             foreach (var minter in input.MinterList.Value)
             {
-                if (!protocolInfo.MinterList.Value.Contains(minter))
+                if (!minterList.Value.Contains(minter))
                 {
-                    protocolInfo.MinterList.Value.Add(minter);
+                    minterList.Value.Add(minter);
                 }
             }
 
-            State.NftProtocolMap[input.Symbol] = protocolInfo;
+            State.MinterListMap[input.Symbol] = minterList;
             return new Empty();
         }
 
@@ -261,15 +264,21 @@ namespace AElf.Contracts.NFT
         {
             var protocolInfo = State.NftProtocolMap[input.Symbol];
             Assert(Context.Sender == protocolInfo.Creator, "No permission.");
+            var minterList = State.MinterListMap[protocolInfo.Symbol];
+            if (minterList == null)
+            {
+                throw new AssertionException("Minter list is empty.");
+            }
+
             foreach (var minter in input.MinterList.Value)
             {
-                if (protocolInfo.MinterList.Value.Contains(minter))
+                if (minterList.Value.Contains(minter))
                 {
-                    protocolInfo.MinterList.Value.Remove(minter);
+                    minterList.Value.Remove(minter);
                 }
             }
 
-            State.NftProtocolMap[input.Symbol] = protocolInfo;
+            State.MinterListMap[input.Symbol] = minterList;
             return new Empty();
         }
 

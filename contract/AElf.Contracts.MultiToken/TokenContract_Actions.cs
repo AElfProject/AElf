@@ -545,6 +545,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
             State.NFTContractAddress.Value = input;
+            State.CreateTokenWhiteListMap[input] = true;
             return new Empty();
         }
 
