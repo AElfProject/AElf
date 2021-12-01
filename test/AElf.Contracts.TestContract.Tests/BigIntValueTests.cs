@@ -49,5 +49,14 @@ namespace AElf.Contract.TestContract
                         .Replace("_", string.Empty));
             }
         }
+
+        [Fact]
+        public async Task CompareTest()
+        {
+            var foo = new BigIntValue {Value = "100"};
+            var bar = new BigIntValue {Value = "101"};
+            (foo > bar).ShouldBeFalse();
+            (foo <= bar).ShouldBeTrue();
+        }
     }
 }

@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Types
 {
-    public partial class BigIntValue
+    public partial class BigIntValue : IComparable, IComparable<BigIntValue>
     {
         public static implicit operator BigIntValue(string str)
         {
@@ -76,11 +77,27 @@ namespace AElf.Types
             };
         }
 
+        public static implicit operator BigIntValue(Int32Value value)
+        {
+            return new BigIntValue
+            {
+                Value = value.Value.ToString()
+            };
+        }
+
+        public static implicit operator BigIntValue(Int64Value value)
+        {
+            return new BigIntValue
+            {
+                Value = value.Value.ToString()
+            };
+        }
+
         public static implicit operator BigInteger(BigIntValue value)
         {
             return ConvertStringToBigInteger(value.Value);
         }
-        
+
         private static BigInteger ConvertStringToBigInteger(string str)
         {
             str = str.Replace("_", string.Empty);
@@ -90,6 +107,62 @@ namespace AElf.Types
             }
 
             throw new ArgumentException("Incorrect arguments.");
+        }
+
+        #region < <= > >=
+
+        public static bool operator <(in BigIntValue a, in BigIntValue b)
+        {
+            return LessThan(in a, in b);
+        }
+
+        public static bool operator >(in BigIntValue a, in BigIntValue b)
+        {
+            return LessThan(in b, in a);
+        }
+
+        public static bool operator >=(in BigIntValue a, in BigIntValue b)
+        {
+            return !LessThan(in a, in b);
+        }
+
+        public static bool operator <=(in BigIntValue a, in BigIntValue b)
+        {
+            return !LessThan(in b, in a);
+        }
+
+        #endregion
+
+        public int CompareTo(object obj)
+        {
+            if (!(obj is BigIntValue bigInt))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return CompareTo(bigInt);
+        }
+
+        public int CompareTo(BigIntValue other)
+        {
+            if (LessThan(this, other))
+            {
+                return -1;
+            }
+
+            if (Value == other.Value)
+            {
+                return 0;
+            }
+
+            return 1;
+        }
+
+        private static bool LessThan(in BigIntValue a, in BigIntValue b)
+        {
+            var aBigInt = ConvertStringToBigInteger(a.Value);
+            var bBigInt = ConvertStringToBigInteger(b.Value);
+            return aBigInt < bBigInt;
         }
     }
 }

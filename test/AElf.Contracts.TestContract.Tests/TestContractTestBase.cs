@@ -135,7 +135,7 @@ namespace AElf.Contract.TestContract
             BigIntValueContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    Codes.Single(kv => kv.Key.EndsWith("Int256Value")).Value,
+                    Codes.Single(kv => kv.Key.EndsWith("BigIntValue")).Value,
                     TestInt256ValueContractSystemName,
                     DefaultSenderKeyPair));
             BigIntValueContractStub = GetBigIntValueContractStub(DefaultSenderKeyPair);
