@@ -507,7 +507,9 @@ namespace AElf.Contracts.Election
 
         public override Empty SetProfitsReceiver(SetProfitsReceiverInput input)
         {
-            Assert(State.TreasuryContract.Value == Context.Sender, "No permission.");
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) == Context.Sender,
+                "No permission.");
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = State.SubsidyHash.Value,
