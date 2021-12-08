@@ -51,8 +51,10 @@ namespace AElf.Contracts.NFT
         public override Empty Burn(BurnInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftInfo = State.NftInfoMap[tokenHash];
+            var nftInfo = GetNFTInfoByTokenHash(tokenHash);
             var nftProtocolInfo = State.NftProtocolMap[input.Symbol];
+            Assert(nftProtocolInfo.IsBurnable,
+                $"NFT Protocol {nftProtocolInfo.ProtocolName} of symbol {nftProtocolInfo.Symbol} is not burnable.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
                 State.BalanceMap[tokenHash][Context.Sender] > input.Amount &&
@@ -87,7 +89,7 @@ namespace AElf.Contracts.NFT
                 foreach (var pair in input.AssembledNfts.Value)
                 {
                     var nftHash = Hash.LoadFromHex(pair.Key);
-                    var nftInfo = State.NftInfoMap[nftHash];
+                    var nftInfo = GetNFTInfoByTokenHash(nftHash);
                     Assert(State.BalanceMap[nftHash][Context.Sender] > pair.Value,
                         $"Insufficient balance of {nftInfo.Symbol}{nftInfo.TokenId}.");
                     DoTransfer(nftHash, Context.Sender, Context.Self, pair.Value <= 1 ? 1 : pair.Value);
@@ -134,7 +136,18 @@ namespace AElf.Contracts.NFT
                 Metadata = metadata
             };
 
-            return PerformMint(mingInput);
+            var tokenHash = PerformMint(mingInput);
+            if (input.AssembledNfts.Value.Any())
+            {
+                State.AssembledNftsMap[tokenHash] = input.AssembledNfts;
+            }
+
+            if (input.AssembledFts.Value.Any())
+            {
+                State.AssembledFtsMap[tokenHash] = input.AssembledFts;
+            }
+
+            return tokenHash;
         }
 
         public override Empty Disassemble(DisassembleInput input)
@@ -146,19 +159,18 @@ namespace AElf.Contracts.NFT
             });
 
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftInfo = State.NftInfoMap[tokenHash];
-            if (nftInfo.Metadata.Value.ContainsKey(AssembledNftsKey))
+            if (State.AssembledNftsMap[tokenHash] != null)
             {
-                var nfts = JsonParser.Default.Parse<AssembledNfts>(nftInfo.Metadata.Value[AssembledNftsKey]);
+                var nfts = State.AssembledNftsMap[tokenHash];
                 foreach (var pair in nfts.Value)
                 {
                     DoTransfer(Hash.LoadFromHex(pair.Key), Context.Self, Context.Sender, pair.Value);
                 }
             }
 
-            if (nftInfo.Metadata.Value.ContainsKey(AssembledFtsKey))
+            if (State.AssembledFtsMap[tokenHash] != null)
             {
-                var fts = JsonParser.Default.Parse<AssembledFts>(nftInfo.Metadata.Value[AssembledFtsKey]);
+                var fts = State.AssembledFtsMap[tokenHash];
                 foreach (var pair in fts.Value)
                 {
                     State.TokenContract.Transfer.Send(new MultiToken.TransferInput
@@ -176,7 +188,7 @@ namespace AElf.Contracts.NFT
         public override Empty Recast(RecastInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftInfo = State.NftInfoMap[tokenHash];
+            var nftInfo = GetNFTInfoByTokenHash(tokenHash);
             Assert(nftInfo.Quantity == 1, "Do not support recast.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
@@ -221,7 +233,6 @@ namespace AElf.Contracts.NFT
         public override Empty Approve(ApproveInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftInfo = State.NftInfoMap[tokenHash];
             Assert(State.BalanceMap[tokenHash][Context.Sender] >= input.Amount, "Insufficient amount.");
             State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender] = input.Amount;
             return new Empty();
@@ -230,7 +241,6 @@ namespace AElf.Contracts.NFT
         public override Empty UnApprove(UnApproveInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftInfo = State.NftInfoMap[tokenHash];
             var allowance = State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender];
             var currentAllowance = Math.Max(allowance.Sub(input.Amount), 0);
             State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender] = currentAllowance;
@@ -305,12 +315,14 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException($"Invalid NFT Token symbol: {input.Symbol}");
             }
 
-            var tokenId = protocolInfo.MintedCount.Add(1);
+            var tokenId = input.TokenId == 0 ? protocolInfo.MintedCount.Add(1) : input.TokenId;
+            var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
+            Assert(State.NftInfoMap[tokenHash] == null,
+                $"Token id {tokenId} already exists. Please assign a different token id.");
+
             var minterList = GetMinterList(tokenInfo);
             Assert(minterList.Value.Contains(Context.Sender), "No permission to mint.");
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Incorrect chain.");
-
-            var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
 
             var quantity = input.Quantity > 0 ? input.Quantity : 1;
 
@@ -324,11 +336,8 @@ namespace AElf.Contracts.NFT
             var nftInfo = new NFTInfo
             {
                 Symbol = input.Symbol,
-                BaseUri = protocolInfo.BaseUri,
-                Uri = input.Uri,
-                TokenName = tokenInfo.TokenName,
+                Uri = input.Uri ?? string.Empty,
                 TokenId = tokenId,
-                Creator = protocolInfo.Creator,
                 Metadata = nftMetadata,
                 Minter = Context.Sender,
                 Quantity = quantity

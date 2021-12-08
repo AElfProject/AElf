@@ -70,10 +70,10 @@ service NFTContract {
 }
 
 message CreateInput {
-    // The symbol of the token.
+    // The type of this nft protocol.
     NFTType nft_type = 1;
-    // The full name of the token.
-    string token_name = 2;
+    // The name of this nft protocol.
+    string protocol_name = 2;
     // The total supply of the token.
     int64 total_supply = 3;
     // The address that created the token.
@@ -85,7 +85,7 @@ message CreateInput {
     // The chain id of the token.
     int32 issue_chain_id = 8;
     // The metadata of the token.
-    Metadata meta_data = 9;
+    Metadata metadata = 9;
     // Base Uri.
     string base_uri = 10;
 }
@@ -153,6 +153,7 @@ message MintInput {
     string alias = 4;
     Metadata metadata = 5;
     int64 quantity = 6;
+    int64 token_id = 7;
 }
 
 message GetBalanceInput {
@@ -203,26 +204,28 @@ message NFTProtocolInfo {
     // The minted number of the token.
     int64 minted_count = 2;
     // The total number of the token.
-    int64 created_count = 3;
+    int64 max_count = 3;
     // The address that creat the token.
     aelf.Address creator = 4;
     // Base Uri.
     string base_uri = 5;
     // A flag indicating if this token is burnable.
-    bool is_burnable = 7;
+    bool is_burnable = 6;
     // The chain to mint this token.
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 7;
     // The metadata of the token.
-    Metadata metadata = 9;
+    Metadata metadata = 8;
     // NFT Type.
-    NFTType nft_type = 10;
+    NFTType nft_type = 9;
+    // Protocol name.
+    string protocol_name = 10;
 }
 
 message NFTInfo {
-    // The symbol of the token.
+    // The symbol of the protocol this nft belongs to.
     string symbol = 1;
-    // The full name of the token.
-    string token_name = 2;
+    // The name of the protocol this nft belongs to.
+    string protocol_name = 2;
     // Actually is the order of this token.
     int64 token_id = 3;
     // The address that creat the base token.
@@ -230,19 +233,19 @@ message NFTInfo {
     // The address that mint this token.
     aelf.Address minter = 5;
     // The metadata of the token.
-    Metadata metadata = 8;
+    Metadata metadata = 6;
     // Minted amount.
-    int64 quantity = 9;
+    int64 quantity = 7;
     // Token Uri.
-    string uri = 10;
+    string uri = 8;
     // Base Uri.
-    string base_uri = 11;
+    string base_uri = 9;
     // Alias
-    string alias = 12;
+    string alias = 10;
     // Is burned.
-    bool is_burned = 13;
+    bool is_burned = 11;
     // NFT Type
-    NFTType nft_type = 14;
+    NFTType nft_type = 12;
 }
 
 enum NFTType {
@@ -255,7 +258,7 @@ enum NFTType {
     COLLECTABLES = 6;
     SPORTS = 7;
     UTILITY = 8;
-    CERTIFICATE = 9;
+    BADGES = 9;
 }
 
 message Metadata {
@@ -297,12 +300,12 @@ message AssembledFts {
 
 message NFTProtocolCreated {
     option (aelf.is_event) = true;
-    // The symbol of the token.
+    // The symbol of this protocol.
     string symbol = 1;
-    // The full name of the token.
-    string token_name = 2;
+    // The name of this protocol.
+    string protocol_name = 2;
     // The total supply of the token.
-    int64 total_supply = 3;
+    int64 max_count = 3;
     // The address that created the token.
     aelf.Address issuer = 4;
     // A flag indicating if this token is burnable.
@@ -310,7 +313,7 @@ message NFTProtocolCreated {
     // The chain id of the token.
     int32 issue_chain_id = 6;
     // The metadata of the token.
-    Metadata meta_data = 7;
+    Metadata metadata = 7;
     // Base Uri.
     string base_uri = 8;
 }

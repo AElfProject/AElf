@@ -23,5 +23,8 @@ namespace AElf.Contracts.NFT
         /// Need to record approved by whom.
         /// </summary>
         public MappedState<Hash, Address, Address, long> ApprovedAmountMap { get; set; }
+
+        public MappedState<Hash, AssembledNfts> AssembledNftsMap { get; set; }
+        public MappedState<Hash, AssembledFts> AssembledFtsMap { get; set; }
     }
 }

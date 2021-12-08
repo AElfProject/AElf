@@ -221,6 +221,20 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
+        public override StringList GetReservedExternalInfoKeyList(Empty input)
+        {
+            return new StringList
+            {
+                Value =
+                {
+                    TokenContractConstants.LockCallbackExternalInfoKey,
+                    TokenContractConstants.LogEventExternalInfoKey,
+                    TokenContractConstants.TransferCallbackExternalInfoKey,
+                    TokenContractConstants.UnlockCallbackExternalInfoKey,
+                }
+            };
+        }
+
         private bool IsTokenAvailableForMethodFee(string symbol)
         {
             var tokenInfo = State.TokenInfos[symbol];

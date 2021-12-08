@@ -59,8 +59,8 @@ namespace AElf.Contracts.NFT
                     return "SP";
                 case NFTType.Utility:
                     return "UT";
-                case NFTType.Certificate:
-                    return "CE";
+                case NFTType.Badges:
+                    return "BA";
             }
 
             return "XX";

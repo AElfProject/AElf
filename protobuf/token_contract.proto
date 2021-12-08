@@ -215,6 +215,9 @@ service TokenContract {
     rpc IsInCreateTokenWhiteList (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetReservedExternalInfoKeyList (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -623,6 +626,10 @@ message ChangeTokenIssuerInput
 message ResetExternalInfoInput {
     string symbol = 1;
     ExternalInfo external_info = 2;
+}
+
+message StringList {
+    repeated string value = 1;
 }
 
 message Transferred {

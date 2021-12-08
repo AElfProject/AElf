@@ -8,12 +8,18 @@ namespace AElf.Contracts.NFT
         public override NFTInfo GetNFTInfo(GetNFTInfoInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            return State.NftInfoMap[tokenHash];
+            return GetNFTInfoByTokenHash(tokenHash);
         }
 
         public override NFTInfo GetNFTInfoByTokenHash(Hash input)
         {
-            return State.NftInfoMap[input];
+            var nftInfo = State.NftInfoMap[input];
+            var nftProtocolInfo = State.NftProtocolMap[nftInfo.Symbol];
+            nftInfo.ProtocolName = nftProtocolInfo.ProtocolName;
+            nftInfo.Creator = nftProtocolInfo.Creator;
+            nftInfo.BaseUri = nftProtocolInfo.BaseUri;
+            nftInfo.NftType = nftProtocolInfo.NftType;
+            return nftInfo;
         }
 
         public override GetBalanceOutput GetBalance(GetBalanceInput input)

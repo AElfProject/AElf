@@ -24,7 +24,7 @@ namespace AElf.Contracts.NFT
                 Issuer = Context.Sender,
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId,
-                TokenName = input.TokenName,
+                TokenName = input.ProtocolName,
                 TotalSupply = input.TotalSupply,
                 ExternalInfo = tokenExternalInfo
             };
@@ -34,9 +34,10 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 BaseUri = input.BaseUri,
-                CreatedCount = tokenCreateInput.TotalSupply,
+                MaxCount = tokenCreateInput.TotalSupply,
                 Creator = Context.Sender,
-                Metadata = new Metadata {Value = {tokenExternalInfo.Value}}
+                Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
+                ProtocolName = input.ProtocolName
             };
             State.NftProtocolMap[symbol] = protocolInfo;
 
@@ -46,9 +47,9 @@ namespace AElf.Contracts.NFT
                 Issuer = tokenCreateInput.Issuer,
                 IsBurnable = tokenCreateInput.IsBurnable,
                 IssueChainId = tokenCreateInput.IssueChainId,
-                TokenName = tokenCreateInput.TokenName,
-                TotalSupply = tokenCreateInput.TotalSupply,
-                MetaData = protocolInfo.Metadata,
+                ProtocolName = tokenCreateInput.TokenName,
+                MaxCount = tokenCreateInput.TotalSupply,
+                Metadata = protocolInfo.Metadata,
                 BaseUri = protocolInfo.BaseUri
             });
 
@@ -62,7 +63,7 @@ namespace AElf.Contracts.NFT
         {
             var tokenExternalInfo = new ExternalInfo
             {
-                Value = {input.MetaData.Value}
+                Value = {input.Metadata.Value}
             };
 
             // Add NFT Type to external info.
