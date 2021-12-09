@@ -129,7 +129,7 @@ message Scheme {
     int64 profit_receiving_due_period_count = 7;
     // Whether all the schemes balance will be distributed during distribution each period.
     bool is_release_all_balance_every_time_by_default = 8;
-    // The is of the scheme.
+    // The id of the scheme.
     aelf.Hash scheme_id = 9;
     // Delay distribute period.
     int32 delay_distribute_period_count = 10;
