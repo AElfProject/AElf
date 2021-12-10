@@ -32,38 +32,45 @@ namespace AElf.Contracts.NFT
                 State.NftProtocolNumber.Value = 10000000;
             }
 
-            var number = GenerateSymbolNumber();
-            State.IsCreatedMap[number] = true;
-            return $"{GetPrefix(nftType)}{number}";
-        }
-
-        private string GetPrefix(NFTType nftType)
-        {
-            switch (nftType)
+            var randomNumber = GenerateSymbolNumber();
+            State.IsCreatedMap[randomNumber] = true;
+            var shortName = State.NFTTypeFullNameMap[nftType.ToString()];
+            if (shortName == null)
             {
-                case NFTType.Any:
-                    return "XX";
-                case NFTType.Art:
-                    return "AR";
-                case NFTType.Music:
-                    return "MU";
-                case NFTType.DomainNames:
-                    return "DN";
-                case NFTType.VirtualWorlds:
-                    return "VW";
-                case NFTType.TradingCards:
-                    return "TC";
-                case NFTType.Collectables:
-                    return "CO";
-                case NFTType.Sports:
-                    return "SP";
-                case NFTType.Utility:
-                    return "UT";
-                case NFTType.Badges:
-                    return "BA";
+                InitialNFTTypeNameMap();
+                shortName = State.NFTTypeFullNameMap[nftType.ToString()];
+                if (shortName == null)
+                {
+                    throw new AssertionException($"Short name of NFT Type {nftType.ToString()} not found.");
+                }
             }
 
-            return "XX";
+            return $"{shortName}{randomNumber}";
+        }
+
+        private void InitialNFTTypeNameMap()
+        {
+            State.NFTTypeShortNameMap[NFTType.Any.ToString()] = "XX";
+            State.NFTTypeShortNameMap[NFTType.Art.ToString()] = "AR";
+            State.NFTTypeShortNameMap[NFTType.Music.ToString()] = "MU";
+            State.NFTTypeShortNameMap[NFTType.DomainNames.ToString()] = "DN";
+            State.NFTTypeShortNameMap[NFTType.VirtualWorlds.ToString()] = "VW";
+            State.NFTTypeShortNameMap[NFTType.TradingCards.ToString()] = "TC";
+            State.NFTTypeShortNameMap[NFTType.Collectables.ToString()] = "CO";
+            State.NFTTypeShortNameMap[NFTType.Sports.ToString()] = "SP";
+            State.NFTTypeShortNameMap[NFTType.Utility.ToString()] = "UT";
+            State.NFTTypeShortNameMap[NFTType.Badges.ToString()] = "BA";
+
+            State.NFTTypeFullNameMap["XX"] = NFTType.Any.ToString();
+            State.NFTTypeFullNameMap["AR"] = NFTType.Art.ToString();
+            State.NFTTypeFullNameMap["MU"] = NFTType.Music.ToString();
+            State.NFTTypeFullNameMap["DN"] = NFTType.DomainNames.ToString();
+            State.NFTTypeFullNameMap["VW"] = NFTType.VirtualWorlds.ToString();
+            State.NFTTypeFullNameMap["TC"] = NFTType.TradingCards.ToString();
+            State.NFTTypeFullNameMap["CO"] = NFTType.Collectables.ToString();
+            State.NFTTypeFullNameMap["SP"] = NFTType.Sports.ToString();
+            State.NFTTypeFullNameMap["UT"] = NFTType.Utility.ToString();
+            State.NFTTypeFullNameMap["BA"] = NFTType.Badges.ToString();
         }
 
         private long GenerateSymbolNumber()
@@ -108,7 +115,7 @@ namespace AElf.Contracts.NFT
 
             return State.CurrentSymbolNumberLength.Value;
         }
-        
+
         private void AssertMetadataKeysAreCorrect(IEnumerable<string> metadataKeys)
         {
             var reservedMetadataKey = GetNftMetadataReservedKeys();

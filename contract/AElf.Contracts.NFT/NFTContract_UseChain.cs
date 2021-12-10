@@ -1,10 +1,8 @@
-using System;
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFT
@@ -28,7 +26,7 @@ namespace AElf.Contracts.NFT
             return new Empty();
         }
 
-        private void DoTransfer(Hash tokenHash, Address from, Address to, long amount)
+        private void DoTransfer(Hash tokenHash, Address from, Address to, BigIntValue amount)
         {
             if (amount <= 1)
             {
@@ -122,7 +120,7 @@ namespace AElf.Contracts.NFT
                         From = Context.Sender,
                         To = Context.Self,
                         Symbol = symbol,
-                        Amount = amount
+                        Amount = ConverterBigIntValueToLong(amount)
                     });
                 }
             }
@@ -176,7 +174,7 @@ namespace AElf.Contracts.NFT
                     State.TokenContract.Transfer.Send(new MultiToken.TransferInput
                     {
                         Symbol = pair.Key,
-                        Amount = pair.Value,
+                        Amount = ConverterBigIntValueToLong(pair.Value),
                         To = Context.Sender
                     });
                 }
@@ -189,10 +187,10 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var nftInfo = GetNFTInfoByTokenHash(tokenHash);
-            Assert(nftInfo.Quantity == 1, "Do not support recast.");
+            Assert(nftInfo.Quantity.Value == "1", "Do not support recast.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
-                State.BalanceMap[tokenHash][Context.Sender] == 0 &&
+                State.BalanceMap[tokenHash][Context.Sender].Value == "0" &
                 minterList.Value.Contains(Context.Sender),
                 "No permission.");
             if (input.Alias != null)
@@ -242,14 +240,19 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var allowance = State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender];
-            var currentAllowance = Math.Max(allowance.Sub(input.Amount), 0);
+            var currentAllowance = allowance.Sub(input.Amount);
+            if (currentAllowance <= 0)
+            {
+                currentAllowance = 0;
+            }
+
             State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender] = currentAllowance;
             return new Empty();
         }
 
-        private Hash CalculateTokenHash(string symbol, long tokenId)
+        private Hash CalculateTokenHash(string symbol, BigIntValue tokenId)
         {
-            return HashHelper.ComputeFrom($"{symbol}{tokenId}");
+            return HashHelper.ComputeFrom($"{symbol}{tokenId.Value}");
         }
 
         public override Empty AddMinters(AddMintersInput input)
@@ -315,10 +318,13 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException($"Invalid NFT Token symbol: {input.Symbol}");
             }
 
-            var tokenId = input.TokenId == 0 ? protocolInfo.MintedCount.Add(1) : input.TokenId;
+            var tokenId = input.TokenId.Value == "0" ? protocolInfo.MintedCount.Add(1) : input.TokenId;
             var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
-            Assert(State.NftInfoMap[tokenHash] == null,
-                $"Token id {tokenId} already exists. Please assign a different token id.");
+            var nftInfo = State.NftInfoMap[tokenHash];
+            if (!protocolInfo.IsTokenIdReuse)
+            {
+                Assert(nftInfo == null, $"Token id {tokenId} already exists. Please assign a different token id.");
+            }
 
             var minterList = GetMinterList(tokenInfo);
             Assert(minterList.Value.Contains(Context.Sender), "No permission to mint.");
@@ -333,21 +339,49 @@ namespace AElf.Contracts.NFT
                 nftMetadata.Value.Add(pair.Key, pair.Value);
             }
 
-            var nftInfo = new NFTInfo
+            if (nftInfo == null)
             {
-                Symbol = input.Symbol,
-                Uri = input.Uri ?? string.Empty,
-                TokenId = tokenId,
-                Metadata = nftMetadata,
-                Minter = Context.Sender,
-                Quantity = quantity
-            };
+                nftInfo = new NFTInfo
+                {
+                    Symbol = input.Symbol,
+                    Uri = input.Uri ?? string.Empty,
+                    TokenId = tokenId,
+                    Metadata = nftMetadata,
+                    Minters = {Context.Sender},
+                    Quantity = quantity,
+                    Alias = input.Alias,
+
+                    // No need.
+                    //BaseUri = protocolInfo.BaseUri,
+                    //Creator = protocolInfo.Creator,
+                    //ProtocolName = protocolInfo.ProtocolName
+                };
+            }
+            else
+            {
+                nftInfo.Quantity = nftInfo.Quantity.Add(input.Quantity);
+                if (!nftInfo.Minters.Contains(Context.Sender))
+                {
+                    nftInfo.Minters.Add(Context.Sender);
+                }
+            }
+
             State.NftInfoMap[tokenHash] = nftInfo;
             State.BalanceMap[tokenHash][input.Owner ?? Context.Sender] = quantity;
 
             protocolInfo.MintedCount = protocolInfo.MintedCount.Add(quantity);
             State.NftProtocolMap[input.Symbol] = protocolInfo;
             return tokenHash;
+        }
+
+        /// <summary>
+        /// If bit int value > long.MaxValue, return 0.
+        /// </summary>
+        /// <param name="bigIntValue"></param>
+        /// <returns></returns>
+        private long ConverterBigIntValueToLong(BigIntValue bigIntValue)
+        {
+            return bigIntValue > long.MaxValue ? 0 : long.Parse(bigIntValue.Value);
         }
     }
 }

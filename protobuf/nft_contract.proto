@@ -19,31 +19,47 @@ service NFTContract {
     option (aelf.csharp_state) = "AElf.Contracts.NFT.NFTContractState";
     option (aelf.base) = "acs1.proto";
 
-    // Create a new nft type.
+    // Create a new nft protocol.
     rpc Create (CreateInput) returns (google.protobuf.StringValue) {
     }
+    rpc CrossChainCreate (CrossChainCreateInput) returns (google.protobuf.Empty) {
+    }
+    // Mint (Issue) an amount of nft.
     rpc Mint (MintInput) returns (aelf.Hash) {
     }
+    // Transfer nft to another address.
     rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
     }
+    // Transfer nft from one address to another.
     rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) {
     }
+    // Approve another address to transfer nft from own account.
     rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
+    // De-approve.
     rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
+    // Destroy nfts.
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
+    // Lock several nfts and fts to mint one nft.
     rpc Assemble (AssembleInput) returns (aelf.Hash) {
     }
+    // Disassemble one assembled nft to get locked nfts and fts back.
     rpc Disassemble (DisassembleInput) returns (google.protobuf.Empty) {
     }
+    // Modify metadata of one nft.
     rpc Recast (RecastInput) returns (google.protobuf.Empty) {
     }
 
     rpc AddMinters (AddMintersInput) returns (google.protobuf.Empty) {
     }
     rpc RemoveMiners (RemoveMinersInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc AddNFTType (AddNFTTypeInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveNFTType (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
 
     rpc GetNFTInfo (GetNFTInfoInput) returns (NFTInfo) {
@@ -75,7 +91,7 @@ message CreateInput {
     // The name of this nft protocol.
     string protocol_name = 2;
     // The total supply of the token.
-    int64 total_supply = 3;
+    aelf.BigIntValue total_supply = 3;
     // The address that created the token.
     aelf.Address creator = 5;
     // A flag indicating if this token is burnable.
@@ -88,43 +104,49 @@ message CreateInput {
     Metadata metadata = 9;
     // Base Uri.
     string base_uri = 10;
+    // Is token id can be reused.
+    bool is_token_id_reuse = 11;
+}
+
+message CrossChainCreateInput {
+    string symbol = 1;
 }
 
 message TransferInput {
     aelf.Address to = 1;
     string symbol = 2;
-    int64 token_id = 3;
+    aelf.BigIntValue token_id = 3;
     string memo = 4;
-    int64 amount = 5;
+    aelf.BigIntValue amount = 5;
 }
 
 message TransferFromInput {
     aelf.Address from = 1;
     aelf.Address to = 2;
     string symbol = 3;
-    int64 token_id = 4;
+    aelf.BigIntValue token_id = 4;
     string memo = 5;
-    int64 amount = 6;
+    aelf.BigIntValue amount = 6;
 }
 
 message ApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
-    int64 token_id = 3;
-    int64 amount = 4;
+    aelf.BigIntValue token_id = 3;
+    aelf.BigIntValue amount = 4;
 }
 
 message UnApproveInput {
     aelf.Address spender = 1;
     string symbol = 2;
-    int64 token_id = 3;
-    int64 amount = 4;
+    aelf.BigIntValue token_id = 3;
+    aelf.BigIntValue amount = 4;
 }
 
 message BurnInput {
     string symbol = 1;
-    int64 token_id = 2;
-    int64 amount = 3;
+    aelf.BigIntValue token_id = 2;
+    aelf.BigIntValue amount = 3;
 }
 
 message AssembleInput {
@@ -139,7 +161,7 @@ message AssembleInput {
 
 message DisassembleInput {
     string symbol = 1;
-    int64 token_id = 2;
+    aelf.BigIntValue token_id = 2;
 }
 
 message MinterList {
@@ -152,8 +174,8 @@ message MintInput {
     string uri = 3;
     string alias = 4;
     Metadata metadata = 5;
-    int64 quantity = 6;
-    int64 token_id = 7;
+    aelf.BigIntValue quantity = 6;
+    aelf.BigIntValue token_id = 7;
 }
 
 message GetBalanceInput {
@@ -170,12 +192,12 @@ message GetBalanceByTokenHashInput {
 message GetBalanceOutput {
     aelf.Address owner = 1;
     aelf.Hash token_hash = 2;
-    int64 balance = 3;
+    aelf.BigIntValue balance = 3;
 }
 
 message GetAllowanceInput {
     string symbol = 1;
-    int64 token_id = 2;
+    aelf.BigIntValue token_id = 2;
     aelf.Address owner = 3;
     aelf.Address spender = 4;
 }
@@ -188,23 +210,23 @@ message GetAllowanceByTokenHashInput {
 
 message GetAllowanceOutput {
     aelf.Hash token_hash = 1;
-    int64 allowance = 2;
+    aelf.BigIntValue allowance = 2;
     aelf.Address owner = 3;
     aelf.Address spender = 4;
 }
 
 message CalculateTokenHashInput {
     string symbol = 1;
-    int64 token_id = 2;
+    aelf.BigIntValue token_id = 2;
 }
 
 message NFTProtocolInfo {
     // The symbol of the token.
     string symbol = 1;
     // The minted number of the token.
-    int64 minted_count = 2;
+    aelf.BigIntValue minted_count = 2;
     // The total number of the token.
-    int64 max_count = 3;
+    aelf.BigIntValue max_count = 3;
     // The address that creat the token.
     aelf.Address creator = 4;
     // Base Uri.
@@ -216,9 +238,11 @@ message NFTProtocolInfo {
     // The metadata of the token.
     Metadata metadata = 8;
     // NFT Type.
-    NFTType nft_type = 9;
+    string nft_type = 9;
     // Protocol name.
     string protocol_name = 10;
+    // Is token id can be reused.
+    bool is_token_id_reuse = 11;
 }
 
 message NFTInfo {
@@ -227,15 +251,15 @@ message NFTInfo {
     // The name of the protocol this nft belongs to.
     string protocol_name = 2;
     // Actually is the order of this token.
-    int64 token_id = 3;
+    aelf.BigIntValue token_id = 3;
     // The address that creat the base token.
     aelf.Address creator = 4;
-    // The address that mint this token.
-    aelf.Address minter = 5;
+    // The addresses that mint this token.
+    repeated aelf.Address minters = 5;
     // The metadata of the token.
     Metadata metadata = 6;
     // Minted amount.
-    int64 quantity = 7;
+    aelf.BigIntValue quantity = 7;
     // Token Uri.
     string uri = 8;
     // Base Uri.
@@ -245,7 +269,7 @@ message NFTInfo {
     // Is burned.
     bool is_burned = 11;
     // NFT Type
-    NFTType nft_type = 12;
+    string nft_type = 12;
 }
 
 enum NFTType {
@@ -277,23 +301,28 @@ message RemoveMinersInput {
 
 message GetNFTInfoInput {
     string symbol = 1;
-    int64 token_id = 2;
+    aelf.BigIntValue token_id = 2;
 }
 
 message RecastInput {
     string symbol = 1;
-    int64 token_id = 2;
+    aelf.BigIntValue token_id = 2;
     string uri = 3;
     string alias = 4;
     Metadata metadata = 5;
 }
 
 message AssembledNfts {
-    map<string, int64> value = 1;
+    map<string, aelf.BigIntValue> value = 1;
 }
 
 message AssembledFts {
-    map<string, int64> value = 1;
+    map<string, aelf.BigIntValue> value = 1;
+}
+
+message AddNFTTypeInput {
+    string full_name = 1;
+    string short_name = 2;
 }
 
 // Events
@@ -305,9 +334,9 @@ message NFTProtocolCreated {
     // The name of this protocol.
     string protocol_name = 2;
     // The total supply of the token.
-    int64 max_count = 3;
+    aelf.BigIntValue max_count = 3;
     // The address that created the token.
-    aelf.Address issuer = 4;
+    aelf.Address creator = 4;
     // A flag indicating if this token is burnable.
     bool is_burnable = 5;
     // The chain id of the token.
@@ -325,7 +354,7 @@ message NFTMinted {
     // The full name of the token.
     string token_name = 2;
     // Actually is the order of this token.
-    int64 token_id = 3;
+    aelf.BigIntValue token_id = 3;
     // The address that creat the base token.
     aelf.Address creator = 4;
     // The address that mint this token.

@@ -521,10 +521,22 @@ namespace AElf.Contracts.MultiToken
         public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
-            bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
-                                    tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
-                                    tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId;
+            if (tokenInfo == null)
+            {
+                throw new AssertionException("Token validation failed.");
+            }
+
+            var validationResult = tokenInfo.TokenName == input.TokenName &&
+                                   tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
+                                   tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
+                                   tokenInfo.IssueChainId == input.IssueChainId &&
+                                   tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
+            if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
+                !input.ExternalInfo.ContainsKey(keyPair.Key) || input.ExternalInfo[keyPair.Key] != keyPair.Value))
+            {
+                throw new AssertionException("Token validation failed.");
+            }
+
             Assert(validationResult, "Token validation failed.");
             return new Empty();
         }

@@ -30,7 +30,7 @@ namespace AElf.Contracts.NFT
                 BaseUri = BaseUri,
                 Creator = DefaultAddress,
                 IsBurnable = true,
-                MetaData = new Metadata
+                Metadata = new Metadata
                 {
                     Value =
                     {
@@ -38,7 +38,7 @@ namespace AElf.Contracts.NFT
                     }
                 },
                 NftType = NFTType.VirtualWorlds,
-                TokenName = "HUMAN",
+                ProtocolName = "HUMAN",
                 TotalSupply = 1_000_000_000 // One billion
             });
             var symbol = executionResult.Output.Value;

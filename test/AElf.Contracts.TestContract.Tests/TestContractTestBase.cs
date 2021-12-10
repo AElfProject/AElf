@@ -40,8 +40,8 @@ namespace AElf.Contract.TestContract
         protected readonly Hash TestBasicSecurityContractSystemName =
             HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicSecurity");
 
-        protected readonly Hash TestInt256ValueContractSystemName =
-            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.Int256Value");
+        protected readonly Hash TestBigIntValueContractSystemName =
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BigIntValue");
 
         public TestContractTestBase()
         {
@@ -136,7 +136,7 @@ namespace AElf.Contract.TestContract
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     Codes.Single(kv => kv.Key.EndsWith("BigIntValue")).Value,
-                    TestInt256ValueContractSystemName,
+                    TestBigIntValueContractSystemName,
                     DefaultSenderKeyPair));
             BigIntValueContractStub = GetBigIntValueContractStub(DefaultSenderKeyPair);
         }

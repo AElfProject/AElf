@@ -14,7 +14,7 @@ namespace AElf.Contracts.NFT
         /// <summary>
         /// Token Hash -> Owner Address -> Balance
         /// </summary>
-        public MappedState<Hash, Address, long> BalanceMap { get; set; }
+        public MappedState<Hash, Address, BigIntValue> BalanceMap { get; set; }
 
         public MappedState<string, NFTProtocolInfo> NftProtocolMap { get; set; }
 
@@ -22,9 +22,14 @@ namespace AElf.Contracts.NFT
         /// Token Hash -> Owner Address -> Spender Address -> Approved Amount
         /// Need to record approved by whom.
         /// </summary>
-        public MappedState<Hash, Address, Address, long> ApprovedAmountMap { get; set; }
+        public MappedState<Hash, Address, Address, BigIntValue> ApprovedAmountMap { get; set; }
 
         public MappedState<Hash, AssembledNfts> AssembledNftsMap { get; set; }
         public MappedState<Hash, AssembledFts> AssembledFtsMap { get; set; }
+
+        public MappedState<string, string> NFTTypeShortNameMap { get; set; }
+        public MappedState<string, string> NFTTypeFullNameMap { get; set; }
+
+        public SingletonState<Address> ParliamentDefaultAddress { get; set; }
     }
 }
