@@ -23,6 +23,15 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             DoTransfer(tokenHash, Context.Sender, input.To, input.Amount);
+            Context.Fire(new Transferred
+            {
+                From = Context.Sender,
+                To = input.To,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Memo = input.Memo
+            });
             return new Empty();
         }
 
@@ -41,8 +50,17 @@ namespace AElf.Contracts.NFT
         public override Empty TransferFrom(TransferFromInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            Assert(State.ApprovedAmountMap[tokenHash][input.From][Context.Sender] >= input.Amount, "Not approved.");
+            Assert(State.AllowanceMap[tokenHash][input.From][Context.Sender] >= input.Amount, "Not approved.");
             DoTransfer(tokenHash, input.From, input.To, input.Amount);
+            Context.Fire(new Transferred
+            {
+                From = input.From,
+                To = input.To,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Memo = input.Memo
+            });
             return new Empty();
         }
 
@@ -68,6 +86,14 @@ namespace AElf.Contracts.NFT
             }
 
             State.NftInfoMap[tokenHash] = nftInfo;
+
+            Context.Fire(new Burned
+            {
+                Burner = Context.Sender,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                TokenId = input.TokenId
+            });
             return new Empty();
         }
 
@@ -131,7 +157,8 @@ namespace AElf.Contracts.NFT
                 Alias = input.Alias,
                 Owner = input.Owner,
                 Uri = input.Uri,
-                Metadata = metadata
+                Metadata = metadata,
+                TokenId = input.TokenId
             };
 
             var tokenHash = PerformMint(mingInput);
@@ -145,6 +172,14 @@ namespace AElf.Contracts.NFT
                 State.AssembledFtsMap[tokenHash] = input.AssembledFts;
             }
 
+            Context.Fire(new Assembled
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                AssembledNfts = input.AssembledNfts,
+                AssembledFts = input.AssembledFts
+            });
+
             return tokenHash;
         }
 
@@ -157,16 +192,20 @@ namespace AElf.Contracts.NFT
             });
 
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            if (State.AssembledNftsMap[tokenHash] != null)
+            var assembledNfts = State.AssembledNftsMap[tokenHash];
+            if (assembledNfts != null)
             {
                 var nfts = State.AssembledNftsMap[tokenHash];
                 foreach (var pair in nfts.Value)
                 {
                     DoTransfer(Hash.LoadFromHex(pair.Key), Context.Self, Context.Sender, pair.Value);
                 }
+
+                State.AssembledNftsMap.Remove(tokenHash);
             }
 
-            if (State.AssembledFtsMap[tokenHash] != null)
+            var assembledFts = State.AssembledFtsMap[tokenHash];
+            if (assembledFts != null)
             {
                 var fts = State.AssembledFtsMap[tokenHash];
                 foreach (var pair in fts.Value)
@@ -178,7 +217,17 @@ namespace AElf.Contracts.NFT
                         To = Context.Sender
                     });
                 }
+
+                State.AssembledFtsMap.Remove(tokenHash);
             }
+
+            Context.Fire(new Disassembled
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                DisassembledNfts = assembledNfts ?? new AssembledNfts(),
+                DisassembledFts = assembledFts ?? new AssembledFts()
+            });
 
             return new Empty();
         }
@@ -203,13 +252,14 @@ namespace AElf.Contracts.NFT
                 nftInfo.Uri = input.Uri;
             }
 
+            var oldMetadata = nftInfo.Metadata;
             var metadata = new Metadata();
             // Need to keep reserved metadata key.
             foreach (var reservedKey in GetNftMetadataReservedKeys())
             {
-                if (nftInfo.Metadata.Value.ContainsKey(reservedKey))
+                if (oldMetadata.Value.ContainsKey(reservedKey))
                 {
-                    metadata.Value.Add(reservedKey, nftInfo.Metadata.Value[reservedKey]);
+                    metadata.Value.Add(reservedKey, oldMetadata.Value[reservedKey]);
                 }
 
                 if (input.Metadata.Value.ContainsKey(reservedKey))
@@ -225,6 +275,14 @@ namespace AElf.Contracts.NFT
                 nftInfo.Metadata = input.Metadata;
             }
 
+            State.NftInfoMap[tokenHash] = nftInfo;
+            Context.Fire(new Recasted
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                OldMetadata = oldMetadata,
+                NewMetadata = nftInfo.Metadata
+            });
             return new Empty();
         }
 
@@ -232,21 +290,38 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             Assert(State.BalanceMap[tokenHash][Context.Sender] >= input.Amount, "Insufficient amount.");
-            State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender] = input.Amount;
+            State.AllowanceMap[tokenHash][Context.Sender][input.Spender] = input.Amount;
+            Context.Fire(new Approved
+            {
+                Owner = Context.Sender,
+                Spender = input.Spender,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                TokenId = input.TokenId
+            });
             return new Empty();
         }
 
         public override Empty UnApprove(UnApproveInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var allowance = State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender];
-            var currentAllowance = allowance.Sub(input.Amount);
+            var oldAllowance = State.AllowanceMap[tokenHash][Context.Sender][input.Spender];
+            var currentAllowance = oldAllowance.Sub(input.Amount);
             if (currentAllowance <= 0)
             {
                 currentAllowance = 0;
             }
 
-            State.ApprovedAmountMap[tokenHash][Context.Sender][input.Spender] = currentAllowance;
+            State.AllowanceMap[tokenHash][Context.Sender][input.Spender] = currentAllowance;
+
+            Context.Fire(new UnApproved
+            {
+                Owner = Context.Sender,
+                Spender = input.Spender,
+                Symbol = input.Symbol,
+                CurrentAllowance = currentAllowance,
+                TokenId = input.TokenId
+            });
             return new Empty();
         }
 
@@ -336,7 +411,10 @@ namespace AElf.Contracts.NFT
             var nftMetadata = protocolInfo.Metadata;
             foreach (var pair in input.Metadata.Value)
             {
-                nftMetadata.Value.Add(pair.Key, pair.Value);
+                if (!nftMetadata.Value.ContainsKey(pair.Key))
+                {
+                    nftMetadata.Value.Add(pair.Key, pair.Value);
+                }
             }
 
             if (nftInfo == null)
@@ -359,7 +437,7 @@ namespace AElf.Contracts.NFT
             }
             else
             {
-                nftInfo.Quantity = nftInfo.Quantity.Add(input.Quantity);
+                nftInfo.Quantity = nftInfo.Quantity.Add(quantity);
                 if (!nftInfo.Minters.Contains(Context.Sender))
                 {
                     nftInfo.Minters.Add(Context.Sender);
@@ -367,10 +445,28 @@ namespace AElf.Contracts.NFT
             }
 
             State.NftInfoMap[tokenHash] = nftInfo;
-            State.BalanceMap[tokenHash][input.Owner ?? Context.Sender] = quantity;
+            var owner = input.Owner ?? Context.Sender;
+            State.BalanceMap[tokenHash][owner] = quantity;
 
             protocolInfo.MintedCount = protocolInfo.MintedCount.Add(quantity);
             State.NftProtocolMap[input.Symbol] = protocolInfo;
+            
+            Context.Fire(new NFTMinted
+            {
+                Symbol = input.Symbol,
+                ProtocolName = protocolInfo.ProtocolName,
+                TokenId = tokenId,
+                Metadata = nftMetadata,
+                Owner = owner,
+                Minter = Context.Sender,
+                Quantity = quantity,
+                Alias = input.Alias,
+                BaseUri = protocolInfo.BaseUri,
+                Uri = input.Uri ?? string.Empty,
+                Creator = protocolInfo.Creator,
+                NftType = protocolInfo.NftType
+            });
+            
             return tokenHash;
         }
 

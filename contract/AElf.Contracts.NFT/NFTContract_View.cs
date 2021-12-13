@@ -51,7 +51,7 @@ namespace AElf.Contracts.NFT
                 Owner = input.Owner,
                 Spender = input.Spender,
                 TokenHash = tokenHash,
-                Allowance = State.ApprovedAmountMap[tokenHash][input.Owner][input.Spender]
+                Allowance = State.AllowanceMap[tokenHash][input.Owner][input.Spender]
             };
         }
 
@@ -62,7 +62,7 @@ namespace AElf.Contracts.NFT
                 Owner = input.Owner,
                 Spender = input.Spender,
                 TokenHash = input.TokenHash,
-                Allowance = State.ApprovedAmountMap[input.TokenHash][input.Owner][input.Spender]
+                Allowance = State.AllowanceMap[input.TokenHash][input.Owner][input.Spender]
             };
         }
 
@@ -78,7 +78,9 @@ namespace AElf.Contracts.NFT
                 NftTypeMetadataKey,
                 NftBaseUriMetadataKey,
                 AssembledNftsKey,
-                AssembledFtsKey
+                AssembledFtsKey,
+                NftTotalSupplyMetadataKey,
+                NftTokenIdReuseMetadataKey
             };
         }
     }

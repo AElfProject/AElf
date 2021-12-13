@@ -9,7 +9,7 @@ namespace AElf.Contracts.NFT
     {
         private const string BaseUri = "ipfs://aelf/";
 
-        [Fact(Skip = "Dup in other tests")]
+        [Fact]
         public async Task<string> CreateTest()
         {
             await TokenContractStub.Issue.SendAsync(new IssueInput
@@ -42,6 +42,8 @@ namespace AElf.Contracts.NFT
                 TotalSupply = 1_000_000_000 // One billion
             });
             var symbol = executionResult.Output.Value;
+
+            symbol.Length.ShouldBe(11);
 
             var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {
@@ -82,7 +84,7 @@ namespace AElf.Contracts.NFT
             {
                 var nftInfo = await NFTContractStub.GetNFTInfoByTokenHash.CallAsync(tokenHash);
                 nftInfo.Creator.ShouldBe(DefaultAddress);
-                nftInfo.Minter.ShouldBe(MinterAddress);
+                nftInfo.Minters.ShouldContain(MinterAddress);
             }
 
             {
@@ -92,7 +94,7 @@ namespace AElf.Contracts.NFT
                     TokenId = 1
                 });
                 nftInfo.Creator.ShouldBe(DefaultAddress);
-                nftInfo.Minter.ShouldBe(MinterAddress);
+                nftInfo.Minters.ShouldContain(MinterAddress);
             }
         }
 

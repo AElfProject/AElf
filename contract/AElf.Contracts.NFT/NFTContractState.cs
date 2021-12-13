@@ -5,7 +5,7 @@ namespace AElf.Contracts.NFT
 {
     public partial class NFTContractState : ContractState
     {
-        public Int64State NftProtocolNumber { get; set; }
+        public Int64State NftProtocolNumberFlag { get; set; }
         public Int32State CurrentSymbolNumberLength { get; set; }
         public MappedState<long, bool> IsCreatedMap { get; set; }
         public MappedState<string, MinterList> MinterListMap { get; set; }
@@ -22,7 +22,7 @@ namespace AElf.Contracts.NFT
         /// Token Hash -> Owner Address -> Spender Address -> Approved Amount
         /// Need to record approved by whom.
         /// </summary>
-        public MappedState<Hash, Address, Address, BigIntValue> ApprovedAmountMap { get; set; }
+        public MappedState<Hash, Address, Address, BigIntValue> AllowanceMap { get; set; }
 
         public MappedState<Hash, AssembledNfts> AssembledNftsMap { get; set; }
         public MappedState<Hash, AssembledFts> AssembledFtsMap { get; set; }

@@ -27,18 +27,13 @@ namespace AElf.Contracts.NFT
 
         private string GetSymbol(NFTType nftType)
         {
-            if (State.NftProtocolNumber.Value == 0)
-            {
-                State.NftProtocolNumber.Value = 10000000;
-            }
-
             var randomNumber = GenerateSymbolNumber();
             State.IsCreatedMap[randomNumber] = true;
-            var shortName = State.NFTTypeFullNameMap[nftType.ToString()];
+            var shortName = State.NFTTypeShortNameMap[nftType.ToString()];
             if (shortName == null)
             {
                 InitialNFTTypeNameMap();
-                shortName = State.NFTTypeFullNameMap[nftType.ToString()];
+                shortName = State.NFTTypeShortNameMap[nftType.ToString()];
                 if (shortName == null)
                 {
                     throw new AssertionException($"Short name of NFT Type {nftType.ToString()} not found.");
@@ -77,7 +72,7 @@ namespace AElf.Contracts.NFT
         {
             var length = GetCurrentNumberLength();
             var from = 1L;
-            for (var i = 0; i < length; i++)
+            for (var i = 1; i < length; i++)
             {
                 from = from.Mul(10);
             }
@@ -105,12 +100,34 @@ namespace AElf.Contracts.NFT
                 State.CurrentSymbolNumberLength.Value = NumberMinLength;
             }
 
-            var currentCount = State.NftProtocolNumber.Value;
-            var upper = currentCount.Mul(3).Div(2);
-            if (upper.ToString().Length > State.CurrentSymbolNumberLength.Value)
+            var flag = State.NftProtocolNumberFlag.Value;
+
+            if (flag == 0)
             {
-                State.CurrentSymbolNumberLength.Value = upper.ToString().Length;
-                return upper.ToString().Length;
+                // Initial protocol number flag.
+                var protocolNumber = 1;
+                for (var i = 1; i < State.CurrentSymbolNumberLength.Value; i++)
+                {
+                    protocolNumber = protocolNumber.Mul(10);
+                }
+
+                State.NftProtocolNumberFlag.Value = protocolNumber;
+                flag = protocolNumber;
+            }
+
+            var upperNumberFlag = flag.Mul(2);
+            if (upperNumberFlag.ToString().Length > State.CurrentSymbolNumberLength.Value)
+            {
+                var newSymbolNumberLength = State.CurrentSymbolNumberLength.Value.Add(1);
+                State.CurrentSymbolNumberLength.Value = newSymbolNumberLength;
+                var protocolNumber = 1;
+                for (var i = 1; i < newSymbolNumberLength; i++)
+                {
+                    protocolNumber = protocolNumber.Mul(10);
+                }
+
+                State.NftProtocolNumberFlag.Value = protocolNumber;
+                return newSymbolNumberLength;
             }
 
             return State.CurrentSymbolNumberLength.Value;

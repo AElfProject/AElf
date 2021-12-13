@@ -157,6 +157,7 @@ message AssembleInput {
     Metadata metadata = 5;
     AssembledNfts assembled_nfts = 6;
     AssembledFts assembled_fts = 7;
+    aelf.BigIntValue token_id = 8;
 }
 
 message DisassembleInput {
@@ -181,7 +182,7 @@ message MintInput {
 message GetBalanceInput {
     aelf.Address owner = 1;
     string symbol = 2;
-    int64 token_id = 3;
+    aelf.BigIntValue token_id = 3;
 }
 
 message GetBalanceByTokenHashInput {
@@ -345,14 +346,16 @@ message NFTProtocolCreated {
     Metadata metadata = 7;
     // Base Uri.
     string base_uri = 8;
+    // Is token id can be reused.
+    bool is_token_id_reuse = 9;
 }
 
 message NFTMinted {
     option (aelf.is_event) = true;
-    // The symbol of the token.
+    // The symbol of this protocol.
     string symbol = 1;
-    // The full name of the token.
-    string token_name = 2;
+    // The name of this protocol.
+    string protocol_name = 2;
     // Actually is the order of this token.
     aelf.BigIntValue token_id = 3;
     // The address that creat the base token.
@@ -360,17 +363,77 @@ message NFTMinted {
     // The address that mint this token.
     aelf.Address minter = 5;
     // The metadata of the token.
-    Metadata metadata = 8;
+    Metadata metadata = 6;
     // The current owner of this nft.
-    aelf.Address owner = 9;
+    aelf.Address owner = 7;
     // Token Uri.
-    string uri = 10;
+    string uri = 8;
     // Base Uri.
-    string base_uri = 11;
+    string base_uri = 9;
     // Alias
-    string alias = 12;
-    // Is burned.
-    bool is_burned = 13;
+    string alias = 10;
     // NFT Type
-    NFTType nft_type = 14;
+    string nft_type = 11;
+    // Quantity
+    aelf.BigIntValue quantity = 12;
+}
+
+message Transferred {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 4 [(aelf.is_indexed) = true];
+    aelf.BigIntValue amount = 5;
+    string memo = 6;
+}
+
+message Approved {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 4 [(aelf.is_indexed) = true];
+    aelf.BigIntValue amount = 5;
+}
+
+message UnApproved {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 4 [(aelf.is_indexed) = true];
+    aelf.BigIntValue current_allowance = 5;
+}
+
+message Burned {
+    option (aelf.is_event) = true;
+    aelf.Address burner = 1 [(aelf.is_indexed) = true];
+    string symbol = 2 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 3 [(aelf.is_indexed) = true];
+    aelf.BigIntValue amount = 4;
+}
+
+message Recasted {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 2 [(aelf.is_indexed) = true];
+    Metadata old_metadata = 3 [(aelf.is_indexed) = true];
+    Metadata new_metadata = 4 [(aelf.is_indexed) = true];
+}
+
+message Assembled {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 2 [(aelf.is_indexed) = true];
+    AssembledNfts assembled_nfts = 3 [(aelf.is_indexed) = true];
+    AssembledFts assembled_fts = 4 [(aelf.is_indexed) = true];
+}
+
+message Disassembled {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    aelf.BigIntValue token_id = 2 [(aelf.is_indexed) = true];
+    AssembledNfts disassembled_nfts = 3 [(aelf.is_indexed) = true];
+    AssembledFts disassembled_fts = 4 [(aelf.is_indexed) = true];
 }

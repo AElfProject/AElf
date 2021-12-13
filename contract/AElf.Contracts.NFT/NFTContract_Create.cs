@@ -53,7 +53,8 @@ namespace AElf.Contracts.NFT
                 ProtocolName = tokenCreateInput.TokenName,
                 MaxCount = tokenCreateInput.TotalSupply,
                 Metadata = protocolInfo.Metadata,
-                BaseUri = protocolInfo.BaseUri
+                BaseUri = protocolInfo.BaseUri,
+                IsTokenIdReuse = protocolInfo.IsTokenIdReuse
             });
 
             return new StringValue
@@ -65,6 +66,7 @@ namespace AElf.Contracts.NFT
         public override Empty CrossChainCreate(CrossChainCreateInput input)
         {
             MakeSureTokenContractAddressSet();
+            Assert(State.NftProtocolMap[input.Symbol] == null, $"Protocol {input.Symbol} already created.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
                 Symbol = input.Symbol
@@ -108,7 +110,8 @@ namespace AElf.Contracts.NFT
                 ProtocolName = nftProtocolInfo.ProtocolName,
                 MaxCount = nftProtocolInfo.MaxCount,
                 Metadata = nftProtocolInfo.Metadata,
-                BaseUri = nftProtocolInfo.BaseUri
+                BaseUri = nftProtocolInfo.BaseUri,
+                IsTokenIdReuse = isTokenIdReuse
             });
             return new Empty();
         }
