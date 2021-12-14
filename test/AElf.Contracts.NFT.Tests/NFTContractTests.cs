@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -44,6 +45,16 @@ namespace AElf.Contracts.NFT
             var symbol = executionResult.Output.Value;
 
             symbol.Length.ShouldBe(11);
+
+            var protocolInfo = await NFTContractStub.GetNFTProtocolInfo.CallAsync(new StringValue
+            {
+                Value = symbol
+            });
+            protocolInfo.Symbol.ShouldBe(symbol);
+            protocolInfo.Metadata.Value.ShouldContainKey("Description");
+            protocolInfo.Creator.ShouldBe(DefaultAddress);
+            protocolInfo.NftType.ShouldBe(NFTType.VirtualWorlds.ToString());
+            protocolInfo.TotalSupply.ShouldBe(1_000_000_000);
 
             var tokenInfo = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
             {

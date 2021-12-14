@@ -228,9 +228,9 @@ message NFTProtocolInfo {
     // The symbol of the token.
     string symbol = 1;
     // The minted number of the token.
-    int64 minted_count = 2;
+    int64 supply = 2;
     // The total number of the token.
-    int64 max_count = 3;
+    int64 total_supply = 3;
     // The address that creat the token.
     aelf.Address creator = 4;
     // Base Uri.
@@ -243,7 +243,7 @@ message NFTProtocolInfo {
     Metadata metadata = 8;
     // NFT Type.
     string nft_type = 9;
-    // Protocol name.
+    // Protocol name, aka token name in MultiToken Contract.
     string protocol_name = 10;
     // Is token id can be reused.
     bool is_token_id_reuse = 11;
@@ -338,7 +338,7 @@ message NFTProtocolCreated {
     // The name of this protocol.
     string protocol_name = 2;
     // The total supply of the token.
-    int64 max_count = 3;
+    int64 total_supply = 3;
     // The address that created the token.
     aelf.Address creator = 4;
     // A flag indicating if this token is burnable.

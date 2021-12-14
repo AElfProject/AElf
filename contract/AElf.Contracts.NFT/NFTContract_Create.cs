@@ -36,7 +36,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 BaseUri = input.BaseUri,
-                MaxCount = tokenCreateInput.TotalSupply,
+                TotalSupply = tokenCreateInput.TotalSupply,
                 Creator = Context.Sender,
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
                 ProtocolName = input.ProtocolName,
@@ -51,7 +51,7 @@ namespace AElf.Contracts.NFT
                 IsBurnable = tokenCreateInput.IsBurnable,
                 IssueChainId = tokenCreateInput.IssueChainId,
                 ProtocolName = tokenCreateInput.TokenName,
-                MaxCount = tokenCreateInput.TotalSupply,
+                TotalSupply = tokenCreateInput.TotalSupply,
                 Metadata = protocolInfo.Metadata,
                 BaseUri = protocolInfo.BaseUri,
                 IsTokenIdReuse = protocolInfo.IsTokenIdReuse
@@ -89,7 +89,7 @@ namespace AElf.Contracts.NFT
             var nftProtocolInfo = new NFTProtocolInfo
             {
                 Symbol = input.Symbol,
-                MaxCount = tokenInfo.TotalSupply,
+                TotalSupply = tokenInfo.TotalSupply,
                 BaseUri = baseUri,
                 Creator = tokenInfo.Issuer,
                 IsBurnable = tokenInfo.IsBurnable,
@@ -107,7 +107,7 @@ namespace AElf.Contracts.NFT
                 IsBurnable = nftProtocolInfo.IsBurnable,
                 IssueChainId = nftProtocolInfo.IssueChainId,
                 ProtocolName = nftProtocolInfo.ProtocolName,
-                MaxCount = nftProtocolInfo.MaxCount,
+                TotalSupply = nftProtocolInfo.TotalSupply,
                 Metadata = nftProtocolInfo.Metadata,
                 BaseUri = nftProtocolInfo.BaseUri,
                 IsTokenIdReuse = isTokenIdReuse
