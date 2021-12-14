@@ -1,10 +1,16 @@
 using System.Collections.Generic;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFT
 {
     public partial class NFTContract
     {
+        public override NFTProtocolInfo GetNFTProtocolInfo(StringValue input)
+        {
+            return State.NftProtocolMap[input.Value];
+        }
+
         public override NFTInfo GetNFTInfo(GetNFTInfoInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);

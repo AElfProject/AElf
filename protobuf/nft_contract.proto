@@ -62,6 +62,9 @@ service NFTContract {
     rpc RemoveNFTType (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
 
+    rpc GetNFTProtocolInfo (google.protobuf.StringValue) returns (NFTProtocolInfo) {
+        option (aelf.is_view) = true;
+    }
     rpc GetNFTInfo (GetNFTInfoInput) returns (NFTInfo) {
         option (aelf.is_view) = true;
     }
