@@ -79,7 +79,6 @@ namespace AElf.Contracts.NFT
                 NftBaseUriMetadataKey,
                 AssembledNftsKey,
                 AssembledFtsKey,
-                NftTotalSupplyMetadataKey,
                 NftTokenIdReuseMetadataKey
             };
         }

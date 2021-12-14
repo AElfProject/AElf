@@ -27,7 +27,7 @@ namespace AElf.Contracts.NFT
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId,
                 TokenName = input.ProtocolName,
-                TotalSupply = ConverterBigIntValueToLong(input.TotalSupply.Value),
+                TotalSupply = input.TotalSupply,
                 ExternalInfo = tokenExternalInfo
             };
             State.TokenContract.Create.Send(tokenCreateInput);
@@ -76,7 +76,6 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException($"Token info {input.Symbol} not exists.");
             }
 
-            var maxCount = tokenInfo.ExternalInfo.Value[NftTotalSupplyMetadataKey];
             var baseUri = tokenInfo.ExternalInfo.Value[NftBaseUriMetadataKey];
             var isTokenIdReuse = bool.Parse(tokenInfo.ExternalInfo.Value[NftTokenIdReuseMetadataKey]);
             var nftTypeShortName = input.Symbol.Substring(2);
@@ -90,7 +89,7 @@ namespace AElf.Contracts.NFT
             var nftProtocolInfo = new NFTProtocolInfo
             {
                 Symbol = input.Symbol,
-                MaxCount = maxCount,
+                MaxCount = tokenInfo.TotalSupply,
                 BaseUri = baseUri,
                 Creator = tokenInfo.Issuer,
                 IsBurnable = tokenInfo.IsBurnable,
@@ -166,7 +165,6 @@ namespace AElf.Contracts.NFT
             // Add Uri to external info.
             tokenExternalInfo.Value.Add(NftBaseUriMetadataKey, input.BaseUri);
             tokenExternalInfo.Value.Add(NftTokenIdReuseMetadataKey, input.IsTokenIdReuse.ToString());
-            tokenExternalInfo.Value.Add(NftTotalSupplyMetadataKey, input.TotalSupply.Value);
             return tokenExternalInfo;
         }
     }
