@@ -72,6 +72,11 @@ namespace AElf.Contracts.NFT
             };
         }
 
+        public override MinterList GetMinterList(StringValue input)
+        {
+            return State.MinterListMap[input.Value];
+        }
+
         public override Hash CalculateTokenHash(CalculateTokenHashInput input)
         {
             return CalculateTokenHash(input.Symbol, input.TokenId);

@@ -83,6 +83,9 @@ service NFTContract {
     rpc GetAllowanceByTokenHash (GetAllowanceByTokenHashInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinterList (google.protobuf.StringValue) returns (MinterList) {
+        option (aelf.is_view) = true;
+    }
     rpc CalculateTokenHash (CalculateTokenHashInput) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
