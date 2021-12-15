@@ -146,7 +146,7 @@ namespace AElf.Contracts.NFT
                         From = Context.Sender,
                         To = Context.Self,
                         Symbol = symbol,
-                        Amount = ConverterBigIntValueToLong(amount)
+                        Amount = amount
                     });
                 }
             }
@@ -213,7 +213,7 @@ namespace AElf.Contracts.NFT
                     State.TokenContract.Transfer.Send(new MultiToken.TransferInput
                     {
                         Symbol = pair.Key,
-                        Amount = ConverterBigIntValueToLong(pair.Value),
+                        Amount = pair.Value,
                         To = Context.Sender
                     });
                 }
@@ -236,12 +236,10 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var nftInfo = GetNFTInfoByTokenHash(tokenHash);
-            Assert(nftInfo.Quantity == 1, "Do not support recast.");
+            Assert(nftInfo.Quantity == State.BalanceMap[tokenHash][Context.Sender],
+                "Do not support recast.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
-            Assert(
-                State.BalanceMap[tokenHash][Context.Sender] == 0 &
-                minterList.Value.Contains(Context.Sender),
-                "No permission.");
+            Assert(minterList.Value.Contains(Context.Sender), "No permission.");
             if (input.Alias != null)
             {
                 nftInfo.Alias = input.Alias;
@@ -325,9 +323,9 @@ namespace AElf.Contracts.NFT
             return new Empty();
         }
 
-        private Hash CalculateTokenHash(string symbol, BigIntValue tokenId)
+        private Hash CalculateTokenHash(string symbol, long tokenId)
         {
-            return HashHelper.ComputeFrom($"{symbol}{tokenId.Value}");
+            return HashHelper.ComputeFrom($"{symbol}{tokenId}");
         }
 
         public override Empty AddMinters(AddMintersInput input)
@@ -468,16 +466,6 @@ namespace AElf.Contracts.NFT
             });
             
             return tokenHash;
-        }
-
-        /// <summary>
-        /// If bit int value > long.MaxValue, return 0.
-        /// </summary>
-        /// <param name="bigIntValue"></param>
-        /// <returns></returns>
-        private long ConverterBigIntValueToLong(BigIntValue bigIntValue)
-        {
-            return bigIntValue > long.MaxValue ? 0 : long.Parse(bigIntValue.Value);
         }
     }
 }

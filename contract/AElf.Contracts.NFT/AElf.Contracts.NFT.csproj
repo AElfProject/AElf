@@ -62,7 +62,6 @@
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\nft_contract.proto">
             <Link>Protobuf\Proto\nft_contract.proto</Link>
-            <SystemContract>true</SystemContract>
         </ContractCode>
     </ItemGroup>
 </Project>

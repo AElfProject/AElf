@@ -36,6 +36,12 @@ namespace AElf.Contracts.MultiToken
             return tokenInfo;
         }
 
+        private void AssertNotNFTTokenSymbol(string symbol)
+        {
+            Assert(symbol.Length <= TokenContractConstants.SymbolMaxLength,
+                "NFT Token cannot transfer to other chains.");
+        }
+
         private void AssertValidSymbolAndAmount(string symbol, long amount)
         {
             Assert(!string.IsNullOrEmpty(symbol) && symbol.All(IsValidSymbolChar),

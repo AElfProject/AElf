@@ -218,6 +218,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+            AssertNotNFTTokenSymbol(input.Symbol);
             AssertValidMemo(input.Memo);
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
