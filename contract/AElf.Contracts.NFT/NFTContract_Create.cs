@@ -40,7 +40,8 @@ namespace AElf.Contracts.NFT
                 Creator = Context.Sender,
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
                 ProtocolName = input.ProtocolName,
-                IsTokenIdReuse = input.IsTokenIdReuse
+                IsTokenIdReuse = input.IsTokenIdReuse,
+                IssueChainId = input.IssueChainId
             };
             State.NftProtocolMap[symbol] = protocolInfo;
 
@@ -78,7 +79,7 @@ namespace AElf.Contracts.NFT
 
             var baseUri = tokenInfo.ExternalInfo.Value[NftBaseUriMetadataKey];
             var isTokenIdReuse = bool.Parse(tokenInfo.ExternalInfo.Value[NftTokenIdReuseMetadataKey]);
-            var nftTypeShortName = input.Symbol.Substring(2);
+            var nftTypeShortName = input.Symbol.Substring(0, 2);
             var nftTypeFullName = State.NFTTypeFullNameMap[nftTypeShortName];
             if (nftTypeFullName == null)
             {
