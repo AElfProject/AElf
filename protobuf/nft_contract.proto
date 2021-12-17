@@ -111,8 +111,6 @@ message CreateInput {
     aelf.Address creator = 5;
     // A flag indicating if this token is burnable.
     bool is_burnable = 6;
-    // A whitelist address list used to lock tokens.
-    repeated aelf.Address lock_white_list = 7;
     // The chain id of the token.
     int32 issue_chain_id = 8;
     // The metadata of the token.
