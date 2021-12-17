@@ -553,14 +553,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetNFTContractAddress(Address input)
-        {
-            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
-            State.NFTContractAddress.Value = input;
-            State.CreateTokenWhiteListMap[input] = true;
-            return new Empty();
-        }
-
         public override Empty ResetExternalInfo(ResetExternalInfoInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];

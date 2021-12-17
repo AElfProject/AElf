@@ -20,7 +20,7 @@ namespace AElf.Contracts.MultiToken
 
         private bool IsValidCreateSymbolChar(char character)
         {
-            if (State.NFTContractAddress.Value == Context.Sender)
+            if (State.CreateTokenWhiteListMap[Context.Sender])
             {
                 return character >= 'A' && character <= 'Z' || character >= '0' && character <= '9';
             }
@@ -165,11 +165,7 @@ namespace AElf.Contracts.MultiToken
                           && input.Symbol.Length > 0
                           && input.Decimals >= 0
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
-            if (Context.Sender == State.NFTContractAddress.Value)
-            {
-                isValid = isValid && input.Symbol.Length <= TokenContractConstants.NftSymbolMaxLength;
-            }
-            else
+            if (!State.CreateTokenWhiteListMap[Context.Sender])
             {
                 isValid = isValid && input.Symbol.Length <= TokenContractConstants.SymbolMaxLength;
             }

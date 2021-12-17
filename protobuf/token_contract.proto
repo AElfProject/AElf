@@ -127,10 +127,6 @@ service TokenContract {
     rpc InitializeAuthorizedController (google.protobuf.Empty) returns (google.protobuf.Empty){
     }
 
-    // The Parliament will have the authority to set NFT Contract Address.
-    rpc SetNFTContractAddress (aelf.Address) returns (google.protobuf.Empty){
-    }
-
     rpc ResetExternalInfo (ResetExternalInfoInput) returns (google.protobuf.Empty){
     }
     
