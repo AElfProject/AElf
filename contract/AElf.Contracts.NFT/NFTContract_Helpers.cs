@@ -45,27 +45,29 @@ namespace AElf.Contracts.NFT
 
         private void InitialNFTTypeNameMap()
         {
-            State.NFTTypeShortNameMap[NFTType.Any.ToString()] = "XX";
-            State.NFTTypeShortNameMap[NFTType.Art.ToString()] = "AR";
-            State.NFTTypeShortNameMap[NFTType.Music.ToString()] = "MU";
-            State.NFTTypeShortNameMap[NFTType.DomainNames.ToString()] = "DN";
-            State.NFTTypeShortNameMap[NFTType.VirtualWorlds.ToString()] = "VW";
-            State.NFTTypeShortNameMap[NFTType.TradingCards.ToString()] = "TC";
-            State.NFTTypeShortNameMap[NFTType.Collectables.ToString()] = "CO";
-            State.NFTTypeShortNameMap[NFTType.Sports.ToString()] = "SP";
-            State.NFTTypeShortNameMap[NFTType.Utility.ToString()] = "UT";
-            State.NFTTypeShortNameMap[NFTType.Badges.ToString()] = "BA";
+            if (State.NFTTypes.Value != null)
+            {
+                return;
+            }
 
-            State.NFTTypeFullNameMap["XX"] = NFTType.Any.ToString();
-            State.NFTTypeFullNameMap["AR"] = NFTType.Art.ToString();
-            State.NFTTypeFullNameMap["MU"] = NFTType.Music.ToString();
-            State.NFTTypeFullNameMap["DN"] = NFTType.DomainNames.ToString();
-            State.NFTTypeFullNameMap["VW"] = NFTType.VirtualWorlds.ToString();
-            State.NFTTypeFullNameMap["TC"] = NFTType.TradingCards.ToString();
-            State.NFTTypeFullNameMap["CO"] = NFTType.Collectables.ToString();
-            State.NFTTypeFullNameMap["SP"] = NFTType.Sports.ToString();
-            State.NFTTypeFullNameMap["UT"] = NFTType.Utility.ToString();
-            State.NFTTypeFullNameMap["BA"] = NFTType.Badges.ToString();
+            var nftTypes = new NFTTypes();
+            nftTypes.Value.Add("XX", NFTType.Any.ToString());
+            nftTypes.Value.Add("AR", NFTType.Art.ToString());
+            nftTypes.Value.Add("MU", NFTType.Music.ToString());
+            nftTypes.Value.Add("DN", NFTType.DomainNames.ToString());
+            nftTypes.Value.Add("VW", NFTType.VirtualWorlds.ToString());
+            nftTypes.Value.Add("TC", NFTType.TradingCards.ToString());
+            nftTypes.Value.Add("CO", NFTType.Collectables.ToString());
+            nftTypes.Value.Add("SP", NFTType.Sports.ToString());
+            nftTypes.Value.Add("UT", NFTType.Utility.ToString());
+            nftTypes.Value.Add("BA", NFTType.Badges.ToString());
+            State.NFTTypes.Value = nftTypes;
+
+            foreach (var pair in nftTypes.Value)
+            {
+                State.NFTTypeShortNameMap[pair.Value] = pair.Key;
+                State.NFTTypeFullNameMap[pair.Key] = pair.Value;
+            }
         }
 
         private long GenerateSymbolNumber()

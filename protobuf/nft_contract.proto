@@ -89,8 +89,17 @@ service NFTContract {
     rpc CalculateTokenHash (CalculateTokenHashInput) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
+    rpc GetNFTTypes (google.protobuf.Empty) returns (NFTTypes) {
+        option (aelf.is_view) = true;
+    }
 }
 
+// Structs
+message NFTTypes {
+    map<string, string> value = 1;
+}
+
+// Inputs
 message CreateInput {
     // The type of this nft protocol.
     NFTType nft_type = 1;

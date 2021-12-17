@@ -67,6 +67,7 @@ namespace AElf.Contracts.NFT
         public override Empty CrossChainCreate(CrossChainCreateInput input)
         {
             MakeSureTokenContractAddressSet();
+            InitialNFTTypeNameMap();
             Assert(State.NftProtocolMap[input.Symbol] == null, $"Protocol {input.Symbol} already created.");
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
@@ -124,6 +125,9 @@ namespace AElf.Contracts.NFT
             Assert(State.NFTTypeShortNameMap[input.FullName] == null, $"Full name {input.FullName} already exists.");
             State.NFTTypeFullNameMap[input.ShortName] = input.FullName;
             State.NFTTypeShortNameMap[input.FullName] = input.ShortName;
+            var nftTypes = State.NFTTypes.Value;
+            nftTypes.Value.Add(input.ShortName, input.FullName);
+            State.NFTTypes.Value = nftTypes;
             return new Empty();
         }
 
@@ -134,6 +138,9 @@ namespace AElf.Contracts.NFT
             var fullName = State.NFTTypeFullNameMap[input.Value];
             State.NFTTypeFullNameMap.Remove(input.Value);
             State.NFTTypeShortNameMap.Remove(fullName);
+            var nftTypes = State.NFTTypes.Value;
+            nftTypes.Value.Remove(input.Value);
+            State.NFTTypes.Value = nftTypes;
             return new Empty();
         }
 

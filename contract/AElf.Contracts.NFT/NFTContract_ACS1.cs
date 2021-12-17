@@ -9,18 +9,23 @@ namespace AElf.Contracts.NFT
 
         public override MethodFees GetMethodFee(StringValue input)
         {
-            return new MethodFees
+            if (input.Value == nameof(Create))
             {
-                MethodName = input.Value,
-                Fees =
+                return new MethodFees
                 {
-                    new MethodFee
+                    MethodName = input.Value,
+                    Fees =
                     {
-                        Symbol = Context.Variables.NativeSymbol,
-                        BasicFee = 10000_00000000
+                        new MethodFee
+                        {
+                            Symbol = Context.Variables.NativeSymbol,
+                            BasicFee = 100_00000000
+                        }
                     }
-                }
-            };
+                };
+            }
+
+            return new MethodFees();
         }
 
         public override AuthorityInfo GetMethodFeeController(Empty input)

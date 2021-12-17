@@ -82,6 +82,11 @@ namespace AElf.Contracts.NFT
             return CalculateTokenHash(input.Symbol, input.TokenId);
         }
 
+        public override NFTTypes GetNFTTypes(Empty input)
+        {
+            return State.NFTTypes.Value;
+        }
+
         private List<string> GetNftMetadataReservedKeys()
         {
             return new List<string>

@@ -31,5 +31,7 @@ namespace AElf.Contracts.NFT
         public MappedState<string, string> NFTTypeFullNameMap { get; set; }
 
         public SingletonState<Address> ParliamentDefaultAddress { get; set; }
+
+        public SingletonState<NFTTypes> NFTTypes { get; set; }
     }
 }
