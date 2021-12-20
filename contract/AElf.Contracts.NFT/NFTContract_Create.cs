@@ -41,7 +41,9 @@ namespace AElf.Contracts.NFT
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
                 ProtocolName = input.ProtocolName,
                 IsTokenIdReuse = input.IsTokenIdReuse,
-                IssueChainId = input.IssueChainId
+                IssueChainId = input.IssueChainId,
+                IsBurnable = input.IsBurnable,
+                NftType = input.NftType.ToString()
             };
             State.NftProtocolMap[symbol] = protocolInfo;
 
@@ -121,7 +123,7 @@ namespace AElf.Contracts.NFT
         {
             AssertSenderIsParliamentDefaultAddress();
             InitialNFTTypeNameMap();
-            var fullName = input.FullName.ToUpper();
+            var fullName = input.FullName;
             Assert(input.ShortName.Length == 2, "Incorrect short name.");
             Assert(State.NFTTypeFullNameMap[input.ShortName] == null, $"Short name {input.ShortName} already exists.");
             Assert(State.NFTTypeShortNameMap[fullName] == null, $"Full name {fullName} already exists.");
