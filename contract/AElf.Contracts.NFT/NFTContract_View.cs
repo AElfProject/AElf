@@ -84,7 +84,7 @@ namespace AElf.Contracts.NFT
 
         public override NFTTypes GetNFTTypes(Empty input)
         {
-            return State.NFTTypes.Value;
+            return State.NFTTypes.Value ?? InitialNFTTypeNameMap();
         }
 
         private List<string> GetNftMetadataReservedKeys()

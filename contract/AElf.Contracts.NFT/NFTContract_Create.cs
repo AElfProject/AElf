@@ -125,6 +125,7 @@ namespace AElf.Contracts.NFT
             Assert(State.NFTTypeShortNameMap[input.FullName] == null, $"Full name {input.FullName} already exists.");
             State.NFTTypeFullNameMap[input.ShortName] = input.FullName;
             State.NFTTypeShortNameMap[input.FullName] = input.ShortName;
+            InitialNFTTypeNameMap();
             var nftTypes = State.NFTTypes.Value;
             nftTypes.Value.Add(input.ShortName, input.FullName);
             State.NFTTypes.Value = nftTypes;

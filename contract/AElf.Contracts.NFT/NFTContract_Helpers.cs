@@ -43,11 +43,11 @@ namespace AElf.Contracts.NFT
             return $"{shortName}{randomNumber}";
         }
 
-        private void InitialNFTTypeNameMap()
+        private NFTTypes InitialNFTTypeNameMap()
         {
             if (State.NFTTypes.Value != null)
             {
-                return;
+                return State.NFTTypes.Value;
             }
 
             var nftTypes = new NFTTypes();
@@ -68,6 +68,8 @@ namespace AElf.Contracts.NFT
                 State.NFTTypeShortNameMap[pair.Value] = pair.Key;
                 State.NFTTypeFullNameMap[pair.Key] = pair.Value;
             }
+
+            return nftTypes;
         }
 
         private long GenerateSymbolNumber()
