@@ -121,13 +121,14 @@ namespace AElf.Contracts.NFT
         {
             AssertSenderIsParliamentDefaultAddress();
             InitialNFTTypeNameMap();
+            var fullName = input.FullName.ToUpper();
             Assert(input.ShortName.Length == 2, "Incorrect short name.");
             Assert(State.NFTTypeFullNameMap[input.ShortName] == null, $"Short name {input.ShortName} already exists.");
-            Assert(State.NFTTypeShortNameMap[input.FullName] == null, $"Full name {input.FullName} already exists.");
-            State.NFTTypeFullNameMap[input.ShortName] = input.FullName;
-            State.NFTTypeShortNameMap[input.FullName] = input.ShortName;
+            Assert(State.NFTTypeShortNameMap[fullName] == null, $"Full name {fullName} already exists.");
+            State.NFTTypeFullNameMap[input.ShortName] = fullName;
+            State.NFTTypeShortNameMap[fullName] = input.ShortName;
             var nftTypes = State.NFTTypes.Value;
-            nftTypes.Value.Add(input.ShortName, input.FullName);
+            nftTypes.Value.Add(input.ShortName, fullName);
             State.NFTTypes.Value = nftTypes;
             return new Empty();
         }
@@ -137,6 +138,7 @@ namespace AElf.Contracts.NFT
             AssertSenderIsParliamentDefaultAddress();
             InitialNFTTypeNameMap();
             Assert(input.Value.Length == 2, "Incorrect short name.");
+            Assert(State.NFTTypeFullNameMap[input.Value] != null, $"Short name {input.Value} does not exist.");
             var fullName = State.NFTTypeFullNameMap[input.Value];
             State.NFTTypeFullNameMap.Remove(input.Value);
             State.NFTTypeShortNameMap.Remove(fullName);

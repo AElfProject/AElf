@@ -51,16 +51,16 @@ namespace AElf.Contracts.NFT
             }
 
             var nftTypes = new NFTTypes();
-            nftTypes.Value.Add("XX", NFTType.Any.ToString());
-            nftTypes.Value.Add("AR", NFTType.Art.ToString());
-            nftTypes.Value.Add("MU", NFTType.Music.ToString());
-            nftTypes.Value.Add("DN", NFTType.DomainNames.ToString());
-            nftTypes.Value.Add("VW", NFTType.VirtualWorlds.ToString());
-            nftTypes.Value.Add("TC", NFTType.TradingCards.ToString());
-            nftTypes.Value.Add("CO", NFTType.Collectables.ToString());
-            nftTypes.Value.Add("SP", NFTType.Sports.ToString());
-            nftTypes.Value.Add("UT", NFTType.Utility.ToString());
-            nftTypes.Value.Add("BA", NFTType.Badges.ToString());
+            nftTypes.Value.Add("XX", NFTType.Any.ToString().ToUpper());
+            nftTypes.Value.Add("AR", NFTType.Art.ToString().ToUpper());
+            nftTypes.Value.Add("MU", NFTType.Music.ToString().ToUpper());
+            nftTypes.Value.Add("DN", NFTType.DomainNames.ToString().ToUpper());
+            nftTypes.Value.Add("VW", NFTType.VirtualWorlds.ToString().ToUpper());
+            nftTypes.Value.Add("TC", NFTType.TradingCards.ToString().ToUpper());
+            nftTypes.Value.Add("CO", NFTType.Collectables.ToString().ToUpper());
+            nftTypes.Value.Add("SP", NFTType.Sports.ToString().ToUpper());
+            nftTypes.Value.Add("UT", NFTType.Utility.ToString().ToUpper());
+            nftTypes.Value.Add("BA", NFTType.Badges.ToString().ToUpper());
             State.NFTTypes.Value = nftTypes;
 
             foreach (var pair in nftTypes.Value)
