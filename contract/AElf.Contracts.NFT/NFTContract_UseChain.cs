@@ -404,6 +404,9 @@ namespace AElf.Contracts.NFT
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Incorrect chain.");
 
             var quantity = input.Quantity > 0 ? input.Quantity : 1;
+            protocolInfo.Supply = protocolInfo.Supply.Add(quantity);
+            Assert(protocolInfo.Supply <= protocolInfo.TotalSupply, "Total supply exceeded.");
+            State.NftProtocolMap[input.Symbol] = protocolInfo;
 
             // Inherit from protocol info.
             var nftMetadata = protocolInfo.Metadata;
@@ -446,9 +449,6 @@ namespace AElf.Contracts.NFT
             var owner = input.Owner ?? Context.Sender;
             State.BalanceMap[tokenHash][owner] = State.BalanceMap[tokenHash][owner].Add(quantity);
 
-            protocolInfo.Supply = protocolInfo.Supply.Add(quantity);
-            State.NftProtocolMap[input.Symbol] = protocolInfo;
-            
             Context.Fire(new NFTMinted
             {
                 Symbol = input.Symbol,
