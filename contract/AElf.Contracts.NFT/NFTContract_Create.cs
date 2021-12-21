@@ -37,7 +37,7 @@ namespace AElf.Contracts.NFT
                 Symbol = symbol,
                 BaseUri = input.BaseUri,
                 TotalSupply = tokenCreateInput.TotalSupply,
-                Creator = Context.Sender,
+                Creator = input.Creator ?? Context.Sender,
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
                 ProtocolName = input.ProtocolName,
                 IsTokenIdReuse = input.IsTokenIdReuse,
