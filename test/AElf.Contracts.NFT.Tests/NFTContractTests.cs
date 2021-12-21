@@ -38,7 +38,7 @@ namespace AElf.Contracts.NFT
                         {"Description", "Stands for the human race."}
                     }
                 },
-                NftType = NFTType.VirtualWorlds,
+                NftType = NFTType.VirtualWorlds.ToString(),
                 ProtocolName = "HUMAN",
                 TotalSupply = 1_000_000_000 // One billion
             });

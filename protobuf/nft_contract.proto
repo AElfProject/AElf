@@ -102,7 +102,7 @@ message NFTTypes {
 // Inputs
 message CreateInput {
     // The type of this nft protocol.
-    NFTType nft_type = 1;
+    string nft_type = 1;
     // The name of this nft protocol.
     string protocol_name = 2;
     // The total supply of the token.

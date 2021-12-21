@@ -25,18 +25,18 @@ namespace AElf.Contracts.NFT
             }
         }
 
-        private string GetSymbol(NFTType nftType)
+        private string GetSymbol(string nftType)
         {
             var randomNumber = GenerateSymbolNumber();
             State.IsCreatedMap[randomNumber] = true;
-            var shortName = State.NFTTypeShortNameMap[nftType.ToString()];
+            var shortName = State.NFTTypeShortNameMap[nftType];
             if (shortName == null)
             {
                 InitialNFTTypeNameMap();
-                shortName = State.NFTTypeShortNameMap[nftType.ToString()];
+                shortName = State.NFTTypeShortNameMap[nftType];
                 if (shortName == null)
                 {
-                    throw new AssertionException($"Short name of NFT Type {nftType.ToString()} not found.");
+                    throw new AssertionException($"Short name of NFT Type {nftType} not found.");
                 }
             }
 

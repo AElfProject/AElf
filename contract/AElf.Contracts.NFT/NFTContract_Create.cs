@@ -23,7 +23,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 Decimals = 0, // Fixed
-                Issuer = Context.Sender,
+                Issuer = input.Creator ?? Context.Sender,
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId,
                 TokenName = input.ProtocolName,
@@ -37,12 +37,12 @@ namespace AElf.Contracts.NFT
                 Symbol = symbol,
                 BaseUri = input.BaseUri,
                 TotalSupply = tokenCreateInput.TotalSupply,
-                Creator = input.Creator ?? Context.Sender,
+                Creator = tokenCreateInput.Issuer,
                 Metadata = new Metadata {Value = {tokenExternalInfo.Value}},
-                ProtocolName = input.ProtocolName,
+                ProtocolName = tokenCreateInput.TokenName,
                 IsTokenIdReuse = input.IsTokenIdReuse,
-                IssueChainId = input.IssueChainId,
-                IsBurnable = input.IsBurnable,
+                IssueChainId = tokenCreateInput.IssueChainId,
+                IsBurnable = tokenCreateInput.IsBurnable,
                 NftType = input.NftType.ToString()
             };
             State.NftProtocolMap[symbol] = protocolInfo;

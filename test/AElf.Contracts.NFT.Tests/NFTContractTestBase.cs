@@ -94,7 +94,7 @@ namespace AElf.Contracts.NFT
         {
             var defaultParliament = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalId = await CreateProposalAsync(TokenContractAddress,
-                defaultParliament, nameof(TokenContractStub.SetNFTContractAddress),
+                defaultParliament, nameof(TokenContractStub.AddAddressToCreateTokenWhiteList),
                 NFTContractAddress);
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
