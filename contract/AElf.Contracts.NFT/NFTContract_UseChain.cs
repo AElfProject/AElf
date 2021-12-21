@@ -73,7 +73,7 @@ namespace AElf.Contracts.NFT
                 $"NFT Protocol {nftProtocolInfo.ProtocolName} of symbol {nftProtocolInfo.Symbol} is not burnable.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(
-                State.BalanceMap[tokenHash][Context.Sender] > input.Amount &&
+                State.BalanceMap[tokenHash][Context.Sender] >= input.Amount &&
                 minterList.Value.Contains(Context.Sender),
                 "No permission.");
             nftProtocolInfo.Supply = nftProtocolInfo.Supply.Sub(input.Amount);
