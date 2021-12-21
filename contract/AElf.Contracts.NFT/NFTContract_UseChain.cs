@@ -444,7 +444,7 @@ namespace AElf.Contracts.NFT
 
             State.NftInfoMap[tokenHash] = nftInfo;
             var owner = input.Owner ?? Context.Sender;
-            State.BalanceMap[tokenHash][owner] = quantity;
+            State.BalanceMap[tokenHash][owner] = State.BalanceMap[tokenHash][owner].Add(quantity);
 
             protocolInfo.Supply = protocolInfo.Supply.Add(quantity);
             State.NftProtocolMap[input.Symbol] = protocolInfo;
