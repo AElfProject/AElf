@@ -446,7 +446,7 @@ namespace AElf.Contracts.NFT
             var owner = input.Owner ?? Context.Sender;
             State.BalanceMap[tokenHash][owner] = quantity;
 
-            protocolInfo.TotalSupply = protocolInfo.TotalSupply.Add(quantity);
+            protocolInfo.Supply = protocolInfo.Supply.Add(quantity);
             State.NftProtocolMap[input.Symbol] = protocolInfo;
             
             Context.Fire(new NFTMinted
