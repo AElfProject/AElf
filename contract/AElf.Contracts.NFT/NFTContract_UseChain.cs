@@ -76,7 +76,7 @@ namespace AElf.Contracts.NFT
                 State.BalanceMap[tokenHash][Context.Sender] > input.Amount &&
                 minterList.Value.Contains(Context.Sender),
                 "No permission.");
-            nftProtocolInfo.TotalSupply = nftProtocolInfo.TotalSupply.Sub(input.Amount);
+            nftProtocolInfo.Supply = nftProtocolInfo.Supply.Sub(input.Amount);
             nftInfo.Quantity = nftInfo.Quantity.Sub(input.Amount);
 
             State.NftProtocolMap[input.Symbol] = nftProtocolInfo;
@@ -391,7 +391,7 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException($"Invalid NFT Token symbol: {input.Symbol}");
             }
 
-            var tokenId = input.TokenId == 0 ? protocolInfo.TotalSupply.Add(1) : input.TokenId;
+            var tokenId = input.TokenId == 0 ? protocolInfo.Supply.Add(1) : input.TokenId;
             var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
             var nftInfo = State.NftInfoMap[tokenHash];
             if (!protocolInfo.IsTokenIdReuse)
