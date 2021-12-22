@@ -39,7 +39,7 @@ namespace AElf.Contracts.NFT
         {
             if (amount <= 1)
             {
-                amount = 1;
+                return;
             }
 
             Assert(State.BalanceMap[tokenHash][from] > 0, "Insufficient balance.");
@@ -117,7 +117,7 @@ namespace AElf.Contracts.NFT
                     var nftInfo = GetNFTInfoByTokenHash(nftHash);
                     Assert(State.BalanceMap[nftHash][Context.Sender] > pair.Value,
                         $"Insufficient balance of {nftInfo.Symbol}{nftInfo.TokenId}.");
-                    DoTransfer(nftHash, Context.Sender, Context.Self, pair.Value <= 1 ? 1 : pair.Value);
+                    DoTransfer(nftHash, Context.Sender, Context.Self, pair.Value);
                 }
             }
 
