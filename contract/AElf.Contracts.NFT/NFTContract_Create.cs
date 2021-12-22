@@ -75,7 +75,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = input.Symbol
             });
-            if (tokenInfo == null)
+            if (string.IsNullOrEmpty(tokenInfo.Symbol))
             {
                 throw new AssertionException($"Token info {input.Symbol} not exists.");
             }
