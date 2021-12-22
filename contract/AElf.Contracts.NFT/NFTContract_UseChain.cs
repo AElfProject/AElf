@@ -290,7 +290,6 @@ namespace AElf.Contracts.NFT
         public override Empty Approve(ApproveInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            Assert(State.BalanceMap[tokenHash][Context.Sender] >= input.Amount, "Insufficient amount.");
             State.AllowanceMap[tokenHash][Context.Sender][input.Spender] = input.Amount;
             Context.Fire(new Approved
             {
