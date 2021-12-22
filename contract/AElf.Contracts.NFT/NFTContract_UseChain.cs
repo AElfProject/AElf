@@ -50,8 +50,10 @@ namespace AElf.Contracts.NFT
         public override Empty TransferFrom(TransferFromInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            Assert(State.AllowanceMap[tokenHash][input.From][Context.Sender] >= input.Amount, "Not approved.");
+            var allowance = State.AllowanceMap[tokenHash][input.From][Context.Sender];
+            Assert(allowance >= input.Amount, "Not approved.");
             DoTransfer(tokenHash, input.From, input.To, input.Amount);
+            State.AllowanceMap[tokenHash][input.From][Context.Sender] = allowance.Sub(input.Amount);
             Context.Fire(new Transferred
             {
                 From = input.From,
