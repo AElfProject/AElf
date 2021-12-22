@@ -107,6 +107,14 @@ namespace AElf.Contracts.NFT
                 nftInfo.Creator.ShouldBe(DefaultAddress);
                 nftInfo.Minters.ShouldContain(MinterAddress);
             }
+
+            {
+                var protocolInfo = await NFTContractStub.GetNFTProtocolInfo.CallAsync(new StringValue
+                {
+                    Value = symbol
+                });
+                protocolInfo.Metadata.Value.ShouldNotContainKey("Special Property");
+            }
         }
 
         [Fact(Skip = "Dup in TransferTest")]

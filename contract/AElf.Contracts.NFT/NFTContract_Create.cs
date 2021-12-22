@@ -43,7 +43,7 @@ namespace AElf.Contracts.NFT
                 IsTokenIdReuse = input.IsTokenIdReuse,
                 IssueChainId = tokenCreateInput.IssueChainId,
                 IsBurnable = tokenCreateInput.IsBurnable,
-                NftType = input.NftType.ToString()
+                NftType = input.NftType
             };
             State.NftProtocolMap[symbol] = protocolInfo;
 

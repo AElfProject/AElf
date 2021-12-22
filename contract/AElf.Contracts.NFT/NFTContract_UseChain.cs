@@ -76,11 +76,12 @@ namespace AElf.Contracts.NFT
                 State.BalanceMap[tokenHash][Context.Sender] >= input.Amount &&
                 minterList.Value.Contains(Context.Sender),
                 "No permission.");
+            State.BalanceMap[tokenHash][Context.Sender] = State.BalanceMap[tokenHash][Context.Sender].Sub(input.Amount);
             nftProtocolInfo.Supply = nftProtocolInfo.Supply.Sub(input.Amount);
             nftInfo.Quantity = nftInfo.Quantity.Sub(input.Amount);
 
             State.NftProtocolMap[input.Symbol] = nftProtocolInfo;
-            if (nftInfo.Quantity <= 0)
+            if (nftInfo.Quantity == 0)
             {
                 nftInfo.IsBurned = true;
             }
@@ -409,7 +410,7 @@ namespace AElf.Contracts.NFT
             State.NftProtocolMap[input.Symbol] = protocolInfo;
 
             // Inherit from protocol info.
-            var nftMetadata = protocolInfo.Metadata;
+            var nftMetadata = protocolInfo.Metadata.Clone();
             foreach (var pair in input.Metadata.Value)
             {
                 if (!nftMetadata.Value.ContainsKey(pair.Key))
