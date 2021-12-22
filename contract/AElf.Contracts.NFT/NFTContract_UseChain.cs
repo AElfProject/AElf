@@ -347,15 +347,11 @@ namespace AElf.Contracts.NFT
             return new Empty();
         }
 
-        public override Empty RemoveMiners(RemoveMinersInput input)
+        public override Empty RemoveMinters(RemoveMintersInput input)
         {
             var protocolInfo = State.NftProtocolMap[input.Symbol];
             Assert(Context.Sender == protocolInfo.Creator, "No permission.");
             var minterList = State.MinterListMap[protocolInfo.Symbol];
-            if (minterList == null)
-            {
-                throw new AssertionException("Minter list is empty.");
-            }
 
             foreach (var minter in input.MinterList.Value)
             {

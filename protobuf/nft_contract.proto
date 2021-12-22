@@ -54,7 +54,7 @@ service NFTContract {
 
     rpc AddMinters (AddMintersInput) returns (google.protobuf.Empty) {
     }
-    rpc RemoveMiners (RemoveMinersInput) returns (google.protobuf.Empty) {
+    rpc RemoveMinters (RemoveMintersInput) returns (google.protobuf.Empty) {
     }
     
     rpc AddNFTType (AddNFTTypeInput) returns (google.protobuf.Empty) {
@@ -308,7 +308,7 @@ message AddMintersInput {
     string symbol = 2;
 }
 
-message RemoveMinersInput {
+message RemoveMintersInput {
     MinterList minter_list = 1;
     string symbol = 2;
 }
