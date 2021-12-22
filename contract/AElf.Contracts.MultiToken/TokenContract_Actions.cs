@@ -373,8 +373,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
-            State.Allowances[Context.Sender][input.Spender][input.Symbol] =
-                State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
+            State.Allowances[Context.Sender][input.Spender][input.Symbol] = input.Amount;
             Context.Fire(new Approved()
             {
                 Owner = Context.Sender,
