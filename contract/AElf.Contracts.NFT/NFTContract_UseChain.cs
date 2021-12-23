@@ -35,6 +35,15 @@ namespace AElf.Contracts.NFT
             return new Empty();
         }
 
+        /// <summary>
+        /// Throw Assertion Exception if amount is negative or balance insufficient.
+        /// Do nothing if amount is 0 or balance of from address is 0.
+        /// </summary>
+        /// <param name="tokenHash"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="amount"></param>
+        /// <exception cref="AssertionException"></exception>
         private void DoTransfer(Hash tokenHash, Address from, Address to, long amount)
         {
             if (amount < 0)
@@ -42,12 +51,12 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException("Invalid transfer amount.");
             }
 
-            if (amount == 0)
+            if (amount == 0 || State.BalanceMap[tokenHash][from] == 0)
             {
                 return;
             }
 
-            Assert(State.BalanceMap[tokenHash][from] > 0, "Insufficient balance.");
+            Assert(State.BalanceMap[tokenHash][from] >= amount, "Insufficient balance.");
             State.BalanceMap[tokenHash][from] = State.BalanceMap[tokenHash][from].Sub(amount);
             State.BalanceMap[tokenHash][to] = State.BalanceMap[tokenHash][to].Add(amount);
         }
