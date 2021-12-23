@@ -417,7 +417,8 @@ namespace AElf.Contracts.NFT
 
             var quantity = input.Quantity > 0 ? input.Quantity : 1;
             protocolInfo.Supply = protocolInfo.Supply.Add(quantity);
-            Assert(protocolInfo.Supply <= protocolInfo.TotalSupply, "Total supply exceeded.");
+            protocolInfo.Issued = protocolInfo.Issued.Add(quantity);
+            Assert(protocolInfo.Issued <= protocolInfo.TotalSupply, "Total supply exceeded.");
             State.NftProtocolMap[input.Symbol] = protocolInfo;
 
             // Inherit from protocol info.

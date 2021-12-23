@@ -32,6 +32,11 @@ namespace AElf.Contracts.NFT
             };
             State.TokenContract.Create.Send(tokenCreateInput);
 
+            State.MinterListMap[symbol] = new MinterList
+            {
+                Value = {input.Creator}
+            };
+
             var protocolInfo = new NFTProtocolInfo
             {
                 Symbol = symbol,
@@ -104,6 +109,12 @@ namespace AElf.Contracts.NFT
                 NftType = nftTypeFullName
             };
             State.NftProtocolMap[input.Symbol] = nftProtocolInfo;
+
+            State.MinterListMap[input.Symbol] = new MinterList
+            {
+                Value = {nftProtocolInfo.Creator}
+            };
+
             Context.Fire(new NFTProtocolCreated
             {
                 Symbol = input.Symbol,

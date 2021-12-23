@@ -257,6 +257,7 @@ message NFTProtocolInfo {
     string protocol_name = 10;
     // Is token id can be reused.
     bool is_token_id_reuse = 11;
+    int64 issued = 12;
 }
 
 message NFTInfo {
