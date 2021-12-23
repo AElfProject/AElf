@@ -37,7 +37,12 @@ namespace AElf.Contracts.NFT
 
         private void DoTransfer(Hash tokenHash, Address from, Address to, long amount)
         {
-            if (amount <= 1)
+            if (amount < 0)
+            {
+                throw new AssertionException("Invalid transfer amount.");
+            }
+
+            if (amount == 0)
             {
                 return;
             }
