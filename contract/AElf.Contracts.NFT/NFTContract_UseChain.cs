@@ -83,7 +83,7 @@ namespace AElf.Contracts.NFT
             nftInfo.Quantity = nftInfo.Quantity.Sub(input.Amount);
 
             State.NftProtocolMap[input.Symbol] = nftProtocolInfo;
-            if (nftInfo.Quantity == 0)
+            if (nftInfo.Quantity == 0 && !nftProtocolInfo.IsTokenIdReuse)
             {
                 nftInfo.IsBurned = true;
             }
