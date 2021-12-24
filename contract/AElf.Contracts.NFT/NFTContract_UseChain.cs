@@ -64,10 +64,16 @@ namespace AElf.Contracts.NFT
         public override Empty TransferFrom(TransferFromInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var allowance = State.AllowanceMap[tokenHash][input.From][Context.Sender];
-            Assert(allowance >= input.Amount, "Not approved.");
+            var operatorList = State.OperatorMap[input.Symbol][input.From];
+            var isOperator = operatorList?.Value.Contains(Context.Sender) ?? false;
+            if (!isOperator)
+            {
+                var allowance = State.AllowanceMap[tokenHash][input.From][Context.Sender];
+                Assert(allowance >= input.Amount, "Not approved.");
+                State.AllowanceMap[tokenHash][input.From][Context.Sender] = allowance.Sub(input.Amount);
+            }
+
             DoTransfer(tokenHash, input.From, input.To, input.Amount);
-            State.AllowanceMap[tokenHash][input.From][Context.Sender] = allowance.Sub(input.Amount);
             Context.Fire(new Transferred
             {
                 From = input.From,
@@ -246,6 +252,16 @@ namespace AElf.Contracts.NFT
                 DisassembledFts = assembledFts ?? new AssembledFts()
             });
 
+            return new Empty();
+        }
+
+        public override Empty ApproveProtocol(ApproveProtocolInput input)
+        {
+            Assert(State.NftProtocolMap[input.Symbol] != null, $"Protocol {input.Symbol} not exists.");
+            var operatorList = State.OperatorMap[input.Symbol][Context.Sender] ?? new AddressList();
+            Assert(!operatorList.Value.Contains(input.Operator), $"Already approved for {input.Operator}");
+            operatorList.Value.Add(input.Operator);
+            State.OperatorMap[input.Symbol][Context.Sender] = operatorList;
             return new Empty();
         }
 

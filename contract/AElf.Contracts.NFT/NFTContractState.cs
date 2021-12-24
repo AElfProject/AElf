@@ -13,6 +13,7 @@ namespace AElf.Contracts.NFT
         /// Symbol -> Addresses have permission to mint this token
         /// </summary>
         public MappedState<string, MinterList> MinterListMap { get; set; }
+
         public MappedState<Hash, NFTInfo> NftInfoMap { get; set; }
 
         /// <summary>
@@ -37,5 +38,10 @@ namespace AElf.Contracts.NFT
         public SingletonState<Address> ParliamentDefaultAddress { get; set; }
 
         public SingletonState<NFTTypes> NFTTypes { get; set; }
+
+        /// <summary>
+        /// Symbol (Protocol) -> Owner Address -> Operator Address List
+        /// </summary>
+        public MappedState<string, Address, AddressList> OperatorMap { get; set; }
     }
 }

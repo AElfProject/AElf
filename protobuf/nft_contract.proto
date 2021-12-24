@@ -39,6 +39,9 @@ service NFTContract {
     // De-approve.
     rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
+    // Approve or de-approve another address as the operator of all NFTs of a certain protocol.
+    rpc ApproveProtocol (ApproveProtocolInput) returns (google.protobuf.Empty) {
+    }
     // Destroy nfts.
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
@@ -90,6 +93,9 @@ service NFTContract {
         option (aelf.is_view) = true;
     }
     rpc GetNFTTypes (google.protobuf.Empty) returns (NFTTypes) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOperatorList (GetOperatorListInput) returns (AddressList) {
         option (aelf.is_view) = true;
     }
 }
@@ -154,6 +160,21 @@ message UnApproveInput {
     string symbol = 2;
     int64 token_id = 3;
     int64 amount = 4;
+}
+
+message ApproveProtocolInput {
+    aelf.Address operator = 1;
+    string symbol = 2;
+    bool approved = 3;
+}
+
+message AddressList {
+    repeated aelf.Address value = 1;
+}
+
+message GetOperatorListInput {
+    string symbol = 1;
+    aelf.Address owner = 2;
 }
 
 message BurnInput {

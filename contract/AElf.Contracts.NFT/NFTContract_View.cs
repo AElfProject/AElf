@@ -88,6 +88,11 @@ namespace AElf.Contracts.NFT
             return State.NFTTypes.Value ?? InitialNFTTypeNameMap();
         }
 
+        public override AddressList GetOperatorList(GetOperatorListInput input)
+        {
+            return State.OperatorMap[input.Symbol][input.Owner];
+        }
+
         private List<string> GetNftMetadataReservedKeys()
         {
             return new List<string>
