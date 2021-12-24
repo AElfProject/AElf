@@ -277,11 +277,11 @@ namespace AElf.Contracts.NFT
         public override Empty Recast(RecastInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
+            Assert(minterList.Value.Contains(Context.Sender), "No permission.");
             var nftInfo = GetNFTInfoByTokenHash(tokenHash);
             Assert(nftInfo.Quantity != 0 && nftInfo.Quantity == State.BalanceMap[tokenHash][Context.Sender],
                 "Do not support recast.");
-            var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
-            Assert(minterList.Value.Contains(Context.Sender), "No permission.");
             if (input.Alias != null)
             {
                 nftInfo.Alias = input.Alias;
