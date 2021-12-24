@@ -20,6 +20,7 @@ namespace AElf.Contracts.NFT
         public override NFTInfo GetNFTInfoByTokenHash(Hash input)
         {
             var nftInfo = State.NftInfoMap[input];
+            if (nftInfo == null) return new NFTInfo();
             var nftProtocolInfo = State.NftProtocolMap[nftInfo.Symbol];
             nftInfo.ProtocolName = nftProtocolInfo.ProtocolName;
             nftInfo.Creator = nftProtocolInfo.Creator;

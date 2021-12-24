@@ -253,7 +253,7 @@ namespace AElf.Contracts.NFT
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var nftInfo = GetNFTInfoByTokenHash(tokenHash);
-            Assert(nftInfo.Quantity == State.BalanceMap[tokenHash][Context.Sender],
+            Assert(nftInfo.Quantity != 0 && nftInfo.Quantity == State.BalanceMap[tokenHash][Context.Sender],
                 "Do not support recast.");
             var minterList = State.MinterListMap[input.Symbol] ?? new MinterList();
             Assert(minterList.Value.Contains(Context.Sender), "No permission.");
@@ -284,11 +284,7 @@ namespace AElf.Contracts.NFT
             }
 
             metadata.Value.Add(input.Metadata.Value);
-
-            if (input.Metadata.Value.Any())
-            {
-                nftInfo.Metadata = metadata;
-            }
+            nftInfo.Metadata = metadata;
 
             State.NftInfoMap[tokenHash] = nftInfo;
             Context.Fire(new Recasted
@@ -296,7 +292,9 @@ namespace AElf.Contracts.NFT
                 Symbol = input.Symbol,
                 TokenId = input.TokenId,
                 OldMetadata = oldMetadata,
-                NewMetadata = nftInfo.Metadata
+                NewMetadata = nftInfo.Metadata,
+                Alias = nftInfo.Alias,
+                Uri = nftInfo.Uri
             });
             return new Empty();
         }
@@ -403,7 +401,7 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException($"Invalid NFT Token symbol: {input.Symbol}");
             }
 
-            var tokenId = input.TokenId == 0 ? protocolInfo.Supply.Add(1) : input.TokenId;
+            var tokenId = input.TokenId == 0 ? protocolInfo.Issued.Add(1) : input.TokenId;
             var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
             var nftInfo = State.NftInfoMap[tokenHash];
             if (!protocolInfo.IsTokenIdReuse)

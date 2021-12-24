@@ -434,6 +434,8 @@ message Recasted {
     int64 token_id = 2 [(aelf.is_indexed) = true];
     Metadata old_metadata = 3 [(aelf.is_indexed) = true];
     Metadata new_metadata = 4 [(aelf.is_indexed) = true];
+    string alias = 5 [(aelf.is_indexed) = true];
+    string uri = 6 [(aelf.is_indexed) = true];
 }
 
 message Assembled {

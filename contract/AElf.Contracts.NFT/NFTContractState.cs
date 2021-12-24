@@ -8,6 +8,10 @@ namespace AElf.Contracts.NFT
         public Int64State NftProtocolNumberFlag { get; set; }
         public Int32State CurrentSymbolNumberLength { get; set; }
         public MappedState<long, bool> IsCreatedMap { get; set; }
+
+        /// <summary>
+        /// Symbol -> Addresses have permission to mint this token
+        /// </summary>
         public MappedState<string, MinterList> MinterListMap { get; set; }
         public MappedState<Hash, NFTInfo> NftInfoMap { get; set; }
 
