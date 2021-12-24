@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -72,7 +73,7 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task<string> MintTest()
+        public async Task<(string, Hash)> MintTest()
         {
             var symbol = await CreateTest();
             await AddMinterAsync(symbol);
@@ -88,7 +89,7 @@ namespace AElf.Contracts.NFT
                         {"Special Property", "A Value"}
                     }
                 },
-                Owner = User1Address,
+                Owner = DefaultAddress,
                 Uri = $"{BaseUri}foo"
             })).Output;
 
@@ -116,7 +117,7 @@ namespace AElf.Contracts.NFT
                 protocolInfo.Metadata.Value.ShouldNotContainKey("Special Property");
             }
 
-            return symbol;
+            return (symbol, tokenHash);
         }
 
         [Fact(Skip = "Dup in TransferTest")]
@@ -237,8 +238,34 @@ namespace AElf.Contracts.NFT
         [Fact]
         public async Task AssembleTest()
         {
-            var symbol = await MintTest();
+            var (symbol, tokenHash) = await MintTest();
 
+            await TokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+            {
+                Spender = NFTContractAddress,
+                Symbol = "ELF",
+                Amount = long.MaxValue
+            });
+            
+            await NFTContractStub.Assemble.SendAsync(new AssembleInput
+            {
+                Symbol = symbol,
+                AssembledNfts = new AssembledNfts
+                {
+                    Value = {[tokenHash.ToHex()] = 1}
+                },
+                AssembledFts = new AssembledFts
+                {
+                    Value = {["ELF"] = 100}
+                },
+                Metadata = new Metadata
+                {
+                    Value =
+                    {
+                        ["Advanced Property"] = "whatever"
+                    }
+                }
+            });
         }
 
         private async Task AddMinterAsync(string symbol)

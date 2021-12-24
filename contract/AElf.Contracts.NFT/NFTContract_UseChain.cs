@@ -131,7 +131,7 @@ namespace AElf.Contracts.NFT
                 {
                     var nftHash = Hash.LoadFromHex(pair.Key);
                     var nftInfo = GetNFTInfoByTokenHash(nftHash);
-                    Assert(State.BalanceMap[nftHash][Context.Sender] > pair.Value,
+                    Assert(State.BalanceMap[nftHash][Context.Sender] >= pair.Value,
                         $"Insufficient balance of {nftInfo.Symbol}{nftInfo.TokenId}.");
                     DoTransfer(nftHash, Context.Sender, Context.Self, pair.Value);
                 }
@@ -157,7 +157,7 @@ namespace AElf.Contracts.NFT
                         Spender = Context.Self,
                         Symbol = symbol
                     })).Allowance;
-                    Assert(amount >= allowance, $"Insufficient allowance of {symbol}");
+                    Assert(allowance >= amount, $"Insufficient allowance of {symbol}");
                     State.TokenContract.TransferFrom.Send(new MultiToken.TransferFromInput
                     {
                         From = Context.Sender,
