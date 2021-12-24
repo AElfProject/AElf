@@ -72,7 +72,7 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task MintTest()
+        public async Task<string> MintTest()
         {
             var symbol = await CreateTest();
             await AddMinterAsync(symbol);
@@ -115,6 +115,8 @@ namespace AElf.Contracts.NFT
                 });
                 protocolInfo.Metadata.Value.ShouldNotContainKey("Special Property");
             }
+
+            return symbol;
         }
 
         [Fact(Skip = "Dup in TransferTest")]
@@ -230,6 +232,13 @@ namespace AElf.Contracts.NFT
                 TokenId = 1,
                 Amount = 2
             });
+        }
+
+        [Fact]
+        public async Task AssembleTest()
+        {
+            var symbol = await MintTest();
+
         }
 
         private async Task AddMinterAsync(string symbol)

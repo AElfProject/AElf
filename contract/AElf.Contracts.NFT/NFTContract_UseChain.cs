@@ -267,7 +267,7 @@ namespace AElf.Contracts.NFT
                 nftInfo.Uri = input.Uri;
             }
 
-            var oldMetadata = nftInfo.Metadata;
+            var oldMetadata = nftInfo.Metadata.Clone();
             var metadata = new Metadata();
             // Need to keep reserved metadata key.
             foreach (var reservedKey in GetNftMetadataReservedKeys())
@@ -287,7 +287,7 @@ namespace AElf.Contracts.NFT
 
             if (input.Metadata.Value.Any())
             {
-                nftInfo.Metadata = input.Metadata;
+                nftInfo.Metadata = metadata;
             }
 
             State.NftInfoMap[tokenHash] = nftInfo;
