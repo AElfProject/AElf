@@ -122,7 +122,8 @@ namespace AElf.Contracts.NFT
 
         public override Hash Assemble(AssembleInput input)
         {
-            if (input.Metadata.Value.Any())
+            throw new AssertionException(input.ToString());
+            if (input.Metadata != null && input.Metadata.Value.Any())
             {
                 AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
             }
@@ -259,8 +260,16 @@ namespace AElf.Contracts.NFT
         {
             Assert(State.NftProtocolMap[input.Symbol] != null, $"Protocol {input.Symbol} not exists.");
             var operatorList = State.OperatorMap[input.Symbol][Context.Sender] ?? new AddressList();
-            Assert(!operatorList.Value.Contains(input.Operator), $"Already approved for {input.Operator}");
-            operatorList.Value.Add(input.Operator);
+            switch (input.Approved)
+            {
+                case true when !operatorList.Value.Contains(input.Operator):
+                    operatorList.Value.Add(input.Operator);
+                    break;
+                case false when operatorList.Value.Contains(input.Operator):
+                    operatorList.Value.Remove(input.Operator);
+                    break;
+            }
+
             State.OperatorMap[input.Symbol][Context.Sender] = operatorList;
             return new Empty();
         }
