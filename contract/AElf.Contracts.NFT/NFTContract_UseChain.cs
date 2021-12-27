@@ -184,7 +184,7 @@ namespace AElf.Contracts.NFT
                 TokenId = input.TokenId
             };
 
-            var tokenHash = PerformMint(mingInput);
+            var tokenHash = PerformMint(mingInput, true);
             if (input.AssembledNfts.Value.Any())
             {
                 State.AssembledNftsMap[tokenHash] = input.AssembledNfts;
@@ -413,7 +413,7 @@ namespace AElf.Contracts.NFT
             return minterList;
         }
 
-        private Hash PerformMint(MintInput input)
+        private Hash PerformMint(MintInput input, bool isTokenIdMustBeUnique = false)
         {
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
@@ -428,7 +428,7 @@ namespace AElf.Contracts.NFT
             var tokenId = input.TokenId == 0 ? protocolInfo.Issued.Add(1) : input.TokenId;
             var tokenHash = CalculateTokenHash(input.Symbol, tokenId);
             var nftInfo = State.NftInfoMap[tokenHash];
-            if (!protocolInfo.IsTokenIdReuse)
+            if (!protocolInfo.IsTokenIdReuse || isTokenIdMustBeUnique)
             {
                 Assert(nftInfo == null, $"Token id {tokenId} already exists. Please assign a different token id.");
             }
