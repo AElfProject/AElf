@@ -411,6 +411,7 @@ message NFTMinted {
     string nft_type = 11;
     // Quantity
     int64 quantity = 12;
+    int64 total_quantity = 13;
 }
 
 message Transferred {

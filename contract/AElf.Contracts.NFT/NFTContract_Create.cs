@@ -186,10 +186,10 @@ namespace AElf.Contracts.NFT
             };
 
             // Add NFT Type to external info.
-            tokenExternalInfo.Value.Add(NftTypeMetadataKey, input.NftType.ToString());
+            tokenExternalInfo.Value[NftTypeMetadataKey] = input.NftType;
             // Add Uri to external info.
-            tokenExternalInfo.Value.Add(NftBaseUriMetadataKey, input.BaseUri);
-            tokenExternalInfo.Value.Add(NftTokenIdReuseMetadataKey, input.IsTokenIdReuse.ToString());
+            tokenExternalInfo.Value[NftBaseUriMetadataKey] = input.BaseUri;
+            tokenExternalInfo.Value[NftTokenIdReuseMetadataKey] = input.IsTokenIdReuse.ToString();
             return tokenExternalInfo;
         }
     }

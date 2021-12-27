@@ -122,13 +122,12 @@ namespace AElf.Contracts.NFT
 
         public override Hash Assemble(AssembleInput input)
         {
-            throw new AssertionException(input.ToString());
             if (input.Metadata != null && input.Metadata.Value.Any())
             {
                 AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
             }
 
-            var metadata = input.Metadata;
+            var metadata = input.Metadata ?? new Metadata();
 
             if (input.AssembledNfts.Value.Any())
             {
@@ -498,7 +497,8 @@ namespace AElf.Contracts.NFT
                 BaseUri = protocolInfo.BaseUri,
                 Uri = input.Uri ?? string.Empty,
                 Creator = protocolInfo.Creator,
-                NftType = protocolInfo.NftType
+                NftType = protocolInfo.NftType,
+                TotalQuantity = nftInfo.Quantity
             });
             
             return tokenHash;

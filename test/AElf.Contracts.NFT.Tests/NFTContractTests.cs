@@ -246,7 +246,7 @@ namespace AElf.Contracts.NFT
                 Symbol = "ELF",
                 Amount = long.MaxValue
             });
-            
+
             await NFTContractStub.Assemble.SendAsync(new AssembleInput
             {
                 Symbol = symbol,

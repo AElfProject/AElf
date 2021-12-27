@@ -1,4 +1,4 @@
-// AElf version of https://github.com/ethereum/EIPs/issues/20
+// AElf version of https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
 
 syntax = "proto3";
 
