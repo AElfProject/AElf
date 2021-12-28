@@ -16,7 +16,8 @@ namespace AElf.Contracts.NFT
                 AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
             }
 
-            return PerformMint(input);
+            var nftMinted = PerformMint(input);
+            return nftMinted.TokenHash;
         }
 
         public override Empty Transfer(TransferInput input)
@@ -184,26 +185,26 @@ namespace AElf.Contracts.NFT
                 TokenId = input.TokenId
             };
 
-            var tokenHash = PerformMint(mingInput, true);
+            var nftMinted = PerformMint(mingInput, true);
             if (input.AssembledNfts.Value.Any())
             {
-                State.AssembledNftsMap[tokenHash] = input.AssembledNfts;
+                State.AssembledNftsMap[nftMinted.TokenHash] = input.AssembledNfts;
             }
 
             if (input.AssembledFts.Value.Any())
             {
-                State.AssembledFtsMap[tokenHash] = input.AssembledFts;
+                State.AssembledFtsMap[nftMinted.TokenHash] = input.AssembledFts;
             }
 
             Context.Fire(new Assembled
             {
                 Symbol = input.Symbol,
-                TokenId = input.TokenId,
+                TokenId = nftMinted.TokenId,
                 AssembledNfts = input.AssembledNfts,
                 AssembledFts = input.AssembledFts
             });
 
-            return tokenHash;
+            return nftMinted.TokenHash;
         }
 
         public override Empty Disassemble(DisassembleInput input)
@@ -211,11 +212,12 @@ namespace AElf.Contracts.NFT
             Burn(new BurnInput
             {
                 Symbol = input.Symbol,
-                TokenId = input.TokenId
+                TokenId = input.TokenId,
+                Amount = 1
             });
 
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
-            var assembledNfts = State.AssembledNftsMap[tokenHash];
+            var assembledNfts = State.AssembledNftsMap[tokenHash].Clone();
             if (assembledNfts != null)
             {
                 var nfts = State.AssembledNftsMap[tokenHash];
@@ -227,7 +229,7 @@ namespace AElf.Contracts.NFT
                 State.AssembledNftsMap.Remove(tokenHash);
             }
 
-            var assembledFts = State.AssembledFtsMap[tokenHash];
+            var assembledFts = State.AssembledFtsMap[tokenHash].Clone();
             if (assembledFts != null)
             {
                 var fts = State.AssembledFtsMap[tokenHash];
@@ -413,7 +415,7 @@ namespace AElf.Contracts.NFT
             return minterList;
         }
 
-        private Hash PerformMint(MintInput input, bool isTokenIdMustBeUnique = false)
+        private NFTMinted PerformMint(MintInput input, bool isTokenIdMustBeUnique = false)
         {
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
@@ -484,7 +486,7 @@ namespace AElf.Contracts.NFT
             var owner = input.Owner ?? Context.Sender;
             State.BalanceMap[tokenHash][owner] = State.BalanceMap[tokenHash][owner].Add(quantity);
 
-            Context.Fire(new NFTMinted
+            var nftMinted = new NFTMinted
             {
                 Symbol = input.Symbol,
                 ProtocolName = protocolInfo.ProtocolName,
@@ -498,10 +500,12 @@ namespace AElf.Contracts.NFT
                 Uri = input.Uri ?? string.Empty,
                 Creator = protocolInfo.Creator,
                 NftType = protocolInfo.NftType,
-                TotalQuantity = nftInfo.Quantity
-            });
-            
-            return tokenHash;
+                TotalQuantity = nftInfo.Quantity,
+                TokenHash = tokenHash
+            };
+            Context.Fire(nftMinted);
+
+            return nftMinted;
         }
     }
 }

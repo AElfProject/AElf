@@ -412,6 +412,7 @@ message NFTMinted {
     // Quantity
     int64 quantity = 12;
     int64 total_quantity = 13;
+    aelf.Hash token_hash = 14;
 }
 
 message Transferred {
