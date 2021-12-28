@@ -216,14 +216,16 @@ namespace AElf.Contracts.NFT
                 Amount = 1
             });
 
+            var receiver = input.Owner ?? Context.Sender;
+
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
             var assembledNfts = State.AssembledNftsMap[tokenHash].Clone();
             if (assembledNfts != null)
             {
-                var nfts = State.AssembledNftsMap[tokenHash];
+                var nfts = assembledNfts;
                 foreach (var pair in nfts.Value)
                 {
-                    DoTransfer(Hash.LoadFromHex(pair.Key), Context.Self, Context.Sender, pair.Value);
+                    DoTransfer(Hash.LoadFromHex(pair.Key), Context.Self, receiver, pair.Value);
                 }
 
                 State.AssembledNftsMap.Remove(tokenHash);
@@ -232,14 +234,14 @@ namespace AElf.Contracts.NFT
             var assembledFts = State.AssembledFtsMap[tokenHash].Clone();
             if (assembledFts != null)
             {
-                var fts = State.AssembledFtsMap[tokenHash];
+                var fts = assembledFts;
                 foreach (var pair in fts.Value)
                 {
                     State.TokenContract.Transfer.Send(new MultiToken.TransferInput
                     {
                         Symbol = pair.Key,
                         Amount = pair.Value,
-                        To = Context.Sender
+                        To = receiver
                     });
                 }
 
