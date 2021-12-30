@@ -132,7 +132,7 @@ namespace AElf.Contracts.NFT
 
             if (input.AssembledNfts.Value.Any())
             {
-                metadata.Value.Add(AssembledNftsKey, input.AssembledNfts.ToString());
+                metadata.Value[AssembledNftsKey] = input.AssembledNfts.ToString();
                 // Check owner.
                 foreach (var pair in input.AssembledNfts.Value)
                 {
@@ -146,7 +146,7 @@ namespace AElf.Contracts.NFT
 
             if (input.AssembledFts.Value.Any())
             {
-                metadata.Value.Add(AssembledFtsKey, input.AssembledFts.ToString());
+                metadata.Value[AssembledFtsKey] = input.AssembledFts.ToString();
                 // Check balance and allowance.
                 foreach (var pair in input.AssembledFts.Value)
                 {
@@ -302,7 +302,7 @@ namespace AElf.Contracts.NFT
             {
                 if (oldMetadata.Value.ContainsKey(reservedKey))
                 {
-                    metadata.Value.Add(reservedKey, oldMetadata.Value[reservedKey]);
+                    metadata.Value[reservedKey] = oldMetadata.Value[reservedKey];
                 }
 
                 if (input.Metadata.Value.ContainsKey(reservedKey))
@@ -453,7 +453,7 @@ namespace AElf.Contracts.NFT
             {
                 if (!nftMetadata.Value.ContainsKey(pair.Key))
                 {
-                    nftMetadata.Value.Add(pair.Key, pair.Value);
+                    nftMetadata.Value[pair.Key] = pair.Value;
                 }
             }
 

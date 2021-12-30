@@ -180,6 +180,8 @@ namespace AElf.Contracts.NFT
 
         private ExternalInfo GetTokenExternalInfo(CreateInput input)
         {
+            AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
+
             var tokenExternalInfo = new ExternalInfo
             {
                 Value = {input.Metadata.Value}
