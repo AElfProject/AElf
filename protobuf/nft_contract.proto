@@ -114,17 +114,19 @@ message CreateInput {
     // The total supply of the token.
     int64 total_supply = 3;
     // The address that created the token.
-    aelf.Address creator = 5;
+    aelf.Address creator = 4;
     // A flag indicating if this token is burnable.
-    bool is_burnable = 6;
+    bool is_burnable = 5;
     // The chain id of the token.
-    int32 issue_chain_id = 8;
+    int32 issue_chain_id = 6;
     // The metadata of the token.
-    Metadata metadata = 9;
+    Metadata metadata = 7;
     // Base Uri.
-    string base_uri = 10;
+    string base_uri = 8;
     // Is token id can be reused.
-    bool is_token_id_reuse = 11;
+    bool is_token_id_reuse = 9;
+    // Initial minter list (creator will be added automatically)
+    MinterList minter_list = 10;
 }
 
 message CrossChainCreateInput {
@@ -384,6 +386,7 @@ message NFTProtocolCreated {
     string base_uri = 8;
     // Is token id can be reused.
     bool is_token_id_reuse = 9;
+    string nft_type = 10;
 }
 
 message NFTMinted {

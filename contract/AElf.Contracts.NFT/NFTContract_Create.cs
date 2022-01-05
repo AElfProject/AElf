@@ -19,11 +19,12 @@ namespace AElf.Contracts.NFT
             MakeSureRandomNumberProviderContractAddressSet();
             var symbol = GetSymbol(input.NftType);
             var tokenExternalInfo = GetTokenExternalInfo(input);
+            var creator = input.Creator ?? Context.Sender;
             var tokenCreateInput = new MultiToken.CreateInput
             {
                 Symbol = symbol,
                 Decimals = 0, // Fixed
-                Issuer = input.Creator ?? Context.Sender,
+                Issuer = creator,
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId,
                 TokenName = input.ProtocolName,
@@ -32,10 +33,12 @@ namespace AElf.Contracts.NFT
             };
             State.TokenContract.Create.Send(tokenCreateInput);
 
-            State.MinterListMap[symbol] = new MinterList
+            var minterList = input.MinterList ?? new MinterList();
+            if (!minterList.Value.Contains(creator))
             {
-                Value = {input.Creator}
-            };
+                minterList.Value.Add(creator);
+            }
+            State.MinterListMap[symbol] = minterList;
 
             var protocolInfo = new NFTProtocolInfo
             {

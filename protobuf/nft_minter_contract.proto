@@ -1,0 +1,116 @@
+/**
+ * NFT Market Contract.
+ */
+syntax = "proto3";
+
+package NFTMinter;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "transaction_fee.proto";
+import "authority_info.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/Timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.NFTMinter";
+
+service NFTMinterContract {
+    option (aelf.csharp_state) = "AElf.Contracts.NFTMinter.NFTMinterContractState";
+    option (aelf.base) = "acs1.proto";
+
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Mint the first one badge.
+    rpc CreateBadge (CreateBadgeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // User mint a badge for himself or anyone else. (Owner must in whitelist if the whitelist is set.)
+    rpc MintBadge (MintBadgeInput) returns (google.protobuf.Empty) {
+    }
+
+    // Initial or reset badge info.
+    rpc ConfigBadge (ConfigBadgeInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Add or remove minting white list.
+    rpc ManageMintingWhiteList (ManageMintingWhiteListInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeInput {
+    aelf.Address nft_contract_address = 1;
+    aelf.Address admin_address = 2;
+}
+
+message CreateBadgeInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    string uri = 3;
+    string alias = 4;
+    BadgeMetadata metadata = 5;
+    aelf.Address owner = 6;
+}
+
+message MintBadgeInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+}
+
+message BadgeMetadata {
+    map<string, string> value = 1;
+}
+
+message ManageMintingWhiteListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_remove = 3;
+    AddressList address_list = 4;
+}
+
+message AddressList {
+    repeated aelf.Address value = 1;
+}
+
+message ConfigBadgeInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_public = 3;
+    int64 limit = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+}
+
+message BadgeInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_public = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+    int64 limit = 6;
+    int64 minted = 7;
+    string badge_name = 8;
+}
+
+// Events
+
+message BadgeInfoChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_public = 3;
+    int64 limit = 4;
+    google.protobuf.Timestamp start_time = 5;
+    google.protobuf.Timestamp end_time = 6;
+}
+
+message MintingWhiteListChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_remove = 3;
+    AddressList address_list = 4;
+}

@@ -3,9 +3,9 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.NFTMarket</PackageId>
+        <PackageId>AElf.Contracts.NFTMinter</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Description>NFT Market Contract is for the aelf official NFT Market.</Description>
+        <Description>aelf NFT Minter Contract.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -63,8 +63,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\nft_market_contract.proto">
-            <Link>Protobuf\Proto\nft_market_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\nft_minter_contract.proto">
+            <Link>Protobuf\Proto\nft_minter_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>
