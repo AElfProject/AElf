@@ -8,7 +8,6 @@ package NFTMarket;
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "acs1.proto";
-import "acs2.proto";
 import "transaction_fee.proto";
 import "authority_info.proto";
 import "google/protobuf/empty.proto";
@@ -20,55 +19,104 @@ option csharp_namespace = "AElf.Contracts.NFTMarket";
 service NFTMarketContract {
     option (aelf.csharp_state) = "AElf.Contracts.NFTMarket.NFTMarketContractState";
     option (aelf.base) = "acs1.proto";
-    option (aelf.base) = "acs2.proto";
 
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
+    
+    // For Sellers.
     rpc ListWithFixedPrice (ListWithFixedPriceInput) returns (google.protobuf.Empty) {
     }
-    rpc Buy (BuyInput) returns (google.protobuf.Empty) {
-    }
-    
     rpc ListWithEnglishAuction (ListWithEnglishAuctionInput) returns (google.protobuf.Empty) {
     }
     rpc ListWithDutchAuction (ListWithDutchAuctionInput) returns (google.protobuf.Empty) {
     }
-    rpc Want (WantInput) returns (google.protobuf.Empty) {
-    }
-    rpc Claim (ClaimInput) returns (google.protobuf.Empty) {
-    }
     rpc Deal (DealInput) returns (google.protobuf.Empty) {
     }
-
     rpc Delist (DelistInput) returns (google.protobuf.Empty) {
     }
 
-    rpc SetServiceFee (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
-    }
-    rpc SetRoyalty (SetRoyaltyInput) returns (google.protobuf.Empty) {
+    // For Buyers.
+    rpc MakeOffer (MakeOfferInput) returns (google.protobuf.Empty) {
     }
 
-    rpc GetDealInfo (google.protobuf.StringValue) returns (DealInfo) {
-        option (aelf.is_view) = true;
+    // For Creators.
+    rpc SetRoyalty (SetRoyaltyInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetFloorPrice (SetFloorPriceInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetAllowTokenSymbolList (StringList) returns (google.protobuf.Empty) {
+    }
+    rpc SetCustomizeInfo (CustomizeInfo) returns (google.protobuf.Empty) {
+    }
+    
+    // For Admin.
+    rpc SetServiceFee (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
 }
+
+// Structs.
+
+message ListedNFTInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
+    ListType list_type = 5;
+    Price price = 6;
+}
+
+message StringList {
+    repeated string value = 1;
+}
+
+message CustomizeInfo {
+    string symbol = 1;
+    int64 deposit = 2;
+    int64 balance = 3;
+    int64 work_hours = 4;
+    int64 white_list_hours = 5;
+}
+
+message Price {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+message Offer {
+    aelf.Address from = 1;
+    Price price = 2;
+    google.protobuf.Timestamp expire_time = 3;
+}
+
+message OfferList {
+    repeated Offer value = 1;
+}
+
+enum ListType {
+    NOT_LISTED = 0;
+    FIXED_PRICE = 1;
+    ENGLISH_AUCTION = 2;
+    DUTCH_AUCTION = 3;
+}
+
+// Inputs.
 
 message InitializeInput {
     aelf.Address nft_contract_address = 1;
 }
 
 message ListWithFixedPriceInput {
-    NFTList nft_list = 1;
-    string symbol = 2;
-    int64 price = 3;
-    google.protobuf.Timestamp start_time = 4;
+    string symbol = 1;
+    int64 token_id = 2;
+    Price price = 3;
+    int64 quantity = 4;
     Duration duration = 5;
-    string description = 6;
+    string description = 6;// Just for log event.
 }
 
 message ListWithEnglishAuctionInput {
-    NFTList nft_list = 1;
-    string symbol = 2;
+    string symbol = 1;
+    int64 token_id = 2;
     int64 starting_price = 3;
     int64 reserve_price = 4;
     Duration duration = 5;
@@ -76,8 +124,8 @@ message ListWithEnglishAuctionInput {
 }
 
 message ListWithDutchAuctionInput {
-    NFTList nft_list = 1;
-    string symbol = 2;
+    string symbol = 1;
+    int64 token_id = 2;
     int64 starting_price = 3;
     int64 ending_price = 4;
     Duration duration = 5;
@@ -89,17 +137,6 @@ message Duration {
     int64 duration_minutes = 2;
 }
 
-message AssetInfo {
-    ListType list_type = 1;
-    OfferList offer_list = 2;
-}
-
-message OfferList {
-    aelf.Address from = 1;
-    Price price = 2;
-    google.protobuf.Timestamp expire_time = 3;
-}
-
 message DelistInput {
     
 }
@@ -108,7 +145,13 @@ message BuyInput {
     
 }
 
-message WantInput {
+message MakeOfferInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
+    Price price = 5;
+    google.protobuf.Timestamp expire_time = 6;
 }
 
 message DealInput {
@@ -131,20 +174,19 @@ message SetRoyaltyInput {
     int32 royalty = 3;
 }
 
-enum ListType {
-    NOT_LISTED = 0;
-    FIXED_PRICE = 1;
-    ENGLISH_AUCTION = 2;
-    DUTCH_AUCTION = 3;
-}
-
-message Price {
+message SetFloorPriceInput {
     string symbol = 1;
-    int64 amount = 2;
+    map<string, int64> floor_prices = 2;
 }
 
 // Events
 
-message NFTListed {
+message ListedNFTInfoChanged {
     option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
+    ListType list_type = 5;
+    Price price = 6;
 }
