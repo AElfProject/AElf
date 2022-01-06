@@ -1,38 +1,102 @@
+using System.Linq;
+using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
-using AElf.Types;
+using AElf.CSharp.Core.Extension;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
+using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
 {
     public partial class NFTMarketContract
     {
+        /// <summary>
+        /// There are 2 types of making offer.
+        /// 1. Aiming a owner.
+        /// 2. Only aiming nft. Owner will be null.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty MakeOffer(MakeOfferInput input)
         {
-            Assert(Context.Sender != input.Owner, "Invalid owner.");
-            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][input.Owner];
+            if (input.OriginOwner == null)
+            {
+                PerformMakeOffer(input);
+                return new Empty();
+            }
 
-            if (listedNftInfo == null)
+            Assert(Context.Sender != input.OriginOwner, "Origin owner cannot be sender himself.");
+
+            var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId
+            });
+            if (nftInfo.Quantity == 0)
+            {
+                // Not minted.
+                PerformRequestNewItem(input.Symbol, input.TokenId);
+                return new Empty();
+            }
+
+            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][input.OriginOwner];
+            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
             {
                 // NFT not listed by the owner.
-                OnlyMakeOffer(input);
+                PerformMakeOffer(input);
                 return new Empty();
             }
 
             Assert(listedNftInfo.Price.Symbol == input.Price.Symbol, "Symbol not match.");
 
-            Assert(listedNftInfo.Quantity >= input.Quantity, "Quantity exceeded.");
-
-            if (listedNftInfo.ListType == ListType.FixedPrice)
+            var quantity = input.Quantity;
+            if (quantity > listedNftInfo.Quantity)
             {
-                if (input.Price.Amount >= listedNftInfo.Price.Amount)
+                var makerOfferInput = input.Clone();
+                makerOfferInput.Quantity = quantity.Sub(listedNftInfo.Quantity);
+                PerformMakeOffer(makerOfferInput);
+                input.Quantity = listedNftInfo.Quantity;
+            }
+
+            switch (listedNftInfo.ListType)
+            {
+                case ListType.FixedPrice when input.Price.Amount >= listedNftInfo.Price.Amount:
+                    TryDealWithFixedPrice(input, listedNftInfo);
+                    break;
+                case ListType.FixedPrice:
+                    PerformMakeOffer(input);
+                    break;
+                case ListType.EnglishAuction:
+                    break;
+                case ListType.DutchAuction:
+                    break;
+            }
+
+            return new Empty();
+        }
+
+        public override Empty CancelOffer(CancelOfferInput input)
+        {
+            // Check Request Map first.
+            var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
+            if (requestInfo != null)
+            {
+                Assert(requestInfo.Requester == Context.Sender, "No permission.");
+                if (requestInfo.IsConfirmed &&
+                    requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) >= Context.CurrentBlockTime)
                 {
-                    TryDealWithFixedPrice(input, listedNftInfo.Price.Amount);
+                    throw new AssertionException("Cannot cancel offer before due time.");
                 }
-                else
+
+                var virtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
+                State.TokenContract.Transfer.VirtualSend(virtualAddressFrom, new TransferInput
                 {
-                    OnlyMakeOffer(input);
-                }
+                    To = requestInfo.Requester,
+                    Symbol = requestInfo.Symbol,
+                    Amount = requestInfo.Deposit
+                });
+                State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                return new Empty();
             }
 
             return new Empty();
@@ -42,71 +106,86 @@ namespace AElf.Contracts.NFTMarket
         /// Sender is buyer.
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="price"></param>
-        private void TryDealWithFixedPrice(MakeOfferInput input, long price)
+        /// <param name="listedNftInfo"></param>
+        private void TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo)
         {
-            var amount = price.Mul(input.Quantity);
+            var amount = listedNftInfo.Price.Amount;
+            var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
+            if (requestInfo != null)
+            {
+                if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
+                {
+                    var whiteList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId];
+                    var price = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
+                    if (price != null)
+                    {
+                        Assert(input.Symbol == price.Price.Symbol, $"Need to use token {price.Price.Symbol}");
+                        amount = price.Price.Amount;
+                    }
+                    else
+                    {
+                        throw new AssertionException(
+                            $"Sender is not in the white list, please need until {listedNftInfo.Duration.PublicTime}");
+                    }
+                }
+            }
+
+            var totalAmount = amount.Mul(input.Quantity);
             PerformDeal(new PerformDealInput
             {
-                NFTFrom = input.Owner,
+                NFTFrom = input.OriginOwner,
                 NFTTo = Context.Sender,
                 NFTSymbol = input.Symbol,
                 NFTTokenId = input.TokenId,
                 NFTQuantity = input.Quantity,
                 PurchaseSymbol = input.Price.Symbol,
-                PurchaseAmount = amount
+                PurchaseAmount = totalAmount
             });
         }
 
-        private void OnlyMakeOffer(MakeOfferInput input)
+        /// <summary>
+        /// Will go to Offer List.
+        /// </summary>
+        /// <param name="input"></param>
+        private void PerformMakeOffer(MakeOfferInput input)
         {
-            var offerList = State.OfferListMap[input.Symbol][input.TokenId] ?? new OfferList();
+            var offerList = State.OfferListMap[input.Symbol][input.TokenId][Context.Sender] ?? new OfferList();
+            var expireTime = input.ExpireTime ?? Context.CurrentBlockTime.AddDays(100000);
             offerList.Value.Add(new Offer
             {
                 From = Context.Sender,
                 Price = input.Price,
-                ExpireTime = input.ExpireTime
+                ExpireTime = expireTime
             });
-            State.OfferListMap[input.Symbol][input.TokenId] = offerList;
-        }
+            State.OfferListMap[input.Symbol][input.TokenId][Context.Sender] = offerList;
 
-        private void PerformDeal(PerformDealInput performDealInput)
-        {
-            var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(ServiceFeeDenominator);
-            var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            var addressList = State.OfferAddressListMap[input.Symbol][input.TokenId] ?? new AddressList();
+
+            if (addressList.Value.Contains(Context.Sender)) return;
+
+            addressList.Value.Add(Context.Sender);
+            State.OfferAddressListMap[input.Symbol][input.TokenId] = addressList;
+
+            Context.Fire(new OfferMade
             {
-                From = performDealInput.NFTTo,
-                To = performDealInput.NFTFrom,
-                Symbol = performDealInput.PurchaseSymbol,
-                Amount = actualAmount
-            });
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = performDealInput.NFTTo,
-                To = State.ServiceFeeReceiver.Value,
-                Symbol = performDealInput.PurchaseSymbol,
-                Amount = serviceFee
-            });
-            State.NFTContract.TransferFrom.Send(new NFT.TransferFromInput
-            {
-                From = performDealInput.NFTFrom,
-                To = performDealInput.NFTTo,
-                Symbol = performDealInput.NFTSymbol,
-                TokenId = performDealInput.NFTTokenId,
-                Amount = performDealInput.NFTQuantity
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                OfferMaker = Context.Sender,
+                OriginOwner = input.OriginOwner,
+                ExpireTime = expireTime,
+                Price = input.Price,
+                Quantity = input.Quantity
             });
         }
 
-        private struct PerformDealInput
+        private void PerformPlaceABidForEnglishAuction(MakeOfferInput input)
         {
-            public Address NFTFrom { get; set; }
-            public Address NFTTo { get; set; }
-            public string NFTSymbol { get; set; }
-            public long NFTTokenId { get; set; }
-            public long NFTQuantity { get; set; }
-            public string PurchaseSymbol { get; set; }
-            public long PurchaseAmount { get; set; }
+
+        }
+
+        private void PerformPlaceABidForDutchAuction(MakeOfferInput input)
+        {
+
         }
     }
 }

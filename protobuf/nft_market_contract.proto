@@ -38,23 +38,33 @@ service NFTMarketContract {
     // For Buyers.
     rpc MakeOffer (MakeOfferInput) returns (google.protobuf.Empty) {
     }
+    rpc CancelOffer (CancelOfferInput) returns (google.protobuf.Empty) {
+    }
 
     // For Creators.
     rpc SetRoyalty (SetRoyaltyInput) returns (google.protobuf.Empty) {
     }
     rpc SetFloorPrice (SetFloorPriceInput) returns (google.protobuf.Empty) {
     }
-    rpc SetAllowTokenSymbolList (StringList) returns (google.protobuf.Empty) {
+    rpc SetTokenWhiteList (SetTokenWhiteListInput) returns (google.protobuf.Empty) {
     }
     rpc SetCustomizeInfo (CustomizeInfo) returns (google.protobuf.Empty) {
     }
-    
+    rpc HandleRequest (HandleRequestInput) returns (google.protobuf.Empty) {
+    }
+
     // For Admin.
     rpc SetServiceFee (SetServiceFeeInput) returns (google.protobuf.Empty) {
     }
 
     // Views.
     rpc GetListedNFTInfo (GetListedNFTInfoInput) returns (ListedNFTInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOfferAddressList (GetOfferAddressListInput) returns (AddressList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOfferList (GetOfferListInput) returns (OfferList) {
         option (aelf.is_view) = true;
     }
 }
@@ -71,8 +81,21 @@ message ListedNFTInfo {
     Duration duration = 7;
 }
 
+message WhiteListAddressPriceList {
+    repeated WhiteListAddressPrice value = 1;
+}
+
+message WhiteListAddressPrice {
+    aelf.Address address = 1;
+    Price price = 2;
+}
+
 message StringList {
     repeated string value = 1;
+}
+
+message AddressList {
+    repeated aelf.Address value = 1;
 }
 
 message CustomizeInfo {
@@ -92,6 +115,7 @@ message Offer {
     aelf.Address from = 1;
     Price price = 2;
     google.protobuf.Timestamp expire_time = 3;
+    int64 quantity = 4;
 }
 
 message OfferList {
@@ -103,6 +127,35 @@ enum ListType {
     FIXED_PRICE = 1;
     ENGLISH_AUCTION = 2;
     DUTCH_AUCTION = 3;
+}
+
+message Duration {
+    google.protobuf.Timestamp start_time = 1;
+    google.protobuf.Timestamp public_time = 2;
+    int64 duration_hours = 3;
+}
+
+message DealInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    int64 quantity = 3;
+    Price price = 4;
+    aelf.Address origin_owner = 5;
+    aelf.Address new_owner = 6;
+    google.protobuf.Timestamp deal_time = 7;
+}
+
+message RequestInfo {
+    string symbol = 1;
+    int64 deposit = 2;
+    int64 balance = 3;
+    int64 work_hours = 4;
+    int64 white_list_hours = 5;
+    int64 token_id = 6;
+    bool is_confirmed = 7;
+    google.protobuf.Timestamp confirm_time = 8;
+    google.protobuf.Timestamp list_time = 9;
+    aelf.Address requester = 10;
 }
 
 // Inputs.
@@ -121,6 +174,7 @@ message ListWithFixedPriceInput {
     int64 quantity = 4;
     Duration duration = 5;
     string description = 6;// Just for log event.
+    WhiteListAddressPriceList white_list_address_price_list = 7;
 }
 
 message ListWithEnglishAuctionInput {
@@ -141,36 +195,27 @@ message ListWithDutchAuctionInput {
     string description = 6;
 }
 
-message Duration {
-    google.protobuf.Timestamp start_time = 1;
-    int64 duration_minutes = 2;
-}
-
 message DelistInput {
-    
-}
-
-message BuyInput {
-    
+    string symbol = 1;
+    int64 token_id = 2;
+    int64 quantity = 3;
 }
 
 message MakeOfferInput {
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address owner = 3;
+    aelf.Address origin_owner = 3;
     int64 quantity = 4;
     Price price = 5;
     google.protobuf.Timestamp expire_time = 6;
 }
 
+message CancelOfferInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
 message DealInput {
-}
-
-message ClaimInput {
-}
-
-message DealInfo {
-    
 }
 
 message SetServiceFeeInput {
@@ -186,6 +231,7 @@ message SetRoyaltyInput {
     string symbol = 1;
     int64 token_id = 2;
     int32 royalty = 3;
+    aelf.Address royalty_fee_receiver = 4;
 }
 
 message SetFloorPriceInput {
@@ -193,10 +239,33 @@ message SetFloorPriceInput {
     map<string, int64> floor_prices = 2;
 }
 
+message SetTokenWhiteListInput {
+    string symbol = 1;
+    StringList token_white_list = 2;
+}
+
 message GetListedNFTInfoInput {
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address owner = 3;
+}
+
+message GetOfferAddressListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
+message GetOfferListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address address = 3;
+}
+
+message HandleRequestInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address requester = 3;
+    bool is_confirm = 4;
 }
 
 // Events
@@ -211,4 +280,42 @@ message ListedNFTInfoChanged {
     Price price = 6;
     Duration duration = 7;
     string description = 8;
+    WhiteListAddressPriceList white_list_address_price_list = 9;
+}
+
+message OfferMade {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address origin_owner = 3;
+    aelf.Address offer_maker = 4;
+    Price price = 5;
+    int64 quantity = 6;
+    google.protobuf.Timestamp expire_time = 7;
+}
+
+message NewNFTRequested {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address requester = 3;
+}
+
+message NewNFTRequestConfirmed {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address requester = 3;
+}
+
+message NewNFTRequestRejected {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address requester = 3;
+}
+
+message Sold {
+    option (aelf.is_event) = true;
+
 }

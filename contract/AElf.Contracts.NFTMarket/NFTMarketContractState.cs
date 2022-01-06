@@ -16,6 +16,29 @@ namespace AElf.Contracts.NFTMarket
         /// </summary>
         public MappedState<string, long, Address, ListedNFTInfo> ListedNftInfoMap { get; set; }
 
-        public MappedState<string, long, OfferList> OfferListMap { get; set; }
+        public MappedState<string, long, WhiteListAddressPriceList> WhiteListAddressPriceListMap { get; set; }
+
+        /// <summary>
+        /// Symbol -> Token Id -> Offer Maker -> Offer List
+        /// </summary>
+        public MappedState<string, long, Address, OfferList> OfferListMap { get; set; }
+
+        /// <summary>
+        /// Symbol -> Token Id -> Offer Address List
+        /// </summary>
+        public MappedState<string, long, AddressList> OfferAddressListMap { get; set; }
+
+        /// <summary>
+        /// Symbol -> Token Id -> Royalty
+        /// </summary>
+        public MappedState<string, int> RoyaltyMap { get; set; }
+
+        public MappedState<string, Address> RoyaltyFeeReceiverMap { get; set; }
+        public MappedState<string, long, int> CertainNFTRoyaltyMap { get; set; }
+        public MappedState<string, StringList> TokenWhiteListMap { get; set; }
+        public MappedState<string, string, long> FloorPriceMap { get; set; }
+
+        public MappedState<string, CustomizeInfo> CustomizeInfoMap { get; set; }
+        public MappedState<string, long, RequestInfo> RequestInfoMap { get; set; }
     }
 }

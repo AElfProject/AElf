@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFTMarket;
@@ -91,7 +92,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                Owner = DefaultAddress,
+                OriginOwner = DefaultAddress,
                 Quantity = 1,
                 Price = new Price
                 {
@@ -138,6 +139,65 @@ namespace AElf.Contracts.NFT
                 });
                 nftBalance.Balance.ShouldBe(0);
             }
+        }
+
+        [Fact]
+        public async Task<string> MakeOfferToFixedPrice()
+        {
+            var symbol = await ListWithFixedPriceTest();
+
+            await NFTBuyerTokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = long.MaxValue,
+                Spender = NFTMarketContractAddress
+            });
+
+            await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                OriginOwner = DefaultAddress,
+                Quantity = 2,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 90_00000000
+                },
+            });
+
+            await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                OriginOwner = DefaultAddress,
+                Quantity = 1,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 99_00000000
+                },
+            });
+
+            var offerAddressList = await BuyerNFTMarketContractStub.GetOfferAddressList.CallAsync(
+                new GetOfferAddressListInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233
+                });
+            offerAddressList.Value.ShouldContain(User2Address);
+
+            var offerList = await BuyerNFTMarketContractStub.GetOfferList.CallAsync(new GetOfferListInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Address = User2Address
+            });
+            offerList.Value.Count.ShouldBe(1);
+            offerList.Value.First().Quantity.ShouldBe(2);
+            offerList.Value.Last().Quantity.ShouldBe(2);
+
+            return symbol;
         }
     }
 }
