@@ -50,7 +50,12 @@ service NFTMarketContract {
     }
     
     // For Admin.
-    rpc SetServiceFee (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    rpc SetServiceFee (SetServiceFeeInput) returns (google.protobuf.Empty) {
+    }
+
+    // Views.
+    rpc GetListedNFTInfo (GetListedNFTInfoInput) returns (ListedNFTInfo) {
+        option (aelf.is_view) = true;
     }
 }
 
@@ -63,6 +68,7 @@ message ListedNFTInfo {
     int64 quantity = 4;
     ListType list_type = 5;
     Price price = 6;
+    Duration duration = 7;
 }
 
 message StringList {
@@ -103,6 +109,9 @@ enum ListType {
 
 message InitializeInput {
     aelf.Address nft_contract_address = 1;
+    aelf.Address admin_address = 2;
+    int32 service_fee_rate = 3;
+    aelf.Address service_fee_receiver = 4;
 }
 
 message ListWithFixedPriceInput {
@@ -164,6 +173,11 @@ message DealInfo {
     
 }
 
+message SetServiceFeeInput {
+    int32 service_fee_rate = 1;
+    aelf.Address service_fee_receiver = 2;
+}
+
 message NFTList {
     repeated aelf.Hash value = 1;
 }
@@ -179,6 +193,12 @@ message SetFloorPriceInput {
     map<string, int64> floor_prices = 2;
 }
 
+message GetListedNFTInfoInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+}
+
 // Events
 
 message ListedNFTInfoChanged {
@@ -189,4 +209,6 @@ message ListedNFTInfoChanged {
     int64 quantity = 4;
     ListType list_type = 5;
     Price price = 6;
+    Duration duration = 7;
+    string description = 8;
 }

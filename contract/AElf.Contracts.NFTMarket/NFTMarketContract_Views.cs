@@ -1,7 +1,10 @@
 namespace AElf.Contracts.NFTMarket
 {
-    public class NFTMarketContract_Views
+    public partial class NFTMarketContract
     {
-        
+        public override ListedNFTInfo GetListedNFTInfo(GetListedNFTInfoInput input)
+        {
+            return State.ListedNftInfoMap[input.Symbol][input.TokenId][input.Owner];
+        }
     }
 }

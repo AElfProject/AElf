@@ -32,10 +32,11 @@ namespace AElf.Contracts.NFT
         public override GetBalanceOutput GetBalance(GetBalanceInput input)
         {
             var tokenHash = CalculateTokenHash(input.Symbol, input.TokenId);
+            var balance = State.BalanceMap[tokenHash][input.Owner];
             return new GetBalanceOutput
             {
                 Owner = input.Owner,
-                Balance = State.BalanceMap[tokenHash][input.Owner],
+                Balance = balance,
                 TokenHash = tokenHash
             };
         }

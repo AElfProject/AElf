@@ -52,7 +52,7 @@ namespace AElf.Contracts.NFT
                 throw new AssertionException("Invalid transfer amount.");
             }
 
-            if (amount == 0 || State.BalanceMap[tokenHash][from] == 0)
+            if (amount == 0)
             {
                 return;
             }

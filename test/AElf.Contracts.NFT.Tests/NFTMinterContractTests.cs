@@ -108,7 +108,7 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task MintBadgeTest()
+        public async Task<string> MintBadgeTest()
         {
             var symbol = await ManageWhiteListTest();
             await UserNFTMinterContractStub.MintBadge.SendAsync(new MintBadgeInput
@@ -123,6 +123,8 @@ namespace AElf.Contracts.NFT
                 Owner = User1Address
             });
             balance.Balance.ShouldBe(1);
+
+            return symbol;
         }
 
         private async Task InitializeNFTMinterContractAsync()
