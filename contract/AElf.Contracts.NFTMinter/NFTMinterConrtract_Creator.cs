@@ -1,4 +1,5 @@
 using AElf.Contracts.NFT;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -17,7 +18,8 @@ namespace AElf.Contracts.NFTMinter
 
             badgeInfo = new BadgeInfo
             {
-                BadgeName = input.Alias
+                BadgeName = input.Alias,
+                BadgeCreator = Context.Sender
             };
             State.BadgeInfoMap[input.Symbol][input.TokenId] = badgeInfo;
 
@@ -46,20 +48,26 @@ namespace AElf.Contracts.NFTMinter
                 throw new AssertionException("Badge not created.");
             }
 
-            if (badgeInfo.Limit > 0)
+            if (badgeInfo.StartTime != null)
             {
                 // Cannot change badge info if minting period already started.
                 Assert(badgeInfo.StartTime < Context.CurrentBlockTime, "Badge minting period already started.");
             }
 
             Assert(input.Limit > 0, "Invalid limit.");
+            var startTime = badgeInfo.StartTime == null
+                ? input.StartTime ?? Context.CurrentBlockTime
+                : badgeInfo.StartTime;
+            var endTime = badgeInfo.StartTime == null
+                ? input.EndTime ?? Context.CurrentBlockTime.AddDays(100000)
+                : badgeInfo.EndTime;
 
             State.BadgeInfoMap[input.Symbol][input.TokenId] = new BadgeInfo
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId,
-                StartTime = badgeInfo.StartTime == null ? input.StartTime : badgeInfo.StartTime,
-                EndTime = input.EndTime,
+                StartTime = startTime,
+                EndTime = endTime,
                 IsPublic = input.IsPublic
             };
 

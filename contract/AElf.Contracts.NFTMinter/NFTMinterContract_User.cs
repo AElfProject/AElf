@@ -10,13 +10,15 @@ namespace AElf.Contracts.NFTMinter
         public override Empty MintBadge(MintBadgeInput input)
         {
             var badgeInfo = State.BadgeInfoMap[input.Symbol][input.TokenId];
-            if (badgeInfo.Limit == 0)
+            if (badgeInfo?.BadgeName == null)
             {
                 throw new AssertionException("Badge info not exists.");
             }
 
-            // Check the limit.
             var limit = State.MintLimitMap[input.Symbol][input.TokenId];
+            Assert(limit > 0, "Minting of this badge not started.");
+
+            // Check the limit.
             var minted = State.MintedMap[input.Symbol][input.TokenId];
             Assert(minted < limit, $"Reached the minting limit {limit}");
 

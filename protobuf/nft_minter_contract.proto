@@ -38,7 +38,43 @@ service NFTMinterContract {
     // Add or remove minting white list.
     rpc ManageMintingWhiteList (ManageMintingWhiteListInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc GetBadgeInfo (GetBadgeInfoInput) returns (BadgeInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsInMintingWhiteList (IsInMintingWhiteListInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
+
+// Structs.
+
+message BadgeInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    bool is_public = 3;
+    google.protobuf.Timestamp start_time = 4;
+    google.protobuf.Timestamp end_time = 5;
+    int64 limit = 6;
+    int64 minted = 7;
+    string badge_name = 8;
+    aelf.Address badge_creator = 9;
+}
+
+message BadgeMetadata {
+    map<string, string> value = 1;
+}
+
+message AddressList {
+    repeated aelf.Address value = 1;
+}
+
+message MintFee {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+// Inputs.
 
 message InitializeInput {
     aelf.Address nft_contract_address = 1;
@@ -60,19 +96,11 @@ message MintBadgeInput {
     aelf.Address owner = 3;
 }
 
-message BadgeMetadata {
-    map<string, string> value = 1;
-}
-
 message ManageMintingWhiteListInput {
     string symbol = 1;
     int64 token_id = 2;
     bool is_remove = 3;
     AddressList address_list = 4;
-}
-
-message AddressList {
-    repeated aelf.Address value = 1;
 }
 
 message ConfigBadgeInput {
@@ -82,17 +110,18 @@ message ConfigBadgeInput {
     int64 limit = 4;
     google.protobuf.Timestamp start_time = 5;
     google.protobuf.Timestamp end_time = 6;
+    MintFee mint_fee = 7;
 }
 
-message BadgeInfo {
+message GetBadgeInfoInput {
     string symbol = 1;
     int64 token_id = 2;
-    bool is_public = 3;
-    google.protobuf.Timestamp start_time = 4;
-    google.protobuf.Timestamp end_time = 5;
-    int64 limit = 6;
-    int64 minted = 7;
-    string badge_name = 8;
+}
+
+message IsInMintingWhiteListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address address = 3;
 }
 
 // Events

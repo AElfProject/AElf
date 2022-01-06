@@ -11,7 +11,7 @@ namespace AElf.Contracts.NFT
     {
         public override Hash Mint(MintInput input)
         {
-            if (input.Metadata.Value.Any())
+            if (input.Metadata != null && input.Metadata.Value.Any())
             {
                 AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
             }
@@ -449,11 +449,14 @@ namespace AElf.Contracts.NFT
 
             // Inherit from protocol info.
             var nftMetadata = protocolInfo.Metadata.Clone();
-            foreach (var pair in input.Metadata.Value)
+            if (input.Metadata != null)
             {
-                if (!nftMetadata.Value.ContainsKey(pair.Key))
+                foreach (var pair in input.Metadata.Value)
                 {
-                    nftMetadata.Value[pair.Key] = pair.Value;
+                    if (!nftMetadata.Value.ContainsKey(pair.Key))
+                    {
+                        nftMetadata.Value[pair.Key] = pair.Value;
+                    }
                 }
             }
 

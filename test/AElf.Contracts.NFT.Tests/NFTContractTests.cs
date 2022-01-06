@@ -225,14 +225,6 @@ namespace AElf.Contracts.NFT
                 })).Balance;
                 balance.ShouldBe(19);
             }
-
-            await NFTContractStub.Transfer.SendWithExceptionAsync(new TransferInput
-            {
-                To = User1Address,
-                Symbol = symbol,
-                TokenId = 1,
-                Amount = 2
-            });
         }
 
         [Fact]

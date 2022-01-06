@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.NFTMinter;
 using Google.Protobuf.WellKnownTypes;
@@ -9,7 +10,7 @@ namespace AElf.Contracts.NFT
     public partial class NFTContractTests
     {
         [Fact]
-        public async Task CreateBadgeTest()
+        public async Task<string> CreateBadgeTest()
         {
             await InitializeNFTMinterContractAsync();
 
@@ -41,6 +42,87 @@ namespace AElf.Contracts.NFT
 
             var nftProtocolInfo = await NFTContractStub.GetNFTProtocolInfo.CallAsync(new StringValue {Value = symbol});
             nftProtocolInfo.TotalSupply.ShouldBe(100_000);
+
+            return symbol;
+        }
+
+        [Fact]
+        public async Task<string> ConfigBadgeTest()
+        {
+            var symbol = await CreateBadgeTest();
+
+            await CreatorNFTMinterContractStub.ConfigBadge.SendAsync(new ConfigBadgeInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Limit = int.MaxValue,
+                IsPublic = false
+            });
+
+            var badgeInfo = await CreatorNFTMinterContractStub.GetBadgeInfo.CallAsync(new GetBadgeInfoInput
+            {
+                Symbol = symbol,
+                TokenId = 233
+            });
+            badgeInfo.Limit.ShouldBe(int.MaxValue);
+            badgeInfo.IsPublic.ShouldBe(false);
+
+            return symbol;
+        }
+
+        [Fact]
+        public async Task<string> ManageWhiteListTest()
+        {
+            var symbol = await ConfigBadgeTest();
+            var executionResult = await CreatorNFTMinterContractStub.ManageMintingWhiteList.SendAsync(new ManageMintingWhiteListInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                AddressList = new NFTMinter.AddressList {Value = {User1Address}}
+            });
+            var logEvent =
+                MintingWhiteListChanged.Parser.ParseFrom(executionResult.TransactionResult.Logs.Single().NonIndexed);
+            logEvent.AddressList.Value.ShouldContain(User1Address);
+
+            {
+                var isInWhiteList = await CreatorNFTMinterContractStub.IsInMintingWhiteList.CallAsync(
+                    new IsInMintingWhiteListInput
+                    {
+                        Symbol = symbol,
+                        TokenId = 233,
+                        Address = User1Address
+                    });
+                isInWhiteList.Value.ShouldBeTrue();
+            }
+            {
+                var isInWhiteList = await CreatorNFTMinterContractStub.IsInMintingWhiteList.CallAsync(
+                    new IsInMintingWhiteListInput
+                    {
+                        Symbol = symbol,
+                        TokenId = 233,
+                        Address = User2Address
+                    });
+                isInWhiteList.Value.ShouldBeFalse();
+            }
+            return symbol;
+        }
+
+        [Fact]
+        public async Task MintBadgeTest()
+        {
+            var symbol = await ManageWhiteListTest();
+            await UserNFTMinterContractStub.MintBadge.SendAsync(new MintBadgeInput
+            {
+                Symbol = symbol,
+                TokenId = 233
+            });
+            var balance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Owner = User1Address
+            });
+            balance.Balance.ShouldBe(1);
         }
 
         private async Task InitializeNFTMinterContractAsync()
