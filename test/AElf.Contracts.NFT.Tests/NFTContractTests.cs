@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.Contracts.NFT
 {
-    public class NFTContractTests : NFTContractTestBase
+    public partial class NFTContractTests : NFTContractTestBase
     {
         private const string BaseUri = "ipfs://aelf/";
 

@@ -17,6 +17,16 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.NFTMinter\AElf.Contracts.NFTMinter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.NFTMarket\AElf.Contracts.NFTMarket.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -120,6 +130,12 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\nft_contract.proto">
             <Link>Protobuf\Proto\nft_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\nft_market_contract.proto">
+            <Link>Protobuf\Proto\nft_market_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\nft_minter_contract.proto">
+            <Link>Protobuf\Proto\nft_minter_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>

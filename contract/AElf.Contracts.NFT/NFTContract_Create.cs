@@ -183,12 +183,17 @@ namespace AElf.Contracts.NFT
 
         private ExternalInfo GetTokenExternalInfo(CreateInput input)
         {
-            AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
-
-            var tokenExternalInfo = new ExternalInfo
+            if (input.Metadata != null)
             {
-                Value = {input.Metadata.Value}
-            };
+                AssertMetadataKeysAreCorrect(input.Metadata.Value.Keys);
+            }
+
+            var tokenExternalInfo = input.Metadata == null
+                ? new ExternalInfo()
+                : new ExternalInfo
+                {
+                    Value = {input.Metadata.Value}
+                };
 
             // Add NFT Type to external info.
             tokenExternalInfo.Value[NftTypeMetadataKey] = input.NftType;
