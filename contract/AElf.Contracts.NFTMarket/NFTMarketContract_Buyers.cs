@@ -1,9 +1,12 @@
+using System;
 using System.Linq;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
 using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
@@ -19,13 +22,13 @@ namespace AElf.Contracts.NFTMarket
         /// <returns></returns>
         public override Empty MakeOffer(MakeOfferInput input)
         {
-            if (input.OriginOwner == null)
+            if (input.OfferTo == null)
             {
                 PerformMakeOffer(input);
                 return new Empty();
             }
 
-            Assert(Context.Sender != input.OriginOwner, "Origin owner cannot be sender himself.");
+            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
 
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
             {
@@ -34,12 +37,12 @@ namespace AElf.Contracts.NFTMarket
             });
             if (nftInfo.Quantity == 0)
             {
-                // Not minted.
-                PerformRequestNewItem(input.Symbol, input.TokenId);
+                // NFT not minted.
+                PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime, input.DueTime);
                 return new Empty();
             }
 
-            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][input.OriginOwner];
+            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][input.OfferTo];
             if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
             {
                 // NFT not listed by the owner.
@@ -82,18 +85,43 @@ namespace AElf.Contracts.NFTMarket
             if (requestInfo != null)
             {
                 Assert(requestInfo.Requester == Context.Sender, "No permission.");
-                if (requestInfo.IsConfirmed &&
-                    requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) >= Context.CurrentBlockTime)
+                var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId);
+                var balanceOfNftVirtualAddress = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
-                    throw new AssertionException("Cannot cancel offer before due time.");
+                    Symbol = requestInfo.Price.Symbol,
+                    Owner = virtualAddress
+                }).Balance;
+
+                if (requestInfo.IsConfirmed &&
+                    requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) < Context.CurrentBlockTime)
+                {
+                    var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
+                    var protocolVirtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+                    var balanceOfNftProtocolVirtualAddress = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Symbol = requestInfo.Price.Symbol,
+                        Owner = protocolVirtualAddress
+                    }).Balance;
+                    var deposit = balanceOfNftVirtualAddress.Mul(FeeDenominator).Div(DefaultDepositConfirmRate)
+                        .Sub(balanceOfNftVirtualAddress);
+                    if (balanceOfNftProtocolVirtualAddress > 0)
+                    {
+                        State.TokenContract.Transfer.VirtualSend(protocolVirtualAddressFrom, new TransferInput
+                        {
+                            To = requestInfo.Requester,
+                            Symbol = requestInfo.Price.Symbol,
+                            Amount = Math.Min(balanceOfNftProtocolVirtualAddress, deposit)
+                        });
+                    }
                 }
 
                 var virtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
+
                 State.TokenContract.Transfer.VirtualSend(virtualAddressFrom, new TransferInput
                 {
                     To = requestInfo.Requester,
-                    Symbol = requestInfo.Symbol,
-                    Amount = requestInfo.Deposit
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = balanceOfNftVirtualAddress
                 });
                 State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
                 return new Empty();
@@ -133,7 +161,7 @@ namespace AElf.Contracts.NFTMarket
             var totalAmount = amount.Mul(input.Quantity);
             PerformDeal(new PerformDealInput
             {
-                NFTFrom = input.OriginOwner,
+                NFTFrom = input.OfferTo,
                 NFTTo = Context.Sender,
                 NFTSymbol = input.Symbol,
                 NFTTokenId = input.TokenId,
@@ -183,7 +211,7 @@ namespace AElf.Contracts.NFTMarket
                 Symbol = input.Symbol,
                 TokenId = input.TokenId,
                 OfferMaker = Context.Sender,
-                OriginOwner = input.OriginOwner,
+                OfferTo = input.OfferTo,
                 ExpireTime = expireTime,
                 Price = input.Price,
                 Quantity = input.Quantity

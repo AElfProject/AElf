@@ -1,8 +1,10 @@
+using System;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
 
 namespace AElf.Contracts.NFTMarket
@@ -30,46 +32,64 @@ namespace AElf.Contracts.NFTMarket
 
         private void PerformDeal(PerformDealInput performDealInput)
         {
-            var floorPrice = State.FloorPriceMap[performDealInput.NFTSymbol][performDealInput.PurchaseSymbol];
-            Assert(performDealInput.PurchaseAmount >= floorPrice, "Deal price should be greater than the floor price.");
+            if (performDealInput.PurchaseTokenId == 0)
+            {
+                var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
+                var royalty = State.CertainNFTRoyaltyMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];
+                if (royalty == 0)
+                {
+                    royalty = State.RoyaltyMap[performDealInput.NFTSymbol];
+                }
 
-            var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
-            var royalty = State.CertainNFTRoyaltyMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];
-            if (royalty == 0)
-            {
-                royalty = State.RoyaltyMap[performDealInput.NFTSymbol];
-            }
+                var royaltyFee = performDealInput.PurchaseAmount.Mul(royalty).Div(FeeDenominator);
+                var royaltyFeeReceiver = State.RoyaltyFeeReceiverMap[performDealInput.NFTSymbol];
+                if (royaltyFeeReceiver == null)
+                {
+                    royaltyFee = 0;
+                }
 
-            var royaltyFee = performDealInput.PurchaseAmount.Mul(royalty).Div(FeeDenominator);
-            var royaltyFeeReceiver = State.RoyaltyFeeReceiverMap[performDealInput.NFTSymbol];
-            if (royaltyFeeReceiver == null)
-            {
-                royaltyFee = 0;
-            }
-
-            var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee).Sub(royaltyFee);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = performDealInput.NFTTo,
-                To = performDealInput.NFTFrom,
-                Symbol = performDealInput.PurchaseSymbol,
-                Amount = actualAmount
-            });
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = performDealInput.NFTTo,
-                To = State.ServiceFeeReceiver.Value,
-                Symbol = performDealInput.PurchaseSymbol,
-                Amount = serviceFee
-            });
-            if (royaltyFeeReceiver != null)
-            {
+                var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee).Sub(royaltyFee);
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = performDealInput.NFTTo,
-                    To = royaltyFeeReceiver,
+                    To = performDealInput.NFTFrom,
                     Symbol = performDealInput.PurchaseSymbol,
-                    Amount = royaltyFee
+                    Amount = actualAmount
+                });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = performDealInput.NFTTo,
+                    To = State.ServiceFeeReceiver.Value,
+                    Symbol = performDealInput.PurchaseSymbol,
+                    Amount = serviceFee
+                });
+                if (royaltyFeeReceiver != null)
+                {
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = performDealInput.NFTTo,
+                        To = royaltyFeeReceiver,
+                        Symbol = performDealInput.PurchaseSymbol,
+                        Amount = royaltyFee
+                    });
+                }
+            }
+            else
+            {
+                State.NFTContract.TransferFrom.Send(new NFT.TransferFromInput
+                {
+                    From = performDealInput.NFTTo,
+                    To = performDealInput.NFTFrom,
+                    Symbol = performDealInput.PurchaseSymbol,
+                    TokenId = performDealInput.PurchaseTokenId,
+                    Amount = performDealInput.PurchaseAmount
+                });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = performDealInput.NFTTo,
+                    To = State.ServiceFeeReceiver.Value,
+                    Symbol = Context.Variables.NativeSymbol,
+                    Amount = State.ServiceFee.Value
                 });
             }
 
@@ -90,6 +110,7 @@ namespace AElf.Contracts.NFTMarket
                 NftTokenId = performDealInput.NFTTokenId,
                 NftQuantity = performDealInput.NFTQuantity,
                 PurchaseSymbol = performDealInput.PurchaseSymbol,
+                PurchaseTokenId = performDealInput.PurchaseTokenId,
                 PurchaseAmount = performDealInput.PurchaseAmount
             });
         }
@@ -102,6 +123,11 @@ namespace AElf.Contracts.NFTMarket
             public long NFTTokenId { get; set; }
             public long NFTQuantity { get; set; }
             public string PurchaseSymbol { get; set; }
+
+            /// <summary>
+            /// If PurchaseSymbol is a Fungible token, PurchaseTokenIs shall always be 0.
+            /// </summary>
+            public long PurchaseTokenId { get; set; }
 
             /// <summary>
             /// Be aware of that this stands for total amount.
@@ -117,7 +143,8 @@ namespace AElf.Contracts.NFTMarket
             };
         }
 
-        private void PerformRequestNewItem(string symbol, long tokenId)
+        private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime,
+            Timestamp dueTime)
         {
             var customizeInfo = State.CustomizeInfoMap[symbol];
             if (customizeInfo == null)
@@ -127,24 +154,36 @@ namespace AElf.Contracts.NFTMarket
 
             Assert(State.RequestInfoMap[symbol][tokenId] == null, "Request already existed.");
 
-            var virtualAddressFrom = CalculateTokenHash(symbol, tokenId);
+            var nftVirtualAddress = CalculateNFTVirtuaAddress(symbol, tokenId);
+            var priceSymbol = customizeInfo.Price.Symbol;
+            var priceAmount = price?.Amount == 0
+                ? customizeInfo.Price.Amount
+                : Math.Max(price?.Amount ?? 0, customizeInfo.Price.Amount);
+            var deposit = priceAmount.Mul(customizeInfo.DepositRate).Div(FeeDenominator);
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = Context.ConvertVirtualAddressToContractAddress(virtualAddressFrom),
-                Symbol = customizeInfo.Symbol,
-                Amount = customizeInfo.Deposit
+                To = nftVirtualAddress,
+                Symbol = priceSymbol,
+                Amount = deposit
             });
 
+            var defaultExpireTime = Context.CurrentBlockTime.AddDays(DefaultExpireDays);
             State.RequestInfoMap[symbol][tokenId] = new RequestInfo
             {
                 Symbol = symbol,
                 TokenId = tokenId,
-                Deposit = customizeInfo.Deposit,
-                Balance = customizeInfo.Balance,
+                DepositRate = customizeInfo.DepositRate,
+                Price = new Price
+                {
+                    Symbol = priceSymbol,
+                    Amount = priceAmount
+                },
                 WhiteListHours = customizeInfo.WhiteListHours,
-                WorkHours = customizeInfo.WorkHours,
-                Requester = Context.Sender
+                WorkHoursFromCustomizeInfo = customizeInfo.WorkHours,
+                Requester = Context.Sender,
+                ExpireTime = expireTime ?? defaultExpireTime,
+                DueTime = dueTime ?? defaultExpireTime
             };
 
             Context.Fire(new NewNFTRequested
@@ -173,10 +212,15 @@ namespace AElf.Contracts.NFTMarket
 
             return false;
         }
-        
-        private Hash CalculateTokenHash(string symbol, long tokenId)
+
+        private Hash CalculateTokenHash(string symbol, long tokenId = 0)
         {
             return HashHelper.ComputeFrom($"{symbol}{tokenId}");
+        }
+
+        private Address CalculateNFTVirtuaAddress(string symbol, long tokenId = 0)
+        {
+            return Context.ConvertVirtualAddressToContractAddress(CalculateTokenHash(symbol, tokenId));
         }
     }
 }

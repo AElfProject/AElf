@@ -9,8 +9,9 @@ namespace AElf.Contracts.NFTMarket
         {
             State.NFTContract.Value = input.NftContractAddress;
             State.Admin.Value = input.AdminAddress ?? Context.Sender;
-            State.ServiceFeeRate.Value = input.ServiceFeeRate == 0 ? DefaultServiceFee : input.ServiceFeeRate;
+            State.ServiceFeeRate.Value = input.ServiceFeeRate == 0 ? DefaultServiceFeeRate : input.ServiceFeeRate;
             State.ServiceFeeReceiver.Value = input.ServiceFeeReceiver ?? State.Admin.Value;
+            State.ServiceFee.Value = input.ServiceFee == 0 ? DefaultServiceFeeAmount : input.ServiceFee;
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             return new Empty();

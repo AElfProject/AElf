@@ -44,11 +44,13 @@ service NFTMarketContract {
     // For Creators.
     rpc SetRoyalty (SetRoyaltyInput) returns (google.protobuf.Empty) {
     }
-    rpc SetFloorPrice (SetFloorPriceInput) returns (google.protobuf.Empty) {
-    }
     rpc SetTokenWhiteList (SetTokenWhiteListInput) returns (google.protobuf.Empty) {
     }
     rpc SetCustomizeInfo (CustomizeInfo) returns (google.protobuf.Empty) {
+    }
+    rpc StakeForRequests (StakeForRequestsInput) returns (google.protobuf.Empty) {
+    }
+    rpc WithdrawStakingTokens (WithdrawStakingTokensInput) returns (google.protobuf.Empty) {
     }
     rpc HandleRequest (HandleRequestInput) returns (google.protobuf.Empty) {
     }
@@ -100,10 +102,11 @@ message AddressList {
 
 message CustomizeInfo {
     string symbol = 1;
-    int64 deposit = 2;
-    int64 balance = 3;
+    int32 deposit_rate = 2;
+    Price price = 3;
     int64 work_hours = 4;
     int64 white_list_hours = 5;
+    int64 staking_amount = 6;
 }
 
 message Price {
@@ -116,6 +119,7 @@ message Offer {
     Price price = 2;
     google.protobuf.Timestamp expire_time = 3;
     int64 quantity = 4;
+    google.protobuf.Timestamp due_time = 5;
 }
 
 message OfferList {
@@ -147,15 +151,18 @@ message DealInfo {
 
 message RequestInfo {
     string symbol = 1;
-    int64 deposit = 2;
-    int64 balance = 3;
+    int32 deposit_rate = 2;
+    Price price = 3;
     int64 work_hours = 4;
     int64 white_list_hours = 5;
     int64 token_id = 6;
     bool is_confirmed = 7;
-    google.protobuf.Timestamp confirm_time = 8;
-    google.protobuf.Timestamp list_time = 9;
+    google.protobuf.Timestamp expire_time = 8;
+    google.protobuf.Timestamp due_time = 9;
     aelf.Address requester = 10;
+    google.protobuf.Timestamp confirm_time = 11;
+    google.protobuf.Timestamp list_time = 12;
+    int64 work_hours_from_customize_info = 13;
 }
 
 // Inputs.
@@ -165,6 +172,7 @@ message InitializeInput {
     aelf.Address admin_address = 2;
     int32 service_fee_rate = 3;
     aelf.Address service_fee_receiver = 4;
+    int64 service_fee = 5;
 }
 
 message ListWithFixedPriceInput {
@@ -204,10 +212,11 @@ message DelistInput {
 message MakeOfferInput {
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address origin_owner = 3;
+    aelf.Address offer_to = 3;
     int64 quantity = 4;
     Price price = 5;
     google.protobuf.Timestamp expire_time = 6;
+    google.protobuf.Timestamp due_time = 7;
 }
 
 message CancelOfferInput {
@@ -239,11 +248,6 @@ message SetRoyaltyInput {
     aelf.Address royalty_fee_receiver = 4;
 }
 
-message SetFloorPriceInput {
-    string symbol = 1;
-    map<string, int64> floor_prices = 2;
-}
-
 message SetTokenWhiteListInput {
     string symbol = 1;
     StringList token_white_list = 2;
@@ -273,6 +277,16 @@ message HandleRequestInput {
     bool is_confirm = 4;
 }
 
+message StakeForRequestsInput {
+    string symbol = 1;
+    int64 staking_amount = 2;
+}
+
+message WithdrawStakingTokensInput {
+    string symbol = 1;
+    int64 withdraw_amount = 2;
+}
+
 // Events
 
 message ListedNFTInfoChanged {
@@ -292,11 +306,12 @@ message OfferMade {
     option (aelf.is_event) = true;
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address origin_owner = 3;
+    aelf.Address offer_to = 3;
     aelf.Address offer_maker = 4;
     Price price = 5;
     int64 quantity = 6;
     google.protobuf.Timestamp expire_time = 7;
+    google.protobuf.Timestamp due_time = 8;
 }
 
 message NewNFTRequested {
@@ -304,6 +319,8 @@ message NewNFTRequested {
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address requester = 3;
+    Price price = 4;
+    int64 expected_work_hours = 5;
 }
 
 message NewNFTRequestConfirmed {
@@ -311,6 +328,8 @@ message NewNFTRequestConfirmed {
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address requester = 3;
+    Price price = 4;
+    int64 confirmed_work_hours = 5;
 }
 
 message NewNFTRequestRejected {
@@ -329,4 +348,5 @@ message Sold {
     int64 nft_quantity = 5;
     string purchase_symbol = 6;
     int64 purchase_amount = 7;
+    int64 purchase_token_id = 8;
 }

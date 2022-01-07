@@ -1,6 +1,10 @@
+using System;
 using AElf.Contracts.NFT;
+using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
+using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
 
 namespace AElf.Contracts.NFTMarket
 {
@@ -42,27 +46,59 @@ namespace AElf.Contracts.NFTMarket
             return new Empty();
         }
 
-        public override Empty SetFloorPrice(SetFloorPriceInput input)
-        {
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
-            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set floor prices.");
-            var tokenWhiteList = GetTokenWhiteList(input.Symbol);
-            foreach (var pair in input.FloorPrices)
-            {
-                Assert(tokenWhiteList.Value.Contains(pair.Key),
-                    $"{pair.Key} is not in the token white list of protocol {input.Symbol}.");
-                Assert(pair.Value >= 0, "Floor price should not be negative.");
-                State.FloorPriceMap[input.Symbol][pair.Key] = pair.Value;
-            }
-
-            return new Empty();
-        }
-
         public override Empty SetCustomizeInfo(CustomizeInfo input)
         {
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set customize info.");
+            if (input.StakingAmount > 0)
+            {
+                var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = virtualAddress,
+                    Symbol = input.Price.Symbol,
+                    Amount = input.StakingAmount
+                });
+            }
             State.CustomizeInfoMap[input.Symbol] = input;
+            return new Empty();
+        }
+
+        public override Empty StakeForRequests(StakeForRequestsInput input)
+        {
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can stake for requests.");
+            var customizeInfo = State.CustomizeInfoMap[input.Symbol];
+            var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = virtualAddress,
+                Symbol = customizeInfo.Price.Symbol,
+                Amount = input.StakingAmount
+            });
+            customizeInfo.StakingAmount = customizeInfo.StakingAmount.Add(input.StakingAmount);
+            State.CustomizeInfoMap[input.Symbol] = customizeInfo;
+            return new Empty();
+        }
+
+        public override Empty WithdrawStakingTokens(WithdrawStakingTokensInput input)
+        {
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can withdraw.");
+            var customizeInfo = State.CustomizeInfoMap[input.Symbol];
+            Assert(input.WithdrawAmount <= customizeInfo.StakingAmount, "Insufficient staking amount.");
+            var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = virtualAddress,
+                To = Context.Sender,
+                Symbol = customizeInfo.Price.Symbol,
+                Amount = input.WithdrawAmount
+            });
+            customizeInfo.StakingAmount = customizeInfo.StakingAmount.Sub(input.WithdrawAmount);
+            State.CustomizeInfoMap[input.Symbol] = customizeInfo;
             return new Empty();
         }
 
@@ -74,11 +110,31 @@ namespace AElf.Contracts.NFTMarket
                 throw new AssertionException("Request not exists.");
             }
 
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can handle request.");
+
+            var nftVirtualAddress = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId);
+            var nftVirtualAddressBalance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Symbol = requestInfo.Price.Symbol,
+                Owner = nftVirtualAddress
+            }).Balance;
+
             if (input.IsConfirm)
             {
                 requestInfo.IsConfirmed = true;
                 requestInfo.ConfirmTime = Context.CurrentBlockTime;
+                requestInfo.WorkHours = Math.Min(requestInfo.WorkHoursFromCustomizeInfo,
+                    (requestInfo.DueTime - Context.CurrentBlockTime).Seconds.Div(3600));
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
+
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = nftVirtualAddress,
+                    To = Context.Sender,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = nftVirtualAddressBalance.Mul(DefaultDepositConfirmRate).Div(FeeDenominator)
+                });
                 Context.Fire(new NewNFTRequestConfirmed
                 {
                     Symbol = input.Symbol,
@@ -89,6 +145,13 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = nftVirtualAddress,
+                    To = requestInfo.Requester,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = nftVirtualAddressBalance
+                });
                 Context.Fire(new NewNFTRequestRejected
                 {
                     Symbol = input.Symbol,

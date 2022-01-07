@@ -53,8 +53,21 @@ namespace AElf.Contracts.NFTMarket
                     input.Duration.PublicTime >= supposedPublicTime1 &&
                     input.Duration.PublicTime >= supposedPublicTime2, "Incorrect white list hours.");
 
+                Assert(requestInfo.Price.Amount <= input.Price.Amount, "List price too low.");
+
+                var whiteListRemainPrice =
+                    requestInfo.Price.Amount.Sub(requestInfo.Price.Amount.Mul(requestInfo.DepositRate)
+                        .Div(FeeDenominator));
+                var delayDuration = Context.CurrentBlockTime - requestInfo.DueTime;
+                if (delayDuration.Seconds > 0)
+                {
+                    var reducePrice = whiteListRemainPrice.Mul(delayDuration.Seconds)
+                        .Div(delayDuration.Seconds.Add(requestInfo.WorkHours.Mul(3600)));
+                    whiteListRemainPrice = whiteListRemainPrice.Sub(reducePrice);
+                }
+
                 whiteListAddressPriceList.Value[0].Price.Amount = Math.Min(input.Price.Amount,
-                    Math.Min(requestInfo.Balance, whiteListAddressPriceList.Value[0].Price.Amount));
+                    Math.Min(whiteListRemainPrice, whiteListAddressPriceList.Value[0].Price.Amount));
                 requestInfo.ListTime = Context.CurrentBlockTime;
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
             }

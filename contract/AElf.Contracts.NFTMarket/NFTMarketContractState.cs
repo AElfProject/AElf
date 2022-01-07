@@ -10,6 +10,7 @@ namespace AElf.Contracts.NFTMarket
         public SingletonState<Address> ServiceFeeReceiver { get; set; }
 
         public Int32State ServiceFeeRate { get; set; }
+        public Int64State ServiceFee { get; set; }
 
         /// <summary>
         /// Symbol -> Token Id -> Owner -> List NFT Info
@@ -36,7 +37,6 @@ namespace AElf.Contracts.NFTMarket
         public MappedState<string, Address> RoyaltyFeeReceiverMap { get; set; }
         public MappedState<string, long, int> CertainNFTRoyaltyMap { get; set; }
         public MappedState<string, StringList> TokenWhiteListMap { get; set; }
-        public MappedState<string, string, long> FloorPriceMap { get; set; }
 
         public MappedState<string, CustomizeInfo> CustomizeInfoMap { get; set; }
         public MappedState<string, long, RequestInfo> RequestInfoMap { get; set; }
