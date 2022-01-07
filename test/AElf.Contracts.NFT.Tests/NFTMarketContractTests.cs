@@ -52,11 +52,10 @@ namespace AElf.Contracts.NFT
                     Symbol = "ELF",
                     Amount = 100_00000000
                 },
-                Duration = new Duration
+                Duration = new ListDuration
                 {
                     DurationHours = 24
                 },
-                Description = "A Badge.",
                 Quantity = 1
             });
 

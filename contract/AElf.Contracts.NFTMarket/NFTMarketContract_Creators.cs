@@ -5,6 +5,7 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
 using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
+using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
 {
@@ -113,7 +114,8 @@ namespace AElf.Contracts.NFTMarket
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can handle request.");
 
-            var nftVirtualAddress = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId);
+            var nftVirtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftVirtualAddress = Context.ConvertVirtualAddressToContractAddress(nftVirtualAddressFrom);
             var nftVirtualAddressBalance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Symbol = requestInfo.Price.Symbol,
@@ -128,12 +130,21 @@ namespace AElf.Contracts.NFTMarket
                     (requestInfo.DueTime - Context.CurrentBlockTime).Seconds.Div(3600));
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
 
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                var transferAmount = nftVirtualAddressBalance.Mul(DefaultDepositConfirmRate).Div(FeeDenominator);
+                var serviceFee = transferAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
+                transferAmount = transferAmount.Sub(serviceFee);
+
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
                 {
-                    From = nftVirtualAddress,
                     To = Context.Sender,
                     Symbol = requestInfo.Price.Symbol,
-                    Amount = nftVirtualAddressBalance.Mul(DefaultDepositConfirmRate).Div(FeeDenominator)
+                    Amount = transferAmount
+                });
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                {
+                    To = State.ServiceFeeReceiver.Value,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = serviceFee
                 });
                 Context.Fire(new NewNFTRequestConfirmed
                 {
@@ -145,10 +156,9 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
                 {
-                    From = nftVirtualAddress,
-                    To = requestInfo.Requester,
+                    To = Context.Sender,
                     Symbol = requestInfo.Price.Symbol,
                     Amount = nftVirtualAddressBalance
                 });

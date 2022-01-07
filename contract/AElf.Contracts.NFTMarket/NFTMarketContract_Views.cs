@@ -9,6 +9,11 @@ namespace AElf.Contracts.NFTMarket
             return State.ListedNftInfoMap[input.Symbol][input.TokenId][input.Owner];
         }
 
+        public override WhiteListAddressPriceList GetWhiteListAddressPriceList(GetWhiteListAddressPriceListInput input)
+        {
+            return State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId];
+        }
+
         public override AddressList GetOfferAddressList(GetOfferAddressListInput input)
         {
             return State.OfferAddressListMap[input.Symbol][input.TokenId];

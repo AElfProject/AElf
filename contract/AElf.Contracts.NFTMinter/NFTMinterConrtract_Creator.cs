@@ -24,7 +24,7 @@ namespace AElf.Contracts.NFTMinter
             State.BadgeInfoMap[input.Symbol][input.TokenId] = badgeInfo;
 
             var nftProtocol = ValidNFTProtocol(input.Symbol);
-            var metadata = new Metadata {Value = {input.Metadata.Value}};
+            var metadata = input.Metadata == null ? new Metadata() : new Metadata {Value = {input.Metadata.Value}};
             metadata.Value[BadgeNameMetadataKey] = input.Alias;
             State.NFTContract.Mint.Send(new MintInput
             {

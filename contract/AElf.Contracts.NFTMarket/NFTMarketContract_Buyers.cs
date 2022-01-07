@@ -62,10 +62,16 @@ namespace AElf.Contracts.NFTMarket
                 input.Quantity = listedNftInfo.Quantity;
             }
 
+            var whiteListAddressPriceList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId];
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when input.Price.Amount >= listedNftInfo.Price.Amount:
                     TryDealWithFixedPrice(input, listedNftInfo);
+                    break;
+                case ListType.FixedPrice when whiteListAddressPriceList != null &&
+                                              whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
+                    TryDealWithFixedPrice(input, listedNftInfo);
+                    State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
                     break;
                 case ListType.FixedPrice:
                     PerformMakeOffer(input);
@@ -97,7 +103,8 @@ namespace AElf.Contracts.NFTMarket
                     requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) < Context.CurrentBlockTime)
                 {
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
-                    var protocolVirtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+                    var protocolVirtualAddress =
+                        Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
                     var balanceOfNftProtocolVirtualAddress = State.TokenContract.GetBalance.Call(new GetBalanceInput
                     {
                         Symbol = requestInfo.Price.Symbol,
@@ -148,7 +155,7 @@ namespace AElf.Contracts.NFTMarket
                     var price = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
                     if (price != null)
                     {
-                        Assert(input.Symbol == price.Price.Symbol, $"Need to use token {price.Price.Symbol}");
+                        Assert(input.Price.Symbol == price.Price.Symbol, $"Need to use token {price.Price.Symbol}, not {input.Price.Symbol}");
                         amount = price.Price.Amount;
                     }
                     else

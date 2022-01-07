@@ -6,6 +6,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
+using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
 {
@@ -30,8 +31,37 @@ namespace AElf.Contracts.NFTMarket
             Assert(allowance >= quantity, "Check sender NFT allowance failed.");
         }
 
+        private void MaybeTransferFromNFTVirtualAddress(PerformDealInput performDealInput)
+        {
+            var requestInfo = State.RequestInfoMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];
+            if (requestInfo == null) return;
+            var nftVirtualAddressFrom = CalculateTokenHash(performDealInput.NFTSymbol, performDealInput.NFTTokenId);
+            var nftVirtualAddress = Context.ConvertVirtualAddressToContractAddress(nftVirtualAddressFrom);
+            var balanceOfNftVirtualAddress = State.TokenContract.GetBalance.Call(new MultiToken.GetBalanceInput
+            {
+                Symbol = performDealInput.PurchaseSymbol,
+                Owner = nftVirtualAddress
+            }).Balance;
+            var transferAmount = balanceOfNftVirtualAddress;
+            var serviceFee = transferAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
+            transferAmount = transferAmount.Sub(serviceFee);
+            State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+            {
+                To = performDealInput.NFTFrom,
+                Symbol = requestInfo.Price.Symbol,
+                Amount = transferAmount
+            });
+            State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+            {
+                To = State.ServiceFeeReceiver.Value,
+                Symbol = requestInfo.Price.Symbol,
+                Amount = serviceFee
+            });
+        }
+
         private void PerformDeal(PerformDealInput performDealInput)
         {
+            MaybeTransferFromNFTVirtualAddress(performDealInput);
             if (performDealInput.PurchaseTokenId == 0)
             {
                 var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
@@ -76,6 +106,8 @@ namespace AElf.Contracts.NFTMarket
             }
             else
             {
+                // Exchange NFTs for NFTs.
+
                 State.NFTContract.TransferFrom.Send(new NFT.TransferFromInput
                 {
                     From = performDealInput.NFTTo,
@@ -84,6 +116,7 @@ namespace AElf.Contracts.NFTMarket
                     TokenId = performDealInput.PurchaseTokenId,
                     Amount = performDealInput.PurchaseAmount
                 });
+                // Charge a fixed service fee.
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = performDealInput.NFTTo,
@@ -159,6 +192,15 @@ namespace AElf.Contracts.NFTMarket
             var priceAmount = price?.Amount == 0
                 ? customizeInfo.Price.Amount
                 : Math.Max(price?.Amount ?? 0, customizeInfo.Price.Amount);
+            // Check allowance.
+            var allowance = State.TokenContract.GetAllowance.Call(new MultiToken.GetAllowanceInput
+            {
+                Symbol = priceSymbol,
+                Owner = Context.Sender,
+                Spender = Context.Self
+            }).Allowance;
+            Assert(allowance >= priceAmount, "Insufficient allowance.");
+
             var deposit = priceAmount.Mul(customizeInfo.DepositRate).Div(FeeDenominator);
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
@@ -200,6 +242,11 @@ namespace AElf.Contracts.NFTMarket
             if (requestInfo == null)
             {
                 return true;
+            }
+
+            if (requestInfo.ListTime == null)
+            {
+                return false;
             }
 
             var whiteListDueTime1 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)

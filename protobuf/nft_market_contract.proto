@@ -63,6 +63,9 @@ service NFTMarketContract {
     rpc GetListedNFTInfo (GetListedNFTInfoInput) returns (ListedNFTInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetWhiteListAddressPriceList (GetWhiteListAddressPriceListInput) returns (WhiteListAddressPriceList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetOfferAddressList (GetOfferAddressListInput) returns (AddressList) {
         option (aelf.is_view) = true;
     }
@@ -86,7 +89,7 @@ message ListedNFTInfo {
     int64 quantity = 4;
     ListType list_type = 5;
     Price price = 6;
-    Duration duration = 7;
+    ListDuration duration = 7;
 }
 
 message WhiteListAddressPriceList {
@@ -139,7 +142,7 @@ enum ListType {
     DUTCH_AUCTION = 3;
 }
 
-message Duration {
+message ListDuration {
     google.protobuf.Timestamp start_time = 1;
     google.protobuf.Timestamp public_time = 2;
     int64 duration_hours = 3;
@@ -186,18 +189,17 @@ message ListWithFixedPriceInput {
     int64 token_id = 2;
     Price price = 3;
     int64 quantity = 4;
-    Duration duration = 5;
-    string description = 6;// Just for log event.
-    WhiteListAddressPriceList white_list_address_price_list = 7;
+    ListDuration duration = 5;
+    WhiteListAddressPriceList white_list_address_price_list = 8;
 }
 
 message ListWithEnglishAuctionInput {
     string symbol = 1;
     int64 token_id = 2;
     int64 starting_price = 3;
-    int64 reserve_price = 4;
-    Duration duration = 5;
-    string description = 6;
+    string purchase_symbol = 4;
+    ListDuration duration = 5;
+    WhiteListAddressPriceList white_list_address_price_list = 6;
 }
 
 message ListWithDutchAuctionInput {
@@ -205,8 +207,9 @@ message ListWithDutchAuctionInput {
     int64 token_id = 2;
     int64 starting_price = 3;
     int64 ending_price = 4;
-    Duration duration = 5;
-    string description = 6;
+    string purchase_symbol = 5;
+    ListDuration duration = 6;
+    WhiteListAddressPriceList white_list_address_price_list = 7;
 }
 
 message DelistInput {
@@ -298,6 +301,11 @@ message GetRequestInfoInput {
     int64 token_id = 2;
 }
 
+message GetWhiteListAddressPriceListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
 // Events
 
 message ListedNFTInfoChanged {
@@ -308,7 +316,7 @@ message ListedNFTInfoChanged {
     int64 quantity = 4;
     ListType list_type = 5;
     Price price = 6;
-    Duration duration = 7;
+    ListDuration duration = 7;
     string description = 8;
     WhiteListAddressPriceList white_list_address_price_list = 9;
 }

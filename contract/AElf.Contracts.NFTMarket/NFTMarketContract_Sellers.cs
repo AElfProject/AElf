@@ -16,7 +16,7 @@ namespace AElf.Contracts.NFTMarket
             var duration = input.Duration;
             if (duration == null)
             {
-                duration = new Duration
+                duration = new ListDuration
                 {
                     StartTime = Context.CurrentBlockTime,
                     PublicTime = Context.CurrentBlockTime,
@@ -40,11 +40,11 @@ namespace AElf.Contracts.NFTMarket
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             if (requestInfo != null)
             {
-                Assert(
-                    whiteListAddressPriceList.Value.Count == 1 &&
-                    whiteListAddressPriceList.Value.Any(p => p.Address == requestInfo.Requester),
+                Assert(whiteListAddressPriceList != null &&
+                       whiteListAddressPriceList.Value.Count == 1 &&
+                       whiteListAddressPriceList.Value.Any(p => p.Address == requestInfo.Requester),
                     "Incorrect white list address price list.");
-                Assert(input.Price.Symbol == requestInfo.Symbol, $"Need to use token {requestInfo.Symbol}");
+                Assert(input.Price.Symbol == requestInfo.Price.Symbol, $"Need to use token {requestInfo.Price.Symbol}");
 
                 var supposedPublicTime1 = Context.CurrentBlockTime.AddHours(requestInfo.WhiteListHours);
                 var supposedPublicTime2 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
@@ -83,7 +83,10 @@ namespace AElf.Contracts.NFTMarket
                 Duration = duration,
             };
             State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfo;
-            State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
+            if (whiteListAddressPriceList != null)
+            {
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
+            }
             Context.Fire(new ListedNFTInfoChanged
             {
                 ListType = listedNftInfo.ListType,
@@ -92,8 +95,7 @@ namespace AElf.Contracts.NFTMarket
                 Quantity = listedNftInfo.Quantity,
                 Symbol = listedNftInfo.Symbol,
                 TokenId = listedNftInfo.TokenId,
-                Duration = listedNftInfo.Duration,
-                Description = input.Description
+                Duration = listedNftInfo.Duration
             });
             return new Empty();
         }
