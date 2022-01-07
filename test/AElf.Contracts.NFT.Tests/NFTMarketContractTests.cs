@@ -92,7 +92,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OriginOwner = DefaultAddress,
+                OfferTo = DefaultAddress,
                 Quantity = 1,
                 Price = new Price
                 {
@@ -157,7 +157,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OriginOwner = DefaultAddress,
+                OfferTo = DefaultAddress,
                 Quantity = 2,
                 Price = new Price
                 {
@@ -170,7 +170,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OriginOwner = DefaultAddress,
+                OfferTo = DefaultAddress,
                 Quantity = 1,
                 Price = new Price
                 {
@@ -314,7 +314,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OriginOwner = DefaultAddress,
+                OfferTo = DefaultAddress,
                 Quantity = 1,
                 Price = new Price
                 {

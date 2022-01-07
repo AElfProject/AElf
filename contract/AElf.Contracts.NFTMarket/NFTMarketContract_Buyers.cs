@@ -22,12 +22,6 @@ namespace AElf.Contracts.NFTMarket
         /// <returns></returns>
         public override Empty MakeOffer(MakeOfferInput input)
         {
-            if (input.OfferTo == null)
-            {
-                PerformMakeOffer(input);
-                return new Empty();
-            }
-
             Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
 
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
@@ -35,7 +29,14 @@ namespace AElf.Contracts.NFTMarket
                 Symbol = input.Symbol,
                 TokenId = input.TokenId
             });
-            if (nftInfo.Quantity == 0)
+
+            if (nftInfo.Quantity != 0 && input.OfferTo == null)
+            {
+                PerformMakeOffer(input);
+                return new Empty();
+            }
+
+            if (nftInfo.Quantity == 0 && input.Quantity == 1)
             {
                 // NFT not minted.
                 PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime, input.DueTime);

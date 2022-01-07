@@ -1,3 +1,5 @@
+using Google.Protobuf.WellKnownTypes;
+
 namespace AElf.Contracts.NFTMarket
 {
     public partial class NFTMarketContract
@@ -35,6 +37,16 @@ namespace AElf.Contracts.NFTMarket
             }
 
             return allOfferList;
+        }
+
+        public override CustomizeInfo GetCustomizeInfo(StringValue input)
+        {
+            return State.CustomizeInfoMap[input.Value];
+        }
+
+        public override RequestInfo GetRequestInfo(GetRequestInfoInput input)
+        {
+            return State.RequestInfoMap[input.Symbol][input.TokenId];
         }
     }
 }
