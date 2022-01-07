@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -86,13 +87,15 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ListWithEnglishAuction(ListWithEnglishAuctionInput input)
         {
-            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId), "This NFT cannot be listed with auction for now.");
+            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
+                "This NFT cannot be listed with auction for now.");
             return new Empty();
         }
 
         public override Empty ListWithDutchAuction(ListWithDutchAuctionInput input)
         {
-            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId), "This NFT cannot be listed with auction for now.");
+            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
+                "This NFT cannot be listed with auction for now.");
             return new Empty();
         }
 
@@ -131,6 +134,51 @@ namespace AElf.Contracts.NFTMarket
                 case ListType.DutchAuction:
                     break;
             }
+
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Sender is the seller.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        /// <exception cref="AssertionException"></exception>
+        public override Empty Deal(DealInput input)
+        {
+            Assert(input.Symbol != null, "Incorrect symbol.");
+            Assert(input.TokenId != 0, "Incorrect token id.");
+            Assert(input.OfferMaker != null, "Incorrect offer maker.");
+            Assert(input.Price?.Symbol != null, "Incorrect price.");
+
+            var balance = State.NFTContract.GetBalance.Call(new GetBalanceInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Owner = Context.Sender
+            });
+            Assert(balance.Balance >= input.Quantity, "Insufficient balance.");
+
+            var offer = State.OfferListMap[input.Symbol][input.TokenId][input.OfferMaker].Value
+                .FirstOrDefault(o => o.From == input.OfferMaker && o.Price.Symbol == input.Price.Symbol &&
+                                     o.Price.Amount == input.Price.Amount);
+            if (offer == null)
+            {
+                throw new AssertionException("Related offer not found.");
+            }
+
+            Assert(offer.Quantity >= input.Quantity, "Offer quantity exceeded.");
+            var totalAmount = offer.Price.Amount.Mul(input.Quantity);
+            PerformDeal(new PerformDealInput
+            {
+                NFTFrom = Context.Sender,
+                NFTTo = offer.From,
+                NFTSymbol = input.Symbol,
+                NFTTokenId = input.TokenId,
+                NFTQuantity = input.Quantity,
+                PurchaseSymbol = offer.Price.Symbol,
+                PurchaseAmount = totalAmount
+            });
             return new Empty();
         }
     }

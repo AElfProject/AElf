@@ -216,6 +216,11 @@ message CancelOfferInput {
 }
 
 message DealInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_maker = 3;
+    Price price = 4;
+    int64 quantity = 5;
 }
 
 message SetServiceFeeInput {
@@ -317,5 +322,11 @@ message NewNFTRequestRejected {
 
 message Sold {
     option (aelf.is_event) = true;
-
+    aelf.Address nft_from = 1;
+    aelf.Address nft_to = 2;
+    string nft_symbol = 3;
+    int64 nft_token_id = 4;
+    int64 nft_quantity = 5;
+    string purchase_symbol = 6;
+    int64 purchase_amount = 7;
 }

@@ -81,6 +81,17 @@ namespace AElf.Contracts.NFTMarket
                 TokenId = performDealInput.NFTTokenId,
                 Amount = performDealInput.NFTQuantity
             });
+
+            Context.Fire(new Sold
+            {
+                NftFrom = performDealInput.NFTFrom,
+                NftTo = performDealInput.NFTTo,
+                NftSymbol = performDealInput.NFTSymbol,
+                NftTokenId = performDealInput.NFTTokenId,
+                NftQuantity = performDealInput.NFTQuantity,
+                PurchaseSymbol = performDealInput.PurchaseSymbol,
+                PurchaseAmount = performDealInput.PurchaseAmount
+            });
         }
 
         private struct PerformDealInput
@@ -91,6 +102,10 @@ namespace AElf.Contracts.NFTMarket
             public long NFTTokenId { get; set; }
             public long NFTQuantity { get; set; }
             public string PurchaseSymbol { get; set; }
+
+            /// <summary>
+            /// Be aware of that this stands for total amount.
+            /// </summary>
             public long PurchaseAmount { get; set; }
         }
 

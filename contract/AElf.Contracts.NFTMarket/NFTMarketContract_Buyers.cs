@@ -150,21 +150,33 @@ namespace AElf.Contracts.NFTMarket
         private void PerformMakeOffer(MakeOfferInput input)
         {
             var offerList = State.OfferListMap[input.Symbol][input.TokenId][Context.Sender] ?? new OfferList();
-            var expireTime = input.ExpireTime ?? Context.CurrentBlockTime.AddDays(100000);
-            offerList.Value.Add(new Offer
+            var expireTime = input.ExpireTime ?? Context.CurrentBlockTime.AddDays(DefaultExpireDays);
+            var maybeSameOffer = offerList.Value.SingleOrDefault(o =>
+                o.Price.Symbol == input.Price.Symbol && o.Price.Amount == input.Price.Amount &&
+                o.ExpireTime == expireTime);
+            if (maybeSameOffer == null)
             {
-                From = Context.Sender,
-                Price = input.Price,
-                ExpireTime = expireTime
-            });
+                offerList.Value.Add(new Offer
+                {
+                    From = Context.Sender,
+                    Price = input.Price,
+                    ExpireTime = expireTime,
+                    Quantity = input.Quantity
+                });
+            }
+            else
+            {
+                maybeSameOffer.Quantity = maybeSameOffer.Quantity.Add(input.Quantity);
+            }
             State.OfferListMap[input.Symbol][input.TokenId][Context.Sender] = offerList;
 
             var addressList = State.OfferAddressListMap[input.Symbol][input.TokenId] ?? new AddressList();
 
-            if (addressList.Value.Contains(Context.Sender)) return;
-
-            addressList.Value.Add(Context.Sender);
-            State.OfferAddressListMap[input.Symbol][input.TokenId] = addressList;
+            if (!addressList.Value.Contains(Context.Sender))
+            {
+                addressList.Value.Add(Context.Sender);
+                State.OfferAddressListMap[input.Symbol][input.TokenId] = addressList;
+            }
 
             Context.Fire(new OfferMade
             {
