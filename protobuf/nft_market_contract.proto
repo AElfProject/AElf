@@ -58,6 +58,8 @@ service NFTMarketContract {
     // For Admin.
     rpc SetServiceFee (SetServiceFeeInput) returns (google.protobuf.Empty) {
     }
+    rpc SetGlobalTokenWhiteList (StringList) returns (google.protobuf.Empty) {
+    }
 
     // Views.
     rpc GetListedNFTInfo (GetListedNFTInfoInput) returns (ListedNFTInfo) {
@@ -131,6 +133,10 @@ message Offer {
     google.protobuf.Timestamp due_time = 5;
 }
 
+message Bid {
+    
+}
+
 message OfferList {
     repeated Offer value = 1;
 }
@@ -172,6 +178,25 @@ message RequestInfo {
     google.protobuf.Timestamp confirm_time = 11;
     google.protobuf.Timestamp list_time = 12;
     int64 work_hours_from_customize_info = 13;
+}
+
+message EnglishAuctionInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    int64 starting_price = 3;
+    string purchase_symbol = 4;
+    ListDuration duration = 5;
+    aelf.Address owner = 6;
+}
+
+message DutchAuctionInfo {
+    string symbol = 1;
+    int64 token_id = 2;
+    int64 starting_price = 3;
+    int64 ending_price = 4;
+    string purchase_symbol = 5;
+    ListDuration duration = 6;
+    aelf.Address owner = 7;
 }
 
 // Inputs.
@@ -231,6 +256,13 @@ message MakeOfferInput {
 message CancelOfferInput {
     string symbol = 1;
     int64 token_id = 2;
+    Int32List index_list = 3;
+    aelf.Address offer_from = 4;
+    aelf.Address offer_to = 5;
+}
+
+message Int32List {
+    repeated int32 value = 1;
 }
 
 message DealInput {

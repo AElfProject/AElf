@@ -12,6 +12,8 @@ namespace AElf.Contracts.NFTMarket
         public Int32State ServiceFeeRate { get; set; }
         public Int64State ServiceFee { get; set; }
 
+        public SingletonState<StringList> GlobalTokenWhiteList { get; set; }
+
         /// <summary>
         /// Symbol -> Token Id -> Owner -> List NFT Info
         /// </summary>
@@ -40,5 +42,8 @@ namespace AElf.Contracts.NFTMarket
 
         public MappedState<string, CustomizeInfo> CustomizeInfoMap { get; set; }
         public MappedState<string, long, RequestInfo> RequestInfoMap { get; set; }
+
+        public MappedState<string, long, EnglishAuctionInfo> EnglishAuctionInfoMap { get; set; }
+        public MappedState<string, long, DutchAuctionInfo> DutchAuctionInfoMap { get; set; }
     }
 }

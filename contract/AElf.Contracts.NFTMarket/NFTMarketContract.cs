@@ -25,6 +25,13 @@ namespace AElf.Contracts.NFTMarket
             return new Empty();
         }
 
+        public override Empty SetGlobalTokenWhiteList(StringList input)
+        {
+            AssertSenderIsAdmin();
+            State.GlobalTokenWhiteList.Value = input;
+            return new Empty();
+        }
+
         private void AssertSenderIsAdmin()
         {
             Assert(State.Admin.Value != null, "Contract not initialized.");

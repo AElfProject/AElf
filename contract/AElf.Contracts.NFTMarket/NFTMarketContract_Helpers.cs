@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -170,10 +171,7 @@ namespace AElf.Contracts.NFTMarket
 
         private StringList GetTokenWhiteList(string symbol)
         {
-            return State.TokenWhiteListMap[symbol] ?? new StringList
-            {
-                Value = {Context.Variables.NativeSymbol}
-            };
+            return State.TokenWhiteListMap[symbol] ?? State.GlobalTokenWhiteList.Value;
         }
 
         private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime,
@@ -238,6 +236,12 @@ namespace AElf.Contracts.NFTMarket
 
         private bool CanBeListedWithAuction(string symbol, long tokenId)
         {
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = symbol});
+            if (nftProtocolInfo.IsTokenIdReuse)
+            {
+                return false;
+            }
+
             var requestInfo = State.RequestInfoMap[symbol][tokenId];
             if (requestInfo == null)
             {
@@ -268,6 +272,72 @@ namespace AElf.Contracts.NFTMarket
         private Address CalculateNFTVirtuaAddress(string symbol, long tokenId = 0)
         {
             return Context.ConvertVirtualAddressToContractAddress(CalculateTokenHash(symbol, tokenId));
+        }
+
+        private ListDuration AdjustListDuration(ListDuration duration)
+        {
+            if (duration == null)
+            {
+                duration = new ListDuration
+                {
+                    StartTime = Context.CurrentBlockTime,
+                    PublicTime = Context.CurrentBlockTime,
+                    DurationHours = int.MaxValue
+                };
+            }
+            else
+            {
+                if (duration.StartTime == null || duration.StartTime > Context.CurrentBlockTime)
+                {
+                    duration.StartTime = Context.CurrentBlockTime;
+                }
+
+                if (duration.DurationHours == 0)
+                {
+                    duration.DurationHours = int.MaxValue;
+                }
+            }
+
+            return duration;
+        }
+
+        private void ListRequestedNFT(ListWithFixedPriceInput input, RequestInfo requestInfo,
+            WhiteListAddressPriceList whiteListAddressPriceList)
+        {
+            if (whiteListAddressPriceList == null)
+            {
+                throw new AssertionException("Incorrect white list address price list.");
+            }
+
+            Assert(whiteListAddressPriceList.Value.Count == 1 &&
+                   whiteListAddressPriceList.Value.Any(p => p.Address == requestInfo.Requester),
+                "Incorrect white list address price list.");
+            Assert(input.Price.Symbol == requestInfo.Price.Symbol, $"Need to use token {requestInfo.Price.Symbol}");
+
+            var supposedPublicTime1 = Context.CurrentBlockTime.AddHours(requestInfo.WhiteListHours);
+            var supposedPublicTime2 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
+                .AddHours(requestInfo.WhiteListHours);
+            Assert(
+                input.Duration.PublicTime >= supposedPublicTime1 &&
+                input.Duration.PublicTime >= supposedPublicTime2, "Incorrect white list hours.");
+
+            Assert(requestInfo.Price.Amount <= input.Price.Amount, "List price too low.");
+
+            var whiteListRemainPrice =
+                requestInfo.Price.Amount.Sub(requestInfo.Price.Amount.Mul(requestInfo.DepositRate)
+                    .Div(FeeDenominator));
+            var delayDuration = Context.CurrentBlockTime - requestInfo.DueTime;
+            if (delayDuration.Seconds > 0)
+            {
+                var reducePrice = whiteListRemainPrice.Mul(delayDuration.Seconds)
+                    .Div(delayDuration.Seconds.Add(requestInfo.WorkHours.Mul(3600)));
+                whiteListRemainPrice = whiteListRemainPrice.Sub(reducePrice);
+            }
+
+            whiteListAddressPriceList.Value[0].Price.Amount = Math.Min(input.Price.Amount,
+                Math.Min(whiteListRemainPrice, whiteListAddressPriceList.Value[0].Price.Amount));
+            requestInfo.ListTime = Context.CurrentBlockTime;
+            State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
         }
     }
 }
