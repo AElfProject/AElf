@@ -48,6 +48,9 @@ service NFTMinterContract {
     rpc IsInMintingWhiteList (IsInMintingWhiteListInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetBlindBoxInfo (GetBlindBoxInfoInput) returns (BlindBoxInfo) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Structs.
@@ -81,12 +84,13 @@ message BlindBoxInfo {
     string symbol = 1;
     NFTTemplateList template_list = 2;
     string cost_symbol = 3;
-    int64 cost_amount = 4;
-    aelf.Address cost_receiver = 5;
-    int64 start_token_id = 6;
-    int64 supposed_end_token_id = 7;
-    bool is_token_id_fixed = 8;
-    int64 total_weights = 9;
+    int64 cost_token_id = 4;
+    int64 cost_amount = 5;
+    aelf.Address cost_receiver = 6;
+    int64 start_token_id = 7;
+    int64 supposed_end_token_id = 8;
+    bool is_token_id_fixed = 9;
+    int64 total_weights = 10;
 }
 
 message NFTTemplateList {
@@ -165,13 +169,19 @@ message BoxInput {
     string symbol = 1;
     NFTTemplateList template_list = 2;
     string cost_symbol = 3;
-    int64 cost_amount = 4;
-    aelf.Address cost_receiver = 5;
-    int32 index = 6;
-    bool is_token_id_fixed = 7;
+    int64 cost_token_id = 4;
+    int64 cost_amount = 5;
+    aelf.Address cost_receiver = 6;
+    int32 index = 7;
+    bool is_token_id_fixed = 8;
 }
 
 message UnboxInput {
+    string symbol = 1;
+    int32 index = 2;
+}
+
+message GetBlindBoxInfoInput {
     string symbol = 1;
     int32 index = 2;
 }
@@ -201,11 +211,12 @@ message BlindBoxForged {
     string symbol = 1;
     NFTTemplateList template_list = 2;
     string cost_symbol = 3;
-    int64 cost_amount = 4;
-    aelf.Address cost_receiver = 5;
-    int64 start_token_id = 6;
-    int64 supposed_end_token_id = 7;
-    bool is_token_id_fixed = 8;
+    int64 cost_token_id = 4;
+    int64 cost_amount = 5;
+    aelf.Address cost_receiver = 6;
+    int64 start_token_id = 7;
+    int64 supposed_end_token_id = 8;
+    bool is_token_id_fixed = 9;
 }
 
 message BlindBoxOpened {

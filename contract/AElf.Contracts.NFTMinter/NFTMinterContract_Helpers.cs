@@ -15,7 +15,12 @@ namespace AElf.Contracts.NFTMinter
         private void CheckSymbolAndPermission(string symbol)
         {
             Assert(!string.IsNullOrEmpty(symbol.Trim()), "Symbol is empty.");
-            Assert(GetNFTProtocolCreator(symbol) == Context.Sender, "No permission.");
+            var creator = GetNFTProtocolCreator(symbol);
+            if (creator == null)
+            {
+                throw new AssertionException("NFT Protocol not exists.");
+            }
+            Assert(creator == Context.Sender, "No permission.");
         }
 
         private NFTProtocolInfo ValidNFTProtocol(string symbol)

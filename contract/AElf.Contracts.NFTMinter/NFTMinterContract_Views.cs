@@ -15,5 +15,10 @@ namespace AElf.Contracts.NFTMinter
         {
             return new BoolValue {Value = State.IsInWhiteListMap[input.Symbol][input.TokenId][input.Address]};
         }
+
+        public override BlindBoxInfo GetBlindBoxInfo(GetBlindBoxInfoInput input)
+        {
+            return State.BlindBoxInfoMap[input.Symbol][input.Index];
+        }
     }
 }

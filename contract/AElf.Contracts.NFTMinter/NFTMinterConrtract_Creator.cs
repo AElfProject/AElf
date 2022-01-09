@@ -132,6 +132,7 @@ namespace AElf.Contracts.NFTMinter
                 TemplateList = templateList,
                 IsTokenIdFixed = input.IsTokenIdFixed,
                 CostSymbol = input.CostSymbol,
+                CostTokenId = input.CostTokenId,
                 CostAmount = input.CostAmount,
                 CostReceiver = input.CostReceiver,
                 StartTokenId = startTokenId,
@@ -144,58 +145,16 @@ namespace AElf.Contracts.NFTMinter
             State.BlindBoxWeightVectorMap[input.Symbol][input.Index] = vector;
             Context.Fire(new BlindBoxForged
             {
-                Symbol = input.Symbol,
+                Symbol = blindBoxInfo.Symbol,
                 TemplateList = templateList,
-                IsTokenIdFixed = input.IsTokenIdFixed,
-                CostSymbol = input.CostSymbol,
-                CostAmount = input.CostAmount,
-                CostReceiver = input.CostReceiver,
+                IsTokenIdFixed = blindBoxInfo.IsTokenIdFixed,
+                CostSymbol = blindBoxInfo.CostSymbol,
+                CostTokenId = blindBoxInfo.CostTokenId,
+                CostAmount = blindBoxInfo.CostAmount,
+                CostReceiver = blindBoxInfo.CostReceiver,
                 StartTokenId = startTokenId,
                 SupposedEndTokenId = endTokenId,
             });
-            return new Empty();
-        }
-
-        public override Empty Unbox(UnboxInput input)
-        {
-            var blindBoxInfo = State.BlindBoxInfoMap[input.Symbol][input.Index];
-            if (blindBoxInfo == null)
-            {
-                throw new AssertionException($"Index {input.Index} not existed.");
-            }
-
-            var weightVector = State.BlindBoxWeightVectorMap[input.Symbol][input.Index];
-            var totalWeights = blindBoxInfo.TotalWeights;
-
-            var randomBytes = State.RandomNumberProviderContract.GetRandomBytes.Call(new Int64Value
-            {
-                Value = Context.CurrentHeight.Sub(1)
-            }.ToBytesValue());
-            var randomHash =
-                HashHelper.ConcatAndCompute(Context.PreviousBlockHash, HashHelper.ComputeFrom(randomBytes));
-            var randomNumber = Context.ConvertHashToInt64(randomHash, 0, totalWeights);
-
-            var blindBoxIndex = 0;
-            for (var i = 0; i < weightVector.Value.Count; i++)
-            {
-                blindBoxIndex = i;
-                if (randomNumber > weightVector.Value[i]) break;
-            }
-
-            var template = blindBoxInfo.TemplateList.Value[blindBoxIndex];
-            var tokenId = blindBoxInfo.IsTokenIdFixed ? template.TokenId : template.TokenId.Add(1);
-            State.NFTContract.Mint.Send(new MintInput
-            {
-                Symbol = template.Symbol,
-                TokenId = tokenId,
-                Alias = template.Alias,
-                Owner = Context.Sender,
-                Metadata = new Metadata {Value = {template.Metadata.Value}},
-                Quantity = 1,
-                Uri = template.Uri
-            });
-            template.TokenId = tokenId;
-            State.BlindBoxInfoMap[input.Symbol][input.Index] = blindBoxInfo;
             return new Empty();
         }
 
@@ -209,7 +168,7 @@ namespace AElf.Contracts.NFTMinter
                 var checkTokenId = startTokenId;
                 foreach (var template in templateList.Value.Skip(1))
                 {
-                    Assert(template.TokenId > checkTokenId,
+                    Assert(template.TokenId >= checkTokenId,
                         $"{template.Alias} cannot start from token id {checkTokenId}");
                     checkTokenId = template.TokenId;
                     endTokenId = checkTokenId;
@@ -219,13 +178,13 @@ namespace AElf.Contracts.NFTMinter
             {
                 var firstTemplate = templateList.Value.First();
                 startTokenId = firstTemplate.TokenId;
-                var checkTokenId = startTokenId.Add(firstTemplate.Quantity);
+                var checkTokenId = startTokenId.Add(firstTemplate.Quantity).Sub(1);
                 endTokenId = checkTokenId;
                 foreach (var template in templateList.Value.Skip(1))
                 {
                     Assert(template.TokenId > checkTokenId,
                         $"{template.Alias} cannot start from token id {checkTokenId}");
-                    checkTokenId = template.TokenId.Add(template.Quantity);
+                    checkTokenId = template.TokenId.Add(template.Quantity).Sub(1);
                     endTokenId = checkTokenId;
                 }
             }
