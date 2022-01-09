@@ -1,4 +1,6 @@
+using System.Linq;
 using AElf.Contracts.NFT;
+using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -111,6 +113,138 @@ namespace AElf.Contracts.NFTMinter
             });
 
             return new Empty();
+        }
+
+        public override Empty Box(BoxInput input)
+        {
+            CheckSymbolAndPermission(input.Symbol);
+            Assert(State.BlindBoxInfoMap[input.Symbol][input.Index] == null, $"Index {input.Index} already existed.");
+            var templateList = new NFTTemplateList
+            {
+                Value = {input.TemplateList.Value.OrderBy(t => t.TokenId)}
+            };
+            Assert(templateList.Value.All(t => t.Quantity > 0), "Incorrect quantity.");
+            Assert(templateList.Value.All(t => t.Weight > 0), "Incorrect weight.");
+            CheckTemplateTokenIds(templateList, input.IsTokenIdFixed, out var startTokenId, out var endTokenId);
+            var blindBoxInfo = new BlindBoxInfo
+            {
+                Symbol = input.Symbol,
+                TemplateList = templateList,
+                IsTokenIdFixed = input.IsTokenIdFixed,
+                CostSymbol = input.CostSymbol,
+                CostAmount = input.CostAmount,
+                CostReceiver = input.CostReceiver,
+                StartTokenId = startTokenId,
+                SupposedEndTokenId = endTokenId,
+                TotalWeights = templateList.Value.Sum(t => t.Weight)
+            };
+            State.BlindBoxInfoMap[input.Symbol][input.Index] = blindBoxInfo;
+            var vector = ConstructWeightVector(templateList);
+            Assert(blindBoxInfo.TotalWeights == vector.Value.Last(), "Something wrong with weight.");
+            State.BlindBoxWeightVectorMap[input.Symbol][input.Index] = vector;
+            Context.Fire(new BlindBoxForged
+            {
+                Symbol = input.Symbol,
+                TemplateList = templateList,
+                IsTokenIdFixed = input.IsTokenIdFixed,
+                CostSymbol = input.CostSymbol,
+                CostAmount = input.CostAmount,
+                CostReceiver = input.CostReceiver,
+                StartTokenId = startTokenId,
+                SupposedEndTokenId = endTokenId,
+            });
+            return new Empty();
+        }
+
+        public override Empty Unbox(UnboxInput input)
+        {
+            var blindBoxInfo = State.BlindBoxInfoMap[input.Symbol][input.Index];
+            if (blindBoxInfo == null)
+            {
+                throw new AssertionException($"Index {input.Index} not existed.");
+            }
+
+            var weightVector = State.BlindBoxWeightVectorMap[input.Symbol][input.Index];
+            var totalWeights = blindBoxInfo.TotalWeights;
+
+            var randomBytes = State.RandomNumberProviderContract.GetRandomBytes.Call(new Int64Value
+            {
+                Value = Context.CurrentHeight.Sub(1)
+            }.ToBytesValue());
+            var randomHash =
+                HashHelper.ConcatAndCompute(Context.PreviousBlockHash, HashHelper.ComputeFrom(randomBytes));
+            var randomNumber = Context.ConvertHashToInt64(randomHash, 0, totalWeights);
+
+            var blindBoxIndex = 0;
+            for (var i = 0; i < weightVector.Value.Count; i++)
+            {
+                blindBoxIndex = i;
+                if (randomNumber > weightVector.Value[i]) break;
+            }
+
+            var template = blindBoxInfo.TemplateList.Value[blindBoxIndex];
+            var tokenId = blindBoxInfo.IsTokenIdFixed ? template.TokenId : template.TokenId.Add(1);
+            State.NFTContract.Mint.Send(new MintInput
+            {
+                Symbol = template.Symbol,
+                TokenId = tokenId,
+                Alias = template.Alias,
+                Owner = Context.Sender,
+                Metadata = new Metadata {Value = {template.Metadata.Value}},
+                Quantity = 1,
+                Uri = template.Uri
+            });
+            template.TokenId = tokenId;
+            State.BlindBoxInfoMap[input.Symbol][input.Index] = blindBoxInfo;
+            return new Empty();
+        }
+
+        private void CheckTemplateTokenIds(NFTTemplateList templateList, bool isTokenIdFixed, out long startTokenId,
+            out long endTokenId)
+        {
+            if (isTokenIdFixed)
+            {
+                startTokenId = templateList.Value.First().TokenId;
+                endTokenId = startTokenId.Add(1);
+                var checkTokenId = startTokenId;
+                foreach (var template in templateList.Value.Skip(1))
+                {
+                    Assert(template.TokenId > checkTokenId,
+                        $"{template.Alias} cannot start from token id {checkTokenId}");
+                    checkTokenId = template.TokenId;
+                    endTokenId = checkTokenId;
+                }
+            }
+            else
+            {
+                var firstTemplate = templateList.Value.First();
+                startTokenId = firstTemplate.TokenId;
+                var checkTokenId = startTokenId.Add(firstTemplate.Quantity);
+                endTokenId = checkTokenId;
+                foreach (var template in templateList.Value.Skip(1))
+                {
+                    Assert(template.TokenId > checkTokenId,
+                        $"{template.Alias} cannot start from token id {checkTokenId}");
+                    checkTokenId = template.TokenId.Add(template.Quantity);
+                    endTokenId = checkTokenId;
+                }
+            }
+        }
+
+        private Int64List ConstructWeightVector(NFTTemplateList templateList)
+        {
+            var weightList = templateList.Value.OrderBy(t => t.Weight).Select(t => t.Weight).ToList();
+            var vector = new Int64List
+            {
+                Value = {weightList.First()}
+            };
+            foreach (var weight in weightList.Skip(1))
+            {
+                var lastValue = vector.Value.Last();
+                vector.Value.Add(lastValue.Add(weight));
+            }
+
+            return vector;
         }
     }
 }

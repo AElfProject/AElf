@@ -26,19 +26,22 @@ service NFTMinterContract {
     // Mint the first one badge.
     rpc CreateBadge (CreateBadgeInput) returns (google.protobuf.Empty) {
     }
-    
     // User mint a badge for himself or anyone else. (Owner must in whitelist if the whitelist is set.)
     rpc MintBadge (MintBadgeInput) returns (google.protobuf.Empty) {
     }
-
     // Initial or reset badge info.
     rpc ConfigBadge (ConfigBadgeInput) returns (google.protobuf.Empty) {
     }
-    
     // Add or remove minting white list.
     rpc ManageMintingWhiteList (ManageMintingWhiteListInput) returns (google.protobuf.Empty) {
     }
     
+    // Blind box.
+    rpc Box (BoxInput) returns (google.protobuf.Empty) {
+    }
+    rpc Unbox (UnboxInput) returns (google.protobuf.Empty) {
+    }
+
     rpc GetBadgeInfo (GetBadgeInfoInput) returns (BadgeInfo) {
         option (aelf.is_view) = true;
     }
@@ -72,6 +75,40 @@ message AddressList {
 message MintFee {
     string symbol = 1;
     int64 amount = 2;
+}
+
+message BlindBoxInfo {
+    string symbol = 1;
+    NFTTemplateList template_list = 2;
+    string cost_symbol = 3;
+    int64 cost_amount = 4;
+    aelf.Address cost_receiver = 5;
+    int64 start_token_id = 6;
+    int64 supposed_end_token_id = 7;
+    bool is_token_id_fixed = 8;
+    int64 total_weights = 9;
+}
+
+message NFTTemplateList {
+    repeated NFTTemplate value = 1;
+}
+
+message NFTTemplate {
+    string symbol = 1;
+    TemplateMetadata metadata = 2;
+    int64 quantity = 3;
+    int64 weight = 4;
+    string uri = 5;
+    string alias = 6;
+    int64 token_id = 7;
+}
+
+message TemplateMetadata {
+    map<string, string> value = 1;
+}
+
+message Int64List {
+    repeated int64 value = 1;
 }
 
 // Inputs.
@@ -124,6 +161,21 @@ message IsInMintingWhiteListInput {
     aelf.Address address = 3;
 }
 
+message BoxInput {
+    string symbol = 1;
+    NFTTemplateList template_list = 2;
+    string cost_symbol = 3;
+    int64 cost_amount = 4;
+    aelf.Address cost_receiver = 5;
+    int32 index = 6;
+    bool is_token_id_fixed = 7;
+}
+
+message UnboxInput {
+    string symbol = 1;
+    int32 index = 2;
+}
+
 // Events
 
 message BadgeInfoChanged {
@@ -142,4 +194,20 @@ message MintingWhiteListChanged {
     int64 token_id = 2;
     bool is_remove = 3;
     AddressList address_list = 4;
+}
+
+message BlindBoxForged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    NFTTemplateList template_list = 2;
+    string cost_symbol = 3;
+    int64 cost_amount = 4;
+    aelf.Address cost_receiver = 5;
+    int64 start_token_id = 6;
+    int64 supposed_end_token_id = 7;
+    bool is_token_id_fixed = 8;
+}
+
+message BlindBoxOpened {
+    option (aelf.is_event) = true;
 }

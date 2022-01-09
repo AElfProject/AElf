@@ -26,5 +26,8 @@ namespace AElf.Contracts.NFTMinter
         /// Symbol -> Token Id -> Address -> Is in white list
         /// </summary>
         public MappedState<string, long, Address, bool> IsInWhiteListMap { get; set; }
+
+        public MappedState<string, int, BlindBoxInfo> BlindBoxInfoMap { get; set; }
+        public MappedState<string, int, Int64List> BlindBoxWeightVectorMap { get; set; }
     }
 }
