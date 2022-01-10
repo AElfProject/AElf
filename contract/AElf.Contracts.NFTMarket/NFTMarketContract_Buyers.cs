@@ -143,6 +143,7 @@ namespace AElf.Contracts.NFTMarket
                             newOfferList.Value.Add(offerList.Value[i]);
                         }
                     }
+
                     break;
             }
 
@@ -213,7 +214,8 @@ namespace AElf.Contracts.NFTMarket
                     var price = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
                     if (price != null)
                     {
-                        Assert(input.Price.Symbol == price.Price.Symbol, $"Need to use token {price.Price.Symbol}, not {input.Price.Symbol}");
+                        Assert(input.Price.Symbol == price.Price.Symbol,
+                            $"Need to use token {price.Price.Symbol}, not {input.Price.Symbol}");
                         amount = price.Price.Amount;
                     }
                     else
@@ -262,6 +264,7 @@ namespace AElf.Contracts.NFTMarket
             {
                 maybeSameOffer.Quantity = maybeSameOffer.Quantity.Add(input.Quantity);
             }
+
             State.OfferListMap[input.Symbol][input.TokenId][Context.Sender] = offerList;
 
             var addressList = State.OfferAddressListMap[input.Symbol][input.TokenId] ?? new AddressList();
@@ -381,7 +384,12 @@ namespace AElf.Contracts.NFTMarket
 
         private long CalculateCurrentBiddingPrice(long startingPrice, long endingPrice, ListDuration duration)
         {
-            var passedHours = (Context.CurrentBlockTime - duration.StartTime).Seconds.Div(3600);
+            var passedHours = (Context.CurrentBlockTime - duration.StartTime).Seconds.Mul(3600);
+            if (passedHours == 0)
+            {
+                return startingPrice;
+            }
+
             var diffPrice = endingPrice.Sub(startingPrice);
             return startingPrice.Sub(diffPrice.Mul(duration.DurationHours).Div(passedHours));
         }
