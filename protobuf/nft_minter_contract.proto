@@ -105,6 +105,7 @@ message NFTTemplate {
     string uri = 5;
     string alias = 6;
     int64 token_id = 7;
+    int64 minted_quantity = 8;
 }
 
 message TemplateMetadata {

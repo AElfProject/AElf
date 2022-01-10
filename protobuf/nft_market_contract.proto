@@ -74,10 +74,22 @@ service NFTMarketContract {
     rpc GetOfferList (GetOfferListInput) returns (OfferList) {
         option (aelf.is_view) = true;
     }
+    rpc GetBidAddressList (GetOfferAddressListInput) returns (AddressList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBidList (GetOfferListInput) returns (OfferList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetCustomizeInfo (google.protobuf.StringValue) returns (CustomizeInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetRequestInfo (GetRequestInfoInput) returns (RequestInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetEnglishAuctionInfo (GetEnglishAuctionInfoInput) returns (EnglishAuctionInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDutchAuctionInfo (GetDutchAuctionInfoInput) returns (DutchAuctionInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -334,6 +346,16 @@ message GetRequestInfoInput {
 }
 
 message GetWhiteListAddressPriceListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
+message GetEnglishAuctionInfoInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
+message GetDutchAuctionInfoInput {
     string symbol = 1;
     int64 token_id = 2;
 }

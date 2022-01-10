@@ -30,7 +30,7 @@ namespace AElf.Contracts.NFTMarket
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId
-            });
+            }) ?? new AddressList();
             var allOfferList = new OfferList();
             foreach (var address in addressList.Value)
             {
@@ -43,6 +43,36 @@ namespace AElf.Contracts.NFTMarket
 
             return allOfferList;
         }
+        
+        public override AddressList GetBidAddressList(GetOfferAddressListInput input)
+        {
+            return State.BidAddressListMap[input.Symbol][input.TokenId];
+        }
+
+        public override OfferList GetBidList(GetOfferListInput input)
+        {
+            if (input.Address != null)
+            {
+                return State.BidListMap[input.Symbol][input.TokenId][input.Address];
+            }
+
+            var addressList = GetBidAddressList(new GetOfferAddressListInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId
+            }) ?? new AddressList();
+            var allBidList = new OfferList();
+            foreach (var address in addressList.Value)
+            {
+                var offerList = State.BidListMap[input.Symbol][input.TokenId][address];
+                if (offerList != null)
+                {
+                    allBidList.Value.Add(offerList.Value);
+                }
+            }
+
+            return allBidList;
+        }
 
         public override CustomizeInfo GetCustomizeInfo(StringValue input)
         {
@@ -52,6 +82,16 @@ namespace AElf.Contracts.NFTMarket
         public override RequestInfo GetRequestInfo(GetRequestInfoInput input)
         {
             return State.RequestInfoMap[input.Symbol][input.TokenId];
+        }
+
+        public override EnglishAuctionInfo GetEnglishAuctionInfo(GetEnglishAuctionInfoInput input)
+        {
+            return State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+        }
+
+        public override DutchAuctionInfo GetDutchAuctionInfo(GetDutchAuctionInfoInput input)
+        {
+            return State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
         }
     }
 }

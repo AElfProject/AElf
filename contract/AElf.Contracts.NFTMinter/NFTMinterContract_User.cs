@@ -62,30 +62,38 @@ namespace AElf.Contracts.NFTMinter
             }.ToBytesValue());
             var randomHash =
                 HashHelper.ConcatAndCompute(Context.PreviousBlockHash, HashHelper.ComputeFrom(randomBytes));
-            var randomNumber = Context.ConvertHashToInt64(randomHash, 0, totalWeights);
 
-            var blindBoxIndex = 0;
-            for (var i = 0; i < weightVector.Value.Count; i++)
+            NFTTemplate useTemplate;
+            do
             {
-                blindBoxIndex = i;
-                if (randomNumber > weightVector.Value[i]) break;
-            }
+                var randomNumber = Context.ConvertHashToInt64(randomHash, 0, totalWeights);
+                var blindBoxIndex = 0;
+                for (var i = 0; i < weightVector.Value.Count; i++)
+                {
+                    blindBoxIndex = i;
+                    if (randomNumber > weightVector.Value[i]) break;
+                }
+                useTemplate = blindBoxInfo.TemplateList.Value[blindBoxIndex];
+                randomHash = HashHelper.ComputeFrom(randomHash);
+            } while (useTemplate.MintedQuantity > useTemplate.Quantity);
 
-            var template = blindBoxInfo.TemplateList.Value[blindBoxIndex];
             State.NFTContract.Mint.Send(new MintInput
             {
-                Symbol = template.Symbol,
-                TokenId = template.TokenId,
-                Alias = template.Alias,
+                Symbol = useTemplate.Symbol,
+                TokenId = useTemplate.TokenId,
+                Alias = useTemplate.Alias,
                 Owner = Context.Sender,
-                Metadata = new Metadata {Value = {template.Metadata.Value}},
+                Metadata = new Metadata {Value = {useTemplate.Metadata.Value}},
                 Quantity = 1,
-                Uri = template.Uri
+                Uri = useTemplate.Uri
             });
+
             if (!blindBoxInfo.IsTokenIdFixed)
             {
-                template.TokenId = template.TokenId.Add(1);
+                useTemplate.TokenId = useTemplate.TokenId.Add(1);
             }
+
+            useTemplate.MintedQuantity = useTemplate.MintedQuantity.Add(1);
 
             State.BlindBoxInfoMap[input.Symbol][input.Index] = blindBoxInfo;
 

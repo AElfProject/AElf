@@ -25,11 +25,13 @@ namespace AElf.Contracts.NFTMarket
         /// Symbol -> Token Id -> Offer Maker -> Offer List
         /// </summary>
         public MappedState<string, long, Address, OfferList> OfferListMap { get; set; }
+        public MappedState<string, long, Address, OfferList> BidListMap { get; set; }
 
         /// <summary>
         /// Symbol -> Token Id -> Offer Address List
         /// </summary>
         public MappedState<string, long, AddressList> OfferAddressListMap { get; set; }
+        public MappedState<string, long, AddressList> BidAddressListMap { get; set; }
 
         /// <summary>
         /// Symbol -> Token Id -> Royalty

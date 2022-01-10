@@ -75,6 +75,21 @@ namespace AElf.Contracts.NFTMarket
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
 
+            State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfo
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Duration = duration,
+                ListType = ListType.EnglishAuction,
+                Owner = Context.Sender,
+                Price = new Price
+                {
+                    Symbol = input.PurchaseSymbol,
+                    Amount = input.StartingPrice
+                },
+                Quantity = 1
+            };
+
             Context.Fire(new ListedNFTInfoChanged
             {
                 ListType = ListType.EnglishAuction,
@@ -118,6 +133,21 @@ namespace AElf.Contracts.NFTMarket
             {
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
+
+            State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfo
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Duration = duration,
+                ListType = ListType.DutchAuction,
+                Owner = Context.Sender,
+                Price = new Price
+                {
+                    Symbol = input.PurchaseSymbol,
+                    Amount = input.StartingPrice
+                },
+                Quantity = 1
+            };
 
             Context.Fire(new ListedNFTInfoChanged
             {

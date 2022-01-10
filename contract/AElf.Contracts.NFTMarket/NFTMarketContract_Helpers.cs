@@ -236,12 +236,6 @@ namespace AElf.Contracts.NFTMarket
 
         private bool CanBeListedWithAuction(string symbol, long tokenId)
         {
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = symbol});
-            if (nftProtocolInfo.IsTokenIdReuse)
-            {
-                return false;
-            }
-
             var requestInfo = State.RequestInfoMap[symbol][tokenId];
             if (requestInfo == null)
             {

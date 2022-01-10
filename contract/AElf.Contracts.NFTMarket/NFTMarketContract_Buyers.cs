@@ -75,10 +75,10 @@ namespace AElf.Contracts.NFTMarket
                     PerformMakeOffer(input);
                     break;
                 case ListType.EnglishAuction:
-                    PerformPlaceABidForEnglishAuction(input);
+                    PerformPlaceBidForEnglishAuction(input);
                     break;
                 case ListType.DutchAuction:
-                    PerformPlaceABidForDutchAuction(input);
+                    PerformPlaceBidForDutchAuction(input);
                     break;
             }
 
@@ -284,14 +284,106 @@ namespace AElf.Contracts.NFTMarket
             });
         }
 
-        private void PerformPlaceABidForEnglishAuction(MakeOfferInput input)
+        private void PerformPlaceBidForEnglishAuction(MakeOfferInput input)
         {
+            var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+            if (auctionInfo == null)
+            {
+                throw new AssertionException($"Auction info of {input.Symbol}-{input.TokenId} not found.");
+            }
 
+            var duration = auctionInfo.Duration;
+            Assert(Context.CurrentBlockTime <= duration.StartTime.AddHours(duration.DurationHours),
+                "Auction already finished.");
+            Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol");
+            if (input.Price.Amount < auctionInfo.StartingPrice)
+            {
+                PerformMakeOffer(input);
+                return;
+            }
+
+            var bidList = GetBidList(new GetOfferListInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId
+            }) ?? new OfferList();
+            var sortedBitList = new OfferList
+            {
+                Value =
+                {
+                    bidList.Value.OrderByDescending(o => o.Price.Amount)
+                }
+            };
+            if (sortedBitList.Value.Any() && input.Price.Amount < sortedBitList.Value.First().Price.Amount)
+            {
+                PerformMakeOffer(input);
+                return;
+            }
+
+            var newBid = new Offer
+            {
+                From = Context.Sender,
+                Price = new Price
+                {
+                    Symbol = input.Price.Symbol,
+                    Amount = input.Price.Amount
+                },
+                Quantity = 1,
+                DueTime = input.DueTime ?? Context.CurrentBlockTime.AddDays(DefaultExpireDays),
+                ExpireTime = input.ExpireTime ?? Context.CurrentBlockTime.AddDays(DefaultExpireDays)
+            };
+
+            var offerAddressList = State.BidAddressListMap[input.Symbol][input.TokenId] ?? new AddressList();
+            if (!offerAddressList.Value.Contains(Context.Sender))
+            {
+                offerAddressList.Value.Add(Context.Sender);
+                State.BidAddressListMap[input.Symbol][input.TokenId] = offerAddressList;
+            }
+
+            var senderOfferList = State.BidListMap[input.Symbol][input.TokenId][Context.Sender] ?? new OfferList();
+            senderOfferList.Value.Add(newBid);
+            State.BidListMap[input.Symbol][input.TokenId][Context.Sender] = senderOfferList;
         }
 
-        private void PerformPlaceABidForDutchAuction(MakeOfferInput input)
+        private void PerformPlaceBidForDutchAuction(MakeOfferInput input)
         {
+            var auctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
+            if (auctionInfo == null)
+            {
+                throw new AssertionException($"Auction info of {input.Symbol}-{input.TokenId} not found.");
+            }
 
+            var duration = auctionInfo.Duration;
+            Assert(Context.CurrentBlockTime <= duration.StartTime.AddHours(duration.DurationHours),
+                "Auction already finished.");
+            Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol");
+            var currentBiddingPrice = CalculateCurrentBiddingPrice(auctionInfo.StartingPrice, auctionInfo.EndingPrice,
+                auctionInfo.Duration);
+            if (input.Price.Amount < currentBiddingPrice)
+            {
+                PerformMakeOffer(input);
+            }
+            else
+            {
+                PerformDeal(new PerformDealInput
+                {
+                    NFTFrom = auctionInfo.Owner,
+                    NFTTo = Context.Sender,
+                    NFTQuantity = 1,
+                    NFTSymbol = input.Symbol,
+                    NFTTokenId = input.TokenId,
+                    PurchaseSymbol = input.Price.Symbol,
+                    PurchaseAmount = input.Price.Amount,
+                    PurchaseTokenId = 0
+                });
+            }
+        }
+
+        private long CalculateCurrentBiddingPrice(long startingPrice, long endingPrice, ListDuration duration)
+        {
+            var passedHours = (Context.CurrentBlockTime - duration.StartTime).Seconds.Div(3600);
+            var diffPrice = endingPrice.Sub(startingPrice);
+            return startingPrice.Sub(diffPrice.Mul(duration.DurationHours).Div(passedHours));
         }
     }
 }
