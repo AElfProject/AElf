@@ -70,7 +70,7 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task PlaceBidForEnglishAuctionTest()
+        public async Task<string> PlaceBidForEnglishAuctionTest()
         {
             var symbol = await ListWithEnglishAuctionTest();
 
@@ -155,6 +155,54 @@ namespace AElf.Contracts.NFT
                     TokenId = 233
                 });
                 bidList.Value.Count.ShouldBe(1);
+            }
+
+            return symbol;
+        }
+
+        [Fact]
+        public async Task DealToEnglishAuctionTest()
+        {
+            var symbol = await PlaceBidForEnglishAuctionTest();
+
+            await NFTBuyerTokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = long.MaxValue,
+                Spender = NFTMarketContractAddress
+            });
+
+            await SellerNFTMarketContractStub.Deal.SendAsync(new DealInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                OfferMaker = User2Address,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 110_00000000
+                },
+                Quantity = 1
+            });
+
+            {
+                var balance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    Owner = User2Address
+                });
+                balance.Balance.ShouldBe(1);
+            }
+
+            {
+                var balance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    Owner = DefaultAddress
+                });
+                balance.Balance.ShouldBe(0);
             }
         }
 
@@ -271,6 +319,16 @@ namespace AElf.Contracts.NFT
                     Owner = User2Address
                 });
                 balance.Balance.ShouldBe(1);
+            }
+
+            {
+                var balance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    Owner = DefaultAddress
+                });
+                balance.Balance.ShouldBe(0);
             }
         }
     }
