@@ -178,7 +178,7 @@ namespace AElf.Contracts.NFTMarket
             Timestamp dueTime)
         {
             var customizeInfo = State.CustomizeInfoMap[symbol];
-            if (customizeInfo == null)
+            if (customizeInfo?.Price == null)
             {
                 throw new AssertionException("Cannot request new item for this protocol.");
             }
@@ -242,8 +242,9 @@ namespace AElf.Contracts.NFTMarket
                 return true;
             }
 
-            if (requestInfo.ListTime == null)
+            if (requestInfo.IsConfirmed && requestInfo.ListTime == null)
             {
+                // Confirmed but never listed by fixed price.
                 return false;
             }
 

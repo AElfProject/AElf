@@ -68,16 +68,19 @@ service NFTMarketContract {
     rpc GetWhiteListAddressPriceList (GetWhiteListAddressPriceListInput) returns (WhiteListAddressPriceList) {
         option (aelf.is_view) = true;
     }
-    rpc GetOfferAddressList (GetOfferAddressListInput) returns (AddressList) {
+    rpc GetOfferAddressList (GetAddressListInput) returns (AddressList) {
         option (aelf.is_view) = true;
     }
     rpc GetOfferList (GetOfferListInput) returns (OfferList) {
         option (aelf.is_view) = true;
     }
-    rpc GetBidAddressList (GetOfferAddressListInput) returns (AddressList) {
+    rpc GetBidAddressList (GetAddressListInput) returns (AddressList) {
         option (aelf.is_view) = true;
     }
-    rpc GetBidList (GetOfferListInput) returns (OfferList) {
+    rpc GetBid (GetBidInput) returns (Bid) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBidList (GetBidListInput) returns (BidList) {
         option (aelf.is_view) = true;
     }
     rpc GetCustomizeInfo (google.protobuf.StringValue) returns (CustomizeInfo) {
@@ -139,18 +142,26 @@ message Price {
 
 message Offer {
     aelf.Address from = 1;
-    Price price = 2;
-    google.protobuf.Timestamp expire_time = 3;
-    int64 quantity = 4;
-    google.protobuf.Timestamp due_time = 5;
-}
-
-message Bid {
-    
+    aelf.Address to = 2;
+    Price price = 3;
+    google.protobuf.Timestamp expire_time = 4;
+    int64 quantity = 5;
+    google.protobuf.Timestamp due_time = 6;
 }
 
 message OfferList {
     repeated Offer value = 1;
+}
+
+message Bid {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    Price price = 3;
+    google.protobuf.Timestamp expire_time = 4;
+}
+
+message BidList {
+    repeated Bid value = 1;
 }
 
 enum ListType {
@@ -271,6 +282,7 @@ message CancelOfferInput {
     Int32List index_list = 3;
     aelf.Address offer_from = 4;
     aelf.Address offer_to = 5;
+    bool is_cancel_bid = 6;
 }
 
 message Int32List {
@@ -280,7 +292,7 @@ message Int32List {
 message DealInput {
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address offer_maker = 3;
+    aelf.Address offer_from = 3;
     Price price = 4;
     int64 quantity = 5;
 }
@@ -312,7 +324,7 @@ message GetListedNFTInfoInput {
     aelf.Address owner = 3;
 }
 
-message GetOfferAddressListInput {
+message GetAddressListInput {
     string symbol = 1;
     int64 token_id = 2;
 }
@@ -360,6 +372,17 @@ message GetDutchAuctionInfoInput {
     int64 token_id = 2;
 }
 
+message GetBidInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address address = 3;
+}
+
+message GetBidListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
 // Events
 
 message ListedNFTInfoChanged {
@@ -379,12 +402,41 @@ message OfferMade {
     option (aelf.is_event) = true;
     string symbol = 1;
     int64 token_id = 2;
-    aelf.Address offer_to = 3;
-    aelf.Address offer_maker = 4;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
     Price price = 5;
     int64 quantity = 6;
     google.protobuf.Timestamp expire_time = 7;
     google.protobuf.Timestamp due_time = 8;
+}
+
+message BidPlaced {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
+    Price price = 5;
+    google.protobuf.Timestamp expire_time = 7;
+}
+
+message OfferOrBidCanceled {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
+    Int32List index_list = 5;
+}
+
+message CustomizeInfoSet {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int32 deposit_rate = 2;
+    Price price = 3;
+    int64 work_hours = 4;
+    int64 white_list_hours = 5;
+    int64 staking_amount = 6;
 }
 
 message NewNFTRequested {
@@ -396,6 +448,13 @@ message NewNFTRequested {
     int64 expected_work_hours = 5;
 }
 
+message NFTRequestCancelled {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address requester = 3;
+}
+
 message NewNFTRequestConfirmed {
     option (aelf.is_event) = true;
     string symbol = 1;
@@ -403,6 +462,12 @@ message NewNFTRequestConfirmed {
     aelf.Address requester = 3;
     Price price = 4;
     int64 confirmed_work_hours = 5;
+}
+
+message StakingAmountChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 staking_amount = 2;
 }
 
 message NewNFTRequestRejected {

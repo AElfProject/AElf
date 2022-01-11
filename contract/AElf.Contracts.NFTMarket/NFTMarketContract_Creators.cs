@@ -71,6 +71,15 @@ namespace AElf.Contracts.NFTMarket
                 });
             }
             State.CustomizeInfoMap[input.Symbol] = input;
+            Context.Fire(new CustomizeInfoSet
+            {
+                Symbol = input.Symbol,
+                Price = input.Price,
+                DepositRate = input.DepositRate,
+                StakingAmount = input.StakingAmount,
+                WhiteListHours = input.WhiteListHours,
+                WorkHours = input.WorkHours
+            });
             return new Empty();
         }
 
@@ -89,6 +98,11 @@ namespace AElf.Contracts.NFTMarket
             });
             customizeInfo.StakingAmount = customizeInfo.StakingAmount.Add(input.StakingAmount);
             State.CustomizeInfoMap[input.Symbol] = customizeInfo;
+            Context.Fire(new StakingAmountChanged
+            {
+                Symbol = input.Symbol,
+                StakingAmount = customizeInfo.StakingAmount
+            });
             return new Empty();
         }
 
@@ -108,6 +122,11 @@ namespace AElf.Contracts.NFTMarket
             });
             customizeInfo.StakingAmount = customizeInfo.StakingAmount.Sub(input.WithdrawAmount);
             State.CustomizeInfoMap[input.Symbol] = customizeInfo;
+            Context.Fire(new StakingAmountChanged
+            {
+                Symbol = input.Symbol,
+                StakingAmount = customizeInfo.StakingAmount
+            });
             return new Empty();
         }
 

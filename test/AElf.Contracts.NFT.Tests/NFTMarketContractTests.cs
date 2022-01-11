@@ -225,7 +225,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OfferMaker = offer.From,
+                OfferFrom = offer.From,
                 Quantity = 1,
                 Price = offer.Price
             });
@@ -334,7 +334,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OfferMaker = offer.From,
+                OfferFrom = offer.From,
                 Quantity = 1,
                 Price = offer.Price
             });

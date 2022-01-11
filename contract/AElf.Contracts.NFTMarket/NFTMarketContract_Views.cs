@@ -14,7 +14,7 @@ namespace AElf.Contracts.NFTMarket
             return State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId];
         }
 
-        public override AddressList GetOfferAddressList(GetOfferAddressListInput input)
+        public override AddressList GetOfferAddressList(GetAddressListInput input)
         {
             return State.OfferAddressListMap[input.Symbol][input.TokenId];
         }
@@ -26,7 +26,7 @@ namespace AElf.Contracts.NFTMarket
                 return State.OfferListMap[input.Symbol][input.TokenId][input.Address];
             }
 
-            var addressList = GetOfferAddressList(new GetOfferAddressListInput
+            var addressList = GetOfferAddressList(new GetAddressListInput
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId
@@ -44,30 +44,30 @@ namespace AElf.Contracts.NFTMarket
             return allOfferList;
         }
         
-        public override AddressList GetBidAddressList(GetOfferAddressListInput input)
+        public override AddressList GetBidAddressList(GetAddressListInput input)
         {
             return State.BidAddressListMap[input.Symbol][input.TokenId];
         }
 
-        public override OfferList GetBidList(GetOfferListInput input)
+        public override Bid GetBid(GetBidInput input)
         {
-            if (input.Address != null)
-            {
-                return State.BidListMap[input.Symbol][input.TokenId][input.Address];
-            }
+            return State.BidMap[input.Symbol][input.TokenId][input.Address];
+        }
 
-            var addressList = GetBidAddressList(new GetOfferAddressListInput
+        public override BidList GetBidList(GetBidListInput input)
+        {
+            var addressList = GetBidAddressList(new GetAddressListInput
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId
             }) ?? new AddressList();
-            var allBidList = new OfferList();
+            var allBidList = new BidList();
             foreach (var address in addressList.Value)
             {
-                var offerList = State.BidListMap[input.Symbol][input.TokenId][address];
-                if (offerList != null)
+                var bid = State.BidMap[input.Symbol][input.TokenId][address];
+                if (bid != null)
                 {
-                    allBidList.Value.Add(offerList.Value);
+                    allBidList.Value.Add(bid);
                 }
             }
 

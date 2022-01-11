@@ -16,7 +16,11 @@ namespace AElf.Contracts.NFTMarket
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
-            if (requestInfo != null)
+            if (requestInfo != null && (requestInfo.ListTime == null || // Never listed,
+                                        requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
+                                        Context.CurrentBlockTime)
+                // or white list hours not passed -> will refresh list time and white list time.
+            )
             {
                 ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
             }
@@ -36,6 +40,9 @@ namespace AElf.Contracts.NFTMarket
             {
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
+
+            State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
+            State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
             Context.Fire(new ListedNFTInfoChanged
             {
@@ -203,6 +210,15 @@ namespace AElf.Contracts.NFTMarket
                     break;
             }
 
+            Context.Fire(new ListedNFTInfoChanged
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                Owner = Context.Sender,
+                ListType = ListType.NotListed,
+                Quantity = input.Quantity
+            });
+
             return new Empty();
         }
 
@@ -216,8 +232,11 @@ namespace AElf.Contracts.NFTMarket
         {
             Assert(input.Symbol != null, "Incorrect symbol.");
             Assert(input.TokenId != 0, "Incorrect token id.");
-            Assert(input.OfferMaker != null, "Incorrect offer maker.");
-            Assert(input.Price?.Symbol != null, "Incorrect price.");
+            Assert(input.OfferFrom != null, "Incorrect offer maker.");
+            if (input.Price?.Symbol == null)
+            {
+                throw new AssertionException("Incorrect price.");
+            }
 
             var balance = State.NFTContract.GetBalance.Call(new GetBalanceInput
             {
@@ -227,28 +246,39 @@ namespace AElf.Contracts.NFTMarket
             });
             Assert(balance.Balance >= input.Quantity, "Insufficient balance.");
 
-            var offerOrBid = State.OfferListMap[input.Symbol][input.TokenId][input.OfferMaker]?.Value
-                                 .FirstOrDefault(o =>
-                                     o.From == input.OfferMaker && o.Price.Symbol == input.Price.Symbol &&
-                                     o.Price.Amount == input.Price.Amount) ??
-                             State.BidListMap[input.Symbol][input.TokenId][input.OfferMaker]?.Value.FirstOrDefault(o =>
-                                 o.From == input.OfferMaker && o.Price.Symbol == input.Price.Symbol &&
-                                 o.Price.Amount == input.Price.Amount);
-            if (offerOrBid == null)
+            var offer = State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom]?.Value
+                .FirstOrDefault(o =>
+                    o.From == input.OfferFrom && o.Price.Symbol == input.Price.Symbol &&
+                    o.Price.Amount == input.Price.Amount);
+            var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
+            Price price;
+            var totalAmount = 0L;
+            if (offer == null)
             {
-                throw new AssertionException("Related offer not found.");
+                if (bid == null || bid.From != input.OfferFrom ||
+                    bid.Price.Amount != input.Price.Amount || bid.Price.Symbol != input.Price.Symbol)
+                {
+                    throw new AssertionException("Related offer not found.");
+                }
+
+                price = bid.Price;
+                totalAmount = price.Amount;
+            }
+            else
+            {
+                Assert(offer.Quantity >= input.Quantity, "Offer quantity exceeded.");
+                price = offer.Price;
+                totalAmount = price.Amount.Mul(input.Quantity);
             }
 
-            Assert(offerOrBid.Quantity >= input.Quantity, "Offer quantity exceeded.");
-            var totalAmount = offerOrBid.Price.Amount.Mul(input.Quantity);
             PerformDeal(new PerformDealInput
             {
                 NFTFrom = Context.Sender,
-                NFTTo = offerOrBid.From,
+                NFTTo = offer?.From ?? bid.From,
                 NFTSymbol = input.Symbol,
                 NFTTokenId = input.TokenId,
                 NFTQuantity = input.Quantity,
-                PurchaseSymbol = offerOrBid.Price.Symbol,
+                PurchaseSymbol = price.Symbol,
                 PurchaseAmount = totalAmount
             });
             return new Empty();

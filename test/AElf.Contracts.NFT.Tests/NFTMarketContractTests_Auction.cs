@@ -176,7 +176,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                OfferMaker = User2Address,
+                OfferFrom = User2Address,
                 Price = new Price
                 {
                     Symbol = "ELF",
