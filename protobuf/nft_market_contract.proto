@@ -210,6 +210,9 @@ message EnglishAuctionInfo {
     string purchase_symbol = 4;
     ListDuration duration = 5;
     aelf.Address owner = 6;
+    int64 earnest_money = 7;
+    int64 deal_price = 8;
+    aelf.Address deal_to = 9;
 }
 
 message DutchAuctionInfo {
@@ -247,7 +250,8 @@ message ListWithEnglishAuctionInput {
     int64 starting_price = 3;
     string purchase_symbol = 4;
     ListDuration duration = 5;
-    WhiteListAddressPriceList white_list_address_price_list = 6;
+    int64 earnest_money = 6;
+    WhiteListAddressPriceList white_list_address_price_list = 7;
 }
 
 message ListWithDutchAuctionInput {

@@ -5,6 +5,7 @@ using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
 {
@@ -63,6 +64,34 @@ namespace AElf.Contracts.NFTMarket
             Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
                 "This NFT cannot be listed with auction for now.");
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
+            Assert(input.EarnestMoney <= input.StartingPrice, "Earnest money too high.");
+
+            // Clear previous bids.
+            var bidAddressList = State.BidAddressListMap[input.Symbol][input.TokenId];
+            if (bidAddressList != null && bidAddressList.Value.Any())
+            {
+                var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+
+                foreach (var bidAddress in bidAddressList.Value)
+                {
+                    State.BidMap[input.Symbol][input.TokenId].Remove(bidAddress);
+                    State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                        new TransferInput
+                        {
+                            To = Context.Sender,
+                            Symbol = auctionInfo.PurchaseSymbol,
+                            Amount = auctionInfo.EarnestMoney
+                        });
+                    Context.Fire(new OfferOrBidCanceled
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        OfferFrom = bidAddress,
+                        OfferTo = Context.Sender,
+                    });
+                }
+            }
+            
             var duration = AdjustListDuration(input.Duration);
 
             var englishAuctionInfo = new EnglishAuctionInfo
@@ -72,7 +101,8 @@ namespace AElf.Contracts.NFTMarket
                 Duration = duration,
                 PurchaseSymbol = input.PurchaseSymbol,
                 StartingPrice = input.StartingPrice,
-                Owner = Context.Sender
+                Owner = Context.Sender,
+                EarnestMoney = input.EarnestMoney
             };
             State.EnglishAuctionInfoMap[input.Symbol][input.TokenId] = englishAuctionInfo;
 
@@ -186,11 +216,6 @@ namespace AElf.Contracts.NFTMarket
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             if (requestInfo != null)
             {
-                if (requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) < Context.CurrentBlockTime)
-                {
-                    throw new AssertionException("Cannot delist this NFT.");
-                }
-
                 requestInfo.ListTime = null;
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
             }
@@ -258,11 +283,15 @@ namespace AElf.Contracts.NFTMarket
                 if (bid == null || bid.From != input.OfferFrom ||
                     bid.Price.Amount != input.Price.Amount || bid.Price.Symbol != input.Price.Symbol)
                 {
-                    throw new AssertionException("Related offer not found.");
+                    throw new AssertionException("Related offer or bid not found.");
                 }
 
                 price = bid.Price;
                 totalAmount = price.Amount;
+                var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+                auctionInfo.DealPrice = input.Price.Amount;
+                auctionInfo.DealTo = input.OfferFrom;
+                State.EnglishAuctionInfoMap[input.Symbol][input.TokenId] = auctionInfo;
             }
             else
             {

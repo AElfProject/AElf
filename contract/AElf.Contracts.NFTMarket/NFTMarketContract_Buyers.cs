@@ -1,12 +1,15 @@
 using System;
 using System.Linq;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using GetAllowanceInput = AElf.Contracts.MultiToken.GetAllowanceInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
+using TransferFromInput = AElf.Contracts.MultiToken.TransferFromInput;
 using TransferInput = AElf.Contracts.MultiToken.TransferInput;
 
 namespace AElf.Contracts.NFTMarket
@@ -160,13 +163,28 @@ namespace AElf.Contracts.NFTMarket
 
             if (input.IsCancelBid)
             {
-                State.BidMap[input.Symbol][input.TokenId].Remove(Context.Sender);
-                Context.Fire(new OfferOrBidCanceled
+                var bid = State.BidMap[input.Symbol][input.TokenId][Context.Sender];
+                if (bid != null)
                 {
-                    Symbol = input.Symbol,
-                    TokenId = input.TokenId,
-                    OfferFrom = Context.Sender
-                });
+                    var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+                    var finishTime = auctionInfo.Duration.StartTime.AddHours(auctionInfo.Duration.DurationHours);
+                    if (auctionInfo.DealTo != null || Context.CurrentBlockTime >= finishTime)
+                    {
+                        State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                            new TransferInput
+                            {
+                                To = Context.Sender,
+                                Symbol = auctionInfo.PurchaseSymbol,
+                                Amount = auctionInfo.EarnestMoney
+                            });
+                    }
+                    Context.Fire(new OfferOrBidCanceled
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        OfferFrom = Context.Sender
+                    });
+                }
             }
 
             if (input.IndexList != null && input.IndexList.Value.Any())
@@ -212,6 +230,8 @@ namespace AElf.Contracts.NFTMarket
             {
                 if (requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours) < Context.CurrentBlockTime)
                 {
+                    // Creator missed the deadline.
+
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
                     var protocolVirtualAddress =
                         Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
@@ -401,7 +421,29 @@ namespace AElf.Contracts.NFTMarket
             }
 
             State.BidMap[input.Symbol][input.TokenId][Context.Sender] = bid;
-            
+
+            Assert(
+                State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Symbol = auctionInfo.PurchaseSymbol,
+                    Owner = Context.Sender
+                }).Balance >= auctionInfo.EarnestMoney,
+                "Insufficient balance to pay for earnest money.");
+            Assert(
+                State.TokenContract.GetAllowance.Call(new GetAllowanceInput
+                {
+                    Symbol = auctionInfo.PurchaseSymbol,
+                    Owner = Context.Sender
+                }).Allowance >= auctionInfo.EarnestMoney,
+                "Insufficient allowance to pay for earnest money.");
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId),
+                Symbol = auctionInfo.PurchaseSymbol,
+                Amount = auctionInfo.EarnestMoney
+            });
+
             Context.Fire(new BidPlaced
             {
                 Symbol = input.Symbol,
