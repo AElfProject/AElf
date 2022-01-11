@@ -258,6 +258,12 @@ namespace AElf.Contracts.NFTMarket
                 return true;
             }
 
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = symbol});
+            if (nftProtocolInfo.IsTokenIdReuse)
+            {
+                return false;
+            }
+
             if (requestInfo.IsConfirmed && requestInfo.ListTime == null)
             {
                 // Confirmed but never listed by fixed price.
@@ -301,6 +307,11 @@ namespace AElf.Contracts.NFTMarket
                 if (duration.StartTime == null || duration.StartTime > Context.CurrentBlockTime)
                 {
                     duration.StartTime = Context.CurrentBlockTime;
+                }
+
+                if (duration.PublicTime == null || duration.PublicTime < duration.StartTime)
+                {
+                    duration.PublicTime = duration.StartTime;
                 }
 
                 if (duration.DurationHours == 0)
@@ -349,6 +360,34 @@ namespace AElf.Contracts.NFTMarket
                 Math.Min(whiteListRemainPrice, whiteListAddressPriceList.Value[0].Price.Amount));
             requestInfo.ListTime = Context.CurrentBlockTime;
             State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
+        }
+
+        private void ClearBids(string symbol, long tokenId)
+        {
+            var bidAddressList = State.BidAddressListMap[symbol][tokenId];
+            if (bidAddressList == null || !bidAddressList.Value.Any()) return;
+            var auctionInfo = State.EnglishAuctionInfoMap[symbol][tokenId];
+
+            foreach (var bidAddress in bidAddressList.Value)
+            {
+                State.BidMap[symbol][tokenId].Remove(bidAddress);
+                State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
+                    new TransferInput
+                    {
+                        To = Context.Sender,
+                        Symbol = auctionInfo.PurchaseSymbol,
+                        Amount = auctionInfo.EarnestMoney
+                    });
+                Context.Fire(new BidCanceled
+                {
+                    Symbol = symbol,
+                    TokenId = tokenId,
+                    BidFrom = bidAddress,
+                    BidTo = Context.Sender,
+                });
+            }
+
+            State.BidAddressListMap[symbol].Remove(tokenId);
         }
     }
 }

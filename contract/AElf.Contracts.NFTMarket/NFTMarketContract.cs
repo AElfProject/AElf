@@ -29,6 +29,10 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertSenderIsAdmin();
             State.GlobalTokenWhiteList.Value = input;
+            Context.Fire(new GlobalTokenWhiteListChanged
+            {
+                TokenWhiteList = input
+            });
             return new Empty();
         }
 

@@ -52,6 +52,11 @@ namespace AElf.Contracts.NFTMarket
             }
 
             State.TokenWhiteListMap[input.Symbol] = input.TokenWhiteList;
+            Context.Fire(new TokenWhiteListChanged
+            {
+                Symbol = input.Symbol,
+                TokenWhiteList = input.TokenWhiteList
+            });
             return new Empty();
         }
 
@@ -59,6 +64,7 @@ namespace AElf.Contracts.NFTMarket
         {
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set customize info.");
+            Assert(!nftProtocolInfo.IsTokenIdReuse, "Not support customize.");
             if (input.StakingAmount > 0)
             {
                 var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
@@ -113,6 +119,7 @@ namespace AElf.Contracts.NFTMarket
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
             Assert(input.WithdrawAmount <= customizeInfo.StakingAmount, "Insufficient staking amount.");
             var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
+            // TODO: Assert no buyer for this customize info.
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = virtualAddress,

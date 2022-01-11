@@ -15,11 +15,16 @@ namespace AElf.Contracts.NFTMarket
         public SingletonState<StringList> GlobalTokenWhiteList { get; set; }
 
         /// <summary>
-        /// Symbol -> Token Id -> Owner -> List NFT Info
+        /// Symbol -> Token Id -> Owner -> List NFT Info List
         /// </summary>
-        public MappedState<string, long, Address, ListedNFTInfo> ListedNftInfoMap { get; set; }
+        public MappedState<string, long, Address, ListedNFTInfoList> ListedNFTInfoListMap { get; set; }
 
         public MappedState<string, long, WhiteListAddressPriceList> WhiteListAddressPriceListMap { get; set; }
+
+        /// <summary>
+        /// Symbol -> Token Id -> Offer Address List
+        /// </summary>
+        public MappedState<string, long, AddressList> OfferAddressListMap { get; set; }
 
         /// <summary>
         /// Symbol -> Token Id -> Offer Maker -> Offer List
@@ -27,11 +32,6 @@ namespace AElf.Contracts.NFTMarket
         public MappedState<string, long, Address, OfferList> OfferListMap { get; set; }
 
         public MappedState<string, long, Address, Bid> BidMap { get; set; }
-
-        /// <summary>
-        /// Symbol -> Token Id -> Offer Address List
-        /// </summary>
-        public MappedState<string, long, AddressList> OfferAddressListMap { get; set; }
 
         public MappedState<string, long, AddressList> BidAddressListMap { get; set; }
 

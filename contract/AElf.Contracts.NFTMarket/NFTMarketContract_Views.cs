@@ -4,9 +4,9 @@ namespace AElf.Contracts.NFTMarket
 {
     public partial class NFTMarketContract
     {
-        public override ListedNFTInfo GetListedNFTInfo(GetListedNFTInfoInput input)
+        public override ListedNFTInfoList GetListedNFTInfoList(GetListedNFTInfoListInput input)
         {
-            return State.ListedNftInfoMap[input.Symbol][input.TokenId][input.Owner];
+            return State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.Owner];
         }
 
         public override WhiteListAddressPriceList GetWhiteListAddressPriceList(GetWhiteListAddressPriceListInput input)

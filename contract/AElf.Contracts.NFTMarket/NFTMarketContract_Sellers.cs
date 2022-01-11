@@ -12,7 +12,7 @@ namespace AElf.Contracts.NFTMarket
     {
         public override Empty ListWithFixedPrice(ListWithFixedPriceInput input)
         {
-            CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, input.Quantity);
+            MaybeReceiveRemainDeposit();
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
@@ -25,22 +25,38 @@ namespace AElf.Contracts.NFTMarket
                 ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
             }
 
-            var listedNftInfo = new ListedNFTInfo
+            var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] ??
+                                    new ListedNFTInfoList();
+            var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
+                i.Price.Symbol == input.Price.Symbol && i.Price.Amount == input.Price.Amount);
+            if (listedNftInfo == null)
             {
-                ListType = ListType.FixedPrice,
-                Owner = Context.Sender,
-                Price = input.Price,
-                Quantity = input.Quantity,
-                Symbol = input.Symbol,
-                TokenId = input.TokenId,
-                Duration = duration,
-            };
-            State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfo;
+                listedNftInfo = new ListedNFTInfo
+                {
+                    ListType = ListType.FixedPrice,
+                    Owner = Context.Sender,
+                    Price = input.Price,
+                    Quantity = input.Quantity,
+                    Symbol = input.Symbol,
+                    TokenId = input.TokenId,
+                    Duration = duration,
+                };
+                listedNftInfoList.Value.Add(listedNftInfo);
+            }
+            else
+            {
+                listedNftInfo.Quantity = listedNftInfo.Quantity.Add(input.Quantity);
+            }
+
+            CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, listedNftInfo.Quantity);
+
+            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
             if (whiteListAddressPriceList != null)
             {
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
 
+            ClearBids(input.Symbol, input.TokenId);
             State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
             State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
@@ -64,32 +80,9 @@ namespace AElf.Contracts.NFTMarket
                 "This NFT cannot be listed with auction for now.");
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
             Assert(input.EarnestMoney <= input.StartingPrice, "Earnest money too high.");
+            MaybeReceiveRemainDeposit();
 
-            // Clear previous bids.
-            var bidAddressList = State.BidAddressListMap[input.Symbol][input.TokenId];
-            if (bidAddressList != null && bidAddressList.Value.Any())
-            {
-                var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
-
-                foreach (var bidAddress in bidAddressList.Value)
-                {
-                    State.BidMap[input.Symbol][input.TokenId].Remove(bidAddress);
-                    State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
-                        new TransferInput
-                        {
-                            To = Context.Sender,
-                            Symbol = auctionInfo.PurchaseSymbol,
-                            Amount = auctionInfo.EarnestMoney
-                        });
-                    Context.Fire(new BidCanceled
-                    {
-                        Symbol = input.Symbol,
-                        TokenId = input.TokenId,
-                        BidFrom = bidAddress,
-                        BidTo = Context.Sender,
-                    });
-                }
-            }
+            ClearBids(input.Symbol, input.TokenId);
 
             var duration = AdjustListDuration(input.Duration);
 
@@ -111,20 +104,28 @@ namespace AElf.Contracts.NFTMarket
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
 
-            State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfo
+            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
             {
-                Symbol = input.Symbol,
-                TokenId = input.TokenId,
-                Duration = duration,
-                ListType = ListType.EnglishAuction,
-                Owner = Context.Sender,
-                Price = new Price
+                Value =
                 {
-                    Symbol = input.PurchaseSymbol,
-                    Amount = input.StartingPrice
-                },
-                Quantity = 1
+                    new ListedNFTInfo
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        Duration = duration,
+                        ListType = ListType.EnglishAuction,
+                        Owner = Context.Sender,
+                        Price = new Price
+                        {
+                            Symbol = input.PurchaseSymbol,
+                            Amount = input.StartingPrice
+                        },
+                        Quantity = 1
+                    }
+                }
             };
+
+            State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
             Context.Fire(new ListedNFTInfoChanged
             {
@@ -149,6 +150,7 @@ namespace AElf.Contracts.NFTMarket
             Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
                 "This NFT cannot be listed with auction for now.");
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
+            MaybeReceiveRemainDeposit();
 
             var duration = AdjustListDuration(input.Duration);
 
@@ -170,20 +172,29 @@ namespace AElf.Contracts.NFTMarket
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
             }
 
-            State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfo
+            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
             {
-                Symbol = input.Symbol,
-                TokenId = input.TokenId,
-                Duration = duration,
-                ListType = ListType.DutchAuction,
-                Owner = Context.Sender,
-                Price = new Price
+                Value =
                 {
-                    Symbol = input.PurchaseSymbol,
-                    Amount = input.StartingPrice
-                },
-                Quantity = 1
+                    new ListedNFTInfo
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        Duration = duration,
+                        ListType = ListType.DutchAuction,
+                        Owner = Context.Sender,
+                        Price = new Price
+                        {
+                            Symbol = input.PurchaseSymbol,
+                            Amount = input.StartingPrice
+                        },
+                        Quantity = 1
+                    }
+                }
             };
+
+            ClearBids(input.Symbol, input.TokenId);
+            State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
             Context.Fire(new ListedNFTInfoChanged
             {
@@ -206,8 +217,16 @@ namespace AElf.Contracts.NFTMarket
         public override Empty Delist(DelistInput input)
         {
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, input.Quantity);
-            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender];
-            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
+            var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];
+            if (listedNftInfoList == null || listedNftInfoList.Value.All(i => i.ListType == ListType.NotListed))
+            {
+                throw new AssertionException("Listed NFT Info not exists. (Or already delisted.)");
+            }
+
+            Assert(input.Price != null, "Need to specific list record.");
+            var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
+                i.Price.Amount == input.Price.Amount && i.Price.Symbol == input.Price.Symbol);
+            if (listedNftInfo == null)
             {
                 throw new AssertionException("Listed NFT Info not exists. (Or already delisted.)");
             }
@@ -222,11 +241,11 @@ namespace AElf.Contracts.NFTMarket
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when input.Quantity >= listedNftInfo.Quantity:
-                    State.ListedNftInfoMap[input.Symbol][input.TokenId].Remove(Context.Sender);
+                    State.ListedNFTInfoListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
                     break;
                 case ListType.FixedPrice:
                     listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(input.Quantity);
-                    State.ListedNftInfoMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfo;
+                    State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
                     break;
                 case ListType.EnglishAuction:
                     break;

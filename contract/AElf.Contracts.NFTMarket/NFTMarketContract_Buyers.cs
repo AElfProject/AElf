@@ -23,8 +23,6 @@ namespace AElf.Contracts.NFTMarket
         /// <returns></returns>
         public override Empty MakeOffer(MakeOfferInput input)
         {
-            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
-
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
             {
                 Symbol = input.Symbol,
@@ -43,16 +41,24 @@ namespace AElf.Contracts.NFTMarket
                 return new Empty();
             }
 
-            var listedNftInfo = State.ListedNftInfoMap[input.Symbol][input.TokenId][input.OfferTo];
-            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
+            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
+
+            var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo];
+
+            if (listedNftInfoList == null || listedNftInfoList.Value.All(i => i.ListType == ListType.NotListed))
             {
                 // NFT not listed by the owner.
                 PerformMakeOffer(input);
                 return new Empty();
             }
-
-            Assert(listedNftInfo.Price.Symbol == input.Price.Symbol, "Symbol not match.");
-
+            var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
+                i.Price.Symbol == input.Price.Symbol && i.Price.Amount == input.Price.Amount);
+            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
+            {
+                PerformMakeOffer(input);
+                return new Empty();
+            }
+            
             var quantity = input.Quantity;
             if (quantity > listedNftInfo.Quantity)
             {
@@ -96,9 +102,8 @@ namespace AElf.Contracts.NFTMarket
             // Admin can remove expired offer.
             if (input.OfferFrom != null)
             {
-                var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
-
                 AssertSenderIsAdmin();
+
                 offerList = State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom];
                 foreach (var offer in offerList.Value)
                 {
@@ -110,10 +115,23 @@ namespace AElf.Contracts.NFTMarket
 
                 State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom] = newOfferList;
 
-                if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime ||
-                    requestInfo.DueTime > Context.CurrentBlockTime)
+                if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
                     State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                    var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
+                    var protocolVirtualAddress =
+                        Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
+                    var balanceOfNftProtocolVirtualAddress = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Symbol = requestInfo.Price.Symbol,
+                        Owner = protocolVirtualAddress
+                    }).Balance;
+                    State.TokenContract.Transfer.VirtualSend(protocolVirtualAddressFrom, new TransferInput
+                    {
+                        To = requestInfo.Requester,
+                        Symbol = requestInfo.Price.Symbol,
+                        Amount = balanceOfNftProtocolVirtualAddress
+                    });
                     Context.Fire(new NFTRequestCancelled
                     {
                         Symbol = input.Symbol,
@@ -122,10 +140,12 @@ namespace AElf.Contracts.NFTMarket
                     });
                 }
 
+                var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
+
                 if (bid.ExpireTime > Context.CurrentBlockTime)
                 {
                     State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
-                    Context.Fire(new BidCanceled()
+                    Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
@@ -176,6 +196,7 @@ namespace AElf.Contracts.NFTMarket
                                 Amount = auctionInfo.EarnestMoney
                             });
                     }
+
                     Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
@@ -195,6 +216,7 @@ namespace AElf.Contracts.NFTMarket
                         newOfferList.Value.Add(offerList.Value[i]);
                     }
                 }
+
                 Context.Fire(new OfferCanceled
                 {
                     Symbol = input.Symbol,
@@ -267,7 +289,7 @@ namespace AElf.Contracts.NFTMarket
                 Amount = balanceOfNftVirtualAddress
             });
             State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-            
+
             Context.Fire(new NFTRequestCancelled
             {
                 Symbol = input.Symbol,
@@ -289,6 +311,8 @@ namespace AElf.Contracts.NFTMarket
             var usePrice = input.Price;
             if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
             {
+                // Public time not reached.
+
                 if (whiteListPrice != null)
                 {
                     Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
@@ -426,15 +450,15 @@ namespace AElf.Contracts.NFTMarket
                 {
                     Symbol = auctionInfo.PurchaseSymbol,
                     Owner = Context.Sender
-                }).Balance >= auctionInfo.EarnestMoney,
-                "Insufficient balance to pay for earnest money.");
+                }).Balance >= input.Price.Amount,
+                "Insufficient balance to bid.");
             Assert(
                 State.TokenContract.GetAllowance.Call(new GetAllowanceInput
                 {
                     Symbol = auctionInfo.PurchaseSymbol,
                     Owner = Context.Sender
-                }).Allowance >= auctionInfo.EarnestMoney,
-                "Insufficient allowance to pay for earnest money.");
+                }).Allowance >= input.Price.Amount,
+                "Insufficient allowance to bid.");
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -490,14 +514,21 @@ namespace AElf.Contracts.NFTMarket
 
         private long CalculateCurrentBiddingPrice(long startingPrice, long endingPrice, ListDuration duration)
         {
-            var passedHours = (Context.CurrentBlockTime - duration.StartTime).Seconds.Mul(3600);
-            if (passedHours == 0)
+            var passedSeconds = (Context.CurrentBlockTime - duration.StartTime).Seconds;
+            var durationSeconds = duration.DurationHours.Mul(3600);
+            if (passedSeconds == 0)
             {
                 return startingPrice;
             }
 
             var diffPrice = endingPrice.Sub(startingPrice);
-            return startingPrice.Sub(diffPrice.Mul(duration.DurationHours).Div(passedHours));
+            return Math.Max(startingPrice.Sub(diffPrice.Mul(durationSeconds).Div(passedSeconds)), endingPrice);
+        }
+
+        // TODO
+        private void MaybeReceiveRemainDeposit()
+        {
+            
         }
     }
 }
