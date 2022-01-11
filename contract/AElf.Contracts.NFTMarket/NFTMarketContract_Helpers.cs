@@ -32,6 +32,22 @@ namespace AElf.Contracts.NFTMarket
             Assert(allowance >= quantity, "Check sender NFT allowance failed.");
         }
 
+        private bool CheckAllowanceAndBalanceIsEnough(Address owner, string symbol, long enoughAmount)
+        {
+            var balance = State.TokenContract.GetBalance.Call(new MultiToken.GetBalanceInput
+            {
+                Symbol = symbol,
+                Owner = owner
+            }).Balance;
+            if (enoughAmount < balance) return false;
+            var allowance = State.TokenContract.GetAllowance.Call(new MultiToken.GetAllowanceInput
+            {
+                Symbol = symbol,
+                Owner = owner
+            }).Allowance;
+            return enoughAmount >= allowance;
+        }
+
         private void MaybeTransferFromNFTVirtualAddress(PerformDealInput performDealInput)
         {
             var requestInfo = State.RequestInfoMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];

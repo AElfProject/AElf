@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using GetAllowanceInput = AElf.Contracts.MultiToken.GetAllowanceInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
@@ -127,12 +125,12 @@ namespace AElf.Contracts.NFTMarket
                 if (bid.ExpireTime > Context.CurrentBlockTime)
                 {
                     State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
-                    Context.Fire(new OfferOrBidCanceled
+                    Context.Fire(new BidCanceled()
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        OfferFrom = bid.From,
-                        OfferTo = bid.To
+                        BidFrom = bid.From,
+                        BidTo = bid.To
                     });
                 }
 
@@ -178,11 +176,12 @@ namespace AElf.Contracts.NFTMarket
                                 Amount = auctionInfo.EarnestMoney
                             });
                     }
-                    Context.Fire(new OfferOrBidCanceled
+                    Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        OfferFrom = Context.Sender
+                        BidFrom = Context.Sender,
+                        BidTo = bid.To
                     });
                 }
             }
@@ -196,7 +195,7 @@ namespace AElf.Contracts.NFTMarket
                         newOfferList.Value.Add(offerList.Value[i]);
                     }
                 }
-                Context.Fire(new OfferOrBidCanceled
+                Context.Fire(new OfferCanceled
                 {
                     Symbol = input.Symbol,
                     TokenId = input.TokenId,

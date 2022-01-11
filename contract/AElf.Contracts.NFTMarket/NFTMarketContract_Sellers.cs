@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
@@ -82,16 +81,16 @@ namespace AElf.Contracts.NFTMarket
                             Symbol = auctionInfo.PurchaseSymbol,
                             Amount = auctionInfo.EarnestMoney
                         });
-                    Context.Fire(new OfferOrBidCanceled
+                    Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        OfferFrom = bidAddress,
-                        OfferTo = Context.Sender,
+                        BidFrom = bidAddress,
+                        BidTo = Context.Sender,
                     });
                 }
             }
-            
+
             var duration = AdjustListDuration(input.Duration);
 
             var englishAuctionInfo = new EnglishAuctionInfo
@@ -277,9 +276,11 @@ namespace AElf.Contracts.NFTMarket
                     o.Price.Amount == input.Price.Amount);
             var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
             Price price;
-            var totalAmount = 0L;
+            long totalAmount;
             if (offer == null)
             {
+                // Check bid.
+
                 if (bid == null || bid.From != input.OfferFrom ||
                     bid.Price.Amount != input.Price.Amount || bid.Price.Symbol != input.Price.Symbol)
                 {
@@ -288,7 +289,29 @@ namespace AElf.Contracts.NFTMarket
 
                 price = bid.Price;
                 totalAmount = price.Amount;
+
                 var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+
+                if (!CheckAllowanceAndBalanceIsEnough(bid.From, price.Symbol, totalAmount))
+                {
+                    State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                        new TransferInput
+                        {
+                            To = Context.Sender,
+                            Symbol = price.Symbol,
+                            Amount = auctionInfo.EarnestMoney
+                        });
+                    State.BidMap[input.Symbol][input.TokenId].Remove(bid.From);
+                    Context.Fire(new BidCanceled
+                    {
+                        Symbol = input.Symbol,
+                        TokenId = input.TokenId,
+                        BidFrom = input.OfferFrom,
+                        BidTo = Context.Sender
+                    });
+                    return new Empty();
+                }
+
                 auctionInfo.DealPrice = input.Price.Amount;
                 auctionInfo.DealTo = input.OfferFrom;
                 State.EnglishAuctionInfoMap[input.Symbol][input.TokenId] = auctionInfo;

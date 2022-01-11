@@ -424,13 +424,21 @@ message BidPlaced {
     google.protobuf.Timestamp expire_time = 7;
 }
 
-message OfferOrBidCanceled {
+message OfferCanceled {
     option (aelf.is_event) = true;
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address offer_from = 3;
     aelf.Address offer_to = 4;
     Int32List index_list = 5;
+}
+
+message BidCanceled {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address bid_from = 3;
+    aelf.Address bid_to = 4;
 }
 
 message CustomizeInfoSet {
