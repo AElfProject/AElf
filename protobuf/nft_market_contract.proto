@@ -213,7 +213,7 @@ message RequestInfo {
     int64 token_id = 6;
     bool is_confirmed = 7;
     google.protobuf.Timestamp expire_time = 8;
-    google.protobuf.Timestamp due_time = 9;
+    google.protobuf.Timestamp white_list_due_time = 9;
     aelf.Address requester = 10;
     google.protobuf.Timestamp confirm_time = 11;
     google.protobuf.Timestamp list_time = 12;

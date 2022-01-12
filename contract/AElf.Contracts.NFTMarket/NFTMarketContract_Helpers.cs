@@ -190,8 +190,7 @@ namespace AElf.Contracts.NFTMarket
             return State.TokenWhiteListMap[symbol] ?? State.GlobalTokenWhiteList.Value;
         }
 
-        private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime,
-            Timestamp dueTime)
+        private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime)
         {
             var customizeInfo = State.CustomizeInfoMap[symbol];
             if (customizeInfo?.Price == null)
@@ -350,7 +349,7 @@ namespace AElf.Contracts.NFTMarket
             var whiteListRemainPrice =
                 requestInfo.Price.Amount.Sub(requestInfo.Price.Amount.Mul(requestInfo.DepositRate)
                     .Div(FeeDenominator));
-            var delayDuration = Context.CurrentBlockTime - requestInfo.DueTime;
+            var delayDuration = Context.CurrentBlockTime - requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours);
             if (delayDuration.Seconds > 0)
             {
                 var reducePrice = whiteListRemainPrice.Mul(delayDuration.Seconds)

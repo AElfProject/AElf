@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -165,7 +164,7 @@ namespace AElf.Contracts.NFTMarket
                 requestInfo.ConfirmTime = Context.CurrentBlockTime;
                 requestInfo.WorkHours = Math.Min(requestInfo.WorkHoursFromCustomizeInfo,
                     (requestInfo.ExpireTime - Context.CurrentBlockTime).Seconds.Div(3600));
-                requestInfo.DueTime = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
+                requestInfo.WhiteListDueTime = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
                     .AddHours(requestInfo.WhiteListHours);
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
 
@@ -224,7 +223,7 @@ namespace AElf.Contracts.NFTMarket
                 throw new AssertionException("Request info does not exist.");
             }
 
-            Assert(Context.CurrentBlockTime > requestInfo.DueTime, "Due time not passed.");
+            Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
 

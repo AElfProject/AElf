@@ -317,7 +317,13 @@ namespace AElf.Contracts.NFTMarket
                 TokenId = input.TokenId,
                 Owner = Context.Sender
             });
-            Assert(balance.Balance >= input.Quantity, "Insufficient balance.");
+            Assert(balance.Balance >= input.Quantity, "Insufficient NFT balance.");
+
+            var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
+            if (requestInfo != null)
+            {
+                Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
+            }
 
             var offer = State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom]?.Value
                 .FirstOrDefault(o =>

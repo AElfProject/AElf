@@ -37,7 +37,7 @@ namespace AElf.Contracts.NFTMarket
             if (nftInfo.Quantity == 0 && input.Quantity == 1)
             {
                 // NFT not minted.
-                PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime, input.DueTime);
+                PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime);
                 return new Empty();
             }
 
