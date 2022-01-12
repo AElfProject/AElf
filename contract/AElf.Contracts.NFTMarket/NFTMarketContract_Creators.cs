@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
@@ -118,8 +120,9 @@ namespace AElf.Contracts.NFTMarket
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can withdraw.");
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
             Assert(input.WithdrawAmount <= customizeInfo.StakingAmount, "Insufficient staking amount.");
+            Assert(customizeInfo.ReservedTokenIds.Count == 0,
+                "Cannot withdraw staking tokens before complete all the demands.");
             var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
-            // TODO: Assert no buyer for this customize info.
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = virtualAddress,
@@ -161,7 +164,9 @@ namespace AElf.Contracts.NFTMarket
                 requestInfo.IsConfirmed = true;
                 requestInfo.ConfirmTime = Context.CurrentBlockTime;
                 requestInfo.WorkHours = Math.Min(requestInfo.WorkHoursFromCustomizeInfo,
-                    (requestInfo.DueTime - Context.CurrentBlockTime).Seconds.Div(3600));
+                    (requestInfo.ExpireTime - Context.CurrentBlockTime).Seconds.Div(3600));
+                requestInfo.DueTime = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
+                    .AddHours(requestInfo.WhiteListHours);
                 State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
 
                 var transferAmount = nftVirtualAddressBalance.Mul(DefaultDepositConfirmRate).Div(FeeDenominator);
@@ -204,6 +209,38 @@ namespace AElf.Contracts.NFTMarket
                 });
             }
 
+            return new Empty();
+        }
+
+        public override Empty ClaimRemainDeposit(ClaimRemainDepositInput input)
+        {
+            var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
+            if (requestInfo == null)
+            {
+                throw new AssertionException("Request info does not exist.");
+            }
+
+            Assert(Context.CurrentBlockTime > requestInfo.DueTime, "Due time not passed.");
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
+
+            var nftVirtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
+            var nftVirtualAddress = Context.ConvertVirtualAddressToContractAddress(nftVirtualAddressFrom);
+            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Symbol = requestInfo.Price.Symbol,
+                Owner = nftVirtualAddress
+            }).Balance;
+            if (balance > 0)
+            {
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                {
+                    To = nftProtocolInfo.Creator,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = balance
+                });
+            }
+            
             return new Empty();
         }
     }

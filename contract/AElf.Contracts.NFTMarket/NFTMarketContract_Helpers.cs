@@ -238,9 +238,11 @@ namespace AElf.Contracts.NFTMarket
                 WhiteListHours = customizeInfo.WhiteListHours,
                 WorkHoursFromCustomizeInfo = customizeInfo.WorkHours,
                 Requester = Context.Sender,
-                ExpireTime = expireTime ?? defaultExpireTime,
-                DueTime = dueTime ?? defaultExpireTime
+                ExpireTime = expireTime ?? defaultExpireTime
             };
+
+            customizeInfo.ReservedTokenIds.Add(tokenId);
+            State.CustomizeInfoMap[symbol] = customizeInfo;
 
             Context.Fire(new NewNFTRequested
             {

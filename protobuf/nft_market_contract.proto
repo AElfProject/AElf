@@ -54,6 +54,8 @@ service NFTMarketContract {
     }
     rpc HandleRequest (HandleRequestInput) returns (google.protobuf.Empty) {
     }
+    rpc ClaimRemainDeposit (ClaimRemainDepositInput) returns (google.protobuf.Empty) {
+    }
 
     // For Admin.
     rpc SetServiceFee (SetServiceFeeInput) returns (google.protobuf.Empty) {
@@ -137,6 +139,7 @@ message CustomizeInfo {
     int64 work_hours = 4;
     int64 white_list_hours = 5;
     int64 staking_amount = 6;
+    repeated int64 reserved_token_ids = 7;
 }
 
 message Price {
@@ -389,6 +392,11 @@ message GetBidInput {
 }
 
 message GetBidListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+}
+
+message ClaimRemainDepositInput {
     string symbol = 1;
     int64 token_id = 2;
 }

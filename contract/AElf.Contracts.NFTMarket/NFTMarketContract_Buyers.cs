@@ -86,7 +86,7 @@ namespace AElf.Contracts.NFTMarket
                     PerformPlaceBidForEnglishAuction(input);
                     break;
                 case ListType.DutchAuction:
-                    PerformMakeOffToDutchAuction(input);
+                    PerformMakeOfferToDutchAuction(input);
                     break;
             }
 
@@ -478,7 +478,7 @@ namespace AElf.Contracts.NFTMarket
             });
         }
 
-        private void PerformMakeOffToDutchAuction(MakeOfferInput input)
+        private void PerformMakeOfferToDutchAuction(MakeOfferInput input)
         {
             var auctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
             if (auctionInfo == null)
