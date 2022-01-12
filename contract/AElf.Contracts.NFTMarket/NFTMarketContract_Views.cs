@@ -43,7 +43,7 @@ namespace AElf.Contracts.NFTMarket
 
             return allOfferList;
         }
-        
+
         public override AddressList GetBidAddressList(GetAddressListInput input)
         {
             return State.BidAddressListMap[input.Symbol][input.TokenId];
@@ -92,6 +92,31 @@ namespace AElf.Contracts.NFTMarket
         public override DutchAuctionInfo GetDutchAuctionInfo(GetDutchAuctionInfoInput input)
         {
             return State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
+        }
+
+        public override StringList GetTokenWhiteList(StringValue input)
+        {
+            return State.TokenWhiteListMap[input.Value];
+        }
+
+        public override StringList GetGlobalTokenWhiteList(Empty input)
+        {
+            return State.GlobalTokenWhiteList.Value;
+        }
+
+        public override Price GetStakingTokens(StringValue input)
+        {
+            var customizeInfo = State.CustomizeInfoMap[input.Value];
+            if (customizeInfo == null)
+            {
+                return new Price();
+            }
+
+            return new Price
+            {
+                Symbol = customizeInfo.Price.Symbol,
+                Amount = customizeInfo.StakingAmount
+            };
         }
     }
 }

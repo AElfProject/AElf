@@ -195,6 +195,10 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
+                {
+                    State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
+                }
                 State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
                 {
                     To = Context.Sender,

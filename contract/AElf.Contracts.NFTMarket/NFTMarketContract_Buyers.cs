@@ -75,6 +75,10 @@ namespace AElf.Contracts.NFTMarket
                                               whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
                     TryDealWithFixedPrice(input, listedNftInfo);
                     State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                    if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
+                    {
+                        State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
+                    }
                     break;
                 case ListType.FixedPrice when input.Price.Amount >= listedNftInfo.Price.Amount:
                     TryDealWithFixedPrice(input, listedNftInfo);
@@ -118,6 +122,10 @@ namespace AElf.Contracts.NFTMarket
                 if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
                     State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+                    if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
+                    {
+                        State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
+                    }
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
                     var protocolVirtualAddress =
                         Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
@@ -289,6 +297,10 @@ namespace AElf.Contracts.NFTMarket
                 Amount = balanceOfNftVirtualAddress
             });
             State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
+            if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
+            {
+                State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
+            }
 
             Context.Fire(new NFTRequestCancelled
             {
@@ -335,7 +347,8 @@ namespace AElf.Contracts.NFTMarket
                 NFTTokenId = input.TokenId,
                 NFTQuantity = input.Quantity,
                 PurchaseSymbol = usePrice.Symbol,
-                PurchaseAmount = totalAmount
+                PurchaseAmount = totalAmount,
+                PurchaseTokenId = input.Price.TokenId
             });
         }
 
@@ -349,7 +362,7 @@ namespace AElf.Contracts.NFTMarket
             var expireTime = input.ExpireTime ?? Context.CurrentBlockTime.AddDays(DefaultExpireDays);
             var maybeSameOffer = offerList.Value.SingleOrDefault(o =>
                 o.Price.Symbol == input.Price.Symbol && o.Price.Amount == input.Price.Amount &&
-                o.ExpireTime == expireTime && o.To == input.OfferTo);
+                o.ExpireTime == expireTime && o.To == input.OfferTo && o.From == Context.Sender);
             if (maybeSameOffer == null)
             {
                 offerList.Value.Add(new Offer
@@ -399,7 +412,9 @@ namespace AElf.Contracts.NFTMarket
             var duration = auctionInfo.Duration;
             Assert(Context.CurrentBlockTime <= duration.StartTime.AddHours(duration.DurationHours),
                 "Auction already finished.");
-            Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol");
+            Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol.");
+            Assert(input.Price.TokenId == 0, "Do not support use NFT to purchase auction.");
+
             if (input.Price.Amount < auctionInfo.StartingPrice)
             {
                 PerformMakeOffer(input);
@@ -441,31 +456,27 @@ namespace AElf.Contracts.NFTMarket
             {
                 bidAddressList.Value.Add(Context.Sender);
                 State.BidAddressListMap[input.Symbol][input.TokenId] = bidAddressList;
+                // Charge earnest if the Sender is the first time to place a bid.
+                ChargeEarnest(input.Symbol, input.TokenId, auctionInfo.PurchaseSymbol, auctionInfo.EarnestMoney);
             }
 
             State.BidMap[input.Symbol][input.TokenId][Context.Sender] = bid;
 
+            var remainAmount = input.Price.Amount.Sub(auctionInfo.EarnestMoney);
             Assert(
                 State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
                     Symbol = auctionInfo.PurchaseSymbol,
                     Owner = Context.Sender
-                }).Balance >= input.Price.Amount,
+                }).Balance >= remainAmount,
                 "Insufficient balance to bid.");
             Assert(
                 State.TokenContract.GetAllowance.Call(new GetAllowanceInput
                 {
                     Symbol = auctionInfo.PurchaseSymbol,
                     Owner = Context.Sender
-                }).Allowance >= input.Price.Amount,
+                }).Allowance >= remainAmount,
                 "Insufficient allowance to bid.");
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                To = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId),
-                Symbol = auctionInfo.PurchaseSymbol,
-                Amount = auctionInfo.EarnestMoney
-            });
 
             Context.Fire(new BidPlaced
             {
@@ -475,6 +486,17 @@ namespace AElf.Contracts.NFTMarket
                 ExpireTime = bid.ExpireTime,
                 OfferFrom = bid.From,
                 OfferTo = input.OfferTo
+            });
+        }
+
+        private void ChargeEarnest(string nftSymbol, long nftTokenId, string purchaseSymbol, long earnestMoney)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = CalculateNFTVirtuaAddress(nftSymbol, nftTokenId),
+                Symbol = purchaseSymbol,
+                Amount = earnestMoney
             });
         }
 

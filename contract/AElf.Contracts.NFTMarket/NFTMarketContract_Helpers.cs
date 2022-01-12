@@ -48,7 +48,7 @@ namespace AElf.Contracts.NFTMarket
             return enoughAmount >= allowance;
         }
 
-        private void MaybeTransferFromNFTVirtualAddress(PerformDealInput performDealInput)
+        private void PayRemainDepositInCustomizeCase(PerformDealInput performDealInput)
         {
             var requestInfo = State.RequestInfoMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];
             if (requestInfo == null) return;
@@ -78,7 +78,7 @@ namespace AElf.Contracts.NFTMarket
 
         private void PerformDeal(PerformDealInput performDealInput)
         {
-            MaybeTransferFromNFTVirtualAddress(performDealInput);
+            PayRemainDepositInCustomizeCase(performDealInput);
             if (performDealInput.PurchaseTokenId == 0)
             {
                 var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
@@ -364,11 +364,17 @@ namespace AElf.Contracts.NFTMarket
             State.RequestInfoMap[input.Symbol][input.TokenId] = requestInfo;
         }
 
-        private void ClearBids(string symbol, long tokenId)
+        private void ClearBids(string symbol, long tokenId, Address except = null)
         {
             var bidAddressList = State.BidAddressListMap[symbol][tokenId];
-            if (bidAddressList == null || !bidAddressList.Value.Any()) return;
             var auctionInfo = State.EnglishAuctionInfoMap[symbol][tokenId];
+
+            if (bidAddressList == null || !bidAddressList.Value.Any() || auctionInfo == null) return;
+
+            if (except != null)
+            {
+                bidAddressList.Value.Remove(except);
+            }
 
             foreach (var bidAddress in bidAddressList.Value)
             {
@@ -376,7 +382,7 @@ namespace AElf.Contracts.NFTMarket
                 State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
                     new TransferInput
                     {
-                        To = Context.Sender,
+                        To = bidAddress,
                         Symbol = auctionInfo.PurchaseSymbol,
                         Amount = auctionInfo.EarnestMoney
                     });

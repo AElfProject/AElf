@@ -97,6 +97,15 @@ service NFTMarketContract {
     rpc GetDutchAuctionInfo (GetDutchAuctionInfoInput) returns (DutchAuctionInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetTokenWhiteList (google.protobuf.StringValue) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetGlobalTokenWhiteList (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetStakingTokens (google.protobuf.StringValue) returns (Price) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Structs.
@@ -145,6 +154,7 @@ message CustomizeInfo {
 message Price {
     string symbol = 1;
     int64 amount = 2;
+    int64 token_id = 3;// Only valid if the purchase symbol is a nft protocol.
 }
 
 message Offer {
@@ -248,7 +258,8 @@ message ListWithFixedPriceInput {
     Price price = 3;
     int64 quantity = 4;
     ListDuration duration = 5;
-    WhiteListAddressPriceList white_list_address_price_list = 8;
+    WhiteListAddressPriceList white_list_address_price_list = 6;
+    bool is_merge_to_previous_listed_info = 7;
 }
 
 message ListWithEnglishAuctionInput {
