@@ -414,17 +414,48 @@ message ClaimRemainDepositInput {
 
 // Events
 
-message ListedNFTInfoChanged {
+message FixedPriceNFTListed {
     option (aelf.is_event) = true;
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address owner = 3;
     int64 quantity = 4;
-    ListType list_type = 5;
-    Price price = 6;
+    Price price = 5;
+    ListDuration duration = 6;
+    bool is_merged_to_previous_listed_info = 7;
+    WhiteListAddressPriceList white_list_address_price_list = 8;
+}
+
+message EnglishAuctionNFTListed {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    string purchase_symbol = 4;
+    int64 starting_price = 5;
+    ListDuration duration = 6;
+    int64 earnest_money = 7;
+    WhiteListAddressPriceList white_list_address_price_list = 8;
+}
+
+message DutchAuctionNFTListed {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    string purchase_symbol = 4;
+    int64 starting_price = 5;
+    int64 ending_price = 6;
     ListDuration duration = 7;
-    string description = 8;
-    WhiteListAddressPriceList white_list_address_price_list = 9;
+    WhiteListAddressPriceList white_list_address_price_list = 8;
+}
+
+message NFTDelisted {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
 }
 
 message TokenWhiteListChanged {

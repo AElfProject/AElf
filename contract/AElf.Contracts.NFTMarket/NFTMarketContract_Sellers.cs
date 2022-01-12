@@ -47,6 +47,7 @@ namespace AElf.Contracts.NFTMarket
                     i.Duration.DurationHours == input.Duration.DurationHours);
             }
 
+            bool isMergedToPreviousListedInfo;
             if (listedNftInfo == null)
             {
                 listedNftInfo = new ListedNFTInfo
@@ -60,10 +61,12 @@ namespace AElf.Contracts.NFTMarket
                     Duration = duration,
                 };
                 listedNftInfoList.Value.Add(listedNftInfo);
+                isMergedToPreviousListedInfo = false;
             }
             else
             {
                 listedNftInfo.Quantity = listedNftInfo.Quantity.Add(input.Quantity);
+                isMergedToPreviousListedInfo = true;
             }
 
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, listedNftInfo.Quantity);
@@ -78,15 +81,16 @@ namespace AElf.Contracts.NFTMarket
             State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
             State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
-            Context.Fire(new ListedNFTInfoChanged
+            Context.Fire(new FixedPriceNFTListed
             {
-                ListType = listedNftInfo.ListType,
                 Owner = listedNftInfo.Owner,
                 Price = listedNftInfo.Price,
                 Quantity = listedNftInfo.Quantity,
                 Symbol = listedNftInfo.Symbol,
                 TokenId = listedNftInfo.TokenId,
-                Duration = listedNftInfo.Duration
+                Duration = listedNftInfo.Duration,
+                IsMergedToPreviousListedInfo = isMergedToPreviousListedInfo,
+                WhiteListAddressPriceList = whiteListAddressPriceList
             });
 
             return new Empty();
@@ -151,19 +155,16 @@ namespace AElf.Contracts.NFTMarket
 
             State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
-            Context.Fire(new ListedNFTInfoChanged
+            Context.Fire(new EnglishAuctionNFTListed
             {
-                ListType = ListType.EnglishAuction,
                 Owner = englishAuctionInfo.Owner,
-                Price = new Price
-                {
-                    Symbol = input.PurchaseSymbol,
-                    Amount = input.StartingPrice
-                },
-                Quantity = 1,
                 Symbol = englishAuctionInfo.Symbol,
+                PurchaseSymbol = englishAuctionInfo.PurchaseSymbol,
+                StartingPrice = englishAuctionInfo.StartingPrice,
                 TokenId = englishAuctionInfo.TokenId,
-                Duration = englishAuctionInfo.Duration
+                Duration = englishAuctionInfo.Duration,
+                EarnestMoney = englishAuctionInfo.EarnestMoney,
+                WhiteListAddressPriceList = whiteListAddressPriceList
             });
 
             return new Empty();
@@ -226,19 +227,16 @@ namespace AElf.Contracts.NFTMarket
             ClearBids(input.Symbol, input.TokenId);
             State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
 
-            Context.Fire(new ListedNFTInfoChanged
+            Context.Fire(new DutchAuctionNFTListed
             {
-                ListType = ListType.DutchAuction,
                 Owner = dutchAuctionInfo.Owner,
-                Price = new Price
-                {
-                    Symbol = input.PurchaseSymbol,
-                    Amount = input.StartingPrice
-                },
-                Quantity = 1,
+                PurchaseSymbol = dutchAuctionInfo.PurchaseSymbol,
+                StartingPrice = dutchAuctionInfo.StartingPrice,
+                EndingPrice = dutchAuctionInfo.EndingPrice,
                 Symbol = dutchAuctionInfo.Symbol,
                 TokenId = dutchAuctionInfo.TokenId,
-                Duration = dutchAuctionInfo.Duration
+                Duration = dutchAuctionInfo.Duration,
+                WhiteListAddressPriceList = whiteListAddressPriceList
             });
 
             return new Empty();
@@ -284,12 +282,11 @@ namespace AElf.Contracts.NFTMarket
                     break;
             }
 
-            Context.Fire(new ListedNFTInfoChanged
+            Context.Fire(new NFTDelisted
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId,
                 Owner = Context.Sender,
-                ListType = ListType.NotListed,
                 Quantity = input.Quantity
             });
 
