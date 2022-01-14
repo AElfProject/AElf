@@ -28,6 +28,10 @@ namespace AElf.Contracts.NFTMarket
         public override Empty SetGlobalTokenWhiteList(StringList input)
         {
             AssertSenderIsAdmin();
+            if (!input.Value.Contains(Context.Variables.NativeSymbol))
+            {
+                input.Value.Add(Context.Variables.NativeSymbol);
+            }
             State.GlobalTokenWhiteList.Value = input;
             Context.Fire(new GlobalTokenWhiteListChanged
             {

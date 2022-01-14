@@ -187,7 +187,16 @@ namespace AElf.Contracts.NFTMarket
 
         private StringList GetTokenWhiteList(string symbol)
         {
-            return State.TokenWhiteListMap[symbol] ?? State.GlobalTokenWhiteList.Value;
+            var tokenWhiteList = State.TokenWhiteListMap[symbol] ?? State.GlobalTokenWhiteList.Value;
+            foreach (var globalWhiteListSymbol in State.GlobalTokenWhiteList.Value.Value)
+            {
+                if (!tokenWhiteList.Value.Contains(globalWhiteListSymbol))
+                {
+                    tokenWhiteList.Value.Add(globalWhiteListSymbol);
+                }
+            }
+
+            return tokenWhiteList;
         }
 
         private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime)
@@ -202,7 +211,7 @@ namespace AElf.Contracts.NFTMarket
 
             var nftVirtualAddress = CalculateNFTVirtuaAddress(symbol, tokenId);
             var priceSymbol = customizeInfo.Price.Symbol;
-            var priceAmount = price?.Amount == 0
+            var priceAmount = price.Amount == 0
                 ? customizeInfo.Price.Amount
                 : Math.Max(price?.Amount ?? 0, customizeInfo.Price.Amount);
             // Check allowance.
@@ -251,9 +260,9 @@ namespace AElf.Contracts.NFTMarket
             });
         }
 
-        private bool CanBeListedWithAuction(string symbol, long tokenId)
+        private bool CanBeListedWithAuction(string symbol, long tokenId, out RequestInfo requestInfo)
         {
-            var requestInfo = State.RequestInfoMap[symbol][tokenId];
+            requestInfo = State.RequestInfoMap[symbol][tokenId];
             if (requestInfo == null)
             {
                 return true;
@@ -395,6 +404,15 @@ namespace AElf.Contracts.NFTMarket
             }
 
             State.BidAddressListMap[symbol].Remove(tokenId);
+        }
+
+        private void RemoveRequest(string symbol, long tokenId)
+        {
+            State.RequestInfoMap[symbol].Remove(tokenId);
+            if (State.CustomizeInfoMap[symbol].ReservedTokenIds.Contains(tokenId))
+            {
+                State.CustomizeInfoMap[symbol].ReservedTokenIds.Remove(tokenId);
+            }
         }
     }
 }

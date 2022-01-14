@@ -13,17 +13,22 @@ namespace AElf.Contracts.NFTMarket
     {
         public override Empty ListWithFixedPrice(ListWithFixedPriceInput input)
         {
-            MaybeReceiveRemainDeposit();
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
-            if (requestInfo != null && (requestInfo.ListTime == null || // Never listed,
-                                        requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
-                                        Context.CurrentBlockTime)
-                // or white list hours not passed -> will refresh list time and white list time.
-            )
+            if (requestInfo != null)
             {
-                ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
+                if ((requestInfo.ListTime == null || // Never listed,
+                     requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
+                     Context.CurrentBlockTime))
+                    // or white list hours not passed -> will refresh list time and white list time.)
+                {
+                    ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
+                }
+                else
+                {
+                    MaybeReceiveRemainDeposit(requestInfo);
+                }
             }
 
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.Price.Symbol),
@@ -98,11 +103,17 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ListWithEnglishAuction(ListWithEnglishAuctionInput input)
         {
-            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
-                "This NFT cannot be listed with auction for now.");
+            if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
+            {
+                MaybeReceiveRemainDeposit(requestInfo);
+            }
+            else
+            {
+                throw new AssertionException("This NFT cannot be listed with auction for now.");
+            }
+
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
             Assert(input.EarnestMoney <= input.StartingPrice, "Earnest money too high.");
-            MaybeReceiveRemainDeposit();
 
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
@@ -172,10 +183,16 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ListWithDutchAuction(ListWithDutchAuctionInput input)
         {
-            Assert(CanBeListedWithAuction(input.Symbol, input.TokenId),
-                "This NFT cannot be listed with auction for now.");
+            if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
+            {
+                MaybeReceiveRemainDeposit(requestInfo);
+            }
+            else
+            {
+                throw new AssertionException("This NFT cannot be listed with auction for now.");
+            }
+
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
-            MaybeReceiveRemainDeposit();
 
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
@@ -270,15 +287,19 @@ namespace AElf.Contracts.NFTMarket
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when input.Quantity >= listedNftInfo.Quantity:
-                    State.ListedNFTInfoListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
+                    State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender].Value.Remove(listedNftInfo);
                     break;
                 case ListType.FixedPrice:
                     listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(input.Quantity);
                     State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
                     break;
                 case ListType.EnglishAuction:
+                    var englishAuctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+                    ChargeSenderServiceFee(englishAuctionInfo.PurchaseSymbol, englishAuctionInfo.StartingPrice);
                     break;
                 case ListType.DutchAuction:
+                    var dutchAuctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
+                    ChargeSenderServiceFee(dutchAuctionInfo.PurchaseSymbol, dutchAuctionInfo.StartingPrice);
                     break;
             }
 
@@ -291,6 +312,18 @@ namespace AElf.Contracts.NFTMarket
             });
 
             return new Empty();
+        }
+
+        private void ChargeSenderServiceFee(string symbol, long baseAmount)
+        {
+            var amount = baseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                Symbol = symbol,
+                Amount = amount,
+                From = Context.Sender,
+                To = State.ServiceFeeReceiver.Value ?? State.Admin.Value
+            });
         }
 
         /// <summary>

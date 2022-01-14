@@ -74,13 +74,10 @@ namespace AElf.Contracts.NFTMarket
                 case ListType.FixedPrice when whiteListAddressPriceList != null &&
                                               whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
                     TryDealWithFixedPrice(input, listedNftInfo);
-                    State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-                    if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
-                    {
-                        State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
-                    }
+                    RemoveRequest(input.Symbol, input.TokenId);
                     break;
-                case ListType.FixedPrice when input.Price.Amount >= listedNftInfo.Price.Amount:
+                case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
+                                              input.Price.Amount >= listedNftInfo.Price.Amount:
                     TryDealWithFixedPrice(input, listedNftInfo);
                     break;
                 case ListType.FixedPrice:
@@ -121,11 +118,7 @@ namespace AElf.Contracts.NFTMarket
 
                 if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
-                    State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-                    if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
-                    {
-                        State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
-                    }
+                    RemoveRequest(input.Symbol, input.TokenId);
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
                     var protocolVirtualAddress =
                         Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
@@ -296,11 +289,7 @@ namespace AElf.Contracts.NFTMarket
                 Symbol = requestInfo.Price.Symbol,
                 Amount = balanceOfNftVirtualAddress
             });
-            State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-            if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
-            {
-                State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
-            }
+            RemoveRequest(input.Symbol, input.TokenId);
 
             Context.Fire(new NFTRequestCancelled
             {
@@ -547,10 +536,30 @@ namespace AElf.Contracts.NFTMarket
             return Math.Max(startingPrice.Sub(diffPrice.Mul(durationSeconds).Div(passedSeconds)), endingPrice);
         }
 
-        // TODO
-        private void MaybeReceiveRemainDeposit()
+        private void MaybeReceiveRemainDeposit(RequestInfo requestInfo)
         {
-            
+            Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = requestInfo.Symbol}));
+            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
+
+            var nftVirtualAddressFrom = CalculateTokenHash(requestInfo.Symbol, requestInfo.TokenId);
+            var nftVirtualAddress = Context.ConvertVirtualAddressToContractAddress(nftVirtualAddressFrom);
+            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Symbol = requestInfo.Price.Symbol,
+                Owner = nftVirtualAddress
+            }).Balance;
+            if (balance > 0)
+            {
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                {
+                    To = nftProtocolInfo.Creator,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = balance
+                });
+            }
+
+            RemoveRequest(requestInfo.Symbol, requestInfo.TokenId);
         }
     }
 }

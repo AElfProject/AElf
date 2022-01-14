@@ -77,6 +77,7 @@ namespace AElf.Contracts.NFTMarket
                     Amount = input.StakingAmount
                 });
             }
+
             State.CustomizeInfoMap[input.Symbol] = input;
             Context.Fire(new CustomizeInfoSet
             {
@@ -193,11 +194,7 @@ namespace AElf.Contracts.NFTMarket
             }
             else
             {
-                State.RequestInfoMap[input.Symbol].Remove(input.TokenId);
-                if (State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Contains(input.TokenId))
-                {
-                    State.CustomizeInfoMap[input.Symbol].ReservedTokenIds.Remove(input.TokenId);
-                }
+                RemoveRequest(input.Symbol, input.TokenId);
                 State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
                 {
                     To = Context.Sender,
@@ -223,27 +220,8 @@ namespace AElf.Contracts.NFTMarket
                 throw new AssertionException("Request info does not exist.");
             }
 
-            Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
-            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
+            MaybeReceiveRemainDeposit(requestInfo);
 
-            var nftVirtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
-            var nftVirtualAddress = Context.ConvertVirtualAddressToContractAddress(nftVirtualAddressFrom);
-            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
-            {
-                Symbol = requestInfo.Price.Symbol,
-                Owner = nftVirtualAddress
-            }).Balance;
-            if (balance > 0)
-            {
-                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
-                {
-                    To = nftProtocolInfo.Creator,
-                    Symbol = requestInfo.Price.Symbol,
-                    Amount = balance
-                });
-            }
-            
             return new Empty();
         }
     }

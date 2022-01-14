@@ -96,7 +96,7 @@ namespace AElf.Contracts.NFTMarket
 
         public override StringList GetTokenWhiteList(StringValue input)
         {
-            return State.TokenWhiteListMap[input.Value];
+            return GetTokenWhiteList(input.Value);
         }
 
         public override StringList GetGlobalTokenWhiteList(Empty input)
