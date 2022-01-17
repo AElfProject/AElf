@@ -14,6 +14,10 @@ namespace AElf.Contracts.NFTMarket
             State.ServiceFee.Value = input.ServiceFee == 0 ? DefaultServiceFeeAmount : input.ServiceFee;
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.GlobalTokenWhiteList.Value = new StringList
+            {
+                Value = {Context.Variables.NativeSymbol}
+            };
             return new Empty();
         }
 

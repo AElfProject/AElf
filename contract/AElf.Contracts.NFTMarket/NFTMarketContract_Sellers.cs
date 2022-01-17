@@ -79,7 +79,7 @@ namespace AElf.Contracts.NFTMarket
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
             }
 
             ClearBids(input.Symbol, input.TokenId);
@@ -140,7 +140,7 @@ namespace AElf.Contracts.NFTMarket
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
             }
 
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
@@ -217,7 +217,7 @@ namespace AElf.Contracts.NFTMarket
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
             }
 
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList

@@ -71,7 +71,7 @@ namespace AElf.Contracts.MultiToken
             if (addAmount < 0 && before < -addAmount)
             {
                 Assert(false,
-                    $"Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
+                    $"{address}. Insufficient balance of {symbol}. Need balance: {-addAmount}; Current balance: {before}");
             }
 
             var target = before.Add(addAmount);

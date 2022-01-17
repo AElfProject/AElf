@@ -19,7 +19,10 @@ namespace AElf.Contracts.NFTMarket
         /// </summary>
         public MappedState<string, long, Address, ListedNFTInfoList> ListedNFTInfoListMap { get; set; }
 
-        public MappedState<string, long, WhiteListAddressPriceList> WhiteListAddressPriceListMap { get; set; }
+        /// <summary>
+        /// Symbol -> Token Id -> Owner -> White List Address Price List
+        /// </summary>
+        public MappedState<string, long, Address, WhiteListAddressPriceList> WhiteListAddressPriceListMap { get; set; }
 
         /// <summary>
         /// Symbol -> Token Id -> Offer Address List

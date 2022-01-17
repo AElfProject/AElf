@@ -39,13 +39,14 @@ namespace AElf.Contracts.NFTMarket
                 Symbol = symbol,
                 Owner = owner
             }).Balance;
-            if (enoughAmount < balance) return false;
+            if (balance < enoughAmount) return false;
             var allowance = State.TokenContract.GetAllowance.Call(new MultiToken.GetAllowanceInput
             {
                 Symbol = symbol,
-                Owner = owner
+                Owner = owner,
+                Spender = Context.Self
             }).Allowance;
-            return enoughAmount >= allowance;
+            return allowance >= enoughAmount;
         }
 
         private void PayRemainDepositInCustomizeCase(PerformDealInput performDealInput)

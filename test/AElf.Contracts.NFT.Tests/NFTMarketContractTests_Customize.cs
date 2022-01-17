@@ -22,7 +22,7 @@ namespace AElf.Contracts.NFT
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
 
-            var symbol = await CreateBadgeTest();
+            var symbol = await CreateArtistsTest();
 
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
@@ -76,7 +76,7 @@ namespace AElf.Contracts.NFT
             await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
             {
                 Symbol = symbol,
-                TokenId = 123,
+                TokenId = 2,
                 OfferTo = DefaultAddress,
                 Quantity = 1,
                 Price = new Price
@@ -100,7 +100,7 @@ namespace AElf.Contracts.NFT
             var requestInfo = await BuyerNFTMarketContractStub.GetRequestInfo.CallAsync(new GetRequestInfoInput
             {
                 Symbol = symbol,
-                TokenId = 123
+                TokenId = 2
             });
             requestInfo.DepositRate.ShouldBe(2000);
             requestInfo.IsConfirmed.ShouldBeFalse();
@@ -114,7 +114,7 @@ namespace AElf.Contracts.NFT
             await CreatorNFTMarketContractStub.HandleRequest.SendAsync(new HandleRequestInput
             {
                 Symbol = symbol,
-                TokenId = 123,
+                TokenId = 2,
                 IsConfirm = true,
                 Requester = User2Address
             });
@@ -132,7 +132,7 @@ namespace AElf.Contracts.NFT
             var requestInfo = await BuyerNFTMarketContractStub.GetRequestInfo.CallAsync(new GetRequestInfoInput
             {
                 Symbol = symbol,
-                TokenId = 123
+                TokenId = 2
             });
             requestInfo.IsConfirmed.ShouldBeTrue();
             return symbol;
@@ -144,16 +144,17 @@ namespace AElf.Contracts.NFT
             var symbol = await ConfirmRequestTest();
 
             // Need to mint this token id first.
-            await CreatorNFTMinterContractStub.CreateBadge.SendAsync(new CreateBadgeInput
+            await NFTContractStub.Mint.SendAsync(new MintInput
             {
                 Symbol = symbol,
-                TokenId = 123,
-                Alias = "Customized"
+                TokenId = 2,
+                Quantity = 1,
+                Alias = "Gift"
             });
             await NFTContractStub.Approve.SendAsync(new ApproveInput
             {
                 Symbol = symbol,
-                TokenId = 123,
+                TokenId = 2,
                 Amount = 1,
                 Spender = NFTMarketContractAddress
             });
@@ -163,7 +164,7 @@ namespace AElf.Contracts.NFT
                     new ListWithEnglishAuctionInput
                     {
                         Symbol = symbol,
-                        TokenId = 123,
+                        TokenId = 2,
                         StartingPrice = 100_00000000,
                         PurchaseSymbol = "ELF",
                         Duration = new ListDuration
@@ -181,7 +182,7 @@ namespace AElf.Contracts.NFT
                     new ListWithDutchAuctionInput
                     {
                         Symbol = symbol,
-                        TokenId = 123,
+                        TokenId = 2,
                         StartingPrice = 100_00000000,
                         EndingPrice = 50_00000000,
                         PurchaseSymbol = "ELF",
@@ -198,7 +199,7 @@ namespace AElf.Contracts.NFT
             var listInput = new ListWithFixedPriceInput
             {
                 Symbol = symbol,
-                TokenId = 123,
+                TokenId = 2,
                 Price = new Price
                 {
                     Symbol = "ELF",
@@ -240,7 +241,7 @@ namespace AElf.Contracts.NFT
             var requestInfo = await CreatorNFTMarketContractStub.GetRequestInfo.CallAsync(new GetRequestInfoInput
             {
                 Symbol = symbol,
-                TokenId = 123
+                TokenId = 2
             });
             requestInfo.ListTime.ShouldNotBeNull();
 
@@ -248,7 +249,7 @@ namespace AElf.Contracts.NFT
                 new GetWhiteListAddressPriceListInput
                 {
                     Symbol = symbol,
-                    TokenId = 123
+                    TokenId = 2
                 });
             whiteListPriceList.Value.Count.ShouldBe(1);
             whiteListPriceList.Value[0].Address.ShouldBe(User2Address);
@@ -275,7 +276,7 @@ namespace AElf.Contracts.NFT
             await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
             {
                 Symbol = symbol,
-                TokenId = 123,
+                TokenId = 2,
                 OfferTo = DefaultAddress,
                 Price = new Price
                 {
@@ -288,7 +289,7 @@ namespace AElf.Contracts.NFT
             var requestInfo = await CreatorNFTMarketContractStub.GetRequestInfo.CallAsync(new GetRequestInfoInput
             {
                 Symbol = symbol,
-                TokenId = 123
+                TokenId = 2
             });
             // Removed after dealing.
             requestInfo.Price.ShouldBeNull();
@@ -316,7 +317,7 @@ namespace AElf.Contracts.NFT
                 var nftBalance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Symbol = symbol,
-                    TokenId = 123,
+                    TokenId = 2,
                     Owner = User2Address
                 });
                 nftBalance.Balance.ShouldBe(1);
@@ -326,7 +327,7 @@ namespace AElf.Contracts.NFT
                 var nftBalance = await NFTContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Symbol = symbol,
-                    TokenId = 123,
+                    TokenId = 2,
                     Owner = DefaultAddress
                 });
                 nftBalance.Balance.ShouldBe(0);

@@ -51,24 +51,63 @@ namespace AElf.Contracts.NFTMarket
                 PerformMakeOffer(input);
                 return new Empty();
             }
+
             var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
-                i.Price.Symbol == input.Price.Symbol && i.Price.Amount == input.Price.Amount);
-            if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
+                i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount);
+            var whiteListAddressPriceList =
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo];
+
+            var protocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+            if (protocolInfo.IsTokenIdReuse)
             {
-                PerformMakeOffer(input);
-                return new Empty();
-            }
-            
-            var quantity = input.Quantity;
-            if (quantity > listedNftInfo.Quantity)
-            {
-                var makerOfferInput = input.Clone();
-                makerOfferInput.Quantity = quantity.Sub(listedNftInfo.Quantity);
-                PerformMakeOffer(makerOfferInput);
-                input.Quantity = listedNftInfo.Quantity;
+                if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
+                {
+                    if (whiteListAddressPriceList == null)
+                    {
+                        PerformMakeOffer(input);
+                        return new Empty();
+                    }
+
+                    // For case pay balance for customized nft.
+
+                    var maybeWhiteListAddressPrice =
+                        whiteListAddressPriceList.Value.SingleOrDefault(p =>
+                            p.Address == Context.Sender && p.Price.Amount <= input.Price.Amount && p.Price.Symbol == input.Price.Symbol);
+                    Assert(listedNftInfoList.Value.Count == 1, "Incorrect listed nft info.");
+                    if (maybeWhiteListAddressPrice != null)
+                    {
+                        listedNftInfo = new ListedNFTInfo
+                        {
+                            Symbol = input.Symbol,
+                            TokenId = input.TokenId,
+                            Price = input.Price,
+                            ListType = ListType.FixedPrice,
+                            Quantity = 1,
+                            Owner = listedNftInfoList.Value.First().Owner,
+                            Duration = listedNftInfoList.Value.First().Duration
+                        };
+                    }
+                    else
+                    {
+                        throw new AssertionException("Cannot find correct listed nft info.");
+                    }
+                }
+                
+                var quantity = input.Quantity;
+                if (quantity > listedNftInfo.Quantity)
+                {
+                    var makerOfferInput = input.Clone();
+                    makerOfferInput.Quantity = quantity.Sub(listedNftInfo.Quantity);
+                    PerformMakeOffer(makerOfferInput);
+                    input.Quantity = listedNftInfo.Quantity;
+                }
             }
 
-            var whiteListAddressPriceList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId];
+            if (listedNftInfo == null)
+            {
+                listedNftInfo = listedNftInfoList.Value.First();
+            }
+
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when whiteListAddressPriceList != null &&
@@ -306,7 +345,7 @@ namespace AElf.Contracts.NFTMarket
         /// <param name="listedNftInfo"></param>
         private void TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo)
         {
-            var whiteList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId] ??
+            var whiteList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] ??
                             new WhiteListAddressPriceList();
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
@@ -319,6 +358,8 @@ namespace AElf.Contracts.NFTMarket
                     Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
                         $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
                     usePrice = whiteListPrice.Price;
+                    whiteList.Value.Remove(whiteListPrice);
+                    State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
                 }
                 else
                 {
@@ -446,7 +487,7 @@ namespace AElf.Contracts.NFTMarket
                 bidAddressList.Value.Add(Context.Sender);
                 State.BidAddressListMap[input.Symbol][input.TokenId] = bidAddressList;
                 // Charge earnest if the Sender is the first time to place a bid.
-                ChargeEarnest(input.Symbol, input.TokenId, auctionInfo.PurchaseSymbol, auctionInfo.EarnestMoney);
+                ChargeEarnestMoney(input.Symbol, input.TokenId, auctionInfo.PurchaseSymbol, auctionInfo.EarnestMoney);
             }
 
             State.BidMap[input.Symbol][input.TokenId][Context.Sender] = bid;
@@ -463,7 +504,8 @@ namespace AElf.Contracts.NFTMarket
                 State.TokenContract.GetAllowance.Call(new GetAllowanceInput
                 {
                     Symbol = auctionInfo.PurchaseSymbol,
-                    Owner = Context.Sender
+                    Owner = Context.Sender,
+                    Spender = Context.Self
                 }).Allowance >= remainAmount,
                 "Insufficient allowance to bid.");
 
@@ -478,15 +520,19 @@ namespace AElf.Contracts.NFTMarket
             });
         }
 
-        private void ChargeEarnest(string nftSymbol, long nftTokenId, string purchaseSymbol, long earnestMoney)
+        private void ChargeEarnestMoney(string nftSymbol, long nftTokenId, string purchaseSymbol, long earnestMoney)
         {
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (earnestMoney > 0)
             {
-                From = Context.Sender,
-                To = CalculateNFTVirtuaAddress(nftSymbol, nftTokenId),
-                Symbol = purchaseSymbol,
-                Amount = earnestMoney
-            });
+                var virtualAddress = CalculateNFTVirtuaAddress(nftSymbol, nftTokenId);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = virtualAddress,
+                    Symbol = purchaseSymbol,
+                    Amount = earnestMoney
+                });
+            }
         }
 
         private void PerformMakeOfferToDutchAuction(MakeOfferInput input)
@@ -538,6 +584,7 @@ namespace AElf.Contracts.NFTMarket
 
         private void MaybeReceiveRemainDeposit(RequestInfo requestInfo)
         {
+            if (requestInfo == null) return;
             Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = requestInfo.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
