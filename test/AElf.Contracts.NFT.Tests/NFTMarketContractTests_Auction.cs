@@ -238,7 +238,15 @@ namespace AElf.Contracts.NFT
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
 
-            var symbol = await MintBadgeTest();
+            var symbol = await CreateArtistsTest();
+
+            await NFTContractStub.Mint.SendAsync(new MintInput
+            {
+                Symbol = symbol,
+                TokenId = 2,
+                Quantity = 1,
+                Alias = "Gift2"
+            });
 
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {

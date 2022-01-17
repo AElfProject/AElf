@@ -74,9 +74,11 @@ namespace AElf.Contracts.NFTMarket
                 isMergedToPreviousListedInfo = true;
             }
 
-            CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, listedNftInfo.Quantity);
-
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
+
+            var totalQuantity = listedNftInfoList.Value.Where(i => i.Owner == Context.Sender).Sum(i => i.Quantity);
+            CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, totalQuantity);
+
             if (whiteListAddressPriceList != null)
             {
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
@@ -413,7 +415,7 @@ namespace AElf.Contracts.NFTMarket
                 auctionInfo.DealTo = input.OfferFrom;
                 State.EnglishAuctionInfoMap[input.Symbol][input.TokenId] = auctionInfo;
 
-                ClearBids(input.Symbol, input.TokenId);
+                ClearBids(input.Symbol, input.TokenId, input.OfferFrom);
             }
             else
             {
@@ -429,21 +431,26 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];
-            var listedNftInfo =
-                listedNftInfoList?.Value.Where(i =>
-                        i.Symbol == input.Symbol && i.Price.Symbol == input.Price.Symbol && i.Owner == Context.Sender)
-                    .ToList().OrderBy(i => i.Price.Amount).FirstOrDefault();
-            if (listedNftInfo != null)
+            if (listedNftInfoList != null)
             {
-                listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
-                if (listedNftInfo.Quantity == 0)
+                var firstListedNftInfo = listedNftInfoList.Value.First();
+                if (firstListedNftInfo.ListType != ListType.EnglishAuction)
                 {
-                    listedNftInfoList.Value.Remove(listedNftInfo);
+                    var nftBalance = State.NFTContract.GetBalance.Call(new GetBalanceInput
+                    {
+                        Symbol = input.Symbol,
+                        Owner = Context.Sender,
+                        TokenId = input.TokenId
+                    }).Balance;
+                    var listedQuantity = listedNftInfoList.Value.Where(i => i.Owner == Context.Sender).Sum(i => i.Quantity);
+                    Assert(nftBalance >= listedQuantity.Add(input.Quantity),
+                        $"Need to delist at least {listedQuantity.Add(input.Quantity).Sub(nftBalance)} NFT(s) before deal.");
                 }
-
-                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
+                else
+                {
+                    State.ListedNFTInfoListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
+                }
             }
-
 
             PerformDeal(new PerformDealInput
             {

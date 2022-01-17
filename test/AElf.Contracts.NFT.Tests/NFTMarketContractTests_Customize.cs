@@ -249,7 +249,8 @@ namespace AElf.Contracts.NFT
                 new GetWhiteListAddressPriceListInput
                 {
                     Symbol = symbol,
-                    TokenId = 2
+                    TokenId = 2,
+                    Owner = DefaultAddress
                 });
             whiteListPriceList.Value.Count.ShouldBe(1);
             whiteListPriceList.Value[0].Address.ShouldBe(User2Address);
