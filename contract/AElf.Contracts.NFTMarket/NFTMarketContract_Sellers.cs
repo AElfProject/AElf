@@ -431,7 +431,7 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];
-            if (listedNftInfoList != null)
+            if (listedNftInfoList != null && listedNftInfoList.Value.Any())
             {
                 var firstListedNftInfo = listedNftInfoList.Value.First();
                 if (firstListedNftInfo.ListType != ListType.EnglishAuction)

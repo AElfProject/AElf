@@ -242,6 +242,28 @@ namespace AElf.Contracts.NFT
             offerList.Value.Count.ShouldBe(2);
 
             var offer = offerList.Value.First();
+            var executionResult = await SellerNFTMarketContractStub.Deal.SendWithExceptionAsync(new DealInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                OfferFrom = offer.From,
+                Quantity = 1,
+                Price = offer.Price
+            });
+            executionResult.TransactionResult.Error.ShouldContain("Need to delist");
+
+            await SellerNFTMarketContractStub.Delist.SendAsync(new DelistInput
+            {
+                Symbol = symbol,
+                TokenId = 233,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 100_00000000
+                },
+                Quantity = 1
+            });
+            
             await SellerNFTMarketContractStub.Deal.SendAsync(new DealInput
             {
                 Symbol = symbol,
