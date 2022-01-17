@@ -79,7 +79,8 @@ namespace AElf.Contracts.NFTMarket
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
+                    whiteListAddressPriceList;
             }
 
             ClearBids(input.Symbol, input.TokenId);
@@ -140,7 +141,8 @@ namespace AElf.Contracts.NFTMarket
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
+                    whiteListAddressPriceList;
             }
 
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
@@ -217,7 +219,8 @@ namespace AElf.Contracts.NFTMarket
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             if (whiteListAddressPriceList != null)
             {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] = whiteListAddressPriceList;
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
+                    whiteListAddressPriceList;
             }
 
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
@@ -424,6 +427,23 @@ namespace AElf.Contracts.NFTMarket
                 price = offer.Price;
                 totalAmount = price.Amount.Mul(input.Quantity);
             }
+
+            var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender];
+            var listedNftInfo =
+                listedNftInfoList?.Value.Where(i =>
+                        i.Symbol == input.Symbol && i.Price.Symbol == input.Price.Symbol && i.Owner == Context.Sender)
+                    .ToList().OrderBy(i => i.Price.Amount).FirstOrDefault();
+            if (listedNftInfo != null)
+            {
+                listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
+                if (listedNftInfo.Quantity == 0)
+                {
+                    listedNftInfoList.Value.Remove(listedNftInfo);
+                }
+
+                State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = listedNftInfoList;
+            }
+
 
             PerformDeal(new PerformDealInput
             {

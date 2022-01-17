@@ -114,10 +114,20 @@ namespace AElf.Contracts.NFTMarket
                                               whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
                     TryDealWithFixedPrice(input, listedNftInfo);
                     RemoveRequest(input.Symbol, input.TokenId);
+                    listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
+                    if (listedNftInfo.Quantity == 0)
+                    {
+                        listedNftInfoList.Value.Remove(listedNftInfo);
+                    }
                     break;
                 case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
                     TryDealWithFixedPrice(input, listedNftInfo);
+                    listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
+                    if (listedNftInfo.Quantity == 0)
+                    {
+                        listedNftInfoList.Value.Remove(listedNftInfo);
+                    }
                     break;
                 case ListType.FixedPrice:
                     PerformMakeOffer(input);
@@ -126,9 +136,18 @@ namespace AElf.Contracts.NFTMarket
                     PerformPlaceBidForEnglishAuction(input);
                     break;
                 case ListType.DutchAuction:
-                    PerformMakeOfferToDutchAuction(input);
+                    if (PerformMakeOfferToDutchAuction(input))
+                    {
+                        listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
+                        if (listedNftInfo.Quantity == 0)
+                        {
+                            listedNftInfoList.Value.Remove(listedNftInfo);
+                        }
+                    }
                     break;
             }
+
+            State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo] = listedNftInfoList;
 
             return new Empty();
         }
@@ -535,7 +554,7 @@ namespace AElf.Contracts.NFTMarket
             }
         }
 
-        private void PerformMakeOfferToDutchAuction(MakeOfferInput input)
+        private bool PerformMakeOfferToDutchAuction(MakeOfferInput input)
         {
             var auctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
             if (auctionInfo == null)
@@ -552,21 +571,21 @@ namespace AElf.Contracts.NFTMarket
             if (input.Price.Amount < currentBiddingPrice)
             {
                 PerformMakeOffer(input);
+                return false;
             }
-            else
+
+            PerformDeal(new PerformDealInput
             {
-                PerformDeal(new PerformDealInput
-                {
-                    NFTFrom = auctionInfo.Owner,
-                    NFTTo = Context.Sender,
-                    NFTQuantity = 1,
-                    NFTSymbol = input.Symbol,
-                    NFTTokenId = input.TokenId,
-                    PurchaseSymbol = input.Price.Symbol,
-                    PurchaseAmount = input.Price.Amount,
-                    PurchaseTokenId = 0
-                });
-            }
+                NFTFrom = auctionInfo.Owner,
+                NFTTo = Context.Sender,
+                NFTQuantity = 1,
+                NFTSymbol = input.Symbol,
+                NFTTokenId = input.TokenId,
+                PurchaseSymbol = input.Price.Symbol,
+                PurchaseAmount = input.Price.Amount,
+                PurchaseTokenId = 0
+            });
+            return true;
         }
 
         private long CalculateCurrentBiddingPrice(long startingPrice, long endingPrice, ListDuration duration)
