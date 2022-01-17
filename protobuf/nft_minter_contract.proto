@@ -12,7 +12,7 @@ import "transaction_fee.proto";
 import "authority_info.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-import "google/protobuf/Timestamp.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.NFTMinter";
 
