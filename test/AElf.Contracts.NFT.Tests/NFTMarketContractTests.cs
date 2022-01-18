@@ -412,7 +412,7 @@ namespace AElf.Contracts.NFT
                     Owner = DefaultAddress
                 });
                 // Because of 10/10000 service fee.
-                balance.Balance.ShouldBe(InitialELFAmount + 10_00000000 - 10_00000000 / 1000 - 10_00000000 / 1000);
+                balance.Balance.ShouldBe(InitialELFAmount + 10_00000000 - 10_00000000 / 1000);
             }
 
             {
