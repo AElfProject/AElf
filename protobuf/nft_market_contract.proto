@@ -163,7 +163,6 @@ message Offer {
     Price price = 3;
     google.protobuf.Timestamp expire_time = 4;
     int64 quantity = 5;
-    google.protobuf.Timestamp due_time = 6;
 }
 
 message OfferList {

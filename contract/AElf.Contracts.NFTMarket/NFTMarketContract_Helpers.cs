@@ -410,9 +410,13 @@ namespace AElf.Contracts.NFTMarket
         private void RemoveRequest(string symbol, long tokenId)
         {
             State.RequestInfoMap[symbol].Remove(tokenId);
-            if (State.CustomizeInfoMap[symbol].ReservedTokenIds.Contains(tokenId))
+            if (State.CustomizeInfoMap[symbol] != null && State.CustomizeInfoMap[symbol].ReservedTokenIds != null &&
+                State.CustomizeInfoMap[symbol].ReservedTokenIds.Any())
             {
-                State.CustomizeInfoMap[symbol].ReservedTokenIds.Remove(tokenId);
+                if (State.CustomizeInfoMap[symbol].ReservedTokenIds.Contains(tokenId))
+                {
+                    State.CustomizeInfoMap[symbol].ReservedTokenIds.Remove(tokenId);
+                }
             }
         }
     }
