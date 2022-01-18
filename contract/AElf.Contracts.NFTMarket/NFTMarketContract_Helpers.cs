@@ -315,7 +315,7 @@ namespace AElf.Contracts.NFTMarket
             }
             else
             {
-                if (duration.StartTime == null || duration.StartTime > Context.CurrentBlockTime)
+                if (duration.StartTime == null || duration.StartTime < Context.CurrentBlockTime)
                 {
                     duration.StartTime = Context.CurrentBlockTime;
                 }
