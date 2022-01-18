@@ -46,8 +46,13 @@ namespace AElf.Contracts.NFTMarket
 
         private void AssertSenderIsAdmin()
         {
-            Assert(State.Admin.Value != null, "Contract not initialized.");
+            AssertContractInitialized();
             Assert(Context.Sender == State.Admin.Value, "No permission.");
+        }
+
+        private void AssertContractInitialized()
+        {
+            Assert(State.Admin.Value != null, "Contract not initialized.");
         }
     }
 }

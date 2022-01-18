@@ -13,6 +13,8 @@ namespace AElf.Contracts.NFTMarket
     {
         public override Empty ListWithFixedPrice(ListWithFixedPriceInput input)
         {
+            AssertContractInitialized();
+
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
@@ -106,6 +108,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ListWithEnglishAuction(ListWithEnglishAuctionInput input)
         {
+            AssertContractInitialized();
+
             if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
             {
                 MaybeReceiveRemainDeposit(requestInfo);
@@ -187,6 +191,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ListWithDutchAuction(ListWithDutchAuctionInput input)
         {
+            AssertContractInitialized();
+
             if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
             {
                 MaybeReceiveRemainDeposit(requestInfo);
@@ -339,6 +345,8 @@ namespace AElf.Contracts.NFTMarket
         /// <exception cref="AssertionException"></exception>
         public override Empty Deal(DealInput input)
         {
+            AssertContractInitialized();
+
             Assert(input.Symbol != null, "Incorrect symbol.");
             Assert(input.TokenId != 0, "Incorrect token id.");
             Assert(input.OfferFrom != null, "Incorrect offer maker.");

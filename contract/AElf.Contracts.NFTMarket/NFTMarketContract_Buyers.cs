@@ -23,6 +23,8 @@ namespace AElf.Contracts.NFTMarket
         /// <returns></returns>
         public override Empty MakeOffer(MakeOfferInput input)
         {
+            AssertContractInitialized();
+
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
             {
                 Symbol = input.Symbol,
@@ -154,6 +156,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty CancelOffer(CancelOfferInput input)
         {
+            AssertContractInitialized();
+
             OfferList offerList;
             var newOfferList = new OfferList();
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];

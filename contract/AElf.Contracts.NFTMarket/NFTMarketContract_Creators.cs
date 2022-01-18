@@ -14,6 +14,8 @@ namespace AElf.Contracts.NFTMarket
     {
         public override Empty SetRoyalty(SetRoyaltyInput input)
         {
+            AssertContractInitialized();
+
             // 0% - 10%
             Assert(0 <= input.Royalty && input.Royalty <= 1000);
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
@@ -42,6 +44,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty SetTokenWhiteList(SetTokenWhiteListInput input)
         {
+            AssertContractInitialized();
+
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set token white list.");
             foreach (var symbol in State.GlobalTokenWhiteList.Value.Value)
@@ -63,6 +67,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty SetCustomizeInfo(CustomizeInfo input)
         {
+            AssertContractInitialized();
+
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set customize info.");
             Assert(!nftProtocolInfo.IsTokenIdReuse, "Not support customize.");
@@ -93,6 +99,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty StakeForRequests(StakeForRequestsInput input)
         {
+            AssertContractInitialized();
+
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can stake for requests.");
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
@@ -116,6 +124,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty WithdrawStakingTokens(WithdrawStakingTokensInput input)
         {
+            AssertContractInitialized();
+
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can withdraw.");
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
@@ -142,6 +152,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty HandleRequest(HandleRequestInput input)
         {
+            AssertContractInitialized();
+
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             if (requestInfo == null)
             {
@@ -214,6 +226,8 @@ namespace AElf.Contracts.NFTMarket
 
         public override Empty ClaimRemainDeposit(ClaimRemainDepositInput input)
         {
+            AssertContractInitialized();
+
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             if (requestInfo == null)
             {
