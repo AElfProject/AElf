@@ -328,13 +328,16 @@ namespace AElf.Contracts.NFTMarket
         private void ChargeSenderServiceFee(string symbol, long baseAmount)
         {
             var amount = baseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (amount > 0)
             {
-                Symbol = symbol,
-                Amount = amount,
-                From = Context.Sender,
-                To = State.ServiceFeeReceiver.Value ?? State.Admin.Value
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    Symbol = symbol,
+                    Amount = amount,
+                    From = Context.Sender,
+                    To = State.ServiceFeeReceiver.Value ?? State.Admin.Value
+                });
+            }
         }
 
         /// <summary>
@@ -398,13 +401,16 @@ namespace AElf.Contracts.NFTMarket
                 // Buyer need to pay the remain balance (via PerformDeal).
                 totalAmount = price.Amount.Sub(auctionInfo.EarnestMoney);
 
-                State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
-                    new TransferInput
-                    {
-                        To = Context.Sender,
-                        Symbol = price.Symbol,
-                        Amount = auctionInfo.EarnestMoney
-                    });
+                if (auctionInfo.EarnestMoney > 0)
+                {
+                    State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                        new TransferInput
+                        {
+                            To = Context.Sender,
+                            Symbol = price.Symbol,
+                            Amount = auctionInfo.EarnestMoney
+                        });
+                }
 
                 if (!CheckAllowanceAndBalanceIsEnough(bid.From, price.Symbol, totalAmount))
                 {

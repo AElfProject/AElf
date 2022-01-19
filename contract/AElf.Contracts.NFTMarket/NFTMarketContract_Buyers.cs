@@ -17,7 +17,7 @@ namespace AElf.Contracts.NFTMarket
         /// <summary>
         /// There are 2 types of making offer.
         /// 1. Aiming a owner.
-        /// 2. Only aiming nft. Owner will be null.
+        /// 2. Only aiming nft. Owner will be the nft protocol creator.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -189,12 +189,17 @@ namespace AElf.Contracts.NFTMarket
                         Symbol = requestInfo.Price.Symbol,
                         Owner = protocolVirtualAddress
                     }).Balance;
-                    State.TokenContract.Transfer.VirtualSend(protocolVirtualAddressFrom, new TransferInput
+
+                    if (balanceOfNftProtocolVirtualAddress > 0)
                     {
-                        To = requestInfo.Requester,
-                        Symbol = requestInfo.Price.Symbol,
-                        Amount = balanceOfNftProtocolVirtualAddress
-                    });
+                        State.TokenContract.Transfer.VirtualSend(protocolVirtualAddressFrom, new TransferInput
+                        {
+                            To = requestInfo.Requester,
+                            Symbol = requestInfo.Price.Symbol,
+                            Amount = balanceOfNftProtocolVirtualAddress
+                        });
+                    }
+  
                     Context.Fire(new NFTRequestCancelled
                     {
                         Symbol = input.Symbol,
@@ -251,13 +256,16 @@ namespace AElf.Contracts.NFTMarket
                     var finishTime = auctionInfo.Duration.StartTime.AddHours(auctionInfo.Duration.DurationHours);
                     if (auctionInfo.DealTo != null || Context.CurrentBlockTime >= finishTime)
                     {
-                        State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
-                            new TransferInput
-                            {
-                                To = Context.Sender,
-                                Symbol = auctionInfo.PurchaseSymbol,
-                                Amount = auctionInfo.EarnestMoney
-                            });
+                        if (auctionInfo.EarnestMoney > 0)
+                        {
+                            State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                                new TransferInput
+                                {
+                                    To = Context.Sender,
+                                    Symbol = auctionInfo.PurchaseSymbol,
+                                    Amount = auctionInfo.EarnestMoney
+                                });
+                        }
                     }
 
                     Context.Fire(new BidCanceled
@@ -345,12 +353,16 @@ namespace AElf.Contracts.NFTMarket
 
             var virtualAddressFrom = CalculateTokenHash(input.Symbol, input.TokenId);
 
-            State.TokenContract.Transfer.VirtualSend(virtualAddressFrom, new TransferInput
+            if (balanceOfNftVirtualAddress > 0)
             {
-                To = depositReceiver,
-                Symbol = requestInfo.Price.Symbol,
-                Amount = balanceOfNftVirtualAddress
-            });
+                State.TokenContract.Transfer.VirtualSend(virtualAddressFrom, new TransferInput
+                {
+                    To = depositReceiver,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = balanceOfNftVirtualAddress
+                });
+            }
+
             RemoveRequest(input.Symbol, input.TokenId);
 
             Context.Fire(new NFTRequestCancelled

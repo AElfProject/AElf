@@ -296,7 +296,6 @@ message MakeOfferInput {
     int64 quantity = 4;
     Price price = 5;
     google.protobuf.Timestamp expire_time = 6;
-    google.protobuf.Timestamp due_time = 7;
 }
 
 message CancelOfferInput {

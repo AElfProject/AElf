@@ -63,18 +63,25 @@ namespace AElf.Contracts.NFTMarket
             var transferAmount = balanceOfNftVirtualAddress;
             var serviceFee = transferAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
             transferAmount = transferAmount.Sub(serviceFee);
-            State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+            if (transferAmount > 0)
             {
-                To = performDealInput.NFTFrom,
-                Symbol = requestInfo.Price.Symbol,
-                Amount = transferAmount
-            });
-            State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                {
+                    To = performDealInput.NFTFrom,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = transferAmount
+                });
+            }
+
+            if (serviceFee > 0)
             {
-                To = State.ServiceFeeReceiver.Value,
-                Symbol = requestInfo.Price.Symbol,
-                Amount = serviceFee
-            });
+                State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
+                {
+                    To = State.ServiceFeeReceiver.Value,
+                    Symbol = requestInfo.Price.Symbol,
+                    Amount = serviceFee
+                });
+            }
         }
 
         private void PerformDeal(PerformDealInput performDealInput)
@@ -97,6 +104,7 @@ namespace AElf.Contracts.NFTMarket
                 }
 
                 var actualAmount = performDealInput.PurchaseAmount.Sub(serviceFee).Sub(royaltyFee);
+                Assert(actualAmount > 0, "Incorrect deal amount.");
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = performDealInput.NFTTo,
@@ -104,14 +112,17 @@ namespace AElf.Contracts.NFTMarket
                     Symbol = performDealInput.PurchaseSymbol,
                     Amount = actualAmount
                 });
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                if (serviceFee > 0)
                 {
-                    From = performDealInput.NFTTo,
-                    To = State.ServiceFeeReceiver.Value,
-                    Symbol = performDealInput.PurchaseSymbol,
-                    Amount = serviceFee
-                });
-                if (royaltyFeeReceiver != null)
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = performDealInput.NFTTo,
+                        To = State.ServiceFeeReceiver.Value,
+                        Symbol = performDealInput.PurchaseSymbol,
+                        Amount = serviceFee
+                    });
+                }
+                if (royaltyFeeReceiver != null && royaltyFee > 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
                     {
@@ -134,14 +145,18 @@ namespace AElf.Contracts.NFTMarket
                     TokenId = performDealInput.PurchaseTokenId,
                     Amount = performDealInput.PurchaseAmount
                 });
-                // Charge a fixed service fee.
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+
+                if (State.ServiceFee.Value > 0)
                 {
-                    From = performDealInput.NFTTo,
-                    To = State.ServiceFeeReceiver.Value,
-                    Symbol = Context.Variables.NativeSymbol,
-                    Amount = State.ServiceFee.Value
-                });
+                    // Charge a fixed service fee.
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = performDealInput.NFTTo,
+                        To = State.ServiceFeeReceiver.Value,
+                        Symbol = Context.Variables.NativeSymbol,
+                        Amount = State.ServiceFee.Value
+                    });
+                }
             }
 
             State.NFTContract.TransferFrom.Send(new NFT.TransferFromInput
@@ -225,13 +240,16 @@ namespace AElf.Contracts.NFTMarket
             Assert(allowance >= priceAmount, "Insufficient allowance.");
 
             var deposit = priceAmount.Mul(customizeInfo.DepositRate).Div(FeeDenominator);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (deposit > 0)
             {
-                From = Context.Sender,
-                To = nftVirtualAddress,
-                Symbol = priceSymbol,
-                Amount = deposit
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = nftVirtualAddress,
+                    Symbol = priceSymbol,
+                    Amount = deposit
+                });
+            }
 
             var defaultExpireTime = Context.CurrentBlockTime.AddDays(DefaultExpireDays);
             State.RequestInfoMap[symbol][tokenId] = new RequestInfo
@@ -388,13 +406,17 @@ namespace AElf.Contracts.NFTMarket
             foreach (var bidAddress in bidAddressList.Value)
             {
                 State.BidMap[symbol][tokenId].Remove(bidAddress);
-                State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
-                    new TransferInput
-                    {
-                        To = bidAddress,
-                        Symbol = auctionInfo.PurchaseSymbol,
-                        Amount = auctionInfo.EarnestMoney
-                    });
+                if (auctionInfo.EarnestMoney > 0)
+                {
+                    State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
+                        new TransferInput
+                        {
+                            To = bidAddress,
+                            Symbol = auctionInfo.PurchaseSymbol,
+                            Amount = auctionInfo.EarnestMoney
+                        });
+                }
+  
                 Context.Fire(new BidCanceled
                 {
                     Symbol = symbol,
