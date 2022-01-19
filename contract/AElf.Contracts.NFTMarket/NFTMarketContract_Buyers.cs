@@ -384,23 +384,22 @@ namespace AElf.Contracts.NFTMarket
                             new WhiteListAddressPriceList();
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
-            if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
+            
+            if (whiteListPrice != null)
             {
-                // Public time not reached.
-
-                if (whiteListPrice != null)
-                {
-                    Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
-                        $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
-                    usePrice = whiteListPrice.Price;
-                    whiteList.Value.Remove(whiteListPrice);
-                    State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
-                }
-                else
-                {
-                    throw new AssertionException(
-                        $"Sender is not in the white list, please need until {listedNftInfo.Duration.PublicTime}");
-                }
+                Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
+                    $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
+                Assert(input.Price.Amount >= whiteListPrice.Price.Amount,
+                    $"Offer price too low, at least be {whiteListPrice.Price.Amount}.");
+                usePrice = whiteListPrice.Price;
+                whiteList.Value.Remove(whiteListPrice);
+                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
+            }
+            else if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
+            {
+                // Public time not reached and sender is not in white list.
+                throw new AssertionException(
+                    $"Sender is not in the white list, please need until {listedNftInfo.Duration.PublicTime}");
             }
 
             var totalAmount = usePrice.Amount.Mul(input.Quantity);

@@ -15,6 +15,7 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertContractInitialized();
             Assert(input.Price.Amount > 0, "Incorrect listing price.");
+            Assert(input.Quantity > 0, "Incorrect quantity.");
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
