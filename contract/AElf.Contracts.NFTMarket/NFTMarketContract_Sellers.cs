@@ -14,7 +14,7 @@ namespace AElf.Contracts.NFTMarket
         public override Empty ListWithFixedPrice(ListWithFixedPriceInput input)
         {
             AssertContractInitialized();
-
+            Assert(input.Price.Amount > 0, "Incorrect listing price.");
             var duration = AdjustListDuration(input.Duration);
             var whiteListAddressPriceList = input.WhiteListAddressPriceList;
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
@@ -110,7 +110,8 @@ namespace AElf.Contracts.NFTMarket
         public override Empty ListWithEnglishAuction(ListWithEnglishAuctionInput input)
         {
             AssertContractInitialized();
-
+            Assert(input.StartingPrice > 0, "Incorrect listing price.");
+            Assert(input.EarnestMoney <= input.StartingPrice, "Earnest money too high.");
             if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
             {
                 MaybeReceiveRemainDeposit(requestInfo);
@@ -121,7 +122,6 @@ namespace AElf.Contracts.NFTMarket
             }
 
             CheckSenderNFTBalanceAndAllowance(input.Symbol, input.TokenId, 1);
-            Assert(input.EarnestMoney <= input.StartingPrice, "Earnest money too high.");
 
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
@@ -193,7 +193,7 @@ namespace AElf.Contracts.NFTMarket
         public override Empty ListWithDutchAuction(ListWithDutchAuctionInput input)
         {
             AssertContractInitialized();
-
+            Assert(input.StartingPrice > 0 && input.EndingPrice > 0, "Incorrect listing price.");
             if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
             {
                 MaybeReceiveRemainDeposit(requestInfo);
