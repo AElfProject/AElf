@@ -84,8 +84,7 @@ namespace AElf.Contracts.NFT
                     Symbol = "ELF",
                     Amount = 200_00000000
                 },
-                ExpireTime = TimestampHelper.GetUtcNow().AddMinutes(30),
-                DueTime = TimestampHelper.GetUtcNow().AddMinutes(45),
+                ExpireTime = TimestampHelper.GetUtcNow().AddMinutes(30)
             });
 
             {

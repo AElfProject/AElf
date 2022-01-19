@@ -397,6 +397,16 @@ namespace AElf.Contracts.NFT
             });
 
             {
+                var offerList = await BuyerNFTMarketContractStub.GetOfferList.CallAsync(new GetOfferListInput
+                {
+                    Symbol = symbol,
+                    TokenId = 233,
+                    Address = User2Address
+                });
+                offerList.Value.Count.ShouldBe(1);
+            }
+
+            {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
                 {
                     Symbol = "ELF",
