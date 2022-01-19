@@ -73,6 +73,7 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 listedNftInfo.Quantity = listedNftInfo.Quantity.Add(input.Quantity);
+                listedNftInfo.Duration = duration;
                 isMergedToPreviousListedInfo = true;
             }
 
