@@ -429,7 +429,7 @@ namespace AElf.Contracts.NFTMarket
             State.BidAddressListMap[symbol].Remove(tokenId);
         }
 
-        private void RemoveRequest(string symbol, long tokenId)
+        private void MaybeRemoveRequest(string symbol, long tokenId)
         {
             State.RequestInfoMap[symbol].Remove(tokenId);
             if (State.CustomizeInfoMap[symbol] != null && State.CustomizeInfoMap[symbol].ReservedTokenIds != null &&
@@ -440,6 +440,12 @@ namespace AElf.Contracts.NFTMarket
                     State.CustomizeInfoMap[symbol].ReservedTokenIds.Remove(tokenId);
                 }
             }
+        }
+
+        private bool IsListedNftTimedOut(ListedNFTInfo listedNftInfo)
+        {
+            return Context.CurrentBlockTime <
+                   listedNftInfo.Duration.StartTime.AddHours(listedNftInfo.Duration.DurationHours);
         }
     }
 }

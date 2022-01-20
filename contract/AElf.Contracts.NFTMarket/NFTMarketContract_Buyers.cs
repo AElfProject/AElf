@@ -25,6 +25,8 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertContractInitialized();
 
+            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
+
             var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
             {
                 Symbol = input.Symbol,
@@ -36,14 +38,16 @@ namespace AElf.Contracts.NFTMarket
                 input.OfferTo = nftInfo.Creator;
             }
 
-            if (nftInfo.Quantity == 0 && input.Quantity == 1)
+            var protocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+
+            if (nftInfo.Quantity == 0 && !protocolInfo.IsTokenIdReuse && input.Quantity == 1)
             {
                 // NFT not minted.
                 PerformRequestNewItem(input.Symbol, input.TokenId, input.Price, input.ExpireTime);
                 return new Empty();
             }
 
-            Assert(Context.Sender != input.OfferTo, "Origin owner cannot be sender himself.");
+            Assert(nftInfo.Quantity > 0, "NFT does not exist.");
 
             var listedNftInfoList = State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.OfferTo];
 
@@ -55,13 +59,14 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
-                i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount);
+                i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount && IsListedNftTimedOut(i));
             var whiteListAddressPriceList =
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo];
 
-            var protocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
             if (protocolInfo.IsTokenIdReuse)
             {
+                // 1155 type.
+
                 if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
                 {
                     if (whiteListAddressPriceList == null)
@@ -91,7 +96,7 @@ namespace AElf.Contracts.NFTMarket
                     }
                     else
                     {
-                        throw new AssertionException("Cannot find correct listed nft info.");
+                        throw new AssertionException("Cannot find valid listed nft info.");
                     }
                 }
                 
@@ -110,14 +115,16 @@ namespace AElf.Contracts.NFTMarket
                 listedNftInfo = listedNftInfoList.Value.First();
             }
 
+            Assert(!IsListedNftTimedOut(listedNftInfo), "Listed NFT timed out.");
+
             switch (listedNftInfo.ListType)
             {
                 case ListType.FixedPrice when whiteListAddressPriceList != null &&
                                               whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
                     TryDealWithFixedPrice(input, listedNftInfo);
-                    RemoveRequest(input.Symbol, input.TokenId);
+                    MaybeRemoveRequest(input.Symbol, input.TokenId);
                     listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
-                    if (listedNftInfo.Quantity == 0)
+                    if (listedNftInfo.Quantity == 0 && listedNftInfoList.Value.Contains(listedNftInfo))
                     {
                         listedNftInfoList.Value.Remove(listedNftInfo);
                     }
@@ -146,6 +153,9 @@ namespace AElf.Contracts.NFTMarket
                             listedNftInfoList.Value.Remove(listedNftInfo);
                         }
                     }
+                    break;
+                default:
+                    PerformMakeOffer(input);
                     break;
             }
 
@@ -180,7 +190,7 @@ namespace AElf.Contracts.NFTMarket
 
                 if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
-                    RemoveRequest(input.Symbol, input.TokenId);
+                    MaybeRemoveRequest(input.Symbol, input.TokenId);
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
                     var protocolVirtualAddress =
                         Context.ConvertVirtualAddressToContractAddress(protocolVirtualAddressFrom);
@@ -363,7 +373,7 @@ namespace AElf.Contracts.NFTMarket
                 });
             }
 
-            RemoveRequest(input.Symbol, input.TokenId);
+            MaybeRemoveRequest(input.Symbol, input.TokenId);
 
             Context.Fire(new NFTRequestCancelled
             {
@@ -640,7 +650,7 @@ namespace AElf.Contracts.NFTMarket
                 });
             }
 
-            RemoveRequest(requestInfo.Symbol, requestInfo.TokenId);
+            MaybeRemoveRequest(requestInfo.Symbol, requestInfo.TokenId);
         }
     }
 }

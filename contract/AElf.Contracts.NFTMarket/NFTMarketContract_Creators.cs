@@ -216,7 +216,7 @@ namespace AElf.Contracts.NFTMarket
             }
             else
             {
-                RemoveRequest(input.Symbol, input.TokenId);
+                MaybeRemoveRequest(input.Symbol, input.TokenId);
                 if (nftVirtualAddressBalance > 0)
                 {
                     State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
