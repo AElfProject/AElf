@@ -86,6 +86,7 @@ namespace AElf.Contracts.NFTMarket
 
         private void PerformDeal(PerformDealInput performDealInput)
         {
+            Assert(performDealInput.NFTFrom != performDealInput.NFTTo, "NFT From address cannot be NFT To address.");
             PayRemainDepositInCustomizeCase(performDealInput);
             if (performDealInput.PurchaseTokenId == 0)
             {
@@ -444,8 +445,8 @@ namespace AElf.Contracts.NFTMarket
 
         private bool IsListedNftTimedOut(ListedNFTInfo listedNftInfo)
         {
-            return Context.CurrentBlockTime <
-                   listedNftInfo.Duration.StartTime.AddHours(listedNftInfo.Duration.DurationHours);
+            var expireTime = listedNftInfo.Duration.StartTime.AddHours(listedNftInfo.Duration.DurationHours);
+            return Context.CurrentBlockTime > expireTime;
         }
     }
 }

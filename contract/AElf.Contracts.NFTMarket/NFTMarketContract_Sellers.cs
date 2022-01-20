@@ -127,7 +127,7 @@ namespace AElf.Contracts.NFTMarket
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
             Assert(
-                State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = input.PurchaseSymbol}).Symbol !=
+                State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.PurchaseSymbol}).Symbol ==
                 null, $"Token {input.PurchaseSymbol} not support purchase for auction.");
 
             ClearBids(input.Symbol, input.TokenId);
@@ -194,7 +194,8 @@ namespace AElf.Contracts.NFTMarket
         public override Empty ListWithDutchAuction(ListWithDutchAuctionInput input)
         {
             AssertContractInitialized();
-            Assert(input.StartingPrice > 0 && input.EndingPrice > 0, "Incorrect listing price.");
+            Assert(input.StartingPrice > 0 && input.EndingPrice > 0 && input.StartingPrice > input.EndingPrice,
+                "Incorrect listing price.");
             if (CanBeListedWithAuction(input.Symbol, input.TokenId, out var requestInfo))
             {
                 MaybeReceiveRemainDeposit(requestInfo);
@@ -209,7 +210,7 @@ namespace AElf.Contracts.NFTMarket
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
             Assert(
-                State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = input.PurchaseSymbol}).Symbol !=
+                State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.PurchaseSymbol}).Symbol ==
                 null, $"Token {input.PurchaseSymbol} not support purchase for auction.");
 
             var duration = AdjustListDuration(input.Duration);

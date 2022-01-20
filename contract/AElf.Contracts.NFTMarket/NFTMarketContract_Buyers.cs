@@ -59,7 +59,8 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
-                i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount && IsListedNftTimedOut(i));
+                i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount &&
+                !IsListedNftTimedOut(i));
             var whiteListAddressPriceList =
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo];
 
@@ -79,7 +80,8 @@ namespace AElf.Contracts.NFTMarket
 
                     var maybeWhiteListAddressPrice =
                         whiteListAddressPriceList.Value.SingleOrDefault(p =>
-                            p.Address == Context.Sender && p.Price.Amount <= input.Price.Amount && p.Price.Symbol == input.Price.Symbol);
+                            p.Address == Context.Sender && p.Price.Amount <= input.Price.Amount &&
+                            p.Price.Symbol == input.Price.Symbol);
                     Assert(listedNftInfoList.Value.Count == 1, "Incorrect listed nft info.");
                     if (maybeWhiteListAddressPrice != null)
                     {
@@ -99,7 +101,7 @@ namespace AElf.Contracts.NFTMarket
                         throw new AssertionException("Cannot find valid listed nft info.");
                     }
                 }
-                
+
                 var quantity = input.Quantity;
                 if (quantity > listedNftInfo.Quantity)
                 {
@@ -115,7 +117,11 @@ namespace AElf.Contracts.NFTMarket
                 listedNftInfo = listedNftInfoList.Value.First();
             }
 
-            Assert(!IsListedNftTimedOut(listedNftInfo), "Listed NFT timed out.");
+            if (IsListedNftTimedOut(listedNftInfo))
+            {
+                PerformMakeOffer(input);
+                return new Empty();
+            }
 
             switch (listedNftInfo.ListType)
             {
@@ -128,6 +134,7 @@ namespace AElf.Contracts.NFTMarket
                     {
                         listedNftInfoList.Value.Remove(listedNftInfo);
                     }
+
                     break;
                 case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
@@ -137,6 +144,7 @@ namespace AElf.Contracts.NFTMarket
                     {
                         listedNftInfoList.Value.Remove(listedNftInfo);
                     }
+
                     break;
                 case ListType.FixedPrice:
                     PerformMakeOffer(input);
@@ -153,6 +161,7 @@ namespace AElf.Contracts.NFTMarket
                             listedNftInfoList.Value.Remove(listedNftInfo);
                         }
                     }
+
                     break;
                 default:
                     PerformMakeOffer(input);
@@ -209,7 +218,7 @@ namespace AElf.Contracts.NFTMarket
                             Amount = balanceOfNftProtocolVirtualAddress
                         });
                     }
-  
+
                     Context.Fire(new NFTRequestCancelled
                     {
                         Symbol = input.Symbol,
@@ -394,7 +403,7 @@ namespace AElf.Contracts.NFTMarket
                             new WhiteListAddressPriceList();
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
-            
+
             if (whiteListPrice != null)
             {
                 Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
@@ -630,7 +639,8 @@ namespace AElf.Contracts.NFTMarket
         {
             if (requestInfo == null) return;
             Assert(Context.CurrentBlockTime > requestInfo.WhiteListDueTime, "Due time not passed.");
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = requestInfo.Symbol}));
+            var nftProtocolInfo =
+                State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = requestInfo.Symbol}));
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can claim remain deposit.");
 
             var nftVirtualAddressFrom = CalculateTokenHash(requestInfo.Symbol, requestInfo.TokenId);
