@@ -17,8 +17,9 @@ namespace AElf.Contracts.NFTMarket
             AssertContractInitialized();
 
             // 0% - 10%
-            Assert(0 <= input.Royalty && input.Royalty <= 1000);
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(0 <= input.Royalty && input.Royalty <= 1000, "Royalty should be between 0% to 10%.");
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+            Assert(!string.IsNullOrEmpty(nftProtocolInfo.Symbol), "NFT Protocol not found.");
             if (input.TokenId == 0)
             {
                 Assert(nftProtocolInfo.Creator == Context.Sender,

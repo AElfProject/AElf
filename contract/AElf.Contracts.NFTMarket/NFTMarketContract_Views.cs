@@ -118,5 +118,12 @@ namespace AElf.Contracts.NFTMarket
                 Amount = customizeInfo.StakingAmount
             };
         }
+
+        public override Int32Value GetRoyalty(GetRoyaltyInput input)
+        {
+            return input.TokenId == 0
+                ? new Int32Value {Value = State.RoyaltyMap[input.Symbol]}
+                : new Int32Value {Value = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId]};
+        }
     }
 }

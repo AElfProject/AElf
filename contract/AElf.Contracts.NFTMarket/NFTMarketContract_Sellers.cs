@@ -127,8 +127,9 @@ namespace AElf.Contracts.NFTMarket
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
             Assert(
-                State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.PurchaseSymbol}).Symbol ==
-                null, $"Token {input.PurchaseSymbol} not support purchase for auction.");
+                string.IsNullOrEmpty(State.NFTContract.GetNFTProtocolInfo
+                    .Call(new StringValue {Value = input.PurchaseSymbol}).Symbol),
+                $"Token {input.PurchaseSymbol} not support purchase for auction.");
 
             ClearBids(input.Symbol, input.TokenId);
 
@@ -210,8 +211,9 @@ namespace AElf.Contracts.NFTMarket
             Assert(GetTokenWhiteList(input.Symbol).Value.Contains(input.PurchaseSymbol),
                 $"{input.PurchaseSymbol} is not in token white list.");
             Assert(
-                State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.PurchaseSymbol}).Symbol ==
-                null, $"Token {input.PurchaseSymbol} not support purchase for auction.");
+                string.IsNullOrEmpty(State.NFTContract.GetNFTProtocolInfo
+                    .Call(new StringValue {Value = input.PurchaseSymbol}).Symbol),
+                $"Token {input.PurchaseSymbol} not support purchase for auction.");
 
             var duration = AdjustListDuration(input.Duration);
 
