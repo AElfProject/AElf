@@ -117,7 +117,7 @@ namespace AElf.Contracts.NFT
                 Price = new Price
                 {
                     Symbol = "ELF",
-                    Amount = 100_00000000
+                    Amount = 200_00000000
                 },
             });
 

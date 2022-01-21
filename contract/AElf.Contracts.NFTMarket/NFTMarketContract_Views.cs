@@ -119,11 +119,27 @@ namespace AElf.Contracts.NFTMarket
             };
         }
 
-        public override Int32Value GetRoyalty(GetRoyaltyInput input)
+        public override RoyaltyInfo GetRoyalty(GetRoyaltyInput input)
         {
-            return input.TokenId == 0
-                ? new Int32Value {Value = State.RoyaltyMap[input.Symbol]}
-                : new Int32Value {Value = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId]};
+            var royaltyInfo = new RoyaltyInfo();
+            if (input.TokenId == 0)
+            {
+                royaltyInfo.Royalty = State.RoyaltyMap[input.Symbol];
+            }
+            else
+            {
+                if (State.RoyaltyMap[input.Symbol] == 0)
+                {
+                    royaltyInfo.Royalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
+                }
+            }
+
+            if (State.RoyaltyFeeReceiverMap[input.Symbol] != null)
+            {
+                royaltyInfo.RoyaltyFeeReceiver = State.RoyaltyFeeReceiverMap[input.Symbol];
+            }
+
+            return royaltyInfo;
         }
     }
 }

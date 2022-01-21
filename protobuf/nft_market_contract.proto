@@ -106,7 +106,7 @@ service NFTMarketContract {
     rpc GetStakingTokens (google.protobuf.StringValue) returns (Price) {
         option (aelf.is_view) = true;
     }
-    rpc GetRoyalty (GetRoyaltyInput) returns (google.protobuf.Int32Value) {
+    rpc GetRoyalty (GetRoyaltyInput) returns (RoyaltyInfo) {
         option (aelf.is_view) = true;
     }
 }
@@ -417,6 +417,11 @@ message ClaimRemainDepositInput {
 message GetRoyaltyInput {
     string symbol = 1;
     int64 token_id = 2;
+}
+
+message RoyaltyInfo {
+    int32 royalty = 1;
+    aelf.Address royalty_fee_receiver = 2;
 }
 
 // Events

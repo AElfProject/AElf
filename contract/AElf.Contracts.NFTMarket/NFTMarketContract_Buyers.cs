@@ -138,6 +138,10 @@ namespace AElf.Contracts.NFTMarket
                     break;
                 case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
+                    if (input.Price.Amount > listedNftInfo.Price.Amount)
+                    {
+                        input.Price.Amount = listedNftInfo.Price.Amount;
+                    }
                     TryDealWithFixedPrice(input, listedNftInfo);
                     listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
                     if (listedNftInfo.Quantity == 0)
@@ -418,7 +422,7 @@ namespace AElf.Contracts.NFTMarket
             {
                 // Public time not reached and sender is not in white list.
                 throw new AssertionException(
-                    $"Sender is not in the white list, please need until {listedNftInfo.Duration.PublicTime}");
+                    $"Sender is not in the white list, please wait until {listedNftInfo.Duration.PublicTime}");
             }
 
             var totalAmount = usePrice.Amount.Mul(input.Quantity);
