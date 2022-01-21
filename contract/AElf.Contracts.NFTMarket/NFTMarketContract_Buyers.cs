@@ -58,9 +58,21 @@ namespace AElf.Contracts.NFTMarket
                 return new Empty();
             }
 
-            var listedNftInfo = listedNftInfoList.Value.FirstOrDefault(i =>
+            var validListedNftInfoList = listedNftInfoList.Value.Where(i =>
                 i.Price.Symbol == input.Price.Symbol && i.Price.Amount <= input.Price.Amount &&
-                !IsListedNftTimedOut(i));
+                !IsListedNftTimedOut(i)).ToList();
+            ListedNFTInfo listedNftInfo = null;
+            if (validListedNftInfoList.Any())
+            {
+                listedNftInfo = validListedNftInfoList.First();
+
+                if (validListedNftInfoList.Count > 1)
+                {
+                    var totalQuantity = validListedNftInfoList.Sum(i => i.Quantity);
+                    listedNftInfo.Quantity = totalQuantity;
+                }
+            }
+
             var whiteListAddressPriceList =
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo];
 
@@ -138,12 +150,10 @@ namespace AElf.Contracts.NFTMarket
                     break;
                 case ListType.FixedPrice when input.Price.Symbol == listedNftInfo.Price.Symbol &&
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
-                    if (input.Price.Amount > listedNftInfo.Price.Amount)
-                    {
-                        input.Price.Amount = listedNftInfo.Price.Amount;
-                    }
+                    input.Price.Amount = Math.Min(input.Price.Amount, listedNftInfo.Price.Amount);
+                    input.Quantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
                     TryDealWithFixedPrice(input, listedNftInfo);
-                    listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(1);
+                    listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(input.Quantity);
                     if (listedNftInfo.Quantity == 0)
                     {
                         listedNftInfoList.Value.Remove(listedNftInfo);
