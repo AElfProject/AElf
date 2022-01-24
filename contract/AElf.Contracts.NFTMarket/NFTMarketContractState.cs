@@ -44,7 +44,7 @@ namespace AElf.Contracts.NFTMarket
         public MappedState<string, int> RoyaltyMap { get; set; }
 
         public MappedState<string, Address> RoyaltyFeeReceiverMap { get; set; }
-        public MappedState<string, long, int> CertainNFTRoyaltyMap { get; set; }
+        public MappedState<string, long, CertainNFTRoyaltyInfo> CertainNFTRoyaltyMap { get; set; }
         public MappedState<string, StringList> TokenWhiteListMap { get; set; }
 
         public MappedState<string, CustomizeInfo> CustomizeInfoMap { get; set; }

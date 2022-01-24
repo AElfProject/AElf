@@ -121,17 +121,17 @@ namespace AElf.Contracts.NFTMarket
 
         public override RoyaltyInfo GetRoyalty(GetRoyaltyInput input)
         {
-            var royaltyInfo = new RoyaltyInfo();
-            if (input.TokenId == 0)
+            var royaltyInfo = new RoyaltyInfo
             {
-                royaltyInfo.Royalty = State.RoyaltyMap[input.Symbol];
-            }
-            else
+                Royalty = State.RoyaltyMap[input.Symbol]
+            };
+
+            if (input.TokenId != 0)
             {
-                royaltyInfo.Royalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
-                if (royaltyInfo.Royalty == 0)
+                var certainNftRoyalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
+                if (certainNftRoyalty.IsManuallySet)
                 {
-                    royaltyInfo.Royalty = State.RoyaltyMap[input.Symbol];
+                    royaltyInfo.Royalty = certainNftRoyalty.Royalty;
                 }
             }
 

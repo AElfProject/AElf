@@ -91,13 +91,13 @@ namespace AElf.Contracts.NFTMarket
             if (performDealInput.PurchaseTokenId == 0)
             {
                 var serviceFee = performDealInput.PurchaseAmount.Mul(State.ServiceFeeRate.Value).Div(FeeDenominator);
-                var royalty = State.CertainNFTRoyaltyMap[performDealInput.NFTSymbol][performDealInput.NFTTokenId];
-                if (royalty == 0)
+                var royalty = GetRoyalty(new GetRoyaltyInput
                 {
-                    royalty = State.RoyaltyMap[performDealInput.NFTSymbol];
-                }
+                    Symbol = performDealInput.NFTSymbol,
+                    TokenId = performDealInput.NFTTokenId
+                });
 
-                var royaltyFee = performDealInput.PurchaseAmount.Mul(royalty).Div(FeeDenominator);
+                var royaltyFee = performDealInput.PurchaseAmount.Mul(royalty.Royalty).Div(FeeDenominator);
                 var royaltyFeeReceiver = State.RoyaltyFeeReceiverMap[performDealInput.NFTSymbol];
                 if (royaltyFeeReceiver == null)
                 {

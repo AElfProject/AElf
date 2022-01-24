@@ -36,7 +36,11 @@ namespace AElf.Contracts.NFTMarket
                 });
                 Assert(nftProtocolInfo.Creator == Context.Sender || nftInfo.Minters.Contains(Context.Sender),
                     "No permission.");
-                State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId] = input.Royalty;
+                State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId] = new CertainNFTRoyaltyInfo
+                {
+                    IsManuallySet = true,
+                    Royalty = input.Royalty
+                };
             }
 
             State.RoyaltyFeeReceiverMap[input.Symbol] = input.RoyaltyFeeReceiver;

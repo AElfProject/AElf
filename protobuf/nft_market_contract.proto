@@ -244,6 +244,11 @@ message DutchAuctionInfo {
     aelf.Address owner = 7;
 }
 
+message CertainNFTRoyaltyInfo {
+    bool is_manually_set = 1;
+    int32 royalty = 2;
+}
+
 // Inputs.
 
 message InitializeInput {
