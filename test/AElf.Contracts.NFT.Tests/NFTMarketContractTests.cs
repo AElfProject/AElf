@@ -5,6 +5,7 @@ using AElf.Contracts.NFTMarket;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using StringList = AElf.Contracts.NFTMarket.StringList;
 
 namespace AElf.Contracts.NFT
 {
@@ -419,6 +420,72 @@ namespace AElf.Contracts.NFT
                     Owner = DefaultAddress
                 });
                 nftBalance.Balance.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task TokenWhiteListTest()
+        {
+            await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                NftContractAddress = NFTContractAddress,
+                ServiceFeeReceiver = MarketServiceFeeReceiverAddress
+            });
+
+            await AdminNFTMarketContractStub.SetGlobalTokenWhiteList.SendAsync(new StringList
+            {
+                Value = {"USDT", "EAN"}
+            });
+
+            var globalTokenWhiteList = await AdminNFTMarketContractStub.GetGlobalTokenWhiteList.CallAsync(new Empty());
+            globalTokenWhiteList.Value.Count.ShouldBe(3);
+            globalTokenWhiteList.Value.ShouldContain("EAN");
+            globalTokenWhiteList.Value.ShouldContain("ELF");
+            globalTokenWhiteList.Value.ShouldContain("USDT");
+
+            var symbol = await CreateArtistsTest();
+
+            await CreatorNFTMarketContractStub.SetTokenWhiteList.SendAsync(new SetTokenWhiteListInput
+            {
+                Symbol = symbol,
+                TokenWhiteList = new StringList
+                {
+                    Value = {"TEST"}
+                }
+            });
+
+            {
+                var tokenWhiteList =
+                    await CreatorNFTMarketContractStub.GetTokenWhiteList.CallAsync(new StringValue {Value = symbol});
+                tokenWhiteList.Value.Count.ShouldBe(4);
+                tokenWhiteList.Value.ShouldContain("ELF");
+                tokenWhiteList.Value.ShouldContain("TEST");
+            }
+            
+            await AdminNFTMarketContractStub.SetGlobalTokenWhiteList.SendAsync(new StringList
+            {
+                Value = {"USDT", "EAN", "NEW"}
+            });
+
+            {
+                var tokenWhiteList =
+                    await CreatorNFTMarketContractStub.GetTokenWhiteList.CallAsync(new StringValue {Value = symbol});
+                tokenWhiteList.Value.Count.ShouldBe(5);
+                tokenWhiteList.Value.ShouldContain("NEW");
+                tokenWhiteList.Value.ShouldContain("TEST");
+            }
+            
+            await AdminNFTMarketContractStub.SetGlobalTokenWhiteList.SendAsync(new StringList
+            {
+                Value = {"ELF"}
+            });
+
+            {
+                var tokenWhiteList =
+                    await CreatorNFTMarketContractStub.GetTokenWhiteList.CallAsync(new StringValue {Value = symbol});
+                tokenWhiteList.Value.Count.ShouldBe(2);
+                tokenWhiteList.Value.ShouldContain("ELF");
+                tokenWhiteList.Value.ShouldContain("TEST");
             }
         }
     }

@@ -51,16 +51,9 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertContractInitialized();
 
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+            Assert(nftProtocolInfo.Creator != null, "NFT Protocol not exists.");
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set token white list.");
-            foreach (var symbol in State.GlobalTokenWhiteList.Value.Value)
-            {
-                if (!input.TokenWhiteList.Value.Contains(symbol))
-                {
-                    input.TokenWhiteList.Value.Add(symbol);
-                }
-            }
-
             State.TokenWhiteListMap[input.Symbol] = input.TokenWhiteList;
             Context.Fire(new TokenWhiteListChanged
             {
