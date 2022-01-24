@@ -128,9 +128,10 @@ namespace AElf.Contracts.NFTMarket
             }
             else
             {
-                if (State.RoyaltyMap[input.Symbol] == 0)
+                royaltyInfo.Royalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
+                if (royaltyInfo.Royalty == 0)
                 {
-                    royaltyInfo.Royalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
+                    royaltyInfo.Royalty = State.RoyaltyMap[input.Symbol];
                 }
             }
 
