@@ -422,8 +422,11 @@ namespace AElf.Contracts.NFTMarket
             {
                 Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
                     $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
-                Assert(input.Price.Amount >= whiteListPrice.Price.Amount,
-                    $"Offer price too low, at least be {whiteListPrice.Price.Amount}.");
+                if (input.Price.Amount < whiteListPrice.Price.Amount)
+                {
+                    PerformMakeOffer(input);
+                    return;
+                }
                 usePrice = whiteListPrice.Price;
                 whiteList.Value.Remove(whiteListPrice);
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
@@ -530,7 +533,7 @@ namespace AElf.Contracts.NFTMarket
                     bidList.Value.OrderByDescending(o => o.Price.Amount)
                 }
             };
-            if (sortedBitList.Value.Any() && input.Price.Amount < sortedBitList.Value.First().Price.Amount)
+            if (sortedBitList.Value.Any() && input.Price.Amount <= sortedBitList.Value.First().Price.Amount)
             {
                 PerformMakeOffer(input);
                 return;
