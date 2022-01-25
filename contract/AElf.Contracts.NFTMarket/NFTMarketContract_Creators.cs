@@ -1,4 +1,5 @@
 using System;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFT;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
@@ -52,7 +53,7 @@ namespace AElf.Contracts.NFTMarket
             AssertContractInitialized();
 
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
-            Assert(nftProtocolInfo.Creator != null, "NFT Protocol not exists.");
+            Assert(nftProtocolInfo.Creator != null, "NFT Protocol not found.");
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set token white list.");
             State.TokenWhiteListMap[input.Symbol] = input.TokenWhiteList;
             Context.Fire(new TokenWhiteListChanged
@@ -67,9 +68,19 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertContractInitialized();
 
+            if (input.Price == null)
+            {
+                throw new AssertionException("Price cannot be null.");
+            }
+
+            Assert(input.StakingAmount >= 0, "Invalid staking amount.");
+            Assert(input.DepositRate >= 0, "Invalid deposit rate.");
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            Assert(!string.IsNullOrEmpty(nftProtocolInfo.Symbol), "NFT Protocol not found.");
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can set customize info.");
             Assert(!nftProtocolInfo.IsTokenIdReuse, "Not support customize.");
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput {Symbol = input.Price.Symbol});
+            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Invalid staking token symbol.");
             if (input.StakingAmount > 0)
             {
                 var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
@@ -100,9 +111,15 @@ namespace AElf.Contracts.NFTMarket
             AssertContractInitialized();
 
             Assert(input.StakingAmount > 0, "Invalid staking amount.");
-            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
+            var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+            Assert(!string.IsNullOrEmpty(nftProtocolInfo.Symbol), "NFT Protocol not found.");
             Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can stake for requests.");
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
+            if (customizeInfo == null)
+            {
+                throw new AssertionException("Customize info not found.");
+            }
+
             var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {

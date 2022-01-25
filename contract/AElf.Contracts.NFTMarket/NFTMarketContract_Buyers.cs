@@ -88,8 +88,6 @@ namespace AElf.Contracts.NFTMarket
                         return new Empty();
                     }
 
-                    // For case pay balance for customized nft.
-
                     var maybeWhiteListAddressPrice =
                         whiteListAddressPriceList.Value.SingleOrDefault(p =>
                             p.Address == Context.Sender && p.Price.Amount <= input.Price.Amount &&
@@ -110,7 +108,8 @@ namespace AElf.Contracts.NFTMarket
                     }
                     else
                     {
-                        throw new AssertionException("Cannot find valid listed nft info.");
+                        PerformMakeOffer(input);
+                        return new Empty();
                     }
                 }
 
