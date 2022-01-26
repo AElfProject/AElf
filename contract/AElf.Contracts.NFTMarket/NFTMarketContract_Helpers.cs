@@ -283,10 +283,6 @@ namespace AElf.Contracts.NFTMarket
         private bool CanBeListedWithAuction(string symbol, long tokenId, out RequestInfo requestInfo)
         {
             requestInfo = State.RequestInfoMap[symbol][tokenId];
-            if (requestInfo == null)
-            {
-                return true;
-            }
 
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = symbol});
             if (nftProtocolInfo.IsTokenIdReuse)
@@ -294,21 +290,24 @@ namespace AElf.Contracts.NFTMarket
                 return false;
             }
 
-            if (requestInfo.IsConfirmed && requestInfo.ListTime == null)
+            if (requestInfo != null)
             {
-                // Confirmed but never listed by fixed price.
-                return false;
+                if (requestInfo.IsConfirmed && requestInfo.ListTime == null)
+                {
+                    // Confirmed but never listed by fixed price.
+                    return false;
+                }
+
+                var whiteListDueTime1 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
+                    .AddHours(requestInfo.WhiteListHours);
+                var whiteListDueTime2 = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours);
+                if (Context.CurrentBlockTime <= whiteListDueTime1 || Context.CurrentBlockTime <= whiteListDueTime2)
+                {
+                    return false;
+                }
             }
 
-            var whiteListDueTime1 = requestInfo.ConfirmTime.AddHours(requestInfo.WorkHours)
-                .AddHours(requestInfo.WhiteListHours);
-            var whiteListDueTime2 = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours);
-            if (Context.CurrentBlockTime > whiteListDueTime1 && Context.CurrentBlockTime > whiteListDueTime2)
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         private Hash CalculateTokenHash(string symbol, long tokenId = 0)
