@@ -211,7 +211,7 @@ namespace AElf.Contracts.NFT
                 Spender = NFTMarketContractAddress
             });
 
-            var executionResult = await BuyerNFTMarketContractStub.MakeOffer.SendWithExceptionAsync(new MakeOfferInput
+            await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
             {
                 Symbol = symbol,
                 TokenId = 233,
@@ -223,7 +223,6 @@ namespace AElf.Contracts.NFT
                     Amount = 100_00000000
                 },
             });
-            executionResult.TransactionResult.Error.ShouldContain("too low");
 
             await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
             {
@@ -245,7 +244,7 @@ namespace AElf.Contracts.NFT
                     TokenId = 233,
                     Address = User2Address
                 });
-                offerList.Value.Count.ShouldBe(1);
+                offerList.Value.Count.ShouldBe(2);
             }
 
             {
