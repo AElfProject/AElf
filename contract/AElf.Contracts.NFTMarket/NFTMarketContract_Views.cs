@@ -128,7 +128,8 @@ namespace AElf.Contracts.NFTMarket
 
             if (input.TokenId != 0)
             {
-                var certainNftRoyalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId];
+                var certainNftRoyalty = State.CertainNFTRoyaltyMap[input.Symbol][input.TokenId] ??
+                                        new CertainNFTRoyaltyInfo();
                 if (certainNftRoyalty.IsManuallySet)
                 {
                     royaltyInfo.Royalty = certainNftRoyalty.Royalty;

@@ -99,7 +99,7 @@ namespace AElf.Contracts.NFTMarket
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        Price = input.Price,
+                        Price = maybeWhiteListAddressPrice.Price,
                         ListType = ListType.FixedPrice,
                         Quantity = 1,
                         Owner = listedNftInfoList.Value.First().Owner,
@@ -182,7 +182,7 @@ namespace AElf.Contracts.NFTMarket
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
 
             // Admin can remove expired offer.
-            if (input.OfferFrom != null)
+            if (input.OfferFrom != null && input.OfferFrom != Context.Sender)
             {
                 AssertSenderIsAdmin();
 
@@ -249,7 +249,7 @@ namespace AElf.Contracts.NFTMarket
             // Check Request Map first.
             if (requestInfo != null)
             {
-                CancelRequest(input, requestInfo);
+                PerformCancelRequest(input, requestInfo);
                 // Only one request for each token id.
                 State.OfferListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
                 return new Empty();
@@ -325,7 +325,7 @@ namespace AElf.Contracts.NFTMarket
             return new Empty();
         }
 
-        private void CancelRequest(CancelOfferInput input, RequestInfo requestInfo)
+        private void PerformCancelRequest(CancelOfferInput input, RequestInfo requestInfo)
         {
             Assert(requestInfo.Requester == Context.Sender, "No permission.");
             var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol, input.TokenId);
@@ -476,6 +476,17 @@ namespace AElf.Contracts.NFTMarket
             }
 
             Context.Fire(new OfferMade
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId,
+                OfferFrom = Context.Sender,
+                OfferTo = input.OfferTo,
+                ExpireTime = expireTime,
+                Price = input.Price,
+                Quantity = input.Quantity
+            });
+
+            Context.Fire(new OfferAdded
             {
                 Symbol = input.Symbol,
                 TokenId = input.TokenId,
