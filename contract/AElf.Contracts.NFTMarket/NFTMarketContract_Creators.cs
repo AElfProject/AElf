@@ -156,10 +156,9 @@ namespace AElf.Contracts.NFTMarket
             Assert(input.WithdrawAmount <= customizeInfo.StakingAmount, "Insufficient staking amount.");
             Assert(customizeInfo.ReservedTokenIds.Count == 0,
                 "Cannot withdraw staking tokens before complete all the demands.");
-            var virtualAddress = CalculateNFTVirtuaAddress(input.Symbol);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            var virtualAddressFrom = CalculateTokenHash(input.Symbol);
+            State.TokenContract.Transfer.VirtualSend(virtualAddressFrom, new TransferInput
             {
-                From = virtualAddress,
                 To = Context.Sender,
                 Symbol = customizeInfo.Price.Symbol,
                 Amount = input.WithdrawAmount

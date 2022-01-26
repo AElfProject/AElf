@@ -495,7 +495,6 @@ message OfferMade {
     Price price = 5;
     int64 quantity = 6;
     google.protobuf.Timestamp expire_time = 7;
-    google.protobuf.Timestamp due_time = 8;
 }
 
 message BidPlaced {
@@ -583,4 +582,62 @@ message Sold {
     string purchase_symbol = 6;
     int64 purchase_amount = 7;
     int64 purchase_token_id = 8;
+}
+
+message OfferAdded {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
+    Price price = 5;
+    int64 quantity = 6;
+    google.protobuf.Timestamp expire_time = 7;
+}
+
+message OfferChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
+    Price price = 5;
+    int64 quantity = 6;
+    google.protobuf.Timestamp expire_time = 7;
+}
+
+message OfferRemoved {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address offer_from = 3;
+    aelf.Address offer_to = 4;
+}
+
+message ListedNFTAdded {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
+    Price price = 5;
+    ListDuration duration = 6;
+}
+
+message ListedNFTChanged {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    int64 quantity = 4;
+    Price price = 5;
+    ListDuration duration = 6;
+}
+
+message ListedNFTRemoved {
+    option (aelf.is_event) = true;
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+    ListDuration duration = 4;
 }
