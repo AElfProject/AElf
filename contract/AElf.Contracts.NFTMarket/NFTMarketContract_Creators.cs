@@ -70,7 +70,14 @@ namespace AElf.Contracts.NFTMarket
 
             if (input.Price == null)
             {
-                throw new AssertionException("Price cannot be null.");
+                var customizeInfo = State.CustomizeInfoMap[input.Symbol];
+                if (customizeInfo?.Price == null)
+                {
+                    return new Empty();
+                }
+
+                State.CustomizeInfoMap[input.Symbol].Price.Amount = 0;
+                return new Empty();
             }
 
             Assert(input.StakingAmount >= 0, "Invalid staking amount.");

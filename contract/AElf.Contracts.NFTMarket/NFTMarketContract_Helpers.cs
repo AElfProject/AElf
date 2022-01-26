@@ -219,7 +219,7 @@ namespace AElf.Contracts.NFTMarket
         private void PerformRequestNewItem(string symbol, long tokenId, Price price, Timestamp expireTime)
         {
             var customizeInfo = State.CustomizeInfoMap[symbol];
-            if (customizeInfo?.Price == null)
+            if (customizeInfo?.Price == null || customizeInfo.Price.Amount == 0)
             {
                 throw new AssertionException("Cannot request new item for this protocol.");
             }
