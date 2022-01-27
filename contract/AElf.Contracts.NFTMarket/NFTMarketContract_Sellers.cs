@@ -382,7 +382,7 @@ namespace AElf.Contracts.NFTMarket
             var offer = State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom]?.Value
                 .FirstOrDefault(o =>
                     o.From == input.OfferFrom && o.Price.Symbol == input.Price.Symbol &&
-                    o.Price.Amount == input.Price.Amount);
+                    o.Price.Amount == input.Price.Amount && o.ExpireTime >= Context.CurrentBlockTime);
             var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
             Price price;
             long totalAmount;
@@ -391,7 +391,8 @@ namespace AElf.Contracts.NFTMarket
                 // Check bid.
 
                 if (bid == null || bid.From != input.OfferFrom ||
-                    bid.Price.Amount != input.Price.Amount || bid.Price.Symbol != input.Price.Symbol)
+                    bid.Price.Amount != input.Price.Amount || bid.Price.Symbol != input.Price.Symbol ||
+                    bid.ExpireTime < Context.CurrentBlockTime)
                 {
                     throw new AssertionException("Neither related offer nor bid are found.");
                 }
