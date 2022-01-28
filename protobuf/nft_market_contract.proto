@@ -109,6 +109,9 @@ service NFTMarketContract {
     rpc GetRoyalty (GetRoyaltyInput) returns (RoyaltyInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetServiceFeeInfo (google.protobuf.Empty) returns (ServiceFeeInfo) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Structs.
@@ -247,6 +250,11 @@ message DutchAuctionInfo {
 message CertainNFTRoyaltyInfo {
     bool is_manually_set = 1;
     int32 royalty = 2;
+}
+
+message ServiceFeeInfo {
+    int32 service_fee_rate = 1;
+    aelf.Address service_fee_receiver = 2;
 }
 
 // Inputs.

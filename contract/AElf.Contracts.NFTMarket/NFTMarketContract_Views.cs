@@ -143,5 +143,14 @@ namespace AElf.Contracts.NFTMarket
 
             return royaltyInfo;
         }
+
+        public override ServiceFeeInfo GetServiceFeeInfo(Empty input)
+        {
+            return new ServiceFeeInfo
+            {
+                ServiceFeeRate = State.ServiceFeeRate.Value,
+                ServiceFeeReceiver = State.ServiceFeeReceiver.Value
+            };
+        }
     }
 }
