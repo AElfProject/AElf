@@ -313,7 +313,11 @@ namespace AElf.Contracts.NFTMarket
                     var englishAuctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
                     State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender].Value.Remove(listedNftInfo);
                     State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
-                    ChargeSenderServiceFee(englishAuctionInfo.PurchaseSymbol, englishAuctionInfo.StartingPrice);
+                    var bidAddressList = State.BidAddressListMap[input.Symbol][input.TokenId];
+                    if (bidAddressList != null && bidAddressList.Value.Any())
+                    {
+                        ChargeSenderServiceFee(englishAuctionInfo.PurchaseSymbol, englishAuctionInfo.StartingPrice);
+                    }
                     break;
                 case ListType.DutchAuction:
                     var dutchAuctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
