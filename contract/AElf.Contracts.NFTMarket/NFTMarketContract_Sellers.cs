@@ -411,22 +411,21 @@ namespace AElf.Contracts.NFTMarket
 
                 var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
 
-                // The earnest money will be transferred to the seller whatever.
-                // Buyer need to pay the remain balance (via PerformDeal).
-                totalAmount = price.Amount.Sub(auctionInfo.EarnestMoney);
+                totalAmount = price.Amount;
 
+                // Transfer earnest money back to the bidder at first.
                 if (auctionInfo.EarnestMoney > 0)
                 {
                     State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
                         new TransferInput
                         {
-                            To = Context.Sender,
+                            To = bid.From,
                             Symbol = price.Symbol,
                             Amount = auctionInfo.EarnestMoney
                         });
                 }
 
-                if (!CheckAllowanceAndBalanceIsEnough(bid.From, price.Symbol, totalAmount))
+                if (!CheckAllowanceAndBalanceIsEnough(bid.From, price.Symbol, totalAmount.Sub(auctionInfo.EarnestMoney)))
                 {
                     State.BidMap[input.Symbol][input.TokenId].Remove(bid.From);
                     Context.Fire(new BidCanceled
