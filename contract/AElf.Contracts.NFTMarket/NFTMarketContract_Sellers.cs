@@ -462,7 +462,7 @@ namespace AElf.Contracts.NFTMarket
             if (listedNftInfoList != null && listedNftInfoList.Value.Any())
             {
                 var firstListedNftInfo = listedNftInfoList.Value.First();
-                if (firstListedNftInfo.ListType != ListType.EnglishAuction)
+                if (firstListedNftInfo.ListType != ListType.EnglishAuction && firstListedNftInfo.ListType != ListType.DutchAuction)
                 {
                     var nftBalance = State.NFTContract.GetBalance.Call(new GetBalanceInput
                     {
