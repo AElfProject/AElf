@@ -242,11 +242,12 @@ namespace AElf.Contracts.NFTMarket
                 {
                     State.TokenContract.Transfer.VirtualSend(nftVirtualAddressFrom, new TransferInput
                     {
-                        To = Context.Sender,
+                        To = requestInfo.Requester,
                         Symbol = requestInfo.Price.Symbol,
                         Amount = nftVirtualAddressBalance
                     });
                 }
+
                 Context.Fire(new NewNFTRequestRejected
                 {
                     Symbol = input.Symbol,
