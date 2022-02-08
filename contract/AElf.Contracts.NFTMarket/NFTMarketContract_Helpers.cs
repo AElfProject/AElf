@@ -230,7 +230,9 @@ namespace AElf.Contracts.NFTMarket
             var priceSymbol = customizeInfo.Price.Symbol;
             var priceAmount = price.Amount == 0
                 ? customizeInfo.Price.Amount
-                : Math.Max(price?.Amount ?? 0, customizeInfo.Price.Amount);
+                : Math.Max(price.Amount, customizeInfo.Price.Amount);
+            Assert(price.Symbol == customizeInfo.Price.Symbol, "Incorrect symbol.");
+            Assert(priceAmount >= customizeInfo.Price.Amount, "Incorrect amount.");
             // Check allowance.
             var allowance = State.TokenContract.GetAllowance.Call(new MultiToken.GetAllowanceInput
             {

@@ -318,6 +318,8 @@ namespace AElf.Contracts.NFTMarket
                     {
                         ChargeSenderServiceFee(englishAuctionInfo.PurchaseSymbol, englishAuctionInfo.StartingPrice);
                     }
+
+                    ClearBids(englishAuctionInfo.Symbol, englishAuctionInfo.TokenId);
                     break;
                 case ListType.DutchAuction:
                     var dutchAuctionInfo = State.DutchAuctionInfoMap[input.Symbol][input.TokenId];
