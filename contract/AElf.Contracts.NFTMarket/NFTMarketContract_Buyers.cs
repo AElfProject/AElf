@@ -194,15 +194,19 @@ namespace AElf.Contracts.NFTMarket
                 AssertSenderIsAdmin();
 
                 offerList = State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom];
-                foreach (var offer in offerList.Value)
-                {
-                    if (offer.ExpireTime >= Context.CurrentBlockTime)
-                    {
-                        newOfferList.Value.Add(offer);
-                    }
-                }
 
-                State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom] = newOfferList;
+                if (offerList != null)
+                {
+                    foreach (var offer in offerList.Value)
+                    {
+                        if (offer.ExpireTime >= Context.CurrentBlockTime)
+                        {
+                            newOfferList.Value.Add(offer);
+                        }
+                    }
+
+                    State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom] = newOfferList;
+                }
 
                 if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
@@ -236,16 +240,19 @@ namespace AElf.Contracts.NFTMarket
 
                 var bid = State.BidMap[input.Symbol][input.TokenId][input.OfferFrom];
 
-                if (bid.ExpireTime > Context.CurrentBlockTime)
+                if (bid != null)
                 {
-                    State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
-                    Context.Fire(new BidCanceled
+                    if (bid.ExpireTime > Context.CurrentBlockTime)
                     {
-                        Symbol = input.Symbol,
-                        TokenId = input.TokenId,
-                        BidFrom = bid.From,
-                        BidTo = bid.To
-                    });
+                        State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
+                        Context.Fire(new BidCanceled
+                        {
+                            Symbol = input.Symbol,
+                            TokenId = input.TokenId,
+                            BidFrom = bid.From,
+                            BidTo = bid.To
+                        });
+                    }
                 }
 
                 return new Empty();
