@@ -301,6 +301,8 @@ namespace AElf.Contracts.NFTMarket
                         }
                     }
 
+                    State.BidMap[input.Symbol][input.TokenId].Remove(Context.Sender);
+
                     Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
