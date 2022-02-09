@@ -208,7 +208,7 @@ namespace AElf.Contracts.NFTMarket
                     State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom] = newOfferList;
                 }
 
-                if (!requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
+                if (requestInfo != null && !requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
                     MaybeRemoveRequest(input.Symbol, input.TokenId);
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
