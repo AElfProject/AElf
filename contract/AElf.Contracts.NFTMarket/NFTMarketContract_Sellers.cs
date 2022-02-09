@@ -478,14 +478,6 @@ namespace AElf.Contracts.NFTMarket
                 else
                 {
                     State.ListedNFTInfoListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
-                    if (firstListedNftInfo.ListType == ListType.EnglishAuction)
-                    {
-                        State.EnglishAuctionInfoMap[input.Symbol].Remove(input.TokenId);
-                    }
-                    else
-                    {
-                        State.DutchAuctionInfoMap[input.Symbol].Remove(input.TokenId);
-                    }
                 }
             }
 

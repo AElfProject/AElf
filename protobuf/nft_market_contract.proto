@@ -302,7 +302,6 @@ message DelistInput {
     Price price = 2;
     int64 token_id = 3;
     int64 quantity = 4;
-    
 }
 
 message MakeOfferInput {
@@ -319,8 +318,7 @@ message CancelOfferInput {
     int64 token_id = 2;
     Int32List index_list = 3;
     aelf.Address offer_from = 4;
-    aelf.Address offer_to = 5;
-    bool is_cancel_bid = 6;
+    bool is_cancel_bid = 5;
 }
 
 message Int32List {
