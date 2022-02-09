@@ -407,18 +407,20 @@ namespace AElf.Contracts.NFTMarket
 
             foreach (var bidAddress in bidAddressList.Value)
             {
-                State.BidMap[symbol][tokenId].Remove(bidAddress);
                 if (auctionInfo.EarnestMoney > 0)
                 {
+                    var earnestMoneyReceiver = State.BidMap[symbol][tokenId] == null ? auctionInfo.Owner : bidAddress;
                     State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
                         new TransferInput
                         {
-                            To = bidAddress,
+                            To = earnestMoneyReceiver,
                             Symbol = auctionInfo.PurchaseSymbol,
                             Amount = auctionInfo.EarnestMoney
                         });
                 }
   
+                State.BidMap[symbol][tokenId].Remove(bidAddress);
+
                 Context.Fire(new BidCanceled
                 {
                     Symbol = symbol,
