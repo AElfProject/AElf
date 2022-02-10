@@ -242,7 +242,7 @@ namespace AElf.Contracts.NFTMarket
 
                 if (bid != null)
                 {
-                    if (bid.ExpireTime > Context.CurrentBlockTime)
+                    if (bid.ExpireTime < Context.CurrentBlockTime)
                     {
                         State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
                         Context.Fire(new BidCanceled
