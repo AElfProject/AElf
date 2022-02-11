@@ -33,7 +33,13 @@ namespace AElf.Contracts.NFT
                 Amount = InitialELFAmount,
                 To = User2Address,
             });
-            
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = InitialELFAmount,
+                To = User3Address,
+            });
+
             await NFTContractStub.Mint.SendAsync(new MintInput
             {
                 Symbol = symbol,
@@ -107,6 +113,12 @@ namespace AElf.Contracts.NFT
             }
 
             await NFTBuyerTokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = long.MaxValue,
+                Spender = NFTMarketContractAddress
+            });
+            await NFTBuyer2TokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
             {
                 Symbol = "ELF",
                 Amount = long.MaxValue,
@@ -188,6 +200,18 @@ namespace AElf.Contracts.NFT
                 Spender = NFTMarketContractAddress
             });
 
+            await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+            {
+                Symbol = symbol,
+                TokenId = 2,
+                Quantity = 1,
+                Price = new Price
+                {
+                    Symbol = "ELF",
+                    Amount = 105_00000000
+                }
+            });
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
                 {
@@ -237,6 +261,15 @@ namespace AElf.Contracts.NFT
                     Owner = DefaultAddress
                 });
                 balance.Balance.ShouldBe(0);
+            }
+            
+            {
+                var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
+                {
+                    Symbol = "ELF",
+                    Owner = User3Address
+                });
+                balance.Balance.ShouldBe(InitialELFAmount);
             }
         }
 

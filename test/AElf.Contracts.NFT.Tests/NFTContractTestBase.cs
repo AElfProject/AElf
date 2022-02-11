@@ -30,8 +30,10 @@ namespace AElf.Contracts.NFT
 
         protected ECKeyPair User1KeyPair => Accounts[10].KeyPair;
         protected ECKeyPair User2KeyPair => Accounts[11].KeyPair;
+        protected ECKeyPair User3KeyPair => Accounts[12].KeyPair;
         protected Address User1Address => Accounts[10].Address;
         protected Address User2Address => Accounts[11].Address;
+        protected Address User3Address => Accounts[12].Address;
         protected ECKeyPair MarketServiceFeeReceiverKeyPair => Accounts[12].KeyPair;
         protected Address MarketServiceFeeReceiverAddress => Accounts[12].Address;
 
@@ -43,6 +45,7 @@ namespace AElf.Contracts.NFT
         internal TokenContractImplContainer.TokenContractImplStub TokenContractStub;
         internal TokenContractImplContainer.TokenContractImplStub UserTokenContractStub;
         internal TokenContractImplContainer.TokenContractImplStub NFTBuyerTokenContractStub;
+        internal TokenContractImplContainer.TokenContractImplStub NFTBuyer2TokenContractStub;
 
         internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub;
 
@@ -60,6 +63,7 @@ namespace AElf.Contracts.NFT
 
         internal NFTMarketContractContainer.NFTMarketContractStub SellerNFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub BuyerNFTMarketContractStub { get; set; }
+        internal NFTMarketContractContainer.NFTMarketContractStub Buyer2NFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub CreatorNFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub AdminNFTMarketContractStub { get; set; }
 
@@ -71,6 +75,8 @@ namespace AElf.Contracts.NFT
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User1KeyPair);
             NFTBuyerTokenContractStub = 
                 GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User2KeyPair);
+            NFTBuyer2TokenContractStub =
+                GetTester<TokenContractImplContainer.TokenContractImplStub>(TokenContractAddress, User3KeyPair);
 
             NFTContractAddress = SystemContractAddresses[NFTContractName];
             NFTMarketContractAddress = SystemContractAddresses[NFTMarketContractName];
@@ -88,6 +94,8 @@ namespace AElf.Contracts.NFT
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
             BuyerNFTMarketContractStub =
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User2KeyPair);
+            Buyer2NFTMarketContractStub = 
+                GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, User3KeyPair);
             CreatorNFTMarketContractStub =
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
             AdminNFTMarketContractStub =

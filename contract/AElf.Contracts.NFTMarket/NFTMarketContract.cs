@@ -7,6 +7,7 @@ namespace AElf.Contracts.NFTMarket
     {
         public override Empty Initialize(InitializeInput input)
         {
+            Assert(State.NFTContract.Value == null, "Already initialized.");
             State.NFTContract.Value = input.NftContractAddress;
             State.Admin.Value = input.AdminAddress ?? Context.Sender;
             State.ServiceFeeRate.Value = input.ServiceFeeRate == 0 ? DefaultServiceFeeRate : input.ServiceFeeRate;
@@ -25,7 +26,7 @@ namespace AElf.Contracts.NFTMarket
         {
             AssertSenderIsAdmin();
             State.ServiceFeeRate.Value = input.ServiceFeeRate;
-            State.ServiceFeeReceiver.Value = input.ServiceFeeReceiver;
+            State.ServiceFeeReceiver.Value = input.ServiceFeeReceiver ?? State.Admin.Value;
             return new Empty();
         }
 

@@ -151,7 +151,7 @@ namespace AElf.Contracts.NFTMarket
 
             Assert(input.WithdrawAmount > 0, "Invalid withdraw amount.");
             var nftProtocolInfo = State.NFTContract.GetNFTProtocolInfo.Call((new StringValue {Value = input.Symbol}));
-            Assert(nftProtocolInfo.Creator == Context.Sender, "Only NFT Protocol Creator can withdraw.");
+            Assert(nftProtocolInfo.Creator == Context.Sender, "NFT symbol does not exist.");
             var customizeInfo = State.CustomizeInfoMap[input.Symbol];
             Assert(input.WithdrawAmount <= customizeInfo.StakingAmount, "Insufficient staking amount.");
             Assert(customizeInfo.ReservedTokenIds.Count == 0,
