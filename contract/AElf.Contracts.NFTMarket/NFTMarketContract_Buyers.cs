@@ -379,7 +379,7 @@ namespace AElf.Contracts.NFTMarket
                         });
                     }
                 }
-                else if (requestInfo.ListTime != null)
+                else
                 {
                     depositReceiver = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol})
                         .Creator;
