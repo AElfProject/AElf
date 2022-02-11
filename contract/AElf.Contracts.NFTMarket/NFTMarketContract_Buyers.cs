@@ -303,6 +303,12 @@ namespace AElf.Contracts.NFTMarket
 
                     State.BidMap[input.Symbol][input.TokenId].Remove(Context.Sender);
 
+                    var bidAddressList = State.BidAddressListMap[input.Symbol][input.TokenId];
+                    if (bidAddressList != null && bidAddressList.Value.Contains(Context.Sender))
+                    {
+                        State.BidAddressListMap[input.Symbol][input.TokenId].Value.Remove(Context.Sender);
+                    }
+
                     Context.Fire(new BidCanceled
                     {
                         Symbol = input.Symbol,
