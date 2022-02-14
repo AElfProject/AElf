@@ -445,9 +445,11 @@ namespace AElf.Contracts.NFTMarket
                             new WhiteListAddressPriceList();
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
+            var actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
 
             if (whiteListPrice != null)
             {
+                // May cause problems, but can be fixed via re-sorting the white list price list.
                 Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
                     $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
                 if (input.Price.Amount < whiteListPrice.Price.Amount)
@@ -457,6 +459,8 @@ namespace AElf.Contracts.NFTMarket
                 }
 
                 usePrice = whiteListPrice.Price;
+                // One record in white list price list for one NFT.
+                actualQuantity = 1;
                 whiteList.Value.Remove(whiteListPrice);
                 State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
             }
@@ -467,14 +471,14 @@ namespace AElf.Contracts.NFTMarket
                     $"Sender is not in the white list, please wait until {listedNftInfo.Duration.PublicTime}");
             }
 
-            var totalAmount = usePrice.Amount.Mul(input.Quantity);
+            var totalAmount = usePrice.Amount.Mul(actualQuantity);
             PerformDeal(new PerformDealInput
             {
                 NFTFrom = input.OfferTo,
                 NFTTo = Context.Sender,
                 NFTSymbol = input.Symbol,
                 NFTTokenId = input.TokenId,
-                NFTQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity),
+                NFTQuantity = actualQuantity,
                 PurchaseSymbol = usePrice.Symbol,
                 PurchaseAmount = totalAmount,
                 PurchaseTokenId = input.Price.TokenId
