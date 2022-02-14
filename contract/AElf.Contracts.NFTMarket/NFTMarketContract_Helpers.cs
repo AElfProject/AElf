@@ -418,7 +418,7 @@ namespace AElf.Contracts.NFTMarket
                             Amount = auctionInfo.EarnestMoney
                         });
                 }
-  
+
                 State.BidMap[symbol][tokenId].Remove(bidAddress);
 
                 Context.Fire(new BidCanceled
@@ -431,6 +431,22 @@ namespace AElf.Contracts.NFTMarket
             }
 
             State.BidAddressListMap[symbol].Remove(tokenId);
+
+            var virtualAddressBalance = State.TokenContract.GetBalance.Call(new MultiToken.GetBalanceInput
+            {
+                Owner = CalculateNFTVirtuaAddress(symbol, tokenId),
+                Symbol = auctionInfo.PurchaseSymbol
+            }).Balance;
+            if (virtualAddressBalance > 0)
+            {
+                State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
+                    new TransferInput
+                    {
+                        To = auctionInfo.Owner,
+                        Symbol = auctionInfo.PurchaseSymbol,
+                        Amount = virtualAddressBalance
+                    });
+            }
         }
 
         private void MaybeRemoveRequest(string symbol, long tokenId)
