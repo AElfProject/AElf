@@ -21,7 +21,7 @@ namespace AElf.Contracts.NFTMarket
                 TokenId = tokenId,
                 Owner = Context.Sender
             }).Balance;
-            Assert(balance >= quantity, "Check sender NFT balance failed.");
+            Assert(balance >= quantity, $"Check sender NFT balance failed. {balance} / {quantity}");
             var allowance = State.NFTContract.GetAllowance.Call(new GetAllowanceInput
             {
                 Symbol = symbol,
@@ -29,7 +29,7 @@ namespace AElf.Contracts.NFTMarket
                 Owner = Context.Sender,
                 Spender = Context.Self
             }).Allowance;
-            Assert(allowance >= quantity, "Check sender NFT allowance failed.");
+            Assert(allowance >= quantity, $"Check sender NFT allowance failed. {allowance} / {quantity}");
         }
 
         private bool CheckAllowanceAndBalanceIsEnough(Address owner, string symbol, long enoughAmount)

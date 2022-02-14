@@ -42,7 +42,6 @@ namespace AElf.Contracts.NFTMinter
             return new Empty();
         }
 
-
         public override Empty Unbox(UnboxInput input)
         {
             var blindBoxInfo = State.BlindBoxInfoMap[input.Symbol][input.Index];

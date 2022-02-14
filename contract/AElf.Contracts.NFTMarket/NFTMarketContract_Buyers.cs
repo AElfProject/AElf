@@ -132,11 +132,10 @@ namespace AElf.Contracts.NFTMarket
             {
                 case ListType.FixedPrice when whiteListAddressPriceList != null &&
                                               whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
-                    if (TryDealWithFixedPrice(input, listedNftInfo))
+                    if (TryDealWithFixedPrice(input, listedNftInfo, out var actualQuantity))
                     {
                         MaybeRemoveRequest(input.Symbol, input.TokenId);
-                        var dealQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
-                        listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(dealQuantity);
+                        listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(actualQuantity);
                         if (listedNftInfo.Quantity == 0 && listedNftInfoList.Value.Contains(listedNftInfo))
                         {
                             listedNftInfoList.Value.Remove(listedNftInfo);
@@ -148,9 +147,8 @@ namespace AElf.Contracts.NFTMarket
                                               input.Price.Amount >= listedNftInfo.Price.Amount:
                     input.Price.Amount = Math.Min(input.Price.Amount, listedNftInfo.Price.Amount);
                     input.Quantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
-                    if (TryDealWithFixedPrice(input, listedNftInfo))
+                    if (TryDealWithFixedPrice(input, listedNftInfo, out var dealQuantity))
                     {
-                        var dealQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
                         listedNftInfo.Quantity = listedNftInfo.Quantity.Sub(dealQuantity);
                         if (listedNftInfo.Quantity == 0)
                         {
@@ -437,15 +435,13 @@ namespace AElf.Contracts.NFTMarket
         /// <summary>
         /// Sender is buyer.
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="listedNftInfo"></param>
-        private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo)
+        private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo, out long actualQuantity)
         {
             var whiteList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] ??
                             new WhiteListAddressPriceList();
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
-            var actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
+            actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
 
             if (whiteListPrice != null)
             {
@@ -459,6 +455,12 @@ namespace AElf.Contracts.NFTMarket
                 }
 
                 usePrice = whiteListPrice.Price;
+                if (actualQuantity > 1)
+                {
+                    var makeOfferInput = input.Clone();
+                    makeOfferInput.Quantity = actualQuantity.Sub(1);
+                    PerformMakeOffer(makeOfferInput);
+                }
                 // One record in white list price list for one NFT.
                 actualQuantity = 1;
                 whiteList.Value.Remove(whiteListPrice);
@@ -467,8 +469,8 @@ namespace AElf.Contracts.NFTMarket
             else if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
             {
                 // Public time not reached and sender is not in white list.
-                throw new AssertionException(
-                    $"Sender is not in the white list, please wait until {listedNftInfo.Duration.PublicTime}");
+                PerformMakeOffer(input);
+                return false;
             }
 
             var totalAmount = usePrice.Amount.Mul(actualQuantity);
