@@ -21,11 +21,20 @@ namespace AElf.Contracts.NFTMarket
             var requestInfo = State.RequestInfoMap[input.Symbol][input.TokenId];
             if (requestInfo != null)
             {
-                if ((requestInfo.ListTime == null || // Never listed,
-                     requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
-                     Context.CurrentBlockTime))
-                    // or white list hours not passed -> will refresh list time and white list time.)
+                bool isWhiteListDueTimePassed;
+                if (requestInfo.ListTime == null) // Never listed before or delisted before.
                 {
+                    isWhiteListDueTimePassed = requestInfo.WhiteListDueTime > Context.CurrentBlockTime;
+                }
+                else
+                {
+                    isWhiteListDueTimePassed = requestInfo.ListTime.AddHours(requestInfo.WhiteListHours) >
+                                               Context.CurrentBlockTime;
+                }
+
+                if (isWhiteListDueTimePassed)
+                {
+                    // White list hours not passed -> will refresh list time and white list price.
                     ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
                 }
                 else

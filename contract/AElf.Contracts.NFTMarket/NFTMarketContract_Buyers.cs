@@ -208,7 +208,8 @@ namespace AElf.Contracts.NFTMarket
                     State.OfferListMap[input.Symbol][input.TokenId][input.OfferFrom] = newOfferList;
                 }
 
-                if (requestInfo != null && !requestInfo.IsConfirmed && requestInfo.ExpireTime > Context.CurrentBlockTime)
+                if (requestInfo != null && !requestInfo.IsConfirmed &&
+                    requestInfo.ExpireTime > Context.CurrentBlockTime)
                 {
                     MaybeRemoveRequest(input.Symbol, input.TokenId);
                     var protocolVirtualAddressFrom = CalculateTokenHash(input.Symbol);
@@ -245,6 +246,24 @@ namespace AElf.Contracts.NFTMarket
                     if (bid.ExpireTime < Context.CurrentBlockTime)
                     {
                         State.BidMap[input.Symbol][input.TokenId].Remove(input.OfferFrom);
+                        var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
+                        if (auctionInfo != null && auctionInfo.EarnestMoney > 0)
+                        {
+                            State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(input.Symbol, input.TokenId),
+                                new TransferInput
+                                {
+                                    To = bid.From,
+                                    Symbol = auctionInfo.PurchaseSymbol,
+                                    Amount = auctionInfo.EarnestMoney
+                                });
+                        }
+
+                        var bidAddressList = State.BidAddressListMap[input.Symbol][input.TokenId];
+                        if (bidAddressList != null && bidAddressList.Value.Contains(Context.Sender))
+                        {
+                            State.BidAddressListMap[input.Symbol][input.TokenId].Value.Remove(Context.Sender);
+                        }
+
                         Context.Fire(new BidCanceled
                         {
                             Symbol = input.Symbol,
@@ -287,7 +306,8 @@ namespace AElf.Contracts.NFTMarket
                 {
                     var auctionInfo = State.EnglishAuctionInfoMap[input.Symbol][input.TokenId];
                     var finishTime = auctionInfo.Duration.StartTime.AddHours(auctionInfo.Duration.DurationHours);
-                    if (auctionInfo.DealTo != null || Context.CurrentBlockTime >= finishTime)
+                    if (auctionInfo.DealTo != null || Context.CurrentBlockTime >= finishTime ||
+                        Context.CurrentBlockTime >= bid.ExpireTime)
                     {
                         if (auctionInfo.EarnestMoney > 0)
                         {
