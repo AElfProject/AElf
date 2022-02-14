@@ -200,7 +200,7 @@ namespace AElf.Contracts.NFT
                 Spender = NFTMarketContractAddress
             });
 
-            await BuyerNFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
+            await Buyer2NFTMarketContractStub.MakeOffer.SendAsync(new MakeOfferInput
             {
                 Symbol = symbol,
                 TokenId = 2,
@@ -233,7 +233,7 @@ namespace AElf.Contracts.NFT
                 },
                 Quantity = 1
             });
-            
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
                 {

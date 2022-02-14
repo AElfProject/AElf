@@ -437,14 +437,19 @@ namespace AElf.Contracts.NFTMarket
                 Owner = CalculateNFTVirtuaAddress(symbol, tokenId),
                 Symbol = auctionInfo.PurchaseSymbol
             }).Balance;
-            if (virtualAddressBalance > 0)
+            var remainAmount = virtualAddressBalance;
+            if (except != null)
+            {
+                remainAmount = remainAmount.Sub(auctionInfo.EarnestMoney.Mul(except.Value.Length));
+            }
+            if (remainAmount > 0)
             {
                 State.TokenContract.Transfer.VirtualSend(CalculateTokenHash(symbol, tokenId),
                     new TransferInput
                     {
                         To = auctionInfo.Owner,
                         Symbol = auctionInfo.PurchaseSymbol,
-                        Amount = virtualAddressBalance
+                        Amount = remainAmount
                     });
             }
         }
