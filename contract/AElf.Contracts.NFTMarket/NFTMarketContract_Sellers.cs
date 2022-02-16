@@ -36,6 +36,7 @@ namespace AElf.Contracts.NFTMarket
                 {
                     // White list hours not passed -> will refresh list time and white list price.
                     ListRequestedNFT(input, requestInfo, whiteListAddressPriceList);
+                    duration.StartTime = requestInfo.ListTime ?? Context.CurrentBlockTime;
                 }
                 else
                 {

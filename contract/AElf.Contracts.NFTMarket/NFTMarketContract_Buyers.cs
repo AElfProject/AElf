@@ -442,6 +442,11 @@ namespace AElf.Contracts.NFTMarket
             var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
             var usePrice = input.Price;
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
+            if (Context.CurrentBlockTime < listedNftInfo.Duration.StartTime)
+            {
+                PerformMakeOffer(input);
+                return false;
+            }
 
             if (whiteListPrice != null)
             {
