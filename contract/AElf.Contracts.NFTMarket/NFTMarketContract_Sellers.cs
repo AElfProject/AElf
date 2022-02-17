@@ -157,13 +157,6 @@ namespace AElf.Contracts.NFTMarket
             };
             State.EnglishAuctionInfoMap[input.Symbol][input.TokenId] = englishAuctionInfo;
 
-            var whiteListAddressPriceList = input.WhiteListAddressPriceList;
-            if (whiteListAddressPriceList != null)
-            {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
-                    whiteListAddressPriceList;
-            }
-
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
             {
                 Value =
@@ -195,8 +188,7 @@ namespace AElf.Contracts.NFTMarket
                 StartingPrice = englishAuctionInfo.StartingPrice,
                 TokenId = englishAuctionInfo.TokenId,
                 Duration = englishAuctionInfo.Duration,
-                EarnestMoney = englishAuctionInfo.EarnestMoney,
-                WhiteListAddressPriceList = whiteListAddressPriceList
+                EarnestMoney = englishAuctionInfo.EarnestMoney
             });
 
             return new Empty();
@@ -239,13 +231,6 @@ namespace AElf.Contracts.NFTMarket
             };
             State.DutchAuctionInfoMap[input.Symbol][input.TokenId] = dutchAuctionInfo;
 
-            var whiteListAddressPriceList = input.WhiteListAddressPriceList;
-            if (whiteListAddressPriceList != null)
-            {
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][Context.Sender] =
-                    whiteListAddressPriceList;
-            }
-
             State.ListedNFTInfoListMap[input.Symbol][input.TokenId][Context.Sender] = new ListedNFTInfoList
             {
                 Value =
@@ -278,8 +263,7 @@ namespace AElf.Contracts.NFTMarket
                 EndingPrice = dutchAuctionInfo.EndingPrice,
                 Symbol = dutchAuctionInfo.Symbol,
                 TokenId = dutchAuctionInfo.TokenId,
-                Duration = dutchAuctionInfo.Duration,
-                WhiteListAddressPriceList = whiteListAddressPriceList
+                Duration = dutchAuctionInfo.Duration
             });
 
             return new Empty();

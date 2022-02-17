@@ -284,7 +284,6 @@ message ListWithEnglishAuctionInput {
     string purchase_symbol = 4;
     ListDuration duration = 5;
     int64 earnest_money = 6;
-    WhiteListAddressPriceList white_list_address_price_list = 7;
 }
 
 message ListWithDutchAuctionInput {
@@ -294,7 +293,6 @@ message ListWithDutchAuctionInput {
     int64 ending_price = 4;
     string purchase_symbol = 5;
     ListDuration duration = 6;
-    WhiteListAddressPriceList white_list_address_price_list = 7;
 }
 
 message DelistInput {
@@ -458,7 +456,6 @@ message EnglishAuctionNFTListed {
     int64 starting_price = 5;
     ListDuration duration = 6;
     int64 earnest_money = 7;
-    WhiteListAddressPriceList white_list_address_price_list = 8;
 }
 
 message DutchAuctionNFTListed {
@@ -470,7 +467,6 @@ message DutchAuctionNFTListed {
     int64 starting_price = 5;
     int64 ending_price = 6;
     ListDuration duration = 7;
-    WhiteListAddressPriceList white_list_address_price_list = 8;
 }
 
 message NFTDelisted {
