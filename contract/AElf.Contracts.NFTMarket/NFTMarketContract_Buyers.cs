@@ -563,6 +563,7 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var duration = auctionInfo.Duration;
+            Assert(Context.CurrentBlockTime > duration.StartTime, "Auction not started.");
             Assert(Context.CurrentBlockTime <= duration.StartTime.AddHours(duration.DurationHours),
                 "Auction already finished.");
             Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol.");
@@ -667,6 +668,7 @@ namespace AElf.Contracts.NFTMarket
             }
 
             var duration = auctionInfo.Duration;
+            Assert(Context.CurrentBlockTime > duration.StartTime, "Auction not started.");
             Assert(Context.CurrentBlockTime <= duration.StartTime.AddHours(duration.DurationHours),
                 "Auction already finished.");
             Assert(input.Price.Symbol == auctionInfo.PurchaseSymbol, "Incorrect symbol");
