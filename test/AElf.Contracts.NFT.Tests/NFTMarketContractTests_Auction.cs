@@ -262,7 +262,7 @@ namespace AElf.Contracts.NFT
                 });
                 balance.Balance.ShouldBe(0);
             }
-            
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new MultiToken.GetBalanceInput
                 {
@@ -319,7 +319,6 @@ namespace AElf.Contracts.NFT
                 TokenId = 2,
                 Duration = new ListDuration
                 {
-                    StartTime = TimestampHelper.GetUtcNow(),
                     DurationHours = 100
                 },
                 PurchaseSymbol = "ELF",
@@ -381,7 +380,7 @@ namespace AElf.Contracts.NFT
                 Price = new Price
                 {
                     Symbol = "ELF",
-                    Amount = 100_00000000
+                    Amount = 101_00000000
                 },
                 Quantity = 1
             });

@@ -292,6 +292,16 @@ namespace AElf.Contracts.NFTMarket
                 return false;
             }
 
+            var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
+            {
+                Symbol = symbol,
+                TokenId = tokenId
+            });
+            if (nftInfo.Quantity != 1)
+            {
+                return false;
+            }
+
             if (requestInfo != null)
             {
                 if (requestInfo.IsConfirmed && requestInfo.ListTime == null)
