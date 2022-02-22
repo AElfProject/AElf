@@ -121,6 +121,7 @@ message Int64List {
 message InitializeInput {
     aelf.Address nft_contract_address = 1;
     aelf.Address admin_address = 2;
+    aelf.Address random_number_provider_contract_address = 3;
 }
 
 message CreateBadgeInput {

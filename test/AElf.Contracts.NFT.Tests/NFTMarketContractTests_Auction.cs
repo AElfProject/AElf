@@ -380,7 +380,7 @@ namespace AElf.Contracts.NFT
                 Price = new Price
                 {
                     Symbol = "ELF",
-                    Amount = 101_00000000
+                    Amount = 200_00000000
                 },
                 Quantity = 1
             });
@@ -393,6 +393,15 @@ namespace AElf.Contracts.NFT
                     Owner = User2Address
                 });
                 balance.Balance.ShouldBe(1);
+            }
+
+            {
+                var offerList = await BuyerNFTMarketContractStub.GetOfferList.CallAsync(new GetOfferListInput
+                {
+                    Symbol = symbol,
+                    TokenId = 2
+                });
+                offerList.Value.Count.ShouldBe(1);
             }
 
             {

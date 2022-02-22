@@ -9,8 +9,9 @@ namespace AElf.Contracts.NFTMinter
         {
             State.NFTContract.Value = input.NftContractAddress;
             State.AdminAddress.Value = input.AdminAddress ?? Context.Sender;
-            State.RandomNumberProviderContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            State.RandomNumberProviderContract.Value = input.RandomNumberProviderContractAddress ??
+                                                       Context.GetContractAddressByName(SmartContractConstants
+                                                           .ConsensusContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             return new Empty();
