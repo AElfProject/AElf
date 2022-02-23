@@ -209,6 +209,7 @@ namespace AElf.Contracts.NFTMarket
                                 TokenId = input.TokenId,
                                 OfferFrom = offer.From,
                                 OfferTo = offer.To,
+                                ExpireTime = offer.ExpireTime
                             });
                         }
                     }
@@ -297,7 +298,8 @@ namespace AElf.Contracts.NFTMarket
                     Symbol = input.Symbol,
                     TokenId = input.TokenId,
                     OfferFrom = Context.Sender,
-                    OfferTo = offerList.Value.FirstOrDefault()?.To
+                    OfferTo = offerList.Value.FirstOrDefault()?.To,
+                    ExpireTime = offerList.Value.FirstOrDefault()?.ExpireTime
                 });
                 State.OfferListMap[input.Symbol][input.TokenId].Remove(Context.Sender);
                 return new Empty();
@@ -369,7 +371,8 @@ namespace AElf.Contracts.NFTMarket
                             Symbol = input.Symbol,
                             TokenId = input.TokenId,
                             OfferFrom = Context.Sender,
-                            OfferTo = offerList.Value[i].To
+                            OfferTo = offerList.Value[i].To,
+                            ExpireTime = offerList.Value[i].ExpireTime
                         });
                     }
                 }

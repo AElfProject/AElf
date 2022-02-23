@@ -528,7 +528,8 @@ namespace AElf.Contracts.NFTMarket
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
                         OfferFrom = input.OfferFrom,
-                        OfferTo = Context.Sender
+                        OfferTo = Context.Sender,
+                        ExpireTime = offer.ExpireTime
                     });
                 }
 
