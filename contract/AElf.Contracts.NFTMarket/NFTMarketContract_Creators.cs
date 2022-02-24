@@ -232,7 +232,9 @@ namespace AElf.Contracts.NFTMarket
                 {
                     Symbol = input.Symbol,
                     TokenId = input.TokenId,
-                    Requester = input.Requester
+                    Requester = input.Requester,
+                    ConfirmedWorkHours = requestInfo.WorkHours,
+                    Price = requestInfo.Price
                 });
             }
             else
