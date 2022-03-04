@@ -53,7 +53,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId,
-                ExternalInfo = input.ExternalInfo
+                ExternalInfo = input.ExternalInfo ?? new ExternalInfo()
             };
             Assert(input.Symbol.All(IsValidCreateSymbolChar), "Invalid symbol.");
             RegisterTokenInfo(tokenInfo);
