@@ -528,12 +528,16 @@ namespace AElf.Contracts.MultiToken
             var validationResult = tokenInfo.TokenName == input.TokenName &&
                                    tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
                                    tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                   tokenInfo.IssueChainId == input.IssueChainId &&
-                                   tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
-            if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
-                !input.ExternalInfo.ContainsKey(keyPair.Key) || input.ExternalInfo[keyPair.Key] != keyPair.Value))
+                                   tokenInfo.IssueChainId == input.IssueChainId;
+
+            if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0)
             {
-                throw new AssertionException("Token validation failed.");
+                validationResult = validationResult && tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
+                if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
+                        !input.ExternalInfo.ContainsKey(keyPair.Key) || input.ExternalInfo[keyPair.Key] != keyPair.Value))
+                {
+                    throw new AssertionException("Token validation failed.");
+                }
             }
 
             Assert(validationResult, "Token validation failed.");
