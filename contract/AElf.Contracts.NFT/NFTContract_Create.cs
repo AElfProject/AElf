@@ -65,7 +65,8 @@ namespace AElf.Contracts.NFT
                 TotalSupply = tokenCreateInput.TotalSupply,
                 Metadata = protocolInfo.Metadata,
                 BaseUri = protocolInfo.BaseUri,
-                IsTokenIdReuse = protocolInfo.IsTokenIdReuse
+                IsTokenIdReuse = protocolInfo.IsTokenIdReuse,
+                NftType = protocolInfo.NftType
             });
 
             return new StringValue
@@ -128,7 +129,8 @@ namespace AElf.Contracts.NFT
                 TotalSupply = nftProtocolInfo.TotalSupply,
                 Metadata = nftProtocolInfo.Metadata,
                 BaseUri = nftProtocolInfo.BaseUri,
-                IsTokenIdReuse = isTokenIdReuse
+                IsTokenIdReuse = isTokenIdReuse,
+                NftType = nftProtocolInfo.NftType
             });
             return new Empty();
         }
@@ -146,6 +148,11 @@ namespace AElf.Contracts.NFT
             var nftTypes = State.NFTTypes.Value;
             nftTypes.Value.Add(input.ShortName, fullName);
             State.NFTTypes.Value = nftTypes;
+            Context.Fire(new NFTTypeAdded
+            {
+                ShortName = input.ShortName,
+                FullName = input.FullName
+            });
             return new Empty();
         }
 
@@ -161,6 +168,10 @@ namespace AElf.Contracts.NFT
             var nftTypes = State.NFTTypes.Value;
             nftTypes.Value.Remove(input.Value);
             State.NFTTypes.Value = nftTypes;
+            Context.Fire(new NFTTypeRemoved()
+            {
+                ShortName = input.Value,
+            });
             return new Empty();
         }
 

@@ -385,6 +385,12 @@ namespace AElf.Contracts.NFT
             }
 
             State.MinterListMap[input.Symbol] = minterList;
+
+            Context.Fire(new MinterListAdded
+            {
+                Symbol = input.Symbol,
+                MinterList = input.MinterList
+            });
             return new Empty();
         }
 
@@ -403,6 +409,12 @@ namespace AElf.Contracts.NFT
             }
 
             State.MinterListMap[input.Symbol] = minterList;
+
+            Context.Fire(new MinterListRemoved
+            {
+                Symbol = input.Symbol,
+                MinterList = input.MinterList
+            });
             return new Empty();
         }
 

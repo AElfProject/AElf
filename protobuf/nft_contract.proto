@@ -480,3 +480,26 @@ message Disassembled {
     AssembledNfts disassembled_nfts = 3 [(aelf.is_indexed) = true];
     AssembledFts disassembled_fts = 4 [(aelf.is_indexed) = true];
 }
+
+message NFTTypeAdded {
+    option (aelf.is_event) = true;
+    string full_name = 1;
+    string short_name = 2;
+}
+
+message NFTTypeRemoved {
+    option (aelf.is_event) = true;
+    string short_name = 1;
+}
+
+message MinterListAdded {
+    option (aelf.is_event) = true;
+    MinterList minter_list = 1;
+    string symbol = 2;
+}
+
+message MinterListRemoved {
+    option (aelf.is_event) = true;
+    MinterList minter_list = 1;
+    string symbol = 2;
+}
