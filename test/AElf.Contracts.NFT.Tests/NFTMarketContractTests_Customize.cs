@@ -176,6 +176,7 @@ namespace AElf.Contracts.NFT
                 executionResult.TransactionResult.Error.ShouldContain(
                     "This NFT cannot be listed with auction for now.");
             }
+
             {
                 var executionResult = await CreatorNFTMarketContractStub.ListWithDutchAuction.SendWithExceptionAsync(
                     new ListWithDutchAuctionInput
@@ -195,6 +196,7 @@ namespace AElf.Contracts.NFT
                 executionResult.TransactionResult.Error.ShouldContain(
                     "This NFT cannot be listed with auction for now.");
             }
+
             var listInput = new ListWithFixedPriceInput
             {
                 Symbol = symbol,
@@ -202,7 +204,7 @@ namespace AElf.Contracts.NFT
                 Price = new Price
                 {
                     Symbol = "ELF",
-                    Amount = 100_00000000
+                    Amount = 200_00000000
                 },
                 Duration = new ListDuration
                 {
@@ -211,18 +213,26 @@ namespace AElf.Contracts.NFT
                     DurationHours = 100
                 },
                 Quantity = 1,
-                WhiteListAddressPriceList = new WhiteListAddressPriceList
+            };
+            
+            {
+                var executionResult =
+                    await CreatorNFTMarketContractStub.ListWithFixedPrice.SendWithExceptionAsync(listInput);
+                executionResult.TransactionResult.Error.ShouldContain("Incorrect white list address price list.");
+            }
+
+            listInput.Price.Amount = 100_00000000;
+            listInput.WhiteListAddressPriceList = new WhiteListAddressPriceList
+            {
+                Value =
                 {
-                    Value =
+                    new WhiteListAddressPrice
                     {
-                        new WhiteListAddressPrice
+                        Address = User2Address,
+                        Price = new Price
                         {
-                            Address = User2Address,
-                            Price = new Price
-                            {
-                                Symbol = "ELF",
-                                Amount = 200_00000000
-                            }
+                            Symbol = "ELF",
+                            Amount = 200_00000000
                         }
                     }
                 }

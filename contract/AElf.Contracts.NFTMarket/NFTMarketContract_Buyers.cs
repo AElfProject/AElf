@@ -139,6 +139,13 @@ namespace AElf.Contracts.NFTMarket
                         if (listedNftInfo.Quantity == 0 && listedNftInfoList.Value.Contains(listedNftInfo))
                         {
                             listedNftInfoList.Value.Remove(listedNftInfo);
+                            Context.Fire(new ListedNFTRemoved
+                            {
+                                Symbol = listedNftInfo.Symbol,
+                                TokenId = listedNftInfo.TokenId,
+                                Duration = listedNftInfo.Duration,
+                                Owner = listedNftInfo.Owner
+                            });
                         }
                     }
 
@@ -153,6 +160,13 @@ namespace AElf.Contracts.NFTMarket
                         if (listedNftInfo.Quantity == 0)
                         {
                             listedNftInfoList.Value.Remove(listedNftInfo);
+                            Context.Fire(new ListedNFTRemoved
+                            {
+                                Symbol = listedNftInfo.Symbol,
+                                TokenId = listedNftInfo.TokenId,
+                                Duration = listedNftInfo.Duration,
+                                Owner = listedNftInfo.Owner
+                            });
                         }
                     }
 

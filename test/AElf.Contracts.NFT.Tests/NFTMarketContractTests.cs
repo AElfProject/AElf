@@ -60,7 +60,7 @@ namespace AElf.Contracts.NFT
             {
                 Symbol = symbol,
                 TokenId = 233,
-                Amount = 1,
+                Amount = 100,
                 Spender = NFTMarketContractAddress
             });
 
@@ -93,6 +93,26 @@ namespace AElf.Contracts.NFT
             listedNftInfo.ListType.ShouldBe(ListType.FixedPrice);
             listedNftInfo.Duration.StartTime.ShouldNotBeNull();
             listedNftInfo.Duration.DurationHours.ShouldBe(24);
+
+            {
+                var executionResult = await SellerNFTMarketContractStub.ListWithFixedPrice.SendWithExceptionAsync(
+                    new ListWithFixedPriceInput
+                    {
+                        Symbol = symbol,
+                        TokenId = 233,
+                        Price = new Price
+                        {
+                            Symbol = "ELF",
+                            Amount = 100_00000000
+                        },
+                        Duration = new ListDuration
+                        {
+                            DurationHours = 24
+                        },
+                        Quantity = 1
+                    });
+                executionResult.TransactionResult.Error.ShouldContain("Check sender NFT balance failed.");
+            }
 
             return symbol;
         }
