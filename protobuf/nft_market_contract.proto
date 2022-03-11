@@ -635,6 +635,7 @@ message ListedNFTChanged {
     int64 quantity = 4;
     Price price = 5;
     ListDuration duration = 6;
+    ListDuration previous_duration = 7;
 }
 
 message ListedNFTRemoved {

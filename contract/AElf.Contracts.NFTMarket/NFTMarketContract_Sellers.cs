@@ -93,6 +93,7 @@ namespace AElf.Contracts.NFTMarket
             else
             {
                 listedNftInfo.Quantity = listedNftInfo.Quantity.Add(input.Quantity);
+                var previousDuration = listedNftInfo.Duration.Clone();
                 listedNftInfo.Duration = duration;
                 isMergedToPreviousListedInfo = true;
                 Context.Fire(new ListedNFTChanged
@@ -103,6 +104,7 @@ namespace AElf.Contracts.NFTMarket
                     Owner = Context.Sender,
                     Price = input.Price,
                     Quantity = listedNftInfo.Quantity,
+                    PreviousDuration = previousDuration
                 });
             }
 
