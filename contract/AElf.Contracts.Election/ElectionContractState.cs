@@ -95,5 +95,7 @@ namespace AElf.Contracts.Election
         public MappedState<string, Address> CandidateSponsorMap { get; set; }
 
         public BoolState ElectionEnabled { get; set; }
+
+        public MappedState<Hash, bool> WeightsAlreadyFixedMap { get; set; }
     }
 }

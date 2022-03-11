@@ -428,7 +428,11 @@ namespace AElf.Contracts.Election
             UnlockTokensOfVoter(input, votingRecord.Amount);
             RetrieveTokensFromVoter(votingRecord.Amount);
             WithdrawTokensOfVoter(input);
-            RemoveBeneficiaryOfVoter();
+            if (!State.WeightsAlreadyFixedMap[input])
+            {
+                RemoveBeneficiaryOfVoter();
+                State.WeightsAlreadyFixedMap.Remove(input);
+            }
 
             var rankingList = State.DataCentersRankingList.Value;
             if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
@@ -481,7 +485,11 @@ namespace AElf.Contracts.Election
             UnlockTokensOfVoter(input.VoteId, votingRecord.Amount, voterAddress);
             RetrieveTokensFromVoter(votingRecord.Amount, voterAddress);
             WithdrawTokensOfVoter(input.VoteId);
-            RemoveBeneficiaryOfVoter(voterAddress);
+            if (!State.WeightsAlreadyFixedMap[input.VoteId])
+            {
+                RemoveBeneficiaryOfVoter(voterAddress);
+                State.WeightsAlreadyFixedMap.Remove(input.VoteId);
+            }
 
             var rankingList = State.DataCentersRankingList.Value;
             if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
@@ -489,6 +497,25 @@ namespace AElf.Contracts.Election
                 rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
             UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, newestPubkey);
             State.DataCentersRankingList.Value = rankingList;
+
+            return new Empty();
+        }
+
+        public override Empty FixTotalWeights(FixTotalWeightsInput input)
+        {
+            foreach (var voteId in input.VoteIds)
+            {
+                var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
+                var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+                var claimedLockDays = State.LockTimeMap[voteId];
+                if (actualLockedTime < claimedLockDays)
+                {
+                    continue;
+                }
+
+                State.WeightsAlreadyFixedMap[voteId] = true;
+                RemoveBeneficiaryOfVoter(votingRecord.Voter);
+            }
 
             return new Empty();
         }

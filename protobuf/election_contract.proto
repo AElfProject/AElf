@@ -62,6 +62,9 @@ service ElectionContract {
 
     rpc AssistWithdraw (AssistWithdrawInput) returns (google.protobuf.Empty) {
     }
+    
+    rpc FixTotalWeights (FixTotalWeightsInput) returns (google.protobuf.Empty) {
+    }
 
     // Update candidate information by consensus contract.
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
@@ -530,6 +533,11 @@ message AnnounceElectionForInput {
 message SetProfitsReceiverInput {
     aelf.Address candidate_address = 1;
     aelf.Address receiver_address = 2;
+}
+
+message FixTotalWeightsInput {
+    repeated aelf.Hash vote_ids = 1;
+    
 }
 
 message EvilMinerDetected {
