@@ -226,6 +226,15 @@ namespace AElf.Contracts.Profit
 
             Context.LogDebug(() =>
                 $"Added {input.BeneficiaryShare.Shares} weights to scheme {input.SchemeId.ToHex()}: {profitDetail}");
+            
+            Context.Fire(new ProfitDetailAdded
+            {
+                Beneficiary = input.BeneficiaryShare.Beneficiary,
+                Shares = input.BeneficiaryShare.Shares,
+                StartPeriod = profitDetail.StartPeriod,
+                EndPeriod = profitDetail.EndPeriod,
+                IsWeightRemoved = profitDetail.IsWeightRemoved
+            });
 
             return new Empty();
         }

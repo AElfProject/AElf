@@ -116,6 +116,7 @@ namespace AElf.Contracts.Election
         private void UpdateElectorInformation(byte[] recoveredPublicKey, long amount, Hash voteId)
         {
             var voterPublicKey = recoveredPublicKey.ToHex();
+            State.PubkeyMap[Context.Sender] = voterPublicKey;
             var voterPublicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
             var voterVotes = State.ElectorVotes[voterPublicKey];
             if (voterVotes == null)
@@ -229,9 +230,18 @@ namespace AElf.Contracts.Election
             AssertValidCandidateInformation(targetInformation);
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
-            var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
-            var claimedLockDays = State.LockTimeMap[input.VoteId];
-            Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
+            var actualLockedSeconds = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+            var claimedLockingSeconds = State.LockTimeMap[input.VoteId];
+            Assert(actualLockedSeconds < claimedLockingSeconds, "This vote already expired.");
+            
+            if (input.IsResetVotingTime)
+            {
+                ExtendWelfareEndPeriod(input.VoteId, actualLockedSeconds);
+            }
+            else
+            {
+                State.LockTimeMap[input.VoteId] = State.LockTimeMap[input.VoteId].Sub(actualLockedSeconds);
+            }
 
             // Withdraw old votes
             State.VoteContract.Withdraw.Send(new WithdrawInput
@@ -317,6 +327,24 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
+        }
+
+        private void ExtendWelfareEndPeriod(Hash voteId, long alreadyLockedSeconds)
+        {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
+            var electionVotingRecord = TransferVotingRecordToElectionVotingRecord(votingRecord, voteId);
+            var voter = electionVotingRecord.Voter;
+            var profitDetails = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                Beneficiary = voter,
+                SchemeId = State.WelfareHash.Value
+            });
+            var extendingDetail = profitDetails.Details.FirstOrDefault(d => d.Shares == electionVotingRecord.Weight);
+            if (extendingDetail != null)
+            {
+  
+            }
+
         }
 
         #endregion

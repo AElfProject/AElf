@@ -50,7 +50,10 @@ service ElectionContract {
     // Before the end time, you are able to change your vote target to other candidates.
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc FixWelfareEndPeriod (FixWelfareEndPeriodInput) returns (google.protobuf.Empty) {
+    }
+
     // After the lock time, your locked tokens will be unlocked and you can withdraw them according to the vote id.
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
@@ -287,6 +290,12 @@ message ChangeVotingOptionInput {
     aelf.Hash vote_id = 1;
     // The new candidate public key.
     string candidate_pubkey = 2;
+    // Tokens will be locked another previous locking time if this is true.
+    bool is_reset_voting_time = 3;
+}
+
+message FixWelfareEndPeriodInput {
+    aelf.Hash vote_id = 1;
 }
 
 message UpdateTermNumberInput {
