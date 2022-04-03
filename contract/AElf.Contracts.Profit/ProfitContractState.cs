@@ -10,10 +10,13 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Address, DistributedProfitsInfo> DistributedProfitsMap { get; set; }
 
+        /// <summary>
+        /// Scheme Id -> Beneficiary -> ProfitDetails
+        /// </summary>
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
 
         public MappedState<Address, CreatedSchemeIds> ManagingSchemeIds { get; set; }
-        
+
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }

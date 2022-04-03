@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -42,21 +41,8 @@ namespace AElf.Contracts.Profit
         public override Hash CreateScheme(CreateSchemeInput input)
         {
             MakeSureReferenceStateAddressSet(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-
-            if (input.ProfitReceivingDuePeriodCount == 0)
-            {
-                input.ProfitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount;
-            }
-            else
-            {
-                Assert(
-                    input.ProfitReceivingDuePeriodCount > 0 &&
-                    input.ProfitReceivingDuePeriodCount <= ProfitContractConstants.MaximumProfitReceivingDuePeriodCount,
-                    "Invalid profit receiving due period count.");
-            }
-
             var schemeId = GenerateSchemeId(input);
-            GetProfitSchemeManager().CreateScheme(new Scheme
+            GetProfitSchemeManager().CreateNewScheme(new Scheme
             {
                 SchemeId = schemeId,
                 // The address of general ledger for current profit scheme.
@@ -79,222 +65,45 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty AddSubScheme(AddSubSchemeInput input)
         {
-            Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
-            Assert(input.SubSchemeShares > 0, "Shares of sub scheme should greater than 0.");
-
-            var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
-            Assert(scheme.SubSchemes.All(s => s.SchemeId != input.SubSchemeId), $"Sub scheme {input.SubSchemeId} already exist.");
-
-            var subSchemeId = input.SubSchemeId;
-            var subScheme = State.SchemeInfos[subSchemeId];
-            Assert(subScheme != null, "Sub scheme not found.");
-
-            var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
-            // Add profit details and total shares of the father scheme.
-            AddBeneficiary(new AddBeneficiaryInput
+            var profitSchemeManager = GetProfitSchemeManager();
+            profitSchemeManager.AddSubScheme(input.SchemeId, input.SubSchemeId, input.SubSchemeShares);
+            var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager);
+            beneficiaryManager.AddBeneficiary(input.SchemeId, new BeneficiaryShare
             {
-                SchemeId = input.SchemeId,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary = subSchemeVirtualAddress,
-                    Shares = input.SubSchemeShares
-                },
-                EndPeriod = long.MaxValue
-            });
-
-            // Add a sub profit scheme.
-            scheme.SubSchemes.Add(new SchemeBeneficiaryShare
-            {
-                SchemeId = input.SubSchemeId,
+                Beneficiary = Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId),
                 Shares = input.SubSchemeShares
-            });
-            State.SchemeInfos[input.SchemeId] = scheme;
-
+            }, long.MaxValue); // Profits may last forever in `AddSubScheme` case.
             return new Empty();
         }
 
         public override Empty RemoveSubScheme(RemoveSubSchemeInput input)
         {
-            Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
-
-            var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
-
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
-
-            var shares = scheme.SubSchemes.SingleOrDefault(d => d.SchemeId == input.SubSchemeId);
-            if (shares == null)
-            {
-                return new Empty();
-            }
-
-            var subSchemeId = input.SubSchemeId;
-            var subScheme = State.SchemeInfos[subSchemeId];
-            Assert(subScheme != null, "Sub scheme not found.");
-
-            var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
-            // Remove profit details
-            State.ProfitDetailsMap[input.SchemeId][subSchemeVirtualAddress] = new ProfitDetails();
-            scheme.SubSchemes.Remove(shares);
-            scheme.TotalShares = scheme.TotalShares.Sub(shares.Shares);
-            State.SchemeInfos[input.SchemeId] = scheme;
-
+            var profitSchemeManager = GetProfitSchemeManager();
+            profitSchemeManager.RemoveSubScheme(input.SchemeId, input.SubSchemeId);
+            var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager);
+            beneficiaryManager.RemoveBeneficiary(input.SchemeId,
+                Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId));
             return new Empty();
         }
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
-            AssertValidInput(input);
-            if (input.EndPeriod == 0)
-            {
-                // Which means this profit Beneficiary will never expired unless removed.
-                input.EndPeriod = long.MaxValue;
-            }
-
-            var schemeId = input.SchemeId;
-            var scheme = State.SchemeInfos[schemeId];
-
-            Assert(scheme != null, "Scheme not found.");
-
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(
-                Context.Sender == scheme.Manager || Context.Sender ==
-                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
-                "Only manager can add beneficiary.");
-
-            Context.LogDebug(() =>
-                $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
-
-            Assert(input.EndPeriod >= scheme.CurrentPeriod,
-                $"Invalid end period. End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
-
-            scheme.TotalShares = scheme.TotalShares.Add(input.BeneficiaryShare.Shares);
-
-            State.SchemeInfos[schemeId] = scheme;
-
-            var profitDetail = new ProfitDetail
-            {
-                StartPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount),
-                EndPeriod = input.EndPeriod,
-                Shares = input.BeneficiaryShare.Shares,
-            };
-
-            var currentProfitDetails = State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary];
-            if (currentProfitDetails == null)
-            {
-                currentProfitDetails = new ProfitDetails
-                {
-                    Details = {profitDetail}
-                };
-            }
-            else
-            {
-                currentProfitDetails.Details.Add(profitDetail);
-            }
-
-            // Remove details too old.
-            var oldProfitDetails = currentProfitDetails.Details.Where(
-                d => d.EndPeriod != long.MaxValue && d.LastProfitPeriod >= d.EndPeriod &&
-                     d.EndPeriod.Add(scheme.ProfitReceivingDuePeriodCount) < scheme.CurrentPeriod).ToList();
-            foreach (var detail in oldProfitDetails)
-            {
-                currentProfitDetails.Details.Remove(detail);
-            }
-
-            State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary] = currentProfitDetails;
-
-            Context.LogDebug(() =>
-                $"Added {input.BeneficiaryShare.Shares} weights to scheme {input.SchemeId.ToHex()}: {profitDetail}");
-            
-            Context.Fire(new ProfitDetailAdded
-            {
-                Beneficiary = input.BeneficiaryShare.Beneficiary,
-                Shares = input.BeneficiaryShare.Shares,
-                StartPeriod = profitDetail.StartPeriod,
-                EndPeriod = profitDetail.EndPeriod,
-                IsWeightRemoved = profitDetail.IsWeightRemoved
-            });
-
+            GetBeneficiaryManager().AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod);
             return new Empty();
-        }
-
-        private void AssertValidInput(AddBeneficiaryInput input)
-        {
-            Assert(input.SchemeId != null, "Invalid scheme id.");
-            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
-            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
         }
 
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
         {
-            Assert(input.SchemeId != null, "Invalid scheme id.");
-            Assert(input.Beneficiary != null, "Invalid Beneficiary address.");
-
-            var scheme = State.SchemeInfos[input.SchemeId];
-
-            Assert(scheme != null, "Scheme not found.");
-
-            var currentDetail = State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
-
-            if (scheme == null || currentDetail == null) return new Empty();
-
-            Assert(Context.Sender == scheme.Manager || Context.Sender ==
-                   Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
-                "Only manager can remove beneficiary.");
-
-            var expiryDetails = scheme.CanRemoveBeneficiaryDirectly
-                ? currentDetail.Details.Where(d => !d.IsWeightRemoved).ToList()
-                : currentDetail.Details
-                    .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
-
-            if (!expiryDetails.Any()) return new Empty();
-
-            var shares = expiryDetails.Sum(d => d.Shares);
-            foreach (var expiryDetail in expiryDetails)
-            {
-                expiryDetail.IsWeightRemoved = true;
-                if (expiryDetail.LastProfitPeriod >= scheme.CurrentPeriod)
-                {
-                    currentDetail.Details.Remove(expiryDetail);
-                }
-                else if (expiryDetail.EndPeriod >= scheme.CurrentPeriod)
-                {
-                    expiryDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
-                }
-            }
-
-            Context.LogDebug(() => $"ProfitDetails after removing expiry details: {currentDetail}");
-
-            // Clear old profit details.
-            if (currentDetail.Details.Count != 0)
-            {
-                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
-            }
-            else
-            {
-                State.ProfitDetailsMap[input.SchemeId].Remove(input.Beneficiary);
-            }
-
-            scheme.TotalShares = scheme.TotalShares.Sub(shares);
-            State.SchemeInfos[input.SchemeId] = scheme;
-
+            GetBeneficiaryManager().RemoveBeneficiary(input.SchemeId, input.Beneficiary);
             return new Empty();
         }
 
         public override Empty AddBeneficiaries(AddBeneficiariesInput input)
         {
+            var beneficiaryManager = GetBeneficiaryManager();
             foreach (var beneficiaryShare in input.BeneficiaryShares)
             {
-                AddBeneficiary(new AddBeneficiaryInput
-                {
-                    SchemeId = input.SchemeId,
-                    BeneficiaryShare = beneficiaryShare,
-                    EndPeriod = input.EndPeriod
-                });
+                beneficiaryManager.AddBeneficiary(input.SchemeId, beneficiaryShare, input.EndPeriod);
             }
 
             return new Empty();
@@ -302,12 +111,10 @@ namespace AElf.Contracts.Profit
 
         public override Empty RemoveBeneficiaries(RemoveBeneficiariesInput input)
         {
+            var beneficiaryManager = GetBeneficiaryManager();
             foreach (var beneficiary in input.Beneficiaries)
             {
-                RemoveBeneficiary(new RemoveBeneficiaryInput
-                {
-                    SchemeId = input.SchemeId, Beneficiary = beneficiary
-                });
+                beneficiaryManager.RemoveBeneficiary(input.SchemeId, beneficiary);
             }
 
             return new Empty();
@@ -784,30 +591,6 @@ namespace AElf.Contracts.Profit
             profitDetail.LastProfitPeriod = lastProfitPeriod;
 
             return profitsMap;
-        }
-
-        private void MakeSureReferenceStateAddressSet(ContractReferenceState state, string contractSystemName)
-        {
-            if (state.Value != null)
-                return;
-            state.Value = Context.GetContractAddressByName(contractSystemName);
-        }
-
-        private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
-        {
-            var decimalTotalAmount = (decimal) totalAmount;
-            var decimalShares = (decimal) shares;
-            var decimalTotalShares = (decimal) totalShares;
-            return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
-        }
-
-        private Hash GenerateSchemeId(CreateSchemeInput createSchemeInput)
-        {
-            var manager = createSchemeInput.Manager ?? Context.Sender;
-            if (createSchemeInput.Token != null)
-                return Context.GenerateId(Context.Self, createSchemeInput.Token);
-            var createdSchemeCount = State.ManagingSchemeIds[manager]?.SchemeIds.Count ?? 0;
-            return Context.GenerateId(Context.Self, createdSchemeCount.ToBytes(false));
         }
     }
 }
