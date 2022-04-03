@@ -30,7 +30,7 @@ service ProfitContract {
     // Remove beneficiary from scheme.
     rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty) {
     }
-    
+
     // Batch add beneficiary to scheme.
     rpc AddBeneficiaries (AddBeneficiariesInput) returns (google.protobuf.Empty) {
     }

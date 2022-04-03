@@ -78,7 +78,7 @@ namespace AElf.Contracts.Profit
         private void RequiredMethodFeeControllerSet()
         {
             if (State.MethodFeeController.Value != null) return;
-            ValidateContractState(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
+            MakeSureReferenceStateAddressSet(State.ParliamentContract, SmartContractConstants.ParliamentContractSystemName);
 
             var defaultAuthority = new AuthorityInfo
             {

@@ -41,7 +41,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Hash CreateScheme(CreateSchemeInput input)
         {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            MakeSureReferenceStateAddressSet(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             if (input.ProfitReceivingDuePeriodCount == 0)
             {
@@ -56,36 +56,19 @@ namespace AElf.Contracts.Profit
             }
 
             var schemeId = GenerateSchemeId(input);
-            var manager = input.Manager ?? Context.Sender;
-            var scheme = GetNewScheme(input, schemeId, manager);
-            Assert(State.SchemeInfos[schemeId] == null, "Already exists.");
-            State.SchemeInfos[schemeId] = scheme;
-
-            var schemeIds = State.ManagingSchemeIds[scheme.Manager];
-            if (schemeIds == null)
+            GetProfitSchemeManager().CreateScheme(new Scheme
             {
-                schemeIds = new CreatedSchemeIds
-                {
-                    SchemeIds = {schemeId}
-                };
-            }
-            else
-            {
-                schemeIds.SchemeIds.Add(schemeId);
-            }
-
-            State.ManagingSchemeIds[scheme.Manager] = schemeIds;
-
-            Context.LogDebug(() => $"Created scheme {State.SchemeInfos[schemeId]}");
-
-            Context.Fire(new SchemeCreated
-            {
-                SchemeId = scheme.SchemeId,
-                Manager = scheme.Manager,
-                IsReleaseAllBalanceEveryTimeByDefault = scheme.IsReleaseAllBalanceEveryTimeByDefault,
-                ProfitReceivingDuePeriodCount = scheme.ProfitReceivingDuePeriodCount,
-                VirtualAddress = scheme.VirtualAddress
+                SchemeId = schemeId,
+                // The address of general ledger for current profit scheme.
+                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
+                Manager = input.Manager ?? Context.Sender,
+                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
+                CurrentPeriod = 1,
+                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount,
+                CanRemoveBeneficiaryDirectly = input.CanRemoveBeneficiaryDirectly
             });
+
             return schemeId;
         }
 
@@ -331,7 +314,6 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// 
         /// Will burn/destroy a certain amount of profits if `input.Period` is less than 0.
         /// </summary>
         /// <param name="input"></param>
@@ -351,7 +333,7 @@ namespace AElf.Contracts.Profit
                    Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName),
                 "Only manager can distribute profits.");
 
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            MakeSureReferenceStateAddressSet(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             var profitsMap = new Dictionary<string, long>();
             if (input.AmountsMap.Any())
@@ -804,29 +786,11 @@ namespace AElf.Contracts.Profit
             return profitsMap;
         }
 
-        private void ValidateContractState(ContractReferenceState state, string contractSystemName)
+        private void MakeSureReferenceStateAddressSet(ContractReferenceState state, string contractSystemName)
         {
             if (state.Value != null)
                 return;
             state.Value = Context.GetContractAddressByName(contractSystemName);
-        }
-
-        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId, Address manager)
-        {
-            var scheme = new Scheme
-            {
-                SchemeId = schemeId,
-                // The address of general ledger for current profit scheme.
-                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Manager = manager,
-                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
-                CurrentPeriod = 1,
-                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
-                DelayDistributePeriodCount = input.DelayDistributePeriodCount,
-                CanRemoveBeneficiaryDirectly = input.CanRemoveBeneficiaryDirectly
-            };
-
-            return scheme;
         }
 
         private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
