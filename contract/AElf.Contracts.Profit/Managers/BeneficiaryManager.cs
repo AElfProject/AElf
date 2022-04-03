@@ -68,7 +68,7 @@ namespace AElf.Contracts.Profit.Managers
             });
         }
 
-        public void RemoveBeneficiary(Hash schemeId, Address beneficiary)
+        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, bool isSubScheme)
         {
             if (schemeId == null)
             {
@@ -88,7 +88,7 @@ namespace AElf.Contracts.Profit.Managers
                 throw new AssertionException("Only manager can remove beneficiary.");
             }
 
-            var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary);
+            var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, true);
             _profitSchemeManager.RemoveShares(schemeId, removedShares);
         }
     }

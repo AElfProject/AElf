@@ -6,6 +6,6 @@ namespace AElf.Contracts.Profit.Managers
     {
         void AddProfitDetail(Hash schemeId, Address beneficiary, ProfitDetail profitDetail);
         void ClearProfitDetails(Hash schemeId, Address beneficiary);
-        long RemoveProfitDetails(Scheme scheme, Address beneficiary);
+        long RemoveProfitDetails(Scheme scheme, Address beneficiary, bool isSubScheme = false);
     }
 }

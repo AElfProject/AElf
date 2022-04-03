@@ -82,7 +82,7 @@ namespace AElf.Contracts.Profit
             profitSchemeManager.RemoveSubScheme(input.SchemeId, input.SubSchemeId);
             var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager);
             beneficiaryManager.RemoveBeneficiary(input.SchemeId,
-                Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId));
+                Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId), true);
             return new Empty();
         }
 
@@ -219,11 +219,11 @@ namespace AElf.Contracts.Profit
         /// Just burn balance in general ledger.
         /// </summary>
         /// <param name="period"></param>
-        /// <param name="profitsMap"></param>
+        /// <param name="amountMap"></param>
         /// <param name="scheme"></param>
         /// <param name="profitsReceivingVirtualAddress"></param>
         /// <returns></returns>
-        private Empty BurnProfits(long period, Dictionary<string, long> profitsMap, Scheme scheme,
+        private Empty BurnProfits(long period, Dictionary<string, long> amountMap, Scheme scheme,
             Address profitsReceivingVirtualAddress)
         {
             scheme.CurrentPeriod = period.Add(1);
@@ -232,7 +232,7 @@ namespace AElf.Contracts.Profit
             {
                 IsReleased = true
             };
-            foreach (var profits in profitsMap)
+            foreach (var profits in amountMap)
             {
                 var symbol = profits.Key;
                 var amount = profits.Value;
@@ -368,73 +368,8 @@ namespace AElf.Contracts.Profit
 
         public override Empty ContributeProfits(ContributeProfitsInput input)
         {
-            Assert(!string.IsNullOrEmpty(input.Symbol), "Invalid token symbol.");
-            Assert(input.Amount > 0, "Amount need to greater than 0.");
-
-            var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
-
-            // ReSharper disable once PossibleNullReferenceException
-            var virtualAddress = scheme.VirtualAddress;
-
-            if (input.Period == 0)
-            {
-                if (State.TokenContract.Value == null)
-                {
-                    State.TokenContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-                }
-
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = Context.Sender,
-                    To = virtualAddress,
-                    Symbol = input.Symbol,
-                    Amount = input.Amount,
-                    Memo = $"Add {input.Amount} dividends."
-                });
-            }
-            else
-            {
-                Assert(input.Period >= scheme.CurrentPeriod, "Invalid contributing period.");
-                var distributedPeriodProfitsVirtualAddress =
-                    GetDistributedPeriodProfitsVirtualAddress(input.SchemeId, input.Period);
-
-                var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
-                if (distributedProfitsInformation == null)
-                {
-                    distributedProfitsInformation = new DistributedProfitsInfo
-                    {
-                        AmountsMap = {{input.Symbol, input.Amount}}
-                    };
-                }
-                else
-                {
-                    Assert(!distributedProfitsInformation.IsReleased,
-                        $"Scheme of period {input.Period} already released.");
-                    distributedProfitsInformation.AmountsMap[input.Symbol] =
-                        distributedProfitsInformation.AmountsMap[input.Symbol].Add(input.Amount);
-                }
-
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = Context.Sender,
-                    To = distributedPeriodProfitsVirtualAddress,
-                    Symbol = input.Symbol,
-                    Amount = input.Amount,
-                });
-
-                State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress] = distributedProfitsInformation;
-            }
-
-            // If someone directly use virtual address to do the contribution, won't sense the token symbol he was using.
-            if (!scheme.ReceivedTokenSymbols.Contains(input.Symbol))
-            {
-                scheme.ReceivedTokenSymbols.Add(input.Symbol);
-            }
-
-            State.SchemeInfos[scheme.SchemeId] = scheme;
-
+            MakeSureReferenceStateAddressSet(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            GetProfitService().Contribute(input.SchemeId, input.Period, input.Symbol, input.Amount);
             return new Empty();
         }
 

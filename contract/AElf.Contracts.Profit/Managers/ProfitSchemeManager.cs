@@ -137,6 +137,15 @@ namespace AElf.Contracts.Profit.Managers
             _schemeMap[schemeId].TotalShares = scheme.TotalShares.Sub(shares);
         }
 
+        public void AddReceivedTokenSymbol(Hash schemeId, string symbol)
+        {
+            CheckSchemeExists(schemeId);
+            if (!_schemeMap[schemeId].ReceivedTokenSymbols.Contains(symbol))
+            {
+                _schemeMap[schemeId].ReceivedTokenSymbols.Add(symbol);
+            }
+        }
+
         /// <summary>
         /// Won't return null.
         /// </summary>

@@ -1,4 +1,5 @@
 using AElf.Contracts.Profit.Managers;
+using AElf.Contracts.Profit.Services;
 
 namespace AElf.Contracts.Profit
 {
@@ -28,6 +29,15 @@ namespace AElf.Contracts.Profit
         private IProfitDetailManager GetProfitDetailManager()
         {
             return new ProfitDetailManager(Context, State.ProfitDetailsMap);
+        }
+
+        private IProfitService GetProfitService()
+        {
+            var profitSchemeManager = GetProfitSchemeManager();
+            var profitDetailManager = GetProfitDetailManager();
+            var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager, profitDetailManager);
+            return new ProfitService(Context, State.TokenContract, beneficiaryManager, profitDetailManager,
+                profitSchemeManager, State.DistributedProfitsMap);
         }
     }
 }

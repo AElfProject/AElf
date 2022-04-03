@@ -9,6 +9,8 @@ namespace AElf.Contracts.Profit.Managers
         void RemoveSubScheme(Hash schemeId, Hash subSchemeId);
         void AddShares(Hash schemeId, long shares);
         void RemoveShares(Hash schemeId, long shares);
+        void AddReceivedTokenSymbol(Hash schemeId, string symbol);
+        
         Scheme GetScheme(Hash schemeId);
         void CheckSchemeExists(Hash schemeId);
     }

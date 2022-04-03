@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -55,17 +56,26 @@ namespace AElf.Contracts.Profit.Managers
         /// </summary>
         /// <param name="scheme"></param>
         /// <param name="beneficiary"></param>
+        /// <param name="isSubScheme"></param>
         /// <returns>Removed Shares</returns>
-        public long RemoveProfitDetails(Scheme scheme, Address beneficiary)
+        public long RemoveProfitDetails(Scheme scheme, Address beneficiary, bool isSubScheme = false)
         {
             var removedShares = 0L;
 
             var profitDetails = _profitDetailsMap[scheme.SchemeId][beneficiary];
+            var detailsCanBeRemoved = new List<ProfitDetail>();
 
-            var detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
-                ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
-                : profitDetails.Details
-                    .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            if (isSubScheme)
+            {
+                detailsCanBeRemoved = profitDetails.Details.ToList();
+            }
+            else
+            {
+                detailsCanBeRemoved = scheme.CanRemoveBeneficiaryDirectly
+                    ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
+                    : profitDetails.Details
+                        .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            }
 
             if (!detailsCanBeRemoved.Any())
             {

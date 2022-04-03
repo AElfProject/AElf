@@ -239,7 +239,7 @@ namespace AElf.Contracts.Profit
                     SubSchemeId = subSchemeId1,
                     SubSchemeShares = 100
                 });
-                addSubSchemeRet.TransactionResult.Error.ShouldContain("Scheme not found");
+                addSubSchemeRet.TransactionResult.Error.ShouldContain("not found");
 
                 addSubSchemeRet = await creator.AddSubScheme.SendWithExceptionAsync(new AddSubSchemeInput
                 {
@@ -247,7 +247,7 @@ namespace AElf.Contracts.Profit
                     SubSchemeId = new Hash(),
                     SubSchemeShares = 100
                 });
-                addSubSchemeRet.TransactionResult.Error.ShouldContain("Scheme not found");
+                addSubSchemeRet.TransactionResult.Error.ShouldContain("not found");
             }
 
             // not the scheme manager
@@ -406,10 +406,10 @@ namespace AElf.Contracts.Profit
                 });
                 removeSubSchemeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                profitItem.TotalShares.ShouldBe(shares2);
-                profitItem.SubSchemes.Count.ShouldBe(1);
-                profitItem.SubSchemes.First().Shares.ShouldBe(shares2);
+                var scheme = await creator.GetScheme.CallAsync(schemeId);
+                scheme.TotalShares.ShouldBe(shares2);
+                scheme.SubSchemes.Count.ShouldBe(1);
+                scheme.SubSchemes.First().Shares.ShouldBe(shares2);
             }
         }
 
@@ -630,122 +630,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
-        }
-
-        /// <summary>
-        /// Every time adding Shares to a Beneficiary, will remove expired and used up profit details.
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
-        public async Task ProfitContract_AddWeight_RemoveExpiredProfitDetails_Test()
-        {
-            const long expiredPeriodNumber = 1;
-            const long amount = 150;
-            const long shares = 10;
-
-            var creator = Creators[0];
-            var beneficiary = Creators[1];
-
-            var receiverAddress = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
-
-            var schemeId = await CreateScheme(0, expiredPeriodNumber);
-
-            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
-            {
-                SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares},
-                EndPeriod = 1
-            });
-
-            await ContributeProfits(schemeId, amount);
-
-            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
-            {
-                SchemeId = schemeId,
-                AmountsMap =
-                {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
-                },
-                Period = 1
-            });
-
-            // Check details
-            {
-                var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-                {
-                    SchemeId = schemeId,
-                    Beneficiary = receiverAddress
-                });
-
-                profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Shares.ShouldBe(shares);
-                profitDetails.Details[0].StartPeriod.ShouldBe(1);
-                profitDetails.Details[0].EndPeriod.ShouldBe(1);
-                profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
-            }
-
-            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
-            {
-                SchemeId = schemeId,
-                AmountsMap =
-                {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
-                },
-                Period = 2
-            });
-
-            // Check details
-            {
-                var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-                {
-                    SchemeId = schemeId,
-                    Beneficiary = receiverAddress
-                });
-
-                profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Shares.ShouldBe(shares);
-                profitDetails.Details[0].StartPeriod.ShouldBe(1);
-                profitDetails.Details[0].EndPeriod.ShouldBe(1);
-                profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
-            }
-
-            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
-            {
-                SchemeId = schemeId,
-                AmountsMap =
-                {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount / 3}
-                },
-                Period = 3
-            });
-
-            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
-            {
-                SchemeId = schemeId,
-            });
-
-            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
-            {
-                SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares * 2},
-                EndPeriod = 4
-            });
-
-            // Check details
-            {
-                var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-                {
-                    SchemeId = schemeId,
-                    Beneficiary = receiverAddress
-                });
-
-                profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Shares.ShouldBe(shares * 2);
-                profitDetails.Details[0].StartPeriod.ShouldBe(4);
-                profitDetails.Details[0].EndPeriod.ShouldBe(4);
-                profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
-            }
+            executionResult.TransactionResult.Error.ShouldContain("not found.");
         }
 
         [Fact]
@@ -829,7 +714,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
+            executionResult.TransactionResult.Error.ShouldContain("not found.");
         }
 
         [Fact]
@@ -1010,7 +895,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
+            executionResult.TransactionResult.Error.ShouldContain("not found.");
         }
 
         [Fact]
@@ -1368,7 +1253,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
+            executionResult.TransactionResult.Error.ShouldContain("not found.");
         }
 
         [Fact]
@@ -1593,7 +1478,7 @@ namespace AElf.Contracts.Profit
                         Symbol = "",
                     });
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.ShouldContain("Invalid token symbol");
+                transactionResult.TransactionResult.Error.ShouldContain("not exists");
             }
 
             // invalid token amount
@@ -1619,7 +1504,7 @@ namespace AElf.Contracts.Profit
                         Amount = 10,
                     });
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
+                transactionResult.TransactionResult.Error.ShouldContain("not found.");
             }
         }
 
@@ -1647,7 +1532,7 @@ namespace AElf.Contracts.Profit
                 NewManager = newManager,
                 SchemeId = new Hash()
             });
-            resetRet.TransactionResult.Error.ShouldContain("Scheme not found.");
+            resetRet.TransactionResult.Error.ShouldContain("not found.");
 
             resetRet = await creator.ResetManager.SendWithExceptionAsync(new ResetManagerInput
             {
