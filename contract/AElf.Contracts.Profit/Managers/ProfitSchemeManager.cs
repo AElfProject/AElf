@@ -146,6 +146,12 @@ namespace AElf.Contracts.Profit.Managers
             }
         }
 
+        public void MoveToNextPeriod(Hash schemeId)
+        {
+            CheckSchemeExists(schemeId);
+            _schemeMap[schemeId].CurrentPeriod = _schemeMap[schemeId].CurrentPeriod.Add(1);
+        }
+
         /// <summary>
         /// Won't return null.
         /// </summary>

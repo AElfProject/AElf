@@ -26,19 +26,21 @@ namespace AElf.Contracts.Profit
         protected ECKeyPair StarterKeyPair => Accounts[0].KeyPair;
         protected Address Starter => Accounts[0].Address;
 
-        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
-            Accounts.Take(5).Select(a => a.KeyPair).ToList();
+        protected List<ECKeyPair> InitialCoreDataCenterKeyPairs => Accounts.Take(5).Select(a => a.KeyPair).ToList();
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
-        
-        protected Address ParliamentContractAddress{ get; set; }
+
+        protected Address ParliamentContractAddress { get; set; }
 
         protected Address ConsensusContractAddress { get; set; }
+
         internal List<ProfitContractImplContainer.ProfitContractImplStub> Creators => CreatorKeyPair
-            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
+            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p))
+            .ToList();
 
         internal List<ProfitContractImplContainer.ProfitContractImplStub> Normal => NormalKeyPair
-            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p)).ToList();
+            .Select(p => GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, p))
+            .ToList();
 
         protected List<ECKeyPair> CreatorKeyPair => Accounts.Skip(1).Take(4).Select(a => a.KeyPair).ToList();
 
@@ -49,10 +51,16 @@ namespace AElf.Contracts.Profit
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal ProfitContractImplContainer.ProfitContractImplStub ProfitContractStub { get; set; }
-        
+
         internal ParliamentContractImplContainer.ParliamentContractImplStub ParliamentContractStub { get; set; }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+
+        public ProfitContractTestBase()
+        {
+            InitializeContracts();
+        }
+
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
@@ -79,9 +87,9 @@ namespace AElf.Contracts.Profit
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
-            
+
             //deploy parliament auth contract
-            ParliamentContractAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
+            ParliamentContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
@@ -93,7 +101,7 @@ namespace AElf.Contracts.Profit
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
 
             //deploy consensus contract
-            ConsensusContractAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
+            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
@@ -119,10 +127,12 @@ namespace AElf.Contracts.Profit
         {
             return GetTester<ProfitContractImplContainer.ProfitContractImplStub>(ProfitContractAddress, keyPair);
         }
-        
-        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(ECKeyPair keyPair)
+
+        internal ParliamentContractImplContainer.ParliamentContractImplStub GetParliamentContractTester(
+            ECKeyPair keyPair)
         {
-            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress, keyPair);
+            return GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(ParliamentContractAddress,
+                keyPair);
         }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
@@ -159,7 +169,7 @@ namespace AElf.Contracts.Profit
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.12),
+                Amount = (long)(ProfitContractTestConstants.NativeTokenTotalSupply * 0.12),
                 To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue token to default user for vote.",
             });
@@ -168,7 +178,7 @@ namespace AElf.Contracts.Profit
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
+                    Amount = (long)(ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
                     To = Address.FromPublicKey(creatorKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
@@ -177,7 +187,7 @@ namespace AElf.Contracts.Profit
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
+                    Amount = (long)(ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
                     To = Address.FromPublicKey(normalKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
@@ -197,20 +207,21 @@ namespace AElf.Contracts.Profit
 
             return parliamentContractCallList;
         }
-        
+
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateConsensusInitializationCallList()
         {
             var consensusContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
-            {
-                PeriodSeconds = 604800L,
-                MinerIncreaseInterval = 31536000
-            });
-            
+            consensusContractCallList.Add(nameof(AEDPoSContractStub.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
+                {
+                    PeriodSeconds = 604800L,
+                    MinerIncreaseInterval = 31536000
+                });
+
             consensusContractCallList.Add(nameof(AEDPoSContractStub.FirstRound), new MinerList
             {
-                Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                Pubkeys = { InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey)) }
             }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
 
             return consensusContractCallList;

@@ -31,13 +31,19 @@ namespace AElf.Contracts.Profit
             return new ProfitDetailManager(Context, State.ProfitDetailsMap);
         }
 
+        private IDistributedProfitsInfoManager GetDistributedProfitsInfoManager()
+        {
+            return new DistributedProfitsInfoManager(Context, State.DistributedProfitsMap);
+        }
+
         private IProfitService GetProfitService()
         {
             var profitSchemeManager = GetProfitSchemeManager();
             var profitDetailManager = GetProfitDetailManager();
             var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager, profitDetailManager);
+            var distributedProfitsInfoManager = GetDistributedProfitsInfoManager();
             return new ProfitService(Context, State.TokenContract, beneficiaryManager, profitDetailManager,
-                profitSchemeManager, State.DistributedProfitsMap);
+                profitSchemeManager, distributedProfitsInfoManager);
         }
     }
 }

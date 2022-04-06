@@ -11,14 +11,13 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.Profit.BVT
+namespace AElf.Contracts.Profit
 {
     public partial class ProfitContractTests
     {
         [Fact]
         public async Task ProfitContract_SetMethodFee_WithoutPermission_Test()
         {
-            //no permission
             var transactionResult = await ProfitContractStub.SetMethodFee.SendWithExceptionAsync(new MethodFees
             {
                 MethodName = "OnlyTest"
@@ -26,6 +25,7 @@ namespace AElf.Contracts.Profit.BVT
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Unauthorized to set method fee.");
         }
+
         [Fact]
         public async Task ProfitContract_SetMethodFee_Success_Test()
         {
@@ -37,11 +37,14 @@ namespace AElf.Contracts.Profit.BVT
                 methodFeeController.OwnerAddress, nameof(ProfitContractStub.SetMethodFee), new MethodFees
                 {
                     MethodName = methodName,
-                    Fees = {new MethodFee
+                    Fees =
                     {
-                        Symbol = tokenSymbol,
-                        BasicFee = fee
-                    }}
+                        new MethodFee
+                        {
+                            Symbol = tokenSymbol,
+                            BasicFee = fee
+                        }
+                    }
                 });
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
@@ -121,7 +124,7 @@ namespace AElf.Contracts.Profit.BVT
                 Value = nameof(ProfitContractStub.CreateScheme)
             });
             methodFee.Fees[0].BasicFee.ShouldBe(10_00000000);
-            
+
             var defaultMethodFee = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
             {
                 Value = "Test"

@@ -46,6 +46,17 @@ namespace AElf.Contracts.Profit.Managers
             });
         }
 
+        public void UpdateProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress, long updateTo)
+        {
+            var subSchemeDetails = _profitDetailsMap[schemeId][subSchemeVirtualAddress];
+            foreach (var detail in subSchemeDetails.Details)
+            {
+                detail.LastProfitPeriod = updateTo;
+            }
+
+            _profitDetailsMap[schemeId][subSchemeVirtualAddress] = subSchemeDetails;
+        }
+
         public void ClearProfitDetails(Hash schemeId, Address beneficiary)
         {
             _profitDetailsMap[schemeId].Remove(beneficiary);
@@ -63,7 +74,7 @@ namespace AElf.Contracts.Profit.Managers
             var removedShares = 0L;
 
             var profitDetails = _profitDetailsMap[scheme.SchemeId][beneficiary];
-            var detailsCanBeRemoved = new List<ProfitDetail>();
+            List<ProfitDetail> detailsCanBeRemoved;
 
             if (isSubScheme)
             {
@@ -109,6 +120,23 @@ namespace AElf.Contracts.Profit.Managers
             }
 
             return removedShares;
+        }
+
+        public long RemoveClaimedProfitDetails(Hash schemeId, Address beneficiary)
+        {
+            var profitDetails = _profitDetailsMap[schemeId][beneficiary];
+            var detailsCanBeRemoved = profitDetails.Details.Where(d => d.EndPeriod == d.LastProfitPeriod).ToList();
+            foreach (var profitDetail in detailsCanBeRemoved)
+            {
+                _profitDetailsMap[schemeId][beneficiary].Details.Remove(profitDetail);
+            }
+
+            return detailsCanBeRemoved.Sum(d => d.Shares);
+        }
+
+        public ProfitDetails GetProfitDetails(Hash schemeId, Address beneficiary)
+        {
+            return _profitDetailsMap[schemeId][beneficiary];
         }
     }
 }

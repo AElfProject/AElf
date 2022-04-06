@@ -61,21 +61,17 @@ namespace AElf.Contracts.Profit
 
         public override Int64Value GetProfitAmount(GetProfitAmountInput input)
         {
-            var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Scheme not found.");
+            var scheme = GetProfitSchemeManager().GetScheme(input.SchemeId);
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
             if (profitDetails == null)
             {
-                return new Int64Value {Value = 0};
+                return new Int64Value();
             }
 
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
-
-            // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < profitItem.CurrentPeriod && (d.LastProfitPeriod == 0
+                d.LastProfitPeriod < scheme.CurrentPeriod && (d.LastProfitPeriod == 0
                     ? d.EndPeriod >= d.StartPeriod
                     : d.EndPeriod >= d.LastProfitPeriod)
             ).ToList();
@@ -83,8 +79,8 @@ namespace AElf.Contracts.Profit
             var amount = 0L;
 
             for (var i = 0;
-                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
-                i++)
+                 i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                 i++)
             {
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
@@ -92,18 +88,18 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                var profitsDict = ProfitAllPeriods(profitItem, profitDetail, beneficiary, true,
-                    input.Symbol);
-                amount = amount.Add(profitsDict[input.Symbol]);
+                var claimableProfitList =
+                    GetProfitService()
+                        .ExtractClaimableProfitList(scheme, profitDetail, new List<string> { input.Symbol });
+                amount = amount.Add(claimableProfitList.Sum(c => c.AmountMap.Sum(p => p.Value)));
             }
 
-            return new Int64Value {Value = amount};
+            return new Int64Value { Value = amount };
         }
 
         public override ReceivedProfitsMap GetProfitsMap(ClaimProfitsInput input)
         {
-            var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
+            var scheme = GetProfitSchemeManager().GetScheme(input.SchemeId);
             var beneficiary = input.Beneficiary ?? Context.Sender;
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][beneficiary];
 
@@ -111,8 +107,6 @@ namespace AElf.Contracts.Profit
             {
                 return new ReceivedProfitsMap();
             }
-
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
             // ReSharper disable once PossibleNullReferenceException
             var availableDetails = profitDetails.Details.Where(d =>
@@ -132,13 +126,17 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                var profitsDictForEachProfitDetail = ProfitAllPeriods(scheme, profitDetail, beneficiary, true);
-                foreach (var kv in profitsDictForEachProfitDetail)
+                var claimableProfitList =
+                    GetProfitService().ExtractClaimableProfitList(scheme, profitDetail);
+                foreach (var claimableProfit in claimableProfitList)
                 {
-                    if (profitsDict.ContainsKey(kv.Key))
-                        profitsDict[kv.Key] = profitsDict[kv.Key].Add(kv.Value);
-                    else
-                        profitsDict[kv.Key] = kv.Value;
+                    foreach (var pair in claimableProfit.AmountMap)
+                    {
+                        if (profitsDict.ContainsKey(pair.Key))
+                            profitsDict[pair.Key] = profitsDict[pair.Key].Add(pair.Value);
+                        else
+                            profitsDict[pair.Key] = pair.Value;
+                    }
                 }
             }
 

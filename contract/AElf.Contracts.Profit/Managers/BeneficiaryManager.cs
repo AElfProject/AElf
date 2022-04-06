@@ -47,7 +47,7 @@ namespace AElf.Contracts.Profit.Managers
             if (_context.Sender != scheme.Manager && _context.Sender !=
                 _context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName))
             {
-                throw new AssertionException("Only manager can add beneficiary.");
+                throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
             _context.LogDebug(() =>
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Profit.Managers
             if (_context.Sender != scheme.Manager && _context.Sender !=
                 _context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName))
             {
-                throw new AssertionException("Only manager can remove beneficiary.");
+                throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
             var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, true);

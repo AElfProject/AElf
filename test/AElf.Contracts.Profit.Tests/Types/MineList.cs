@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     orderby obj.Value descending
                     select obj.Key).ToList();
 
-            var round = new Consensus.AEDPoS.Round();
+            var round = new Round();
 
             for (var i = 0; i < sortedMiners.Count; i++)
             {

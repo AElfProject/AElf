@@ -8,15 +8,8 @@ using Xunit;
 
 namespace AElf.Contracts.Profit
 {
-    public class ProfitTests : ProfitContractTestBase
+    public partial class ProfitContractTests
     {
-        //private const long ClaimTransactionFee = 1_00000000;
-
-        public ProfitTests()
-        {
-            InitializeContracts();
-        }
-
         /// <summary>
         /// Of course it's okay for an address to creator many profit schemes.
         /// </summary>
@@ -52,7 +45,7 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             // Add profits to virtual address of this profit scheme.
             await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
@@ -114,54 +107,54 @@ namespace AElf.Contracts.Profit
         /// It's valid for a third party account to add profits to any profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(DisplayName = "A third party contributes profits to a scheme.")]
         public async Task ProfitContract_ContributeProfits_ByThirdParty_Test()
         {
-            const long amountReleasedByCreator = 1000;
-            const long amountAddedByGoodGuy = 1000;
+            const long distributingAmount = 1000;
+            const long amountAddedByThirdParty = 1000;
             const long shares = 100;
 
             var creator = Creators[0];
-            var goodGuy = Creators[1];
+            var thirdParty = Creators[1];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput()
             {
                 SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = shares}
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = shares }
             });
 
             // Add profits to virtual address of this profit scheme.
-            await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
+            await thirdParty.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amountAddedByGoodGuy,
+                Amount = amountAddedByThirdParty,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
-            // Add profits to release profits virtual address of this profit scheme.
-            await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
+            // Add profits to period virtual address of this profit scheme.
+            await thirdParty.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = schemeId,
-                Amount = amountAddedByGoodGuy,
+                Amount = amountAddedByThirdParty,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             // Check balance of period 1
             {
-                var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
+                var distributedProfitsInfo = await creator.GetDistributedProfitsInfo.CallAsync(
                     new SchemePeriod
                     {
                         SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
-                    .ShouldBe(amountReleasedByCreator);
+                distributedProfitsInfo.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(distributingAmount);
                 // total_Shares is 0 before releasing.
-                releasedProfitsInformation.TotalShares.ShouldBe(0);
-                releasedProfitsInformation.IsReleased.ShouldBe(false);
+                distributedProfitsInfo.TotalShares.ShouldBe(0);
+                distributedProfitsInfo.IsReleased.ShouldBe(false);
 
                 var virtualAddress = await creator.GetSchemeAddress.CallAsync(
                     new SchemePeriod
@@ -174,7 +167,7 @@ namespace AElf.Contracts.Profit
                     Owner = virtualAddress,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amountReleasedByCreator);
+                balance.ShouldBe(distributingAmount);
             }
 
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
@@ -183,32 +176,31 @@ namespace AElf.Contracts.Profit
                 Period = 1,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amountReleasedByCreator}
+                    { ProfitContractTestConstants.NativeTokenSymbol, distributingAmount }
                 }
             });
 
-            // Creator can release profits of this period.
+            // Creator can distribute profits of this period.
             {
-                var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
+                var distributedProfitsInfo = await creator.GetDistributedProfitsInfo.CallAsync(
                     new SchemePeriod
                     {
                         SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
-                    .ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
-                releasedProfitsInformation.TotalShares.ShouldBe(shares);
-                releasedProfitsInformation.IsReleased.ShouldBe(true);
+                distributedProfitsInfo.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(distributingAmount + amountAddedByThirdParty);
+                distributedProfitsInfo.TotalShares.ShouldBe(shares);
+                distributedProfitsInfo.IsReleased.ShouldBe(true);
             }
         }
-
 
         [Fact]
         public async Task ProfitContract_AddSubScheme_Fail_Test()
         {
             var creator = Creators[0];
-            var schemeId = await CreateScheme();
-            var subSchemeId1 = await CreateScheme(1);
+            var schemeId = await CreateSchemeAsync();
+            var subSchemeId1 = await CreateSchemeAsync(1);
 
             // scheme id == subScheme Id
             {
@@ -260,74 +252,8 @@ namespace AElf.Contracts.Profit
                         SubSchemeId = subSchemeId1,
                         SubSchemeShares = 100
                     });
-                addSubSchemeRet.TransactionResult.Error.ShouldContain("Only manager can add sub-scheme");
+                addSubSchemeRet.TransactionResult.Error.ShouldContain("Only manager");
             }
-        }
-
-        [Fact]
-        public async Task ProfitContract_AddSubScheme_Success_Test()
-        {
-            const int shares1 = 80;
-            const int shares2 = 20;
-
-            var creator = Creators[0];
-
-            var schemeId = await CreateScheme();
-            var subSchemeId1 = await CreateScheme(1);
-            var subSchemeId2 = await CreateScheme(2);
-
-            var subProfitItem1 = await creator.GetScheme.CallAsync(subSchemeId1);
-            var subProfitItem2 = await creator.GetScheme.CallAsync(subSchemeId2);
-
-            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
-            {
-                SchemeId = schemeId,
-                SubSchemeId = subSchemeId1,
-                SubSchemeShares = shares1
-            });
-
-            var profitDetails1 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = schemeId,
-                Beneficiary = subProfitItem1.VirtualAddress
-            });
-
-            // Check the total_weight of profit scheme.
-            {
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                profitItem.TotalShares.ShouldBe(shares1);
-            }
-
-            profitDetails1.Details.Count.ShouldBe(1);
-            profitDetails1.Details.First().StartPeriod.ShouldBe(1);
-            profitDetails1.Details.First().EndPeriod.ShouldBe(long.MaxValue);
-            profitDetails1.Details.First().LastProfitPeriod.ShouldBe(0);
-            profitDetails1.Details.First().Shares.ShouldBe(shares1);
-
-            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput()
-            {
-                SchemeId = schemeId,
-                SubSchemeId = subSchemeId2,
-                SubSchemeShares = shares2
-            });
-
-            var profitDetails2 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = schemeId,
-                Beneficiary = subProfitItem2.VirtualAddress
-            });
-
-            // Check the total_weight of profit scheme.
-            {
-                var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                profitItem.TotalShares.ShouldBe(shares1 + shares2);
-            }
-
-            profitDetails2.Details.Count.ShouldBe(1);
-            profitDetails2.Details.First().StartPeriod.ShouldBe(1);
-            profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
-            profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
-            profitDetails2.Details.First().Shares.ShouldBe(shares2);
         }
 
         [Fact]
@@ -335,8 +261,8 @@ namespace AElf.Contracts.Profit
         {
             var shares = 100;
             var creator = Creators[0];
-            var schemeId = await CreateScheme();
-            var subSchemeId1 = await CreateScheme(1);
+            var schemeId = await CreateSchemeAsync();
+            var subSchemeId1 = await CreateSchemeAsync(1);
             await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
             {
                 SchemeId = schemeId,
@@ -360,7 +286,7 @@ namespace AElf.Contracts.Profit
         public async Task ProfitContract_RemoveSubScheme_Without_Authority_Test()
         {
             var shares = 100;
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             var creatorWithoutAuthority = Creators[1];
             var removeSubSchemeResult = await creatorWithoutAuthority.RemoveSubScheme.SendWithExceptionAsync(
                 new RemoveSubSchemeInput
@@ -368,7 +294,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     SubSchemeId = new Hash(),
                 });
-            removeSubSchemeResult.TransactionResult.Error.ShouldContain("Only manager can remove sub-scheme");
+            removeSubSchemeResult.TransactionResult.Error.ShouldContain("Only manager");
         }
 
         [Fact]
@@ -379,9 +305,9 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
-            var subSchemeId1 = await CreateScheme(1);
-            var subSchemeId2 = await CreateScheme(2);
+            var schemeId = await CreateSchemeAsync();
+            var subSchemeId1 = await CreateSchemeAsync(1);
+            var subSchemeId2 = await CreateSchemeAsync(2);
 
             await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
             {
@@ -418,7 +344,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
             var receiver = Accounts[0].Address;
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             //  without authorized
             {
                 var senderWithoutAuthority = Creators[1];
@@ -431,7 +357,7 @@ namespace AElf.Contracts.Profit
                     },
                     SchemeId = schemeId
                 });
-                ret.TransactionResult.Error.ShouldContain("Only manager can add beneficiary");
+                ret.TransactionResult.Error.ShouldContain("Only manager");
             }
         }
 
@@ -453,7 +379,7 @@ namespace AElf.Contracts.Profit
                 });
                 ret.TransactionResult.Error.ShouldContain("Invalid scheme id");
             }
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             // Invalid beneficiary address  
             {
@@ -496,7 +422,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             const int shares1 = 100;
             const int shares2 = 200;
@@ -505,7 +431,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver1, Shares = shares1},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = receiver1, Shares = shares1 },
                 SchemeId = schemeId,
             });
 
@@ -529,7 +455,7 @@ namespace AElf.Contracts.Profit
             const int endPeriod = 100;
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver2, Shares = shares2},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = receiver2, Shares = shares2 },
                 SchemeId = schemeId,
                 EndPeriod = endPeriod
             });
@@ -561,7 +487,7 @@ namespace AElf.Contracts.Profit
             var creator = Creators[0];
             var beneficiary = Accounts[0].Address;
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             {
                 var scheme = await creator.GetScheme.CallAsync(schemeId);
@@ -575,7 +501,7 @@ namespace AElf.Contracts.Profit
                 var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
                 {
                     SchemeId = schemeId,
-                    BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
+                    BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiary, Shares = shares },
                     EndPeriod = 1
                 });
 
@@ -586,7 +512,7 @@ namespace AElf.Contracts.Profit
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
                 SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiary, Shares = shares },
             });
 
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
@@ -594,7 +520,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -609,7 +535,7 @@ namespace AElf.Contracts.Profit
                 var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
                 {
                     SchemeId = schemeId,
-                    BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
+                    BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiary, Shares = shares },
                     EndPeriod = 1
                 });
 
@@ -626,7 +552,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.AddBeneficiary.SendWithExceptionAsync(new AddBeneficiaryInput
             {
                 SchemeId = HashHelper.ComputeFrom("SchemeId"),
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = 100 },
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -643,13 +569,13 @@ namespace AElf.Contracts.Profit
             var beneficiary = Normal[0];
             var receiverAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = receiverAddress, Shares = shares },
                 SchemeId = schemeId,
                 EndPeriod = 1
             });
@@ -659,7 +585,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -722,7 +648,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
             var receiverAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -740,7 +666,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     Beneficiary = receiverAddress
                 });
-            ret.TransactionResult.Error.ShouldContain("Only manager can remove beneficiary");
+            ret.TransactionResult.Error.ShouldContain("Only manager");
         }
 
         [Fact]
@@ -748,7 +674,7 @@ namespace AElf.Contracts.Profit
         {
             var creator = Creators[0];
             var receiverAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             //Invalid scheme id
             {
@@ -778,11 +704,11 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = 100 },
                 SchemeId = schemeId,
             });
 
@@ -791,7 +717,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -805,19 +731,19 @@ namespace AElf.Contracts.Profit
         {
             const long amount = 100;
             var creator = Creators[0];
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             var executionResult = await creator.DistributeProfits.SendWithExceptionAsync(new DistributeProfitsInput
             {
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {"", amount}
+                    { "", amount }
                 },
                 Period = 2
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Invalid token symbol");
+            executionResult.TransactionResult.Error.ShouldContain("not exists");
         }
 
         [Fact]
@@ -827,13 +753,13 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = 100 },
                 SchemeId = schemeId,
             });
 
@@ -842,7 +768,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 2
             });
@@ -856,7 +782,7 @@ namespace AElf.Contracts.Profit
         {
             const long amount = 100;
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
@@ -868,7 +794,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -889,7 +815,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = HashHelper.ComputeFrom("SchemeId"),
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -905,13 +831,13 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId, amount * 2);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = 100 },
                 SchemeId = schemeId,
             });
 
@@ -922,7 +848,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                        { ProfitContractTestConstants.NativeTokenSymbol, amount }
                     },
                     Period = 1
                 });
@@ -937,7 +863,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                        { ProfitContractTestConstants.NativeTokenSymbol, amount }
                     },
                     Period = 2
                 });
@@ -954,9 +880,9 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
-            var subSchemeId1 = await CreateScheme(1);
-            var subSchemeId2 = await CreateScheme(2);
+            var schemeId = await CreateSchemeAsync();
+            var subSchemeId1 = await CreateSchemeAsync(1);
+            var subSchemeId2 = await CreateSchemeAsync(2);
 
             await ContributeProfits(schemeId);
 
@@ -991,7 +917,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -1038,13 +964,13 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress, Shares = shares},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress, Shares = shares },
                 SchemeId = schemeId,
             });
 
@@ -1053,7 +979,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -1095,19 +1021,19 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress1, Shares = weight1},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress1, Shares = weight1 },
                 SchemeId = schemeId,
             });
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress2, Shares = weight2},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress2, Shares = weight2 },
                 SchemeId = schemeId,
             });
 
@@ -1116,7 +1042,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -1177,20 +1103,20 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
 
-            var schemeId = await CreateScheme();
-            var subSchemeId = await CreateScheme(1);
+            var schemeId = await CreateSchemeAsync();
+            var subSchemeId = await CreateSchemeAsync(1);
 
             await ContributeProfits(schemeId);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress1, Shares = weight1},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress1, Shares = weight1 },
                 SchemeId = schemeId,
             });
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress2, Shares = weight2},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress2, Shares = weight2 },
                 SchemeId = schemeId,
             });
 
@@ -1206,7 +1132,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -1264,7 +1190,7 @@ namespace AElf.Contracts.Profit
             var creator = Creators[0];
             var beneficiary = Normal[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId);
 
@@ -1273,7 +1199,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 Period = 1
             });
@@ -1303,14 +1229,14 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId, amount * periodCount + amount);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
                 SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress, Shares = shares},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress, Shares = shares },
             });
 
             for (var i = 0; i < periodCount; i++)
@@ -1320,7 +1246,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                        { ProfitContractTestConstants.NativeTokenSymbol, amount }
                     },
                     Period = i + 1
                 });
@@ -1352,7 +1278,7 @@ namespace AElf.Contracts.Profit
                 Period = periodCount + 1,
                 AmountsMap =
                 {
-                    {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                    { ProfitContractTestConstants.NativeTokenSymbol, amount }
                 },
                 SchemeId = schemeId
             });
@@ -1379,7 +1305,7 @@ namespace AElf.Contracts.Profit
             }
         }
 
-        private async Task<Hash> CreateScheme(int returnIndex = 0,
+        private async Task<Hash> CreateSchemeAsync(int returnIndex = 0,
             long profitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount)
         {
             var creator = Creators[0];
@@ -1405,13 +1331,13 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             await ContributeProfits(schemeId, amount * 2);
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Accounts[0].Address, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = Accounts[0].Address, Shares = 100 },
                 SchemeId = schemeId,
             });
 
@@ -1422,7 +1348,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {ProfitContractTestConstants.NativeTokenSymbol, amount}
+                        { ProfitContractTestConstants.NativeTokenSymbol, amount }
                     },
                     Period = 1
                 });
@@ -1467,7 +1393,7 @@ namespace AElf.Contracts.Profit
         public async Task ContributeProfits_With_Invalid_Input_Test()
         {
             var creator = Creators[0];
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
 
             // invalid token symbol
             {
@@ -1511,7 +1437,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ResetManager_Without_Authority_Test()
         {
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             var sendWithoutAuthority = Creators[1];
             var resetRet = await sendWithoutAuthority.ResetManager.SendWithExceptionAsync(new ResetManagerInput
             {
@@ -1520,11 +1446,11 @@ namespace AElf.Contracts.Profit
             });
             resetRet.TransactionResult.Error.ShouldContain("Only scheme manager can reset manager");
         }
-        
+
         [Fact]
         public async Task ResetManager_With_Invalid_Input_Test()
         {
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             var creator = Creators[0];
             var newManager = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
             var resetRet = await creator.ResetManager.SendWithExceptionAsync(new ResetManagerInput
@@ -1545,7 +1471,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ResetManager_Success_Test()
         {
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             var creator = Creators[0];
             var newManager = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
             await creator.ResetManager.SendAsync(new ResetManagerInput
@@ -1559,7 +1485,7 @@ namespace AElf.Contracts.Profit
                     Manager = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
                 });
             schemeIdForInitialCreator.SchemeIds.Count.ShouldBe(0);
-            
+
             var schemeIdForNewManager = await ProfitContractStub.GetManagingSchemeIds.CallAsync(
                 new GetManagingSchemeIdsInput
                 {
@@ -1569,12 +1495,12 @@ namespace AElf.Contracts.Profit
             var schemeInfo = await ProfitContractStub.GetScheme.CallAsync(schemeId);
             schemeInfo.Manager.Equals(newManager).ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task GetManagingSchemeIds_Test()
         {
-            var schemeId1 = await CreateScheme();
-            var schemeId2 = await CreateScheme(1);
+            var schemeId1 = await CreateSchemeAsync();
+            var schemeId2 = await CreateSchemeAsync(1);
             var managerSchemes = await ProfitContractStub.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
                 Manager = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
@@ -1589,16 +1515,16 @@ namespace AElf.Contracts.Profit
         {
             const long amount = 100;
             var creator = Creators[0];
-            var schemeId = await CreateScheme();
+            var schemeId = await CreateSchemeAsync();
             await ContributeProfits(schemeId, amount * 2);
             var receiver = Accounts[0].Address;
             var tokenSymbol = ProfitContractTestConstants.NativeTokenSymbol;
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver, Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = receiver, Shares = 100 },
                 SchemeId = schemeId,
             });
-            
+
             //first time
             {
                 await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
@@ -1606,7 +1532,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {tokenSymbol, amount}
+                        { tokenSymbol, amount }
                     },
                     Period = 1
                 });
@@ -1624,7 +1550,7 @@ namespace AElf.Contracts.Profit
                 });
                 profitMap.Value[tokenSymbol].ShouldBe(amount);
             }
-            
+
             // after claim
             {
                 await ProfitContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -1643,9 +1569,9 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     Beneficiary = receiver
                 });
-                profitMap.Value.ContainsKey(tokenSymbol).ShouldBeFalse();
+                profitMap.Value.ShouldNotContainKey(tokenSymbol);
             }
-            
+
             //second time
             {
                 await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
@@ -1653,7 +1579,7 @@ namespace AElf.Contracts.Profit
                     SchemeId = schemeId,
                     AmountsMap =
                     {
-                        {tokenSymbol, amount}
+                        { tokenSymbol, amount }
                     },
                     Period = 2
                 });
@@ -1671,8 +1597,8 @@ namespace AElf.Contracts.Profit
                 });
                 profitMap.Value[tokenSymbol].ShouldBe(amount);
             }
-            
-           
+
+
         }
 
         private async Task ContributeProfits(Hash schemeId, long amount = 100)

@@ -20,13 +20,5 @@ namespace AElf.Contracts.Profit
                 return;
             state.Value = Context.GetContractAddressByName(contractSystemName);
         }
-
-        private static long SafeCalculateProfits(long totalAmount, long shares, long totalShares)
-        {
-            var decimalTotalAmount = (decimal) totalAmount;
-            var decimalShares = (decimal) shares;
-            var decimalTotalShares = (decimal) totalShares;
-            return (long) (decimalTotalAmount * decimalShares / decimalTotalShares);
-        }
     }
 }
