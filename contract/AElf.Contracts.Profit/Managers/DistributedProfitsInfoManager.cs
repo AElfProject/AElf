@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Profit.Helpers;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -42,6 +43,23 @@ namespace AElf.Contracts.Profit.Managers
             }
 
             _distributedProfitsInfoMap[periodVirtualAddress] = distributedProfitsInfo;
+
+            _context.Fire(new DistributedPeriodInfoChanged
+            {
+                SchemeId = schemeId,
+                Period = period,
+                VirtualAddress = periodVirtualAddress,
+                ProfitsMapList = new ReceivedProfitsMapList
+                {
+                    Value =
+                    {
+                        new ReceivedProfitsMap
+                        {
+                            Value = { distributedProfitsInfo.AmountsMap }
+                        }
+                    }
+                }
+            });
         }
 
         public void MarkAsDistributed(Hash schemeId, long period, long totalShares,
@@ -66,6 +84,25 @@ namespace AElf.Contracts.Profit.Managers
             }
 
             _distributedProfitsInfoMap[periodVirtualAddress] = distributedProfitsInfo;
+
+            _context.Fire(new DistributedPeriodInfoChanged
+            {
+                SchemeId = schemeId,
+                Period = period,
+                VirtualAddress = periodVirtualAddress,
+                ProfitsMapList = new ReceivedProfitsMapList
+                {
+                    Value =
+                    {
+                        new ReceivedProfitsMap
+                        {
+                            Value = { distributedProfitsInfo.AmountsMap }
+                        }
+                    }
+                },
+                IsReleased = true,
+                TotalShares = totalShares
+            });
         }
 
         /// <summary>

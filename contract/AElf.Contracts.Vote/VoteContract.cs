@@ -236,7 +236,11 @@ namespace AElf.Contracts.Vote
 
             Context.Fire(new Withdrawn
             {
-                VoteId = input.VoteId
+                VoteId = input.VoteId,
+                Option = votingRecord.Option,
+                Voter = votingRecord.Voter,
+                Amount = votingRecord.Amount,
+                VotingItemId = votingRecord.VotingItemId
             });
 
             return new Empty();

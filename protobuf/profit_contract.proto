@@ -301,6 +301,10 @@ message ReceivedProfitsMap {
     map<string, int64> value = 1;
 }
 
+message ReceivedProfitsMapList {
+    repeated ReceivedProfitsMap value = 1;
+}
+
 message SchemeCreated {
     option (aelf.is_event) = true;
     // The virtual address of the created scheme.
@@ -338,4 +342,14 @@ message ProfitDetailAdded {
     int64 shares = 3;
     bool is_weight_removed = 4;
     aelf.Address beneficiary = 5;
+}
+
+message DistributedPeriodInfoChanged {
+    option (aelf.is_event) = true;
+    aelf.Hash scheme_id = 1;
+    int64 period = 2;
+    int64 total_shares = 3;
+    ReceivedProfitsMapList profits_map_list = 4;
+    bool is_released = 5;
+    aelf.Address virtual_address = 6;
 }

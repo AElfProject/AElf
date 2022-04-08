@@ -280,6 +280,10 @@ message Withdrawn {
     option (aelf.is_event) = true;
     // The vote id.
     aelf.Hash vote_id = 1;
+    aelf.Hash voting_item_id = 2;
+    int64 amount = 3;
+    string option = 4;
+    aelf.Address voter = 5;
 }
 
 message VotingItemRegistered {
