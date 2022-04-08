@@ -137,23 +137,8 @@ namespace AElf.Contracts.Profit
 
         public override Empty ResetManager(ResetManagerInput input)
         {
-            var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Scheme not found.");
-
-            // ReSharper disable once PossibleNullReferenceException
-            Assert(Context.Sender == scheme.Manager, "Only scheme manager can reset manager.");
-            Assert(input.NewManager.Value.Any(), "Invalid new sponsor.");
-
-            // Transfer managing scheme id.
-            var oldManagerSchemeIds = State.ManagingSchemeIds[scheme.Manager];
-            oldManagerSchemeIds.SchemeIds.Remove(input.SchemeId);
-            State.ManagingSchemeIds[scheme.Manager] = oldManagerSchemeIds;
-            var newManagerSchemeIds = State.ManagingSchemeIds[input.NewManager] ?? new CreatedSchemeIds();
-            newManagerSchemeIds.SchemeIds.Add(input.SchemeId);
-            State.ManagingSchemeIds[input.NewManager] = newManagerSchemeIds;
-
-            scheme.Manager = input.NewManager;
-            State.SchemeInfos[input.SchemeId] = scheme;
+            var profitSchemeManager = GetProfitSchemeManager();
+            profitSchemeManager.ResetSchemeManager(input.SchemeId, input.NewManager);
             return new Empty();
         }
 

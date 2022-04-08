@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election.Helpers;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;

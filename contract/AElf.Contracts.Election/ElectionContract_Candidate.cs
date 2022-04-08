@@ -26,15 +26,13 @@ namespace AElf.Contracts.Election
         public override Empty AnnounceElection(Address input)
         {
             var recoveredPublicKey = Context.RecoverPublicKey();
-            AnnounceElection(recoveredPublicKey);
+
+            var electionService = GetElectionService();
+            electionService.Involve(recoveredPublicKey, input ?? Address.FromPublicKey(recoveredPublicKey));
 
             var pubkey = recoveredPublicKey.ToHex();
 
-            Assert(input.Value.Any(), "Admin is needed while announcing election.");
-            State.CandidateAdmins[pubkey] = input;
-
             LockCandidateNativeToken();
-
             AddCandidateAsOption(pubkey);
 
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
@@ -44,39 +42,6 @@ namespace AElf.Contracts.Election
             }
 
             return new Empty();
-        }
-
-        private void AnnounceElection(byte[] recoveredPubkey)
-        {
-            var pubkey = recoveredPubkey.ToHex();
-            var pubkeyByteString = ByteString.CopyFrom(recoveredPubkey);
-
-            Assert(!State.InitialMiners.Value.Value.Contains(pubkeyByteString),
-                "Initial miner cannot announce election.");
-
-            var candidateInformation = State.CandidateInformationMap[pubkey];
-
-            if (candidateInformation != null)
-            {
-                Assert(!candidateInformation.IsCurrentCandidate,
-                    $"This public key already announced election. {pubkey}");
-                candidateInformation.AnnouncementTransactionId = Context.OriginTransactionId;
-                candidateInformation.IsCurrentCandidate = true;
-                // In this way we can keep history of current candidate, like terms, missed time slots, etc.
-                State.CandidateInformationMap[pubkey] = candidateInformation;
-            }
-            else
-            {
-                Assert(!IsPubkeyBanned(pubkey), "This candidate already banned before.");
-                State.CandidateInformationMap[pubkey] = new CandidateInformation
-                {
-                    Pubkey = pubkey,
-                    AnnouncementTransactionId = Context.OriginTransactionId,
-                    IsCurrentCandidate = true
-                };
-            }
-
-            State.Candidates.Value.Value.Add(pubkeyByteString);
         }
 
         private void LockCandidateNativeToken()

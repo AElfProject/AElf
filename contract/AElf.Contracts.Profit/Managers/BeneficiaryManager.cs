@@ -19,7 +19,7 @@ namespace AElf.Contracts.Profit.Managers
             _profitDetailManager = profitDetailManager;
         }
 
-        public void AddBeneficiary(Hash schemeId, BeneficiaryShare beneficiaryShare, long endPeriod)
+        public void AddBeneficiary(Hash schemeId, BeneficiaryShare beneficiaryShare, long endPeriod, long startPeriod = 0)
         {
             if (schemeId == null)
             {
@@ -60,15 +60,20 @@ namespace AElf.Contracts.Profit.Managers
             }
 
             _profitSchemeManager.AddShares(schemeId, beneficiaryShare.Shares);
+            if (startPeriod == 0)
+            {
+                startPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount);
+            }
+
             _profitDetailManager.AddProfitDetail(schemeId, beneficiaryShare.Beneficiary, new ProfitDetail
             {
-                StartPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount),
+                StartPeriod = startPeriod,
                 EndPeriod = endPeriod,
                 Shares = beneficiaryShare.Shares,
             });
         }
 
-        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, bool isSubScheme)
+        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, bool isSubScheme = false)
         {
             if (schemeId == null)
             {
@@ -88,7 +93,7 @@ namespace AElf.Contracts.Profit.Managers
                 throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
-            var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, true);
+            var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, isSubScheme);
             _profitSchemeManager.RemoveShares(schemeId, removedShares);
         }
     }

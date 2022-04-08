@@ -11,7 +11,8 @@ namespace AElf.Contracts.Profit.Managers
         void RemoveShares(Hash schemeId, long shares);
         void AddReceivedTokenSymbol(Hash schemeId, string symbol);
         void MoveToNextPeriod(Hash schemeId);
-        
+        void ResetSchemeManager(Hash schemeId, Address newManager);
+
         Scheme GetScheme(Hash schemeId);
         void CheckSchemeExists(Hash schemeId);
     }

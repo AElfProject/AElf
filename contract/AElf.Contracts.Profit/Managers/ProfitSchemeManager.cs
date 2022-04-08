@@ -152,6 +152,31 @@ namespace AElf.Contracts.Profit.Managers
             _schemeMap[schemeId].CurrentPeriod = _schemeMap[schemeId].CurrentPeriod.Add(1);
         }
 
+        public void ResetSchemeManager(Hash schemeId, Address newManager)
+        {
+            var scheme = GetScheme(schemeId);
+
+            if (_context.Sender != scheme.Manager)
+            {
+                throw new AssertionException("Only scheme manager can reset manager.");
+            }
+
+            if (!newManager.Value.Any())
+            {
+                throw new AssertionException("Invalid new sponsor.");
+            }
+
+            // Transfer managing scheme id.
+            var oldManagerSchemeIds = _managingSchemeIdsMap[scheme.Manager];
+            oldManagerSchemeIds.SchemeIds.Remove(schemeId);
+            _managingSchemeIdsMap[scheme.Manager] = oldManagerSchemeIds;
+            var newManagerSchemeIds = _managingSchemeIdsMap[newManager] ?? new CreatedSchemeIds();
+            newManagerSchemeIds.SchemeIds.Add(schemeId);
+            _managingSchemeIdsMap[newManager] = newManagerSchemeIds;
+
+            _schemeMap[schemeId].Manager = newManager;
+        }
+
         /// <summary>
         /// Won't return null.
         /// </summary>

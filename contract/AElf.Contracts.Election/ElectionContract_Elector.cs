@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -29,10 +30,10 @@ namespace AElf.Contracts.Election
         public override Hash Vote(VoteMinerInput input)
         {
             // Check candidate information map instead of candidates. 
-            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
-            AssertValidCandidateInformation(targetInformation);
-            
-            var recoveredPublicKey = Context.RecoverPublicKey();
+            var candidateManager = GetCandidateManager();
+            candidateManager.AssertCandidateValid(input.CandidatePubkey);
+
+            var electorPubkey = Context.RecoverPublicKey();
 
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             AssertValidLockSeconds(lockSeconds);
@@ -41,7 +42,7 @@ namespace AElf.Contracts.Election
             Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
             State.LockTimeMap[voteId] = lockSeconds;
 
-            UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
+            UpdateElectorInformation(electorPubkey, input.Amount, voteId);
 
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
 
@@ -226,8 +227,9 @@ namespace AElf.Contracts.Election
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
-            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
-            AssertValidCandidateInformation(targetInformation);
+            var candidateManager = GetCandidateManager();
+            candidateManager.AssertCandidateValid(input.CandidatePubkey);
+
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
             Assert(Context.Sender == votingRecord.Voter, "No permission to change current vote's option.");
             var actualLockedSeconds = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
@@ -236,7 +238,7 @@ namespace AElf.Contracts.Election
             
             if (input.IsResetVotingTime)
             {
-                ExtendWelfareEndPeriod(input.VoteId, actualLockedSeconds);
+                //ExtendVoterWelfareProfits(input.VoteId, actualLockedSeconds);
             }
             else
             {
@@ -327,24 +329,6 @@ namespace AElf.Contracts.Election
 
             State.DataCentersRankingList.Value = dataCenterList;
             return new Empty();
-        }
-
-        private void ExtendWelfareEndPeriod(Hash voteId, long alreadyLockedSeconds)
-        {
-            var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
-            var electionVotingRecord = TransferVotingRecordToElectionVotingRecord(votingRecord, voteId);
-            var voter = electionVotingRecord.Voter;
-            var profitDetails = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
-            {
-                Beneficiary = voter,
-                SchemeId = State.WelfareHash.Value
-            });
-            var extendingDetail = profitDetails.Details.FirstOrDefault(d => d.Shares == electionVotingRecord.Weight);
-            if (extendingDetail != null)
-            {
-  
-            }
-
         }
 
         #endregion

@@ -23,10 +23,6 @@ service ProfitContract {
     rpc AddBeneficiary (AddBeneficiaryInput) returns (google.protobuf.Empty) {
     }
 
-    // Update beneficiary of scheme.
-    rpc UpdateBeneficiary (UpdateBeneficiaryInput) returns (google.protobuf.Empty) {
-    }
-
     // Remove beneficiary from scheme.
     rpc RemoveBeneficiary (RemoveBeneficiaryInput) returns (google.protobuf.Empty) {
     }
@@ -157,15 +153,7 @@ message AddBeneficiaryInput {
     BeneficiaryShare beneficiary_share = 2;
     // The end period which the beneficiary receives the profit.
     int64 end_period = 3;
-}
-
-message UpdateBeneficiaryInput {
-    // The scheme id.
-    aelf.Hash scheme_id = 1;
-    // The beneficiary information.
-    BeneficiaryShare beneficiary_share = 2;
-    // The end period which the beneficiary receives the profit.
-    int64 end_period = 3;
+    int64 start_period = 4;
 }
 
 message RemoveBeneficiaryInput {

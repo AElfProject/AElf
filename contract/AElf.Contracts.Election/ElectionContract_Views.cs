@@ -130,12 +130,12 @@ namespace AElf.Contracts.Election
 
         public override CandidateInformation GetCandidateInformation(StringValue input)
         {
-            return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {Pubkey = input.Value};
+            return State.CandidateInformationMap[input.Value];
         }
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
-            return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
+            return State.Snapshots[input.TermNumber];
         }
 
         private TermSnapshot GetPreviousTermSnapshotWithNewestPubkey()
