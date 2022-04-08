@@ -238,7 +238,7 @@ namespace AElf.Contracts.Election
             
             if (input.IsResetVotingTime)
             {
-                //ExtendVoterWelfareProfits(input.VoteId, actualLockedSeconds);
+                ExtendVoterWelfareProfits(input.VoteId);
             }
             else
             {
@@ -328,6 +328,76 @@ namespace AElf.Contracts.Election
             }
 
             State.DataCentersRankingList.Value = dataCenterList;
+            return new Empty();
+        }
+
+        private ElectionVotingRecord GetElectionVotingRecordByVoteId(Hash voteId)
+        {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
+            return TransferVotingRecordToElectionVotingRecord(votingRecord, voteId);
+        }
+
+        private ProfitDetail GetProfitDetailByElectionVotingRecord(ElectionVotingRecord electionVotingRecord)
+        {
+            var profitDetails = State.ProfitContract.GetProfitDetails.Call(new GetProfitDetailsInput
+            {
+                Beneficiary = electionVotingRecord.Voter,
+                SchemeId = State.WelfareHash.Value
+            });
+            return profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
+        }
+
+        private void ExtendVoterWelfareProfits(Hash voteId)
+        {
+            var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
+            var welfareScheme = State.ProfitContract.GetScheme.Call(State.WelfareHash.Value);
+            var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
+            if (extendingDetail != null)
+            {
+                var passedPeriod = welfareScheme.CurrentPeriod.Sub(extendingDetail.StartPeriod);
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.WelfareHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = electionVotingRecord.Voter,
+                        Shares = electionVotingRecord.Weight
+                    },
+                    StartPeriod = extendingDetail.EndPeriod.Add(1),
+                    EndPeriod = extendingDetail.EndPeriod.Add(1).Add(passedPeriod)
+                });
+            }
+            else
+            {
+                var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
+                var lockTime = State.LockTimeMap[voteId];
+                var voteTimestamp = electionVotingRecord.VoteTimestamp;
+                var withdrawTimestamp = electionVotingRecord.WithdrawTimestamp;
+                // Maybe not accurate if voter didn't withdraw his votes immediately.
+                var startPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
+                    .Add(treasury.CurrentPeriod);
+                var unlockTimestamp = voteTimestamp.AddSeconds(lockTime);
+                var endPeriod = (unlockTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
+                    .Add(treasury.CurrentPeriod);
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.WelfareHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = electionVotingRecord.Voter,
+                        Shares = electionVotingRecord.Weight
+                    },
+                    StartPeriod = startPeriod,
+                    EndPeriod = endPeriod
+                });
+            }
+        }
+
+        public override Empty FixWelfareEndPeriod(FixWelfareEndPeriodInput input)
+        {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+            Assert(votingRecord.IsChangeTarget, $"Cannot fix profit detail of vote id {input.VoteId}");
+            ExtendVoterWelfareProfits(input.VoteId);
             return new Empty();
         }
 
