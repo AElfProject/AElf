@@ -349,12 +349,17 @@ namespace AElf.Contracts.Election
 
         private void ExtendVoterWelfareProfits(Hash voteId)
         {
+            var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
             var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
-            var welfareScheme = State.ProfitContract.GetScheme.Call(State.WelfareHash.Value);
+            var voteTimestamp = electionVotingRecord.VoteTimestamp;
+            var lockTime = State.LockTimeMap[voteId];
+            var unlockTimestamp = voteTimestamp.AddSeconds(lockTime);
+            var endPeriod = (unlockTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
+                .Add(treasury.CurrentPeriod);
+
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
             if (extendingDetail != null)
             {
-                var passedPeriod = welfareScheme.CurrentPeriod.Sub(extendingDetail.StartPeriod);
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {
                     SchemeId = State.WelfareHash.Value,
@@ -364,21 +369,16 @@ namespace AElf.Contracts.Election
                         Shares = electionVotingRecord.Weight
                     },
                     StartPeriod = extendingDetail.EndPeriod.Add(1),
-                    EndPeriod = extendingDetail.EndPeriod.Add(1).Add(passedPeriod)
+                    EndPeriod = endPeriod
                 });
             }
             else
             {
-                var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
-                var lockTime = State.LockTimeMap[voteId];
-                var voteTimestamp = electionVotingRecord.VoteTimestamp;
                 var withdrawTimestamp = electionVotingRecord.WithdrawTimestamp;
                 // Maybe not accurate if voter didn't withdraw his votes immediately.
                 var startPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
                     .Add(treasury.CurrentPeriod);
-                var unlockTimestamp = voteTimestamp.AddSeconds(lockTime);
-                var endPeriod = (unlockTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
-                    .Add(treasury.CurrentPeriod);
+
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {
                     SchemeId = State.WelfareHash.Value,
