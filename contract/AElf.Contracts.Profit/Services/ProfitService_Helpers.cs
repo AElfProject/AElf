@@ -55,7 +55,7 @@ namespace AElf.Contracts.Profit.Services
                 // General ledger of this sub profit scheme.
                 var subSchemeVirtualAddress = _context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
-                var distributeAmount = SafeCalculateProfits(subScheme.Shares, totalAmount, totalShares);
+                var distributeAmount = SafeCalculateProfits(totalAmount, subScheme.Shares, totalShares);
                 if (distributeAmount != 0)
                 {
                     _context.SendVirtualInline(scheme.SchemeId, _tokenContract.Value,
@@ -174,8 +174,8 @@ namespace AElf.Contracts.Profit.Services
                         continue;
                     }
 
-                    var amount = SafeCalculateProfits(profitDetail.Shares,
-                        distributedProfitsInfo.AmountsMap[symbol], distributedProfitsInfo.TotalShares);
+                    var amount = SafeCalculateProfits(distributedProfitsInfo.AmountsMap[symbol], profitDetail.Shares,
+                        distributedProfitsInfo.TotalShares);
                     claimableProfit.AmountMap.Add(symbol, amount);
                 }
 

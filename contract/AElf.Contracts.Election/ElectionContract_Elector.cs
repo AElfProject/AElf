@@ -223,7 +223,7 @@ namespace AElf.Contracts.Election
 
         #endregion
 
-        #region ChangeVotingTarget
+        #region ChangeVotingOption
 
         public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
         {
@@ -351,11 +351,8 @@ namespace AElf.Contracts.Election
         {
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
             var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
-            var voteTimestamp = electionVotingRecord.VoteTimestamp;
             var lockTime = State.LockTimeMap[voteId];
-            var unlockTimestamp = voteTimestamp.AddSeconds(lockTime);
-            var endPeriod = (unlockTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
-                .Add(treasury.CurrentPeriod);
+            var endPeriod = lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
 
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
             if (extendingDetail != null)
