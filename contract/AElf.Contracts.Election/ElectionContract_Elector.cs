@@ -352,7 +352,13 @@ namespace AElf.Contracts.Election
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
             var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
             var lockTime = State.LockTimeMap[voteId];
-            var endPeriod = lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
+            var lockPeriod = lockTime.Div(State.TimeEachTerm.Value);
+            if (lockPeriod == 0)
+            {
+                return;
+            }
+
+            var endPeriod = lockPeriod.Add(treasury.CurrentPeriod);
 
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
             if (extendingDetail != null)
@@ -374,7 +380,7 @@ namespace AElf.Contracts.Election
                 var withdrawTimestamp = electionVotingRecord.WithdrawTimestamp;
                 // Maybe not accurate if voter didn't withdraw his votes immediately.
                 var startPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
-                    .Add(treasury.CurrentPeriod);
+                    .Add(treasury.CurrentPeriod).Add(1);
 
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {

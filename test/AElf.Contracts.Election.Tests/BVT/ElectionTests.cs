@@ -510,6 +510,56 @@ namespace AElf.Contracts.Election
                 candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(1500);
             }
         }
+        
+        [Fact]
+        public async Task ElectionContract_ChangeVotingTarget_With_Reset()
+        {
+            var candidatesKeyPairs = await ElectionContract_Vote_Test();
+            var voterKeyPair = VoterKeyPairs[0];
+
+            var electionStub = GetElectionContractTester(voterKeyPair);
+
+            var electorVote = await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+            {
+                Value = voterKeyPair.PublicKey.ToHex()
+            });
+
+            var voteInformation = electorVote.ActiveVotingRecords[0];
+
+            var oldTarget = voteInformation.Candidate;
+            var newTarget = candidatesKeyPairs.Last().PublicKey.ToHex();
+            Hash voteId;
+
+            // Check old target
+            {
+                var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
+                {
+                    Value = oldTarget
+                });
+                candidateVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(2);
+                candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(1000);
+                voteId = candidateVote.ObtainedActiveVotingRecordIds[0];
+            }
+
+            var transactionResult = (await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = newTarget,
+                VoteId = voteId,
+                IsResetVotingTime = true
+            })).TransactionResult;
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // Check old target
+            {
+                var profitDetails = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey),
+                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                });
+                profitDetails.Details.Count.ShouldBe(2);
+            }
+        }
 
         [Fact]
         public async Task ElectionContract_ChangeVoting_To_NewTarget()
