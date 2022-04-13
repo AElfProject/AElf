@@ -83,7 +83,8 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
-            GetBeneficiaryManager().AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod);
+            GetBeneficiaryManager()
+                .AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod, input.StartPeriod);
             return new Empty();
         }
 
