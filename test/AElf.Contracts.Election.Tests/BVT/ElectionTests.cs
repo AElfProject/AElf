@@ -407,7 +407,7 @@ namespace AElf.Contracts.Election
                 CandidatePubkey = invalidCandidatePublicKeyStr,
             });
             changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            changeVoteOptionRet.TransactionResult.Error.ShouldContain("Candidate not found");
+            changeVoteOptionRet.TransactionResult.Error.ShouldContain("not found");
             
             // change to a candidate that quits election
             await AnnounceElectionAsync(invalidCandidate);
@@ -418,7 +418,7 @@ namespace AElf.Contracts.Election
                 CandidatePubkey = invalidCandidatePublicKeyStr,
             });
             changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            changeVoteOptionRet.TransactionResult.Error.ShouldContain("Candidate quited election");
+            changeVoteOptionRet.TransactionResult.Error.ShouldContain("quited election");
         }
         
         [Fact]

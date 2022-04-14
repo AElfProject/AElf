@@ -296,7 +296,7 @@ namespace AElf.Contracts.Election
             {
                 Value = key
             });
-            ret.ShouldBe(new CandidateInformation {Pubkey = key});
+            ret.Pubkey.ShouldBeEmpty();
         }
         
         [Fact]

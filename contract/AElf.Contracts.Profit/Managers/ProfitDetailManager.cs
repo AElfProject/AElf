@@ -74,6 +74,11 @@ namespace AElf.Contracts.Profit.Managers
             var removedShares = 0L;
 
             var profitDetails = _profitDetailsMap[scheme.SchemeId][beneficiary];
+            if (profitDetails == null)
+            {
+                return 0;
+            }
+
             List<ProfitDetail> detailsCanBeRemoved;
 
             if (isSubScheme)

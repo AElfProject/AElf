@@ -84,7 +84,7 @@ namespace AElf.Contracts.Election
             var candidateKeyPair = (await ElectionContract_AnnounceElection_Test())[0];
             var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("This public key already announced election.");
+            transactionResult.Error.ShouldContain("already announced election.");
             s.Stop();
             _testOutputHelper.WriteLine(s.ElapsedMilliseconds.ToString());
         }
@@ -146,7 +146,7 @@ namespace AElf.Contracts.Election
                     await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("Candidate not found");
+                transactionResult.Error.ShouldContain("not found");
             }
 
             await AnnounceElectionAsync(candidateKeyPair);
@@ -259,7 +259,7 @@ namespace AElf.Contracts.Election
                 CandidatePubkey = invalidCandidateKeyPair,
                 VoteId = new Hash()
             });
-            var errorMsg = "Candidate not found.";
+            var errorMsg = "not found.";
             ret.TransactionResult.Error.ShouldContain(errorMsg);
         }
 
