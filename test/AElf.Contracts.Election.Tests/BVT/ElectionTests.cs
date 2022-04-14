@@ -108,7 +108,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_AnnounceElectionAgain_Test()
         {
             await ElectionContract_QuiteElection_Test();
-            
+
             var candidatesKeyPair = ValidationDataCenterKeyPairs.First();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Election
                 votingItem.Options.Count.ShouldBe(candidates.Count - quitCount);
             }
         }
-        
+
         [Fact]
         public async Task ElectionContract_QuiteElection_State_Test()
         {
@@ -230,7 +230,7 @@ namespace AElf.Contracts.Election
                 Owner = ElectionContractAddress
             });
             voteBalanceInElectionContract.Balance.ShouldBe(voteTokenInfo.TotalSupply);
-            
+
             voteRet = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime * 2, amount);
             voteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             voteBalanceInElectionContract = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Election
             });
             voteBalanceInElectionContract.Balance.ShouldBe(amount);
         }
-        
+
         [Fact]
         public async Task ElectionContract_Vote_With_Token_Test()
         {
@@ -257,7 +257,7 @@ namespace AElf.Contracts.Election
             });
             voteRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        
+
         /// <summary>
         /// First 5 candidates will get 500 * 2 votes, next 14 candidates will get 250 * 2 votes.
         /// Votes are got from 2 different voters.
@@ -339,7 +339,7 @@ namespace AElf.Contracts.Election
                 };
                 var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(input);
                 candidateVotesWithRecords.ShouldBe(new CandidateVote());
-                
+
                 var candidateVotes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
                 {
                     Value = candidateKeyPair.PublicKey.ToHex()
@@ -394,12 +394,12 @@ namespace AElf.Contracts.Election
             voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
             {
-                Value = validCandidatePublicKeyStr       
+                Value = validCandidatePublicKeyStr
             });
             candidateVote.ObtainedActiveVotingRecordIds.Count.ShouldBe(1);
             candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
             var voteId = candidateVote.ObtainedActiveVotingRecordIds[0];
-            
+
             // change to a candidate that does not exist
             var changeVoteOptionRet = await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
             {
@@ -408,7 +408,7 @@ namespace AElf.Contracts.Election
             });
             changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             changeVoteOptionRet.TransactionResult.Error.ShouldContain("not found");
-            
+
             // change to a candidate that quits election
             await AnnounceElectionAsync(invalidCandidate);
             await QuitElectionAsync(invalidCandidate);
@@ -420,7 +420,7 @@ namespace AElf.Contracts.Election
             changeVoteOptionRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             changeVoteOptionRet.TransactionResult.Error.ShouldContain("quited election");
         }
-        
+
         [Fact]
         public async Task ElectionContract_Vote_DataCenter_Amount_Test()
         {
@@ -431,17 +431,17 @@ namespace AElf.Contracts.Election
             var candidateKeyPair = candidatesKeyPairs.First();
             var voterKeyPair = VoterKeyPairs.First();
             var candidateStringKey = candidateKeyPair.PublicKey.ToHex();
-            var firstVoteRet = await VoteToCandidate(voterKeyPair,candidateStringKey, lockTime, amount);
+            var firstVoteRet = await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
             firstVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenter.DataCenters.ContainsKey(candidateStringKey).ShouldBeTrue();
             dataCenter.DataCenters[candidateStringKey].ShouldBe(amount);
-            var secondVoteRet = await VoteToCandidate(voterKeyPair,candidateStringKey, lockTime, amount);
+            var secondVoteRet = await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
             secondVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenter.DataCenters[candidateStringKey].ShouldBe(amount * 2);
         }
-        
+
         [Fact]
         public async Task ElectionContract_ChangeVotingTarget()
         {
@@ -510,7 +510,7 @@ namespace AElf.Contracts.Election
                 candidateVote.ObtainedActiveVotedVotesAmount.ShouldBe(1500);
             }
         }
-        
+
         [Fact]
         public async Task ElectionContract_ChangeVotingTarget_With_Reset()
         {
@@ -562,6 +562,70 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_Vote_CheckProfit()
+        {
+            const int votersCount = 2;
+            const int announceCount = 2;
+            const long amount = 500;
+            const int lockTime = 100 * 60 * 60 * 24;
+
+            // AnnounceElection 2 candidate
+            var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(announceCount).ToList();
+            foreach (var keyPair in candidatesKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
+
+            // 2 voter 
+            var votersKeyPairs = VoterKeyPairs.Take(votersCount).ToList();
+            var profitStub = GetProfitContractTester(votersKeyPairs.First());
+            var electionStub = GetElectionContractTester(votersKeyPairs.First());
+            long totalShare = 0;
+            var weightList = new List<long>();
+            var profitAmountList = new List<long>();
+            for (var i = 0; i < votersCount; i++)
+            {
+                var voteResult = await VoteToCandidate(votersKeyPairs[i], candidatesKeyPairs[i].PublicKey.ToHex(),
+                    lockTime, amount.Div(i + 1));
+                var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
+                var profitDetail = await profitStub.GetProfitDetails.CallAsync(
+                    new GetProfitDetailsInput
+                    {
+                        Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
+                        SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                    });
+                profitDetail.Details.Count.ShouldBe(1);
+                var voteRecord =
+                    await electionStub.GetElectorVoteWithRecords.CallAsync(
+                        new StringValue {Value = votersKeyPairs[i].PublicKey.ToHex()});
+                voteRecord.ActiveVotingRecords.First(a => a.VoteId.Equals(voteId)).Candidate
+                    .ShouldBe(candidatesKeyPairs[i].PublicKey.ToHex());
+                var weight = voteRecord.ActiveVotingRecords.First(a => a.VoteId.Equals(voteId)).Weight;
+                weightList.Add(weight);
+                totalShare += weight;
+            }
+
+            var checkTotalShare = await profitStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+            checkTotalShare.TotalShares.ShouldBe(totalShare);
+
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+            for (var i = 0; i < votersCount; i++)
+            {
+                var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+                {
+                    Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
+                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                });
+                profitAmountList.Add(profitAmount.Value);
+            }
+
+            weightList.First().Div(weightList.Last()).ShouldBe(profitAmountList.First().Div(profitAmountList.Last()));
+        }
+
+        [Fact]
         public async Task ElectionContract_ChangeVoting_To_NewTarget()
         {
             var voter = VoterKeyPairs.First();
@@ -572,7 +636,7 @@ namespace AElf.Contracts.Election
             var secondCandidate = candidateKeyPairs[1];
             await AnnounceElectionAsync(firstCandidate);
             await AnnounceElectionAsync(secondCandidate);
-            await VoteToCandidate(voter,firstCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            await VoteToCandidate(voter, firstCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             var electionStub = GetElectionContractTester(voter);
             var beforeChangeVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
             {
@@ -615,21 +679,22 @@ namespace AElf.Contracts.Election
             var transactionResult =
                 await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var voteId =
-                (await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
-                    {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
-
+            var voteInfo = (await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+                {Value = voterKeyPair.PublicKey.ToHex()}));
+            var voteId = voteInfo.ActiveVotingRecordIds.First();
             voteId.ShouldBe(Hash.Parser.ParseFrom(transactionResult.ReturnValue));
+            var share = voteInfo.ActiveVotingRecords.First(a => a.VoteId.Equals(voteId)).Weight;
             var candidateInfoBeforeWithdraw = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
             {
                 Value = candidateStringKey
             });
+            var totalShare = (await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]))
+                .TotalShares;
+
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
 
-            
             // Withdraw
             {
                 var executionResult = await WithdrawVotes(voterKeyPair, voteId);
@@ -639,20 +704,22 @@ namespace AElf.Contracts.Election
             {
                 Value = candidateStringKey
             });
-            candidateInfoBeforeWithdraw.AllObtainedVotedVotesAmount.ShouldBe(candidateInfoAfterWithdraw.AllObtainedVotedVotesAmount);
-            candidateInfoBeforeWithdraw.ObtainedActiveVotedVotesAmount.Sub(candidateInfoAfterWithdraw.ObtainedActiveVotedVotesAmount).ShouldBe(amount);
+            candidateInfoBeforeWithdraw.AllObtainedVotedVotesAmount.ShouldBe(candidateInfoAfterWithdraw
+                .AllObtainedVotedVotesAmount);
+            candidateInfoBeforeWithdraw.ObtainedActiveVotedVotesAmount
+                .Sub(candidateInfoAfterWithdraw.ObtainedActiveVotedVotesAmount).ShouldBe(amount);
 
             candidateInfoBeforeWithdraw.ObtainedActiveVotingRecordIds.Contains(voteId).ShouldBeTrue();
             candidateInfoAfterWithdraw.ObtainedActiveVotingRecordIds.Contains(voteId).ShouldBeFalse();
             candidateInfoAfterWithdraw.ObtainedWithdrawnVotingRecordIds.Contains(voteId).ShouldBeTrue();
-            
+
             //check candidate records
             {
                 var candidateVote = await ElectionContractStub.GetCandidateVoteWithAllRecords.CallAsync(new StringValue
                 {
                     Value = candidateStringKey
                 });
-                candidateVote.ObtainedWithdrawnVotesRecords.Select(o=>o.VoteId).ShouldContain(voteId);
+                candidateVote.ObtainedWithdrawnVotesRecords.Select(o => o.VoteId).ShouldContain(voteId);
             }
 
             // Profit
@@ -667,6 +734,14 @@ namespace AElf.Contracts.Election
             {
                 var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
                 balance.ShouldBe(0);
+            }
+
+            // Check share
+            {
+                var afterTotalShare =
+                    (await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]))
+                    .TotalShares;
+                afterTotalShare.ShouldBe(totalShare.Sub(share));
             }
         }
 
@@ -709,8 +784,9 @@ namespace AElf.Contracts.Election
             await ElectionContract_GetVictories_ValidCandidatesEnough_Test();
             await ProduceBlocks(BootMinerKeyPair, 1, true);
             var previousMiners = await AEDPoSContractStub.GetPreviousMinerList.CallAsync(new Empty());
-            var previousMinersPubkey = previousMiners.Pubkeys.Select(o => o.ToHex()).OrderBy(o=>o).ToList();
-            var initialMinersPubkey = InitialCoreDataCenterKeyPairs.Select(o => o.PublicKey.ToHex()).OrderBy(o=>o).ToList();
+            var previousMinersPubkey = previousMiners.Pubkeys.Select(o => o.ToHex()).OrderBy(o => o).ToList();
+            var initialMinersPubkey =
+                InitialCoreDataCenterKeyPairs.Select(o => o.PublicKey.ToHex()).OrderBy(o => o).ToList();
             previousMinersPubkey.ShouldBe(initialMinersPubkey);
         }
 
@@ -731,21 +807,23 @@ namespace AElf.Contracts.Election
                         }
                     }
                 };
-                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress,
+                    ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("invalid input");
             }
-            
+
             // interest count == 0
             {
                 var newSetting = new VoteWeightInterestList();
-                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress,
+                    ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("invalid input");
             }
-            
+
             // repeat day
             {
                 var newSetting = new VoteWeightInterestList
@@ -766,13 +844,14 @@ namespace AElf.Contracts.Election
                         }
                     }
                 };
-                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
+                var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress,
+                    ElectionContractAddress,
                     nameof(ElectionContractStub.SetVoteWeightInterest), newSetting);
                 settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
                 settingRet.Error.ShouldContain("repeat day");
             }
         }
-        
+
         [Fact]
         public async Task Election_VoteWeightInterestSetting_Without_Authority_Test()
         {
@@ -798,7 +877,7 @@ namespace AElf.Contracts.Election
 
             await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightInterest), defaultSetting);
-            
+
             defaultSetting = await ElectionContractStub.GetVoteWeightSetting.CallAsync(
                 new Empty());
             defaultSetting.VoteWeightInterestInfos[0].Capital.ShouldBe(13200);
@@ -818,7 +897,7 @@ namespace AElf.Contracts.Election
             changeControllerRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             changeControllerRet.TransactionResult.Error.ShouldContain("No Permission");
         }
-        
+
         [Fact]
         public async Task Election_ChangeVoteWeightInterestController_With_Invalid_Input_Test()
         {
@@ -827,7 +906,8 @@ namespace AElf.Contracts.Election
                 OwnerAddress = TokenHolderContractAddress,
                 ContractAddress = ParliamentContractAddress
             };
-            var changeControllerRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
+            var changeControllerRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress,
+                ElectionContractAddress,
                 nameof(ElectionContractStub.ChangeVoteWeightInterestController), newAuthority);
             changeControllerRet.Status.ShouldBe(TransactionResultStatus.Failed);
             changeControllerRet.Error.ShouldContain("Invalid authority input.");
@@ -854,7 +934,7 @@ namespace AElf.Contracts.Election
             var buildNewParliamentRet =
                 (await ParliamentContractStub.CreateOrganization.SendAsync(newParliament)).TransactionResult;
             buildNewParliamentRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var newParliamentAddress =  new Address();
+            var newParliamentAddress = new Address();
             newParliamentAddress.MergeFrom(buildNewParliamentRet.ReturnValue);
             var newAuthority = new AuthorityInfo
             {
@@ -868,7 +948,7 @@ namespace AElf.Contracts.Election
             getNewAuthority.ContractAddress.ShouldBe(newAuthority.ContractAddress);
             getNewAuthority.OwnerAddress.ShouldBe(newAuthority.OwnerAddress);
         }
-        
+
         [Fact]
         public async Task Election_SetVoteWeightProportion_Without_Authority_Test()
         {
@@ -881,7 +961,7 @@ namespace AElf.Contracts.Election
             settingRet.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             settingRet.TransactionResult.Error.ShouldContain("No permission");
         }
-        
+
         [Fact]
         public async Task Election_SetVoteWeightProportion_With_Invalid_Input_Test()
         {
@@ -890,12 +970,13 @@ namespace AElf.Contracts.Election
                 TimeProportion = 0,
                 AmountProportion = 3
             };
-            var settingRet =  await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress, ElectionContractAddress,
+            var settingRet = await ExecuteProposalForParliamentTransactionWithException(BootMinerAddress,
+                ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightProportion), newSetting);
             settingRet.Status.ShouldBe(TransactionResultStatus.Failed);
             settingRet.Error.ShouldContain("invalid input");
         }
-        
+
         [Fact]
         public async Task Election_SetVoteWeightProportion_Test()
         {
@@ -910,14 +991,15 @@ namespace AElf.Contracts.Election
             };
             await ExecuteProposalForParliamentTransaction(BootMinerAddress, ElectionContractAddress,
                 nameof(ElectionContractStub.SetVoteWeightProportion), defaultSetting);
-            
+
             defaultSetting = await ElectionContractStub.GetVoteWeightProportion.CallAsync(
                 new Empty());
             defaultSetting.TimeProportion.ShouldBe(3);
             defaultSetting.AmountProportion.ShouldBe(3);
         }
-        
-        #region test about adjust data center 
+
+        #region test about adjust data center
+
         [Fact]
         public async Task ElectionContract_Vote_DataCenter_Replace_Test()
         {
@@ -929,7 +1011,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -940,7 +1022,7 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(newCandidate);
             var voteToCandidateRet = await VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var newDataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             newDataCenterList.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeFalse();
             newDataCenterList.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeTrue();
@@ -959,7 +1041,7 @@ namespace AElf.Contracts.Election
             });
             profitDetailOfNewOne.Details.Count.ShouldBe(1);
         }
-        
+
         [Fact]
         public async Task ElectionContract_Withdraw_DataCenter_Replace_Test()
         {
@@ -971,7 +1053,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -981,7 +1063,8 @@ namespace AElf.Contracts.Election
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
-            var voteToCandidateRet = await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var voteToCandidateRet =
+                await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // after withdraw, the new candidate should be removed
@@ -995,10 +1078,11 @@ namespace AElf.Contracts.Election
             voteIdOfVoter2.ActiveVotes.Count.ShouldBe(1);
             var withdrawVotesRet = await WithdrawVotes(voter2, voteIdOfVoter2.ActiveVotes[0]);
             withdrawVotesRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            var dataCenterListAfterWithDraw = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            var dataCenterListAfterWithDraw =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterListAfterWithDraw.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
             dataCenterListAfterWithDraw.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
-            
+
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
             var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
@@ -1007,11 +1091,12 @@ namespace AElf.Contracts.Election
             });
             profitDetail.Details[0].EndPeriod.ShouldBe(0);
             profitDetail.Details[1].EndPeriod.ShouldBe(long.MaxValue);
-            var profitDetailOfTheWithdraw = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = subsidy,
-                Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
-            });
+            var profitDetailOfTheWithdraw = await ProfitContractStub.GetProfitDetails.CallAsync(
+                new GetProfitDetailsInput
+                {
+                    SchemeId = subsidy,
+                    Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
+                });
             profitDetailOfTheWithdraw.Details.Count.ShouldBe(1);
         }
 
@@ -1026,51 +1111,55 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
+
             var maximumVoteAmountCandidate = ValidationDataCenterKeyPairs[fullCount - 1];
             var newCandidate1 = ValidationDataCenterCandidateKeyPairs.First();
             var newCandidate2 = ValidationDataCenterCandidateKeyPairs.Skip(1).First();
             await AnnounceElectionAsync(newCandidate1);
             await AnnounceElectionAsync(newCandidate2);
-            await VoteToCandidate(voter,newCandidate1.PublicKey.ToHex(), lockTime, span.Div(2));
-            await VoteToCandidate(voter,newCandidate2.PublicKey.ToHex(), lockTime, span.Div(3));
+            await VoteToCandidate(voter, newCandidate1.PublicKey.ToHex(), lockTime, span.Div(2));
+            await VoteToCandidate(voter, newCandidate2.PublicKey.ToHex(), lockTime, span.Div(3));
             await QuitElectionAsync(maximumVoteAmountCandidate);
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
             dataCenterList.DataCenters.ContainsKey(newCandidate1.PublicKey.ToHex()).ShouldBeTrue();
             dataCenterList.DataCenters.ContainsKey(maximumVoteAmountCandidate.PublicKey.ToHex()).ShouldBeFalse();
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
-            var profitDetailOfNewCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = subsidy,
-                Beneficiary = Address.FromPublicKey(newCandidate1.PublicKey)
-            });
+            var profitDetailOfNewCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(
+                new GetProfitDetailsInput
+                {
+                    SchemeId = subsidy,
+                    Beneficiary = Address.FromPublicKey(newCandidate1.PublicKey)
+                });
             profitDetailOfNewCandidate.Details.Count.ShouldBe(1);
-            var profitDetailOfMaximumVoteAmountCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = subsidy,
-                Beneficiary = Address.FromPublicKey(maximumVoteAmountCandidate.PublicKey)
-            });
+            var profitDetailOfMaximumVoteAmountCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(
+                new GetProfitDetailsInput
+                {
+                    SchemeId = subsidy,
+                    Beneficiary = Address.FromPublicKey(maximumVoteAmountCandidate.PublicKey)
+                });
             profitDetailOfMaximumVoteAmountCandidate.Details.Count.ShouldBe(1);
             profitDetailOfMaximumVoteAmountCandidate.Details[0].EndPeriod.ShouldBe(0);
-            
+
             var candidateToQuit1 = ValidationDataCenterKeyPairs[0];
             var candidateToQuit2 = ValidationDataCenterKeyPairs[1];
             await QuitElectionAsync(candidateToQuit1);
             await QuitElectionAsync(candidateToQuit2);
             dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount - 1);
-            var profitDetailOfMinimumCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
-            {
-                SchemeId = subsidy,
-                Beneficiary = Address.FromPublicKey(candidateToQuit1.PublicKey)
-            });
+            var profitDetailOfMinimumCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(
+                new GetProfitDetailsInput
+                {
+                    SchemeId = subsidy,
+                    Beneficiary = Address.FromPublicKey(candidateToQuit1.PublicKey)
+                });
             profitDetailOfMinimumCandidate.Details.Count.ShouldBe(1);
             profitDetailOfMinimumCandidate.Details[0].EndPeriod.ShouldBe(0);
         }
-        
+
         /// <summary>
         /// changeVoteOption from a candidate A who is in the data center, and it will be replaced by someone out of data center
         /// </summary>
@@ -1086,7 +1175,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1096,7 +1185,8 @@ namespace AElf.Contracts.Election
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
-            var voteToCandidateRet = await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var voteToCandidateRet =
+                await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // after change option, the minimum candidate amount add to 2700, it should be in data center
@@ -1110,11 +1200,12 @@ namespace AElf.Contracts.Election
             // await change
             var changeOptionRet = await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], minimumCandidate.Key);
             changeOptionRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var dataCenterListAfterChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+
+            var dataCenterListAfterChangeOption =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterListAfterChangeOption.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
             dataCenterListAfterChangeOption.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
-            
+
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
             var profitDetailOfTheIn = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
@@ -1148,17 +1239,19 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
+
             var maximumVoteCandidate = ValidationDataCenterKeyPairs[fullCount - 1];
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
             var voteAmount2 = 100;
-            var voteToCandidateRet = await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount2);
+            var voteToCandidateRet =
+                await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount2);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
             var voteIdOfVoter2 = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
             {
@@ -1166,16 +1259,19 @@ namespace AElf.Contracts.Election
                 VotingItemId = electionVoteItemId
             });
             voteIdOfVoter2.ActiveVotes.Count.ShouldBe(1);
-            var dataCenterListBeforeChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            var dataCenterListBeforeChangeOption =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             // await change
-            var changeOptionRet = await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], newCandidate.PublicKey.ToHex());
+            var changeOptionRet =
+                await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], newCandidate.PublicKey.ToHex());
             changeOptionRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var dataCenterListAfterChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+
+            var dataCenterListAfterChangeOption =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterListBeforeChangeOption.DataCenters.Keys.ShouldNotContain(newCandidate.PublicKey.ToHex());
             dataCenterListAfterChangeOption.DataCenters.Keys.ShouldNotContain(newCandidate.PublicKey.ToHex());
         }
-        
+
         /// <summary>
         /// changeVoteOption to another candidate A, and A's vote amount is greater than someone in data center
         /// </summary>
@@ -1191,17 +1287,19 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter,keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
-            var minimumVoteCandidate= ValidationDataCenterKeyPairs[0];
+
+            var minimumVoteCandidate = ValidationDataCenterKeyPairs[0];
             var maximumVoteCandidate = ValidationDataCenterKeyPairs[fullCount - 1];
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
-            var voteToCandidateRet = await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var voteToCandidateRet =
+                await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
             var voteIdOfVoter2 = await VoteContractStub.GetVotingIds.CallAsync(new GetVotingIdsInput
             {
@@ -1209,16 +1307,19 @@ namespace AElf.Contracts.Election
                 VotingItemId = electionVoteItemId
             });
             voteIdOfVoter2.ActiveVotes.Count.ShouldBe(1);
-            var dataCenterListBeforeChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+            var dataCenterListBeforeChangeOption =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             // await change
-            var changeOptionRet = await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], newCandidate.PublicKey.ToHex());
+            var changeOptionRet =
+                await ChangeVoteOption(voter2, voteIdOfVoter2.ActiveVotes[0], newCandidate.PublicKey.ToHex());
             changeOptionRet.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var dataCenterListAfterChangeOption = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
+
+            var dataCenterListAfterChangeOption =
+                await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterListBeforeChangeOption.DataCenters.Keys.ShouldNotContain(newCandidate.PublicKey.ToHex());
             dataCenterListAfterChangeOption.DataCenters.Keys.ShouldContain(newCandidate.PublicKey.ToHex());
             dataCenterListAfterChangeOption.DataCenters.Keys.ShouldNotContain(minimumVoteCandidate.PublicKey.ToHex());
-            
+
             var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
             var profitDetailOfTheIn = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
@@ -1226,7 +1327,7 @@ namespace AElf.Contracts.Election
                 Beneficiary = Address.FromPublicKey(newCandidate.PublicKey)
             });
             profitDetailOfTheIn.Details.Count.ShouldBe(1);
-            
+
             var profitDetailOfTheOut = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -1235,7 +1336,7 @@ namespace AElf.Contracts.Election
             profitDetailOfTheOut.Details.Count.ShouldBe(1);
             profitDetailOfTheOut.Details[0].EndPeriod.ShouldBe(0);
         }
-        
+
         [Fact]
         public async Task ElectionContract_UpdateMinerCount_ReduceBp_Test()
         {
@@ -1250,6 +1351,7 @@ namespace AElf.Contracts.Election
                 await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
+
             var minerCount = 3;
             await NextRound(InitialCoreDataCenterKeyPairs[0]);
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
@@ -1266,6 +1368,7 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].EndPeriod.ShouldNotBe(0);
                 profitDetail.Details.Count.ShouldBe(1);
             }
+
             await ResetMinerCount(minerCount);
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             var newMinerCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
@@ -1299,7 +1402,7 @@ namespace AElf.Contracts.Election
             await ApproveWithMinersAsync(proposalId);
             await ParliamentContractStub.Release.SendAsync(proposalId);
         }
-        
+
         #endregion
     }
 }
