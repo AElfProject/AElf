@@ -359,7 +359,7 @@ namespace AElf.Contracts.Economic.TestBase
             var result = await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
             {
                 MaximumLockTime = 1080 * 86400,
-                MinimumLockTime = 90 * 86400,
+                MinimumLockTime = 7 * 86400,
                 TimeEachTerm = EconomicContractsTestConstants.PeriodSeconds,
                 MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval

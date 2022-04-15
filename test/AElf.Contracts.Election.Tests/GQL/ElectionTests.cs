@@ -165,10 +165,10 @@ namespace AElf.Contracts.Election
                 transactionResult.Error.ShouldContain("Insufficient balance");
             }
 
-            // Lock time is less than 90 days
+            // Lock time is less than MinimumLockTime days
             {
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80 * 86400, 1000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 6 * 86400, 1000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("lock time");
