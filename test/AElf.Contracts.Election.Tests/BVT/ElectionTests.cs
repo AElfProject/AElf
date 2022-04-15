@@ -563,7 +563,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey),
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
                 });
-                profitDetails.Details.Count.ShouldBe(oldProfitDetails.Details.Count.Add(1));
+                profitDetails.Details.Count.ShouldBe(oldProfitDetails.Details.Count);
             }
         }
 
@@ -796,7 +796,7 @@ namespace AElf.Contracts.Election
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
                 });
-            afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count.Add(1));
+            afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
             afterProfitDetail.Details.ShouldContain(originProfitDetail.Details.First());
             var checkProfitDetail =
                 afterProfitDetail.Details.Where(d => d.Equals(originProfitDetail.Details.First()))
@@ -947,8 +947,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-
+            
             var term = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
             var citizenAmount = await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, term.Value - 1);
             long profitAll = 0;
