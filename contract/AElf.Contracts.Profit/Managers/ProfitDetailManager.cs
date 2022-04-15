@@ -139,6 +139,23 @@ namespace AElf.Contracts.Profit.Managers
             return detailsCanBeRemoved.Sum(d => d.Shares);
         }
 
+        public void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod)
+        {
+            var profitDetails = _profitDetailsMap[schemeId][beneficiaryShare.Beneficiary];
+            var fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
+                .FirstOrDefault(d => d.Shares == beneficiaryShare.Shares);
+            if (fixingDetail == null)
+            {
+                throw new AssertionException("Cannot find proper profit detail to fix.");
+            }
+
+            var newDetail = fixingDetail.Clone();
+            newDetail.StartPeriod = startPeriod == 0 ? fixingDetail.StartPeriod : startPeriod;
+            newDetail.EndPeriod = endPeriod == 0 ? fixingDetail.EndPeriod : endPeriod;
+            profitDetails.Details.Remove(fixingDetail);
+            profitDetails.Details.Add(newDetail);
+        }
+
         public ProfitDetails GetProfitDetails(Hash schemeId, Address beneficiary)
         {
             return _profitDetailsMap[schemeId][beneficiary];
