@@ -363,7 +363,7 @@ namespace AElf.Contracts.Election
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
             if (extendingDetail != null)
             {
-                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                State.ProfitContract.FixProfitDetail.Send(new FixProfitDetailInput
                 {
                     SchemeId = State.WelfareHash.Value,
                     BeneficiaryShare = new BeneficiaryShare
@@ -371,7 +371,6 @@ namespace AElf.Contracts.Election
                         Beneficiary = electionVotingRecord.Voter,
                         Shares = electionVotingRecord.Weight
                     },
-                    StartPeriod = extendingDetail.EndPeriod.Add(1),
                     EndPeriod = endPeriod
                 });
             }
@@ -391,7 +390,8 @@ namespace AElf.Contracts.Election
                         Shares = electionVotingRecord.Weight
                     },
                     StartPeriod = startPeriod,
-                    EndPeriod = endPeriod
+                    EndPeriod = endPeriod,
+                    IsFixProfitDetail = true
                 });
             }
         }

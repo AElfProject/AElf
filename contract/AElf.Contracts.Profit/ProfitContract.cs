@@ -116,6 +116,22 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        public override Empty FixProfitDetail(FixProfitDetailInput input)
+        {
+            Assert(input.SchemeId != null, "Invalid scheme id.");
+            var scheme = State.SchemeInfos[input.SchemeId];
+
+            if (Context.Sender != scheme.Manager && Context.Sender !=
+                Context.GetContractAddressByName(SmartContractConstants.TokenHolderContractSystemName))
+            {
+                throw new AssertionException("Only manager or token holder contract can add beneficiary.");
+            }
+
+            GetProfitDetailManager()
+                .FixProfitDetail(input.SchemeId, input.BeneficiaryShare, input.StartPeriod, input.EndPeriod);
+            return new Empty();
+        }
+
         /// <summary>
         /// Will burn/destroy a certain amount of profits if `input.Period` is less than 0.
         /// </summary>

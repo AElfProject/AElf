@@ -19,7 +19,8 @@ namespace AElf.Contracts.Profit.Managers
             _profitDetailManager = profitDetailManager;
         }
 
-        public void AddBeneficiary(Hash schemeId, BeneficiaryShare beneficiaryShare, long endPeriod, long startPeriod = 0)
+        public void AddBeneficiary(Hash schemeId, BeneficiaryShare beneficiaryShare, long endPeriod,
+            long startPeriod = 0, bool isFixProfitDetail = false)
         {
             if (schemeId == null)
             {
@@ -59,7 +60,11 @@ namespace AElf.Contracts.Profit.Managers
                     $"Invalid end period. End Period: {endPeriod}, Current Period: {scheme.CurrentPeriod}");
             }
 
-            _profitSchemeManager.AddShares(schemeId, beneficiaryShare.Shares);
+            if (!isFixProfitDetail)
+            {
+                _profitSchemeManager.AddShares(schemeId, beneficiaryShare.Shares);
+            }
+
             if (startPeriod == 0)
             {
                 startPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount);
