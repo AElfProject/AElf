@@ -47,7 +47,7 @@ namespace AElf.Contracts.Profit.Managers
             });
         }
 
-        public void UpdateProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress, long updateTo)
+        public void UpdateSubSchemeProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress, long updateTo)
         {
             var subSchemeDetails = _profitDetailsMap[schemeId][subSchemeVirtualAddress];
             foreach (var detail in subSchemeDetails.Details)
@@ -56,6 +56,20 @@ namespace AElf.Contracts.Profit.Managers
             }
 
             _profitDetailsMap[schemeId][subSchemeVirtualAddress] = subSchemeDetails;
+        }
+
+        public void UpdateBeneficiaryProfitDetailLastProfitPeriod(Hash schemeId, Address beneficiaryVirtualAddress,
+            ProfitDetail profitDetail, long updateTo)
+        {
+            var profitDetails = _profitDetailsMap[schemeId][beneficiaryVirtualAddress];
+            var updateProfitDetail = profitDetails.Details.FirstOrDefault(d =>
+                d.StartPeriod == profitDetail.StartPeriod && d.EndPeriod == profitDetail.EndPeriod &&
+                d.Shares == profitDetail.Shares);
+            if (updateProfitDetail != null)
+            {
+                updateProfitDetail.LastProfitPeriod = updateTo;
+                _profitDetailsMap[schemeId][beneficiaryVirtualAddress] = profitDetails;
+            }
         }
 
         public void ClearProfitDetails(Hash schemeId, Address beneficiary)

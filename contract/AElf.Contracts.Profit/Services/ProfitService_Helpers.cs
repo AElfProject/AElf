@@ -69,7 +69,7 @@ namespace AElf.Contracts.Profit.Services
 
                 remainAmount = remainAmount.Sub(distributeAmount);
 
-                _profitDetailManager.UpdateProfitDetailLastProfitPeriod(scheme.SchemeId, subSchemeVirtualAddress,
+                _profitDetailManager.UpdateSubSchemeProfitDetailLastProfitPeriod(scheme.SchemeId, subSchemeVirtualAddress,
                     scheme.CurrentPeriod);
 
                 // Update sub scheme.
