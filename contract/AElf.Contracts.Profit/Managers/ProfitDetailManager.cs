@@ -47,7 +47,8 @@ namespace AElf.Contracts.Profit.Managers
             });
         }
 
-        public void UpdateSubSchemeProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress, long updateTo)
+        public void UpdateSubSchemeProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress,
+            long updateTo)
         {
             var subSchemeDetails = _profitDetailsMap[schemeId][subSchemeVirtualAddress];
             foreach (var detail in subSchemeDetails.Details)
@@ -82,9 +83,11 @@ namespace AElf.Contracts.Profit.Managers
         /// </summary>
         /// <param name="scheme"></param>
         /// <param name="beneficiary"></param>
+        /// <param name="profitDetailId"></param>
         /// <param name="isSubScheme"></param>
         /// <returns>Removed Shares</returns>
-        public RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, bool isSubScheme = false)
+        public RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, Hash profitDetailId = null,
+            bool isSubScheme = false)
         {
             var removedDetails = new RemovedDetails();
 
@@ -106,6 +109,11 @@ namespace AElf.Contracts.Profit.Managers
                     ? profitDetails.Details.Where(d => !d.IsWeightRemoved).ToList()
                     : profitDetails.Details
                         .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+            }
+
+            if (profitDetailId != null && profitDetails.Details.Any(d => d.Id == profitDetailId))
+            {
+                detailsCanBeRemoved.AddRange(profitDetails.Details.Where(d => d.Id == profitDetailId));
             }
 
             if (!detailsCanBeRemoved.Any())
@@ -155,11 +163,19 @@ namespace AElf.Contracts.Profit.Managers
             return detailsCanBeRemoved.Sum(d => d.Shares);
         }
 
-        public void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod)
+        public void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod, Hash profitDetailId = null)
         {
             var profitDetails = _profitDetailsMap[schemeId][beneficiaryShare.Beneficiary];
-            var fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
-                .FirstOrDefault(d => d.Shares == beneficiaryShare.Shares);
+            ProfitDetail fixingDetail;
+            if (profitDetailId != null)
+            {
+                fixingDetail = profitDetails.Details.Single(d => d.Id == profitDetailId);
+            }
+            else
+            {
+                fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
+                    .FirstOrDefault(d => d.Shares == beneficiaryShare.Shares);
+            }
             if (fixingDetail == null)
             {
                 throw new AssertionException("Cannot find proper profit detail to fix.");

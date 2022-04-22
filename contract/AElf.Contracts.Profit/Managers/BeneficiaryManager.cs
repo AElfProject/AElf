@@ -21,7 +21,7 @@ namespace AElf.Contracts.Profit.Managers
         }
 
         public void AddBeneficiary(Hash schemeId, BeneficiaryShare beneficiaryShare, long endPeriod,
-            long startPeriod = 0, bool isFixProfitDetail = false)
+            long startPeriod = 0, Hash profitDetailId = null, bool isFixProfitDetail = false)
         {
             if (schemeId == null)
             {
@@ -76,10 +76,11 @@ namespace AElf.Contracts.Profit.Managers
                 StartPeriod = startPeriod,
                 EndPeriod = endPeriod,
                 Shares = beneficiaryShare.Shares,
+                Id = profitDetailId
             });
         }
 
-        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, bool isSubScheme = false)
+        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, Hash profitDetailId = null, bool isSubScheme = false)
         {
             if (schemeId == null)
             {
@@ -99,7 +100,8 @@ namespace AElf.Contracts.Profit.Managers
                 throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
-            var removedDetails = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, isSubScheme);
+            var removedDetails =
+                _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, profitDetailId, isSubScheme);
 
             foreach (var removedDetail in removedDetails)
             {

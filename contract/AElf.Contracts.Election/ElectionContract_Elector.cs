@@ -49,7 +49,7 @@ namespace AElf.Contracts.Election
             LockTokensOfVoter(input.Amount, voteId);
             TransferTokensToVoter(input.Amount);
             CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
-            AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
+            AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds, voteId);
 
             var rankingList = State.DataCentersRankingList.Value;
             if (rankingList.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -72,7 +72,8 @@ namespace AElf.Contracts.Election
                             Beneficiary =
                                 Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
                             Shares = 1
-                        }
+                        },
+                        ProfitDetailId = voteId
                     });
                 }
                 else
@@ -371,7 +372,8 @@ namespace AElf.Contracts.Election
                         Beneficiary = electionVotingRecord.Voter,
                         Shares = electionVotingRecord.Weight
                     },
-                    EndPeriod = endPeriod
+                    EndPeriod = endPeriod,
+                    ProfitDetailId = voteId
                 });
             }
             else
@@ -738,7 +740,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void AddBeneficiaryToVoter(long votesWeight, long lockSeconds)
+        private void AddBeneficiaryToVoter(long votesWeight, long lockSeconds, Hash voteId)
         {
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
@@ -748,7 +750,8 @@ namespace AElf.Contracts.Election
                     Beneficiary = Context.Sender,
                     Shares = votesWeight
                 },
-                EndPeriod = GetEndPeriod(lockSeconds)
+                EndPeriod = GetEndPeriod(lockSeconds),
+                ProfitDetailId = voteId
             });
         }
 

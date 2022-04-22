@@ -77,20 +77,21 @@ namespace AElf.Contracts.Profit
             profitSchemeManager.RemoveSubScheme(input.SchemeId, input.SubSchemeId);
             var beneficiaryManager = GetBeneficiaryManager(profitSchemeManager);
             beneficiaryManager.RemoveBeneficiary(input.SchemeId,
-                Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId), true);
+                Context.ConvertVirtualAddressToContractAddress(input.SubSchemeId), isSubScheme: true);
             return new Empty();
         }
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
             GetBeneficiaryManager()
-                .AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod, input.StartPeriod);
+                .AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod, input.StartPeriod,
+                    input.ProfitDetailId);
             return new Empty();
         }
 
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
         {
-            GetBeneficiaryManager().RemoveBeneficiary(input.SchemeId, input.Beneficiary);
+            GetBeneficiaryManager().RemoveBeneficiary(input.SchemeId, input.Beneficiary, input.ProfitDetailId);
             return new Empty();
         }
 
@@ -128,7 +129,8 @@ namespace AElf.Contracts.Profit
             }
 
             GetProfitDetailManager()
-                .FixProfitDetail(input.SchemeId, input.BeneficiaryShare, input.StartPeriod, input.EndPeriod);
+                .FixProfitDetail(input.SchemeId, input.BeneficiaryShare, input.StartPeriod, input.EndPeriod,
+                    input.ProfitDetailId);
             return new Empty();
         }
 
