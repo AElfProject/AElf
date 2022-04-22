@@ -174,7 +174,8 @@ namespace AElf.Contracts.Profit
             {
                 IsReleaseAllBalanceEveryTimeByDefault = true,
                 ProfitReceivingDuePeriodCount = 100,
-                DelayDistributePeriodCount = delayDistributePeriodCount
+                DelayDistributePeriodCount = delayDistributePeriodCount,
+                CanRemoveBeneficiaryDirectly = true
             });
 
             var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
@@ -190,7 +191,7 @@ namespace AElf.Contracts.Profit
             // Distribute 3 times.
             for (var period = 1; period <= 3; period++)
             {
-                currentShares += await AddBeneficiaries(creator);
+                currentShares += await AddBeneficiariesAsync(creator);
                 periodToTotalShares.Add(period, currentShares);
 
                 await ContributeAndDistribute(creator, contributeAmountEachTime, period);
@@ -263,6 +264,13 @@ namespace AElf.Contracts.Profit
                 distributedInformation.AmountsMap[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
+
+            {
+                await ContributeAndDistribute(creator, contributeAmountEachTime, 8);
+                await RemoveBeneficiaryAsync(creator, Accounts[11].Address);
+                var scheme = await creator.GetScheme.CallAsync(_schemeId);
+                scheme.CachedDelayTotalShares.Values.ShouldAllBe(v => v == 12);
+            }
         }
 
         private async Task ContributeAndDistribute(ProfitContractImplContainer.ProfitContractImplStub creator,
@@ -282,7 +290,7 @@ namespace AElf.Contracts.Profit
             });
         }
 
-        private async Task<long> AddBeneficiaries(ProfitContractImplContainer.ProfitContractImplStub creator)
+        private async Task<long> AddBeneficiariesAsync(ProfitContractImplContainer.ProfitContractImplStub creator)
         {
             await creator.AddBeneficiaries.SendAsync(new AddBeneficiariesInput
             {
@@ -318,6 +326,16 @@ namespace AElf.Contracts.Profit
             });
 
             return 5;
+        }
+
+        private async Task RemoveBeneficiaryAsync(ProfitContractImplContainer.ProfitContractImplStub creator,
+            Address beneficiary)
+        {
+            await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
+            {
+                Beneficiary = beneficiary,
+                SchemeId = _schemeId
+            });
         }
     }
 }

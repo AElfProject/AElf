@@ -70,19 +70,16 @@ namespace AElf.Contracts.Profit
                 return new Int64Value();
             }
 
-            var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < scheme.CurrentPeriod && (d.LastProfitPeriod == 0
-                    ? d.EndPeriod >= d.StartPeriod
-                    : d.EndPeriod >= d.LastProfitPeriod)
-            ).ToList();
+            var profitableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             var amount = 0L;
 
             for (var i = 0;
-                 i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                 i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
                  i++)
             {
-                var profitDetail = availableDetails[i];
+                var profitDetail = profitableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;

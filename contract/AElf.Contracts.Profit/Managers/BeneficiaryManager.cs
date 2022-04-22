@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -98,8 +99,28 @@ namespace AElf.Contracts.Profit.Managers
                 throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
-            var removedShares = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, isSubScheme);
-            _profitSchemeManager.RemoveShares(schemeId, removedShares);
+            var removedDetails = _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, isSubScheme);
+
+            foreach (var removedDetail in removedDetails)
+            {
+                if (scheme.DelayDistributePeriodCount > 0)
+                {
+                    var removedMinPeriod = removedDetail.Key;
+                    var removedShares = removedDetail.Value;
+                    for (var removedPeriod = removedMinPeriod;
+                         removedPeriod < removedMinPeriod.Add(scheme.DelayDistributePeriodCount);
+                         removedPeriod++)
+                    {
+                        if (scheme.CachedDelayTotalShares.ContainsKey(removedPeriod))
+                        {
+                            scheme.CachedDelayTotalShares[removedPeriod] =
+                                scheme.CachedDelayTotalShares[removedPeriod].Sub(removedShares);
+                        }
+                    }
+                }
+            }
+
+            _profitSchemeManager.RemoveShares(schemeId, removedDetails.Values.Sum());
         }
     }
 }

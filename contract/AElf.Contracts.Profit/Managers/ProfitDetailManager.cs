@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Profit.Models;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -69,14 +70,14 @@ namespace AElf.Contracts.Profit.Managers
         /// <param name="beneficiary"></param>
         /// <param name="isSubScheme"></param>
         /// <returns>Removed Shares</returns>
-        public long RemoveProfitDetails(Scheme scheme, Address beneficiary, bool isSubScheme = false)
+        public RemovedDetails RemoveProfitDetails(Scheme scheme, Address beneficiary, bool isSubScheme = false)
         {
-            var removedShares = 0L;
+            var removedDetails = new RemovedDetails();
 
             var profitDetails = _profitDetailsMap[scheme.SchemeId][beneficiary];
             if (profitDetails == null)
             {
-                return 0;
+                return removedDetails;
             }
 
             List<ProfitDetail> detailsCanBeRemoved;
@@ -95,10 +96,9 @@ namespace AElf.Contracts.Profit.Managers
 
             if (!detailsCanBeRemoved.Any())
             {
-                return removedShares;
+                return removedDetails;
             }
 
-            removedShares = detailsCanBeRemoved.Sum(d => d.Shares);
             foreach (var profitDetail in detailsCanBeRemoved)
             {
                 profitDetail.IsWeightRemoved = true;
@@ -110,6 +110,8 @@ namespace AElf.Contracts.Profit.Managers
                 {
                     profitDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
                 }
+
+                removedDetails.TryAdd(scheme.CurrentPeriod, profitDetail.Shares);
             }
 
             _context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
@@ -124,7 +126,7 @@ namespace AElf.Contracts.Profit.Managers
                 ClearProfitDetails(scheme.SchemeId, beneficiary);
             }
 
-            return removedShares;
+            return removedDetails;
         }
 
         public long RemoveClaimedProfitDetails(Hash schemeId, Address beneficiary)
