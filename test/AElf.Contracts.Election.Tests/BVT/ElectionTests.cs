@@ -764,6 +764,7 @@ namespace AElf.Contracts.Election
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(2 * 60 * 60 * 24));
 
             // ChangeVote in next term
+            var currentPeriod = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
             var electionStub = GetElectionContractTester(votersKeyPairs.First());
             var originVoteRecord = (await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
                 {Value = votersKeyPairs.First().PublicKey.ToHex()})).ActiveVotingRecords.First();
@@ -789,6 +790,7 @@ namespace AElf.Contracts.Election
                 .First(a => a.VoteId.Equals(voteId));
             afterVoteRecord.VoteTimestamp.ShouldBe(txTimes);
             afterVoteRecord.UnlockTimestamp.ShouldBe(txTimes.AddSeconds(originVoteRecord.LockTime));
+            afterVoteRecord.LockTime.ShouldBe(originVoteRecord.LockTime);
 
             var afterProfitDetail =
                 await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
@@ -796,16 +798,16 @@ namespace AElf.Contracts.Election
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
                 });
+            var profitDetail = afterProfitDetail.Details.First();
             afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
-            afterProfitDetail.Details.ShouldContain(originProfitDetail.Details.First());
-            var checkProfitDetail =
-                afterProfitDetail.Details.Where(d => d.Equals(originProfitDetail.Details.First()))
-                    .GetEnumerator()
-                    .Current;
-            checkProfitDetail?.StartPeriod.ShouldBe(originProfitDetail.Details.First().EndPeriod.Add(1));
+
+            profitDetail.StartPeriod.ShouldBe(originProfitDetail.Details.First().StartPeriod);
+            profitDetail.EndPeriod.ShouldBe(originProfitDetail.Details.First().EndPeriod
+                .Add(currentPeriod.Value.Sub(originProfitDetail.Details.First().StartPeriod).Add(1)));
+
 
             var afterTotalShare =
-            await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
             afterTotalShare.TotalShares.ShouldBe(checkTotalShare.TotalShares);
 
             // Term 3 - 5
@@ -829,7 +831,7 @@ namespace AElf.Contracts.Election
 
                 profitList.First().ShouldBe(profitList.Last());
                 profitAmountList[term.Value] = allProfitAmount;
-                if (term.Value.Equals(originProfitDetail.Details.First().EndPeriod + 1))
+                if (term.Value.Equals(originProfitDetail.Details.First().EndPeriod))
                 {
                     BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(28 * 60 * 60 * 24));
                     var originVoterElectionStub = GetElectionContractTester(votersKeyPairs.Last());
@@ -840,6 +842,11 @@ namespace AElf.Contracts.Election
                         await originVoterElectionStub.Withdraw.SendAsync(
                             originVoterRecord.ActiveVotingRecordIds.First());
                     originVoterWithdraw.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                    // var afterWithdrawTotalShare =
+                    // await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                    // afterWithdrawTotalShare.TotalShares.ShouldBe(
+                    // afterTotalShare.TotalShares.Sub(originVoteRecord.Weight));
                 }
 
                 await NextTerm(InitialCoreDataCenterKeyPairs[0]);
@@ -865,6 +872,214 @@ namespace AElf.Contracts.Election
             });
             changeProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2)
                 .Add(citizenAmount.AmountsMap[EconomicContractsTestConstants.NativeTokenSymbol]));
+        }
+        
+        [Fact]
+        public async Task ElectionContract_ChangeVote_CheckClaim()
+        {
+            const int votersCount = 1;
+            const int announceCount = 2;
+            const long amount = 500;
+            const int lockTime = 21 * 60 * 60 * 24;
+
+            // AnnounceElection 2 candidate
+            var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(announceCount).ToList();
+            foreach (var keyPair in candidatesKeyPairs)
+                await AnnounceElectionAsync(keyPair);
+
+            // 1 voter 
+            var votersKeyPair = VoterKeyPairs.Take(votersCount).First();
+            var oldTarget = candidatesKeyPairs.First();
+            var newTarget = candidatesKeyPairs.Last();
+
+            Hash voteId;
+            for (var i = 0; i < 2; i++)
+            {
+                var voteResult = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+                    lockTime, amount * (i + 1));
+                voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
+                var voteRecord =
+                    await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
+                        new StringValue {Value = votersKeyPair.PublicKey.ToHex()});
+                voteRecord.ActiveVotingRecords.First(a => a.VoteId.Equals(voteId)).Candidate
+                    .ShouldBe(oldTarget.PublicKey.ToHex());
+            }
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(2 * 60 * 60 * 24));
+            // ChangeVote in next term
+            var currentPeriod = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
+            var electionStub = GetElectionContractTester(votersKeyPair);
+            var originVoteRecord = (await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+                {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords.First();
+            voteId = originVoteRecord.VoteId;
+            var originProfitDetail =
+                await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+                });
+            var changeResult = await electionStub.ChangeVotingOption.SendAsync(
+                new ChangeVotingOptionInput
+                {
+                    VoteId = voteId,
+                    CandidatePubkey = newTarget.PublicKey.ToHex(),
+                    IsResetVotingTime = true
+                });
+            changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var txTimes = BlockTimeProvider.GetBlockTime();
+
+            var afterVoteRecord = (await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+                    {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords
+                .First(a => a.VoteId.Equals(voteId));
+            afterVoteRecord.VoteTimestamp.ShouldBe(txTimes);
+            afterVoteRecord.UnlockTimestamp.ShouldBe(txTimes.AddSeconds(originVoteRecord.LockTime));
+            afterVoteRecord.LockTime.ShouldBe(originVoteRecord.LockTime);
+
+            var afterProfitDetail =
+                await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+                });
+            var profitDetail = afterProfitDetail.Details.Last();
+            afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
+
+            profitDetail.StartPeriod.ShouldBe(originProfitDetail.Details.Last().StartPeriod);
+            profitDetail.EndPeriod.ShouldBe(originProfitDetail.Details.Last().EndPeriod
+                .Add(currentPeriod.Value.Sub(originProfitDetail.Details.Last().StartPeriod).Add(1)));
+            
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            // Check ProfitAmount and ClaimAmount
+            var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
+            {
+                Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey),
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+            });
+            var voter = GetProfitContractTester(votersKeyPair);
+            var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+            });
+            claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var logEvent = ProfitsClaimed.Parser.ParseFrom(
+                claimResult.TransactionResult.Logs.First(l => l.Name.Equals("ProfitsClaimed")).NonIndexed);
+            logEvent.Amount.ShouldBe(profitAmount.Value);
+        }
+
+        [Fact]
+        public async Task ElectionContract_ChangeVote_Twice()
+        {
+            const int votersCount = 1;
+            const int announceCount = 2;
+            const long amount = 500;
+            const int lockTime = 21 * 60 * 60 * 24;
+
+            // AnnounceElection 2 candidate
+            var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(announceCount).ToList();
+            foreach (var keyPair in candidatesKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
+
+            // 1 voter 
+            var votersKeyPair = VoterKeyPairs.Take(votersCount).First();
+            var oldTarget = candidatesKeyPairs.First();
+            var newTarget = candidatesKeyPairs.Last();
+
+            // First Vote 
+            var voteResult = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+                lockTime, amount);
+            voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
+            var voteRecord =
+                (await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
+                    new StringValue {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords
+                .First(a => a.VoteId.Equals(voteId));
+            voteRecord.Candidate
+                .ShouldBe(oldTarget.PublicKey.ToHex());
+
+            var originProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+            });
+            originProfitDetail.Details.Count.ShouldBe(1);
+
+            var addSeconds = 1 * 60 * 60 * 24;
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(addSeconds));
+            // Change Vote isReset = false 
+            var electionStub = GetElectionContractTester(votersKeyPair);
+            var changeResult = await electionStub.ChangeVotingOption.SendAsync(
+                new ChangeVotingOptionInput
+                {
+                    VoteId = voteId,
+                    CandidatePubkey = newTarget.PublicKey.ToHex(),
+                    IsResetVotingTime = false
+                });
+            changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var txTimes = BlockTimeProvider.GetBlockTime();
+
+            var afterVoteRecord = (await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+                    {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords
+                .First(a => a.VoteId.Equals(voteId));
+            afterVoteRecord.VoteTimestamp.ShouldBe(txTimes);
+            afterVoteRecord.UnlockTimestamp.ShouldBe(
+                afterVoteRecord.VoteTimestamp.AddSeconds(
+                    voteRecord.LockTime.Sub(txTimes.Seconds.Sub(voteRecord.VoteTimestamp.Seconds))));
+            var afterProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+            });
+            afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
+            afterProfitDetail.Details.ShouldBe(originProfitDetail.Details);
+
+            // Second Vote 
+            var voteResult2 = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+                lockTime, amount);
+            voteResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+            var voteId2 = Hash.Parser.ParseFrom(voteResult2.ReturnValue);
+            var voteRecord2 =
+                (await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
+                    new StringValue {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords
+                .First(a => a.VoteId.Equals(voteId2));
+            voteRecord2.Candidate
+                .ShouldBe(oldTarget.PublicKey.ToHex());
+
+            originProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+            });
+            originProfitDetail.Details.Count.ShouldBe(2);
+
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(addSeconds));
+            // Change Vote isReset = true 
+            var changeResult2 = await electionStub.ChangeVotingOption.SendAsync(
+                new ChangeVotingOptionInput
+                {
+                    VoteId = voteId2,
+                    CandidatePubkey = newTarget.PublicKey.ToHex(),
+                    IsResetVotingTime = true
+                });
+            changeResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            txTimes = BlockTimeProvider.GetBlockTime();
+
+            afterVoteRecord = (await electionStub.GetElectorVoteWithRecords.CallAsync(new StringValue
+                    {Value = votersKeyPair.PublicKey.ToHex()})).ActiveVotingRecords
+                .First(a => a.VoteId.Equals(voteId2));
+            afterVoteRecord.VoteTimestamp.ShouldBe(txTimes);
+            afterVoteRecord.UnlockTimestamp.ShouldBe(
+                afterVoteRecord.VoteTimestamp.AddSeconds(afterVoteRecord.LockTime));
+            afterProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
+            });
+            afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
+            afterProfitDetail.Details.ShouldBe(originProfitDetail.Details);
         }
 
         [Fact]
@@ -947,7 +1162,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-            
+
             var term = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
             var citizenAmount = await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, term.Value - 1);
             long profitAll = 0;
