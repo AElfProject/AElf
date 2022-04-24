@@ -220,8 +220,11 @@ namespace AElf.Contracts.Profit.Services
                     }
                 }
 
-                _profitDetailManager.UpdateBeneficiaryProfitDetailLastProfitPeriod(schemeId, beneficiary,
-                    profitDetail, scheme.CurrentPeriod);
+                if (claimableProfitList.Any())
+                {
+                    _profitDetailManager.UpdateBeneficiaryProfitDetailLastProfitPeriod(schemeId, beneficiary,
+                        profitDetail, claimableProfitList.Last().Period);
+                }
             }
 
             var removedShares = _profitDetailManager.RemoveClaimedProfitDetails(schemeId, beneficiary);

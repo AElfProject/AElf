@@ -116,27 +116,37 @@ namespace AElf.Contracts.Profit.Managers
                 detailsCanBeRemoved.AddRange(profitDetails.Details.Where(d => d.Id == profitDetailId));
             }
 
-            if (!detailsCanBeRemoved.Any())
+            if (detailsCanBeRemoved.Any())
             {
-                return removedDetails;
-            }
+                foreach (var profitDetail in detailsCanBeRemoved)
+                {
+                    profitDetail.IsWeightRemoved = true;
+                    if (profitDetail.LastProfitPeriod >= scheme.CurrentPeriod)
+                    {
+                        profitDetails.Details.Remove(profitDetail);
+                    }
+                    else if (profitDetail.EndPeriod >= scheme.CurrentPeriod)
+                    {
+                        profitDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                    }
 
-            foreach (var profitDetail in detailsCanBeRemoved)
+                    removedDetails.TryAdd(scheme.CurrentPeriod, profitDetail.Shares);
+                }
+
+                _context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
+            }
+            else
             {
-                profitDetail.IsWeightRemoved = true;
-                if (profitDetail.LastProfitPeriod >= scheme.CurrentPeriod)
+                var weightCanBeRemoved = profitDetails.Details
+                    .Where(d => d.EndPeriod <= scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
+                foreach (var profitDetail in weightCanBeRemoved)
                 {
-                    profitDetails.Details.Remove(profitDetail);
-                }
-                else if (profitDetail.EndPeriod >= scheme.CurrentPeriod)
-                {
-                    profitDetail.EndPeriod = scheme.CurrentPeriod.Sub(1);
+                    profitDetail.IsWeightRemoved = true;
                 }
 
-                removedDetails.TryAdd(scheme.CurrentPeriod, profitDetail.Shares);
+                var weights = weightCanBeRemoved.Sum(d => d.Shares);
+                removedDetails.Add(0, weights);
             }
-
-            _context.LogDebug(() => $"ProfitDetails after removing expired details: {profitDetails}");
 
             // Clear old profit details.
             if (profitDetails.Details.Count != 0)

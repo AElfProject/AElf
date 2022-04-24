@@ -80,7 +80,8 @@ namespace AElf.Contracts.Profit.Managers
             });
         }
 
-        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, Hash profitDetailId = null, bool isSubScheme = false)
+        public void RemoveBeneficiary(Hash schemeId, Address beneficiary, Hash profitDetailId = null,
+            bool isSubScheme = false)
         {
             if (schemeId == null)
             {
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Profit.Managers
             var removedDetails =
                 _profitDetailManager.RemoveProfitDetails(scheme, beneficiary, profitDetailId, isSubScheme);
 
-            foreach (var removedDetail in removedDetails)
+            foreach (var removedDetail in removedDetails.Where(d => d.Key != 0))
             {
                 if (scheme.DelayDistributePeriodCount > 0)
                 {
