@@ -8,7 +8,7 @@ namespace AElf.Contracts.Profit.Managers
         void AddProfitDetail(Hash schemeId, Address beneficiary, ProfitDetail profitDetail);
         void UpdateSubSchemeProfitDetailLastProfitPeriod(Hash schemeId, Address subSchemeVirtualAddress, long updateTo);
 
-        void UpdateBeneficiaryProfitDetailLastProfitPeriod(Hash schemeId, Address beneficiaryVirtualAddress,
+        void UpdateBeneficiaryProfitDetailLastProfitPeriod(Hash schemeId, Address beneficiary,
             ProfitDetail profitDetail, long updateTo);
 
         void ClearProfitDetails(Hash schemeId, Address beneficiary);

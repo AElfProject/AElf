@@ -1304,6 +1304,68 @@ namespace AElf.Contracts.Profit
                 details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 2);
             }
         }
+        
+        [Fact]
+        public async Task ProfitContract_Profit_AfterMultiplePeriods_Test()
+        {
+            const int periodCount = 5;
+            const long shares = 100;
+            const long amount = 100;
+
+            var creator = Creators[0];
+            var beneficiary = Normal[0];
+            var beneficiaryAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+            var initialBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = beneficiaryAddress,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+
+            var schemeId = await CreateSchemeAsync();
+
+            await ContributeProfits(schemeId, amount * 2 * periodCount + amount);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare { Beneficiary = beneficiaryAddress, Shares = shares },
+                EndPeriod = periodCount
+            });
+
+            for (var i = 0; i < periodCount * 2; i++)
+            {
+                await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    AmountsMap =
+                    {
+                        { ProfitContractTestConstants.NativeTokenSymbol, amount }
+                    },
+                    Period = i + 1
+                });
+            }
+
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+            });
+
+            {
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = beneficiaryAddress,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
+                })).Balance;
+                balance.ShouldBe(amount * periodCount + initialBalance);
+
+                var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    SchemeId = schemeId,
+                    Beneficiary = beneficiaryAddress
+                });
+                details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 1);
+            }
+        }
 
         private async Task<Hash> CreateSchemeAsync(int returnIndex = 0,
             long profitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount)
@@ -1557,6 +1619,13 @@ namespace AElf.Contracts.Profit
                 {
                     SchemeId = schemeId
                 });
+                var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    Beneficiary = receiver,
+                    SchemeId = schemeId
+                });
+                var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+                details.Details.First().LastProfitPeriod.ShouldBe(scheme.CurrentPeriod);
                 var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     Beneficiary = receiver,
@@ -1596,9 +1665,19 @@ namespace AElf.Contracts.Profit
                     Beneficiary = receiver
                 });
                 profitMap.Value[tokenSymbol].ShouldBe(amount);
+
+                await ProfitContractStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+                {
+                    SchemeId = schemeId
+                });
+                var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    Beneficiary = receiver,
+                    SchemeId = schemeId
+                });
+                var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
+                details.Details.First().LastProfitPeriod.ShouldBe(scheme.CurrentPeriod);
             }
-
-
         }
 
         private async Task ContributeProfits(Hash schemeId, long amount = 100)

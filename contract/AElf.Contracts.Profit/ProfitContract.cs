@@ -85,7 +85,7 @@ namespace AElf.Contracts.Profit
         {
             GetBeneficiaryManager()
                 .AddBeneficiary(input.SchemeId, input.BeneficiaryShare, input.EndPeriod, input.StartPeriod,
-                    input.ProfitDetailId);
+                    input.ProfitDetailId, input.IsFixProfitDetail);
             return new Empty();
         }
 

@@ -223,7 +223,7 @@ namespace AElf.Contracts.Profit.Services
                 if (claimableProfitList.Any())
                 {
                     _profitDetailManager.UpdateBeneficiaryProfitDetailLastProfitPeriod(schemeId, beneficiary,
-                        profitDetail, claimableProfitList.Last().Period);
+                        profitDetail, claimableProfitList.Select(p => p.Period).Max().Add(1));
                 }
             }
 

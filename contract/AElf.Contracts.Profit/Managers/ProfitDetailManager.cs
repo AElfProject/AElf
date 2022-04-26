@@ -59,17 +59,17 @@ namespace AElf.Contracts.Profit.Managers
             _profitDetailsMap[schemeId][subSchemeVirtualAddress] = subSchemeDetails;
         }
 
-        public void UpdateBeneficiaryProfitDetailLastProfitPeriod(Hash schemeId, Address beneficiaryVirtualAddress,
+        public void UpdateBeneficiaryProfitDetailLastProfitPeriod(Hash schemeId, Address beneficiary,
             ProfitDetail profitDetail, long updateTo)
         {
-            var profitDetails = _profitDetailsMap[schemeId][beneficiaryVirtualAddress];
+            var profitDetails = _profitDetailsMap[schemeId][beneficiary];
             var updateProfitDetail = profitDetails.Details.FirstOrDefault(d =>
                 d.StartPeriod == profitDetail.StartPeriod && d.EndPeriod == profitDetail.EndPeriod &&
                 d.Shares == profitDetail.Shares);
             if (updateProfitDetail != null)
             {
                 updateProfitDetail.LastProfitPeriod = updateTo;
-                _profitDetailsMap[schemeId][beneficiaryVirtualAddress] = profitDetails;
+                _profitDetailsMap[schemeId][beneficiary] = profitDetails;
             }
         }
 
