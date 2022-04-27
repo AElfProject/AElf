@@ -11,13 +11,16 @@ namespace AElf.Contracts.Profit.Managers
         private readonly CSharpSmartContractContext _context;
         private readonly MappedState<Hash, Scheme> _schemeMap;
         private readonly MappedState<Address, CreatedSchemeIds> _managingSchemeIdsMap;
+        private readonly MappedState<Hash, long, long> _cachedDistributedPeriodTotalSharesMap;
 
         public ProfitSchemeManager(CSharpSmartContractContext context, MappedState<Hash, Scheme> schemeMap,
-            MappedState<Address, CreatedSchemeIds> managingSchemeIdsMap)
+            MappedState<Address, CreatedSchemeIds> managingSchemeIdsMap,
+            MappedState<Hash, long, long> cachedDistributedPeriodTotalSharesMap)
         {
             _context = context;
             _schemeMap = schemeMap;
             _managingSchemeIdsMap = managingSchemeIdsMap;
+            _cachedDistributedPeriodTotalSharesMap = cachedDistributedPeriodTotalSharesMap;
         }
 
         public void CreateNewScheme(Scheme scheme)
@@ -125,16 +128,37 @@ namespace AElf.Contracts.Profit.Managers
             _schemeMap[schemeId].SubSchemes.Remove(subSchemeShare);
         }
 
-        public void AddShares(Hash schemeId, long shares)
+        public void AddShares(Hash schemeId, long period, long shares)
         {
             var scheme = GetScheme(schemeId);
-            _schemeMap[schemeId].TotalShares = scheme.TotalShares.Add(shares);
+            if (scheme.CurrentPeriod == period)
+            {
+                _schemeMap[schemeId].TotalShares = scheme.TotalShares.Add(shares);
+            }
+            else
+            {
+                if (scheme.CachedDelayTotalShares.ContainsKey(period))
+                {
+                    scheme.CachedDelayTotalShares[period] = scheme.CachedDelayTotalShares[period].Add(shares);
+                }
+                else
+                {
+                    scheme.CachedDelayTotalShares[period] = shares;
+                }
+            }
         }
 
-        public void RemoveShares(Hash schemeId, long shares)
+        public void RemoveShares(Hash schemeId, long period, long shares)
         {
             var scheme = GetScheme(schemeId);
-            _schemeMap[schemeId].TotalShares = scheme.TotalShares.Sub(shares);
+            if (scheme.CachedDelayTotalShares.ContainsKey(period))
+            {
+                scheme.CachedDelayTotalShares[period] = scheme.CachedDelayTotalShares[period].Sub(shares);
+            }
+            else
+            {
+                scheme.TotalShares = scheme.TotalShares.Sub(shares);
+            }
         }
 
         public void AddReceivedTokenSymbol(Hash schemeId, string symbol)
@@ -177,6 +201,11 @@ namespace AElf.Contracts.Profit.Managers
             _schemeMap[schemeId].Manager = newManager;
         }
 
+        public void CacheDistributedPeriodTotalShares(Hash schemeId, long period, long totalShares)
+        {
+            _cachedDistributedPeriodTotalSharesMap[schemeId][period] = totalShares;
+        }
+
         /// <summary>
         /// Won't return null.
         /// </summary>
@@ -200,6 +229,11 @@ namespace AElf.Contracts.Profit.Managers
             {
                 throw new AssertionException($"Scheme {schemeId} not found.");
             }
+        }
+
+        public long GetCacheDistributedPeriodTotalShares(Hash schemeId, long period)
+        {
+            return _cachedDistributedPeriodTotalSharesMap[schemeId][period];
         }
     }
 }

@@ -11,6 +11,8 @@ namespace AElf.Contracts.Profit.Services
         void Distribute(Hash schemeId, long period, Dictionary<string, long> amountMap);
         void Claim(Hash schemeId, Address beneficiary);
         void Burn(Hash schemeId, long period, Dictionary<string, long> amountMap);
+        void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod,
+            Hash profitDetailId);
 
         List<ClaimableProfit> ExtractClaimableProfitList(Scheme scheme, ProfitDetail profitDetail,
             List<string> symbolList = null);

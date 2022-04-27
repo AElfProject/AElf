@@ -20,5 +20,7 @@ namespace AElf.Contracts.Profit
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        public MappedState<Hash, long, long> CachedDistributedPeriodTotalShares { get; set; }
     }
 }

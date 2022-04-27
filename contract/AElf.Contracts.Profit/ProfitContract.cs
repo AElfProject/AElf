@@ -128,7 +128,7 @@ namespace AElf.Contracts.Profit
                 throw new AssertionException("Only manager or token holder contract can add beneficiary.");
             }
 
-            GetProfitDetailManager()
+            GetProfitService()
                 .FixProfitDetail(input.SchemeId, input.BeneficiaryShare, input.StartPeriod, input.EndPeriod,
                     input.ProfitDetailId);
             return new Empty();

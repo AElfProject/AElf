@@ -164,7 +164,7 @@ namespace AElf.Contracts.Profit.Managers
         public long RemoveClaimedProfitDetails(Hash schemeId, Address beneficiary)
         {
             var profitDetails = _profitDetailsMap[schemeId][beneficiary];
-            var detailsCanBeRemoved = profitDetails.Details.Where(d => d.EndPeriod == d.LastProfitPeriod).ToList();
+            var detailsCanBeRemoved = profitDetails.Details.Where(d => d.EndPeriod.Add(1) == d.LastProfitPeriod).ToList();
             foreach (var profitDetail in detailsCanBeRemoved)
             {
                 _profitDetailsMap[schemeId][beneficiary].Details.Remove(profitDetail);
@@ -173,7 +173,8 @@ namespace AElf.Contracts.Profit.Managers
             return detailsCanBeRemoved.Sum(d => d.Shares);
         }
 
-        public void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod, Hash profitDetailId = null)
+        public ProfitDetail FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod,
+            long endPeriod, Hash profitDetailId = null)
         {
             var profitDetails = _profitDetailsMap[schemeId][beneficiaryShare.Beneficiary];
             ProfitDetail fixingDetail;
@@ -186,6 +187,7 @@ namespace AElf.Contracts.Profit.Managers
                 fixingDetail = profitDetails.Details.OrderBy(d => d.StartPeriod)
                     .FirstOrDefault(d => d.Shares == beneficiaryShare.Shares);
             }
+
             if (fixingDetail == null)
             {
                 throw new AssertionException("Cannot find proper profit detail to fix.");
@@ -196,6 +198,8 @@ namespace AElf.Contracts.Profit.Managers
             newDetail.EndPeriod = endPeriod == 0 ? fixingDetail.EndPeriod : endPeriod;
             profitDetails.Details.Remove(fixingDetail);
             profitDetails.Details.Add(newDetail);
+
+            return fixingDetail;
         }
 
         public ProfitDetails GetProfitDetails(Hash schemeId, Address beneficiary)

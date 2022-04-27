@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.Profit;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core.Extension;
@@ -83,7 +85,23 @@ namespace AElf.Contracts.Election
             })).TransactionResult;
             return changeVotingResult;
         }
-        
+
+        private async Task<List<ProfitsClaimed>> ClaimProfitsAsync(ECKeyPair voterKeyPair)
+        {
+            var profitStub = GetProfitContractTester(voterKeyPair);
+            var executionResult = await profitStub.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
+                Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey)
+            });
+            return executionResult.TransactionResult.Logs.Where(l => l.Name == "ProfitsClaimed").Select(l =>
+            {
+                var logEvent = new ProfitsClaimed();
+                logEvent.MergeFrom(l);
+                return logEvent;
+            }).ToList();
+        }
+
         private async Task VoteToCandidateAsync(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
             int lockTime, long amount)
         {

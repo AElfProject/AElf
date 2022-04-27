@@ -18,7 +18,7 @@ namespace AElf.Contracts.Profit.Managers
 
         long RemoveClaimedProfitDetails(Hash schemeId, Address beneficiary);
 
-        void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod,
+        ProfitDetail FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod,
             Hash profitDetailId);
 
         ProfitDetails GetProfitDetails(Hash schemeId, Address beneficiary);

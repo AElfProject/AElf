@@ -45,8 +45,14 @@ namespace AElf.Contracts.Election
         public long CalculateProfits(int period, long totalProfits, string voterPubkey)
         {
             var totalShares = GetTotalSharesOfPeriod(period);
-            var voterShares = GetSharesOfPeriod(period)[voterPubkey];
-            return voterShares / totalShares * totalProfits;
+            var shareDict = GetSharesOfPeriod(period);
+            if (!shareDict.ContainsKey(voterPubkey))
+            {
+                return 0;
+            }
+
+            var voterShares = shareDict[voterPubkey];
+            return voterShares * totalProfits / totalShares;
         }
     }
 }

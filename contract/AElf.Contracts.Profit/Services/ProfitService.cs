@@ -118,7 +118,6 @@ namespace AElf.Contracts.Profit.Services
             // Set and load delay distribute cache.
             if (scheme.DelayDistributePeriodCount > 0)
             {
-                scheme.CachedDelayTotalShares.Add(period.Add(scheme.DelayDistributePeriodCount), totalShares);
                 if (scheme.CachedDelayTotalShares.ContainsKey(period))
                 {
                     totalShares = scheme.CachedDelayTotalShares[period];
@@ -127,6 +126,17 @@ namespace AElf.Contracts.Profit.Services
                 else
                 {
                     totalShares = 0;
+                }
+
+                var delayPeriod = period.Add(scheme.DelayDistributePeriodCount);
+                if (scheme.CachedDelayTotalShares.ContainsKey(delayPeriod))
+                {
+                    scheme.CachedDelayTotalShares[delayPeriod] =
+                        scheme.CachedDelayTotalShares[delayPeriod].Add(totalShares);
+                }
+                else
+                {
+                    scheme.CachedDelayTotalShares[delayPeriod] = totalShares;
                 }
             }
 
@@ -147,6 +157,7 @@ namespace AElf.Contracts.Profit.Services
 
             _context.LogDebug(() => $"Receiving virtual address: {periodVirtualAddress}");
 
+            _profitSchemeManager.CacheDistributedPeriodTotalShares(schemeId, period, totalShares);
             _distributedProfitsInfoManager.MarkAsDistributed(schemeId, period, totalShares, actualAmountMap);
 
             PerformDistributeProfits(actualAmountMap, scheme, totalShares, periodVirtualAddress);
@@ -228,13 +239,20 @@ namespace AElf.Contracts.Profit.Services
             }
 
             var removedShares = _profitDetailManager.RemoveClaimedProfitDetails(schemeId, beneficiary);
-            _profitSchemeManager.RemoveShares(schemeId, removedShares);
+            _profitSchemeManager.RemoveShares(schemeId, scheme.CurrentPeriod, removedShares);
         }
 
         public void Burn(Hash schemeId, long period, Dictionary<string, long> amountMap)
         {
             var scheme = _profitSchemeManager.GetScheme(schemeId);
             BurnProfits(scheme, period, amountMap);
+        }
+
+        public void FixProfitDetail(Hash schemeId, BeneficiaryShare beneficiaryShare, long startPeriod, long endPeriod,
+            Hash profitDetailId)
+        {
+            _profitDetailManager.FixProfitDetail(schemeId, beneficiaryShare, startPeriod, endPeriod,
+                profitDetailId);
         }
     }
 }

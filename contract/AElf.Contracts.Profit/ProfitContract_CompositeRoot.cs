@@ -7,7 +7,8 @@ namespace AElf.Contracts.Profit
     {
         private IProfitSchemeManager GetProfitSchemeManager()
         {
-            return new ProfitSchemeManager(Context, State.SchemeInfos, State.ManagingSchemeIds);
+            return new ProfitSchemeManager(Context, State.SchemeInfos, State.ManagingSchemeIds,
+                State.CachedDistributedPeriodTotalShares);
         }
 
         private IBeneficiaryManager GetBeneficiaryManager(IProfitSchemeManager profitSchemeManager = null,

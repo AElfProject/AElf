@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
@@ -22,12 +23,10 @@ namespace AElf.Contracts.Election
             }
 
             await Term1Async();
-
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
 
             await Term2Async();
-            
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
 
@@ -38,24 +37,49 @@ namespace AElf.Contracts.Election
             await Term4Async();
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
-            
+
+            await Term5Async();
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
+
+            await Term6Async();
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
+
+            await Term7Async();
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
+
+            await Term8Async();
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextTerm(BootMinerKeyPair);
 
             await Term9Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await Term10Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await Term11Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await Term12Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await Term13Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
         }
 
         /// <summary>
         /// Voter1 votes: (50, 10)
         /// Vote1 change option: true
         /// Voter2 votes: (50, 10)
-        /// Voter2 change optioin: false
+        /// Voter2 change option: false
         /// </summary>
         private async Task Term1Async()
         {
@@ -99,7 +123,7 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].EndPeriod.ShouldBe(8);
                 _profitShare.AddShares(2, 8, VoterKeyPairs[1].PublicKey.ToHex(), profitDetail.Details[0].Shares);
             }
-            
+
             {
                 var electorVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
                 {
@@ -136,10 +160,10 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
-                _profitShare.AddShares(3, 9, CoreDataCenterKeyPairs[2].PublicKey.ToHex(),
+                _profitShare.AddShares(3, 9, VoterKeyPairs[2].PublicKey.ToHex(),
                     profitDetail.Details[0].Shares);
             }
-            
+
             await VoteToCandidateAsync(VoterKeyPairs[3], CoreDataCenterKeyPairs[3].PublicKey.ToHex(), 50 * 86400,
                 10_00000000);
 
@@ -150,10 +174,10 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
-                _profitShare.AddShares(3, 9, CoreDataCenterKeyPairs[3].PublicKey.ToHex(),
+                _profitShare.AddShares(3, 9, VoterKeyPairs[3].PublicKey.ToHex(),
                     profitDetail.Details[0].Shares);
             }
-            
+
             await VoteToCandidateAsync(VoterKeyPairs[4], CoreDataCenterKeyPairs[4].PublicKey.ToHex(), 50 * 86400,
                 10_00000000);
 
@@ -164,10 +188,10 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
-                _profitShare.AddShares(3, 9, CoreDataCenterKeyPairs[4].PublicKey.ToHex(),
+                _profitShare.AddShares(3, 9, VoterKeyPairs[4].PublicKey.ToHex(),
                     profitDetail.Details[0].Shares);
             }
-            
+
             await VoteToCandidateAsync(VoterKeyPairs[5], CoreDataCenterKeyPairs[5].PublicKey.ToHex(), 50 * 86400,
                 10_00000000);
 
@@ -178,7 +202,7 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
-                _profitShare.AddShares(3, 9, CoreDataCenterKeyPairs[5].PublicKey.ToHex(),
+                _profitShare.AddShares(3, 9, VoterKeyPairs[5].PublicKey.ToHex(),
                     profitDetail.Details[0].Shares);
             }
         }
@@ -200,7 +224,7 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[1].Id.ShouldNotBeNull();
                 profitDetail.Details[1].StartPeriod.ShouldBe(4);
                 profitDetail.Details[1].EndPeriod.ShouldBe(5);
-                _profitShare.AddShares(4, 5, CoreDataCenterKeyPairs[1].PublicKey.ToHex(),
+                _profitShare.AddShares(4, 5, VoterKeyPairs[1].PublicKey.ToHex(),
                     profitDetail.Details[1].Shares);
             }
 
@@ -219,8 +243,10 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(10);
+                _profitShare.AddShares(10, 10, VoterKeyPairs[2].PublicKey.ToHex(),
+                    profitDetail.Details[0].Shares);
             }
-            
+
             {
                 var electorVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
                 {
@@ -237,6 +263,8 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
             }
+
+            await ClaimAndCheckAsync(2);
         }
 
         /// <summary>
@@ -259,9 +287,32 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[1].Id.ShouldNotBeNull();
                 profitDetail.Details[1].StartPeriod.ShouldBe(4);
                 profitDetail.Details[1].EndPeriod.ShouldBe(6);
+                _profitShare.AddShares(6, 6, VoterKeyPairs[1].PublicKey.ToHex(), profitDetail.Details[1].Shares);
             }
+
+            await ClaimAndCheckAsync(3);
         }
-        
+
+        private async Task Term5Async()
+        {
+            await ClaimAndCheckAsync(4);
+        }
+
+        private async Task Term6Async()
+        {
+            await ClaimAndCheckAsync(5);
+        }
+
+        private async Task Term7Async()
+        {
+            await ClaimAndCheckAsync(6);
+        }
+
+        private async Task Term8Async()
+        {
+            await ClaimAndCheckAsync(7);
+        }
+
         /// <summary>
         /// Voter5 change option: true
         /// Voter6 change option: false
@@ -283,6 +334,7 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].Id.ShouldNotBeNull();
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(16);
+                _profitShare.AddShares(10, 16, VoterKeyPairs[4].PublicKey.ToHex(), profitDetail.Details[0].Shares);
             }
 
             {
@@ -301,6 +353,28 @@ namespace AElf.Contracts.Election
                 profitDetail.Details[0].StartPeriod.ShouldBe(3);
                 profitDetail.Details[0].EndPeriod.ShouldBe(9);
             }
+
+            await ClaimAndCheckAsync(8);
+        }
+
+        private async Task Term10Async()
+        {
+            await ClaimAndCheckAsync(9);
+        }
+
+        private async Task Term11Async()
+        {
+            await ClaimAndCheckAsync(10);
+        }
+
+        private async Task Term12Async()
+        {
+            await ClaimAndCheckAsync(11);
+        }
+
+        private async Task Term13Async()
+        {
+            await ClaimAndCheckAsync(12);
         }
 
         private async Task<ProfitDetails> GetCitizenWelfareProfitDetails(Address voterAddress)
@@ -310,6 +384,42 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = voterAddress
             });
+        }
+
+        private async Task<long> GetDistributedCitizenWelfareAsync(int period)
+        {
+            var distributedProfitsInfo = await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(new SchemePeriod
+            {
+                Period = period,
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
+            });
+            return distributedProfitsInfo.AmountsMap["ELF"];
+        }
+
+        private async Task ClaimAndCheckAsync(int period)
+        {
+            var profitsList = new List<long>();
+            var totalAmount = await GetDistributedCitizenWelfareAsync(period);
+            for (var i = 0; i < 6; i++)
+            {
+                var shouldClaimed =
+                    _profitShare.CalculateProfits(period, totalAmount, VoterKeyPairs[i].PublicKey.ToHex());
+                var logEvents = await ClaimProfitsAsync(VoterKeyPairs[i]);
+                if (!logEvents.Any())
+                {
+                    continue;
+                }
+
+                var actualClaimed = logEvents.Sum(l => l.Amount);
+                actualClaimed.ShouldBeInRange(shouldClaimed - 1, shouldClaimed);
+                profitsList.Add(actualClaimed);
+
+                logEvents.First().TotalShares.ShouldBe(_profitShare.GetTotalSharesOfPeriod(period));
+                logEvents.Select(l => l.ClaimerShares).Sum()
+                    .ShouldBe(_profitShare.GetSharesOfPeriod(period)[VoterKeyPairs[i].PublicKey.ToHex()]);
+            }
+
+            profitsList.Sum().ShouldBeInRange(totalAmount - 6, totalAmount);
         }
     }
 }

@@ -155,13 +155,14 @@ namespace AElf.Contracts.Profit.Services
 
             for (var period = profitDetail.LastProfitPeriod; period <= maxPeriod; period++)
             {
+                var totalShares = _profitSchemeManager.GetCacheDistributedPeriodTotalShares(scheme.SchemeId, period);
                 var claimableProfit = new ClaimableProfit
                 {
                     SchemeId = scheme.SchemeId,
                     Period = period,
                     Shares = profitDetail.Shares,
                     AmountMap = new Dictionary<string, long>(),
-                    TotalShares = scheme.TotalShares
+                    TotalShares = totalShares
                 };
                 var distributedProfitsInfo =
                     _distributedProfitsInfoManager.GetDistributedProfitsInfo(scheme.SchemeId, period);
