@@ -36,7 +36,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             symbolList.Value[0].ShouldBe(EconomicContractsTestConstants.NativeTokenSymbol);
             
             // Treasury contract created Treasury profit scheme and set Profit Id to Profit Contract.
-            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.Treasury]);
             treasuryProfit.Manager.ShouldBe(TreasuryContractAddress);
             treasuryProfit.SubSchemes.Count.ShouldBe(3);
             treasuryProfit.IsReleaseAllBalanceEveryTimeByDefault.ShouldBe(true);
@@ -72,7 +72,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             };
             await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var minerRewardProfit =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
             subSchemes.Count.ShouldBe(3);
             var minerRewardWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
@@ -115,7 +115,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task TreasuryContract_InitialMiningRewardProfitItem_Success_Test()
         {
             var treasurySchemeId = await TreasuryContractStub.GetTreasurySchemeId.CallAsync(new Empty());
-            treasurySchemeId.ShouldBe(ProfitItemsIds[ProfitType.Treasury]);
+            treasurySchemeId.ShouldBe(ProfitSchemeIdList[ProfitType.Treasury]);
             var defaultDividendPoolWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
             defaultDividendPoolWeightSetting.BackupSubsidyProportionInfo.Proportion.ShouldBe(5);
             defaultDividendPoolWeightSetting.CitizenWelfareProportionInfo.Proportion.ShouldBe(75);
@@ -386,7 +386,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             updatedWeightSetting.BackupSubsidyProportionInfo.Proportion.ShouldBe(10);
             updatedWeightSetting.CitizenWelfareProportionInfo.Proportion.ShouldBe(10);
             updatedWeightSetting.MinerRewardProportionInfo.Proportion.ShouldBe(80);
-            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.Treasury]);
             var subSchemes = treasuryProfit.SubSchemes;
             subSchemes.Count.ShouldBe(3);
             var backSubsidyScheme = subSchemes.Single(x => x.SchemeId == updatedWeightSetting.BackupSubsidyProportionInfo.SchemeId);
@@ -444,7 +444,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             updatedWeightSetting.FlexibleRewardProportionInfo.Proportion.ShouldBe(80);
 
             var minerRewardProfit =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
             subSchemes.Count.ShouldBe(3);
             var basicMinerRewardScheme = subSchemes.Single(x =>

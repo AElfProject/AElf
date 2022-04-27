@@ -5,7 +5,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
-using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -81,6 +80,7 @@ namespace AElf.Contracts.Election
                     TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
                 }
             }
+
             return voteId;
         }
 
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     Pubkey = voterPublicKeyByteString,
-                    ActiveVotingRecordIds = {voteId},
+                    ActiveVotingRecordIds = { voteId },
                     ActiveVotedVotesAmount = amount,
                     AllVotedVotesAmount = amount
                 };
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Election
                 candidateVotes = new CandidateVote
                 {
                     Pubkey = ByteStringHelper.FromHexString(candidatePublicKey),
-                    ObtainedActiveVotingRecordIds = {voteId},
+                    ObtainedActiveVotingRecordIds = { voteId },
                     ObtainedActiveVotedVotesAmount = amount,
                     AllObtainedVotedVotesAmount = amount
                 };
@@ -184,21 +184,21 @@ namespace AElf.Contracts.Election
             {
                 if (lockDays > instMap.Day)
                     continue;
-                var initBase = 1 + (decimal) instMap.Interest / instMap.Capital;
-                return ((long) (Pow(initBase, (uint) lockDays) * votesAmount)).Add(votesAmount
+                var initBase = 1 + (decimal)instMap.Interest / instMap.Capital;
+                return ((long)(Pow(initBase, (uint)lockDays) * votesAmount)).Add(votesAmount
                     .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
             }
 
             var maxInterestInfo = State.VoteWeightInterestList.Value.VoteWeightInterestInfos.Last();
-            var maxInterestBase = 1 + (decimal) maxInterestInfo.Interest / maxInterestInfo.Capital;
-            return ((long) (Pow(maxInterestBase, (uint) lockDays) * votesAmount)).Add(votesAmount
+            var maxInterestBase = 1 + (decimal)maxInterestInfo.Interest / maxInterestInfo.Capital;
+            return ((long)(Pow(maxInterestBase, (uint)lockDays) * votesAmount)).Add(votesAmount
                 .Mul(timeAndAmountProportion.AmountProportion).Div(timeAndAmountProportion.TimeProportion));
         }
 
         private static decimal Pow(decimal x, uint y)
         {
             if (y == 1)
-                return (long) x;
+                return (long)x;
             decimal a = 1m;
             if (y == 0)
                 return a;
@@ -236,7 +236,7 @@ namespace AElf.Contracts.Election
             var actualLockedSeconds = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockingSeconds = State.LockTimeMap[input.VoteId];
             Assert(actualLockedSeconds < claimedLockingSeconds, "This vote already expired.");
-            
+
             if (input.IsResetVotingTime)
             {
                 ExtendVoterWelfareProfits(input.VoteId);
@@ -290,7 +290,7 @@ namespace AElf.Contracts.Election
                 State.CandidateVotes[input.CandidatePubkey] = new CandidateVote
                 {
                     Pubkey = ByteStringHelper.FromHexString(input.CandidatePubkey),
-                    ObtainedActiveVotingRecordIds = {input.VoteId},
+                    ObtainedActiveVotingRecordIds = { input.VoteId },
                     ObtainedActiveVotedVotesAmount = votingRecord.Amount,
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
@@ -320,7 +320,7 @@ namespace AElf.Contracts.Election
             }
             else
                 CandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
-            
+
             if (dataCenterList.DataCenters.ContainsKey(oldVoteOptionPublicKey))
             {
                 dataCenterList.DataCenters[oldVoteOptionPublicKey] =
@@ -393,7 +393,8 @@ namespace AElf.Contracts.Election
                     },
                     StartPeriod = startPeriod,
                     EndPeriod = endPeriod,
-                    IsFixProfitDetail = true
+                    IsFixProfitDetail = true,
+                    ProfitDetailId = voteId
                 });
             }
         }
@@ -433,6 +434,7 @@ namespace AElf.Contracts.Election
             {
                 throw new AssertionException($"Voter {voterPublicKey} never votes before.");
             }
+
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
@@ -443,8 +445,10 @@ namespace AElf.Contracts.Election
             var candidateVotes = State.CandidateVotes[newestPubkey];
             if (candidateVotes == null)
             {
-                throw new AssertionException($"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+                throw new AssertionException(
+                    $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
             }
+
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
             candidateVotes.ObtainedActiveVotedVotesAmount =
@@ -466,11 +470,11 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private void UpdateDataCenterAfterMemberVoteAmountChanged(DataCenterRankingList rankingList, string targetMember,
-            bool isForceReplace = false)
+        private void UpdateDataCenterAfterMemberVoteAmountChanged(DataCenterRankingList rankingList,
+            string targetMember, bool isForceReplace = false)
         {
             var amountAfterWithdraw = rankingList.DataCenters[targetMember];
-            if(isForceReplace)
+            if (isForceReplace)
                 Assert(amountAfterWithdraw == 0, "should update vote amount in data center firstly");
             else if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
                 return;
@@ -494,7 +498,8 @@ namespace AElf.Contracts.Election
                 if (maxVoteCandidateOutDataCenter == null)
                 {
                     maxVoteCandidateOutDataCenter = State.Candidates.Value.Value.Select(x => x.ToHex())
-                        .FirstOrDefault(c => !rankingList.DataCenters.ContainsKey(c) && State.CandidateVotes[c] == null);
+                        .FirstOrDefault(c =>
+                            !rankingList.DataCenters.ContainsKey(c) && State.CandidateVotes[c] == null);
                     if (maxVoteCandidateOutDataCenter != null)
                     {
                         maxVoterPublicKeyStringOutOfDataCenter = maxVoteCandidateOutDataCenter;
@@ -508,6 +513,7 @@ namespace AElf.Contracts.Election
                     return;
                 rankingList.DataCenters.Remove(targetMember);
             }
+
             if (maxVoterPublicKeyStringOutOfDataCenter != null)
             {
                 rankingList.DataCenters[maxVoterPublicKeyStringOutOfDataCenter] = maxVoteAmountOutOfDataCenter;
@@ -652,7 +658,7 @@ namespace AElf.Contracts.Election
         private void RetrieveTokensFromVoter(long amount)
         {
             foreach (var symbol in new List<string>
-                {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
+                         { ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol })
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
@@ -716,7 +722,7 @@ namespace AElf.Contracts.Election
         private void TransferTokensToVoter(long amount)
         {
             foreach (var symbol in new List<string>
-                {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
+                         { ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol })
             {
                 State.TokenContract.Transfer.Send(new TransferInput
                 {

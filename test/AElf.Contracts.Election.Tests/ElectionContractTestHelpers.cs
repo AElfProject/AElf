@@ -57,7 +57,7 @@ namespace AElf.Contracts.Election
                 .TransactionResult;
         }
 
-        private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,
+        private async Task<TransactionResult> VoteToCandidateAsync(ECKeyPair voterKeyPair, string candidatePublicKey,
             int lockTime, long amount)
         {
             var electionStub = GetElectionContractTester(voterKeyPair);
@@ -71,12 +71,25 @@ namespace AElf.Contracts.Election
             return voteResult;
         }
         
-        private async Task VoteToCandidate(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
+        private async Task<TransactionResult> ChangeVotingOption(ECKeyPair voterKeyPair, string candidatePublicKey,
+            Hash voteId, bool isResetVotingTime)
+        {
+            var electionStub = GetElectionContractTester(voterKeyPair);
+            var changeVotingResult = (await electionStub.ChangeVotingOption.SendAsync(new ChangeVotingOptionInput
+            {
+                CandidatePubkey = candidatePublicKey,
+                VoteId = voteId,
+                IsResetVotingTime = isResetVotingTime
+            })).TransactionResult;
+            return changeVotingResult;
+        }
+        
+        private async Task VoteToCandidateAsync(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
             int lockTime, long amount)
         {
             foreach (var voterKeyPair in votersKeyPairs)
             {
-                await VoteToCandidate(voterKeyPair, candidatePublicKey, lockTime, amount);
+                await VoteToCandidateAsync(voterKeyPair, candidatePublicKey, lockTime, amount);
             }
         }
         
@@ -85,7 +98,7 @@ namespace AElf.Contracts.Election
         {
             foreach (var candidatePublicKey in candidatesPublicKeys)
             {
-                await VoteToCandidate(votersKeyPairs, candidatePublicKey, lockTime, amount);
+                await VoteToCandidateAsync(votersKeyPairs, candidatePublicKey, lockTime, amount);
             }
         }
 

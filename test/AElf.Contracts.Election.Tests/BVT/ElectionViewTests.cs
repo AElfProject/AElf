@@ -133,7 +133,7 @@ namespace AElf.Contracts.Election
 
                 foreach (var candidate in moreVotesCandidates)
                 {
-                    await VoteToCandidate(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 2);
+                    await VoteToCandidateAsync(VoterKeyPairs[0], candidate.PublicKey.ToHex(), 100 * 86400, 2);
                 }
 
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
@@ -175,13 +175,13 @@ namespace AElf.Contracts.Election
                 .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             foreach (var keyPair in moreVotesCandidates)
             {
-                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+                await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
             }
             var fewVotesCandidates = ValidationDataCenterKeyPairs
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(10).ToList();
             foreach (var keyPair in fewVotesCandidates)
             {
-                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
+                await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
             }
 
             var candidateInformation =

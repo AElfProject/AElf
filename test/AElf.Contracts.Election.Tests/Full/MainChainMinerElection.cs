@@ -25,18 +25,20 @@ namespace AElf.Contracts.Election
                 .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             foreach (var kp in moreVotesCandidates)
             {
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2);
+                await VoteToCandidateAsync(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2);
             }
+
             {
                 var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
                 votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
             }
+
             var lessVotesCandidates = ValidationDataCenterKeyPairs
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
                 .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             foreach (var kp in lessVotesCandidates)
             {
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1);
+                await VoteToCandidateAsync(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1);
             }
 
             {
@@ -68,7 +70,7 @@ namespace AElf.Contracts.Election
             var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
             var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             })).Value;
             profitBalance.ShouldBeGreaterThan(24000000);

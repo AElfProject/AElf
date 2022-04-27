@@ -28,7 +28,7 @@ namespace AElf.Contracts.Election
             var updatedCitizenWelfare = 0L;
 
             var treasuryScheme =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.Treasury]);
 
             // Prepare candidates and votes.
             {
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Election
                     .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
                 foreach (var keyPair in moreVotesCandidates)
                 {
-                    await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+                    await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
                 }
 
                 // SampleKeyPairs[18...30] get 1 votes.
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Election
                           EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
                 foreach (var keyPair in lessVotesCandidates)
                 {
-                    await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
+                    await VoteToCandidateAsync(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
                 }
 
                 var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
@@ -393,14 +393,14 @@ namespace AElf.Contracts.Election
                 var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
                 var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Value;
                 profitAmount.ShouldBeGreaterThan(0);
 
                 var profitResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 });
                 var txSize = profitResult.Transaction.Size();
                 profitResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -431,7 +431,7 @@ namespace AElf.Contracts.Election
                     //basic Shares - 40%
                     var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BasicMinerReward],
                         Symbol = "ELF"
                     })).Value;
                     basicMinerRewardAmount.ShouldBeGreaterThan(0);
@@ -439,7 +439,7 @@ namespace AElf.Contracts.Election
                     //flexible Shares - 10%
                     var flexibleRewardWeight = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.FlexibleReward],
                         Symbol = "ELF"
                     })).Value;
                     flexibleRewardWeight.ShouldBeGreaterThan(0);
@@ -447,7 +447,7 @@ namespace AElf.Contracts.Election
                     //welcome Shares - 10%
                     var welcomeBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.WelcomeReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.WelcomeReward],
                         Symbol = "ELF"
                     })).Value;
                     welcomeBalance.ShouldBe(0);
@@ -455,7 +455,7 @@ namespace AElf.Contracts.Election
                     //backup Shares - 20%
                     var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BackupSubsidy],
                         Symbol = "ELF"
                     })).Value;
                     backupBalance.ShouldBeGreaterThan(0);
@@ -463,21 +463,21 @@ namespace AElf.Contracts.Election
                     //Profit all
                     var profitBasicResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BasicMinerReward],
                     });
                     var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.FlexibleReward],
                     });
                     var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BackupSubsidy],
                     });
                     var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -511,7 +511,7 @@ namespace AElf.Contracts.Election
                     //basic Shares - 10%
                     var basicMinerRewardAmount = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BasicMinerReward],
                         Symbol = "ELF"
                     })).Value;
                     basicMinerRewardAmount.ShouldBeGreaterThan(0);
@@ -519,7 +519,7 @@ namespace AElf.Contracts.Election
                     //flexible Shares - 75%
                     var flexibleRewardWeight = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.FlexibleReward],
                         Symbol = "ELF"
                     })).Value;
                     flexibleRewardWeight.ShouldBe(0);
@@ -527,7 +527,7 @@ namespace AElf.Contracts.Election
                     //welcome Shares - 5%
                     var welcomeBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.WelcomeReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.WelcomeReward],
                         Symbol = "ELF"
                     })).Value;
                     welcomeBalance.ShouldBe(0);
@@ -535,7 +535,7 @@ namespace AElf.Contracts.Election
                     //backup Shares - 5%
                     var backupBalance = (await profitTester.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BackupSubsidy],
                         Symbol = "ELF"
                     })).Value;
                     backupBalance.ShouldBeGreaterThan(0);
@@ -543,7 +543,7 @@ namespace AElf.Contracts.Election
                     //Profit all
                     var profitBasicResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BasicMinerReward],
                     });
                     var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -563,7 +563,7 @@ namespace AElf.Contracts.Election
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.FlexibleReward],
+                        SchemeId = ProfitSchemeIdList[ProfitType.FlexibleReward],
                     });
                     var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -591,7 +591,7 @@ namespace AElf.Contracts.Election
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
-                        SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
+                        SchemeId = ProfitSchemeIdList[ProfitType.BackupSubsidy],
                     });
                     var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -628,7 +628,7 @@ namespace AElf.Contracts.Election
             return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
                 new SchemePeriod
                 {
-                    SchemeId = ProfitItemsIds[type],
+                    SchemeId = ProfitSchemeIdList[type],
                     Period = period
                 });
         }
@@ -648,7 +648,7 @@ namespace AElf.Contracts.Election
 
             return (await stub.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
-                SchemeId = ProfitItemsIds[type],
+                SchemeId = ProfitSchemeIdList[type],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             })).Value;
         }

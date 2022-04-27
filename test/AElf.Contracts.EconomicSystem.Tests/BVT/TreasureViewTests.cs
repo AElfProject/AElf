@@ -30,7 +30,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Amount = 8000_00000000,
                     Period = i + 2,
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol,
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
                 });
                 contributeProfitsResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 await NextTerm(BootMinerKeyPair);

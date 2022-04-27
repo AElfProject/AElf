@@ -40,7 +40,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         #region Contract Address
 
-        protected Dictionary<ProfitType, Hash> ProfitItemsIds { get; set; }
+        protected Dictionary<ProfitType, Hash> ProfitSchemeIdList { get; set; }
 
         private Address _zeroAddress;
         protected new Address ContractZeroAddress => GetZeroContract();
@@ -333,7 +333,7 @@ namespace AElf.Contracts.Economic.TestBase
                     {
                         Manager = TreasuryContractAddress
                     })).SchemeIds;
-                ProfitItemsIds = new Dictionary<ProfitType, Hash>
+                ProfitSchemeIdList = new Dictionary<ProfitType, Hash>
                 {
                     {ProfitType.Treasury, profitIds[0]},
                     {ProfitType.MinerReward, profitIds[1]},
@@ -348,8 +348,8 @@ namespace AElf.Contracts.Economic.TestBase
                     {
                         Manager = ElectionContractAddress
                     })).SchemeIds;
-                ProfitItemsIds.Add(ProfitType.BackupSubsidy, profitIds[0]);
-                ProfitItemsIds.Add(ProfitType.CitizenWelfare, profitIds[1]);
+                ProfitSchemeIdList.Add(ProfitType.BackupSubsidy, profitIds[0]);
+                ProfitSchemeIdList.Add(ProfitType.CitizenWelfare, profitIds[1]);
             }
         }
 

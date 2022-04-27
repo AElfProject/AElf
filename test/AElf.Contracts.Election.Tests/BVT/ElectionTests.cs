@@ -60,7 +60,7 @@ namespace AElf.Contracts.Election
             votingItem.Options.ShouldContain(candidatesKeyPair.PublicKey.ToHex());
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.ContainsKey(candidatesKeyPair.PublicKey.ToHex()).ShouldBeTrue();
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -184,7 +184,7 @@ namespace AElf.Contracts.Election
             votingItem.Options.Count.ShouldBe(0);
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(0);
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -217,7 +217,7 @@ namespace AElf.Contracts.Election
             const int lockTime = 100 * 60 * 60 * 24;
             var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
             var candidateKeyPair = candidatesKeyPairs[0];
-            var voteRet = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
+            var voteRet = await VoteToCandidateAsync(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
             voteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Election
             });
             voteBalanceInElectionContract.Balance.ShouldBe(voteTokenInfo.TotalSupply);
 
-            voteRet = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime * 2, amount);
+            voteRet = await VoteToCandidateAsync(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime * 2, amount);
             voteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             voteBalanceInElectionContract = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -366,7 +366,7 @@ namespace AElf.Contracts.Election
 
             // Check voter's profit detail.
             {
-                var welfareHash = ProfitItemsIds[ProfitType.CitizenWelfare];
+                var welfareHash = ProfitSchemeIdList[ProfitType.CitizenWelfare];
                 var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
                     SchemeId = welfareHash,
@@ -390,7 +390,7 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(validCandidate);
             var voterKeyPair = VoterKeyPairs[0];
             var electionStub = GetElectionContractTester(voterKeyPair);
-            var voteResult = await VoteToCandidate(voterKeyPair, validCandidate.PublicKey.ToHex(), lockTime, amount);
+            var voteResult = await VoteToCandidateAsync(voterKeyPair, validCandidate.PublicKey.ToHex(), lockTime, amount);
             voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var candidateVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
             {
@@ -431,12 +431,12 @@ namespace AElf.Contracts.Election
             var candidateKeyPair = candidatesKeyPairs.First();
             var voterKeyPair = VoterKeyPairs.First();
             var candidateStringKey = candidateKeyPair.PublicKey.ToHex();
-            var firstVoteRet = await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
+            var firstVoteRet = await VoteToCandidateAsync(voterKeyPair, candidateStringKey, lockTime, amount);
             firstVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             var dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenter.DataCenters.ContainsKey(candidateStringKey).ShouldBeTrue();
             dataCenter.DataCenters[candidateStringKey].ShouldBe(amount);
-            var secondVoteRet = await VoteToCandidate(voterKeyPair, candidateStringKey, lockTime, amount);
+            var secondVoteRet = await VoteToCandidateAsync(voterKeyPair, candidateStringKey, lockTime, amount);
             secondVoteRet.Status.ShouldBe(TransactionResultStatus.Mined);
             dataCenter = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenter.DataCenters[candidateStringKey].ShouldBe(amount * 2);
@@ -533,7 +533,7 @@ namespace AElf.Contracts.Election
             var oldProfitDetails = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey),
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
             });
 
             // Check old target
@@ -561,7 +561,7 @@ namespace AElf.Contracts.Election
                 var profitDetails = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
                     Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey),
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
                 });
                 profitDetails.Details.Count.ShouldBe(oldProfitDetails.Details.Count);
             }
@@ -589,14 +589,14 @@ namespace AElf.Contracts.Election
             var profitAmountList = new List<long>();
             for (var i = 0; i < votersCount; i++)
             {
-                var voteResult = await VoteToCandidate(votersKeyPairs[i], candidatesKeyPairs[i].PublicKey.ToHex(),
+                var voteResult = await VoteToCandidateAsync(votersKeyPairs[i], candidatesKeyPairs[i].PublicKey.ToHex(),
                     lockTime, amount.Div(i + 1));
                 var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
                 var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(
                     new GetProfitDetailsInput
                     {
                         Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
-                        SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                        SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
                     });
                 profitDetail.Details.Count.ShouldBe(1);
                 var voteRecord =
@@ -610,7 +610,7 @@ namespace AElf.Contracts.Election
             }
 
             var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
             checkTotalShare.TotalShares.ShouldBe(totalShare);
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
@@ -621,7 +621,7 @@ namespace AElf.Contracts.Election
                 var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
                 profitAmountList.Add(profitAmount.Value);
@@ -654,7 +654,7 @@ namespace AElf.Contracts.Election
             var profitAmountList = new List<long>();
             for (var i = 0; i < votersCount; i++)
             {
-                var voteResult = await VoteToCandidate(votersKeyPairs[i], oldTarget.PublicKey.ToHex(),
+                var voteResult = await VoteToCandidateAsync(votersKeyPairs[i], oldTarget.PublicKey.ToHex(),
                     lockTime, amount);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
@@ -668,7 +668,7 @@ namespace AElf.Contracts.Election
             }
 
             var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
             checkTotalShare.TotalShares.ShouldBe(totalShare);
 
 
@@ -698,7 +698,7 @@ namespace AElf.Contracts.Election
                 afterVoteRecord.UnlockTimestamp.ShouldBe(txTimes.AddSeconds(originVoteRecord.LockTime));
 
                 var afterTotalShare =
-                    await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
                 afterTotalShare.TotalShares.ShouldBe(checkTotalShare.TotalShares);
             }
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
@@ -709,7 +709,7 @@ namespace AElf.Contracts.Election
                 var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
                 profitAmountList.Add(profitAmount.Value);
@@ -743,7 +743,7 @@ namespace AElf.Contracts.Election
             Hash voteId;
             for (var i = 0; i < votersCount; i++)
             {
-                var voteResult = await VoteToCandidate(votersKeyPairs[i], oldTarget.PublicKey.ToHex(),
+                var voteResult = await VoteToCandidateAsync(votersKeyPairs[i], oldTarget.PublicKey.ToHex(),
                     lockTime, amount);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
@@ -757,7 +757,7 @@ namespace AElf.Contracts.Election
             }
 
             var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
             checkTotalShare.TotalShares.ShouldBe(totalShare);
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
@@ -772,7 +772,7 @@ namespace AElf.Contracts.Election
             var originProfitDetail =
                 await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
                 });
             var changeResult = await electionStub.ChangeVotingOption.SendAsync(
@@ -795,7 +795,7 @@ namespace AElf.Contracts.Election
             var afterProfitDetail =
                 await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
                 });
             var profitDetail = afterProfitDetail.Details.First();
@@ -807,7 +807,7 @@ namespace AElf.Contracts.Election
 
 
             var afterTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
             afterTotalShare.TotalShares.ShouldBe(checkTotalShare.TotalShares);
 
             // Term 3 - 5
@@ -822,7 +822,7 @@ namespace AElf.Contracts.Election
                     var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
                     {
                         Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
-                        SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     profitList.Add(profitAmount.Value);
@@ -844,7 +844,7 @@ namespace AElf.Contracts.Election
                     originVoterWithdraw.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     // var afterWithdrawTotalShare =
-                    // await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]);
+                    // await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
                     // afterWithdrawTotalShare.TotalShares.ShouldBe(
                     // afterTotalShare.TotalShares.Sub(originVoteRecord.Weight));
                 }
@@ -859,7 +859,7 @@ namespace AElf.Contracts.Election
             var originProfitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
                 Beneficiary = Address.FromPublicKey(votersKeyPairs.Last().PublicKey),
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
             originProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2));
@@ -867,7 +867,7 @@ namespace AElf.Contracts.Election
             var changeProfitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
                 Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey),
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
             changeProfitAmount.Value.ShouldBe(profitAmountList[term.Value - 1].Div(2)
@@ -895,7 +895,7 @@ namespace AElf.Contracts.Election
             Hash voteId;
             for (var i = 0; i < 2; i++)
             {
-                var voteResult = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+                var voteResult = await VoteToCandidateAsync(votersKeyPair, oldTarget.PublicKey.ToHex(),
                     lockTime, amount * (i + 1));
                 voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
@@ -917,7 +917,7 @@ namespace AElf.Contracts.Election
             var originProfitDetail =
                 await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
                 });
             var changeResult = await electionStub.ChangeVotingOption.SendAsync(
@@ -940,7 +940,7 @@ namespace AElf.Contracts.Election
             var afterProfitDetail =
                 await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
                 });
             var profitDetail = afterProfitDetail.Details.Last();
@@ -955,13 +955,13 @@ namespace AElf.Contracts.Election
             var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
             {
                 Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey),
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol
             });
             var voter = GetProfitContractTester(votersKeyPair);
             var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
             });
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var profitsClaimedEvents = claimResult.TransactionResult.Logs.Where(l => l.Name.Equals("ProfitsClaimed"))
@@ -991,7 +991,7 @@ namespace AElf.Contracts.Election
             var newTarget = candidatesKeyPairs.Last();
 
             // First Vote 
-            var voteResult = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+            var voteResult = await VoteToCandidateAsync(votersKeyPair, oldTarget.PublicKey.ToHex(),
                 lockTime, amount);
             voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
@@ -1004,7 +1004,7 @@ namespace AElf.Contracts.Election
 
             var originProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
             });
             originProfitDetail.Details.Count.ShouldBe(1);
@@ -1032,14 +1032,14 @@ namespace AElf.Contracts.Election
                     voteRecord.LockTime.Sub(txTimes.Seconds.Sub(voteRecord.VoteTimestamp.Seconds))));
             var afterProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
             });
             afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
             afterProfitDetail.Details.ShouldBe(originProfitDetail.Details);
 
             // Second Vote 
-            var voteResult2 = await VoteToCandidate(votersKeyPair, oldTarget.PublicKey.ToHex(),
+            var voteResult2 = await VoteToCandidateAsync(votersKeyPair, oldTarget.PublicKey.ToHex(),
                 lockTime, amount);
             voteResult2.Status.ShouldBe(TransactionResultStatus.Mined);
             var voteId2 = Hash.Parser.ParseFrom(voteResult2.ReturnValue);
@@ -1052,7 +1052,7 @@ namespace AElf.Contracts.Election
 
             originProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
             });
             originProfitDetail.Details.Count.ShouldBe(2);
@@ -1077,7 +1077,7 @@ namespace AElf.Contracts.Election
                 afterVoteRecord.VoteTimestamp.AddSeconds(afterVoteRecord.LockTime));
             afterProfitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = Address.FromPublicKey(votersKeyPair.PublicKey)
             });
             afterProfitDetail.Details.Count.ShouldBe(originProfitDetail.Details.Count);
@@ -1095,7 +1095,7 @@ namespace AElf.Contracts.Election
             var secondCandidate = candidateKeyPairs[1];
             await AnnounceElectionAsync(firstCandidate);
             await AnnounceElectionAsync(secondCandidate);
-            await VoteToCandidate(voter, firstCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            await VoteToCandidateAsync(voter, firstCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             var electionStub = GetElectionContractTester(voter);
             var beforeChangeVote = await electionStub.GetCandidateVote.CallAsync(new StringValue
             {
@@ -1140,7 +1140,7 @@ namespace AElf.Contracts.Election
             long totalWeight = 0;
             for (var i = 0; i < votersCount; i++)
             {
-                var voteResult = await VoteToCandidate(votersKeyPairs[i], candidateStringKey,
+                var voteResult = await VoteToCandidateAsync(votersKeyPairs[i], candidateStringKey,
                     lockTime.Mul(i + 2), amount);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 voteId = Hash.Parser.ParseFrom(voteResult.ReturnValue);
@@ -1158,7 +1158,7 @@ namespace AElf.Contracts.Election
                 Value = candidateStringKey
             });
 
-            var totalShare = (await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]))
+            var totalShare = (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
                 .TotalShares;
             totalShare.ShouldBe(totalWeight);
 
@@ -1176,13 +1176,13 @@ namespace AElf.Contracts.Election
                 var profitAmount = await ProfitContractStub.GetProfitAmount.CallAsync(new GetProfitAmountInput
                 {
                     Beneficiary = Address.FromPublicKey(votersKeyPairs[i].PublicKey),
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
                 profitAll += profitAmount.Value;
                 var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
                 {
-                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                    SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare]
                 });
                 claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 var afterBalance = await GetNativeTokenBalance(votersKeyPairs[i].PublicKey);
@@ -1234,7 +1234,7 @@ namespace AElf.Contracts.Election
 
             // Check share
             var afterTotalShare =
-                (await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.CitizenWelfare]))
+                (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
                 .TotalShares;
             afterTotalShare.ShouldBe(totalShare.Sub(share));
         }
@@ -1505,7 +1505,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1514,13 +1514,13 @@ namespace AElf.Contracts.Election
             var minimumCandidate = dataCenterList.DataCenters.First();
             var newCandidate = ValidationDataCenterCandidateKeyPairs.First();
             await AnnounceElectionAsync(newCandidate);
-            var voteToCandidateRet = await VoteToCandidate(voter, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+            var voteToCandidateRet = await VoteToCandidateAsync(voter, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var newDataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             newDataCenterList.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeFalse();
             newDataCenterList.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeTrue();
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetailOfOldOne = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -1547,7 +1547,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1558,7 +1558,7 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
             var voteToCandidateRet =
-                await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // after withdraw, the new candidate should be removed
@@ -1577,7 +1577,7 @@ namespace AElf.Contracts.Election
             dataCenterListAfterWithDraw.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
             dataCenterListAfterWithDraw.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
 
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -1605,7 +1605,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1614,14 +1614,14 @@ namespace AElf.Contracts.Election
             var newCandidate2 = ValidationDataCenterCandidateKeyPairs.Skip(1).First();
             await AnnounceElectionAsync(newCandidate1);
             await AnnounceElectionAsync(newCandidate2);
-            await VoteToCandidate(voter, newCandidate1.PublicKey.ToHex(), lockTime, span.Div(2));
-            await VoteToCandidate(voter, newCandidate2.PublicKey.ToHex(), lockTime, span.Div(3));
+            await VoteToCandidateAsync(voter, newCandidate1.PublicKey.ToHex(), lockTime, span.Div(2));
+            await VoteToCandidateAsync(voter, newCandidate2.PublicKey.ToHex(), lockTime, span.Div(3));
             await QuitElectionAsync(maximumVoteAmountCandidate);
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
             dataCenterList.DataCenters.ContainsKey(newCandidate1.PublicKey.ToHex()).ShouldBeTrue();
             dataCenterList.DataCenters.ContainsKey(maximumVoteAmountCandidate.PublicKey.ToHex()).ShouldBeFalse();
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetailOfNewCandidate = await ProfitContractStub.GetProfitDetails.CallAsync(
                 new GetProfitDetailsInput
                 {
@@ -1669,7 +1669,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1680,7 +1680,7 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
             var voteToCandidateRet =
-                await VoteToCandidate(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter2, newCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // after change option, the minimum candidate amount add to 2700, it should be in data center
@@ -1700,7 +1700,7 @@ namespace AElf.Contracts.Election
             dataCenterListAfterChangeOption.DataCenters.ContainsKey(minimumCandidate.Key).ShouldBeTrue();
             dataCenterListAfterChangeOption.DataCenters.ContainsKey(newCandidate.PublicKey.ToHex()).ShouldBeFalse();
 
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetailOfTheIn = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -1733,7 +1733,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1743,7 +1743,7 @@ namespace AElf.Contracts.Election
             var voter2 = VoterKeyPairs.Skip(1).First();
             var voteAmount2 = 100;
             var voteToCandidateRet =
-                await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount2);
+                await VoteToCandidateAsync(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount2);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
@@ -1781,7 +1781,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1791,7 +1791,7 @@ namespace AElf.Contracts.Election
             await AnnounceElectionAsync(newCandidate);
             var voter2 = VoterKeyPairs.Skip(1).First();
             var voteToCandidateRet =
-                await VoteToCandidate(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter2, maximumVoteCandidate.PublicKey.ToHex(), lockTime, voteAmount);
             voteToCandidateRet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var electionVoteItemId = await ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty());
@@ -1814,7 +1814,7 @@ namespace AElf.Contracts.Election
             dataCenterListAfterChangeOption.DataCenters.Keys.ShouldContain(newCandidate.PublicKey.ToHex());
             dataCenterListAfterChangeOption.DataCenters.Keys.ShouldNotContain(minimumVoteCandidate.PublicKey.ToHex());
 
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetailOfTheIn = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,
@@ -1842,7 +1842,7 @@ namespace AElf.Contracts.Election
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(fullCount))
             {
                 await AnnounceElectionAsync(keyPair);
-                await VoteToCandidate(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
+                await VoteToCandidateAsync(voter, keyPair.PublicKey.ToHex(), lockTime, voteAmount);
                 voteAmount = voteAmount.Add(span);
             }
 
@@ -1851,7 +1851,7 @@ namespace AElf.Contracts.Election
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.Count.ShouldBe(fullCount);
             var diffCount = fullCount.Sub(minerCount.Mul(5));
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             foreach (var keyPair in ValidationDataCenterKeyPairs.Take(diffCount))
             {
                 var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
