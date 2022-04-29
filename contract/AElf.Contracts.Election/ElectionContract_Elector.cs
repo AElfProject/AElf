@@ -360,6 +360,10 @@ namespace AElf.Contracts.Election
             }
 
             var maxEndPeriod = lockPeriod.Add(treasury.CurrentPeriod);
+            if (endPeriod == 0)
+            {
+                endPeriod = maxEndPeriod;
+            }
             Assert(endPeriod <= maxEndPeriod, "Invalid end period.");
 
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
