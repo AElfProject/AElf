@@ -82,5 +82,7 @@ namespace AElf.Contracts.Election
         /// Address -> Pubkey.
         /// </summary>
         public MappedState<Address, string> PubkeyMap { get; set; }
+
+        public BoolState FixWelfareProfitDisabled { get; set; }
     }
 }

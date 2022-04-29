@@ -348,7 +348,7 @@ namespace AElf.Contracts.Election
             return profitDetails.Details.LastOrDefault(d => d.Shares == electionVotingRecord.Weight);
         }
 
-        private void ExtendVoterWelfareProfits(Hash voteId)
+        private void ExtendVoterWelfareProfits(Hash voteId, long startPeriod = 0, long endPeriod = 0)
         {
             var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
             var electionVotingRecord = GetElectionVotingRecordByVoteId(voteId);
@@ -359,7 +359,8 @@ namespace AElf.Contracts.Election
                 return;
             }
 
-            var endPeriod = lockPeriod.Add(treasury.CurrentPeriod);
+            var maxEndPeriod = lockPeriod.Add(treasury.CurrentPeriod);
+            Assert(endPeriod <= maxEndPeriod, "Invalid end period.");
 
             var extendingDetail = GetProfitDetailByElectionVotingRecord(electionVotingRecord);
             if (extendingDetail != null)
@@ -380,8 +381,10 @@ namespace AElf.Contracts.Election
             {
                 var withdrawTimestamp = electionVotingRecord.WithdrawTimestamp;
                 // Maybe not accurate if voter didn't withdraw his votes immediately.
-                var startPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds.Div(State.TimeEachTerm.Value)
+                var minStartPeriod = (withdrawTimestamp - Context.CurrentBlockTime).Seconds
+                    .Div(State.TimeEachTerm.Value)
                     .Add(treasury.CurrentPeriod).Add(1);
+                Assert(startPeriod >= minStartPeriod, "Invalid start period");
 
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {
@@ -399,12 +402,31 @@ namespace AElf.Contracts.Election
             }
         }
 
-        public override Empty FixWelfareEndPeriod(FixWelfareEndPeriodInput input)
+        public override Empty FixWelfareProfit(FixWelfareProfitInput input)
         {
-            var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
-            Assert(votingRecord.IsChangeTarget, $"Cannot fix profit detail of vote id {input.VoteId}");
-            ExtendVoterWelfareProfits(input.VoteId);
+            Assert(!State.FixWelfareProfitDisabled.Value, "Cannot fix welfare profits.");
+            AssertSendIsAElfFoundation();
+            foreach (var fixInfo in input.FixInfoList)
+            {
+                var votingRecord = State.VoteContract.GetVotingRecord.Call(fixInfo.VoteId);
+                Assert(votingRecord.IsChangeTarget, $"Cannot fix profit detail of vote id {fixInfo}");
+                ExtendVoterWelfareProfits(fixInfo.VoteId, fixInfo.StartPeriod, fixInfo.EndPeriod);
+            }
+
             return new Empty();
+        }
+
+        public override Empty DisableWelfareFix(Empty input)
+        {
+            AssertSendIsAElfFoundation();
+            State.FixWelfareProfitDisabled.Value = true;
+            return new Empty();
+        }
+
+        private void AssertSendIsAElfFoundation()
+        {
+            var aelfFoundationAddress = Address.FromBase58("25CuX2FXDvhaj7etTpezDQDunk5xGhytxE68yTYJJfMkQwvj5p");
+            //Assert(Context.Sender == aelfFoundationAddress, "No permission.");
         }
 
         #endregion

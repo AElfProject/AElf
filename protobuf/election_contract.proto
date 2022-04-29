@@ -51,7 +51,10 @@ service ElectionContract {
     rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
 
-    rpc FixWelfareEndPeriod (FixWelfareEndPeriodInput) returns (google.protobuf.Empty) {
+    rpc FixWelfareProfit (FixWelfareProfitInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc DisableWelfareFix (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 
     // After the lock time, your locked tokens will be unlocked and you can withdraw them according to the vote id.
@@ -294,8 +297,14 @@ message ChangeVotingOptionInput {
     bool is_reset_voting_time = 3;
 }
 
-message FixWelfareEndPeriodInput {
+message FixWelfareProfitInput {
+    repeated FixWelfareProfitInfo fix_info_list = 1;
+}
+
+message FixWelfareProfitInfo {
     aelf.Hash vote_id = 1;
+    int64 start_period = 2;
+    int64 end_period = 3;
 }
 
 message UpdateTermNumberInput {
