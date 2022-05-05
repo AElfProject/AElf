@@ -79,9 +79,12 @@ namespace AElf.Contracts.Election
             }
 
             // Term 7
-            await ClaimProfitsAsync(VoterKeyPairs[0]);
-            await ProduceBlocks(BootMinerKeyPair, 10);
-            await NextTerm(BootMinerKeyPair);
+            for (var i = 0; i < 5; i++)
+            {
+                await ClaimProfitsAsync(VoterKeyPairs[0]);
+                await ProduceBlocks(BootMinerKeyPair, 10);
+                await NextTerm(BootMinerKeyPair);
+            }
         }
     }
 }
