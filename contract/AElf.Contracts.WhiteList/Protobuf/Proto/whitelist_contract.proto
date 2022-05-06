@@ -1,0 +1,198 @@
+/**
+ *  WhiteList Contract.
+ */
+syntax = "proto3";
+
+package whitelist;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.WhiteList";
+
+service WhiteListContract{
+    
+    //For Creators.
+    //Create whiteList.
+    rpc CreateWhiteList(CreateInput) returns (aelf.Hash){
+    }
+    
+    //Add an address to an existing whiteList.
+    rpc AddAddressToWhiteList(AddAddressToWhiteListInput) returns (google.protobuf.Empty){
+    }
+    
+    //Remove address from an existing whiteList.
+    rpc RemoveAddressFromWhiteList(RemoveAddressFromWhiteListInput) returns (google.protobuf.Empty){
+    }
+    
+    //Add multiple addresses to an existing whiteList.
+    rpc AddAddressListToWhiteList(AddAddressListToWhiteListInput) returns (google.protobuf.Empty){
+    }
+    
+    //Remove multiple addresses from an existing whiteList.
+    rpc RemoveAddressListFromWhiteList(RemoveAddressListFromWhiteListInput) returns (google.protobuf.Empty){
+    }
+    
+    //Disable whiteList.
+    rpc DisableWhiteList(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    
+    
+    //For Users.
+    //Subscribe whiteList.
+    rpc SubscribeWhiteList(SubscribeWhiteListInput) returns (aelf.Hash){
+    }
+    
+    // ? Cancel subscribe according to the subscribe_id.
+    rpc CancelSubscribeWhiteList(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    
+    
+    //Views.
+    //Get existing whiteList according to the white_list_id.
+    rpc GetWhiteList(aelf.Hash) returns (WhiteListInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    //Get subscribe whiteList info according to the subscribe_id.
+    rpc GetSubscribeWhiteList(aelf.Hash) returns (SubscribeWhiteListInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    //Get consumed list according to the subscribe_id.
+    rpc GetConsumedList(aelf.Hash) returns (ConsumedList){
+        option (aelf.is_view) = true;
+    }
+}
+
+
+//Structs.
+
+message WhiteListInfo{
+    //The whiteList id.
+    aelf.Hash white_list_id = 1;
+    //The list of address in this whiteList.
+    repeated aelf.Address address = 2;
+    //Whether the whiteList is available.
+    bool is_available = 3;
+    string remark = 4;
+}
+
+message SubscribeWhiteListInfo{
+    //The subscribe id.
+    aelf.Hash subscribe_id = 1;
+    //The project id.
+    aelf.Hash project_id = 2;
+    //The whiteList id.
+    aelf.Hash white_list_id = 3;
+    //The list of address in this whiteList.
+    repeated aelf.Address address = 4;
+    //The customize info of this whiteList.
+    bytes customize_info = 5;
+    //Whether the whiteList is available.
+    bool is_available = 6;
+}
+
+message ConsumedList{
+    //The subscribe id.
+    aelf.Hash subscribe_id = 1;
+    //The whiteList id.
+    aelf.Hash white_list_id = 2;
+    //The consumed address list in this whiteList.
+    repeated aelf.Address value = 3;
+}
+
+message AddressList{
+    repeated aelf.Address value = 1;
+}
+
+
+//Inputs.
+
+message CreateInput{
+    AddressList address_list = 1;
+}
+
+message AddAddressToWhiteListInput{
+    aelf.Hash white_list_id = 1;
+    aelf.Address address = 2;
+}
+
+message RemoveAddressFromWhiteListInput{
+    aelf.Hash white_list_id = 1;
+    aelf.Address address = 2;
+}
+
+message AddAddressListToWhiteListInput{
+    aelf.Hash white_list_id = 1;
+    AddressList address_list = 2;
+}
+
+message RemoveAddressListFromWhiteListInput{
+    aelf.Hash white_list_id = 1;
+    AddressList address_list = 2;
+}
+
+message SubscribeWhiteListInput{
+    //The project id.
+    aelf.Hash project_id = 1;
+    //The whiteList id.
+    aelf.Hash white_list_id = 2;
+    //Customize info.
+    bytes customize_info = 3;
+} 
+
+
+//Events.
+
+message CreateWhiteList{
+    option (aelf.is_event) = true;
+    //The whiteList id.
+    aelf.Hash white_list_id = 1;
+    //The list of address in this whiteList.
+    AddressList address_list = 2;
+    //Whether the whiteList is available.
+    bool is_available = 3;
+    
+}
+
+message WhiteListSubscribed{
+    option (aelf.is_event) = true;
+    //The subscribe id.
+    aelf.Hash subscribe_id = 1;
+    //The project id.
+    aelf.Hash project_id = 2;
+    //The whiteList id.
+    aelf.Hash white_list_id = 3;
+    //The list of address in this whiteList.
+    AddressList address_list = 4;
+    //The customize info of this whiteList.
+    bytes customize_info = 5;
+    //Whether the whiteList is available.
+    bool is_available = 6;
+}
+
+message AddAddressToWhiteList{
+    option (aelf.is_event) = true;
+    aelf.Hash white_list_id = 1;
+    aelf.Address address = 2;
+}
+
+message AddAddressListToWhiteList{
+    option (aelf.is_event) = true;
+    aelf.Hash white_list_id = 1;
+    AddressList address_list = 2;
+}
+
+message RemoveAddressFromWhiteList{
+    option (aelf.is_event) = true;
+    aelf.Hash white_list_id = 1;
+    aelf.Address address = 2;
+}
+
+message RemoveAddressListFromWhiteList{
+    option (aelf.is_event) = true;
+    aelf.Hash white_list_id = 1;
+    AddressList address_list = 2;
+}

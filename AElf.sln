@@ -369,6 +369,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFTMinter", "contract\AElf.Contracts.NFTMinter\AElf.Contracts.NFTMinter.csproj", "{1C0833AE-18DB-4E62-BB0A-226F4555CB09}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.WhiteList", "contract\AElf.Contracts.WhiteList\AElf.Contracts.WhiteList.csproj", "{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1059,6 +1061,10 @@ Global
 		{1C0833AE-18DB-4E62-BB0A-226F4555CB09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C0833AE-18DB-4E62-BB0A-226F4555CB09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C0833AE-18DB-4E62-BB0A-226F4555CB09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1245,5 +1251,6 @@ Global
 		{7E07BD13-74BF-4FD7-A294-07E664C47100} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{F50AF512-69E2-46B5-87C6-E058CE2C2D8A} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{1C0833AE-18DB-4E62-BB0A-226F4555CB09} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
+		{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 	EndGlobalSection
 EndGlobal
