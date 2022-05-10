@@ -75,6 +75,57 @@ namespace AElf.Contracts.Election
             await NextTerm(BootMinerKeyPair);
         }
 
+
+        [Fact]
+        public async Task CitizenWelfareTest_MultiVotes()
+        {
+            foreach (var keyPair in CoreDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
+
+            await OneVoter_Term1Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await OneVoter_ChangeVoteTerm2Async();
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await ClaimAndCheckOneVoterAsync(2);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await ClaimAndCheckOneVoterAsync(3);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await ClaimAndCheckOneVoterAsync(4);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await ClaimAndCheckOneVoterAsync(5);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await OneVoter_ChangeVoter7Async();
+            await ClaimAndCheckOneVoterAsync(6);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+            
+            await ClaimAndCheckOneVoterAsync(7);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+
+            await ClaimAndCheckOneVoterAsync(8);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+            
+            await ClaimAndCheckOneVoterAsync(9);
+            await ProduceBlocks(BootMinerKeyPair, 10);
+            await NextTerm(BootMinerKeyPair);
+        }
+
         /// <summary>
         /// Voter1 votes: (50, 10)
         /// Vote1 change option: true
@@ -377,6 +428,88 @@ namespace AElf.Contracts.Election
             await ClaimAndCheckAsync(12);
         }
 
+        //Voter vote twice 
+        private async Task OneVoter_Term1Async()
+        {
+            await VoteToCandidateAsync(VoterKeyPairs[0], CoreDataCenterKeyPairs[0].PublicKey.ToHex(), 15 * 86400,
+                10_00000000);
+
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[0].Id.ShouldNotBeNull();
+                profitDetail.Details[0].StartPeriod.ShouldBe(2);
+                profitDetail.Details[0].EndPeriod.ShouldBe(3);
+                _profitShare.AddShares(2, 3, VoterKeyPairs[0].PublicKey.ToHex(), profitDetail.Details[0].Shares);
+            }
+
+            await VoteToCandidateAsync(VoterKeyPairs[0], CoreDataCenterKeyPairs[0].PublicKey.ToHex(), 50 * 86400,
+                10_00000000);
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[1].Id.ShouldNotBeNull();
+                profitDetail.Details[1].StartPeriod.ShouldBe(2);
+                profitDetail.Details[1].EndPeriod.ShouldBe(8);
+                _profitShare.AddShares(2, 8, VoterKeyPairs[0].PublicKey.ToHex(), profitDetail.Details[1].Shares);
+            }
+        }
+
+        private async Task OneVoter_ChangeVoteTerm2Async()
+        {
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[0].Id.ShouldNotBeNull();
+                profitDetail.Details[0].StartPeriod.ShouldBe(2);
+                profitDetail.Details[0].EndPeriod.ShouldBe(3);
+            }
+            {
+                var electorVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+                {
+                    Value = VoterKeyPairs[0].PublicKey.ToHex()
+                });
+                await ChangeVotingOption(VoterKeyPairs[0], CoreDataCenterKeyPairs[1].PublicKey.ToHex(),
+                    electorVotes.ActiveVotingRecordIds.First(), false);
+            }
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[0].Id.ShouldNotBeNull();
+                profitDetail.Details[0].StartPeriod.ShouldBe(2);
+                profitDetail.Details[0].EndPeriod.ShouldBe(3);
+            }
+        }
+
+        private async Task OneVoter_ChangeVoter7Async()
+        {
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[0].Id.ShouldNotBeNull();
+                profitDetail.Details[0].StartPeriod.ShouldBe(2);
+                profitDetail.Details[0].EndPeriod.ShouldBe(8);
+            }
+            {
+                var electorVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
+                {
+                    Value = VoterKeyPairs[0].PublicKey.ToHex()
+                });
+                await ChangeVotingOption(VoterKeyPairs[0], CoreDataCenterKeyPairs[1].PublicKey.ToHex(),
+                    electorVotes.ActiveVotingRecordIds.Last(), true);
+            }
+            {
+                var profitDetail =
+                    await GetCitizenWelfareProfitDetails(Address.FromPublicKey(VoterKeyPairs[0].PublicKey));
+                profitDetail.Details[0].Id.ShouldNotBeNull();
+                profitDetail.Details[0].StartPeriod.ShouldBe(2);
+                profitDetail.Details[0].EndPeriod.ShouldBe(14);
+                _profitShare.AddShares(9, 14, VoterKeyPairs[0].PublicKey.ToHex(),
+                    profitDetail.Details[0].Shares);
+            }
+        }
+
+
         private async Task<ProfitDetails> GetCitizenWelfareProfitDetails(Address voterAddress)
         {
             return await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
@@ -418,6 +551,29 @@ namespace AElf.Contracts.Election
                 logEvents.Select(l => l.ClaimerShares).Sum()
                     .ShouldBe(_profitShare.GetSharesOfPeriod(period)[VoterKeyPairs[i].PublicKey.ToHex()]);
             }
+
+            profitsList.Sum().ShouldBeInRange(totalAmount - 6, totalAmount);
+        }
+
+        private async Task ClaimAndCheckOneVoterAsync(int period)
+        {
+            var profitsList = new List<long>();
+            var totalAmount = await GetDistributedCitizenWelfareAsync(period);
+            var shouldClaimed =
+                _profitShare.CalculateProfits(period, totalAmount, VoterKeyPairs[0].PublicKey.ToHex());
+            var logEvents = await ClaimProfitsAsync(VoterKeyPairs[0]);
+            if (!logEvents.Any())
+            {
+                return;
+            }
+
+            var actualClaimed = logEvents.Sum(l => l.Amount);
+            actualClaimed.ShouldBeInRange(shouldClaimed - 1, shouldClaimed);
+            profitsList.Add(actualClaimed);
+
+            logEvents.First().TotalShares.ShouldBe(_profitShare.GetTotalSharesOfPeriod(period));
+            logEvents.Select(l => l.ClaimerShares).Sum()
+                .ShouldBe(_profitShare.GetSharesOfPeriod(period)[VoterKeyPairs[0].PublicKey.ToHex()]);
 
             profitsList.Sum().ShouldBeInRange(totalAmount - 6, totalAmount);
         }
