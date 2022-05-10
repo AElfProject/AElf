@@ -1,22 +1,24 @@
 using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.WhiteList
+namespace AElf.Contracts.Whitelist
 {
-    public partial class WhiteListContract
+    public partial class WhitelistContract
     {
-        public override ExtraInfo GetExtraInfoByHash(Hash input)
+        public override BytesValue GetExtraInfoByHash(Hash input)
         {
             return State.ExtraInfoMap[input];
         }
 
-        public override WhiteListInfo GetWhiteList(Hash input)
+        public override WhitelistInfo GetWhitelist(Hash input)
         {
-            return State.WhiteListInfoMap[input];
+            return State.WhitelistInfoMap[input];
         }
 
-        public override SubscribeWhiteListInfo GetSubscribeWhiteList(Hash input)
+        public override SubscribeWhitelistInfo GetSubscribeWhitelist(Hash input)
         {
-            return State.SubscribeWhiteListInfoMap[input];
+            return State.SubscribeWhitelistInfoMap[input];
         }
 
         public override ConsumedList GetConsumedList(Hash input)
@@ -24,9 +26,9 @@ namespace AElf.Contracts.WhiteList
             return State.ConsumedListMap[input];
         }
 
-        public override WhiteListInfo GetCloneWhiteList(Hash input)
+        public override WhitelistInfo GetCloneWhitelist(Hash input)
         {
-            return State.CloneWhiteListInfoMap[input];
+            return State.CloneWhitelistInfoMap[input];
         }
     }
 }

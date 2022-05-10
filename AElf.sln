@@ -369,7 +369,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.NFTMinter", "contract\AElf.Contracts.NFTMinter\AElf.Contracts.NFTMinter.csproj", "{1C0833AE-18DB-4E62-BB0A-226F4555CB09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.WhiteList", "contract\AElf.Contracts.WhiteList\AElf.Contracts.WhiteList.csproj", "{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Whitelist", "contract\AElf.Contracts.Whitelist\AElf.Contracts.Whitelist.csproj", "{530CBCA7-48CA-4F62-83E9-68A9B9ADC80B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

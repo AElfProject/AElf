@@ -1,25 +1,26 @@
 using System.Linq;
+using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.WhiteList
+namespace AElf.Contracts.Whitelist
 {
-    public partial class WhiteListContract
+    public partial class WhitelistContract
     {
-        public override Hash SubscribeWhiteList(SubscribeWhiteListInput input)
+        public override Hash SubscribeWhitelist(SubscribeWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
             var subscribeId = CalculateSubscribeWhiteListHash($"{input.ProjectId}{input.WhitelistId}");
-            Assert(State.SubscribeWhiteListInfoMap[subscribeId] == null,"Subscribe info already exist.");
-            var subscribeWhiteListInfo = new SubscribeWhiteListInfo
+            Assert(State.SubscribeWhitelistInfoMap[subscribeId] == null, "Subscribe info already exist.");
+            var subscribeWhiteListInfo = new SubscribeWhitelistInfo
             {
                 SubscribeId = subscribeId,
                 ProjectId = input.ProjectId,
                 WhitelistId = whiteListInfo.WhitelistId
             };
-            State.SubscribeWhiteListInfoMap[subscribeId] = subscribeWhiteListInfo;
-            Context.Fire(new WhiteListSubscribed()
+            State.SubscribeWhitelistInfoMap[subscribeId] = subscribeWhiteListInfo;
+            Context.Fire(new WhitelistSubscribed
             {
                 SubscribeId = subscribeId,
                 ProjectId = subscribeWhiteListInfo.ProjectId,
@@ -28,10 +29,10 @@ namespace AElf.Contracts.WhiteList
             return subscribeId;
         }
 
-        public override Empty CancelSubscribeWhiteList(Hash input)
+        public override Empty CancelSubscribeWhitelist(Hash input)
         {
             AssertSubscribeWhiteListInfo(input);
-            var consumedList = State.ConsumedListMap[input].AddressExtraInfoList.Value;
+            var consumedList = State.ConsumedListMap[input].ExtraInfoIdList.Value;
             consumedList.Clear();
             return new Empty();
         }
@@ -42,44 +43,45 @@ namespace AElf.Contracts.WhiteList
             if (State.ConsumedListMap[subscribeInfo.SubscribeId] != null)
             {
                 var consumedList = GetConsumedList(subscribeInfo.SubscribeId);
-                consumedList.AddressExtraInfoList.Value.Add(input.AddressExtraInfo);
+                consumedList.ExtraInfoIdList.Value.Add(input.ExtraInfoId);
                 State.ConsumedListMap[subscribeInfo.SubscribeId] = consumedList;
                 Context.Fire(new ConsumedListAdded
                 {
                     SubscribeId = consumedList.SubscribeId,
                     WhitelistId = subscribeInfo.WhitelistId,
-                    AddressExtraInfo = input.AddressExtraInfo
+                    ExtraInfoIdList = new ExtraInfoIdList { Value = { input.ExtraInfoId } }
                 });
             }
             else
             {
-                var addressInfoList = new AddressExtraIdInfoList();
-                addressInfoList.Value.Add(input.AddressExtraInfo);
+                var addressInfoList = new ExtraInfoIdList();
+                addressInfoList.Value.Add(input.ExtraInfoId);
                 var consumedList = new ConsumedList
                 {
                     SubscribeId = subscribeInfo.SubscribeId,
                     WhitelistId = subscribeInfo.WhitelistId,
-                    AddressExtraInfoList = addressInfoList
+                    ExtraInfoIdList = addressInfoList
                 };
                 State.ConsumedListMap[subscribeInfo.SubscribeId] = consumedList;
                 Context.Fire(new ConsumedListAdded
                 {
                     SubscribeId = consumedList.SubscribeId,
                     WhitelistId = subscribeInfo.WhitelistId,
-                    AddressExtraInfo = input.AddressExtraInfo
+                    ExtraInfoIdList = new ExtraInfoIdList { Value = { input.ExtraInfoId } }
                 });
             }
+
             return new Empty();
         }
 
-        public override Empty CloneWhiteList(CloneWhiteListInput input)
+        public override Empty CloneWhitelist(CloneWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId).Clone();
-            Assert(whiteListInfo.IsCloned,"WhiteList is not allowed to be cloned.");
+            Assert(whiteListInfo.IsCloneable, "Whitelist is not allowed to be cloned.");
             var cloneWhiteListId = CalculateCloneWhiteListHash($"{Context.Sender}{input.WhitelistId}");
-            Assert(State.CloneWhiteListInfoMap[cloneWhiteListId] != null,"WhiteList has already been cloned.");
-            State.CloneWhiteListInfoMap[cloneWhiteListId] = whiteListInfo;
-            Context.Fire(new WhiteListCloned
+            Assert(State.CloneWhitelistInfoMap[cloneWhiteListId] != null, "WhiteList has already been cloned.");
+            State.CloneWhitelistInfoMap[cloneWhiteListId] = whiteListInfo;
+            Context.Fire(new WhitelistCloned()
             {
                 CloneId = cloneWhiteListId,
                 WhitelistId = whiteListInfo.WhitelistId
@@ -87,46 +89,47 @@ namespace AElf.Contracts.WhiteList
             return new Empty();
         }
 
-        public override Empty SetClonedWhiteListExtraInfo(SetClonedWhiteListExtraInfoInput input)
+        public override Empty SetClonedWhitelistExtraInfo(SetClonedWhitelistExtraInfoInput input)
         {
-            Assert(input.AddressExtraInfo != null, "Address and extra info is null.");
+            if (input.ExtraInfoList == null)
+            {
+                throw new AssertionException("Address and extra info is null.");
+            }
+
             AssertClonedWhiteListInfo(input.CloneWhitelistId);
-            var whiteListInfo = GetCloneWhiteList(input.CloneWhitelistId).Clone();
-            var addressExtraList = GetWhiteList(whiteListInfo.WhitelistId).Clone().AddressExtraInfoList;
+            var whiteListInfo = GetCloneWhitelist(input.CloneWhitelistId).Clone();
+            var addressExtraList = GetWhitelist(whiteListInfo.WhitelistId).Clone().ExtraInfoIdList;
             var addressList = addressExtraList.Value.Select(info =>
             {
-                var matchAddress = new AddressExtraIdInfo();
-                foreach (var inputValue in input.AddressExtraInfo)
+                var matchAddress = new ExtraInfoId();
+                foreach (var inputValue in input.ExtraInfoList.Value)
                 {
                     if (inputValue.Address.Equals(info.Address))
                     {
-                        var extraInfo = CalculateExtraInfoHash(inputValue.ExtraInfo.ToByteArray());
-                        var extra = GetExtraInfoByHash(extraInfo) ?? new ExtraInfo
-                        {
-                            ExtraInfoId = extraInfo,
-                            ExtraInfo_ = inputValue.ExtraInfo
-                        };
-                        State.ExtraInfoMap[extraInfo] = extra;
-                        info.ExtraInfoId = extraInfo;
+                        var extraInfoId = inputValue.Info.CalculateExtraInfoId();
+                        var extra = GetExtraInfoByHash(extraInfoId);
+                        State.ExtraInfoMap[extraInfoId] = extra;
+                        info.Id = extraInfoId;
                         matchAddress.Address = inputValue.Address;
-                        matchAddress.ExtraInfoId = extraInfo;
+                        matchAddress.Id = extraInfoId;
                     }
+
                     break;
                 }
+
                 return matchAddress;
             }).ToList();
-            State.CloneWhiteListInfoMap[input.CloneWhitelistId] = whiteListInfo;
-            Context.Fire(new SetClonedWhiteList
+            State.CloneWhitelistInfoMap[input.CloneWhitelistId] = whiteListInfo;
+            Context.Fire(new SetClonedWhitelist
             {
                 CloneId = input.CloneWhitelistId,
                 WhitelistId = whiteListInfo.WhitelistId,
-                AddressExtraInfo = new AddressExtraIdInfoList
+                ExtraInfoIdList = new ExtraInfoIdList()
                 {
                     Value = { addressList }
                 }
             });
             return new Empty();
         }
-        
     }
 }

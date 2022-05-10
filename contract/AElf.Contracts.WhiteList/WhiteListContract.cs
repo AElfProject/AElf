@@ -1,8 +1,8 @@
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.WhiteList
+namespace AElf.Contracts.Whitelist
 {
-    public partial class WhiteListContract : WhiteListContractContainer.WhiteListContractBase
+    public partial class WhitelistContract : WhitelistContractContainer.WhitelistContractBase
     {
         public override Empty Initialize(InitializeInput input)
         {

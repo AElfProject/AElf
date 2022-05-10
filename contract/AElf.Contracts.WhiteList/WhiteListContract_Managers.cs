@@ -3,142 +3,141 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.WhiteList
+namespace AElf.Contracts.Whitelist
 {
-    public partial class WhiteListContract 
+    public partial class WhitelistContract
     {
-        public override Hash CreateWhiteList(CreateWhiteListInput input)
+        public override Hash CreateWhitelist(CreateWhitelistInput input)
         {
-            Assert(input.AddressExtraInfoList != null, "The whiteList address and extra info is null");
-            var whiteListHash = CalculateWhiteListHash(new AddressExtraInfoList
+            if (input.ExtraInfoList == null)
             {
-                Value = { input.AddressExtraInfoList }
+                throw new AssertionException("The whiteList address and extra info is null");
+            }
+
+            var whiteListHash = CalculateWhitelistHash(new ExtraInfoList
+            {
+                Value = { input.ExtraInfoList.Value }
             });
-            Assert(State.WhiteListInfoMap[whiteListHash] == null, "WhiteList already exists.");
-            var addressExtraIdInfoList = input.AddressExtraInfoList?.Select(info =>
+            Assert(State.WhitelistInfoMap[whiteListHash] == null, "WhiteList already exists.");
+            var extraInfoIdList = input.ExtraInfoList.Value.Select(info =>
             {
                 var addressExtraInfo = ConvertExtraInfo(info);
                 return addressExtraInfo;
             }).ToList();
-            var whiteListInfo = new WhiteListInfo
+            var whitelistInfo = new WhitelistInfo
             {
                 WhitelistId = whiteListHash,
-                AddressExtraInfoList = new AddressExtraIdInfoList
+                ExtraInfoIdList = new ExtraInfoIdList
                 {
-                    Value = {addressExtraIdInfoList}
+                    Value = { extraInfoIdList }
                 },
                 IsAvailable = true,
-                IsCloned = input.IsCloned,
+                IsCloneable = input.IsCloneable,
                 Remark = input.Remark
             };
-            State.WhiteListInfoMap[whiteListHash] = whiteListInfo;
-            Context.Fire(new WhiteListCreated
+            State.WhitelistInfoMap[whiteListHash] = whitelistInfo;
+            Context.Fire(new WhitelistCreated
             {
-                WhiteListId = whiteListHash,
-                AddressExtraInfoList = whiteListInfo.AddressExtraInfoList,
-                IsAvailable = whiteListInfo.IsAvailable,
-                IsCloned = whiteListInfo.IsCloned,
-                Remark = whiteListInfo.Remark
+                WhitelistId = whiteListHash,
+                ExtraInfoIdList = whitelistInfo.ExtraInfoIdList,
+                IsAvailable = whitelistInfo.IsAvailable,
+                Remark = whitelistInfo.Remark
             });
             return whiteListHash;
         }
 
-        public override Empty AddAddressInfoToWhiteList(AddAddressInfoToWhiteListInput input)
+        public override Empty AddAddressInfoToWhitelist(AddAddressInfoToWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            var addressExtraIdInfo = ConvertExtraInfo(input.AddressExtraInfo);
-            whiteListInfo.AddressExtraInfoList.Value.Add(addressExtraIdInfo);
-            State.WhiteListInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
-            Context.Fire(new WhiteListAddressInfoAdded
+            var addressExtraIdInfo = ConvertExtraInfo(input.ExtraInfo);
+            whiteListInfo.ExtraInfoIdList.Value.Add(addressExtraIdInfo);
+            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            Context.Fire(new WhitelistAddressInfoAdded
             {
                 WhitelistId = whiteListInfo.WhitelistId,
-                AddressExtraInfoList = new AddressExtraIdInfoList
+                ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = {addressExtraIdInfo}
+                    Value = { addressExtraIdInfo }
                 }
             });
             return new Empty();
         }
 
-        public override Empty RemoveAddressInfoFromWhiteList(RemoveAddressInfoFromWhiteListInput input)
+        public override Empty RemoveAddressInfoFromWhitelist(RemoveAddressInfoFromWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            var addressExtraInfo = RemoveAddressOrExtra(whiteListInfo, input.AddressExtraInfo);
-            Context.Fire(new WhiteListAddressInfoRemoved()
+            var extraInfo = RemoveAddressOrExtra(whiteListInfo, input.ExtraInfo);
+            Context.Fire(new WhitelistAddressInfoRemoved()
             {
                 WhitelistId = whiteListInfo.WhitelistId,
-                AddressExtraInfoList = new AddressExtraIdInfoList
+                ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = {addressExtraInfo}
+                    Value = { extraInfo }
                 }
             });
             return new Empty();
         }
 
-        public override Empty AddAddressInfoListToWhiteList(AddAddressInfoListToWhiteListInput input)
+        public override Empty AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            foreach (var addressExtraInfo in input.AddressExtraInfoList)
+            foreach (var addressExtraInfo in input.ExtraInfoList.Value)
             {
                 var extraInfo = ConvertExtraInfo(addressExtraInfo);
-                whiteListInfo.AddressExtraInfoList.Value.Add(extraInfo);
+                whiteListInfo.ExtraInfoIdList.Value.Add(extraInfo);
             }
 
-            State.WhiteListInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
-            Context.Fire(new WhiteListAddressInfoAdded()
+            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            Context.Fire(new WhitelistAddressInfoAdded()
             {
                 WhitelistId = whiteListInfo.WhitelistId,
-                AddressExtraInfoList = whiteListInfo.AddressExtraInfoList
+                ExtraInfoIdList = whiteListInfo.ExtraInfoIdList
             });
             return new Empty();
         }
 
-        public override Empty RemoveAddressInfoListFromWhiteList(RemoveAddressInfoListFromWhiteListInput input)
+        public override Empty RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            var addressExtraInfoList = new AddressExtraIdInfoList();
-            foreach (var info in input.AddressExtraInfoList)
+            var extraInfoIdList = new ExtraInfoIdList();
+            foreach (var info in input.ExtraInfoList.Value)
             {
                 var addressExtraInfo = RemoveAddressOrExtra(whiteListInfo, info);
-                addressExtraInfoList.Value.Add(addressExtraInfo);
+                extraInfoIdList.Value.Add(addressExtraInfo);
             }
 
-            Context.Fire(new WhiteListAddressInfoRemoved()
+            Context.Fire(new WhitelistAddressInfoRemoved()
             {
                 WhitelistId = whiteListInfo.WhitelistId,
-                AddressExtraInfoList = addressExtraInfoList
+                ExtraInfoIdList = extraInfoIdList
             });
             return new Empty();
         }
 
 
-        public override Empty DisableWhiteList(DisableWhiteListInput input)
+        public override Empty DisableWhitelist(DisableWhitelistInput input)
         {
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
             whiteListInfo.IsAvailable = false;
-            State.WhiteListInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
-            Context.Fire(new WhiteListDisabled
+            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            Context.Fire(new WhitelistDisabled
             {
                 WhitelistId = whiteListInfo.WhitelistId,
-                IsAvailable = whiteListInfo.IsAvailable,
                 Remark = input.Remark
             });
             return new Empty();
         }
 
-
         public override Empty SetExtraInfo(SetExtraInfoInput input)
         {
             Assert(State.ExtraInfoMap[input.ExtraInfoId] != null, "Extra Info doesn't exist.");
-            State.ExtraInfoMap[input.ExtraInfoId].ExtraInfo_ = input.ExtraInfo;
+            State.ExtraInfoMap[input.ExtraInfoId].Value = input.ExtraInfo;
             Context.Fire(new SetExtraInfo
             {
                 ExtraInfoId = input.ExtraInfoId,
-                ExtraInfo = State.ExtraInfoMap[input.ExtraInfoId].ExtraInfo_
+                ExtraInfo = State.ExtraInfoMap[input.ExtraInfoId].Value
             });
             return new Empty();
         }
-
     }
-
 }
