@@ -11,7 +11,9 @@ using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Whitelist;
 using AElf.ContractTestBase.ContractTestKit;
+using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Standards.ACS3;
@@ -52,9 +54,11 @@ namespace AElf.Contracts.NFT
         protected Hash NFTContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFT");
         protected Hash NFTMarketContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFTMarket");
         protected Hash NFTMinterContractName => HashHelper.ComputeFrom("AElf.ContractNames.NFTMinter");
+        protected Hash WhitelistContractName => HashHelper.ComputeFrom("AElf.ContractNames.Whitelist");
         protected Address NFTContractAddress { get; set; }
         protected Address NFTMarketContractAddress { get; set; }
         protected Address NFTMinterContractAddress { get; set; }
+        protected Address WhitelistContractAddress { get; set; }
         internal NFTContractContainer.NFTContractStub NFTContractStub { get; set; }
         internal NFTContractContainer.NFTContractStub MinterNFTContractStub { get; set; }
 
@@ -66,6 +70,7 @@ namespace AElf.Contracts.NFT
         internal NFTMarketContractContainer.NFTMarketContractStub Buyer2NFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub CreatorNFTMarketContractStub { get; set; }
         internal NFTMarketContractContainer.NFTMarketContractStub AdminNFTMarketContractStub { get; set; }
+        internal WhitelistContractContainer.WhitelistContractStub WhitelistContractStub { get; set; }
 
         public NFTContractTestBase()
         {
@@ -81,6 +86,7 @@ namespace AElf.Contracts.NFT
             NFTContractAddress = SystemContractAddresses[NFTContractName];
             NFTMarketContractAddress = SystemContractAddresses[NFTMarketContractName];
             NFTMinterContractAddress = SystemContractAddresses[NFTMinterContractName];
+            WhitelistContractAddress = SystemContractAddresses[WhitelistContractName];
 
             NFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, DefaultKeyPair);
             MinterNFTContractStub = GetTester<NFTContractContainer.NFTContractStub>(NFTContractAddress, MinterKeyPair);
@@ -100,6 +106,8 @@ namespace AElf.Contracts.NFT
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
             AdminNFTMarketContractStub =
                 GetTester<NFTMarketContractContainer.NFTMarketContractStub>(NFTMarketContractAddress, DefaultKeyPair);
+            WhitelistContractStub = 
+                GetTester<WhitelistContractContainer.WhitelistContractStub>(WhitelistContractAddress, DefaultKeyPair);
 
             ParliamentContractStub = GetTester<ParliamentContractImplContainer.ParliamentContractImplStub>(
                 ParliamentContractAddress, DefaultKeyPair);

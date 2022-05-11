@@ -27,6 +27,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Whitelist\AElf.Contracts.Whitelist.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -130,6 +135,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\nft_contract.proto">
             <Link>Protobuf\Proto\nft_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\whitelist_contract.proto">
+            <Link>Protobuf\Proto\whitelist_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\nft_market_contract.proto">
             <Link>Protobuf\Proto\nft_market_contract.proto</Link>

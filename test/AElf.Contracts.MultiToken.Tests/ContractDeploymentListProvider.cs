@@ -31,6 +31,7 @@ namespace AElf.Contracts.MultiToken
                 HashHelper.ComputeFrom("AElf.ContractNames.NFT"),
                 HashHelper.ComputeFrom("AElf.ContractNames.NFTMarket"),
                 HashHelper.ComputeFrom("AElf.ContractNames.NFTMinter"),
+                HashHelper.ComputeFrom("AElf.ContractNames.Whitelist"),
             };
         }
     }
