@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
@@ -79,11 +80,20 @@ namespace AElf.Contracts.Whitelist
             var whiteListInfo = AssertWhiteListInfo(input.WhitelistId).Clone();
             Assert(whiteListInfo.IsCloneable, "Whitelist is not allowed to be cloned.");
             var cloneWhiteListId = CalculateCloneWhiteListHash($"{Context.Sender}{input.WhitelistId}");
-            Assert(State.CloneWhitelistInfoMap[cloneWhiteListId] != null, "WhiteList has already been cloned.");
-            State.CloneWhitelistInfoMap[cloneWhiteListId] = whiteListInfo;
+            Assert(State.WhitelistInfoMap[cloneWhiteListId] != null, "WhiteList has already been cloned.");
+            var whitelistClone = new WhitelistInfo()
+            {
+                WhitelistId = cloneWhiteListId,
+                ExtraInfoIdList = whiteListInfo.ExtraInfoIdList,
+                IsAvailable = whiteListInfo.IsAvailable,
+                IsCloneable = whiteListInfo.IsCloneable,
+                Remark = whiteListInfo.Remark,
+                CloneFrom = whiteListInfo.WhitelistId
+            };
+            State.WhitelistInfoMap[cloneWhiteListId] = whitelistClone;
             Context.Fire(new WhitelistCloned()
             {
-                CloneId = cloneWhiteListId,
+                CloneFrom = whiteListInfo.WhitelistId,
                 WhitelistId = whiteListInfo.WhitelistId
             });
             return new Empty();
@@ -95,38 +105,51 @@ namespace AElf.Contracts.Whitelist
             {
                 throw new AssertionException("Address and extra info is null.");
             }
-
-            AssertClonedWhiteListInfo(input.CloneWhitelistId);
-            var whiteListInfo = GetCloneWhitelist(input.CloneWhitelistId).Clone();
-            var addressExtraList = GetWhitelist(whiteListInfo.WhitelistId).Clone().ExtraInfoIdList;
-            var addressList = addressExtraList.Value.Select(info =>
+            
+            AssertWhiteListInfo(input.CloneWhitelistId);
+            var whiteListInfo = GetWhitelist(input.CloneWhitelistId).Clone();
+            var addressList = whiteListInfo.ExtraInfoIdList.Value.Select(info =>
             {
                 var matchAddress = new ExtraInfoId();
                 foreach (var inputValue in input.ExtraInfoList.Value)
                 {
+                    var extraInfoId = ConvertExtraInfo(inputValue);
+                    info.Id = extraInfoId.Id;
+                    //Select match address and update extraInfo.
                     if (inputValue.Address.Equals(info.Address))
                     {
-                        var extraInfoId = inputValue.Info.CalculateExtraInfoId();
-                        var extra = GetExtraInfoByHash(extraInfoId);
-                        State.ExtraInfoMap[extraInfoId] = extra;
-                        info.Id = extraInfoId;
                         matchAddress.Address = inputValue.Address;
-                        matchAddress.Id = extraInfoId;
+                        matchAddress.Id = extraInfoId.Id;
+                        input.ExtraInfoList.Value.Remove(inputValue);
                     }
-
                     break;
                 }
-
                 return matchAddress;
             }).ToList();
-            State.CloneWhitelistInfoMap[input.CloneWhitelistId] = whiteListInfo;
+            
+            //No match address , add extraInfo to the whiteList.
+            var newExtraList = new List<ExtraInfoId>();
+            if (input.ExtraInfoList.Value.Count != 0)
+            {
+                foreach (var value in input.ExtraInfoList.Value)
+                {
+                    var extraInfoId = ConvertExtraInfo(value);
+                    whiteListInfo.ExtraInfoIdList.Value.Add(new ExtraInfoId()
+                    {
+                        Address = value.Address,
+                        Id = extraInfoId.Id
+                    });
+                    newExtraList.Add(extraInfoId);
+                }
+            }
+            State.WhitelistInfoMap[input.CloneWhitelistId] = whiteListInfo;
             Context.Fire(new SetClonedWhitelist
             {
-                CloneId = input.CloneWhitelistId,
-                WhitelistId = whiteListInfo.WhitelistId,
+                CloneId = whiteListInfo.WhitelistId,
+                WhitelistId = whiteListInfo.CloneFrom,
                 ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = { addressList }
+                    Value = { addressList,newExtraList }
                 }
             });
             return new Empty();

@@ -37,13 +37,6 @@ namespace AElf.Contracts.Whitelist
             return subscribeInfo;
         }
 
-        private WhitelistInfo AssertClonedWhiteListInfo(Hash cloneId)
-        {
-            var whiteListInfo = State.CloneWhitelistInfoMap[cloneId];
-            Assert(whiteListInfo != null, $"WhiteList cloned info not exist.{cloneId.ToHex()}");
-            return whiteListInfo;
-        }
-
         /// <summary>
         ///Convert extra_info to extra_info_id
         /// </summary>
@@ -52,7 +45,7 @@ namespace AElf.Contracts.Whitelist
         {
             var infoId = input.Info.CalculateExtraInfoId();
             var extraInfo = GetExtraInfoByHash(infoId);
-            State.ExtraInfoMap[infoId] = extraInfo;
+            State.ExtraInfoMap[infoId].Value = extraInfo?.Value == null ? input.Info : extraInfo.Value;
             var extraInfoId = new ExtraInfoId
             {
                 Address = input.Address,

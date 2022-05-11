@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>AElf.Contract.WhiteList</RootNamespace>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.ContractTestBase\AElf.ContractTestBase.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.WhiteList\AElf.Contracts.WhiteList.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <CommonMessage Include="..\..\protobuf\authority_info.proto">
+            <Link>Protobuf\Proto\authority_info.proto</Link>
+        </CommonMessage>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\whitelist_contract.proto">
+            <Link>Protobuf\Proto\whitelist_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+    <Import Project="..\..\test\AllProto.props"/>
+    <Import Project="..\..\test\AllContracts.props" />
+    
+</Project>

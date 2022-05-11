@@ -88,8 +88,8 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
 
-    //Get clone whitelist according to the clone_id.
-    rpc GetCloneWhitelist (aelf.Hash) returns(WhitelistInfo){
+    //Get whitelist detail according to the whitelist_id.
+    rpc GetWhitelistDetail (aelf.Hash) returns(ExtraInfoList){
         option (aelf.is_view) = true;
     }
 }
@@ -269,7 +269,7 @@ message SetExtraInfo {
 
 message WhitelistCloned {
     option (aelf.is_event) = true;
-    aelf.Hash clone_id = 1;
+    aelf.Hash clone_from = 1;
     aelf.Hash whitelist_id = 2;
 }
 

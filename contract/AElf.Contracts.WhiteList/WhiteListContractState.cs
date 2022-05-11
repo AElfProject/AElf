@@ -14,6 +14,5 @@ namespace AElf.Contracts.Whitelist
 
         public MappedState<Hash, ConsumedList> ConsumedListMap { get; set; }
 
-        public MappedState<Hash, WhitelistInfo> CloneWhitelistInfoMap { get; set; }
     }
 }

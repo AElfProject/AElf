@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -26,9 +27,20 @@ namespace AElf.Contracts.Whitelist
             return State.ConsumedListMap[input];
         }
 
-        public override WhitelistInfo GetCloneWhitelist(Hash input)
+        public override ExtraInfoList GetWhitelistDetail(Hash input)
         {
-            return State.CloneWhitelistInfoMap[input];
+            AssertWhiteListInfo(input);
+            var whitelistInfo = GetWhitelist(input);
+            var extraInfoList = whitelistInfo.ExtraInfoIdList.Value.Select(info =>
+            { 
+                var extraInfo = GetExtraInfoByHash(info.Id).Value;
+                return new ExtraInfo()
+                {
+                    Address = info.Address,
+                    Info = extraInfo
+                };
+            }).ToList();
+            return new ExtraInfoList() {Value = {extraInfoList}};
         }
     }
 }
