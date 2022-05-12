@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -11,14 +12,14 @@ namespace AElf.Contracts.Whitelist
         {
             if (input.ExtraInfoList == null)
             {
-                throw new AssertionException("The whiteList address and extra info is null");
+                throw new AssertionException("The whitelist address and extra info is null");
             }
 
-            var whiteListHash = CalculateWhitelistHash(new ExtraInfoList
+            var whitelistHash = CalculateWhitelistHash(Context.Sender,new ExtraInfoList
             {
                 Value = { input.ExtraInfoList.Value }
             });
-            Assert(State.WhitelistInfoMap[whiteListHash] == null, "WhiteList already exists.");
+            Assert(State.WhitelistInfoMap[whitelistHash] == null, "WhiteList already exists.");
             var extraInfoIdList = input.ExtraInfoList.Value.Select(info =>
             {
                 var addressExtraInfo = ConvertExtraInfo(info);
@@ -26,38 +27,41 @@ namespace AElf.Contracts.Whitelist
             }).ToList();
             var whitelistInfo = new WhitelistInfo
             {
-                WhitelistId = whiteListHash,
+                WhitelistId = whitelistHash,
                 ExtraInfoIdList = new ExtraInfoIdList
                 {
                     Value = { extraInfoIdList }
                 },
                 IsAvailable = true,
                 IsCloneable = input.IsCloneable,
-                Remark = input.Remark
+                Remark = input.Remark,
+                Manager = Context.Sender
             };
-            State.WhitelistInfoMap[whiteListHash] = whitelistInfo;
+            State.WhitelistInfoMap[whitelistHash] = whitelistInfo;
             Context.Fire(new WhitelistCreated
             {
-                WhitelistId = whiteListHash,
+                WhitelistId = whitelistHash,
                 ExtraInfoIdList = whitelistInfo.ExtraInfoIdList,
                 IsAvailable = whitelistInfo.IsAvailable,
-                Remark = whitelistInfo.Remark
+                Remark = whitelistInfo.Remark,
+                Manager = whitelistInfo.Manager
             });
-            return whiteListHash;
+            return whitelistHash;
         }
 
         public override Empty AddAddressInfoToWhitelist(AddAddressInfoToWhitelistInput input)
         {
-            var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            var addressExtraIdInfo = ConvertExtraInfo(input.ExtraInfo);
-            whiteListInfo.ExtraInfoIdList.Value.Add(addressExtraIdInfo);
-            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            var extraInfoId = ConvertExtraInfo(input.ExtraInfo);
+            whitelistInfo.ExtraInfoIdList.Value.Add(extraInfoId);
+            State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
             Context.Fire(new WhitelistAddressInfoAdded
             {
-                WhitelistId = whiteListInfo.WhitelistId,
+                WhitelistId = whitelistInfo.WhitelistId,
                 ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = { addressExtraIdInfo }
+                    Value = { extraInfoId }
                 }
             });
             return new Empty();
@@ -65,14 +69,15 @@ namespace AElf.Contracts.Whitelist
 
         public override Empty RemoveAddressInfoFromWhitelist(RemoveAddressInfoFromWhitelistInput input)
         {
-            var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            var extraInfo = RemoveAddressOrExtra(whiteListInfo, input.ExtraInfo);
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            var extraInfoId = RemoveAddressOrExtra(whitelistInfo, input.ExtraInfo);
             Context.Fire(new WhitelistAddressInfoRemoved()
             {
-                WhitelistId = whiteListInfo.WhitelistId,
+                WhitelistId = whitelistInfo.WhitelistId,
                 ExtraInfoIdList = new ExtraInfoIdList()
                 {
-                    Value = { extraInfo }
+                    Value = { extraInfoId }
                 }
             });
             return new Empty();
@@ -80,35 +85,37 @@ namespace AElf.Contracts.Whitelist
 
         public override Empty AddAddressInfoListToWhitelist(AddAddressInfoListToWhitelistInput input)
         {
-            var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             foreach (var addressExtraInfo in input.ExtraInfoList.Value)
             {
                 var extraInfo = ConvertExtraInfo(addressExtraInfo);
-                whiteListInfo.ExtraInfoIdList.Value.Add(extraInfo);
+                whitelistInfo.ExtraInfoIdList.Value.Add(extraInfo);
             }
 
-            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
             Context.Fire(new WhitelistAddressInfoAdded()
             {
-                WhitelistId = whiteListInfo.WhitelistId,
-                ExtraInfoIdList = whiteListInfo.ExtraInfoIdList
+                WhitelistId = whitelistInfo.WhitelistId,
+                ExtraInfoIdList = whitelistInfo.ExtraInfoIdList
             });
             return new Empty();
         }
 
         public override Empty RemoveAddressInfoListFromWhitelist(RemoveAddressInfoListFromWhitelistInput input)
         {
-            var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             var extraInfoIdList = new ExtraInfoIdList();
             foreach (var info in input.ExtraInfoList.Value)
             {
-                var addressExtraInfo = RemoveAddressOrExtra(whiteListInfo, info);
-                extraInfoIdList.Value.Add(addressExtraInfo);
+                var extraInfoId = RemoveAddressOrExtra(whitelistInfo, info);
+                extraInfoIdList.Value.Add(extraInfoId);
             }
 
             Context.Fire(new WhitelistAddressInfoRemoved()
             {
-                WhitelistId = whiteListInfo.WhitelistId,
+                WhitelistId = whitelistInfo.WhitelistId,
                 ExtraInfoIdList = extraInfoIdList
             });
             return new Empty();
@@ -117,25 +124,82 @@ namespace AElf.Contracts.Whitelist
 
         public override Empty DisableWhitelist(DisableWhitelistInput input)
         {
-            var whiteListInfo = AssertWhiteListInfo(input.WhitelistId);
-            whiteListInfo.IsAvailable = false;
-            State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            whitelistInfo.IsAvailable = false;
+            State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
             Context.Fire(new WhitelistDisabled
             {
-                WhitelistId = whiteListInfo.WhitelistId,
+                WhitelistId = whitelistInfo.WhitelistId,
                 Remark = input.Remark
             });
             return new Empty();
         }
 
-        public override Empty SetExtraInfo(SetExtraInfoInput input)
+        public override Empty AddExtraInfo(AddExtraInfoInput input)
         {
-            Assert(State.ExtraInfoMap[input.ExtraInfoId] != null, "Extra Info doesn't exist.");
+            if (input == null)
+            {
+                throw new AssertionException("Extra info is null");
+            }
+            Assert(State.ExtraInfoMap[input.ExtraInfoId] == null, "Extra Info is exist.");
             State.ExtraInfoMap[input.ExtraInfoId].Value = input.ExtraInfo;
-            Context.Fire(new SetExtraInfo
+            Context.Fire(new ExtraInfoAdded
             {
                 ExtraInfoId = input.ExtraInfoId,
                 ExtraInfo = State.ExtraInfoMap[input.ExtraInfoId].Value
+            });
+            return new Empty();
+        }
+        
+        public override Empty UpdateExtraInfo(UpdateExtraInfoInput input)
+        {
+            if (input.ExtraInfoList == null)
+            {
+                throw new AssertionException("Address and extra info is null.");
+            }
+            var whitelistInfo = AssertWhitelistInfo(input.WhitelistId);
+            var extraInfoList = whitelistInfo.ExtraInfoIdList.Value.Select(info =>
+            {
+                var matchInfo = new ExtraInfoId();
+                foreach (var inputValue in input.ExtraInfoList.Value)
+                {
+                    //Select match address and extraInfoId , update extraInfo.
+                    if (inputValue.Address.Equals(info.Address) )
+                    {
+                        var extraInfoId = ConvertExtraInfo(inputValue);
+                        info.Id = extraInfoId.Id;
+                        matchInfo.Address = inputValue.Address;
+                        matchInfo.Id = extraInfoId.Id;
+                        input.ExtraInfoList.Value.Remove(inputValue);
+                    }
+                    break;
+                }
+                return matchInfo;
+            }).ToList();
+            Assert(input.ExtraInfoList.Value.Count == 0,"No match address.");
+            Context.Fire(new UpdateWhitelist()
+            {
+                WhitelistId = whitelistInfo.WhitelistId,
+                ExtraInfoIdList = new ExtraInfoIdList()
+                {
+                    Value = { extraInfoList }
+                }
+            });
+            return new Empty();
+        }
+
+        public override Empty TransferManager(TransferManagerInput input)
+        {
+            AssertWhitelistInfo(input.WhitelistId);
+            var whitelist = AssertWhitelistManager(input.WhitelistId);
+            whitelist.Manager = input.Manager;
+            State.WhitelistInfoMap[whitelist.WhitelistId] = whitelist;
+            Context.Fire(new ManagerTransferred()
+            {
+                WhitelistId = whitelist.WhitelistId,
+                TransferFrom = Context.Sender,
+                TransferTo = whitelist.Manager
             });
             return new Empty();
         }

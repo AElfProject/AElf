@@ -1,36 +1,46 @@
 using System.Linq;
 using AElf.Contracts.Whitelist.Extensions;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 
 namespace AElf.Contracts.Whitelist
 {
     public partial class WhitelistContract
     {
-        private Hash CalculateWhitelistHash(ExtraInfoList input)
+        private Hash CalculateWhitelistHash(Address address, ExtraInfoList input)
         {
-            return HashHelper.ComputeFrom(input);
+            return HashHelper.ComputeFrom($"{address}{input}");
         }
 
-        private Hash CalculateSubscribeWhiteListHash(string input)
+        private Hash CalculateSubscribeWhitelistHash(Address address,Hash projectId,Hash whitelistId)
         {
-            return HashHelper.ComputeFrom(input);
+            return HashHelper.ComputeFrom($"{address}{projectId}{whitelistId}");
         }
 
-        private Hash CalculateCloneWhiteListHash(string input)
+        private Hash CalculateCloneWhitelistHash(Address address,Hash whitelistId)
         {
-            return HashHelper.ComputeFrom(input);
+            return HashHelper.ComputeFrom($"{address}{whitelistId}");
+        }
+        
+        private WhitelistInfo AssertWhitelistInfo(Hash whitelistId)
+        {
+            var whitelistInfo = State.WhitelistInfoMap[whitelistId];
+            if (whitelistInfo == null)
+            {
+                throw new AssertionException($"Whitelist not found.{whitelistId.ToHex()}");
+            }
+            Assert(whitelistInfo.IsAvailable, $"Whitelist is not available.{whitelistId.ToHex()}");
+            return whitelistInfo;
         }
 
-        private WhitelistInfo AssertWhiteListInfo(Hash whiteListId)
+        private WhitelistInfo AssertWhitelistManager(Hash whitelistId)
         {
-            var whiteListInfo = State.WhitelistInfoMap[whiteListId];
-            Assert(whiteListInfo != null, $"WhiteList not found.{whiteListId.ToHex()}");
-            Assert(whiteListInfo != null && whiteListInfo.IsAvailable,
-                $"WhiteList is not available.{whiteListId.ToHex()}");
-            return whiteListInfo;
+            var whitelistInfo = GetWhitelist(whitelistId);
+            Assert(whitelistInfo.Manager == Context.Sender,$"{Context.Sender} is not the manager of the whitelist.");
+            return whitelistInfo;
         }
 
-        private SubscribeWhitelistInfo AssertSubscribeWhiteListInfo(Hash subscribeId)
+        private SubscribeWhitelistInfo AssertSubscribeWhitelistInfo(Hash subscribeId)
         {
             var subscribeInfo = State.SubscribeWhitelistInfoMap[subscribeId];
             Assert(subscribeInfo != null, $"Subscribe info not found.{subscribeId.ToHex()}");
@@ -60,10 +70,10 @@ namespace AElf.Contracts.Whitelist
         /// <returns>AddressExtraIdInfo</returns>
         private ExtraInfoId RemoveAddressOrExtra(WhitelistInfo whiteListInfo, ExtraInfo extraInfo)
         {
-            var extraInfoId = ConvertExtraInfo(extraInfo);
+            
             if (extraInfo.Info == null)
             {
-                var address = extraInfoId.Address;
+                var address = extraInfo.Address;
                 var resultList = whiteListInfo.ExtraInfoIdList.Value
                     .Where(u => u.Address.Equals(address)).ToList();
                 Assert(resultList.Count != 0, "Address doesn't exist.");
@@ -71,8 +81,11 @@ namespace AElf.Contracts.Whitelist
                 {
                     whiteListInfo.ExtraInfoIdList.Value.Remove(result);
                 }
-
                 State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+                return new ExtraInfoId()
+                {
+                    Address = address
+                };
             }
             else
             {
@@ -84,11 +97,9 @@ namespace AElf.Contracts.Whitelist
                 {
                     whiteListInfo.ExtraInfoIdList.Value.Remove(result);
                 }
-
                 State.WhitelistInfoMap[whiteListInfo.WhitelistId] = whiteListInfo;
+                return ConvertExtraInfo(extraInfo);
             }
-
-            return extraInfoId;
         }
     }
 }
