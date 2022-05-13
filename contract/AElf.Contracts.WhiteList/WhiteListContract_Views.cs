@@ -48,17 +48,28 @@ namespace AElf.Contracts.Whitelist
 
         public override WhitelistInfo GetAvailableWhitelist(Hash input)
         {
-            var consumedExtraList = State.ConsumedListMap[input].ExtraInfoIdList.Value.ToList();
             var subscribe = GetSubscribeWhitelist(input);
-            var whitelist = GetWhitelist(subscribe.WhitelistId);
-            var whitelistExtra = whitelist.ExtraInfoIdList.Value.ToList();
-            var availableList = whitelistExtra.Where(info =>
-                !consumedExtraList.Exists(extra => info.Address == extra.Address && info.Id == extra.Id)).ToList();
-            return new WhitelistInfo()
+            var consumedList = State.ConsumedListMap[subscribe.SubscribeId];
+            var whitelist = State.WhitelistInfoMap[subscribe.WhitelistId];
+            if (consumedList == null)
             {
-                WhitelistId = whitelist.WhitelistId,
-                ExtraInfoIdList = new ExtraInfoIdList() {Value = { availableList }}
-            };
+                return new WhitelistInfo()
+                {
+                    WhitelistId = whitelist.WhitelistId,
+                    ExtraInfoIdList = whitelist.ExtraInfoIdList
+                };
+            }
+            else
+            {
+                var consumedExtraList = consumedList.ExtraInfoIdList.Value;
+                var whitelistExtra = whitelist.ExtraInfoIdList.Value;
+                var availableList = whitelistExtra.Except(consumedExtraList);
+                return new WhitelistInfo()
+                {
+                    WhitelistId = whitelist.WhitelistId,
+                    ExtraInfoIdList = new ExtraInfoIdList() {Value = { availableList }}
+                };
+            }
         }
 
         public override BoolValue GetFromAvailableWhitelist(GetFromAvailableWhitelistInput input)

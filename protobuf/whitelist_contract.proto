@@ -42,6 +42,10 @@ service WhitelistContract {
     rpc DisableWhitelist (DisableWhitelistInput) returns (google.protobuf.Empty){
     }
     
+    //Update state: Whether the whitelist is allowed to be cloned.
+    rpc ChangeWhitelistCloneable(UpdateWhitelistCloneableInput) returns (google.protobuf.Empty){
+    }
+    
     //Add extra info.
     rpc AddExtraInfo (AddExtraInfoInput) returns (google.protobuf.Empty){
     }
@@ -68,7 +72,7 @@ service WhitelistContract {
     }
     
     //Clone whitelist.
-    rpc CloneWhitelist (CloneWhitelistInput) returns (google.protobuf.Empty){
+    rpc CloneWhitelist (CloneWhitelistInput) returns (aelf.Hash){
     }
     
     
@@ -230,6 +234,11 @@ message CloneWhitelistInput{
     aelf.Hash whitelist_id = 1;
 }
 
+message UpdateWhitelistCloneableInput{
+    aelf.Hash whitelist_id = 1;
+    bool is_cloneable = 2;
+}
+
 message AddExtraInfoInput{
     aelf.Hash extra_info_id = 1;
     bytes extra_info = 2;
@@ -297,7 +306,8 @@ message WhitelistAddressInfoRemoved {
 message WhitelistDisabled {
     option (aelf.is_event) = true;
     aelf.Hash whitelist_id = 1;
-    string remark = 2;
+    bool is_available = 2;
+    string remark = 3;
 }
 
 message ConsumedListAdded {
@@ -305,6 +315,12 @@ message ConsumedListAdded {
     aelf.Hash subscribe_id = 1;
     aelf.Hash whitelist_id = 2;
     ExtraInfoIdList extra_info_id_list = 3;
+}
+
+message IsCloneableChanged{
+    option (aelf.is_event) = true;
+    aelf.Hash whitelist_id = 1;
+    bool is_cloneable = 2;
 }
 
 message ExtraInfoAdded {

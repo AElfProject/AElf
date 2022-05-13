@@ -2,6 +2,7 @@ using System.Linq;
 using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Whitelist
 {
@@ -25,10 +26,13 @@ namespace AElf.Contracts.Whitelist
         private WhitelistInfo AssertWhitelistInfo(Hash whitelistId)
         {
             var whitelistInfo = State.WhitelistInfoMap[whitelistId];
-            if (whitelistInfo == null)
-            {
-                throw new AssertionException($"Whitelist not found.{whitelistId.ToHex()}");
-            }
+            Assert(whitelistInfo != null,$"Whitelist not found.{whitelistId.ToHex()}");
+            return whitelistInfo;
+        }
+        
+        private WhitelistInfo AssertWhitelistIsAvailable(Hash whitelistId)
+        {
+            var whitelistInfo = State.WhitelistInfoMap[whitelistId];
             Assert(whitelistInfo.IsAvailable, $"Whitelist is not available.{whitelistId.ToHex()}");
             return whitelistInfo;
         }
@@ -47,6 +51,23 @@ namespace AElf.Contracts.Whitelist
             return subscribeInfo;
         }
 
+        private ExtraInfoId AssertExtraInfoIsExist(Hash whitelistId, ExtraInfo info)
+        {
+            var whitelist = State.WhitelistInfoMap[whitelistId];
+            var extraInfoId = ConvertExtraInfo(info);
+            var ifExist = whitelist.ExtraInfoIdList.Value.Contains(extraInfoId);
+            Assert(!ifExist, $"ExtraInfo already exists.{whitelistId}{info}");
+            return extraInfoId;
+        }
+        
+        private ExtraInfoId AssertExtraInfoIsNotExist(Hash whitelistId, ExtraInfoId info)
+        {
+            var whitelist = State.WhitelistInfoMap[whitelistId];
+            var ifExist = whitelist.ExtraInfoIdList.Value.Contains(info);
+            Assert(ifExist, $"ExtraInfo doesn't exist in the available whitelist.{whitelistId}{info}");
+            return info;
+        }
+
         /// <summary>
         ///Convert extra_info to extra_info_id
         /// </summary>
@@ -55,12 +76,24 @@ namespace AElf.Contracts.Whitelist
         {
             var infoId = input.Info.CalculateExtraInfoId();
             var extraInfo = GetExtraInfoByHash(infoId);
-            State.ExtraInfoMap[infoId].Value = extraInfo?.Value == null ? input.Info : extraInfo.Value;
+            if (extraInfo == null)
+            {
+                State.ExtraInfoMap[infoId] = new BytesValue()
+                {
+                    Value = input.Info
+                };
+                Context.Fire(new ExtraInfoAdded
+                {
+                    ExtraInfoId = infoId,
+                    ExtraInfo = State.ExtraInfoMap[infoId].Value
+                });
+            }
             var extraInfoId = new ExtraInfoId
             {
                 Address = input.Address,
                 Id = infoId
             };
+            
             return extraInfoId;
         }
 
@@ -76,7 +109,7 @@ namespace AElf.Contracts.Whitelist
                 var address = extraInfo.Address;
                 var resultList = whiteListInfo.ExtraInfoIdList.Value
                     .Where(u => u.Address.Equals(address)).ToList();
-                Assert(resultList.Count != 0, "Address doesn't exist.");
+                Assert(resultList.Count != 0, $"Address doesn't exist.{resultList}");
                 foreach (var result in resultList)
                 {
                     whiteListInfo.ExtraInfoIdList.Value.Remove(result);
@@ -92,7 +125,7 @@ namespace AElf.Contracts.Whitelist
                 var toRemove = whiteListInfo.ExtraInfoIdList.Value
                     .Where(u => u.Address == extraInfo.Address && u.Id == extraInfo.Info.CalculateExtraInfoId())
                     .ToList();
-                Assert(toRemove.Count != 0, "Address and extra info doesn't exist.");
+                Assert(toRemove.Count != 0, $"Address and extra info doesn't exist.{toRemove}");
                 foreach (var result in toRemove)
                 {
                     whiteListInfo.ExtraInfoIdList.Value.Remove(result);

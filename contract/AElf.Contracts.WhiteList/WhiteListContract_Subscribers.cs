@@ -11,16 +11,18 @@ namespace AElf.Contracts.Whitelist
     {
         public override Hash SubscribeWhitelist(SubscribeWhitelistInput input)
         {
-            var whiteListInfo = AssertWhitelistInfo(input.WhitelistId);
+            var whitelistInfo = AssertWhitelistInfo(input.WhitelistId);
+            AssertWhitelistIsAvailable(whitelistInfo.WhitelistId);
             var subscribeId = CalculateSubscribeWhitelistHash(Context.Sender,input.ProjectId,input.WhitelistId);
             Assert(State.SubscribeWhitelistInfoMap[subscribeId] == null, "Subscribe info already exist.");
             var subscribeWhiteListInfo = new SubscribeWhitelistInfo
             {
                 SubscribeId = subscribeId,
                 ProjectId = input.ProjectId,
-                WhitelistId = whiteListInfo.WhitelistId
+                WhitelistId = whitelistInfo.WhitelistId
             };
             State.SubscribeWhitelistInfoMap[subscribeId] = subscribeWhiteListInfo;
+            State.ConsumedListMap[subscribeId] = new ConsumedList();
             Context.Fire(new WhitelistSubscribed
             {
                 SubscribeId = subscribeId,
@@ -46,22 +48,23 @@ namespace AElf.Contracts.Whitelist
         public override Empty ConsumeWhitelist(ConsumeWhitelistInput input)
         {
             var subscribeInfo = AssertSubscribeWhitelistInfo(input.SubscribeId);
+            var extraInfoId = AssertExtraInfoIsNotExist(subscribeInfo.WhitelistId, input.ExtraInfoId);
             if (State.ConsumedListMap[subscribeInfo.SubscribeId] != null)
             {
                 var consumedList = GetConsumedList(subscribeInfo.SubscribeId);
-                consumedList.ExtraInfoIdList.Value.Add(input.ExtraInfoId);
-                State.ConsumedListMap[subscribeInfo.SubscribeId] = consumedList;
+                consumedList.ExtraInfoIdList.Value.Add(extraInfoId);
+                State.ConsumedListMap[subscribeInfo.SubscribeId] = consumedList; 
                 Context.Fire(new ConsumedListAdded
                 {
-                    SubscribeId = consumedList.SubscribeId,
-                    WhitelistId = subscribeInfo.WhitelistId,
-                    ExtraInfoIdList = new ExtraInfoIdList { Value = { input.ExtraInfoId } }
+                    SubscribeId = consumedList.SubscribeId, 
+                    WhitelistId = subscribeInfo.WhitelistId, 
+                    ExtraInfoIdList = new ExtraInfoIdList { Value = { extraInfoId } }
                 });
             }
             else
             {
                 var addressInfoList = new ExtraInfoIdList();
-                addressInfoList.Value.Add(input.ExtraInfoId);
+                addressInfoList.Value.Add(extraInfoId);
                 var consumedList = new ConsumedList
                 {
                     SubscribeId = subscribeInfo.SubscribeId,
@@ -73,19 +76,20 @@ namespace AElf.Contracts.Whitelist
                 {
                     SubscribeId = consumedList.SubscribeId,
                     WhitelistId = subscribeInfo.WhitelistId,
-                    ExtraInfoIdList = new ExtraInfoIdList { Value = { input.ExtraInfoId } }
+                    ExtraInfoIdList = new ExtraInfoIdList { Value = { extraInfoId } }
                 });
             }
 
             return new Empty();
         }
 
-        public override Empty CloneWhitelist(CloneWhitelistInput input)
+        public override Hash CloneWhitelist(CloneWhitelistInput input)
         {
             var whiteListInfo = AssertWhitelistInfo(input.WhitelistId).Clone();
-            Assert(whiteListInfo.IsCloneable, "Whitelist is not allowed to be cloned.");
+            AssertWhitelistIsAvailable(whiteListInfo.WhitelistId);
+            Assert(whiteListInfo.IsCloneable, $"Whitelist is not allowed to be cloned.{whiteListInfo.WhitelistId.ToHex()}");
             var cloneWhiteListId = CalculateCloneWhitelistHash(Context.Sender,input.WhitelistId);
-            Assert(State.WhitelistInfoMap[cloneWhiteListId] != null, "WhiteList has already been cloned.");
+            Assert(State.WhitelistInfoMap[cloneWhiteListId] == null, "WhiteList has already been cloned.");
             var whitelistClone = new WhitelistInfo()
             {
                 WhitelistId = cloneWhiteListId,
@@ -105,7 +109,7 @@ namespace AElf.Contracts.Whitelist
                 CloneFrom = whiteListInfo.WhitelistId,
                 Manager = Context.Sender
             });
-            return new Empty();
+            return cloneWhiteListId;
         }
 
         
