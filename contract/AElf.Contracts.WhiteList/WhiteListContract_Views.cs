@@ -51,7 +51,7 @@ namespace AElf.Contracts.Whitelist
             var subscribe = GetSubscribeWhitelist(input);
             var consumedList = State.ConsumedListMap[subscribe.SubscribeId];
             var whitelist = State.WhitelistInfoMap[subscribe.WhitelistId];
-            if (consumedList == null)
+            if (consumedList.ExtraInfoIdList == null)
             {
                 return new WhitelistInfo()
                 {

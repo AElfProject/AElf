@@ -48,8 +48,8 @@ namespace AElf.Contracts.Whitelist
         public override Empty ConsumeWhitelist(ConsumeWhitelistInput input)
         {
             var subscribeInfo = AssertSubscribeWhitelistInfo(input.SubscribeId);
-            var extraInfoId = AssertExtraInfoIsNotExist(subscribeInfo.WhitelistId, input.ExtraInfoId);
-            if (State.ConsumedListMap[subscribeInfo.SubscribeId] != null)
+            var extraInfoId = AssertExtraInfoIsNotExist(subscribeInfo.SubscribeId, input.ExtraInfoId);
+            if (State.ConsumedListMap[subscribeInfo.SubscribeId].ExtraInfoIdList != null)
             {
                 var consumedList = GetConsumedList(subscribeInfo.SubscribeId);
                 consumedList.ExtraInfoIdList.Value.Add(extraInfoId);
@@ -105,6 +105,7 @@ namespace AElf.Contracts.Whitelist
                 WhitelistId = whitelistClone.WhitelistId,
                 ExtraInfoIdList = whitelistClone.ExtraInfoIdList,
                 IsAvailable = whitelistClone.IsAvailable,
+                IsCloneable = whitelistClone.IsCloneable,
                 Remark = whitelistClone.Remark,
                 CloneFrom = whiteListInfo.WhitelistId,
                 Manager = Context.Sender

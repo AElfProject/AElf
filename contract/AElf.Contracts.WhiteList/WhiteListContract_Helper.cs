@@ -60,11 +60,11 @@ namespace AElf.Contracts.Whitelist
             return extraInfoId;
         }
         
-        private ExtraInfoId AssertExtraInfoIsNotExist(Hash whitelistId, ExtraInfoId info)
+        private ExtraInfoId AssertExtraInfoIsNotExist(Hash subscribeId, ExtraInfoId info)
         {
-            var whitelist = State.WhitelistInfoMap[whitelistId];
+            var whitelist = GetAvailableWhitelist(subscribeId);
             var ifExist = whitelist.ExtraInfoIdList.Value.Contains(info);
-            Assert(ifExist, $"ExtraInfo doesn't exist in the available whitelist.{whitelistId}{info}");
+            Assert(ifExist, $"ExtraInfo doesn't exist in the available whitelist.{whitelist.WhitelistId}{info}");
             return info;
         }
 
@@ -104,7 +104,7 @@ namespace AElf.Contracts.Whitelist
         private ExtraInfoId RemoveAddressOrExtra(WhitelistInfo whiteListInfo, ExtraInfo extraInfo)
         {
             
-            if (extraInfo.Info == null)
+            if (extraInfo.Info.IsEmpty)
             {
                 var address = extraInfo.Address;
                 var resultList = whiteListInfo.ExtraInfoIdList.Value

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -42,6 +43,7 @@ namespace AElf.Contracts.Whitelist
             {
                 WhitelistId = whitelistHash,
                 ExtraInfoIdList = whitelistInfo.ExtraInfoIdList,
+                IsCloneable = whitelistInfo.IsCloneable,
                 IsAvailable = whitelistInfo.IsAvailable,
                 Remark = whitelistInfo.Remark,
                 Manager = whitelistInfo.Manager
@@ -194,27 +196,29 @@ namespace AElf.Contracts.Whitelist
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
             var extraInfoList = whitelistInfo.ExtraInfoIdList.Value.Select(info =>
             {
-                var matchInfo = new ExtraInfoId();
+                var matchInfo = new ExtraInfoUpdate();
                 foreach (var inputValue in input.ExtraInfoList.Value)
                 {
+                    var extraInfoIdBefore = inputValue.InfoBefore.CalculateExtraInfoId();
+                    var extraInfoIdUpdate = inputValue.InfoUpdate.CalculateExtraInfoId();
                     //Select match address and extraInfoId , update extraInfo.
-                    if (inputValue.Address.Equals(info.Address) )
+                    if (inputValue.Address.Equals(info.Address) && extraInfoIdBefore.Equals(info.Id))
                     {
-                        var extraInfoId = ConvertExtraInfo(inputValue);
-                        info.Id = extraInfoId.Id;
+                        
+                        info.Id = extraInfoIdUpdate;
                         matchInfo.Address = inputValue.Address;
-                        matchInfo.Id = extraInfoId.Id;
-                        input.ExtraInfoList.Value.Remove(inputValue);
+                        matchInfo.InfoBefore = inputValue.InfoBefore;
+                        matchInfo.InfoUpdate = inputValue.InfoUpdate;
                     }
-                    break;
                 }
                 return matchInfo;
             }).ToList();
-            Assert(input.ExtraInfoList.Value.Count == 0,$"No match address.{input.ExtraInfoList.Value}");
+            var remain = input.ExtraInfoList.Value.Except(extraInfoList).ToList();
+            Assert( remain.Count == 0,$"No match address.{input.ExtraInfoList.Value}");
             Context.Fire(new UpdateWhitelist()
             {
                 WhitelistId = whitelistInfo.WhitelistId,
-                ExtraInfoIdList = new ExtraInfoIdList()
+                ExtraInfoList = new ExtraInfoUpdateList()
                 {
                     Value = { extraInfoList }
                 }

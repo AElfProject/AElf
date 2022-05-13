@@ -246,7 +246,16 @@ message AddExtraInfoInput{
 
 message UpdateExtraInfoInput{
     aelf.Hash whitelist_id = 1;
-    ExtraInfoList extra_info_list = 2;
+    ExtraInfoUpdateList extra_info_list = 2;
+}
+
+message ExtraInfoUpdate{
+    aelf.Address address = 1;
+    bytes info_before = 2;
+    bytes info_update = 3;
+}
+message ExtraInfoUpdateList{
+    repeated ExtraInfoUpdate value = 1;
 }
 
 message TransferManagerInput{
@@ -269,9 +278,10 @@ message WhitelistCreated {
     ExtraInfoIdList extra_info_id_list = 2;
     //Whether the whitelist is available.
     bool is_available = 3;
-    string remark = 4;
-    aelf.Hash clone_from = 5;
-    aelf.Address manager = 6;
+    bool is_cloneable = 4;
+    string remark = 5;
+    aelf.Hash clone_from = 6;
+    aelf.Address manager = 7;
 }
 
 message WhitelistSubscribed {
@@ -337,8 +347,8 @@ message WhitelistCloned {
 
 message UpdateWhitelist {
     option (aelf.is_event) = true;
-    aelf.Hash whitelist_id = 2;
-    ExtraInfoIdList extra_info_id_list = 3;
+    aelf.Hash whitelist_id = 1;
+    ExtraInfoUpdateList extra_info_list = 2;
 }
 
 message ManagerTransferred{
