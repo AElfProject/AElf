@@ -297,7 +297,7 @@ namespace AElf.Contracts.NFT
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("These extraInfo already exists.");
+            executionResult.TransactionResult.Error.ShouldContain("These extraInfo already exists in the whitelist.");
         }
 
         [Fact]
