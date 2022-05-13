@@ -263,12 +263,16 @@ namespace AElf.Contracts.NFT
                 });
             //executionResult.TransactionResult.Error.ShouldContain("These extraInfo already exists.");
             var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-            var extraInfo = await WhitelistContractStub.GetExtraInfoByHash.CallAsync(_info2Id);
             whitelist.ExtraInfoIdList.Value.Count.ShouldBe(5);
             whitelist.ExtraInfoIdList.Value[3].Address.ShouldBe(User2Address);
             whitelist.ExtraInfoIdList.Value[3].Id.ShouldBe(_info4Id);
             whitelist.ExtraInfoIdList.Value[4].Address.ShouldBe(User3Address);
             whitelist.ExtraInfoIdList.Value[4].Id.ShouldBe(_info1Id);
+            var extraInfo = await WhitelistContractStub.GetExtraInfoByHash.CallAsync(_info2Id);
+            var deserializedExtraInfo = new Price();
+            deserializedExtraInfo.MergeFrom(extraInfo.Value);
+            deserializedExtraInfo.Symbol.ShouldBe("ETH");
+            deserializedExtraInfo.Amount.ShouldBe(100_0000000);
             extraInfo.Value.ShouldBe(Info2);
             return whitelistId;
         }
