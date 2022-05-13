@@ -103,7 +103,6 @@ namespace AElf.Contracts.Whitelist
         /// <returns>AddressExtraIdInfo</returns>
         private ExtraInfoId RemoveAddressOrExtra(WhitelistInfo whiteListInfo, ExtraInfo extraInfo)
         {
-            
             if (extraInfo.Info.IsEmpty)
             {
                 var address = extraInfo.Address;

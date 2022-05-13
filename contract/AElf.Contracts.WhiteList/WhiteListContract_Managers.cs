@@ -20,7 +20,8 @@ namespace AElf.Contracts.Whitelist
             {
                 Value = { input.ExtraInfoList.Value }
             });
-            Assert(State.WhitelistInfoMap[whitelistHash] == null, "WhiteList already exists.");
+            
+            Assert(State.WhitelistInfoMap[whitelistHash] == null, $"Whitelist already exists.{whitelistHash.ToHex()}");
             var extraInfoIdList = input.ExtraInfoList.Value.Select(info =>
             {
                 var addressExtraInfo = ConvertExtraInfo(info);
@@ -56,9 +57,12 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            //Whether extraInfo exists.
             var extraInfoId = AssertExtraInfoIsExist(whitelistInfo.WhitelistId,input.ExtraInfo);
+            
             whitelistInfo.ExtraInfoIdList.Value.Add(extraInfoId);
             State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
+            
             Context.Fire(new WhitelistAddressInfoAdded
             {
                 WhitelistId = whitelistInfo.WhitelistId,
@@ -75,6 +79,7 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            
             var extraInfoId = RemoveAddressOrExtra(whitelistInfo, input.ExtraInfo);
             Context.Fire(new WhitelistAddressInfoRemoved()
             {
@@ -91,8 +96,11 @@ namespace AElf.Contracts.Whitelist
         {
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
+            
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            //Already added to the whitelist.
             var alreadyIn = new ExtraInfoList();
+            
             foreach (var addressExtraInfo in input.ExtraInfoList.Value)
             {
                 var extraInfoId = ConvertExtraInfo(addressExtraInfo);
@@ -103,14 +111,17 @@ namespace AElf.Contracts.Whitelist
                     alreadyIn.Value.Add(addressExtraInfo);
                 }
             }
-            var remain = input.ExtraInfoList.Value.Except(alreadyIn.Value).ToList();
             State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
             Context.Fire(new WhitelistAddressInfoAdded()
             {
                 WhitelistId = whitelistInfo.WhitelistId,
                 ExtraInfoIdList = whitelistInfo.ExtraInfoIdList
             });
-            Assert(remain.Count == 0,$"These extraInfo already exists.{remain}");
+            
+            //Remain extraInfo.
+            var remain = input.ExtraInfoList.Value.Except(alreadyIn.Value).ToList();
+            Assert(remain.Count == 0,$"These extraInfo already exists in the whitelist.{remain}");
+            
             return new Empty();
         }
 
@@ -119,6 +130,7 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            
             var extraInfoIdList = new ExtraInfoIdList();
             foreach (var info in input.ExtraInfoList.Value)
             {
@@ -156,6 +168,7 @@ namespace AElf.Contracts.Whitelist
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistManager(input.WhitelistId);
             var whitelistInfo = AssertWhitelistManager(input.WhitelistId);
+            
             whitelistInfo.IsCloneable = input.IsCloneable;
             State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
             Context.Fire(new IsCloneableChanged()

@@ -176,6 +176,17 @@ message ExtraInfo {
     bytes info = 2;
 }
 
+message ExtraInfoUpdate{
+    aelf.Address address = 1;
+    //Before update: ExtraInfo.
+    bytes info_before = 2;
+    bytes info_update = 3;
+}
+
+message ExtraInfoUpdateList{
+    repeated ExtraInfoUpdate value = 1;
+}
+
 message AddressList {
     repeated aelf.Address address = 1;
 }
@@ -247,15 +258,6 @@ message AddExtraInfoInput{
 message UpdateExtraInfoInput{
     aelf.Hash whitelist_id = 1;
     ExtraInfoUpdateList extra_info_list = 2;
-}
-
-message ExtraInfoUpdate{
-    aelf.Address address = 1;
-    bytes info_before = 2;
-    bytes info_update = 3;
-}
-message ExtraInfoUpdateList{
-    repeated ExtraInfoUpdate value = 1;
 }
 
 message TransferManagerInput{
