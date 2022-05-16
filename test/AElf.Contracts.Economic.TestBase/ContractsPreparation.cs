@@ -485,6 +485,8 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task InitializeTransactionFeeChargingContract()
         {
+            await ExecuteProposalForParliamentTransaction(TokenContractAddress,
+                nameof(TokenContractStub.AddAddressToCreateTokenWhiteList), TransactionFeeChargingContractAddress);
             var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
                 new InitializeTransactionFeeChargingContractInput
                 {
@@ -553,11 +555,12 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
-        private async Task<Hash> CreateAndApproveProposalForParliament(Address from, Address contract,
+        private async Task<Hash> CreateAndApproveProposalForParliament(Address contract,
             string method, IMessage input, Address parliamentOrganization = null)
         {
-            if(parliamentOrganization == null)
-                parliamentOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            if (parliamentOrganization == null)
+                parliamentOrganization =
+                    await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposal = new CreateProposalInput
             {
                 OrganizationAddress = parliamentOrganization,
@@ -572,9 +575,9 @@ namespace AElf.Contracts.Economic.TestBase
             await ApproveByParliamentMembers(proposalHash);
             return proposalHash;
         }
-        
 
-        protected async Task ExecuteProposalForParliamentTransaction(Address from, Address contract,
+
+        protected async Task ExecuteProposalForParliamentTransaction(Address contract,
             string method, IMessage input, Address parliamentOrganization = null)
         {
 
@@ -582,7 +585,7 @@ namespace AElf.Contracts.Economic.TestBase
                 parliamentOrganization =
                     await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalHash =
-                await CreateAndApproveProposalForParliament(from, contract, method, input,
+                await CreateAndApproveProposalForParliament(contract, method, input,
                     parliamentOrganization);
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
@@ -595,7 +598,7 @@ namespace AElf.Contracts.Economic.TestBase
                 parliamentOrganization =
                     await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
             var proposalHash =
-                await CreateAndApproveProposalForParliament(from, contract, method, input,
+                await CreateAndApproveProposalForParliament(contract, method, input,
                     parliamentOrganization);
             var releaseResult = await ParliamentContractStub.Release.SendAsync(proposalHash);
             return releaseResult.TransactionResult;

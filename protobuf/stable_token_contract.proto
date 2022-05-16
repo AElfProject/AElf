@@ -1,0 +1,45 @@
+/**
+ * Stable Token Contract.
+ */
+syntax = "proto3";
+
+package StableToken;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs1.proto";
+import "acs2.proto";
+import "transaction_fee.proto";
+import "authority_info.proto";
+import "token_contract.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.StableToken";
+
+service StableTokenContract {
+    option (aelf.csharp_state) = "AElf.Contracts.StableToken.StableTokenContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
+    
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc TransferCallback (TransferInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeInput {
+    SymbolList initial_stable_token_symbol_list = 1;
+}
+
+message TransferInput {
+    aelf.Address to = 1;
+    string symbol = 2;
+    int64 amount = 3;
+    string memo = 4;
+}
+
+message SymbolList {
+    repeated string value = 1;
+}

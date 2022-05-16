@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
@@ -32,7 +33,7 @@ namespace AElf.Contracts.Election
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
-                Value = { input.MinerList.Select(ByteStringHelper.FromHexString) }
+                Value = {input.MinerList.Select(ByteStringHelper.FromHexString)}
             };
             foreach (var pubkey in input.MinerList)
             {
@@ -127,14 +128,14 @@ namespace AElf.Contracts.Election
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
-                AmountsMap = { amountsMap }
+                AmountsMap = {amountsMap}
             });
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
                 Period = input.TermNumber,
-                AmountsMap = { amountsMap }
+                AmountsMap = {amountsMap}
             });
 
             return new Empty();
@@ -211,7 +212,7 @@ namespace AElf.Contracts.Election
                 }
 
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
-                Context.Fire(new EvilMinerDetected { Pubkey = input.Pubkey });
+                Context.Fire(new EvilMinerDetected {Pubkey = input.Pubkey});
                 State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
@@ -296,7 +297,7 @@ namespace AElf.Contracts.Election
                 "Pubkey is in already banned.");
 
             // Permission check.
-            Assert(Context.Sender == GetCandidateAdmin(new StringValue { Value = input.OldPubkey }), "No permission.");
+            Assert(Context.Sender == GetCandidateAdmin(new StringValue {Value = input.OldPubkey}), "No permission.");
 
             // Record the replacement.
             PerformReplacement(input.OldPubkey, input.NewPubkey);
@@ -372,6 +373,24 @@ namespace AElf.Contracts.Election
             //     Ban old pubkey.
             State.BannedPubkeyMap[input.OldPubkey] = true;
 
+            // Update profits receiver if needed.
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
+            var profitsReceiver =
+                State.TreasuryContract.GetProfitsReceiver.Call(new StringValue {Value = input.OldPubkey});
+            if (!profitsReceiver.Value.IsEmpty)
+            {
+                State.TreasuryContract.SetProfitsReceiver.Send(new AElf.Contracts.Treasury.SetProfitsReceiverInput
+                {
+                    Pubkey = input.NewPubkey,
+                    ProfitsReceiverAddress = profitsReceiver
+                });
+            }
+
             Context.Fire(new CandidatePubkeyReplaced
             {
                 OldPubkey = input.OldPubkey,
@@ -407,9 +426,9 @@ namespace AElf.Contracts.Election
                 NewPubkey = newPubkey
             });
 
+            var oldPubkeyByteString = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey));
             // Notify Vote Contract to replace option if this is not the initial miner case.
-            if (!State.InitialMiners.Value.Value.Contains(
-                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(oldPubkey))))
+            if (!State.InitialMiners.Value.Value.Contains(oldPubkeyByteString))
             {
                 State.VoteContract.RemoveOption.Send(new RemoveOptionInput
                 {
@@ -423,12 +442,20 @@ namespace AElf.Contracts.Election
                 });
             }
 
+            State.CandidateSponsorMap[newPubkey] = State.CandidateSponsorMap[oldPubkey];
+            State.CandidateSponsorMap.Remove(oldPubkey);
+
+            var managedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender];
+            managedPubkeys.Value.Remove(oldPubkeyByteString);
+            managedPubkeys.Value.Add(ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(newPubkey)));
+            State.ManagedCandidatePubkeysMap[Context.Sender] = managedPubkeys;
+
             Context.LogDebug(() => $"Pubkey replacement happened: {oldPubkey} -> {newPubkey}");
         }
 
         public override StringValue GetNewestPubkey(StringValue input)
         {
-            return new StringValue { Value = GetNewestPubkey(input.Value) };
+            return new StringValue {Value = GetNewestPubkey(input.Value)};
         }
 
         public override Empty RemoveEvilNode(StringValue input)
@@ -476,6 +503,28 @@ namespace AElf.Contracts.Election
             }
 
             State.DataCentersRankingList.Value = rankingList;
+        }
+
+        public override Empty SetProfitsReceiver(SetProfitsReceiverInput input)
+        {
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName) == Context.Sender,
+                "No permission.");
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = input.CandidateAddress
+            });
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = input.ReceiverAddress,
+                    Shares = 1
+                }
+            });
+            return new Empty();
         }
     }
 }

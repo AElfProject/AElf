@@ -1,6 +1,7 @@
 using AElf.Standards.ACS1;
 using AElf.Standards.ACS3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -17,6 +18,7 @@ namespace AElf.Contracts.Parliament
 
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
+        internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 

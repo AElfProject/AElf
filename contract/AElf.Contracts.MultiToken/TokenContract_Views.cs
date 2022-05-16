@@ -124,7 +124,7 @@ namespace AElf.Contracts.MultiToken
         {
             var targetTokenCoefficient =
                 State.AllCalculateFeeCoefficients.Value.Value.FirstOrDefault(x =>
-                    x.FeeTokenType == (int)FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
+                    x.FeeTokenType == (int) FeeTypeEnum.Tx) ?? new CalculateFeeCoefficients();
             return targetTokenCoefficient;
         }
 
@@ -213,11 +213,46 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
+        public override BoolValue IsInCreateTokenWhiteList(Address input)
+        {
+            return new BoolValue
+            {
+                Value = IsAddressInCreateTokenWhiteList(input)
+            };
+        }
+
+        public override StringList GetReservedExternalInfoKeyList(Empty input)
+        {
+            return new StringList
+            {
+                Value =
+                {
+                    TokenContractConstants.LockCallbackExternalInfoKey,
+                    TokenContractConstants.LogEventExternalInfoKey,
+                    TokenContractConstants.TransferCallbackExternalInfoKey,
+                    TokenContractConstants.UnlockCallbackExternalInfoKey,
+                }
+            };
+        }
+
         private bool IsTokenAvailableForMethodFee(string symbol)
         {
             var tokenInfo = State.TokenInfos[symbol];
             if (tokenInfo == null) throw new AssertionException("Token is not found.");
             return tokenInfo.IsBurnable;
+        }
+
+        private bool IsAddressInCreateTokenWhiteList(Address address)
+        {
+            if (address == Context.GetZeroSmartContractAddress() ||
+                address == GetDefaultParliamentController().OwnerAddress || address ==
+                Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName) ||
+                address == Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
+            {
+                return true;
+            }
+
+            return State.CreateTokenWhiteListMap[address];
         }
     }
 }

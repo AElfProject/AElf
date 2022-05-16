@@ -59,6 +59,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash
             };
+            Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => $"Synced mining information: {miningInformationUpdated}");
 
             // Make sure the method GetMaximumBlocksCount executed no matter what consensus behaviour is.

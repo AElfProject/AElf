@@ -26,5 +26,10 @@ namespace AElf.Contracts.Vote
         public MappedState<string, MethodFees> TransactionFees { get; set; }
 
         public SingletonState<AuthorityInfo> MethodFeeController { get; set; }
+
+        /// <summary>
+        /// Vote Id -> Votes Count
+        /// </summary>
+        public MappedState<Hash, long> QuadraticVotesCountMap { get; set; }
     }
 }

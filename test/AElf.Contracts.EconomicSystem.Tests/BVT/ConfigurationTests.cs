@@ -19,7 +19,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task SetConfiguration_TransactionFee_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(ConfigurationAddress,
                 nameof(ConfigurationContractStub.SetMethodFee),
                 new MethodFees
                 {
@@ -45,7 +45,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task SetBlockTransactionLimit_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(ConfigurationAddress,
                 nameof(ConfigurationContractStub.SetConfiguration),
                 new SetConfigurationInput
                 {
@@ -80,7 +80,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = createOrganizationResult.Output;
 
             var methodFeeController = await ConfigurationContractStub.GetMethodFeeController.CallAsync(new Empty());
-            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(ConfigurationAddress,
                 nameof(ConfigurationContractStub.ChangeMethodFeeController),
                 new AuthorityInfo
                 {
@@ -110,7 +110,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     ParliamentMemberProposingAllowed = true
                 })).Output;
 
-            await ExecuteProposalForParliamentTransaction(Tester, ConfigurationAddress,
+            await ExecuteProposalForParliamentTransaction(ConfigurationAddress,
                 nameof(ConfigurationContractStub.ChangeConfigurationController),
                 new AuthorityInfo
                 {

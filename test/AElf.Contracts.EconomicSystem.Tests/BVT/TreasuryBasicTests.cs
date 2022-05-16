@@ -70,7 +70,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var minerRewardProfit =
                 await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
             var subSchemes = minerRewardProfit.SubSchemes;
@@ -251,7 +251,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 ContractAddress = ParliamentContractAddress,
                 OwnerAddress = calculatedNewParliamentAddress
             };
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeTreasuryController), newController);
             var getController = await TreasuryContractStub.GetTreasuryController.CallAsync(new Empty());
             getController.ContractAddress.ShouldBe(newController.ContractAddress);
@@ -336,7 +336,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     nativeTokenSymbol, tokenSymbol
                 }
             };
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, methodName,
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress, methodName,
                     newSymbolList);
             var getSymbolList = await TreasuryContractStub.GetSymbolList.CallAsync(new Empty());
             getSymbolList.Value.Count.ShouldBe(2);
@@ -381,7 +381,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 CitizenWelfareWeight = 1,
                 MinerRewardWeight = 8
             };
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress, nameof(TreasuryContractStub.SetDividendPoolWeightSetting), newWeightSetting);
             var updatedWeightSetting = await TreasuryContractStub.GetDividendPoolWeightProportion.CallAsync(new Empty());
             updatedWeightSetting.BackupSubsidyProportionInfo.Proportion.ShouldBe(10);
             updatedWeightSetting.CitizenWelfareProportionInfo.Proportion.ShouldBe(10);
@@ -435,7 +435,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 WelcomeRewardWeight = 1,
                 FlexibleRewardWeight = 8
             };
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress,
                 nameof(TreasuryContractStub.SetMinerRewardWeightSetting), newWeightSetting);
 
             var updatedWeightSetting = await TreasuryContractStub.GetMinerRewardWeightProportion.CallAsync(new Empty());
@@ -474,7 +474,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var organizationAddress = createOrganizationResult.Output;
 
             var methodFeeController = await TreasuryContractStub.GetMethodFeeController.CallAsync(new Empty());
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress,
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress,
                 nameof(TreasuryContractStub.ChangeMethodFeeController),
                 new AuthorityInfo
                 {
@@ -596,7 +596,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 }
             };
             const string proposalCreationMethodName = nameof(TreasuryContractStub.SetMethodFee);
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, proposalCreationMethodName,
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress, proposalCreationMethodName,
                 newMethodFees);
             var getMethodFee = await TreasuryContractStub.GetMethodFee.CallAsync(new StringValue
             {

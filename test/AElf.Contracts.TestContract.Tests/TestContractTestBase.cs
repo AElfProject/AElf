@@ -10,6 +10,7 @@ using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestContract.BasicUpdate;
+using AElf.Contracts.TestContract.BigIntValue;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.ContractTestKit;
 using AElf.Contracts.TokenConverter;
@@ -39,6 +40,9 @@ namespace AElf.Contract.TestContract
         protected readonly Hash TestBasicSecurityContractSystemName =
             HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BasicSecurity");
 
+        protected readonly Hash TestBigIntValueContractSystemName =
+            HashHelper.ComputeFrom("AElf.ContractNames.TestContract.BigIntValue");
+
         public TestContractTestBase()
         {
             PatchedCodes = GetPatchedCodes(ContractPatchedDllDir);
@@ -49,12 +53,15 @@ namespace AElf.Contract.TestContract
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
+        protected Address BigIntValueContractAddress { get; set; }
 
         internal ACS0Container.ACS0Stub BasicContractZeroStub { get; set; }
 
         internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
 
         internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
+
+        internal BigIntValueContractContainer.BigIntValueContractStub BigIntValueContractStub { get; set; }
 
         internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -88,6 +95,13 @@ namespace AElf.Contract.TestContract
             return GetTester<BasicSecurityContractContainer.BasicSecurityContractStub>(BasicSecurityContractAddress,
                 keyPair);
         }
+        
+        internal BigIntValueContractContainer.BigIntValueContractStub GetBigIntValueContractStub(
+            ECKeyPair keyPair)
+        {
+            return GetTester<BigIntValueContractContainer.BigIntValueContractStub>(BigIntValueContractAddress,
+                keyPair);
+        }
 
         private const string ContractPatchedDllDir = "../../../../patched/";
         
@@ -116,6 +130,15 @@ namespace AElf.Contract.TestContract
                     DefaultSenderKeyPair));
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
+            
+            //deploy test contract3
+            BigIntValueContractAddress = AsyncHelper.RunSync(async () =>
+                await DeployContractAsync(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    Codes.Single(kv => kv.Key.EndsWith("BigIntValue")).Value,
+                    TestBigIntValueContractSystemName,
+                    DefaultSenderKeyPair));
+            BigIntValueContractStub = GetBigIntValueContractStub(DefaultSenderKeyPair);
         }
 
         protected void InitializePatchedContracts()

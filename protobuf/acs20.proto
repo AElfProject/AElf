@@ -1,0 +1,108 @@
+// AElf version of https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
+
+syntax = "proto3";
+
+package acs20;
+
+import "aelf/core.proto";
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
+import public "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs20";
+option csharp_namespace = "AElf.Standards.ACS20";
+
+service StandardTokenContract {
+
+    // Actions
+
+    // Transfers `_value` amount of tokens to address `_to`, and MUST fire the Transfer event.
+    // The function SHOULD throw if the message caller's account balance does not have enough tokens to spend.
+    // *Note* Transfers of 0 values MUST be treated as normal transfers and fire the `Transfer` event.
+    rpc Transfer (TransferInput) returns (google.protobuf.BoolValue) {
+    }
+
+    // Transfers `_value` amount of tokens from address `_from` to address `_to`, and MUST fire the Transfer event.
+    // The transferFrom method is used for a withdraw workflow, allowing contracts to transfer tokens on your behalf.
+    // This can be used for example to allow a contract to transfer tokens on your behalf and/or to charge fees in sub-currencies.
+    // The function SHOULD throw unless the `_from` account has deliberately authorized the sender of the message via some mechanism.
+    // *Note* Transfers of 0 values MUST be treated as normal transfers and fire the `Transfer` event.
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.BoolValue) {
+    }
+
+    // Allow `_spender` to withdraw from your account, multiple times, up to the `_value` amount.
+    // If this function is called again it overwrites the current allowance with `_value`.
+    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
+    }
+
+    // Views
+
+    // Returns the name of the token - e.g. "MyToken".
+    rpc Name (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    // Returns the symbol of the token. E.g. "HIX".
+    rpc Symbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+
+    // Returns the number of decimals the token uses - e.g. 8, means to divide the token amount by 100000000 to get its user representation.
+    rpc Decimals (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Returns the total token supply.
+    rpc TotalSupply (google.protobuf.Empty) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Returns the account balance of another account with address `_owner` (input).
+    rpc BalanceOf (aelf.Address) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+
+    // Returns the amount which `_spender` is still allowed to withdraw from `_owner`
+    rpc Allowance (GetAllowanceInput) returns (google.protobuf.Int64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+// Inputs
+
+message TransferInput {
+    aelf.Address to = 1;
+    int64 value = 2;
+}
+
+message TransferFromInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    int64 value = 3;
+}
+
+message ApproveInput {
+    aelf.Address spender = 1;
+    int64 value = 4;
+}
+
+message GetAllowanceInput {
+    aelf.Address owner = 1;
+    aelf.Address spender = 2;
+}
+
+// Events
+
+message Transfer {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    int64 value = 3;
+}
+
+message Approval {
+    option (aelf.is_event) = true;
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
+    int64 value = 3;
+}

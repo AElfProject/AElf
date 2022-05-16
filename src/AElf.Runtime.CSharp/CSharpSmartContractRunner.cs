@@ -35,7 +35,7 @@ namespace AElf.Runtime.CSharp
 
             var loadContext = GetLoadContext();
 
-            Assembly assembly = LoadAssembly(code, loadContext);
+            var assembly = LoadAssembly(code, loadContext);
 
             if (assembly == null)
             {
@@ -59,12 +59,8 @@ namespace AElf.Runtime.CSharp
 
         protected virtual Assembly LoadAssembly(byte[] code, AssemblyLoadContext loadContext)
         {
-            Assembly assembly;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
-
+            using Stream stream = new MemoryStream(code);
+            var assembly = loadContext.LoadFromStream(stream);
             return assembly;
         }
 

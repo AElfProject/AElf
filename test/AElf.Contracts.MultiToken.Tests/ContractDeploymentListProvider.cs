@@ -27,7 +27,10 @@ namespace AElf.Contracts.MultiToken
                 HashHelper.ComputeFrom("AElf.TestContractNames.OtherBasicFunction"),
                 ParliamentSmartContractAddressNameProvider.Name,
                 ConsensusSmartContractAddressNameProvider.Name,
-                AssociationSmartContractAddressNameProvider.Name
+                AssociationSmartContractAddressNameProvider.Name,
+                HashHelper.ComputeFrom("AElf.ContractNames.NFT"),
+                HashHelper.ComputeFrom("AElf.ContractNames.NFTMarket"),
+                HashHelper.ComputeFrom("AElf.ContractNames.NFTMinter"),
             };
         }
     }

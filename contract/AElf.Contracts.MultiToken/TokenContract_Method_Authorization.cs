@@ -258,21 +258,30 @@ namespace AElf.Contracts.MultiToken
         #endregion
 
         #region controller management
+
         private AuthorityInfo GetDefaultParliamentController()
         {
             if (State.ParliamentContract.Value == null)
             {
-                State.ParliamentContract.Value =
+                var parliamentContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
+                if (parliamentContractAddress == null)
+                {
+                    // Test environment.
+                    return new AuthorityInfo();
+                }
+
+                State.ParliamentContract.Value = parliamentContractAddress;
             }
 
+            var defaultOrganizationAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
             return new AuthorityInfo
             {
                 ContractAddress = State.ParliamentContract.Value,
-                OwnerAddress = State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty())
+                OwnerAddress = defaultOrganizationAddress
             };
         }
-        
+
         private DeveloperFeeController GetDefaultDeveloperFeeController(AuthorityInfo defaultParliamentController)
         {
             if (State.AssociationContract.Value == null)

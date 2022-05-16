@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Standards.ACS0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
@@ -10,14 +11,18 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.DApp;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core.Extension;
 using AElf.EconomicSystem;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Proposal;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Standards.ACS3;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.Parliament.InitializeInput;
 
@@ -31,13 +36,14 @@ namespace AElf.Contracts.TokenHolder
         protected ECKeyPair ProfitReceiverKeyPair => Accounts[1].KeyPair;
         protected Address Receiver => Accounts[1].Address;
 
-        protected List<ECKeyPair> UserKeyPairs => Accounts.Skip(2).Take(3).Select(a=>a.KeyPair).ToList();
+        protected List<ECKeyPair> UserKeyPairs => Accounts.Skip(2).Take(3).Select(a => a.KeyPair).ToList();
 
         protected List<Address> UserAddresses =>
             UserKeyPairs.Select(k => Address.FromPublicKey(k.PublicKey)).ToList();
 
         protected List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             Accounts.Take(TokenHolderContractTestConstants.InitialCoreDataCenterCount).Select(a => a.KeyPair).ToList();
+
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ParliamentContractAddress { get; set; }
@@ -58,6 +64,7 @@ namespace AElf.Contracts.TokenHolder
         internal DAppContainer.DAppStub DAppContractStub { get; set; }
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub { get; set; }
+
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
@@ -121,6 +128,8 @@ namespace AElf.Contracts.TokenHolder
                     })).Output;
             AEDPoSContractStub = GetConsensusContractTester(StarterKeyPair);
 
+            AsyncHelper.RunSync(AddDAppContractAddressToCreateTokenWhiteListAsync);
+
             //deploy DApp contract
             DAppContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
@@ -138,15 +147,24 @@ namespace AElf.Contracts.TokenHolder
                                     {
                                         MethodName = nameof(DAppContractStub.InitializeForUnitTest),
                                         Params = new AElf.Contracts.TestContract.DApp.InitializeInput
-                                            {
-                                                ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
-                                            }.ToByteString()
+                                        {
+                                            ProfitReceiver = Address.FromPublicKey(UserKeyPairs[1].PublicKey)
+                                        }.ToByteString()
                                     }
                                 }
                             }
                     })).Output;
             DAppContractStub = GetTester<DAppContainer.DAppStub>(DAppContractAddress,
                 UserKeyPairs.First());
+        }
+
+        private async Task AddDAppContractAddressToCreateTokenWhiteListAsync()
+        {
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var proposalId = await CreateProposalAsync(TokenContractAddress,
+                defaultOrganization, nameof(TokenContractStub.AddAddressToCreateTokenWhiteList), Address.FromBase58("BHN8oN7D8kWZL9YW3aqD3dct4F83zqAd3CgaBTWucUiNSakcp"));
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
         }
 
         internal BasicContractZeroImplContainer.BasicContractZeroImplStub GetContractZeroTester(ECKeyPair keyPair)
@@ -260,6 +278,34 @@ namespace AElf.Contracts.TokenHolder
             }.GenerateFirstRoundOfNewTerm(4000, TimestampHelper.GetUtcNow()));
 
             return consensusContractCallList;
+        }
+
+        protected async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
+            string methodName, IMessage input)
+        {
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = organizationAddress,
+                ContractMethodName = methodName,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contractAddress
+            };
+
+            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
+            var proposalId = createResult.Output;
+
+            return proposalId;
+        }
+
+        protected async Task ApproveWithMinersAsync(Hash proposalId)
+        {
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(proposalId);
+                approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
+            }
         }
     }
 }

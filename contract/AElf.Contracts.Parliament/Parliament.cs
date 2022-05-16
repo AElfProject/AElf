@@ -184,15 +184,14 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Approve(Hash input)
         {
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
-            AssertSenderIsParliamentMember();
-
-            proposal.Approvals.Add(Context.Sender);
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
+            proposal.Approvals.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Approve),
@@ -203,14 +202,14 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Reject(Hash input)
         {
-            AssertSenderIsParliamentMember();
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
-            proposal.Rejections.Add(Context.Sender);
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
+            proposal.Rejections.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Reject),
@@ -221,14 +220,14 @@ namespace AElf.Contracts.Parliament
 
         public override Empty Abstain(Hash input)
         {
-            AssertSenderIsParliamentMember();
+            var parliamentMemberAddress = GetAndCheckActualParliamentMemberAddress();
             var proposal = GetValidProposal(input);
-            AssertProposalNotYetVotedBySender(proposal);
-            proposal.Abstentions.Add(Context.Sender);
+            AssertProposalNotYetVotedByMember(proposal, parliamentMemberAddress);
+            proposal.Abstentions.Add(parliamentMemberAddress);
             State.Proposals[input] = proposal;
             Context.Fire(new ReceiptCreated()
             {
-                Address = Context.Sender,
+                Address = parliamentMemberAddress,
                 ProposalId = input,
                 Time = Context.CurrentBlockTime,
                 ReceiptType = nameof(Abstain),
