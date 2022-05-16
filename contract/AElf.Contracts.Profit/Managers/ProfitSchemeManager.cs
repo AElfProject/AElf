@@ -173,7 +173,16 @@ namespace AElf.Contracts.Profit.Managers
         public void MoveToNextPeriod(Hash schemeId)
         {
             CheckSchemeExists(schemeId);
-            _schemeMap[schemeId].CurrentPeriod = _schemeMap[schemeId].CurrentPeriod.Add(1);
+            var scheme = _schemeMap[schemeId];
+            var nextPeriod = scheme.CurrentPeriod.Add(1);
+            if (scheme.CachedDelayTotalShares.ContainsKey(nextPeriod))
+            {
+                scheme.TotalShares = scheme.CachedDelayTotalShares[nextPeriod];
+            }
+
+            scheme.CurrentPeriod = nextPeriod;
+
+            _schemeMap[schemeId] = scheme;
         }
 
         public void ResetSchemeManager(Hash schemeId, Address newManager)

@@ -1158,11 +1158,21 @@ namespace AElf.Contracts.Election
                 Value = candidateStringKey
             });
 
-            var totalShare = (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
-                .TotalShares;
-            totalShare.ShouldBe(totalWeight);
+            {
+                var welfareScheme =
+                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+                welfareScheme.CachedDelayTotalShares[2].ShouldBe(totalWeight);
+            }
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+            {
+                var welfareScheme =
+                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+                var totalShare = welfareScheme.TotalShares;
+                totalShare.ShouldBe(totalWeight);
+            }
+
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             var term = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
@@ -1233,10 +1243,15 @@ namespace AElf.Contracts.Election
             }
 
             // Check share
-            var afterTotalShare =
-                (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
-                .TotalShares;
-            afterTotalShare.ShouldBe(totalShare.Sub(share));
+            {
+                var welfareScheme =
+                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+                var totalShare = welfareScheme.TotalShares;
+                var afterTotalShare =
+                    (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
+                    .TotalShares;
+                afterTotalShare.ShouldBe(totalShare.Sub(share));
+            }
         }
 
         [Fact]
