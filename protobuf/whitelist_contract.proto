@@ -43,7 +43,7 @@ service WhitelistContract {
     }
     
     //Update state: Whether the whitelist is allowed to be cloned.
-    rpc ChangeWhitelistCloneable(UpdateWhitelistCloneableInput) returns (google.protobuf.Empty){
+    rpc ChangeWhitelistCloneable(ChangeWhitelistCloneableInput) returns (google.protobuf.Empty){
     }
     
     //Add extra info.
@@ -56,6 +56,14 @@ service WhitelistContract {
     
     //Transfer Manager.
     rpc TransferManager (TransferManagerInput) returns (google.protobuf.Empty){
+    }
+    
+    //Add manager.
+    rpc AddManagers (AddManagersInput) returns (google.protobuf.Empty){
+    }
+    
+    //Remove manager.
+    rpc RemoveManagers (RemoveManagersInput) returns (google.protobuf.Empty){
     }
     
     //For Subscribers.
@@ -87,6 +95,16 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
+    //Get manager list according to the whitelist_id.
+    rpc GetManagerList(aelf.Hash) returns (AddressList){
+        option (aelf.is_view) = true;
+    }
+    
+    //Get extraInfo according to the address and whitelist_id.
+    rpc GetExtraInfoByAddress(GetExtraInfoByAddressInput) returns (ExtraInfoList){
+        option (aelf.is_view) = true;
+    }
+    
     //Get subscribe whitelist info according to the subscribe_id.
     rpc GetSubscribeWhitelist (aelf.Hash) returns (SubscribeWhitelistInfo){
         option (aelf.is_view) = true;
@@ -108,7 +126,7 @@ service WhitelistContract {
     }
     
     //After consumed,get available whitelist according to the subscribe_id. 
-    rpc GetAvailableWhitelist (aelf.Hash) returns (WhitelistInfo){
+    rpc GetAvailableWhitelist (aelf.Hash) returns (ExtraInfoList){
         option (aelf.is_view) = true;
     }
     
@@ -133,7 +151,8 @@ message WhitelistInfo {
     bool is_cloneable = 4;
     string remark = 5;
     aelf.Hash clone_from = 6;
-    aelf.Address manager = 7;
+    aelf.Address creator = 7;
+    AddressList manager = 8;
 }
 
 message WhitelistIdList{
@@ -188,7 +207,7 @@ message ExtraInfoUpdateList{
 }
 
 message AddressList {
-    repeated aelf.Address address = 1;
+    repeated aelf.Address value = 1;
 }
 
 //Inputs.
@@ -201,6 +220,8 @@ message CreateWhitelistInput {
     ExtraInfoList extra_info_list = 1;
     bool is_cloneable = 2;
     string remark = 3;
+    aelf.Address creator = 4;
+    AddressList manager_list = 5;
 }
 
 message AddAddressInfoToWhitelistInput {
@@ -243,9 +264,11 @@ message ConsumeWhitelistInput{
 
 message CloneWhitelistInput{
     aelf.Hash whitelist_id = 1;
+    aelf.Address creator = 2;
+    AddressList manager_list = 3;
 }
 
-message UpdateWhitelistCloneableInput{
+message ChangeWhitelistCloneableInput{
     aelf.Hash whitelist_id = 1;
     bool is_cloneable = 2;
 }
@@ -270,6 +293,21 @@ message GetFromAvailableWhitelistInput{
     ExtraInfo extra_info = 2;
 }
 
+message AddManagersInput{
+    aelf.Hash whitelist_id = 1;
+    AddressList manager_list = 2;
+}
+
+message RemoveManagersInput{
+    aelf.Hash whitelist_id = 1;
+    AddressList manager_list = 2;
+}
+
+message GetExtraInfoByAddressInput{
+    aelf.Hash whitelist_id = 1;
+    aelf.Address address = 2;
+}
+
 //Events.
 
 message WhitelistCreated {
@@ -283,7 +321,8 @@ message WhitelistCreated {
     bool is_cloneable = 4;
     string remark = 5;
     aelf.Hash clone_from = 6;
-    aelf.Address manager = 7;
+    aelf.Address creator = 7;
+    AddressList manager = 8;
 }
 
 message WhitelistSubscribed {
@@ -345,6 +384,7 @@ message WhitelistCloned {
     option (aelf.is_event) = true;
     aelf.Hash clone_from = 1;
     aelf.Hash whitelist_id = 2;
+    AddressList manager_list = 3;
 }
 
 message UpdateWhitelist {
@@ -358,4 +398,16 @@ message ManagerTransferred{
     aelf.Hash whitelist_id = 1;
     aelf.Address transfer_from = 2;
     aelf.Address transfer_to = 3;
+}
+
+message ManagerAdded{
+    option (aelf.is_event) = true;
+    aelf.Hash whitelist_id = 1;
+    AddressList manager_list = 2;
+}
+
+message ManagerRemoved{
+    option (aelf.is_event) = true;
+    aelf.Hash whitelist_id = 1;
+    AddressList manager_list = 2;
 }

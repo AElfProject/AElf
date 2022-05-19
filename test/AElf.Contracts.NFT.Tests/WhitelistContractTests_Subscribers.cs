@@ -70,9 +70,9 @@ namespace AElf.Contracts.NFT
             consumedList.ExtraInfoIdList.Value[0].Address.ShouldBe(User1Address);
             consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(_info3Id);
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
-            availableList.ExtraInfoIdList.Value.Count.ShouldBe(2);
-            availableList.ExtraInfoIdList.Value[1].Address.ShouldNotBe(User1Address);
-            availableList.ExtraInfoIdList.Value[1].Id.ShouldBe(_info2Id);
+            availableList.Value.Count.ShouldBe(2);
+            availableList.Value[1].Address.ShouldNotBe(User1Address);
+            availableList.Value[1].Info.ShouldBe(Info2);
 
             return subscribeId;
         }
@@ -118,9 +118,9 @@ namespace AElf.Contracts.NFT
             consumedList.ExtraInfoIdList.Value[1].Address.ShouldBe(User2Address);
             consumedList.ExtraInfoIdList.Value[1].Id.ShouldBe(_info2Id);
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
-            availableList.ExtraInfoIdList.Value.Count.ShouldBe(1);
-            availableList.ExtraInfoIdList.Value[0].Address.ShouldBe(User1Address);
-            availableList.ExtraInfoIdList.Value[0].Id.ShouldBe(_info1Id);
+            availableList.Value.Count.ShouldBe(1);
+            availableList.Value[0].Address.ShouldBe(User1Address);
+            availableList.Value[0].Info.ShouldBe(Info1);
         }
 
         [Fact]
@@ -142,7 +142,7 @@ namespace AElf.Contracts.NFT
         public async Task CloneWhitelistTest_NotAllowed()
         {
             var whitelistId =await CreateWhitelistTest();
-            await WhitelistContractStub.ChangeWhitelistCloneable.SendAsync(new UpdateWhitelistCloneableInput()
+            await WhitelistContractStub.ChangeWhitelistCloneable.SendAsync(new ChangeWhitelistCloneableInput()
             {
                 WhitelistId = whitelistId,
                 IsCloneable = false

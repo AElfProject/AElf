@@ -27,6 +27,9 @@ namespace AElf.Contracts.Whitelist
                 var addressExtraInfo = ConvertExtraInfo(info);
                 return addressExtraInfo;
             }).ToList();
+
+            var managerList = SetManagerList(whitelistHash, input.ManagerList);
+            
             var whitelistInfo = new WhitelistInfo
             {
                 WhitelistId = whitelistHash,
@@ -34,16 +37,21 @@ namespace AElf.Contracts.Whitelist
                 {
                     Value = { extraInfoIdList }
                 },
+                Creator = Context.Sender,
                 IsAvailable = true,
                 IsCloneable = input.IsCloneable,
                 Remark = input.Remark,
-                Manager = Context.Sender
+                Manager = managerList
             };
             State.WhitelistInfoMap[whitelistHash] = whitelistInfo;
+
+            SetWhitelistIdManager(whitelistHash, managerList);
+
             Context.Fire(new WhitelistCreated
             {
                 WhitelistId = whitelistHash,
                 ExtraInfoIdList = whitelistInfo.ExtraInfoIdList,
+                Creator = Context.Sender,
                 IsCloneable = whitelistInfo.IsCloneable,
                 IsAvailable = whitelistInfo.IsAvailable,
                 Remark = whitelistInfo.Remark,
@@ -163,7 +171,7 @@ namespace AElf.Contracts.Whitelist
             return new Empty();
         }
 
-        public override Empty ChangeWhitelistCloneable(UpdateWhitelistCloneableInput input)
+        public override Empty ChangeWhitelistCloneable(ChangeWhitelistCloneableInput input)
         {
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistManager(input.WhitelistId);
@@ -241,17 +249,79 @@ namespace AElf.Contracts.Whitelist
 
         public override Empty TransferManager(TransferManagerInput input)
         {
-            AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelist = AssertWhitelistManager(input.WhitelistId);
-            whitelist.Manager = input.Manager;
+            whitelist.Manager.Value.Remove(Context.Sender);
+            whitelist.Manager.Value.Add(input.Manager);
             State.WhitelistInfoMap[whitelist.WhitelistId] = whitelist;
             Context.Fire(new ManagerTransferred()
             {
                 WhitelistId = whitelist.WhitelistId,
                 TransferFrom = Context.Sender,
-                TransferTo = whitelist.Manager
+                TransferTo = input.Manager
             });
+            return new Empty();
+        }
+
+        public override Empty AddManagers(AddManagersInput input)
+        {
+            var whitelist = AssertWhitelistCreator(input.WhitelistId);
+            var managerList = State.ManagerListMap[whitelist.WhitelistId];
+            var addedManager = new AddressList();
+            var remain = new AddressList();
+            foreach (var manager in input.ManagerList.Value)
+            {
+                if (!managerList.Value.Contains(manager))
+                {
+                    managerList.Value.Add(manager);
+                    addedManager.Value.Add(manager);
+                }
+                else
+                {
+                    remain.Value.Add(manager);
+                }
+            }
+
+            State.ManagerListMap[whitelist.WhitelistId] = managerList;
+            SetWhitelistIdManager(whitelist.WhitelistId, addedManager);
+            
+            Context.Fire(new ManagerAdded()
+            {
+                WhitelistId = whitelist.WhitelistId,
+                ManagerList = addedManager
+            });
+            
+            Assert(remain.Value.Count == 0,$"Managers already exists.{remain.Value}");
+            return new Empty();
+        }
+
+        public override Empty RemoveManagers(RemoveManagersInput input)
+        {
+            var whitelist = AssertWhitelistCreator(input.WhitelistId);
+            var managerList = State.ManagerListMap[whitelist.WhitelistId];
+            var removedList = new AddressList();
+            var remain = new AddressList();
+            foreach (var manager in input.ManagerList.Value)
+            {
+                if (managerList.Value.Contains(manager))
+                {
+                    managerList.Value.Remove(manager);
+                    removedList.Value.Add(manager);
+                }
+                else
+                {
+                    remain.Value.Add(manager);
+                }
+            }
+            State.ManagerListMap[whitelist.WhitelistId] = managerList;
+            RemoveWhitelistIdManager(whitelist.WhitelistId, removedList);
+            Context.Fire(new ManagerRemoved()
+            {
+                WhitelistId = whitelist.WhitelistId,
+                ManagerList = removedList
+            });
+            
+            Assert(remain.Value.Count == 0,$"Managers doesn't exists.{remain.Value}");
             return new Empty();
         }
     }

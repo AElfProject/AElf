@@ -41,6 +41,12 @@ namespace AElf.Contracts.NFT
         }.ToByteString();
         private readonly Hash _info5Id = HashHelper.ComputeFrom(Info5.ToByteArray());
 
+        private static readonly ByteString Info6 = new Price(){
+            Symbol = "ELF",
+            Amount = 10_0000
+        }.ToByteString();
+        private readonly Hash _info6Id = HashHelper.ComputeFrom(Info6.ToByteArray());
+
         [Fact]
         public async Task InitializeTest()
         {
@@ -51,7 +57,7 @@ namespace AElf.Contracts.NFT
         public async Task<Hash> CreateWhitelistTest()
         {
             await InitializeTest();
-            var executionResult = await WhitelistContractStub.CreateWhitelist.SendAsync(new CreateWhitelistInput()
+            var whitelistId = (await WhitelistContractStub.CreateWhitelist.SendAsync(new CreateWhitelistInput()
             {
                 ExtraInfoList = new ExtraInfoList()
                 {
@@ -75,17 +81,71 @@ namespace AElf.Contracts.NFT
                     }
                 },
                 IsCloneable = true,
-                Remark = "new whitelist test"
-            });
-            var whitelistId = executionResult.Output;
-            var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-            var whitelistDetail = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
-            whitelist.WhitelistId.ShouldBe(whitelistId);
-            whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User1Address);
-            whitelistDetail.Value[1].Info.ShouldBe(Info3);
-            whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(_info3Id);
+                Remark = "new whitelist test",
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User4Address }
+                }
+            })).Output;
+            var whitelistId2 = (await WhitelistContractStub.CreateWhitelist.SendAsync(new CreateWhitelistInput()
+            {
+                ExtraInfoList = new ExtraInfoList()
+                {
+                    Value =
+                    {
+                        new ExtraInfo
+                        {
+                            Address = User1Address,
+                            Info = Info5
+                        },
+                        new ExtraInfo
+                        {
+                            Address = User2Address,
+                            Info = Info1
+                        }
+                    }
+                },
+                IsCloneable = true,
+                Remark = "second whitelist test",
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User5Address }
+                }
+            })).Output;
             
-            return whitelist.WhitelistId;
+            {
+                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelist.WhitelistId.ShouldBe(whitelistId);
+                whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User1Address);
+                whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(_info3Id);
+            }
+            {
+                var whitelist2 = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId2);
+                whitelist2.ExtraInfoIdList.Value[1].Address.ShouldBe(User2Address);
+                whitelist2.ExtraInfoIdList.Value[1].Id.ShouldBe(_info1Id);
+            }
+            {
+                var whitelistDetail = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
+                whitelistDetail.Value[1].Address.ShouldBe(User1Address);
+                whitelistDetail.Value[1].Info.ShouldBe(Info3);
+            }
+            {
+                var whitelistIdList1 = await WhitelistContractStub.GetWhitelistByManager.CallAsync(DefaultAddress);
+                whitelistIdList1.WhitelistId.Count.ShouldBe(2);
+                whitelistIdList1.WhitelistId[0].ShouldBe(whitelistId);
+                whitelistIdList1.WhitelistId[1].ShouldBe(whitelistId2);
+            }
+            {
+                var whitelistIdList2 = await WhitelistContractStub.GetWhitelistByManager.CallAsync(User5Address);
+                whitelistIdList2.WhitelistId.Count.ShouldBe(1);
+                whitelistIdList2.WhitelistId[0].ShouldBe(whitelistId2);
+            }
+            {
+                var manager = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId);
+                manager.Value[0].ShouldBe(User4Address);
+            }
+
+            return whitelistId;
         }
 
         [Fact]
@@ -242,12 +302,7 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     ExtraInfoList = new ExtraInfoList()
                     {
-                        Value = { 
-                            // new ExtraInfo()
-                            // {
-                            //     Address  = User1Address,
-                            //     Info = Info3
-                            // },
+                        Value = {
                             new ExtraInfo() 
                             {
                                 Address = User2Address,
@@ -261,19 +316,33 @@ namespace AElf.Contracts.NFT
                         }
                     }
                 });
-            //executionResult.TransactionResult.Error.ShouldContain("These extraInfo already exists.");
-            var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-            whitelist.ExtraInfoIdList.Value.Count.ShouldBe(5);
-            whitelist.ExtraInfoIdList.Value[3].Address.ShouldBe(User2Address);
-            whitelist.ExtraInfoIdList.Value[3].Id.ShouldBe(_info4Id);
-            whitelist.ExtraInfoIdList.Value[4].Address.ShouldBe(User3Address);
-            whitelist.ExtraInfoIdList.Value[4].Id.ShouldBe(_info1Id);
-            var extraInfo = await WhitelistContractStub.GetExtraInfoByHash.CallAsync(_info2Id);
-            var deserializedExtraInfo = new Price();
-            deserializedExtraInfo.MergeFrom(extraInfo.Value);
-            deserializedExtraInfo.Symbol.ShouldBe("ETH");
-            deserializedExtraInfo.Amount.ShouldBe(100_0000000);
-            extraInfo.Value.ShouldBe(Info2);
+            {
+                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(5);
+                whitelist.ExtraInfoIdList.Value[3].Address.ShouldBe(User2Address);
+                whitelist.ExtraInfoIdList.Value[3].Id.ShouldBe(_info4Id);
+                whitelist.ExtraInfoIdList.Value[4].Address.ShouldBe(User3Address);
+                whitelist.ExtraInfoIdList.Value[4].Id.ShouldBe(_info1Id);
+            }
+            {
+                var extraInfo = await WhitelistContractStub.GetExtraInfoByHash.CallAsync(_info2Id);
+                var deserializedExtraInfo = new Price();
+                deserializedExtraInfo.MergeFrom(extraInfo.Value);
+                deserializedExtraInfo.Symbol.ShouldBe("ETH");
+                deserializedExtraInfo.Amount.ShouldBe(100_0000000);
+                extraInfo.Value.ShouldBe(Info2);
+            }
+
+            {
+                var extra = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(new GetExtraInfoByAddressInput()
+                {
+                    WhitelistId = whitelistId,
+                    Address = User2Address
+                });
+                extra.Value.Count.ShouldBe(2);
+                extra.Value[0].Info.ShouldBe(Info2);
+                extra.Value[1].Info.ShouldBe(Info4);
+            }
             return whitelistId;
         }
         
@@ -438,7 +507,7 @@ namespace AElf.Contracts.NFT
         public async Task ChangeWhitelistCloneableTest()
         {
             var whitelistId = await CreateWhitelistTest();
-            await WhitelistContractStub.ChangeWhitelistCloneable.SendAsync(new UpdateWhitelistCloneableInput()
+            await WhitelistContractStub.ChangeWhitelistCloneable.SendAsync(new ChangeWhitelistCloneableInput()
             {
                 WhitelistId = whitelistId,
                 IsCloneable = false
@@ -461,8 +530,8 @@ namespace AElf.Contracts.NFT
             await WhitelistContractStub.AddExtraInfo.SendAsync(
                 new AddExtraInfoInput()
                 {
-                    ExtraInfoId = _info5Id,
-                    ExtraInfo = Info5
+                    ExtraInfoId = _info6Id,
+                    ExtraInfo = Info6
                 });
             var extraInfo = await WhitelistContractStub.GetExtraInfoByHash.CallAsync(_info5Id);
             extraInfo.Value.ShouldBe(Info5);
@@ -544,7 +613,72 @@ namespace AElf.Contracts.NFT
                     Manager = User1Address
                 });
             var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-            whitelist.Manager.ShouldBe(User1Address);
+            whitelist.Manager.Value.ShouldContain(User1Address);
+            whitelist.Manager.Value.ShouldNotContain(DefaultAddress);
+        }
+
+        [Fact]
+        public async Task<Hash> AddManagersTest()
+        {
+            var whitelistId = await CreateWhitelistTest();
+            await WhitelistContractStub.AddManagers.SendAsync(new AddManagersInput()
+            {
+                WhitelistId = whitelistId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User5Address }
+                }
+            });
+            {
+                var manager = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId);
+                manager.Value.Count.ShouldBe(3);
+                manager.Value[0].ShouldBe(User4Address);
+                manager.Value[2].ShouldBe(User5Address);
+            }
+            {
+                var whitelistIdList = await WhitelistContractStub.GetWhitelistByManager.CallAsync(User5Address);
+                whitelistIdList.WhitelistId.Count.ShouldBe(2);
+                whitelistIdList.WhitelistId[1].ShouldBe(whitelistId);
+            }
+            return whitelistId;
+        }
+        
+        [Fact]
+        public async Task AddManagersTest_AlreadyExists()
+        {
+            var whitelistId = await CreateWhitelistTest();
+            var executionResult = await WhitelistContractStub.AddManagers.SendWithExceptionAsync(new AddManagersInput()
+            {
+                WhitelistId = whitelistId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User4Address }
+                }
+            });
+            executionResult.TransactionResult.Error.ShouldContain("Managers already exists.");
+        }
+
+        [Fact]
+        public async Task RemoveManagersTest()
+        {
+            var whitelistId = await AddManagersTest();
+            await WhitelistContractStub.RemoveManagers.SendAsync(new RemoveManagersInput()
+            {
+                WhitelistId = whitelistId,
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = { User4Address }
+                }
+            });
+            {
+                var manager = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId);
+                manager.Value.Count.ShouldBe(2);
+                manager.Value[0].ShouldBe(DefaultAddress);
+            }
+            {
+                var whitelistIdList = await WhitelistContractStub.GetWhitelistByManager.CallAsync(User4Address);
+                whitelistIdList.WhitelistId.Count.ShouldBe(0);
+            }
         }
     }
 }

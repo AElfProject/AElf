@@ -34,50 +34,51 @@ namespace AElf.Contracts.Whitelist
         {
             AssertWhitelistInfo(input);
             var whitelistInfo = GetWhitelist(input);
-            var extraInfoList = whitelistInfo.ExtraInfoIdList.Value.Select(info =>
-            { 
-                var extraInfo = GetExtraInfoByHash(info.Id).Value;
-                return new ExtraInfo()
-                {
-                    Address = info.Address,
-                    Info = extraInfo
-                };
-            }).ToList();
-            return new ExtraInfoList() {Value = {extraInfoList}};
+            return ConvertExtraInfoId(whitelistInfo.ExtraInfoIdList);
         }
 
-        public override WhitelistInfo GetAvailableWhitelist(Hash input)
+        public override ExtraInfoList GetAvailableWhitelist(Hash input)
         {
             var subscribe = GetSubscribeWhitelist(input);
             var consumedList = State.ConsumedListMap[subscribe.SubscribeId];
             var whitelist = State.WhitelistInfoMap[subscribe.WhitelistId];
+            var extraInfoList = ConvertExtraInfoId(whitelist.ExtraInfoIdList);
             if (consumedList.ExtraInfoIdList == null)
             {
-                return new WhitelistInfo()
-                {
-                    WhitelistId = whitelist.WhitelistId,
-                    ExtraInfoIdList = whitelist.ExtraInfoIdList
-                };
+                return extraInfoList;
             }
             else
             {
                 var consumedExtraList = consumedList.ExtraInfoIdList.Value;
                 var whitelistExtra = whitelist.ExtraInfoIdList.Value;
                 var availableList = whitelistExtra.Except(consumedExtraList);
-                return new WhitelistInfo()
-                {
-                    WhitelistId = whitelist.WhitelistId,
-                    ExtraInfoIdList = new ExtraInfoIdList() {Value = { availableList }}
-                };
+                return ConvertExtraInfoId(new ExtraInfoIdList() {Value = {availableList}});
             }
         }
 
         public override BoolValue GetFromAvailableWhitelist(GetFromAvailableWhitelistInput input)
         {
             var whitelist = GetAvailableWhitelist(input.SubscribeId);
-            var extraInfoId = ConvertExtraInfo(input.ExtraInfo);
-            var ifExist =  whitelist.ExtraInfoIdList.Value.Contains(extraInfoId);
+            var ifExist =  whitelist.Value.Contains(input.ExtraInfo);
             return new BoolValue() { Value = ifExist };
+        }
+
+        public override WhitelistIdList GetWhitelistByManager(Address input)
+        {
+            return State.WhitelistIdMap[input];
+        }
+
+        public override AddressList GetManagerList(Hash input)
+        {
+            return State.ManagerListMap[input];
+        }
+
+        public override ExtraInfoList GetExtraInfoByAddress(GetExtraInfoByAddressInput input)
+        {
+            var whitelist = GetWhitelist(input.WhitelistId);
+            var extraInfoIds = whitelist.ExtraInfoIdList.Value.Where(info => info.Address == input.Address).ToList();
+            var extraInfo = ConvertExtraInfoId(new ExtraInfoIdList(){Value = { extraInfoIds }});
+            return extraInfo;
         }
     }
 }
