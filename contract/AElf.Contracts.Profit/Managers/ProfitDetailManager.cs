@@ -65,7 +65,7 @@ namespace AElf.Contracts.Profit.Managers
             var profitDetails = _profitDetailsMap[schemeId][beneficiary];
             var updateProfitDetail = profitDetails.Details.FirstOrDefault(d =>
                 d.StartPeriod == profitDetail.StartPeriod && d.EndPeriod == profitDetail.EndPeriod &&
-                d.Shares == profitDetail.Shares);
+                d.Shares == profitDetail.Shares && d.LastProfitPeriod != updateTo);
             if (updateProfitDetail != null)
             {
                 updateProfitDetail.LastProfitPeriod = updateTo;

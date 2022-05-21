@@ -94,6 +94,7 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitSchemeIdList[ProfitType.CitizenWelfare],
                 Beneficiary = Address.FromPublicKey(voterKeyPair.PublicKey)
             });
+            executionResult.TransactionResult.Error.ShouldBeNullOrEmpty();
             return executionResult.TransactionResult.Logs.Where(l => l.Name == "ProfitsClaimed").Select(l =>
             {
                 var logEvent = new ProfitsClaimed();

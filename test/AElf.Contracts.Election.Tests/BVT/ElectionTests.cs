@@ -609,11 +609,10 @@ namespace AElf.Contracts.Election
                 totalShare += weight;
             }
 
-            var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-            checkTotalShare.TotalShares.ShouldBe(totalShare);
-
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            var scheme =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+            scheme.TotalShares.ShouldBe(totalShare);
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             for (var i = 0; i < votersCount; i++)
@@ -667,11 +666,6 @@ namespace AElf.Contracts.Election
                 totalShare += weight;
             }
 
-            var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-            checkTotalShare.TotalShares.ShouldBe(totalShare);
-
-
             // ChangeVote and Vote in the same term
             {
                 var addSeconds = 2 * 60 * 60 * 24;
@@ -696,12 +690,13 @@ namespace AElf.Contracts.Election
                     .First(a => a.VoteId.Equals(voteId));
                 afterVoteRecord.VoteTimestamp.ShouldBe(txTimes);
                 afterVoteRecord.UnlockTimestamp.ShouldBe(txTimes.AddSeconds(originVoteRecord.LockTime));
-
-                var afterTotalShare =
-                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-                afterTotalShare.TotalShares.ShouldBe(checkTotalShare.TotalShares);
             }
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            
+            var scheme =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+            scheme.TotalShares.ShouldBe(totalShare);
+
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             for (var i = 0; i < votersCount; i++)
@@ -756,11 +751,12 @@ namespace AElf.Contracts.Election
                 totalShare += weight;
             }
 
-            var checkTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-            checkTotalShare.TotalShares.ShouldBe(totalShare);
-
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+            var scheme =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+            scheme.TotalShares.ShouldBe(totalShare);
+
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(2 * 60 * 60 * 24));
 
             // ChangeVote in next term
@@ -805,13 +801,13 @@ namespace AElf.Contracts.Election
             profitDetail.EndPeriod.ShouldBe(originProfitDetail.Details.First().EndPeriod
                 .Add(currentPeriod.Value.Sub(originProfitDetail.Details.First().StartPeriod).Add(1)));
 
-
-            var afterTotalShare =
-                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-            afterTotalShare.TotalShares.ShouldBe(checkTotalShare.TotalShares);
-
             // Term 3 - 5
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            
+            var afterTotalShare =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
+            afterTotalShare.TotalShares.ShouldBe(scheme.TotalShares);
+
             var term = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
             while (term.Value <= originProfitDetail.Details.First().EndPeriod + 1)
             {
@@ -1166,10 +1162,11 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
+            var totalShare = 0L;
             {
                 var welfareScheme =
                     await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-                var totalShare = welfareScheme.TotalShares;
+                totalShare = welfareScheme.TotalShares;
                 totalShare.ShouldBe(totalWeight);
             }
 
@@ -1242,11 +1239,10 @@ namespace AElf.Contracts.Election
                 balance.ShouldBe(0);
             }
 
-            // Check share
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+            // Check shares for next term.
             {
-                var welfareScheme =
-                    await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]);
-                var totalShare = welfareScheme.TotalShares;
                 var afterTotalShare =
                     (await ProfitContractStub.GetScheme.CallAsync(ProfitSchemeIdList[ProfitType.CitizenWelfare]))
                     .TotalShares;
