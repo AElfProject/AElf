@@ -2,8 +2,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Standards.ACS10;
 using AElf.Contracts.Election;
-using AElf.Contracts.TokenHolder;
-using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;

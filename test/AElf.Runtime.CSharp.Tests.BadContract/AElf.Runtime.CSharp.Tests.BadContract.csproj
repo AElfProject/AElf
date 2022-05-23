@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <AssemblyName>AElf.Runtime.CSharp.Tests.BadContract</AssemblyName>
         <RootNamespace>AElf.Runtime.CSharp.Tests.BadContract</RootNamespace>
         <IsPackable>false</IsPackable>

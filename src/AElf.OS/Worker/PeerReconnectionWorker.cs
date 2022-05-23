@@ -24,7 +24,7 @@ namespace AElf.OS.Worker
 
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
-        public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
+        public PeerReconnectionWorker(AbpAsyncTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
             INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService,
             IServiceScopeFactory serviceScopeFactory)
             : base(timer, serviceScopeFactory)

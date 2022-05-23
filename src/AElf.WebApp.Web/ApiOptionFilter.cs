@@ -15,7 +15,7 @@ namespace AElf.WebApp.Web
         {
             foreach (var apiDescription in context.ApiDescriptions)
             {
-                if (apiDescription.TryGetMethodInfo(out MethodInfo method))
+                if (apiDescription.TryGetMethodInfo(out var method))
                 {
                     if (method.ReflectedType != null && method.ReflectedType.CustomAttributes.Any())
                     {

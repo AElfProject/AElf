@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.Consensus.AEDPoS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Consensus is a contract that implements AElf’s DPoS consensus protocol.</Description>

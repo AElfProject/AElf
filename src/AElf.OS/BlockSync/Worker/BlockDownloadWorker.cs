@@ -22,7 +22,7 @@ namespace AElf.OS.BlockSync.Worker
         private readonly IBlockDownloadJobStore _blockDownloadJobStore;
         private readonly BlockSyncOptions _blockSyncOptions;
 
-        public BlockDownloadWorker(AbpTimer timer,
+        public BlockDownloadWorker(AbpAsyncTimer timer,
             IBlockchainService blockchainService,
             IBlockDownloadService blockDownloadService,
             IBlockDownloadJobStore blockDownloadJobStore,

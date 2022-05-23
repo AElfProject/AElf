@@ -18,7 +18,7 @@ namespace AElf.OS.Worker
 
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
+        public PeerDiscoveryWorker(AbpAsyncTimer timer, IPeerDiscoveryService peerDiscoveryService,
             INetworkService networkService, 
             IReconnectionService reconnectionService,
             IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)

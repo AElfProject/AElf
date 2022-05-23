@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <Import Project="..\..\common.props" />
     <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
+      <TargetFramework>net6.0</TargetFramework>
       <PackageId>AElf.CSharp.Core</PackageId>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <Description>Base definitions for C# smart contracts.</Description>

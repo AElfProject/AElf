@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp</RootNamespace>
         <PackageId>AElf.Runtime.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Runtime.CSharp.ExecutiveTokenPlugin</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Executive plugin for C# smart contracts.</Description>

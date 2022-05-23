@@ -1581,7 +1581,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _transactionResultStatusCacheProvider.AddTransactionResultStatus(transactionId);
             {
                 var originalStatus = _transactionResultStatusCacheProvider.GetTransactionResultStatus(transactionId);
-                originalStatus.TransactionResultStatus.ShouldNotBeNull();
+                originalStatus.TransactionResultStatus.ShouldBe(TransactionResultStatus.NotExisted);
             }
             await _transactionValidationStatusChangedEventHandler.HandleEventAsync(new TransactionValidationStatusChangedEvent
             {
@@ -1593,7 +1593,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             result.TransactionResultStatus.ShouldBe(TransactionResultStatus.PendingValidation);
             result.Error.ShouldBe("error");
         }
-        
 
         private async Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {

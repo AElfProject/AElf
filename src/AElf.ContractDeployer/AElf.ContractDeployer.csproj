@@ -4,7 +4,7 @@
     <PropertyGroup>
         <PackageId>AElf.ContractDeployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <Description>Smart contract deployer.</Description>
         <RootNamespace>AElf.ContractDeployer</RootNamespace>
