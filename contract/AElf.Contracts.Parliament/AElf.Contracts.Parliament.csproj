@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.Parliament</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Parliament is a contract that enables the creation of organizations and approvals. The created 
@@ -29,6 +29,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\reference\election_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

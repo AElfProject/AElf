@@ -2,16 +2,16 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.OS.Network.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>gRPC implementations of AElf's network communication layer.</Description>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Grpc" Version="2.31.0" />
-      <PackageReference Include="Grpc.Tools" Version="2.31.0" />
-      <PackageReference Include="GuerrillaNtp" Version="1.4.2" />
+      <PackageReference Include="Grpc" Version="2.46.1" />
+      <PackageReference Include="Grpc.Tools" Version="2.46.1" />
+      <PackageReference Include="GuerrillaNtp" Version="2.0.1" />
     </ItemGroup>
 
     <ItemGroup>

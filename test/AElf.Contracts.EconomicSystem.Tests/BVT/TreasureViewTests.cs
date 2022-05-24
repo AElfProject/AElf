@@ -69,7 +69,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             foreach (var user in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount))
             {
                 var electionTester = GetElectionContractTester(user);
-                var electionResult = await electionTester.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
+                var electionResult = await electionTester.AnnounceElection.SendAsync(Address.FromPublicKey(user.PublicKey));
                 electionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 

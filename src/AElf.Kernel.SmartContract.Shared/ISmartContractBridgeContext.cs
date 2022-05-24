@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.Serialization;
 using AElf.Types;
 using Google.Protobuf;

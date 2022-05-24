@@ -2,7 +2,7 @@
     <Import Project="..\..\common.props" />
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <PackageId>AElf.Contracts.Election</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Election is a contract that implements voting.</Description>
@@ -43,6 +43,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

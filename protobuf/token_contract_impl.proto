@@ -176,6 +176,8 @@ message ValidateTokenInfoExistsInput{
     bool is_burnable = 6;
     // The chain id of the token.
     int32 issue_chain_id = 7;
+    // The external information of the token.
+    map<string, string> external_info = 8;
 }
 
 message UpdateRentalInput {

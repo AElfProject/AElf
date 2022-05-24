@@ -390,6 +390,7 @@ namespace AElf.Contracts.Referendum
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
+            await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             var amount = 5000;
             var accountApprove = Accounts[3];
@@ -607,6 +608,7 @@ namespace AElf.Contracts.Referendum
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
+            await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             await ApproveAllowanceAsync(Accounts[3].KeyPair, minimalApproveThreshold, proposalId);
 
@@ -621,6 +623,22 @@ namespace AElf.Contracts.Referendum
             newToken.Issuer.ShouldBe(organizationAddress);
         }
 
+        private async Task AddAddressToCreateTokenWhiteListAsync(Address address)
+        {
+            var defaultOrganization = await ParliamentContractStub.GetDefaultOrganizationAddress.CallAsync(new Empty());
+            var result = await ParliamentContractStub.CreateProposal.SendAsync(new CreateProposalInput
+            {
+                ToAddress = TokenContractAddress,
+                Params = address.ToByteString(),
+                ContractMethodName = nameof(TokenContractStub.AddAddressToCreateTokenWhiteList),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                OrganizationAddress = defaultOrganization
+            });
+            var proposalId = result.Output;
+            await ApproveWithMinersAsync(proposalId);
+            await ParliamentContractStub.Release.SendAsync(proposalId);
+        }
+
         [Fact]
         public async Task Release_Proposal_AlreadyReleased_Test()
         {
@@ -630,6 +648,7 @@ namespace AElf.Contracts.Referendum
             var maximalAbstentionThreshold = 10000;
             var organizationAddress = await CreateOrganizationAsync(minimalApproveThreshold, minimalVoteThreshold,
                 maximalAbstentionThreshold, maximalRejectionThreshold, new[] {DefaultSender});
+            await AddAddressToCreateTokenWhiteListAsync(organizationAddress);
             var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
 
             // do not reach minimal approve amount

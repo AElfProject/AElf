@@ -9,17 +9,17 @@ namespace AElf
     public class AElfDefaultConventionalRegistrar : DefaultConventionalRegistrar
     {
         private readonly List<string> _transientTypeSuffixes =
-            new List<string> {"Service", "Provider", "Manager", "Store", "Factory"};
-        
-        protected override ServiceLifetime? GetServiceLifetimeFromClassHierarcy(Type type)
+            new() { "Service", "Provider", "Manager", "Store", "Factory" };
+
+        protected override ServiceLifetime? GetServiceLifetimeFromClassHierarchy(Type type)
         {
             //Get ABP lifetime from ABP interface, ITransientDependency,ISingletonDependency or IScopedDependency
-            var lifeTime = base.GetServiceLifetimeFromClassHierarcy(type);
+            var lifeTime = base.GetServiceLifetimeFromClassHierarchy(type);
             if (lifeTime != null)
             {
                 return null;
             }
-            
+
             //if no lifetime interface was found, try to get class with the same interface,
             //HelloService -> IHelloService
             //HelloManager -> IHelloManager
@@ -32,7 +32,6 @@ namespace AElf
                     return ServiceLifetime.Transient;
                 }
             }
-
 
             return null;
         }

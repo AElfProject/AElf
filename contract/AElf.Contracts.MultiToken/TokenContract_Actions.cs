@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using AElf.Standards.ACS0;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -39,6 +37,11 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            if (Context.Origin != Context.Sender)
+            {
+                Assert(IsAddressInCreateTokenWhiteList(Context.Sender), "No permission to create token via inline tx.");
+            }
+
             Assert(State.SideChainCreator.Value == null, "Failed to create token if side chain creator already set.");
             AssertValidCreateInput(input);
             var tokenInfo = new TokenInfo
@@ -49,8 +52,10 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId,
+                ExternalInfo = input.ExternalInfo ?? new ExternalInfo()
             };
+            Assert(input.Symbol.All(IsValidCreateSymbolChar), "Invalid symbol.");
             RegisterTokenInfo(tokenInfo);
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
@@ -70,13 +75,14 @@ namespace AElf.Contracts.MultiToken
 
             Context.Fire(new TokenCreated
             {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Decimals = input.Decimals,
-                Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable,
-                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
+                Symbol = tokenInfo.Symbol,
+                TokenName = tokenInfo.TokenName,
+                TotalSupply = tokenInfo.TotalSupply,
+                Decimals = tokenInfo.Decimals,
+                Issuer = tokenInfo.Issuer,
+                IsBurnable = tokenInfo.IsBurnable,
+                IssueChainId = tokenInfo.IssueChainId,
+                ExternalInfo = tokenInfo.ExternalInfo
             });
 
             return new Empty();
@@ -113,7 +119,7 @@ namespace AElf.Contracts.MultiToken
 
             tokenInfo.Issued = tokenInfo.Issued.Add(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            
+
             Assert(tokenInfo.Issued <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             ModifyBalance(input.To, input.Symbol, input.Amount);
@@ -131,6 +137,14 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfoDuringTransfer(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = input.To,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                Memo = input.Memo
+            });
             return new Empty();
         }
 
@@ -157,7 +171,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId,
+                ExternalInfo = new ExternalInfo {Value = {validateTokenInfoExistsInput.ExternalInfo}}
             };
             RegisterTokenInfo(tokenInfo);
 
@@ -169,7 +184,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = validateTokenInfoExistsInput.Decimals,
                 Issuer = validateTokenInfoExistsInput.Issuer,
                 IsBurnable = validateTokenInfoExistsInput.IsBurnable,
-                IssueChainId = validateTokenInfoExistsInput.IssueChainId
+                IssueChainId = validateTokenInfoExistsInput.IssueChainId,
+                ExternalInfo = new ExternalInfo {Value = {validateTokenInfoExistsInput.ExternalInfo}}
             });
 
             return new Empty();
@@ -293,6 +309,14 @@ namespace AElf.Contracts.MultiToken
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
             DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            DealWithExternalInfoDuringLocking(new TransferFromInput
+            {
+                From = input.Address,
+                To = virtualAddress,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage
+            });
             return new Empty();
         }
 
@@ -310,6 +334,14 @@ namespace AElf.Contracts.MultiToken
                 Amount = input.Amount,
                 Memo = input.Usage,
             });
+            DealWithExternalInfoDuringUnlock(new TransferFromInput
+            {
+                From = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress),
+                To = input.Address,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage
+            });
             return new Empty();
         }
 
@@ -323,6 +355,7 @@ namespace AElf.Contracts.MultiToken
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+                    DealWithExternalInfoDuringTransfer(input);
                     return new Empty();
                 }
 
@@ -332,6 +365,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfoDuringTransfer(input);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }
@@ -339,8 +373,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
-            State.Allowances[Context.Sender][input.Spender][input.Symbol] =
-                State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
+            State.Allowances[Context.Sender][input.Spender][input.Symbol] = input.Amount;
             Context.Fire(new Approved()
             {
                 Owner = Context.Sender,
@@ -430,6 +463,14 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
 
+            var transferFromInput = new TransferFromInput
+            {
+                From = Context.Origin,
+                To = Context.Sender,
+                Amount = input.Amount,
+                Symbol = input.Symbol,
+                Memo = input.Memo
+            };
             // First check allowance.
             var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
@@ -437,6 +478,7 @@ namespace AElf.Contracts.MultiToken
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+                    DealWithExternalInfoDuringTransfer(transferFromInput);
                     return new Empty();
                 }
 
@@ -446,6 +488,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+            DealWithExternalInfoDuringTransfer(transferFromInput);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }
@@ -477,10 +520,26 @@ namespace AElf.Contracts.MultiToken
         public override Empty ValidateTokenInfoExists(ValidateTokenInfoExistsInput input)
         {
             var tokenInfo = State.TokenInfos[input.Symbol];
-            bool validationResult = tokenInfo != null && tokenInfo.TokenName == input.TokenName &&
-                                    tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
-                                    tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
-                                    tokenInfo.IssueChainId == input.IssueChainId;
+            if (tokenInfo == null)
+            {
+                throw new AssertionException("Token validation failed.");
+            }
+
+            var validationResult = tokenInfo.TokenName == input.TokenName &&
+                                   tokenInfo.IsBurnable == input.IsBurnable && tokenInfo.Decimals == input.Decimals &&
+                                   tokenInfo.Issuer == input.Issuer && tokenInfo.TotalSupply == input.TotalSupply &&
+                                   tokenInfo.IssueChainId == input.IssueChainId;
+
+            if (tokenInfo.ExternalInfo != null && tokenInfo.ExternalInfo.Value.Count > 0)
+            {
+                validationResult = validationResult && tokenInfo.ExternalInfo.Value.Count == input.ExternalInfo.Count;
+                if (tokenInfo.ExternalInfo.Value.Any(keyPair =>
+                        !input.ExternalInfo.ContainsKey(keyPair.Key) || input.ExternalInfo[keyPair.Key] != keyPair.Value))
+                {
+                    throw new AssertionException("Token validation failed.");
+                }
+            }
+
             Assert(validationResult, "Token validation failed.");
             return new Empty();
         }
@@ -494,6 +553,34 @@ namespace AElf.Contracts.MultiToken
                 "Permission denied");
             tokenInfo.Issuer = input.NewTokenIssuer;
             State.TokenInfos[input.Symbol] = tokenInfo;
+            return new Empty();
+        }
+
+        public override Empty ResetExternalInfo(ResetExternalInfoInput input)
+        {
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo.Issuer == Context.Sender, "No permission to reset external info.");
+            tokenInfo.ExternalInfo = input.ExternalInfo;
+            State.TokenInfos[input.Symbol] = tokenInfo;
+            Context.Fire(new ExternalInfoChanged
+            {
+                Symbol = input.Symbol,
+                ExternalInfo = input.ExternalInfo
+            });
+            return new Empty();
+        }
+
+        public override Empty AddAddressToCreateTokenWhiteList(Address input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.CreateTokenWhiteListMap[input] = true;
+            return new Empty();
+        }
+
+        public override Empty RemoveAddressFromCreateTokenWhiteList(Address input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.CreateTokenWhiteListMap.Remove(input);
             return new Empty();
         }
     }

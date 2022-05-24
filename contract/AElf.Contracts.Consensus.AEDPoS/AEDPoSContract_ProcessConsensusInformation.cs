@@ -2,8 +2,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Standards.ACS10;
 using AElf.Contracts.Election;
-using AElf.Contracts.TokenHolder;
-using AElf.Contracts.Treasury;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -59,6 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash
             };
+            Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => $"Synced mining information: {miningInformationUpdated}");
 
             // Make sure the method GetMaximumBlocksCount executed no matter what consensus behaviour is.

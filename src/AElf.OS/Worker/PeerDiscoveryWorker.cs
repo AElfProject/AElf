@@ -18,7 +18,7 @@ namespace AElf.OS.Worker
 
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
+        public PeerDiscoveryWorker(AbpAsyncTimer timer, IPeerDiscoveryService peerDiscoveryService,
             INetworkService networkService, 
             IReconnectionService reconnectionService,
             IServiceScopeFactory serviceScopeFactory) : base(timer, serviceScopeFactory)
@@ -53,18 +53,23 @@ namespace AElf.OS.Worker
             {
                 try
                 {
+                    if (_networkService.IsPeerPoolFull())
+                    {
+                        Logger.LogTrace("Peer pool is full, aborting add.");
+                        break;
+                    }
+                    
                     var reconnectingPeer = _reconnectionService.GetReconnectingPeer(node.Endpoint);
-
                     if (reconnectingPeer != null)
                     {
                         Logger.LogDebug($"Peer {node.Endpoint} is already in the reconnection queue.");
                         continue;
                     }
-
-                    if (_networkService.IsPeerPoolFull())
+                    
+                    if (_networkService.GetPeerByPubkey(node.Pubkey.ToHex()) != null)
                     {
-                        Logger.LogTrace("Peer pool is full, aborting add.");
-                        break;
+                        Logger.LogDebug($"Peer {node} is already in the peer pool.");
+                        continue;
                     }
 
                     await _networkService.AddPeerAsync(node.Endpoint);
