@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
+using AElf.OS.BlockSync;
 using AElf.OS.BlockSync.Worker;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
@@ -25,6 +26,7 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
+            Configure<BlockSyncOptions>(configuration.GetSection("BlockSync"));
         }
         
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
