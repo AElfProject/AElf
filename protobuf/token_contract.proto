@@ -475,6 +475,8 @@ message ChargeTransactionFeesInput {
     int64 transaction_size_fee = 3;
     // Transaction fee token information.
     repeated SymbolToPayTxSizeFee symbols_to_pay_tx_size_fee = 4;
+    // The address of the sender
+    aelf.Address sender_address = 5;
 }
 
 message ChargeTransactionFeesOutput {

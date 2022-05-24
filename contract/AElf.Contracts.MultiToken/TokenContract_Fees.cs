@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS1;
@@ -42,25 +43,58 @@ namespace AElf.Contracts.MultiToken
             }
 
             var successToChargeSizeFee = true;
-            if (methodFees != null && !methodFees.IsSizeFeeFree)
+            if (methodFees is { IsSizeFeeFree: false })
             {
                 // If IsSizeFeeFree == true, do not charge size fee.
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
+            // Considering free allowance.
+            var freeAllowances = Context.Call<FreeAllowances>(input.ContractAddress, nameof(GetFreeAllowances),
+                input.SenderAddress);
+            var consumingFreeAllowances = new FreeAllowances();
+
             // Update balances.
-            foreach (var tokenToAmount in bill.FeesMap)
+            foreach (var (symbol, amount) in bill.FeesMap)
             {
-                ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
+                var actualAmount = amount;
+                var freeAllowance = freeAllowances.Value.FirstOrDefault(a => a.Symbol == symbol);
+                if (freeAllowance != null)
+                {
+                    // Consume free allowance.
+                    var consumingFreeAllowance = Math.Min(amount, freeAllowance.Allowance);
+                    consumingFreeAllowances.Value.Add(new FreeAllowance
+                    {
+                        Symbol = symbol,
+                        Allowance = consumingFreeAllowance
+                    });
+                    actualAmount = amount.Sub(consumingFreeAllowance);
+                    if (actualAmount == 0)
+                    {
+                        // Seek for charging next token if the free allowance is able to cover current token.
+                        continue;
+                    }
+                }
+
+                ModifyBalance(fromAddress, symbol, -actualAmount);
                 Context.Fire(new TransactionFeeCharged
                 {
-                    Symbol = tokenToAmount.Key,
-                    Amount = tokenToAmount.Value
+                    Symbol = symbol,
+                    Amount = actualAmount
                 });
-                if (tokenToAmount.Value == 0)
+                if (actualAmount == 0)
                 {
-                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {symbol}: it's 0.");
                 }
+            }
+
+            if (consumingFreeAllowances.Value.Any())
+            {
+                Context.SendInline(input.ContractAddress, nameof(ConsumeFreeAllowances), new ConsumeFreeAllowancesInput
+                {
+                    SenderAddress = input.SenderAddress,
+                    ConsumingFreeAllowances = consumingFreeAllowances
+                });
             }
 
             var chargingResult = successToChargeBaseFee && successToChargeSizeFee;

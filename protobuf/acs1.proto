@@ -25,7 +25,10 @@ service MethodFeeProviderContract {
     // Change the method fee controller, the default is parliament and default organization.
     rpc ChangeMethodFeeController (AuthorityInfo) returns (google.protobuf.Empty) {
     }
-    
+
+    rpc ConsumeFreeAllowances (ConsumeFreeAllowancesInput) returns (google.protobuf.Empty) {
+    }
+
     // Query method fee information by method name.
     rpc GetMethodFee (google.protobuf.StringValue) returns (MethodFees) {
         option (aelf.is_view) = true;
@@ -33,6 +36,11 @@ service MethodFeeProviderContract {
 
     // Query the method fee controller.
     rpc GetMethodFeeController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+
+    // Query free allowance of a certain sender address.
+    rpc GetFreeAllowances (aelf.Address) returns (FreeAllowances) {
         option (aelf.is_view) = true;
     }
 }
@@ -50,4 +58,18 @@ message MethodFee {
     string symbol = 1;
     // The amount of fees to be charged.
     int64 basic_fee = 2;
+}
+
+message ConsumeFreeAllowancesInput {
+    aelf.Address sender_address = 1;
+    FreeAllowances consuming_free_allowances = 2;
+}
+
+message FreeAllowances {
+    repeated FreeAllowance value = 1;
+}
+
+message FreeAllowance {
+    string symbol = 1;
+    int64 allowance = 2;
 }
