@@ -7,261 +7,261 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Election
+namespace AElf.Contracts.Election;
+
+/// <summary>
+/// AnnounceElection & QuitElection
+/// </summary>
+public partial class ElectionContract
 {
+    #region AnnounceElection
+
     /// <summary>
-    /// AnnounceElection & QuitElection
+    /// Actually this method is for adding an option of the Voting Item.
+    /// Thus the limitation of candidates will be limited by the capacity of voting options.
+    /// The input is candidate admin, better be an organization address of Association Contract.
     /// </summary>
-    public partial class ElectionContract
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public override Empty AnnounceElection(Address input)
     {
-        #region AnnounceElection
+        var recoveredPublicKey = Context.RecoverPublicKey();
 
-        /// <summary>
-        /// Actually this method is for adding an option of the Voting Item.
-        /// Thus the limitation of candidates will be limited by the capacity of voting options.
-        /// The input is candidate admin, better be an organization address of Association Contract.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty AnnounceElection(Address input)
+        var electionService = GetElectionService();
+        electionService.Involve(recoveredPublicKey, input ?? Address.FromPublicKey(recoveredPublicKey));
+
+        var pubkey = recoveredPublicKey.ToHex();
+        var address = Address.FromPublicKey(recoveredPublicKey);
+
+        LockCandidateNativeToken();
+        AddCandidateAsOption(pubkey);
+
+        if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
         {
-            Assert(State.ElectionEnabled.Value, "Election is temporally disable.");
-            var recoveredPublicKey = Context.RecoverPublicKey();
-
-            var electionService = GetElectionService();
-            electionService.Involve(recoveredPublicKey, input ?? Address.FromPublicKey(recoveredPublicKey));
-
-            var pubkey = recoveredPublicKey.ToHex();
-            var address = Address.FromPublicKey(recoveredPublicKey);
-
-            LockCandidateNativeToken();
-            AddCandidateAsOption(pubkey);
-
-            if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
-            {
-                State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
-                RegisterCandidateToSubsidyProfitScheme(address);
-            }
-
-            return new Empty();
+            State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
+            RegisterCandidateToSubsidyProfitScheme(address);
         }
 
-        private void LockCandidateNativeToken()
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+        return new Empty();
+    }
 
-            // Lock the token from sender for deposit of announce election
-            var lockId = Context.OriginTransactionId;
-            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
-            var sponsorAddress = Context.Sender;
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = sponsorAddress,
-                To = lockVirtualAddress,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = ElectionContractConstants.LockTokenForElection,
-                Memo = "Lock for announcing election."
-            });
+    private void LockCandidateNativeToken()
+    {
+        if (State.TokenContract.Value == null)
+        {
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
 
-        private void AddCandidateAsOption(string publicKey)
+        // Lock the token from sender for deposit of announce election
+        var lockId = Context.OriginTransactionId;
+        var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+        var sponsorAddress = Context.Sender;
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
         {
-            if (State.VoteContract.Value == null)
-            {
-                State.VoteContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
-            }
+            From = sponsorAddress,
+            To = lockVirtualAddress,
+            Symbol = Context.Variables.NativeSymbol,
+            Amount = ElectionContractConstants.LockTokenForElection,
+            Memo = "Lock for announcing election."
+        });
+    }
 
-            // Add this candidate as an option for the the Voting Item.
-            State.VoteContract.AddOption.Send(new AddOptionInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = publicKey
-            });
+    private void AddCandidateAsOption(string publicKey)
+    {
+        if (State.VoteContract.Value == null)
+        {
+            State.VoteContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
         }
 
-        private void RegisterCandidateToSubsidyProfitScheme(Address candidateAddress)
+        // Add this candidate as an option for the the Voting Item.
+        State.VoteContract.AddOption.Send(new AddOptionInput
         {
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
+            VotingItemId = State.MinerElectionVotingItemId.Value,
+            Option = publicKey
+        });
+    }
 
-            // Add 1 Shares for this candidate in subsidy profit scheme.
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.SubsidyHash.Value,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = candidateAddress, Shares = 1}
-            });
+    private void RegisterCandidateToSubsidyProfitScheme(Address candidateAddress)
+    {
+        if (State.ProfitContract.Value == null)
+        {
+            State.ProfitContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
         }
 
-        #endregion
-
-        #region QuitElection
-
-        /// <summary>
-        /// delete a option of voting,then sub the Shares from the corresponding ProfitItem 
-        /// </summary>
-        /// <param name="input">Empty</param>
-        /// <returns></returns>
-        public override Empty QuitElection(StringValue input)
+        // Add 1 Shares for this candidate in subsidy profit scheme.
+        State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
         {
-            var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(input.Value);
-            QuitElection(pubkeyBytes);
-            var pubkey = input.Value;
+            SchemeId = State.SubsidyHash.Value,
+            BeneficiaryShare = new BeneficiaryShare { Beneficiary = candidateAddress, Shares = 1 }
+        });
+    }
 
-            var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
-            Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "Only admin can quit election.");
-            var candidateInformation = State.CandidateInformationMap[pubkey];
+    #endregion
 
-            // Unlock candidate's native token.
-            var lockId = candidateInformation.AnnouncementTransactionId;
-            var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+    #region QuitElection
+
+    /// <summary>
+    /// delete a option of voting,then sub the Shares from the corresponding ProfitItem 
+    /// </summary>
+    /// <param name="input">Empty</param>
+    /// <returns></returns>
+    public override Empty QuitElection(StringValue input)
+    {
+        var pubkeyBytes = ByteArrayHelper.HexStringToByteArray(input.Value);
+        QuitElection(pubkeyBytes);
+        var pubkey = input.Value;
+
+        var initialPubkey = State.InitialPubkeyMap[pubkey] ?? pubkey;
+        Assert(Context.Sender == State.CandidateAdmins[initialPubkey], "Only admin can quit election.");
+        var candidateInformation = State.CandidateInformationMap[pubkey];
+
+        // Unlock candidate's native token.
+        var lockId = candidateInformation.AnnouncementTransactionId;
+        var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
+        {
+            From = lockVirtualAddress,
+            To = State.CandidateSponsorMap[input.Value] ?? Address.FromPublicKey(pubkeyBytes),
+            Symbol = Context.Variables.NativeSymbol,
+            Amount = ElectionContractConstants.LockTokenForElection,
+            Memo = "Quit election."
+        });
+
+        // Update candidate information.
+        candidateInformation.IsCurrentCandidate = false;
+        candidateInformation.AnnouncementTransactionId = Hash.Empty;
+        State.CandidateInformationMap[pubkey] = candidateInformation;
+
+        // Remove candidate public key from the Voting Item options.
+        State.VoteContract.RemoveOption.Send(new RemoveOptionInput
+        {
+            VotingItemId = State.MinerElectionVotingItemId.Value,
+            Option = pubkey
+        });
+        var dataCenterList = State.DataCentersRankingList.Value;
+        if (dataCenterList.DataCenters.ContainsKey(pubkey))
+        {
+            dataCenterList.DataCenters[pubkey] = 0;
+            UpdateDataCenterAfterMemberVoteAmountChanged(dataCenterList, pubkey, true);
+            State.DataCentersRankingList.Value = dataCenterList;
+        }
+
+        var managedCandidatePubkey = State.ManagedCandidatePubkeysMap[Context.Sender];
+        managedCandidatePubkey.Value.Remove(ByteString.CopyFrom(pubkeyBytes));
+        if (managedCandidatePubkey.Value.Any())
+        {
+            State.ManagedCandidatePubkeysMap[Context.Sender] = managedCandidatePubkey;
+        }
+        else
+        {
+            State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+        }
+
+        State.CandidateSponsorMap.Remove(pubkey);
+
+        return new Empty();
+    }
+
+    private void QuitElection(byte[] recoveredPublicKey)
+    {
+        var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+
+        Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Target is not a candidate.");
+
+        if (State.AEDPoSContract.Value == null)
+        {
+            State.AEDPoSContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+        }
+
+        if (State.AEDPoSContract.Value != null)
+        {
+            Assert(
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                    .Contains(publicKeyByteString),
+                "Current miners cannot quit election.");
+        }
+
+        State.Candidates.Value.Value.Remove(publicKeyByteString);
+    }
+
+    #endregion
+
+    #region SetCandidateAdmin
+
+    public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
+    {
+        Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
+            "Pubkey is neither a current candidate nor an initial miner.");
+        Assert(!IsPubkeyBanned(input.Pubkey), "Pubkey is already banned.");
+
+        // Permission check
+        var pubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
+        if (Context.Sender != GetParliamentDefaultAddress())
+        {
+            if (State.CandidateAdmins[pubkey] == null)
             {
-                From = lockVirtualAddress,
-                To = State.CandidateSponsorMap[input.Value] ?? Address.FromPublicKey(pubkeyBytes),
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = ElectionContractConstants.LockTokenForElection,
-                Memo = "Quit election."
-            });
-
-            // Update candidate information.
-            candidateInformation.IsCurrentCandidate = false;
-            candidateInformation.AnnouncementTransactionId = Hash.Empty;
-            State.CandidateInformationMap[pubkey] = candidateInformation;
-
-            // Remove candidate public key from the Voting Item options.
-            State.VoteContract.RemoveOption.Send(new RemoveOptionInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = pubkey
-            });
-            var dataCenterList = State.DataCentersRankingList.Value;
-            if (dataCenterList.DataCenters.ContainsKey(pubkey))
-            {
-                dataCenterList.DataCenters[pubkey] = 0;
-                UpdateDataCenterAfterMemberVoteAmountChanged(dataCenterList, pubkey, true);
-                State.DataCentersRankingList.Value = dataCenterList;
-            }
-
-            var managedCandidatePubkey = State.ManagedCandidatePubkeysMap[Context.Sender];
-            managedCandidatePubkey.Value.Remove(ByteString.CopyFrom(pubkeyBytes));
-            if (managedCandidatePubkey.Value.Any())
-            {
-                State.ManagedCandidatePubkeysMap[Context.Sender] = managedCandidatePubkey;
+                // If admin is not set before (due to old contract code)
+                Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
+                    "No permission.");
             }
             else
             {
-                State.ManagedCandidatePubkeysMap.Remove(Context.Sender);
+                var oldCandidateAdmin = State.CandidateAdmins[pubkey];
+                Assert(Context.Sender == oldCandidateAdmin, "No permission.");
             }
-
-            State.CandidateSponsorMap.Remove(pubkey);
-
-            return new Empty();
         }
 
-        private void QuitElection(byte[] recoveredPublicKey)
+        State.CandidateAdmins[pubkey] = input.Admin;
+
+        var pubkeyByteString = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey));
+
+        var newAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[input.Admin] ?? new PubkeyList();
+        if (!newAdminManagedPubkeys.Value.Contains(pubkeyByteString))
         {
-            var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
-
-            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Target is not a candidate.");
-
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
-
-            if (State.AEDPoSContract.Value != null)
-            {
-                Assert(
-                    !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
-                        .Contains(publicKeyByteString),
-                    "Current miners cannot quit election.");
-            }
-
-            State.Candidates.Value.Value.Remove(publicKeyByteString);
+            newAdminManagedPubkeys.Value.Add(pubkeyByteString);
         }
 
-        #endregion
+        State.ManagedCandidatePubkeysMap[input.Admin] = newAdminManagedPubkeys;
 
-        #region SetCandidateAdmin
-
-        public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
+        var oldAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender] ?? new PubkeyList();
+        if (oldAdminManagedPubkeys.Value.Contains(pubkeyByteString))
         {
-            Assert(IsCurrentCandidateOrInitialMiner(input.Pubkey),
-                "Pubkey is neither a current candidate nor an initial miner.");
-            Assert(!IsPubkeyBanned(input.Pubkey), "Pubkey is already banned.");
-
-            // Permission check
-            var pubkey = State.InitialPubkeyMap[input.Pubkey] ?? input.Pubkey;
-            if (Context.Sender != GetParliamentDefaultAddress())
-            {
-                if (State.CandidateAdmins[pubkey] == null)
-                {
-                    // If admin is not set before (due to old contract code)
-                    Assert(Context.Sender == Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Pubkey)),
-                        "No permission.");
-                }
-                else
-                {
-                    var oldCandidateAdmin = State.CandidateAdmins[pubkey];
-                    Assert(Context.Sender == oldCandidateAdmin, "No permission.");
-                }
-            }
-
-            State.CandidateAdmins[pubkey] = input.Admin;
-
-            var pubkeyByteString = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey));
-
-            var newAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[input.Admin] ?? new PubkeyList();
-            if (!newAdminManagedPubkeys.Value.Contains(pubkeyByteString))
-            {
-                newAdminManagedPubkeys.Value.Add(pubkeyByteString);
-            }
-            State.ManagedCandidatePubkeysMap[input.Admin] = newAdminManagedPubkeys;
-
-            var oldAdminManagedPubkeys = State.ManagedCandidatePubkeysMap[Context.Sender] ?? new PubkeyList();
-            if (oldAdminManagedPubkeys.Value.Contains(pubkeyByteString))
-            {
-                oldAdminManagedPubkeys.Value.Remove(pubkeyByteString);
-            }
-            State.ManagedCandidatePubkeysMap[Context.Sender] = oldAdminManagedPubkeys;
-
-            return new Empty();
+            oldAdminManagedPubkeys.Value.Remove(pubkeyByteString);
         }
 
-        #endregion
+        State.ManagedCandidatePubkeysMap[Context.Sender] = oldAdminManagedPubkeys;
 
-        private bool IsPubkeyBanned(string pubkey)
+        return new Empty();
+    }
+
+    #endregion
+
+    private bool IsPubkeyBanned(string pubkey)
+    {
+        return State.BannedPubkeyMap[pubkey];
+    }
+
+    private Address GetParliamentDefaultAddress()
+    {
+        if (State.ParliamentContract.Value == null)
         {
-            return State.BannedPubkeyMap[pubkey];
+            State.ParliamentContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
         }
 
-        private Address GetParliamentDefaultAddress()
-        {
-            if (State.ParliamentContract.Value == null)
-            {
-                State.ParliamentContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentContractSystemName);
-            }
+        return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
+    }
 
-            return State.ParliamentContract.GetDefaultOrganizationAddress.Call(new Empty());
-        }
-
-        private bool IsCurrentCandidateOrInitialMiner(string pubkey)
-        {
-            var isCurrentCandidate = State.CandidateInformationMap[pubkey] != null &&
-                                     State.CandidateInformationMap[pubkey].IsCurrentCandidate;
-            var isInitialMiner = State.InitialMiners.Value.Value.Contains(
-                ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
-            return isCurrentCandidate || isInitialMiner;
-        }
+    private bool IsCurrentCandidateOrInitialMiner(string pubkey)
+    {
+        var isCurrentCandidate = State.CandidateInformationMap[pubkey] != null &&
+                                 State.CandidateInformationMap[pubkey].IsCurrentCandidate;
+        var isInitialMiner = State.InitialMiners.Value.Value.Contains(
+            ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(pubkey)));
+        return isCurrentCandidate || isInitialMiner;
     }
 }

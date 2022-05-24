@@ -1,58 +1,57 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Contracts.Election
+namespace AElf.Contracts.Election;
+
+public class ProfitShare : Dictionary<int, Dictionary<string, long>>
 {
-    public class ProfitShare : Dictionary<int, Dictionary<string, long>>
+    public Dictionary<string, long> GetSharesOfPeriod(int period)
     {
-        public Dictionary<string, long> GetSharesOfPeriod(int period)
-        {
-            TryGetValue(period, out var shareMap);
-            return shareMap;
-        }
+        TryGetValue(period, out var shareMap);
+        return shareMap;
+    }
 
-        public long GetTotalSharesOfPeriod(int period)
-        {
-            TryGetValue(period, out var shareMap);
-            return shareMap == null ? 0 : shareMap.Values.Sum();
-        }
+    public long GetTotalSharesOfPeriod(int period)
+    {
+        TryGetValue(period, out var shareMap);
+        return shareMap == null ? 0 : shareMap.Values.Sum();
+    }
 
-        public void AddShares(int startPeriod, int endPeriod, string voterPubkey, long shares)
+    public void AddShares(int startPeriod, int endPeriod, string voterPubkey, long shares)
+    {
+        for (var period = startPeriod; period <= endPeriod; period++)
         {
-            for (var period = startPeriod; period <= endPeriod; period++)
+            if (ContainsKey(period))
             {
-                if (ContainsKey(period))
+                if (this[period].ContainsKey(voterPubkey))
                 {
-                    if (this[period].ContainsKey(voterPubkey))
-                    {
-                        this[period][voterPubkey] += shares;
-                    }
-                    else
-                    {
-                        this[period].Add(voterPubkey, shares);
-                    }
+                    this[period][voterPubkey] += shares;
                 }
                 else
                 {
-                    TryAdd(period, new Dictionary<string, long>
-                    {
-                        { voterPubkey, shares }
-                    });
+                    this[period].Add(voterPubkey, shares);
                 }
             }
-        }
-
-        public long CalculateProfits(int period, long totalProfits, string voterPubkey)
-        {
-            var totalShares = GetTotalSharesOfPeriod(period);
-            var shareDict = GetSharesOfPeriod(period);
-            if (!shareDict.ContainsKey(voterPubkey))
+            else
             {
-                return 0;
+                TryAdd(period, new Dictionary<string, long>
+                {
+                    { voterPubkey, shares }
+                });
             }
-
-            var voterShares = shareDict[voterPubkey];
-            return voterShares * totalProfits / totalShares;
         }
+    }
+
+    public long CalculateProfits(int period, long totalProfits, string voterPubkey)
+    {
+        var totalShares = GetTotalSharesOfPeriod(period);
+        var shareDict = GetSharesOfPeriod(period);
+        if (!shareDict.ContainsKey(voterPubkey))
+        {
+            return 0;
+        }
+
+        var voterShares = shareDict[voterPubkey];
+        return voterShares * totalProfits / totalShares;
     }
 }

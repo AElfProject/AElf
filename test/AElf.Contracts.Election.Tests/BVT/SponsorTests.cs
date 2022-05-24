@@ -39,7 +39,7 @@ namespace AElf.Contracts.Election
             votingItem.Options.ShouldContain(candidatesKeyPair.PublicKey.ToHex());
             var dataCenterList = await ElectionContractStub.GetDataCenterRankingList.CallAsync(new Empty());
             dataCenterList.DataCenters.ContainsKey(candidatesKeyPair.PublicKey.ToHex()).ShouldBeTrue();
-            var subsidy = ProfitItemsIds[ProfitType.BackupSubsidy];
+            var subsidy = ProfitSchemeIdList[ProfitType.BackupSubsidy];
             var profitDetail = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
                 SchemeId = subsidy,

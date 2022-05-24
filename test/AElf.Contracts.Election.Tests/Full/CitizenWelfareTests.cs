@@ -12,7 +12,7 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests
     {
-        private readonly ProfitShare _profitShare = new ProfitShare();
+        private readonly ProfitShare _profitShare = new();
 
         [Fact]
         public async Task CitizenWelfareTest()
