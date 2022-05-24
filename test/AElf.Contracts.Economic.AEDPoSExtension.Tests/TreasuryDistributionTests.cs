@@ -42,10 +42,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             candidates.Value.Count.ShouldBe(0);
             
             // First 7 core data centers announce election.
-            var announceTransactions = new List<Transaction>();
-            ConvertKeyPairsToElectionStubs(
-                MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
+            var list = ConvertKeyPairsToElectionStubs(
+                MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7));
+            var announceTransactions = list.Select((stub, i) =>
+                stub.AnnounceElection.GetTransaction(
+                    Address.FromPublicKey(MissionedECKeyPairs.CoreDataCenterKeyPairs.ToList()[i].PublicKey))).ToList();
+
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
@@ -147,10 +149,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
 
             // Remain 10 core data centers announce election.
-            var announceTransactions = new List<Transaction>();
-            ConvertKeyPairsToElectionStubs(
-                MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).Take(10)).ForEach(stub =>
-                announceTransactions.Add(stub.AnnounceElection.GetTransaction(SampleAccount.Accounts.First().Address)));
+            var list = ConvertKeyPairsToElectionStubs(
+                MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).Take(10));
+            var announceTransactions = list.Select((stub, i) =>
+                    stub.AnnounceElection.GetTransaction(
+                        Address.FromPublicKey(MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).ToList()[i]
+                            .PublicKey)))
+                .ToList();
+
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
@@ -292,11 +298,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
 
             // 10 validation data centers announce election.
-            var announceTransactions = new List<Transaction>();
-            ConvertKeyPairsToElectionStubs(
-                MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(10)).ForEach(stub =>
-                announceTransactions.Add(
-                    stub.AnnounceElection.GetTransaction(Address.FromPublicKey(Accounts[0].KeyPair.PublicKey))));
+            var list = ConvertKeyPairsToElectionStubs(
+                MissionedECKeyPairs.ValidationDataCenterKeyPairs.Take(10));
+            var announceTransactions = list.Select((stub, i) =>
+                    stub.AnnounceElection.GetTransaction(
+                        Address.FromPublicKey(MissionedECKeyPairs.ValidationDataCenterKeyPairs.ToList()[i].PublicKey)))
+                .ToList();
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
 //            await BlockMiningService.MineBlockAsync(new List<Transaction>

@@ -24,21 +24,16 @@ namespace AElf.Runtime.CSharp
             {
                 var assembly = Assembly.Load(assemblyName);
 
-                if (assembly == null)
-                    return null;
-
                 path = assembly.Location;
             }
 
             if (!_cachedSdkStreams.TryGetValue(path, out var buffer))
             {
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
-                {
-                    var length = (int)fs.Length;
-                    buffer = new byte[length];
-                    fs.Read(buffer, 0, length);
-                    _cachedSdkStreams.TryAdd(path, buffer);
-                }
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+                var length = (int)fs.Length;
+                buffer = new byte[length];
+                fs.Read(buffer, 0, length);
+                _cachedSdkStreams.TryAdd(path, buffer);
             }
 
             return new MemoryStream(buffer);

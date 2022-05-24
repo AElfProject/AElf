@@ -48,6 +48,9 @@ service TreasuryContract {
     rpc RecordMinerReplacement (RecordMinerReplacementInput) returns (google.protobuf.Empty) {
     }
     
+    rpc SetProfitsReceiver (SetProfitsReceiverInput) returns (google.protobuf.Empty) {
+    }
+
     // Used to estimate the revenue weight of 10000 tokens voted by users.
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
@@ -70,6 +73,10 @@ service TreasuryContract {
     
     // Query the governance authority information.
     rpc GetTreasuryController (google.protobuf.Empty) returns (AuthorityInfo) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetProfitsReceiver (google.protobuf.StringValue) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -142,6 +149,11 @@ message RecordMinerReplacementInput {
     string new_pubkey = 2;
     int64 current_term_number = 3;
     bool is_old_pubkey_evil = 4;
+}
+
+message SetProfitsReceiverInput {
+    string pubkey = 1;
+    aelf.Address profits_receiver_address = 2;
 }
 
 message StringList {

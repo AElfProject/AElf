@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Numerics;
 using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -139,6 +140,7 @@ public class WhitelistProvider : IWhitelistProvider
                 .Type(nameof(Encoding), Permission.Denied, member => member
                     .Member(nameof(Encoding.UTF8), Permission.Allowed)
                     .Member(nameof(Encoding.UTF8.GetByteCount), Permission.Allowed)))
+            .Namespace("System.Numerics", Permission.Allowed)
             ;
     }
 

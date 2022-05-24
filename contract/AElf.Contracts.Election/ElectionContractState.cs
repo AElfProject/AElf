@@ -68,6 +68,11 @@ namespace AElf.Contracts.Election
         public MappedState<string, Address> CandidateAdmins { get; set; }
 
         /// <summary>
+        /// Admin address -> Pubkey
+        /// </summary>
+        public MappedState<Address, PubkeyList> ManagedCandidatePubkeysMap { get; set; }
+
+        /// <summary>
         /// Pubkey -> Newest pubkey
         /// </summary>
         public MappedState<string, string> CandidateReplacementMap { get; set; }
@@ -83,5 +88,14 @@ namespace AElf.Contracts.Election
         public MappedState<string, string> InitialToNewestPubkeyMap { get; set; }
 
         public SingletonState<Address> EmergencyResponseOrganizationAddress { get; set; }
+
+        /// <summary>
+        /// Pubkey -> Sponsor address (who will pay announce election fee for this pubkey)
+        /// </summary>
+        public MappedState<string, Address> CandidateSponsorMap { get; set; }
+
+        public BoolState ElectionEnabled { get; set; }
+
+        public MappedState<Hash, bool> WeightsAlreadyFixedMap { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Economic_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, EconomicContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(EconomicContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(EconomicContractStub.IssueNativeToken),
                 Fees = {TokenAmount}
@@ -49,7 +49,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = "ELF"
             });
             
-            await ExecuteProposalForParliamentTransaction(Tester, VoteContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(VoteContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(VoteContractStub.Register),
                 Fees = {TokenAmount}
@@ -64,7 +64,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Treasury_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, TreasuryContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(TreasuryContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(TreasuryContractStub.Donate),
                 Fees = {TokenAmount}
@@ -79,7 +79,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Election_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ElectionContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(ElectionContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(ElectionContractStub.Vote),
                 Fees = {TokenAmount}
@@ -94,7 +94,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Parliament_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ParliamentContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(ParliamentContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(ParliamentContractStub.Approve),
                 Fees = {TokenAmount}
@@ -109,7 +109,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Genesis_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ContractZeroAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(ContractZeroAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(BasicContractZeroStub.DeploySmartContract),
                 Fees = {TokenAmount}
@@ -124,7 +124,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task TokenConverter_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, TokenConverterContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(TokenConverterContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(TokenConverterContractStub.Buy),
                 Fees = {TokenAmount}
@@ -139,7 +139,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Token_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, TokenContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(TokenContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(TokenContractImplStub.Transfer),
                 Fees = { TokenAmount}
@@ -154,7 +154,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task TokenHolder_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, TokenHolderContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(TokenHolderContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(TokenHolderContractImplContainer.TokenHolderContractImplStub.Withdraw),
                 Fees = { TokenAmount}
@@ -169,7 +169,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Consensus_FeeProvider_Test()
         {
-            await ExecuteProposalForParliamentTransaction(Tester, ConsensusContractAddress, MethodName, new MethodFees
+            await ExecuteProposalForParliamentTransaction(ConsensusContractAddress, MethodName, new MethodFees
             {
                 MethodName = nameof(AEDPoSContractStub.SetMaximumMinersCount),
                 Fees = { TokenAmount}

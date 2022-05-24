@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.BigIntValue";
+
+service BigIntValueContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BigIntValue.BigIntValueContractState";
+    
+    //Actions
+    rpc Add (BigIntValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Sub (BigIntValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Mul (BigIntValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Div (BigIntValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc Pow (BigIntValuePowInput) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc Get (google.protobuf.Empty) returns (aelf.BigIntValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message BigIntValueInput {
+    aelf.BigIntValue foo = 1;
+    aelf.BigIntValue bar = 2;
+}
+
+message BigIntValuePowInput {
+    aelf.BigIntValue value = 1;
+    int32 exponent = 2;
+}

@@ -71,7 +71,7 @@ namespace AElf.ContractTestBase.ContractTestKit
             async Task<IExecutionResult<TOutput>> SendWithExceptionAsync(TInput input)
             {
                 var transaction = GetTransaction(input);
-                var transactionResult =await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
+                var transactionResult = await _testTransactionExecutor.ExecuteWithExceptionAsync(transaction);
                 if (transactionResult == null)
                 {
                     return new ExecutionResult<TOutput> {Transaction = transaction};

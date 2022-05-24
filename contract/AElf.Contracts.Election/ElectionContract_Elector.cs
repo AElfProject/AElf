@@ -31,7 +31,7 @@ namespace AElf.Contracts.Election
             // Check candidate information map instead of candidates. 
             var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
             AssertValidCandidateInformation(targetInformation);
-            
+
             var recoveredPublicKey = Context.RecoverPublicKey();
 
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
@@ -79,6 +79,64 @@ namespace AElf.Contracts.Election
                     TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
                 }
             }
+
+            return voteId;
+        }
+
+        public override Hash VoteWithExpiredVotes(VoteMinerInput input)
+        {
+            // Check candidate information map instead of candidates. 
+            var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
+            AssertValidCandidateInformation(targetInformation);
+
+            var recoveredPublicKey = Context.RecoverPublicKey();
+
+            var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
+            AssertValidLockSeconds(lockSeconds);
+
+            var voteId = GenerateVoteId(input);
+            Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
+            State.LockTimeMap[voteId] = lockSeconds;
+
+            UpdateElectorInformation(recoveredPublicKey, input.Amount, voteId);
+
+            var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount, voteId);
+
+            // TODO: De-vote previous one then call VoteContract.Vote 
+            CallVoteContractVote(input.Amount, input.CandidatePubkey, voteId);
+            // TODO: Remove old beneficiary then add new.
+            AddBeneficiaryToVoter(GetVotesWeight(input.Amount, lockSeconds), lockSeconds);
+
+            var rankingList = State.DataCentersRankingList.Value;
+            if (rankingList.DataCenters.ContainsKey(input.CandidatePubkey))
+            {
+                rankingList.DataCenters[input.CandidatePubkey] =
+                    rankingList.DataCenters[input.CandidatePubkey].Add(input.Amount);
+                State.DataCentersRankingList.Value = rankingList;
+            }
+            else
+            {
+                if (rankingList.DataCenters.Count < GetValidationDataCenterCount())
+                {
+                    State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
+                        candidateVotesAmount);
+                    State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                    {
+                        SchemeId = State.SubsidyHash.Value,
+                        BeneficiaryShare = new BeneficiaryShare
+                        {
+                            Beneficiary =
+                                Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
+                            Shares = 1
+                        }
+                    });
+                }
+                else
+                {
+                    TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
+                }
+            }
+
             return voteId;
         }
 
@@ -307,7 +365,7 @@ namespace AElf.Contracts.Election
             }
             else
                 CandidateReplaceMemberInDataCenter(dataCenterList, input.CandidatePubkey, voteAmountOfNewCandidate);
-            
+
             if (dataCenterList.DataCenters.ContainsKey(oldVoteOptionPublicKey))
             {
                 dataCenterList.DataCenters[oldVoteOptionPublicKey] =
@@ -346,6 +404,7 @@ namespace AElf.Contracts.Election
             {
                 throw new AssertionException($"Voter {voterPublicKey} never votes before.");
             }
+
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
             voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
@@ -356,8 +415,10 @@ namespace AElf.Contracts.Election
             var candidateVotes = State.CandidateVotes[newestPubkey];
             if (candidateVotes == null)
             {
-                throw new AssertionException($"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+                throw new AssertionException(
+                    $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
             }
+
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
             candidateVotes.ObtainedActiveVotedVotesAmount =
@@ -367,7 +428,11 @@ namespace AElf.Contracts.Election
             UnlockTokensOfVoter(input, votingRecord.Amount);
             RetrieveTokensFromVoter(votingRecord.Amount);
             WithdrawTokensOfVoter(input);
-            RemoveBeneficiaryOfVoter();
+            if (!State.WeightsAlreadyFixedMap[input])
+            {
+                RemoveBeneficiaryOfVoter();
+                State.WeightsAlreadyFixedMap.Remove(input);
+            }
 
             var rankingList = State.DataCentersRankingList.Value;
             if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
@@ -379,11 +444,88 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private void UpdateDataCenterAfterMemberVoteAmountChanged(DataCenterRankingList rankingList, string targetMember,
+        public override Empty AssistWithdraw(AssistWithdrawInput input)
+        {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+
+            var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+            var claimedLockDays = State.LockTimeMap[input.VoteId];
+            Assert(actualLockedTime >= claimedLockDays,
+                $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock {input.Pubkey}'s token.");
+
+            // Update Elector's Votes information.
+            var voterPublicKey = input.Pubkey;
+            var voterVotes = State.ElectorVotes[voterPublicKey];
+            if (voterVotes == null)
+            {
+                throw new AssertionException($"Voter {voterPublicKey} never votes before.");
+            }
+
+            voterVotes.ActiveVotingRecordIds.Remove(input.VoteId);
+            voterVotes.WithdrawnVotingRecordIds.Add(input.VoteId);
+            voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            State.ElectorVotes[voterPublicKey] = voterVotes;
+
+            // Update Candidate's Votes information.
+            var newestPubkey = GetNewestPubkey(votingRecord.Option);
+            var candidateVotes = State.CandidateVotes[newestPubkey];
+            if (candidateVotes == null)
+            {
+                throw new AssertionException(
+                    $"Newest pubkey {newestPubkey} is invalid. Old pubkey is {votingRecord.Option}");
+            }
+
+            candidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
+            candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input.VoteId);
+            candidateVotes.ObtainedActiveVotedVotesAmount =
+                candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            State.CandidateVotes[newestPubkey] = candidateVotes;
+
+            var voterAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(voterPublicKey));
+            UnlockTokensOfVoter(input.VoteId, votingRecord.Amount, voterAddress);
+            RetrieveTokensFromVoter(votingRecord.Amount, voterAddress);
+            WithdrawTokensOfVoter(input.VoteId);
+            if (!State.WeightsAlreadyFixedMap[input.VoteId])
+            {
+                RemoveBeneficiaryOfVoter(voterAddress);
+                State.WeightsAlreadyFixedMap.Remove(input.VoteId);
+            }
+
+            var rankingList = State.DataCentersRankingList.Value;
+            if (!rankingList.DataCenters.ContainsKey(newestPubkey)) return new Empty();
+            rankingList.DataCenters[newestPubkey] =
+                rankingList.DataCenters[newestPubkey].Sub(votingRecord.Amount);
+            UpdateDataCenterAfterMemberVoteAmountChanged(rankingList, newestPubkey);
+            State.DataCentersRankingList.Value = rankingList;
+
+            return new Empty();
+        }
+
+        public override Empty FixTotalWeights(FixTotalWeightsInput input)
+        {
+            foreach (var voteId in input.VoteIds)
+            {
+                var votingRecord = State.VoteContract.GetVotingRecord.Call(voteId);
+                var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+                var claimedLockDays = State.LockTimeMap[voteId];
+                if (actualLockedTime < claimedLockDays)
+                {
+                    continue;
+                }
+
+                State.WeightsAlreadyFixedMap[voteId] = true;
+                RemoveBeneficiaryOfVoter(votingRecord.Voter);
+            }
+
+            return new Empty();
+        }
+
+        private void UpdateDataCenterAfterMemberVoteAmountChanged(DataCenterRankingList rankingList,
+            string targetMember,
             bool isForceReplace = false)
         {
             var amountAfterWithdraw = rankingList.DataCenters[targetMember];
-            if(isForceReplace)
+            if (isForceReplace)
                 Assert(amountAfterWithdraw == 0, "should update vote amount in data center firstly");
             else if (rankingList.DataCenters.Any(x => x.Value < amountAfterWithdraw))
                 return;
@@ -407,7 +549,8 @@ namespace AElf.Contracts.Election
                 if (maxVoteCandidateOutDataCenter == null)
                 {
                     maxVoteCandidateOutDataCenter = State.Candidates.Value.Value.Select(x => x.ToHex())
-                        .FirstOrDefault(c => !rankingList.DataCenters.ContainsKey(c) && State.CandidateVotes[c] == null);
+                        .FirstOrDefault(c =>
+                            !rankingList.DataCenters.ContainsKey(c) && State.CandidateVotes[c] == null);
                     if (maxVoteCandidateOutDataCenter != null)
                     {
                         maxVoterPublicKeyStringOutOfDataCenter = maxVoteCandidateOutDataCenter;
@@ -421,6 +564,7 @@ namespace AElf.Contracts.Election
                     return;
                 rankingList.DataCenters.Remove(targetMember);
             }
+
             if (maxVoterPublicKeyStringOutOfDataCenter != null)
             {
                 rankingList.DataCenters[maxVoterPublicKeyStringOutOfDataCenter] = maxVoteAmountOutOfDataCenter;
@@ -550,11 +694,11 @@ namespace AElf.Contracts.Election
             };
         }
 
-        private void UnlockTokensOfVoter(Hash input, long amount)
+        private void UnlockTokensOfVoter(Hash input, long amount, Address voterAddress = null)
         {
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                Address = Context.Sender,
+                Address = voterAddress ?? Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = amount,
                 LockId = input,
@@ -562,14 +706,14 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void RetrieveTokensFromVoter(long amount)
+        private void RetrieveTokensFromVoter(long amount, Address voterAddress = null)
         {
             foreach (var symbol in new List<string>
                 {ElectionContractConstants.ShareSymbol, ElectionContractConstants.VoteSymbol})
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
-                    From = Context.Sender,
+                    From = voterAddress ?? Context.Sender,
                     To = Context.Self,
                     Amount = amount,
                     Symbol = symbol,
@@ -586,12 +730,12 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void RemoveBeneficiaryOfVoter()
+        private void RemoveBeneficiaryOfVoter(Address voterAddress = null)
         {
             State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
                 SchemeId = State.WelfareHash.Value,
-                Beneficiary = Context.Sender
+                Beneficiary = voterAddress ?? Context.Sender
             });
         }
 

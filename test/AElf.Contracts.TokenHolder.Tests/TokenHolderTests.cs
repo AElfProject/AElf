@@ -502,34 +502,7 @@ namespace AElf.Contracts.TokenHolder
             profitMap.Value.ContainsKey(nativeTokenSymbol).ShouldBeTrue();
             profitMap.Value[nativeTokenSymbol].ShouldBe(amount);
         }
-        
-        private async Task<Hash> CreateProposalAsync(Address contractAddress, Address organizationAddress,
-            string methodName, IMessage input)
-        {
-            var proposal = new CreateProposalInput
-            {
-                OrganizationAddress = organizationAddress,
-                ContractMethodName = methodName,
-                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
-                Params = input.ToByteString(),
-                ToAddress = contractAddress
-            };
 
-            var createResult = await ParliamentContractStub.CreateProposal.SendAsync(proposal);
-            var proposalId = createResult.Output;
-
-            return proposalId;
-        }
-
-        private async Task ApproveWithMinersAsync(Hash proposalId)
-        {
-            foreach (var bp in InitialCoreDataCenterKeyPairs)
-            {
-                var tester = GetParliamentContractTester(bp);
-                var approveResult = await tester.Approve.SendAsync(proposalId);
-                approveResult.TransactionResult.Error.ShouldBeNullOrEmpty();
-            }
-        }
 
         private async Task StarterCreateIssueAndApproveTokenAsync(string symbol, long totalSupply, long issueAmount)
         {

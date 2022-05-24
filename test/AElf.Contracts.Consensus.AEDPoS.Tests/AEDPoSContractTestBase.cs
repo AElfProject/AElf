@@ -135,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var candidatesKeyPair in ValidationDataCenterKeyPairs.Take(take))
             {
                 var electionTester = GetElectionContractTester(candidatesKeyPair);
-                var announceResult = await electionTester.AnnounceElection.SendAsync(SampleAccount.Accounts.First().Address);
+                var announceResult = await electionTester.AnnounceElection.SendAsync(Address.FromPublicKey(candidatesKeyPair.PublicKey));
                 announceResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 //query candidates
