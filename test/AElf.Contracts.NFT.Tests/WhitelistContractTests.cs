@@ -771,7 +771,7 @@ namespace AElf.Contracts.NFT
         }
 
         [Fact]
-        public async Task AddAddressInfoListToWhitelistTest_Address()
+        public async Task<Hash> AddAddressInfoListToWhitelistTest_Address()
         {
             var whitelistId = await CreateWhitelist_Address();
             await WhitelistContractStub.AddAddressInfoListToWhitelist.SendAsync(
@@ -813,6 +813,7 @@ namespace AElf.Contracts.NFT
                     });
                 exist.Value.ShouldBe(true);
             }
+            return whitelistId;
         }
         
         [Fact]
@@ -907,6 +908,46 @@ namespace AElf.Contracts.NFT
                     TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO1")
                 });
                 exception.Value.ShouldContain("No address list under the current tag.");
+            }
+        }
+
+        [Fact]
+        public async Task RemoveAddressInfoListFromWhitelistTest_Address()
+        {
+            var whitelistId = await AddAddressInfoListToWhitelistTest_Address();
+            await WhitelistContractStub.RemoveAddressInfoListFromWhitelist.SendAsync(
+                new RemoveAddressInfoListFromWhitelistInput()
+                {
+                    WhitelistId = whitelistId,
+                    ExtraInfoIdList = new ExtraInfoIdList()
+                    {
+                        Value =
+                        {
+                            new ExtraInfoId()
+                            {
+                                Address = User1Address
+                            },
+                            new ExtraInfoId()
+                            {
+                                Address = User2Address
+                            }
+                        }
+                    }
+                });
+            {
+                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
+                whitelist.ExtraInfoIdList.Value[0].Address.ShouldBe(User3Address);
+                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBeNull();
+            }
+            {
+                var exist = await WhitelistContractStub.GetAddressFromWhitelist.CallAsync(
+                    new GetAddressFromWhitelistInput()
+                    {
+                        WhitelistId = whitelistId,
+                        Address = User1Address
+                    });
+                exist.Value.ShouldBe(false);
             }
         }
         

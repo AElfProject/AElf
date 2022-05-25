@@ -13,7 +13,6 @@ namespace AElf.Contracts.Whitelist
         private Hash CalculateWhitelistHash(Address address,Hash projectId)
         {
             return Context.GenerateId(Context.Self, ByteArrayHelper.ConcatArrays(address.ToByteArray(),projectId.ToByteArray()));
-            //return HashHelper.ComputeFrom($"{Context.Self}{ByteArrayHelper.ConcatArrays(address.ToByteArray(),projectId.ToByteArray())}");
         }
 
         private Hash CalculateSubscribeWhitelistHash(Address address,Hash projectId,Hash whitelistId)
@@ -33,11 +32,10 @@ namespace AElf.Contracts.Whitelist
             return whitelistInfo;
         }
         
-        private WhitelistInfo AssertWhitelistIsAvailable(Hash whitelistId)
+        private void AssertWhitelistIsAvailable(Hash whitelistId)
         {
             var whitelistInfo = State.WhitelistInfoMap[whitelistId];
             Assert(whitelistInfo.IsAvailable, $"Whitelist is not available.{whitelistId.ToHex()}");
-            return whitelistInfo;
         }
 
         private WhitelistInfo AssertWhitelistManager(Hash whitelistId)
@@ -130,15 +128,16 @@ namespace AElf.Contracts.Whitelist
             }).ToList();
             return new ExtraInfoList() { Value = {extraInfo} };
         }
-        
+
         /// <summary>
         /// Create TagInfo when creating whitelist with tagInfo.
         /// </summary>
         /// <param name="info"></param>
         /// <param name="projectId"></param>
+        /// <param name="whitelistId"></param>
         /// <returns></returns>
         /// <exception cref="AssertionException"></exception>
-        private Hash CreateTagInfo(TagInfo info,Hash projectId)
+        private Hash CreateTagInfo(TagInfo info,Hash projectId,Hash whitelistId)
         {
             if (info == null)
             {
@@ -149,6 +148,8 @@ namespace AElf.Contracts.Whitelist
             State.TagInfoMap[id] = info;
             Context.Fire(new TagInfoAdded()
             {
+                WhitelistId = whitelistId,
+                ProjectId = projectId,
                 TagInfoId = id,
                 TagInfo = State.TagInfoMap[id]
             });

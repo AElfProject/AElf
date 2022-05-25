@@ -48,8 +48,7 @@ namespace AElf.Contracts.Whitelist
                 {
                     var extraInfoIdList = extraInfoList.Select(e => new ExtraInfoId()
                     {
-                        Address = e.Address,
-                        Id = null
+                        Address = e.Address
                     }).ToList();
                     whitelistInfo = new WhitelistInfo
                     {
@@ -68,7 +67,7 @@ namespace AElf.Contracts.Whitelist
                 {
                     var extraInfoIdList = extraInfoList.Select(e =>
                     {
-                        var id = CreateTagInfo(e.Info, input.ProjectId);
+                        var id = CreateTagInfo(e.Info, input.ProjectId,whitelistHash);
                         //Set tagInfo list according to the owner and projectId.
                         var idList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][whitelistHash] ??
                                      new HashList();
@@ -161,6 +160,7 @@ namespace AElf.Contracts.Whitelist
             
             //Add tagInfo with address list.
             if (input.AddressList == null) return tagInfoId;
+            
             var extraInfoIdList = new ExtraInfoIdList();
             foreach (var address in input.AddressList.Value)
             {
@@ -189,7 +189,6 @@ namespace AElf.Contracts.Whitelist
             MakeSureProjectCorrect(input.WhitelistId, input.ProjectId);
             AssertWhitelistInfo(input.WhitelistId);
             AssertWhitelistIsAvailable(input.WhitelistId);
-            AssertWhitelistCreator(input.WhitelistId);
             AssertWhitelistManager(input.WhitelistId);
             
             Assert(State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId].Value.Contains(input.TagId),
@@ -326,7 +325,7 @@ namespace AElf.Contracts.Whitelist
                 { 
                     whitelistInfo.ExtraInfoIdList.Value.Remove(infoId); 
                     toRemoveList.Value.Add(infoId);
-                    if (infoId.Id.Value.IsEmpty) continue;
+                    if (infoId.Id == null) continue;
                     State.TagInfoIdAddressListMap[whitelistInfo.WhitelistId][infoId.Id].Value
                         .Remove(infoId.Address);
                     State.AddressTagInfoIdMap[whitelistInfo.WhitelistId].Remove(infoId.Address);
