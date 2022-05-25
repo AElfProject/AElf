@@ -14,7 +14,7 @@ service WhitelistContract {
     option (aelf.csharp_state) = "AElf.Contracts.Whitelist.WhitelistContractState";
     option (aelf.base) = "acs1.proto";
 
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 
     //For Managers.
@@ -23,7 +23,7 @@ service WhitelistContract {
     }
 
     //Add tag info or extraInfo.
-    rpc AddExtraInfo (AddExtraInfoInput) returns (google.protobuf.Empty){
+    rpc AddExtraInfo (AddExtraInfoInput) returns (aelf.Hash){
     }
 
     //Add an address to an existing whitelist.
@@ -74,8 +74,8 @@ service WhitelistContract {
     rpc RemoveManagers (RemoveManagersInput) returns (google.protobuf.Empty){
     }
     
-    //Reset whitelist according to the whitelist_id.
-    rpc ResetWhitelist (aelf.Hash) returns (google.protobuf.Empty){
+    //Reset whitelist according to the whitelist_id and project_id.
+    rpc ResetWhitelist (ResetWhitelistInput) returns (google.protobuf.Empty){
     }
 
     
@@ -131,8 +131,18 @@ service WhitelistContract {
         option (aelf.is_view) = true;
     }
     
-    //Get extraInfo according to the address and whitelist_id.
+    //Get TagInfo according to the address and whitelist_id.
     rpc GetExtraInfoByAddress(GetExtraInfoByAddressInput) returns (TagInfo){
+        option (aelf.is_view) = true;
+    }
+    
+    //Whether the address exists in the whitelist according to the whitelist_id and address.
+    rpc GetAddressFromWhitelist(GetAddressFromWhitelistInput) returns (google.protobuf.BoolValue){
+        option (aelf.is_view) = true;
+    }
+
+    //Whether the extraInfo (address+TagInfoId) exists in the whitelist according to the whitelist_id and address.
+    rpc GetExtraInfoFromWhitelist(GetExtraInfoFromWhitelistInput) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
     
@@ -181,6 +191,13 @@ message WhitelistInfo {
     aelf.Hash clone_from = 7;
     aelf.Address creator = 8;
     AddressList manager = 9;
+    StrategyType strategy_type = 10;
+}
+
+//Pricing strategy
+message PriceTag{
+    string symbol = 1;
+    int64 amount = 2;
 }
 
 message ExtraInfoIdList {
@@ -242,9 +259,9 @@ message HashList{
 
 //Inputs.
 
-message InitializeInput{
-
-}
+//message InitializeInput{
+//
+//}
 
 message CreateWhitelistInput {
     ExtraInfoList extra_info_list = 1;
@@ -253,6 +270,12 @@ message CreateWhitelistInput {
     aelf.Address creator = 4;
     AddressList manager_list = 5;
     aelf.Hash project_id = 6;
+    StrategyType strategy_type = 7;
+}
+
+enum StrategyType{
+    Basic = 0;
+    Price = 1;
 }
 
 message AddAddressInfoToWhitelistInput {
@@ -353,6 +376,21 @@ message GetExtraInfoByTagInput{
     aelf.Hash tag_info_id = 2;
 }
 
+message GetAddressFromWhitelistInput{
+    aelf.Hash whitelist_id = 1;
+    aelf.Address address = 2;
+}
+
+message GetExtraInfoFromWhitelistInput{
+    aelf.Hash whitelist_id = 1;
+    ExtraInfoId extra_info_id = 2;
+}
+
+message ResetWhitelistInput{
+    aelf.Hash whitelist_id = 1;
+    aelf.Hash project_id = 2;
+}
+
 //Events.
 
 message WhitelistCreated {
@@ -369,6 +407,8 @@ message WhitelistCreated {
     aelf.Address creator = 7;
     AddressList manager = 8;
     aelf.Hash project_id = 9;
+    StrategyType strategy_type = 10;
+    
 }
 
 message WhitelistSubscribed {
@@ -429,12 +469,16 @@ message TagInfoAdded{
     option (aelf.is_event) = true;
     aelf.Hash tag_info_id = 1;
     TagInfo tag_info = 2;
+    aelf.Hash project_id = 3;
+    aelf.Hash whitelist_id = 4;
 }
 
 message TagInfoRemoved{
     option (aelf.is_event) = true;
     aelf.Hash tag_info_id = 1;
     TagInfo tag_info = 2;
+    aelf.Hash project_id = 3;
+    aelf.Hash whitelist_id = 4;
 }
 
 message WhitelistCloned {
@@ -468,4 +512,10 @@ message ManagerRemoved{
     option (aelf.is_event) = true;
     aelf.Hash whitelist_id = 1;
     AddressList manager_list = 2;
+}
+
+message WhitelistReset{
+    option (aelf.is_event) = true;
+    aelf.Hash whitelist_id = 1;
+    aelf.Hash project_id = 2;
 }

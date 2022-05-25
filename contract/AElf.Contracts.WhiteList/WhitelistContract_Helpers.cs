@@ -10,9 +10,10 @@ namespace AElf.Contracts.Whitelist
     public partial class WhitelistContract
     {
 
-        private Hash CalculateWhitelistHash(Address address,Hash input)
+        private Hash CalculateWhitelistHash(Address address,Hash projectId)
         {
-            return Context.GenerateId(Context.Self, ByteArrayHelper.ConcatArrays(address.ToByteArray(),input.ToByteArray()));
+            return Context.GenerateId(Context.Self, ByteArrayHelper.ConcatArrays(address.ToByteArray(),projectId.ToByteArray()));
+            //return HashHelper.ComputeFrom($"{Context.Self}{ByteArrayHelper.ConcatArrays(address.ToByteArray(),projectId.ToByteArray())}");
         }
 
         private Hash CalculateSubscribeWhitelistHash(Address address,Hash projectId,Hash whitelistId)
@@ -51,6 +52,12 @@ namespace AElf.Contracts.Whitelist
             var whitelistInfo = GetWhitelist(whitelistId);
             Assert(whitelistInfo.Creator == Context.Sender,$"{Context.Sender}No permission.");
             return whitelistInfo;
+        }
+
+        private void MakeSureProjectCorrect(Hash whitelistId, Hash projectId)
+        {
+            Assert(State.WhitelistProjectMap[projectId] != null,$"Incorrect project id.{projectId}");
+            Assert(State.WhitelistProjectMap[projectId].WhitelistId.Contains(whitelistId),$"Incorrect whitelist id.{whitelistId}");
         }
         
 
@@ -98,17 +105,28 @@ namespace AElf.Contracts.Whitelist
         {
             var extraInfo = extraInfoIdList.Value.Select(e =>
             {
-                var infoId = e.Id;
-                var info = State.TagInfoMap[infoId];
-                return new ExtraInfo()
+                if (e.Id != null)
                 {
-                    Address = e.Address,
-                    Info = new TagInfo()
+                    var infoId = e.Id;
+                    var info = State.TagInfoMap[infoId];
+                    return new ExtraInfo()
                     {
-                        TagName = info.TagName,
-                        Info = info.Info
-                    }
-                };
+                        Address = e.Address,
+                        Info = new TagInfo()
+                        {
+                            TagName = info.TagName,
+                            Info = info.Info
+                        }
+                    };
+                }
+                else
+                {
+                    return new ExtraInfo()
+                    {
+                        Address = e.Address,
+                        Info = null
+                    };
+                }
             }).ToList();
             return new ExtraInfoList() { Value = {extraInfo} };
         }

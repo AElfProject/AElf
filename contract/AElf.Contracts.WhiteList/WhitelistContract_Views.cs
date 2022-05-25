@@ -34,7 +34,7 @@ namespace AElf.Contracts.Whitelist
         {
             var whitelist = GetWhitelist(input.WhitelistId);
             var tagInfo = GetTagInfoByHash(input.TagInfoId);
-            Assert(State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.TagInfoId] != null,$"No address list under the current tag.{input.TagInfoId.ToHex()}");
+            Assert(State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.TagInfoId].Value.Count != 0,$"No address list under the current tag.{input.TagInfoId.ToHex()}");
             var addressList = State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.TagInfoId];
             var extraInfoList = new ExtraInfoList();
             foreach (var address in addressList.Value)
@@ -53,6 +53,7 @@ namespace AElf.Contracts.Whitelist
         public override HashList GetExtraInfoIdList(GetExtraInfoIdListInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
+            Assert(State.ManagerTagInfoMap[input.Owner][input.ProjectId][whitelist.WhitelistId] != null,$"ExtraInfo id list doesn't exist.{input.Owner}{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
             var idList = State.ManagerTagInfoMap[input.Owner][input.ProjectId][whitelist.WhitelistId];
             Assert(idList.Value.Count != 0,$"No extraInfo id list.{input.Owner}{input.ProjectId.ToHex()}{input.WhitelistId.ToHex()}");
             return idList;
@@ -61,8 +62,8 @@ namespace AElf.Contracts.Whitelist
         public override TagInfo GetExtraInfoByAddress(GetExtraInfoByAddressInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
+            Assert(State.AddressTagInfoIdMap[whitelist.WhitelistId][input.Address] != null,$"No Match tagInfo according to the address.{input.WhitelistId.ToHex()}{input.Address}");
             var tagInfoId = State.AddressTagInfoIdMap[whitelist.WhitelistId][input.Address];
-            Assert(!tagInfoId.Value.IsEmpty,$"No Match tagInfo according to the address.{input.WhitelistId.ToHex()}{input.Address}");
             var tagInfo = GetTagInfoByHash(tagInfoId);
             return tagInfo;
         }
@@ -97,6 +98,21 @@ namespace AElf.Contracts.Whitelist
                 var availableList = whitelistExtra.Except(consumedExtraList);
                 return ConvertToInfoList(new ExtraInfoIdList() {Value = {availableList}});
             }
+        }
+
+        public override BoolValue GetAddressFromWhitelist(GetAddressFromWhitelistInput input)
+        {
+            var whitelist = GetWhitelist(input.WhitelistId);
+            var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.Address).ToList();
+            var ifExist = addressList.Contains(input.Address);
+            return new BoolValue(){ Value = ifExist };
+        }
+
+        public override BoolValue GetExtraInfoFromWhitelist(GetExtraInfoFromWhitelistInput input)
+        {
+            var whitelist = GetWhitelist(input.WhitelistId);
+            var ifExist = whitelist.ExtraInfoIdList.Value.Contains(input.ExtraInfoId);
+            return new BoolValue(){Value = ifExist};
         }
 
         public override BoolValue GetFromAvailableWhitelist(GetFromAvailableWhitelistInput input)

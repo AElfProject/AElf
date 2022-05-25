@@ -4,7 +4,7 @@ namespace AElf.Contracts.Whitelist
 {
     public partial class WhitelistContract : WhitelistContractContainer.WhitelistContractBase
     {
-        public override Empty Initialize(InitializeInput input)
+        public override Empty Initialize(Empty input)
         {
             return new Empty();
         }
