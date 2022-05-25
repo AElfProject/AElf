@@ -36,7 +36,7 @@ namespace AElf.Contracts.NFT
         }.ToByteString();
         //private readonly Hash _info4Id = HashHelper.ComputeFrom(Info4.ToByteArray());
         
-        private static readonly ByteString Info5 = new Price(){
+        private static readonly ByteString Info5 = new PriceTag(){
             Symbol = "BTC",
             Amount = 2200_000000
         }.ToByteString();
@@ -316,7 +316,7 @@ namespace AElf.Contracts.NFT
             {
                 var tag = await WhitelistContractStub.GetTagInfoByHash.CallAsync(tagInfoId);
                 tag.TagName.ShouldBe("INFO2");
-                var deserializedExtraInfo = new Price();
+                var deserializedExtraInfo = new PriceTag();
                 deserializedExtraInfo.MergeFrom(tag.Info);
                 deserializedExtraInfo.Symbol.ShouldBe("ETH");
                 deserializedExtraInfo.Amount.ShouldBe(100_0000000);
