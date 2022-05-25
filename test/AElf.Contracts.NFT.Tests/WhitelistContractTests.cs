@@ -728,7 +728,7 @@ namespace AElf.Contracts.NFT
             }
             {
                 var extraInfo = await WhitelistContractStub.GetTagInfoByHash.CallAsync(CalculateId(DefaultAddress,_projectId,"INFO1"));
-                var deserializedExtraInfo = new Price();
+                var deserializedExtraInfo = new PriceTag();
                 deserializedExtraInfo.MergeFrom(extraInfo.Info);
                 deserializedExtraInfo.Symbol.ShouldBe("ELF");
                 deserializedExtraInfo.Amount.ShouldBe(200_000000);

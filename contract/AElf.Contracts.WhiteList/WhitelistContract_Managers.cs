@@ -538,6 +538,7 @@ namespace AElf.Contracts.Whitelist
             State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId].Value.Clear();
             foreach (var id in idList.Value)
             {
+                State.TagInfoMap.Remove(id);
                 State.TagInfoIdAddressListMap[input.WhitelistId].Remove(id);
             }
             foreach (var address in addressList)
