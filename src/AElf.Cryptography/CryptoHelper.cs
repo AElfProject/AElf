@@ -11,7 +11,7 @@ namespace AElf.Cryptography
 {
     public static class CryptoHelper
     {
-        private static readonly Secp256k1 Secp256K1 = new Secp256k1();
+        private static readonly Secp256k1 Secp256K1 = new();
 
         private static readonly VirgilCrypto Crypto = new VirgilCrypto(KeyPairType.RSA_2048);
 
