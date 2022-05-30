@@ -134,6 +134,9 @@ service TokenContract {
     }
     rpc RemoveAddressFromCreateTokenWhiteList (aelf.Address) returns (google.protobuf.Empty) {
     }
+    
+    rpc ConfigMethodFeeFreeAllowances (MethodFeeFreeAllowancesConfig) returns (google.protobuf.Empty) {
+    }
 
     // Query token information.
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -212,6 +215,12 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetReservedExternalInfoKeyList (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMethodFeeFreeAllowances (aelf.Address) returns (MethodFeeFreeAllowances) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMethodFeeFreeAllowancesConfig (google.protobuf.Empty) returns (MethodFeeFreeAllowancesConfig) {
         option (aelf.is_view) = true;
     }
 }
@@ -627,6 +636,23 @@ message ResetExternalInfoInput {
 message StringList {
     repeated string value = 1;
 }
+
+message MethodFeeFreeAllowancesConfig {
+    MethodFeeFreeAllowances free_allowances = 1;
+    int64 refresh_seconds = 2;
+    int64 threshold = 3;
+}
+
+message MethodFeeFreeAllowances {
+    repeated MethodFeeFreeAllowance value = 1;
+}
+
+message MethodFeeFreeAllowance {
+    string symbol = 1;
+    int64 amount = 2;
+}
+
+// Events
 
 message Transferred {
     option (aelf.is_event) = true;

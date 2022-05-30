@@ -34,5 +34,9 @@ namespace AElf.Contracts.MultiToken
         /// Symbol -> Amount
         /// </summary>
         public MappedState<string, long> OwningRental { get; set; }
+
+        public SingletonState<MethodFeeFreeAllowancesConfig> MethodFeeFreeAllowancesConfig { get; set; }
+        public MappedState<Address, MethodFeeFreeAllowances> MethodFeeFreeAllowancesMap { get; set; }
+        public MappedState<Address, Timestamp> MethodFeeFreeAllowancesLastRefreshTimeMap { get; set; }
     }
 }

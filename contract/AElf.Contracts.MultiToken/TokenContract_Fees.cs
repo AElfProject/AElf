@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Standards.ACS1;
@@ -48,26 +49,62 @@ namespace AElf.Contracts.MultiToken
                 successToChargeSizeFee = ChargeSizeFee(input, ref bill);
             }
 
+            SetOrRefreshMethodFeeFreeAllowances(fromAddress);
+            var freeAllowances = State.MethodFeeFreeAllowancesMap[fromAddress];
+
             // Update balances.
-            foreach (var tokenToAmount in bill.FeesMap)
+            foreach (var (symbol, amount) in bill.FeesMap)
             {
-                ModifyBalance(fromAddress, tokenToAmount.Key, -tokenToAmount.Value);
+                var actualAmount = amount;
+                var freeAllowance = freeAllowances.Value.FirstOrDefault(a => a.Symbol == symbol);
+                if (freeAllowance != null)
+                {
+                    // Consume free allowance.
+                    var consumingFreeAllowance = Math.Min(amount, freeAllowance.Amount);
+                    freeAllowance.Amount = freeAllowance.Amount.Sub(consumingFreeAllowance);
+                    actualAmount = amount.Sub(consumingFreeAllowance);
+                    if (actualAmount == 0)
+                    {
+                        // Seek for charging next token if the free allowance is able to cover current token.
+                        continue;
+                    }
+                }
+                ModifyBalance(fromAddress, symbol, -actualAmount);
                 Context.Fire(new TransactionFeeCharged
                 {
-                    Symbol = tokenToAmount.Key,
-                    Amount = tokenToAmount.Value
+                    Symbol = symbol,
+                    Amount = actualAmount
                 });
-                if (tokenToAmount.Value == 0)
+                if (actualAmount == 0)
                 {
-                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {tokenToAmount.Key}: it's 0.");
+                    Context.LogDebug(() => $"Maybe incorrect charged tx fee of {symbol}: it's 0.");
                 }
             }
 
+            State.MethodFeeFreeAllowancesMap[fromAddress] = freeAllowances;
             var chargingResult = successToChargeBaseFee && successToChargeSizeFee;
             var chargingOutput = new ChargeTransactionFeesOutput {Success = chargingResult};
             if (!chargingResult)
                 chargingOutput.ChargingInformation = "Transaction fee not enough.";
             return chargingOutput;
+        }
+
+        private void SetOrRefreshMethodFeeFreeAllowances(Address address)
+        {
+            var config = State.MethodFeeFreeAllowancesConfig.Value;
+            if (State.Balances[address][Context.Variables.NativeSymbol] < config.Threshold)
+            {
+                return;
+            }
+
+            var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[address];
+            if (lastRefreshTime != null && config.Threshold > (Context.CurrentBlockTime - lastRefreshTime).Seconds)
+            {
+                return;
+            }
+
+            State.MethodFeeFreeAllowancesLastRefreshTimeMap[address] = Context.CurrentBlockTime;
+            State.MethodFeeFreeAllowancesMap[address] = config.FreeAllowances;
         }
 
         private Dictionary<string, long> GetBaseFeeDictionary(MethodFees methodFees)
@@ -681,6 +718,23 @@ namespace AElf.Contracts.MultiToken
         public override Address GetFeeReceiver(Empty input)
         {
             return State.FeeReceiver.Value;
+        }
+
+        public override Empty ConfigMethodFeeFreeAllowances(MethodFeeFreeAllowancesConfig input)
+        {
+            AssertSenderAddressWith(GetDefaultParliamentController().OwnerAddress);
+            State.MethodFeeFreeAllowancesConfig.Value = input;
+            return new Empty();
+        }
+
+        public override MethodFeeFreeAllowancesConfig GetMethodFeeFreeAllowancesConfig(Empty input)
+        {
+            return State.MethodFeeFreeAllowancesConfig.Value;
+        }
+
+        public override MethodFeeFreeAllowances GetMethodFeeFreeAllowances(Address input)
+        {
+            return State.MethodFeeFreeAllowancesMap[input];
         }
 
         private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
