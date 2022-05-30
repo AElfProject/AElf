@@ -125,7 +125,7 @@ namespace AElf.Contracts.NFT
                 Remark = "second whitelist test",
                 ManagerList = new Whitelist.AddressList()
                 {
-                    Value = { User5Address }
+                    Value = { User5Address,User5Address }
                 },
                 StrategyType = StrategyType.Price
             })).Output;
@@ -194,8 +194,9 @@ namespace AElf.Contracts.NFT
                 whitelistIdList2.WhitelistId[0].ShouldBe(whitelistId2);
             }
             {
-                var manager = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId);
-                manager.Value[0].ShouldBe(User4Address);
+                var manager = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId2);
+                manager.Value.Count.ShouldBe(2);
+                manager.Value[0].ShouldBe(User5Address);
             }
 
             return whitelistId;
@@ -400,7 +401,11 @@ namespace AElf.Contracts.NFT
                     Info = Info1
                 },
                 WhitelistId = whitelistId,
-                ProjectId = _projectId
+                ProjectId = _projectId,
+                AddressList = new Whitelist.AddressList()
+                {
+                    Value = {User1Address, User4Address}
+                }
             });
             executionResult.TransactionResult.Error.ShouldContain("The tag Info INFO1 already exists.");
         }
@@ -810,9 +815,9 @@ namespace AElf.Contracts.NFT
         }
         
         [Fact]
-        public async Task AddAddressInfoListToWhitelistTest_ExtraInfoExist()
+        public async Task AddAddressInfoListToWhitelistTest_Address_Duplicate()
         {
-            var whitelistId = await CreateWhitelistTest();
+            var whitelistId = await CreateWhitelist_Address();
             var executionResult = await WhitelistContractStub.AddAddressInfoListToWhitelist.SendWithExceptionAsync(
                 new AddAddressInfoListToWhitelistInput()
                 {
@@ -822,22 +827,20 @@ namespace AElf.Contracts.NFT
                         Value = { 
                             new ExtraInfoId()
                             {
-                                Address  = User1Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                                Address  = User1Address
                             },
                             new ExtraInfoId() 
                             {
-                                Address = User2Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                                Address = User2Address
                             }
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("Duplicate extraInfo list.");
+            executionResult.TransactionResult.Error.ShouldContain("Address already exists in whitelist.");
         }
         
         [Fact]
-        public async Task AddAddressInfoListToWhitelistTest_AddressExist()
+        public async Task AddAddressInfoListToWhitelistTest_ExtraInfo_Duplicate()
         {
             var whitelistId = await CreateWhitelistTest();
             var executionResult = await WhitelistContractStub.AddAddressInfoListToWhitelist.SendWithExceptionAsync(
@@ -850,7 +853,7 @@ namespace AElf.Contracts.NFT
                             new ExtraInfoId()
                             {
                                 Address  = User1Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                                Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                             },
                             new ExtraInfoId() 
                             {
@@ -860,7 +863,7 @@ namespace AElf.Contracts.NFT
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("Duplicate extraInfo list.");
+            executionResult.TransactionResult.Error.ShouldContain("Address already exists in whitelist.");
         }
         
         [Fact]

@@ -278,8 +278,9 @@ namespace AElf.Contracts.Whitelist
                 .Select(e => e.FirstOrDefault()).ToList();
             //Already added to the whitelist.
             var alreadyIn = new ExtraInfoIdList();
+            var addressExtraList = whitelistInfo.ExtraInfoIdList.Value.Select(e => e.Address).ToList();
             foreach (var infoId  in from infoId in extraInfoId
-                     where !whitelistInfo.ExtraInfoIdList.Value.Contains(infoId)
+                     where !addressExtraList.Contains(infoId.Address)
                      select infoId)
             {
                 whitelistInfo.ExtraInfoIdList.Value.Add(infoId);
@@ -301,8 +302,8 @@ namespace AElf.Contracts.Whitelist
             var duplicate = input.ExtraInfoIdList.Value.Except(extraInfoId).ToList();
             //Remain extraInfo.
             var remain = extraInfoId.Except(alreadyIn.Value).ToList();
-            Assert(duplicate.Count == 0,$"Duplicate address list.{duplicate}");
-            Assert(remain.Count == 0,$"Duplicate extraInfo list.{remain}");
+            Assert(duplicate.Count == 0,$"Input duplicate address list.{duplicate}");
+            Assert(remain.Count == 0,$"Address already exists in whitelist.{remain}");
             
             return new Empty();
         }

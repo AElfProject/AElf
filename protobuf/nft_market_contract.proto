@@ -639,6 +639,7 @@ message ListedNFTAdded {
     int64 quantity = 4;
     Price price = 5;
     ListDuration duration = 6;
+    aelf.Hash whitelist_id = 7;
 }
 
 message ListedNFTChanged {

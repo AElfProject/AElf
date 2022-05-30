@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Whitelist.Extensions;
 using AElf.Sdk.CSharp;
@@ -155,49 +156,15 @@ namespace AElf.Contracts.Whitelist
             });
             return id;
         }
-
-        // /// <summary>
-        // ///remove address or address+extra_info
-        // /// </summary>
-        // /// <returns>AddressExtraIdInfo</returns>
-        // private ExtraInfoId RemoveAddressOrExtra(WhitelistInfo whitelistInfo, ExtraInfoId extraInfoId)
-        // {
-        //     if (extraInfoId.Id.Value.IsEmpty)
-        //     {
-        //         var address = extraInfoId.Address;
-        //         var resultList = whitelistInfo.ExtraInfoIdList.Value
-        //             .Where(u => u.Address.Equals(address)).ToList();
-        //         Assert(resultList.Count == 1 , $"Address doesn't exist.{extraInfoId.Address}");
-        //         foreach (var result in resultList)
-        //         {
-        //             whitelistInfo.ExtraInfoIdList.Value.Remove(result);
-        //         }
-        //         State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
-        //         return new ExtraInfoId()
-        //         {
-        //             Address = address
-        //         };
-        //     }
-        //     var toRemove = whitelistInfo.ExtraInfoIdList.Value
-        //         .Where(u => u.Address == extraInfoId.Address && u.Id == extraInfoId.Id)
-        //         .ToList();
-        //     Assert(toRemove.Count == 1, $"Address and tag info doesn't exist.{extraInfoId}");
-        //     foreach (var result in toRemove)
-        //     {
-        //         whitelistInfo.ExtraInfoIdList.Value.Remove(result);
-        //     }
-        //     State.WhitelistInfoMap[whitelistInfo.WhitelistId] = whitelistInfo;
-        //     return extraInfoId;
-        // }
         
         private AddressList SetManagerList(Hash whitelistId,AddressList input)
         {
-            var managerList = input ?? new AddressList();
-            if (!managerList.Value.Contains(Context.Sender))
+            var managerList = input != null ? input.Value.Distinct().ToList() : new List<Address>();
+            if (!managerList.Contains(Context.Sender))
             {
-                managerList.Value.Add(Context.Sender);
+                managerList.Add(Context.Sender);
             }
-            State.ManagerListMap[whitelistId] = managerList;
+            State.ManagerListMap[whitelistId] = new AddressList(){Value = { managerList }};
             return State.ManagerListMap[whitelistId];
         }
 

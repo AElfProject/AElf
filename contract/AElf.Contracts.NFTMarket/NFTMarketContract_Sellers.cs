@@ -175,6 +175,7 @@ namespace AElf.Contracts.NFTMarket
                     Owner = Context.Sender,
                     Price = input.Price,
                     Quantity = input.Quantity,
+                    WhitelistId = whitelistId
                 });
             }
             else
