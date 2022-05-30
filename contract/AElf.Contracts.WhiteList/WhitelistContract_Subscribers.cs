@@ -102,7 +102,9 @@ namespace AElf.Contracts.Whitelist
                 IsCloneable = whiteListInfo.IsCloneable,
                 Remark = whiteListInfo.Remark,
                 CloneFrom = whiteListInfo.WhitelistId,
-                Manager = managerList
+                Manager = managerList,
+                ProjectId = input.ProjectId,
+                StrategyType = whiteListInfo.StrategyType
             };
             State.WhitelistInfoMap[cloneWhiteListId] = whitelistClone;
 
@@ -117,7 +119,9 @@ namespace AElf.Contracts.Whitelist
                 IsCloneable = whitelistClone.IsCloneable,
                 Remark = whitelistClone.Remark,
                 CloneFrom = whiteListInfo.WhitelistId,
-                Manager = managerList
+                Manager = managerList,
+                ProjectId = input.ProjectId,
+                StrategyType = whitelistClone.StrategyType
             });
             return cloneWhiteListId;
         }

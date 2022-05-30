@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Contracts.NFT;
+using AElf.Contracts.Whitelist;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -77,29 +78,30 @@ namespace AElf.Contracts.NFTMarket
             {
                 listedNftInfo = listedNftInfoList.Value.First();
             }
-
-            var whiteListAddressPriceList =
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo];
-
+            
+            var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
+            var tagInfo = new TagInfo();
             if (listedNftInfo == null || listedNftInfo.ListType == ListType.NotListed)
             {
-                if (whiteListAddressPriceList == null)
+                if (whitelistId == null)
                 {
                     PerformMakeOffer(input);
                     return new Empty();
                 }
-
-                var maybeWhiteListAddressPrice =
-                    whiteListAddressPriceList.Value.SingleOrDefault(p =>
-                        p.Address == Context.Sender && p.Price.Amount <= input.Price.Amount &&
-                        p.Price.Symbol == input.Price.Symbol);
-                if (maybeWhiteListAddressPrice != null)
+                //Whether buyer have their own price. 
+                tagInfo = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+                {
+                    Address = Context.Sender,
+                    WhitelistId = whitelistId
+                });
+                var price = DeserializedInfo(tagInfo);
+                if (price.Amount <= input.Price.Amount && price.Symbol == input.Price.Symbol)
                 {
                     listedNftInfo = new ListedNFTInfo
                     {
                         Symbol = input.Symbol,
                         TokenId = input.TokenId,
-                        Price = maybeWhiteListAddressPrice.Price,
+                        Price = price,
                         ListType = ListType.FixedPrice,
                         Quantity = 1,
                         Owner = listedNftInfoList.Value.First().Owner,
@@ -130,8 +132,7 @@ namespace AElf.Contracts.NFTMarket
 
             switch (listedNftInfo.ListType)
             {
-                case ListType.FixedPrice when whiteListAddressPriceList != null &&
-                                              whiteListAddressPriceList.Value.Any(p => p.Address == Context.Sender):
+                case ListType.FixedPrice when whitelistId != null && tagInfo != null:
                     if (TryDealWithFixedPrice(input, listedNftInfo, out var actualQuantity))
                     {
                         MaybeRemoveRequest(input.Symbol, input.TokenId);
@@ -479,11 +480,14 @@ namespace AElf.Contracts.NFTMarket
         /// <summary>
         /// Sender is buyer.
         /// </summary>
-        private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo, out long actualQuantity)
+        private bool TryDealWithFixedPrice(MakeOfferInput input, ListedNFTInfo listedNftInfo ,out long actualQuantity)
         {
-            var whiteList = State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] ??
-                            new WhiteListAddressPriceList();
-            var whiteListPrice = whiteList.Value.FirstOrDefault(p => p.Address == Context.Sender);
+            var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][input.OfferTo];
+            var whitelistPrice = State.WhitelistContract.GetExtraInfoByAddress.Call(new GetExtraInfoByAddressInput()
+            {
+                Address = Context.Sender,
+                WhitelistId = whitelistId
+            });
             var usePrice = input.Price;
             actualQuantity = Math.Min(input.Quantity, listedNftInfo.Quantity);
             if (Context.CurrentBlockTime < listedNftInfo.Duration.StartTime)
@@ -492,18 +496,19 @@ namespace AElf.Contracts.NFTMarket
                 return false;
             }
 
-            if (whiteListPrice != null)
+            if (whitelistPrice != null)
             {
+                var price = DeserializedInfo(whitelistPrice);
                 // May cause problems, but can be fixed via re-sorting the white list price list.
-                Assert(input.Price.Symbol == whiteListPrice.Price.Symbol,
-                    $"Need to use token {whiteListPrice.Price.Symbol}, not {input.Price.Symbol}");
-                if (input.Price.Amount < whiteListPrice.Price.Amount)
+                Assert(input.Price.Symbol == price.Symbol,
+                    $"Need to use token {price.Symbol}, not {input.Price.Symbol}");
+                if (input.Price.Amount < price.Amount)
                 {
                     PerformMakeOffer(input);
                     return false;
                 }
 
-                usePrice = whiteListPrice.Price;
+                usePrice = price;
                 if (actualQuantity > 1)
                 {
                     var makeOfferInput = input.Clone();
@@ -512,8 +517,17 @@ namespace AElf.Contracts.NFTMarket
                 }
                 // One record in white list price list for one NFT.
                 actualQuantity = 1;
-                whiteList.Value.Remove(whiteListPrice);
-                State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.OfferTo] = whiteList;
+                //Get extraInfoId according to the sender.
+                var extraInfoId = State.WhitelistContract.GetTagIdByAddress.Call(new GetTagIdByAddressInput()
+                {
+                    WhitelistId = whitelistId,
+                    Address = Context.Sender
+                });
+                State.WhitelistContract.RemoveAddressInfoFromWhitelist.Send(new RemoveAddressInfoFromWhitelistInput()
+                {
+                    WhitelistId = whitelistId,
+                    ExtraInfoId = new ExtraInfoId(){Address = Context.Sender,Id = extraInfoId}
+                });
             }
             else if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
             {

@@ -67,7 +67,7 @@ service NFTMarketContract {
     rpc GetListedNFTInfoList (GetListedNFTInfoListInput) returns (ListedNFTInfoList) {
         option (aelf.is_view) = true;
     }
-    rpc GetWhiteListAddressPriceList (GetWhiteListAddressPriceListInput) returns (WhiteListAddressPriceList) {
+    rpc GetWhitelistId (GetWhitelistIdInput) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
     rpc GetOfferAddressList (GetAddressListInput) returns (AddressList) {
@@ -130,14 +130,6 @@ message ListedNFTInfoList {
     repeated ListedNFTInfo value = 1;
 }
 
-message WhiteListAddressPriceList {
-    repeated WhiteListAddressPrice value = 1;
-}
-
-message WhiteListAddressPrice {
-    aelf.Address address = 1;
-    Price price = 2;
-}
 
 message StringList {
     repeated string value = 1;
@@ -257,6 +249,20 @@ message ServiceFeeInfo {
     aelf.Address service_fee_receiver = 2;
 }
 
+message PriceTag{
+    string tag_name = 1;
+    Price price = 2;
+}
+
+message WhitelistInfo{
+    PriceTag price_tag = 1;
+    aelf.Address address = 2;
+}
+
+message WhitelistInfoList{
+    repeated WhitelistInfo whitelists = 1;
+}
+
 // Inputs.
 
 message InitializeInput {
@@ -265,6 +271,7 @@ message InitializeInput {
     int32 service_fee_rate = 3;
     aelf.Address service_fee_receiver = 4;
     int64 service_fee = 5;
+    aelf.Address whitelist_contract_address = 6;
 }
 
 message ListWithFixedPriceInput {
@@ -273,8 +280,9 @@ message ListWithFixedPriceInput {
     Price price = 3;
     int64 quantity = 4;
     ListDuration duration = 5;
-    WhiteListAddressPriceList white_list_address_price_list = 6;
+    WhitelistInfoList whitelists = 6;
     bool is_merge_to_previous_listed_info = 7;
+    bool is_whitelist_available = 8;
 }
 
 message ListWithEnglishAuctionInput {
@@ -353,6 +361,12 @@ message SetTokenWhiteListInput {
 }
 
 message GetListedNFTInfoListInput {
+    string symbol = 1;
+    int64 token_id = 2;
+    aelf.Address owner = 3;
+}
+
+message GetWhitelistIdInput{
     string symbol = 1;
     int64 token_id = 2;
     aelf.Address owner = 3;
@@ -444,7 +458,7 @@ message FixedPriceNFTListed {
     Price price = 5;
     ListDuration duration = 6;
     bool is_merged_to_previous_listed_info = 7;
-    WhiteListAddressPriceList white_list_address_price_list = 8;
+    aelf.Hash whitelist_id = 8;
 }
 
 message EnglishAuctionNFTListed {

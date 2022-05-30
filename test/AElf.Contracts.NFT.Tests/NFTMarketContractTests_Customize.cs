@@ -1,11 +1,14 @@
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFTMarket;
 using AElf.Contracts.NFTMinter;
 using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp;
 using Xunit;
 using InitializeInput = AElf.Contracts.NFTMarket.InitializeInput;
 
@@ -19,6 +22,7 @@ namespace AElf.Contracts.NFT
             await AdminNFTMarketContractStub.Initialize.SendAsync(new InitializeInput
             {
                 NftContractAddress = NFTContractAddress,
+                WhitelistContractAddress = WhitelistContractAddress,
                 ServiceFeeReceiver = MarketServiceFeeReceiverAddress
             });
 
@@ -213,6 +217,7 @@ namespace AElf.Contracts.NFT
                     DurationHours = 100
                 },
                 Quantity = 1,
+                IsWhitelistAvailable = true
             };
             
             {
@@ -222,20 +227,21 @@ namespace AElf.Contracts.NFT
             }
 
             listInput.Price.Amount = 100_00000000;
-            listInput.WhiteListAddressPriceList = new WhiteListAddressPriceList
+            listInput.Whitelists = new WhitelistInfoList()
             {
-                Value =
+                Whitelists = { new WhitelistInfo()
                 {
-                    new WhiteListAddressPrice
+                    Address = User2Address,
+                    PriceTag = new PriceTag()
                     {
-                        Address = User2Address,
-                        Price = new Price
+                        TagName = "2ELF",
+                        Price = new Price()
                         {
                             Symbol = "ELF",
                             Amount = 200_00000000
                         }
                     }
-                }
+                }}
             };
 
             {
@@ -254,18 +260,23 @@ namespace AElf.Contracts.NFT
             });
             requestInfo.ListTime.ShouldNotBeNull();
 
-            var whiteListPriceList = await CreatorNFTMarketContractStub.GetWhiteListAddressPriceList.CallAsync(
-                new GetWhiteListAddressPriceListInput
+            var whiteListId = await CreatorNFTMarketContractStub.GetWhitelistId.CallAsync(
+                new GetWhitelistIdInput()
                 {
                     Symbol = symbol,
                     TokenId = 2,
                     Owner = DefaultAddress
                 });
-            whiteListPriceList.Value.Count.ShouldBe(1);
-            whiteListPriceList.Value[0].Address.ShouldBe(User2Address);
-            whiteListPriceList.Value[0].Price.Symbol.ShouldBe("ELF");
-            // Instead of 200_00000000.
-            whiteListPriceList.Value[0].Price.Amount.ShouldBe(160_00000000);
+            var whitelistIds = await WhitelistContractStub.GetWhitelistByManager.CallAsync(NFTMarketContractAddress);
+            whitelistIds.WhitelistId.Count.ShouldBe(1);
+            whitelistIds.WhitelistId[0].ShouldBe(whiteListId);
+            var whitelist = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whiteListId); 
+            whitelist.Value.Count.ShouldBe(1);
+            whitelist.Value[0].Address.ShouldBe(User2Address);
+            var price = new Price();
+            price.MergeFrom(whitelist.Value[0].Info.Info);
+            price.Symbol.ShouldBe("ELF");
+            price.Amount.ShouldBe(160_00000000);
             return symbol;
         }
 

@@ -100,7 +100,7 @@ namespace AElf.Contracts.Whitelist
                 }
                 duplicate = input.ExtraInfoList.Value.Except(extraInfoList).ToList();
             }
-
+            Assert(duplicate.Count == 0 ,$"Duplicate address list.{duplicate}");
             State.WhitelistInfoMap[whitelistHash] = whitelistInfo;
             SetWhitelistIdManager(whitelistHash, managerList);
             var projectWhitelist = State.WhitelistProjectMap[input.ProjectId] ?? new WhitelistIdList();
@@ -119,7 +119,7 @@ namespace AElf.Contracts.Whitelist
                 Manager = whitelistInfo.Manager,
                 StrategyType = whitelistInfo.StrategyType
             });
-            Assert(duplicate.Count == 0 ,$"Duplicate address list.{duplicate}");
+            
             return whitelistHash;
         }
         
@@ -453,9 +453,14 @@ namespace AElf.Contracts.Whitelist
         {
             AssertWhitelistIsAvailable(input.WhitelistId);
             var whitelist = AssertWhitelistManager(input.WhitelistId);
+            Assert(!whitelist.Manager.Value.Contains(input.Manager) && 
+                   !State.ManagerListMap[whitelist.WhitelistId].Value.Contains(input.Manager), 
+                $"Manager already exists.{input}");
             whitelist.Manager.Value.Remove(Context.Sender);
             whitelist.Manager.Value.Add(input.Manager);
             State.WhitelistInfoMap[whitelist.WhitelistId] = whitelist;
+            State.ManagerListMap[whitelist.WhitelistId].Value.Remove(Context.Sender);
+            State.ManagerListMap[whitelist.WhitelistId].Value.Add(input.Manager);
             Context.Fire(new ManagerTransferred()
             {
                 WhitelistId = whitelist.WhitelistId,
@@ -547,7 +552,8 @@ namespace AElf.Contracts.Whitelist
             }
             Context.Fire(new WhitelistReset()
             {
-                WhitelistId = whitelist.WhitelistId
+                WhitelistId = whitelist.WhitelistId,
+                ProjectId = whitelist.ProjectId
             });
             return new Empty();
         }

@@ -36,6 +36,8 @@ namespace AElf.Contracts.NFT
         protected Address User1Address => Accounts[10].Address;
         protected Address User2Address => Accounts[11].Address;
         protected Address User3Address => Accounts[14].Address;
+        protected Address User4Address => Accounts[15].Address;
+        protected Address User5Address => Accounts[16].Address;
         protected ECKeyPair MarketServiceFeeReceiverKeyPair => Accounts[12].KeyPair;
         protected Address MarketServiceFeeReceiverAddress => Accounts[12].Address;
 

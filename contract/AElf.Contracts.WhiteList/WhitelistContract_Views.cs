@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.Contracts.Whitelist.Extensions;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -67,7 +68,13 @@ namespace AElf.Contracts.Whitelist
             var tagInfo = GetTagInfoByHash(tagInfoId);
             return tagInfo;
         }
-        
+
+        public override Hash GetTagIdByAddress(GetTagIdByAddressInput input)
+        {
+            var whitelist = GetWhitelist(input.WhitelistId);
+            Assert(State.AddressTagInfoIdMap[whitelist.WhitelistId][input.Address] != null,$"No Match tagInfo according to the address.{input.WhitelistId.ToHex()}{input.Address}");
+            return State.AddressTagInfoIdMap[whitelist.WhitelistId][input.Address] ;
+        }
 
         public override SubscribeWhitelistInfo GetSubscribeWhitelist(Hash input)
         {
@@ -114,6 +121,15 @@ namespace AElf.Contracts.Whitelist
             var ifExist = whitelist.ExtraInfoIdList.Value.Contains(input.ExtraInfoId);
             return new BoolValue(){Value = ifExist};
         }
+
+        public override BoolValue GetTagInfoFromWhitelist(GetTagInfoFromWhitelistInput input)
+        {
+            var tagId = Context.Sender.CalculateExtraInfoId(input.ProjectId, input.TagInfo.TagName);
+            var tagIdList = State.ManagerTagInfoMap[Context.Sender][input.ProjectId][input.WhitelistId];
+            var ifExist = tagIdList.Value.Contains(tagId);
+            return new BoolValue() {Value = ifExist};
+        }
+        
 
         public override BoolValue GetFromAvailableWhitelist(GetFromAvailableWhitelistInput input)
         {

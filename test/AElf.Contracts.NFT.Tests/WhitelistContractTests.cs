@@ -6,6 +6,8 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using PriceTag = AElf.Contracts.Whitelist.PriceTag;
+
 //using InitializeInput = AElf.Contracts.Whitelist.InitializeInput;
 
 namespace AElf.Contracts.NFT
@@ -22,31 +24,22 @@ namespace AElf.Contracts.NFT
             Symbol = "ETH",
             Amount = 100_0000000
         }.ToByteString();
-       // private readonly Hash _info2Id = HashHelper.ComputeFrom(Info2.ToByteArray());
 
         private static readonly ByteString Info3 = new PriceTag(){
             Symbol = "ELF",
             Amount = 500_000000
         }.ToByteString();
-        //private readonly Hash _info3Id = HashHelper.ComputeFrom(Info3.ToByteArray());
 
         private static readonly ByteString Info4 = new PriceTag(){
             Symbol = "ELF",
             Amount = 900_000000
         }.ToByteString();
-        //private readonly Hash _info4Id = HashHelper.ComputeFrom(Info4.ToByteArray());
         
         private static readonly ByteString Info5 = new PriceTag(){
             Symbol = "BTC",
             Amount = 2200_000000
         }.ToByteString();
-        //private readonly Hash _info5Id = HashHelper.ComputeFrom(Info5.ToByteArray());
-
-        // private static readonly ByteString Info6 = new PriceTag(){
-        //     Symbol = "ELF",
-        //     Amount = 10_0000
-        // }.ToByteString();
-        //private readonly Hash _info6Id = HashHelper.ComputeFrom(Info6.ToByteArray());
+        
 
         private Hash CalculateId(Address sender, Hash projectId, string tagName)
         {
@@ -207,7 +200,7 @@ namespace AElf.Contracts.NFT
 
             return whitelistId;
         }
-
+        
         [Fact]
         public async Task<Hash> CreateWhitelist_Address()
         {
@@ -1162,6 +1155,11 @@ namespace AElf.Contracts.NFT
             var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
             whitelist.Manager.Value.ShouldContain(User1Address);
             whitelist.Manager.Value.ShouldNotContain(DefaultAddress);
+            {
+                var managerList = await WhitelistContractStub.GetManagerList.CallAsync(whitelistId);
+                managerList.Value.ShouldContain(User1Address);
+                managerList.Value.ShouldNotContain(DefaultAddress);
+            }
         }
         
         [Fact]
@@ -1240,6 +1238,7 @@ namespace AElf.Contracts.NFT
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(0);
+                whitelist.ProjectId.ShouldBe(_projectId);
             }
             {
                 var exception = await WhitelistContractStub.GetExtraInfoIdList.CallWithExceptionAsync(new GetExtraInfoIdListInput()

@@ -47,6 +47,9 @@
         <ContractReference Include="..\..\protobuf\nft_contract.proto">
             <Link>Protobuf\Proto\reference\nft_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\whitelist_contract.proto">
+            <Link>Protobuf\Proto\reference\whitelist_contract.proto</Link>
+        </ContractReference>
 
     </ItemGroup>
 

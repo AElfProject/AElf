@@ -1,3 +1,4 @@
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFTMarket
@@ -9,9 +10,9 @@ namespace AElf.Contracts.NFTMarket
             return State.ListedNFTInfoListMap[input.Symbol][input.TokenId][input.Owner];
         }
 
-        public override WhiteListAddressPriceList GetWhiteListAddressPriceList(GetWhiteListAddressPriceListInput input)
+        public override Hash GetWhitelistId(GetWhitelistIdInput input)
         {
-            return State.WhiteListAddressPriceListMap[input.Symbol][input.TokenId][input.Owner];
+            return State.WhitelistIdMap[input.Symbol][input.TokenId][input.Owner];
         }
 
         public override AddressList GetOfferAddressList(GetAddressListInput input)

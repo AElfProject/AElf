@@ -12,7 +12,7 @@ namespace AElf.Contracts.NFT
         public async Task<Hash> SubscribeWhitelistTest()
         {
             var whitelistId = await CreateWhitelistTest();
-            var projectId = new Hash();
+            var projectId = HashHelper.ComputeFrom("Project");
             var executionResult = await WhitelistContractStub.SubscribeWhitelist.SendAsync(
                 new SubscribeWhitelistInput() 
                 {
@@ -54,6 +54,11 @@ namespace AElf.Contracts.NFT
         {
             var subscribeId = await SubscribeWhitelistTest();
             var subscribe = await WhitelistContractStub.GetSubscribeWhitelist.CallAsync(subscribeId);
+            var tagId = await WhitelistContractStub.GetTagIdByAddress.CallAsync(new GetTagIdByAddressInput()
+            {
+                WhitelistId = subscribe.WhitelistId,
+                Address = User1Address
+            });
             await WhitelistContractStub.ConsumeWhitelist.SendAsync(new ConsumeWhitelistInput()
             {
                 SubscribeId = subscribeId,
@@ -61,7 +66,7 @@ namespace AElf.Contracts.NFT
                 ExtraInfoId = new ExtraInfoId()
                 {
                     Address = User1Address,
-                    Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                    Id = tagId
                 }
             });
             var consumedList = await WhitelistContractStub.GetConsumedList.CallAsync(subscribeId);
