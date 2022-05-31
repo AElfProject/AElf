@@ -26,6 +26,7 @@ using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Authorization;
+using Volo.Abp.Castle;
 using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
 
@@ -34,6 +35,7 @@ namespace AElf.WebApp.Web
     [DependsOn(
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
+        typeof(AbpCastleCoreModule),
         typeof(WebAppAbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
