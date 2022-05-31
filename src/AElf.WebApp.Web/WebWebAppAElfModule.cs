@@ -116,14 +116,13 @@ namespace AElf.WebApp.Web
             var app = context.GetApplicationBuilder();
 
             app.UseSwagger();
-            app.UseAbpSwaggerUI(options =>
+            app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "WebServer API");
                 var provider = context.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    //options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
-                       // $"AELF API {description.GroupName.ToUpperInvariant()}");
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                        $"AELF API {description.GroupName.ToUpperInvariant()}");
                 }
             });
 

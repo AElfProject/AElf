@@ -1,11 +1,12 @@
 using System.Linq;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
+using AutoMapper;
 using Volo.Abp.AutoMapper;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public class ChainProfile : AutoMapper.Profile
+    public class ChainProfile : Profile
     {
         public ChainProfile()
         {
