@@ -38,22 +38,21 @@ namespace AElf.WebApp.Web
         {
             //var hostingEnvironment = context.Services.GetHostingEnvironment();
             //var configuration = context.Services.GetConfiguration();
-            
+
             context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
             ConfigureAutoApiControllers();
-            
+
             context.Services.AddApiVersioning(options =>
             {
                 options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
-                options.AssumeDefaultVersionWhenUnspecified = true; 
+                options.AssumeDefaultVersionWhenUnspecified = true;
                 options.ApiVersionReader = new MediaTypeApiVersionReader();
                 options.UseApiBehavior = false;
             });
             context.Services.AddVersionedApiExplorer();
-            
-            ConfigureSwaggerServices(context.Services);
 
+            ConfigureSwaggerServices(context.Services);
 
             context.Services.AddControllers(options =>
             {
@@ -67,10 +66,10 @@ namespace AElf.WebApp.Web
                 };
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
-            
+
             context.Services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-            
+
             var configuration = context.Services.GetConfiguration();
 
             Configure<BasicAuthOptions>(options => { configuration.GetSection("BasicAuth").Bind(options); });
@@ -80,9 +79,11 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "blockChain");
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,
+                    setting => setting.UrlControllerNameNormalizer = _ => "blockChain");
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "net");
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,
+                    setting => setting.UrlControllerNameNormalizer = _ => "net");
             });
         }
 
@@ -95,63 +96,40 @@ namespace AElf.WebApp.Web
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
-            //var env = context.GetEnvironment();
 
-            /*if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseErrorPage();
-            }*/
-
-            //app.UseVirtualFiles();
-            //app.UseAuthentication();
-
-            //app.UseAbpRequestLocalization();
-
-            
             app.UseSwagger();
-            app.UseSwaggerUI(options =>
+            app.UseAbpSwaggerUI(options =>
             {
                 var provider = context.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
-                foreach ( var description in provider.ApiVersionDescriptions )
+                foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    options.SwaggerEndpoint( $"/swagger/{description.GroupName}/swagger.json", $"AELF API {description.GroupName.ToUpperInvariant()}" );
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                        $"AELF API {description.GroupName.ToUpperInvariant()}");
                 }
             });
-            
+
             app.UseMvcWithDefaultRouteAndArea();
         }
     }
-
 
     // Thanks to https://tero.teelahti.fi/using-google-proto3-with-aspnet-mvc/
     // The input formatter reading request body and mapping it to given data object.
     public class ProtobufInputFormatter : InputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType =
+        private static readonly MediaTypeHeaderValue ProtoMediaType =
             MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
-
 
         public ProtobufInputFormatter()
         {
-            SupportedMediaTypes.Add(protoMediaType);
+            SupportedMediaTypes.Add(ProtoMediaType);
         }
 
         public override bool CanRead(InputFormatterContext context)
         {
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
+            MediaTypeHeaderValue.TryParse(request.ContentType, out var requestContentType);
 
-            if (requestContentType == null)
-            {
-                return false;
-            }
-
-            return requestContentType.IsSubsetOf(protoMediaType);
+            return requestContentType != null && requestContentType.IsSubsetOf(ProtoMediaType);
         }
 
         public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
