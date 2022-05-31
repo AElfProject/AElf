@@ -4,15 +4,13 @@ using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.AutoMapper;
-using Volo.Saas.Host;
 
 namespace AElf.WebApp.Application.Chain
 {
     [DependsOn(
         typeof(CoreKernelAElfModule),
         typeof(CoreApplicationWebAppAElfModule),
-        typeof(AbpAutoMapperModule),
-        typeof(SaasHostApplicationModule)
+        typeof(AbpAutoMapperModule)
         )]
     public class ChainApplicationWebAppAElfModule : AElfModule
     {

@@ -13,14 +13,18 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.Conventions;
 using Volo.Abp.Authorization;
 using Volo.Abp.Castle.DynamicProxy;
 using Volo.Abp.Modularity;
@@ -36,6 +40,9 @@ namespace AElf.WebApp.Web
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+
+            context.Services.Replace(
+                ServiceDescriptor.Transient<IConventionalRouteBuilder, AElfConventionalRouteBuilder>());
 
             context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
@@ -79,16 +86,12 @@ namespace AElf.WebApp.Web
                     setting =>
                     {
                         setting.UrlControllerNameNormalizer = _ => "blockChain";
-                        setting.RootPath = "blockchain";
-                        setting.UseV3UrlStyle = true;
                     });
 
                 options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,
                     setting =>
                     {
                         setting.UrlControllerNameNormalizer = _ => "net";
-                        setting.RootPath = "net";
-                        setting.UseV3UrlStyle = true;
                     });
             });
         }
@@ -98,14 +101,14 @@ namespace AElf.WebApp.Web
             services.AddAbpSwaggerGen(
                 options =>
                 {
-                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "WebServer API", Version = "v1" });
+                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "AElf API", Version = "v1" });
                     options.DocInclusionPredicate((docName, description) => true);
                     options.CustomSchemaIds(type => type.FullName);
-                    //options.DocumentFilter<ApiOptionFilter>();
+                    options.DocumentFilter<ApiOptionFilter>();
                     options.HideAbpEndpoints();
                 }
             );
-            //services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -115,15 +118,16 @@ namespace AElf.WebApp.Web
             app.UseSwagger();
             app.UseAbpSwaggerUI(options =>
             {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "WebServer API");
                 var provider = context.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
-                        $"AELF API {description.GroupName.ToUpperInvariant()}");
+                    //options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json",
+                       // $"AELF API {description.GroupName.ToUpperInvariant()}");
                 }
             });
 
-            app.UseMvcWithDefaultRouteAndArea();
+            app.UseConfiguredEndpoints();
         }
     }
 

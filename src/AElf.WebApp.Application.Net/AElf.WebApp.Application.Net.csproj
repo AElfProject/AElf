@@ -15,4 +15,8 @@
       <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="5.2.2" />
+    </ItemGroup>
+
 </Project>
