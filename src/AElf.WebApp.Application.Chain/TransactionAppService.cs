@@ -23,7 +23,7 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface ITransactionAppService : IApplicationService
+    public interface ITransactionAppService
     {
         Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input);
 
@@ -38,8 +38,8 @@ namespace AElf.WebApp.Application.Chain
         Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
     }
 
-    [ControllerName("BlockChain")]
-    public class TransactionAppService : ITransactionAppService
+    //[ControllerName("BlockChain")]
+    public class TransactionAppService : AElfAppService, ITransactionAppService
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainService _blockchainService;

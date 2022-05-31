@@ -18,7 +18,7 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IBlockChainAppService : IApplicationService
+    public interface IBlockChainAppService
     {
         Task<long> GetBlockHeightAsync();
 
@@ -31,7 +31,7 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockStateDto> GetBlockStateAsync(string blockHash);
     }
 
-    public class BlockChainAppService : IBlockChainAppService
+    public class BlockChainAppService : AElfAppService, IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionPoolService _transactionPoolService;

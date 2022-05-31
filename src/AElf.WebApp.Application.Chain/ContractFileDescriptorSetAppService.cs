@@ -11,13 +11,13 @@ using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IContractFileDescriptorSetAppService : IApplicationService
+    public interface IContractFileDescriptorSetAppService
     {
         Task<byte[]> GetContractFileDescriptorSetAsync(string address);
     }
 
-    [ControllerName("BlockChain")]
-    public class ContractFileDescriptorSetAppService : IContractFileDescriptorSetAppService
+    //[ControllerName("BlockChain")]
+    public class ContractFileDescriptorSetAppService : ApplicationService, IContractFileDescriptorSetAppService
     {
         private static IBlockchainService _blockchainService;
         private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;

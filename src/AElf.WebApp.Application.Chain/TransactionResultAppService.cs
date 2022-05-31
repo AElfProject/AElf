@@ -23,7 +23,7 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface ITransactionResultAppService : IApplicationService
+    public interface ITransactionResultAppService
     {
         Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
@@ -33,8 +33,8 @@ namespace AElf.WebApp.Application.Chain
         Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
-    [ControllerName("BlockChain")]
-    public class TransactionResultAppService : ITransactionResultAppService
+    //[ControllerName("BlockChain")]
+    public class TransactionResultAppService : AElfAppService, ITransactionResultAppService
     {
         private readonly ITransactionResultProxyService _transactionResultProxyService;
         private readonly ITransactionManager _transactionManager;

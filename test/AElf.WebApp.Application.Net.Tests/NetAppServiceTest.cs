@@ -64,10 +64,10 @@ namespace AElf.WebApp.Application.Net.Tests
             
             //failed
             await PostResponseAsStringAsync("/api/net/peer", parameters, basicAuth: new BasicAuth
-                {
-                    UserName = BasicAuth.DefaultUserName,
-                    Password = "123"
-                },expectedStatusCode: HttpStatusCode.Unauthorized);
+            {
+                UserName = BasicAuth.DefaultUserName,
+                Password = "123"
+            }, expectedStatusCode: HttpStatusCode.Unauthorized);
 
             _basicAuthOptions.Password = string.Empty;
             _basicAuthOptions.UserName = string.Empty;

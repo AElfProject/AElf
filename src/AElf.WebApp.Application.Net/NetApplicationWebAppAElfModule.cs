@@ -12,7 +12,7 @@ namespace AElf.WebApp.Application.Net
         {
             context.Services.AddAutoMapperObjectMapper<NetApplicationWebAppAElfModule>();
 
-            Configure<AbpAutoMapperOptions>(options => { options.AddMaps<NetApplicationWebAppAElfModule>(true); });
+            Configure<AbpAutoMapperOptions>(options => { options.AddMaps<NetApplicationWebAppAElfModule>(); });
         }
     }
 }

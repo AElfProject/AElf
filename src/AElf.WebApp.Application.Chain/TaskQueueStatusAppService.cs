@@ -8,13 +8,13 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface ITaskQueueStatusAppService : IApplicationService
+    public interface ITaskQueueStatusAppService
     {
         List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
     }
 
-    [ControllerName("BlockChain")]
-    public class TaskQueueStatusAppService : ITaskQueueStatusAppService
+    //[ControllerName("BlockChain")]
+    public class TaskQueueStatusAppService : AElfAppService, ITaskQueueStatusAppService
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IObjectMapper<ChainApplicationWebAppAElfModule> _objectMapper;

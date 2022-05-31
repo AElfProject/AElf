@@ -13,13 +13,12 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Authorization;
@@ -36,8 +35,7 @@ namespace AElf.WebApp.Web
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //var hostingEnvironment = context.Services.GetHostingEnvironment();
-            //var configuration = context.Services.GetConfiguration();
+            var configuration = context.Services.GetConfiguration();
 
             context.Services.AddTransient(typeof(AbpAsyncDeterminationInterceptor<AuthorizationInterceptor>));
 
@@ -70,8 +68,6 @@ namespace AElf.WebApp.Web
             context.Services.AddAuthentication("BasicAuthentication")
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
-            var configuration = context.Services.GetConfiguration();
-
             Configure<BasicAuthOptions>(options => { configuration.GetSection("BasicAuth").Bind(options); });
         }
 
@@ -80,17 +76,36 @@ namespace AElf.WebApp.Web
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
                 options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,
-                    setting => setting.UrlControllerNameNormalizer = _ => "blockChain");
+                    setting =>
+                    {
+                        setting.UrlControllerNameNormalizer = _ => "blockChain";
+                        setting.RootPath = "blockchain";
+                        setting.UseV3UrlStyle = true;
+                    });
 
                 options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,
-                    setting => setting.UrlControllerNameNormalizer = _ => "net");
+                    setting =>
+                    {
+                        setting.UrlControllerNameNormalizer = _ => "net";
+                        setting.RootPath = "net";
+                        setting.UseV3UrlStyle = true;
+                    });
             });
         }
 
         private void ConfigureSwaggerServices(IServiceCollection services)
         {
-            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(c => c.DocumentFilter<ApiOptionFilter>());
+            services.AddAbpSwaggerGen(
+                options =>
+                {
+                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "WebServer API", Version = "v1" });
+                    options.DocInclusionPredicate((docName, description) => true);
+                    options.CustomSchemaIds(type => type.FullName);
+                    //options.DocumentFilter<ApiOptionFilter>();
+                    options.HideAbpEndpoints();
+                }
+            );
+            //services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

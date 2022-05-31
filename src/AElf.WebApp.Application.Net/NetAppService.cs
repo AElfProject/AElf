@@ -12,7 +12,7 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Net
 {
-    public interface INetAppService : IApplicationService
+    public interface INetAppService
     {
         Task<bool> AddPeerAsync(AddPeerInput input);
 
@@ -23,7 +23,7 @@ namespace AElf.WebApp.Application.Net
         Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
     }
     
-    public class NetAppService : INetAppService
+    public class NetAppService : ApplicationService, INetAppService
     {
         private readonly INetworkService _networkService;
         private readonly IReconnectionService _reconnectionService;

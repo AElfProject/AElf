@@ -4,10 +4,16 @@ using AElf.WebApp.Application.Chain.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.AutoMapper;
+using Volo.Saas.Host;
 
 namespace AElf.WebApp.Application.Chain
 {
-    [DependsOn(typeof(CoreKernelAElfModule), typeof(CoreApplicationWebAppAElfModule), typeof(AbpAutoMapperModule))]
+    [DependsOn(
+        typeof(CoreKernelAElfModule),
+        typeof(CoreApplicationWebAppAElfModule),
+        typeof(AbpAutoMapperModule),
+        typeof(SaasHostApplicationModule)
+        )]
     public class ChainApplicationWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -16,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 
             Configure<AbpAutoMapperOptions>(options =>
             {
-                options.AddMaps<ChainApplicationWebAppAElfModule>(true);
+                options.AddMaps<ChainApplicationWebAppAElfModule>();
             });
             
             context.Services

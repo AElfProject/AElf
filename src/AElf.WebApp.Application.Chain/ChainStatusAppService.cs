@@ -10,13 +10,13 @@ using Volo.Abp.ObjectMapping;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IChainStatusAppService : IApplicationService
+    public interface IChainStatusAppService
     {
         Task<ChainStatusDto> GetChainStatusAsync();
     }
 
-    [ControllerName("BlockChain")]
-    public class ChainStatusAppService : IChainStatusAppService
+    //[ControllerName("BlockChain")]
+    public class ChainStatusAppService : AElfAppService, IChainStatusAppService
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
 
