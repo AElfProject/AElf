@@ -251,10 +251,6 @@ service ElectionContract {
     rpc GetManagedPubkeys (aelf.Address) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
-
-    rpc IsElectionEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message InitialElectionContractInput {
