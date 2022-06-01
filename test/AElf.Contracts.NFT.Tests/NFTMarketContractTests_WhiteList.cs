@@ -791,7 +791,7 @@ namespace AElf.Contracts.NFT
             ifExist.Value.ShouldBe(false);
 
             var extraInfoList = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-            extraInfoList.ExtraInfoIdList.Value.Count.ShouldBe(3);
+            extraInfoList.ExtraInfoIdList.Value.Count.ShouldBe(2);
 
             var tagIdList = await WhitelistContractStub.GetExtraInfoIdList.CallAsync(new GetExtraInfoIdListInput()
             {

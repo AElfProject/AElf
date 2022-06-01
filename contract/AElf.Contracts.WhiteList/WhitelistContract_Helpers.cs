@@ -151,7 +151,10 @@ namespace AElf.Contracts.Whitelist
                 throw new AssertionException("TagInfo is null.");
             }
             var id = Context.Sender.CalculateExtraInfoId(projectId,info.TagName);
-            if (State.TagInfoMap[id] != null) return id;
+            if (State.TagInfoMap[id] != null)
+            {
+                throw new AssertionException($"TagInfo already exist.{info}");
+            }
             State.TagInfoMap[id] = info;
             Context.Fire(new TagInfoAdded()
             {

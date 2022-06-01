@@ -1,4 +1,5 @@
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.NFTMarket
@@ -9,7 +10,6 @@ namespace AElf.Contracts.NFTMarket
         {
             Assert(State.NFTContract.Value == null, "Already initialized.");
             State.NFTContract.Value = input.NftContractAddress;
-            State.WhitelistContract.Value= input.WhitelistContractAddress;
             State.Admin.Value = input.AdminAddress ?? Context.Sender;
             State.ServiceFeeRate.Value = input.ServiceFeeRate == 0 ? DefaultServiceFeeRate : input.ServiceFeeRate;
             State.ServiceFeeReceiver.Value = input.ServiceFeeReceiver ?? State.Admin.Value;
@@ -43,6 +43,13 @@ namespace AElf.Contracts.NFTMarket
             {
                 TokenWhiteList = input
             });
+            return new Empty();
+        }
+
+        public override Empty SetWhitelistContract(Address input)
+        {
+            AssertSenderIsAdmin();
+            State.WhitelistContract.Value= input;
             return new Empty();
         }
 

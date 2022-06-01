@@ -68,7 +68,7 @@ namespace AElf.Contracts.NFT
                     {
                         new ExtraInfo
                         {
-                            AddressList = new Whitelist.AddressList(){Value = { User1Address,User2Address }},
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address,User2Address}},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO1",
@@ -288,6 +288,49 @@ namespace AElf.Contracts.NFT
         }
         
         [Fact]
+        public async Task CreateWhitelist_Duplicate_Tag()
+        {
+            await InitializeTest();
+            var projectId = new Hash();
+            var executionResult = await WhitelistContractStub.CreateWhitelist.SendWithExceptionAsync(new CreateWhitelistInput()
+            {
+                ProjectId = projectId,
+                ExtraInfoList = new ExtraInfoList()
+                {
+                    Value =
+                    {
+                        new ExtraInfo
+                        {
+                            AddressList = new Whitelist.AddressList(){Value = {User1Address}},
+                            Info = new TagInfo()
+                            {
+                                TagName = "INFO1",
+                                Info = Info1
+                            }
+                        },
+                        new ExtraInfo
+                        {
+                            AddressList = new Whitelist.AddressList(){Value = {User2Address}},
+                            Info = new TagInfo()
+                            {
+                                TagName = "INFO1",
+                                Info = Info1
+                            }
+                        }
+                    }
+                },
+                IsCloneable = true,
+                Remark = "new whitelist test",
+                ManagerList = new Whitelist.AddressList()
+                {
+                    Value = {User4Address}
+                },
+                StrategyType = StrategyType.Price
+            });
+            executionResult.TransactionResult.Error.ShouldContain("TagInfo already exist.");
+        }
+        
+        [Fact]
         public async Task AddExtraInfoTest()
         {
             var whitelistId = await CreateWhitelistTest();
@@ -503,7 +546,7 @@ namespace AElf.Contracts.NFT
                             new ExtraInfoId()
                             {
                                 AddressList = new Whitelist.AddressList(){Value = {User6Address}},
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO3")
+                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                             }
                         }
                     }
@@ -511,10 +554,10 @@ namespace AElf.Contracts.NFT
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(3);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(4);
                 whitelist.ExtraInfoIdList.Value[0].AddressList.Value[2].ShouldBe(User5Address);
                 whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
-                whitelist.ExtraInfoIdList.Value[1].AddressList.Value[2].ShouldBe(User6Address);
+                whitelist.ExtraInfoIdList.Value[1].AddressList.Value[1].ShouldBe(User4Address);
                 whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
             }
             {
@@ -530,11 +573,11 @@ namespace AElf.Contracts.NFT
                 var extra = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(new GetExtraInfoByTagInput()
                 {
                     WhitelistId = whitelistId,
-                    TagInfoId = CalculateId(DefaultAddress,_projectId,"INFO3")
+                    TagInfoId = CalculateId(DefaultAddress,_projectId,"INFO1")
                 });
-                extra.AddressList.Value.Count.ShouldBe(3);
-                extra.AddressList.Value[0].ShouldBe(User3Address);
-                extra.AddressList.Value[2].ShouldBe(User6Address);
+                extra.AddressList.Value.Count.ShouldBe(4);
+                extra.AddressList.Value[0].ShouldBe(User1Address);
+                extra.AddressList.Value[3].ShouldBe(User6Address);
             }
             {
                 var tagId = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(new GetExtraInfoByAddressInput()
