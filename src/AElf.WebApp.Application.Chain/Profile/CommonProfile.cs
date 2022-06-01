@@ -1,4 +1,3 @@
-using System;
 using AElf.Types;
 using Google.Protobuf;
 

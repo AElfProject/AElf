@@ -439,13 +439,6 @@ namespace AElf.Contracts.Election
         {
             return State.ManagedCandidatePubkeysMap[input];
         }
-
-        public override BoolValue IsElectionEnabled(Empty input)
-        {
-            return new BoolValue
-            {
-                Value = State.ElectionEnabled.Value
-            };
-        }
+        
     }
 }

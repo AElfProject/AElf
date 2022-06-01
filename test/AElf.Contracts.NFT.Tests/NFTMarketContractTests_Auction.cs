@@ -456,6 +456,13 @@ namespace AElf.Contracts.NFT
                 }
             });
 
+            await TokenContractStub.Approve.SendAsync(new MultiToken.ApproveInput
+            {
+                Symbol = "ELF",
+                Spender = NFTMarketContractAddress,
+                Amount = 1_00000000
+            });
+
             await SellerNFTMarketContractStub.Delist.SendAsync(new DelistInput
             {
                 Symbol = symbol,
