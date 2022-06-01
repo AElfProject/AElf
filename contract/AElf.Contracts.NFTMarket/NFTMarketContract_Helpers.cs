@@ -415,6 +415,7 @@ namespace AElf.Contracts.NFTMarket
                 bidAddressList.Value.Remove(except);
             }
 
+            var transferredEarnestMoney = 0L;
             foreach (var bidAddress in bidAddressList.Value)
             {
                 if (auctionInfo.EarnestMoney > 0)
@@ -427,6 +428,7 @@ namespace AElf.Contracts.NFTMarket
                             Symbol = auctionInfo.PurchaseSymbol,
                             Amount = auctionInfo.EarnestMoney
                         });
+                    transferredEarnestMoney = transferredEarnestMoney.Add(auctionInfo.EarnestMoney);
                 }
 
                 State.BidMap[symbol][tokenId].Remove(bidAddress);
@@ -447,7 +449,7 @@ namespace AElf.Contracts.NFTMarket
                 Owner = CalculateNFTVirtuaAddress(symbol, tokenId),
                 Symbol = auctionInfo.PurchaseSymbol
             }).Balance;
-            var remainAmount = virtualAddressBalance;
+            var remainAmount = virtualAddressBalance.Sub(transferredEarnestMoney);
             if (except != null)
             {
                 remainAmount = remainAmount.Sub(auctionInfo.EarnestMoney.Mul(except.Value.Length));
