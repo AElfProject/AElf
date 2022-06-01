@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.NFTMarket;
+using AElf.Contracts.Whitelist;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

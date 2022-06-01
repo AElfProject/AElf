@@ -231,7 +231,7 @@ namespace AElf.Contracts.NFT
             {
                 Whitelists = { new WhitelistInfo()
                 {
-                    Address = User2Address,
+                    AddressList = new NFTMarket.AddressList(){Value = { User2Address }},
                     PriceTag = new PriceTag()
                     {
                         TagName = "2ELF",
@@ -272,7 +272,7 @@ namespace AElf.Contracts.NFT
             whitelistIds.WhitelistId[0].ShouldBe(whiteListId);
             var whitelist = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whiteListId); 
             whitelist.Value.Count.ShouldBe(1);
-            whitelist.Value[0].Address.ShouldBe(User2Address);
+            whitelist.Value[0].AddressList.Value[0].ShouldBe(User2Address);
             var price = new Price();
             price.MergeFrom(whitelist.Value[0].Info.Info);
             price.Symbol.ShouldBe("ELF");

@@ -7,5 +7,6 @@ namespace AElf.Contracts.NFTMarket
         private const int DefaultServiceFeeRate = 10;
         private const int DefaultServiceFeeAmount = 1_00000000;
         private const int DefaultDepositConfirmRate = FeeDenominator / 2;
+        private const string BadgeMintWhitelistIdMetadataKey = "aelf_badge_whitelist";
     }
 }

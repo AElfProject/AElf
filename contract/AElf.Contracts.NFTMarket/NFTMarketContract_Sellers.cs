@@ -26,6 +26,7 @@ namespace AElf.Contracts.NFTMarket
             var whitelistId = new Hash();
             if (input.IsWhitelistAvailable)
             {
+                var whitelistManager = GetWhitelistManager();
                 if (requestInfo != null)
                 {
                     bool isWhiteListDueTimePassed;
@@ -102,11 +103,14 @@ namespace AElf.Contracts.NFTMarket
                                     HashHelper.ComputeFrom(
                                         $"{Context.Self}{projectId}{extra.Key.TagName}");
                                 var toAddExtraInfoIdList = new ExtraInfoIdList();
-                                foreach (var whitelistInfo in extra.Value.Where(whitelistInfo => whitelistInfo.Address != null))
+                                foreach (var whitelistInfo in extra.Value.Where(whitelistInfo => whitelistInfo.AddressList.Value.Any()))
                                 {
                                     toAddExtraInfoIdList.Value.Add(new ExtraInfoId()
                                     {
-                                        Address = whitelistInfo.Address,
+                                        AddressList = new Whitelist.AddressList
+                                        {
+                                            Value = {whitelistInfo.AddressList.Value}
+                                        },
                                         Id = tagId
                                     });
                                 }

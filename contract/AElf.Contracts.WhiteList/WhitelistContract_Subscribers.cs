@@ -92,12 +92,12 @@ namespace AElf.Contracts.Whitelist
             var cloneWhiteListId = CalculateCloneWhitelistHash(Context.Sender,input.WhitelistId);
             Assert(State.WhitelistInfoMap[cloneWhiteListId] == null, "WhiteList has already been cloned.");
 
-            var managerList = SetManagerList(cloneWhiteListId, input.ManagerList);
+            var managerList = SetManagerList(cloneWhiteListId, input.Creator,input.ManagerList);
             var whitelistClone = new WhitelistInfo()
             {
                 WhitelistId = cloneWhiteListId,
                 ExtraInfoIdList = whiteListInfo.ExtraInfoIdList,
-                Creator = Context.Sender,
+                Creator = input.Creator ?? Context.Sender,
                 IsAvailable = whiteListInfo.IsAvailable,
                 IsCloneable = whiteListInfo.IsCloneable,
                 Remark = whiteListInfo.Remark,
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Whitelist
             {
                 WhitelistId = whitelistClone.WhitelistId,
                 ExtraInfoIdList = whitelistClone.ExtraInfoIdList,
-                Creator = Context.Sender,
+                Creator = input.Creator ?? Context.Sender,
                 IsAvailable = whitelistClone.IsAvailable,
                 IsCloneable = whitelistClone.IsCloneable,
                 Remark = whitelistClone.Remark,

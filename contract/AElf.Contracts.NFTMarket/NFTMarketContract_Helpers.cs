@@ -377,7 +377,8 @@ namespace AElf.Contracts.NFTMarket
             var whitelistId = State.WhitelistIdMap[input.Symbol][input.TokenId][Context.Sender];
             //TODO:Whether to adjust whitelist info to be correct.
             Assert(whitelistInfo.Whitelists.Count == 1 &&
-                   whitelistInfo.Whitelists.Any(p => p.Address == requestInfo.Requester),
+                   whitelistInfo.Whitelists.Any(p =>
+                       p.AddressList.Value.Contains(requestInfo.Requester) && p.AddressList.Value.Count == 1),
                 "Incorrect white list address price list.");
             Assert(input.Price.Symbol == requestInfo.Price.Symbol, $"Need to use token {requestInfo.Price.Symbol}");
 
@@ -440,13 +441,19 @@ namespace AElf.Contracts.NFTMarket
                 }).Value;
                 if (ifExist)
                 {
-                    State.WhitelistContract.AddAddressInfoToWhitelist.Send(new AddAddressInfoToWhitelistInput()
+                    State.WhitelistContract.AddAddressInfoListToWhitelist.Send(new AddAddressInfoListToWhitelistInput()
                     {
                         WhitelistId = whitelistId,
-                        ExtraInfoId = new ExtraInfoId()
+                        ExtraInfoIdList = new ExtraInfoIdList
                         {
-                            Address = whitelistInfo.Whitelists[0].Address,
-                            Id = tagId
+                            Value = { new ExtraInfoId
+                            {
+                                AddressList = new Whitelist.AddressList
+                                {
+                                    Value = {whitelistInfo.Whitelists[0].AddressList.Value.First()}
+                                },
+                                Id = tagId
+                            } }
                         }
                     });
                 }
@@ -461,7 +468,10 @@ namespace AElf.Contracts.NFTMarket
                             TagName = tagName,
                             Info = whitelistInfo.Whitelists[0].PriceTag.Price.ToByteString()
                         },
-                        AddressList = new Whitelist.AddressList(){Value = { whitelistInfo.Whitelists[0].Address }}
+                        AddressList = new Whitelist.AddressList()
+                        {
+                            Value = {whitelistInfo.Whitelists[0].AddressList.Value.First()}
+                        }
                     });
                 }
             }
@@ -566,10 +576,10 @@ namespace AElf.Contracts.NFTMarket
             var extraInfoList = new ExtraInfoList();
             foreach (var whitelist in input.Whitelists)
             {
-                var extraInfo = new ExtraInfo()
+                var extraInfo = new ExtraInfo
                 {
-                    Address = whitelist.Address,
-                    Info = new TagInfo()
+                    AddressList = new Whitelist.AddressList {Value = {whitelist.AddressList.Value}},
+                    Info = new TagInfo
                     {
                         TagName = whitelist.PriceTag.TagName,
                         Info = whitelist.PriceTag.Price.ToByteString()

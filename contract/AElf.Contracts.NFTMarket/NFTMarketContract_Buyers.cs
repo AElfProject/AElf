@@ -5,6 +5,7 @@ using AElf.Contracts.Whitelist;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using GetAllowanceInput = AElf.Contracts.MultiToken.GetAllowanceInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
@@ -523,10 +524,17 @@ namespace AElf.Contracts.NFTMarket
                     WhitelistId = whitelistId,
                     Address = Context.Sender
                 });
-                State.WhitelistContract.RemoveAddressInfoFromWhitelist.Send(new RemoveAddressInfoFromWhitelistInput()
+                State.WhitelistContract.RemoveAddressInfoListFromWhitelist.Send(new RemoveAddressInfoListFromWhitelistInput()
                 {
                     WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId(){Address = Context.Sender,Id = extraInfoId}
+                    ExtraInfoIdList = new ExtraInfoIdList()
+                    {
+                        Value = { new ExtraInfoId
+                        {
+                            AddressList = new Whitelist.AddressList {Value = {Context.Sender}},
+                            Id = extraInfoId
+                        } }
+                    }
                 });
             }
             else if (listedNftInfo.Duration.PublicTime > Context.CurrentBlockTime)
@@ -810,6 +818,50 @@ namespace AElf.Contracts.NFTMarket
             }
 
             MaybeRemoveRequest(requestInfo.Symbol, requestInfo.TokenId);
+        }
+
+        public override Empty MintBadge(MintBadgeInput input)
+        {
+            var protocol = State.NFTContract.GetNFTProtocolInfo.Call(new StringValue {Value = input.Symbol});
+            Assert(!string.IsNullOrWhiteSpace(protocol.Symbol), $"Protocol {input.Symbol} not found.");
+            Assert(protocol.NftType.ToUpper() == NFTType.Badges.ToString().ToUpper(),
+                "This method is only for badges.");
+            var nftInfo = State.NFTContract.GetNFTInfo.Call(new GetNFTInfoInput
+            {
+                Symbol = input.Symbol,
+                TokenId = input.TokenId
+            });
+            Assert(nftInfo.TokenId > 0, "Badge not found.");
+            Assert(nftInfo.Metadata.Value.ContainsKey(BadgeMintWhitelistIdMetadataKey),
+                $"Metadata {BadgeMintWhitelistIdMetadataKey} not found.");
+            var whitelistIdHex = nftInfo.Metadata.Value[BadgeMintWhitelistIdMetadataKey];
+            var whitelistId = Hash.LoadFromHex(whitelistIdHex);
+            //Whether NFT Market Contract is the manager.
+            var isManager = State.WhitelistContract.GetManagerExistFromWhitelist.Call(new GetManagerExistFromWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                Manager = Context.Self
+            });
+            Assert(isManager.Value == true,"NFT Market Contract does not in the manager list.");
+            // Is Context.Sender in whitelist
+            var ifExist = State.WhitelistContract.GetAddressFromWhitelist.Call(new GetAddressFromWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                Address = Context.Sender
+            });
+            Assert(ifExist.Value,$"No permission.{Context.Sender}");
+            State.WhitelistContract.RemoveAddressInfoListFromWhitelist.Send(new RemoveAddressInfoListFromWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                ExtraInfoIdList = new ExtraInfoIdList()
+                {
+                    Value = { new ExtraInfoId()
+                    {
+                        AddressList = new Whitelist.AddressList(){Value = { Context.Sender }}
+                    } }
+                }
+            });
+            return new Empty();
         }
     }
 }

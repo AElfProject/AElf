@@ -25,14 +25,6 @@ service WhitelistContract {
     //Add tag info or extraInfo.
     rpc AddExtraInfo (AddExtraInfoInput) returns (aelf.Hash){
     }
-
-    //Add an address to an existing whitelist.
-    rpc AddAddressInfoToWhitelist (AddAddressInfoToWhitelistInput) returns (google.protobuf.Empty){
-    }
-    
-    //Remove address from an existing whitelist.
-    rpc RemoveAddressInfoFromWhitelist (RemoveAddressInfoFromWhitelistInput) returns (google.protobuf.Empty){
-    }
     
     //Add multiple addresses to an existing whitelist.
     rpc AddAddressInfoListToWhitelist (AddAddressInfoListToWhitelistInput) returns (google.protobuf.Empty){
@@ -294,16 +286,6 @@ message CreateWhitelistInput {
     AddressList manager_list = 5;
     aelf.Hash project_id = 6;
     StrategyType strategy_type = 7;
-}
-
-message AddAddressInfoToWhitelistInput {
-    aelf.Hash whitelist_id = 1;
-    ExtraInfoId extra_info_id = 2;
-}
-
-message RemoveAddressInfoFromWhitelistInput {
-    aelf.Hash whitelist_id = 1;
-    ExtraInfoId extra_info_id = 2;
 }
 
 message AddAddressInfoListToWhitelistInput {

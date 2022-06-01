@@ -81,14 +81,6 @@ namespace AElf.Contracts.Whitelist
                 }
                 
             }
-            // if ((from addressList in whitelist.ExtraInfoIdList.Value.Select(i => i.AddressList)
-            //         from address in id.AddressList.Value
-            //         where addressList.Value.Contains(address)
-            //         select addressList).Any())
-            // {
-            //     throw new AssertionException("Duplicate address.");
-            // }
-
             return id;
         }
 
@@ -171,12 +163,12 @@ namespace AElf.Contracts.Whitelist
             return id;
         }
         
-        private AddressList SetManagerList(Hash whitelistId,AddressList input)
+        private AddressList SetManagerList(Hash whitelistId,Address creator,AddressList input)
         {
             var managerList = input != null ? input.Value.Distinct().ToList() : new List<Address>();
-            if (!managerList.Contains(Context.Sender))
+            if (!managerList.Contains(creator ?? Context.Sender))
             {
-                managerList.Add(Context.Sender);
+                managerList.Add(creator ?? Context.Sender);
             }
             State.ManagerListMap[whitelistId] = new AddressList(){Value = { managerList }};
             return State.ManagerListMap[whitelistId];
