@@ -119,7 +119,7 @@ service WhitelistContract {
     }
     
     //Get extraInfo according to the tag_id.
-    rpc GetExtraInfoByTag (GetExtraInfoByTagInput) returns (ExtraInfoList){
+    rpc GetExtraInfoByTag (GetExtraInfoByTagInput) returns (ExtraInfo){
         option (aelf.is_view) = true;
     }
 
@@ -160,6 +160,11 @@ service WhitelistContract {
     
     //Get manager list according to the whitelist_id.
     rpc GetManagerList(aelf.Hash) returns (AddressList){
+        option (aelf.is_view) = true;
+    }
+    
+    //Whether manager exist in whitelist.
+    rpc GetManagerExistFromWhitelist(GetManagerExistFromWhitelistInput) returns (google.protobuf.BoolValue){
         option (aelf.is_view) = true;
     }
     
@@ -223,7 +228,7 @@ message ExtraInfoIdList {
 }
 
 message ExtraInfoId {
-    aelf.Address address = 1;
+    AddressList address_list = 1;
     aelf.Hash id = 2;
 }
 
@@ -232,7 +237,7 @@ message ExtraInfoList {
 }
 
 message ExtraInfo {
-    aelf.Address address = 1;
+    AddressList address_list = 1;
     TagInfo info = 2;
 }
 
@@ -409,6 +414,11 @@ message GetTagInfoFromWhitelistInput{
     aelf.Hash whitelist_id = 1;
     aelf.Hash project_id = 2;
     TagInfo tag_info = 3;
+}
+
+message GetManagerExistFromWhitelistInput{
+    aelf.Hash whitelist_id = 1;
+    aelf.Address manager = 2;
 }
 
 message ResetWhitelistInput{

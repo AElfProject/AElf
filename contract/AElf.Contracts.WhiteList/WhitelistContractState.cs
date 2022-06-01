@@ -32,7 +32,12 @@ namespace AElf.Contracts.Whitelist
         /// Manager address -> Whitelist id list.
         /// </summary>
         public MappedState<Address, WhitelistIdList> WhitelistIdMap { get; set; }
-        
+
+        /// <summary>
+        /// whitelist id -> project id.
+        /// </summary>
+        public MappedState<Hash, Hash> ProjectWhitelistIdMap { get; set; }
+
         /// <summary>
         /// Whitelist id -> Whitelist Info.
         /// </summary>

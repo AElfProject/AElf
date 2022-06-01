@@ -68,7 +68,7 @@ namespace AElf.Contracts.NFT
                     {
                         new ExtraInfo
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address,User2Address }},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO1",
@@ -77,7 +77,7 @@ namespace AElf.Contracts.NFT
                         },
                         new ExtraInfo
                         {
-                            Address = User3Address,
+                            AddressList = new Whitelist.AddressList(){Value = { User3Address,User4Address }},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO3",
@@ -103,7 +103,7 @@ namespace AElf.Contracts.NFT
                     {
                         new ExtraInfo
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address }},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO5",
@@ -112,7 +112,7 @@ namespace AElf.Contracts.NFT
                         },
                         new ExtraInfo
                         {
-                            Address = User2Address,
+                            AddressList = new Whitelist.AddressList(){Value = { User2Address }},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO1",
@@ -132,8 +132,9 @@ namespace AElf.Contracts.NFT
             
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.WhitelistId.ShouldBe(whitelistId);
-                whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User3Address);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
+                whitelist.ExtraInfoIdList.Value[1].AddressList.Value[1].ShouldBe(User4Address);
                 whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
             }
             {
@@ -147,9 +148,8 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(DefaultAddress,_projectId,"INFO1")
                 });
-                extraInfo.Value.Count.ShouldBe(1);
-                extraInfo.Value[0].Address.ShouldBe(User1Address);
-                extraInfo.Value[0].Info.Info.ShouldBe(Info1);
+                extraInfo.AddressList.Value.Count.ShouldBe(2);
+                extraInfo.AddressList.Value[0].ShouldBe(User1Address);
             }
             {
                 var extraInfoIdList = await WhitelistContractStub.GetExtraInfoIdList.CallAsync(new GetExtraInfoIdListInput()
@@ -173,12 +173,13 @@ namespace AElf.Contracts.NFT
             }
             {
                 var whitelist2 = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId2);
-                whitelist2.ExtraInfoIdList.Value[1].Address.ShouldBe(User2Address);
+                whitelist2.ExtraInfoIdList.Value[1].AddressList.Value[0].ShouldBe(User2Address);
                 whitelist2.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId2,"INFO1"));
             }
             {
                 var whitelistDetail = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
-                whitelistDetail.Value[1].Address.ShouldBe(User3Address);
+                whitelistDetail.Value[1].AddressList.Value.Count.ShouldBe(2);
+                whitelistDetail.Value[1].AddressList.Value[0].ShouldBe(User3Address);
                 whitelistDetail.Value[1].Info.TagName.ShouldBe("INFO3");
                 whitelistDetail.Value[1].Info.Info.ShouldBe(Info3);
             }
@@ -216,11 +217,11 @@ namespace AElf.Contracts.NFT
                     {
                         new ExtraInfo
                         {
-                            Address = User1Address
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address }}
                         },
                         new ExtraInfo
                         {
-                            Address = User3Address
+                            AddressList = new Whitelist.AddressList(){Value = { User3Address }}
                         }
                     }
                 },
@@ -235,8 +236,10 @@ namespace AElf.Contracts.NFT
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.WhitelistId.ShouldBe(whitelistId);
-                whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User3Address);
-                whitelist.ExtraInfoIdList.Value[1].Id.ShouldBeNull();
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(1);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[1].ShouldBe(User3Address);
+                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBeNull();
             }
             return whitelistId;
         }
@@ -255,7 +258,7 @@ namespace AElf.Contracts.NFT
                     {
                         new ExtraInfo
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = {User1Address,User1Address,User2Address}},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO1",
@@ -264,20 +267,11 @@ namespace AElf.Contracts.NFT
                         },
                         new ExtraInfo
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = {User2Address}},
                             Info = new TagInfo()
                             {
                                 TagName = "INFO3",
                                 Info = Info3
-                            }
-                        },
-                        new ExtraInfo()
-                        {
-                            Address = User2Address,
-                            Info = new TagInfo()
-                            {
-                                TagName = "INFO2",
-                                Info = Info2
                             }
                         }
                     }
@@ -290,9 +284,9 @@ namespace AElf.Contracts.NFT
                 },
                 StrategyType = StrategyType.Price
             });
-            executionResult.TransactionResult.Error.ShouldContain("Duplicate address list.");
+            executionResult.TransactionResult.Error.ShouldContain("Duplicate address:");
         }
-
+        
         [Fact]
         public async Task AddExtraInfoTest()
         {
@@ -352,15 +346,16 @@ namespace AElf.Contracts.NFT
                 },
                 AddressList = new Whitelist.AddressList()
                 {
-                    Value = {User2Address, User4Address}
+                    Value = {User5Address, User6Address}
                 }
             })).Output;
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(4);
-                whitelist.ExtraInfoIdList.Value[2].Address.ShouldBe(User2Address);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(3);
+                whitelist.ExtraInfoIdList.Value[1].AddressList.Value.Count.ShouldBe(2);
+                whitelist.ExtraInfoIdList.Value[1].AddressList.Value[0].ShouldBe(User3Address);
                 whitelist.ExtraInfoIdList.Value[2].Id.ShouldBe(tagInfoId);
-                whitelist.ExtraInfoIdList.Value[3].Address.ShouldBe(User4Address);
+                whitelist.ExtraInfoIdList.Value[2].AddressList.Value[1].ShouldBe(User6Address);
             }
             {
                 var tag = await WhitelistContractStub.GetTagInfoByHash.CallAsync(tagInfoId);
@@ -373,9 +368,8 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = tagInfoId
                 });
-                extraInfo.Value.Count.ShouldBe(2);
-                extraInfo.Value[1].Address.ShouldBe(User4Address);
-                extraInfo.Value[1].Info.Info.ShouldBe(Info2);
+                extraInfo.AddressList.Value.Count.ShouldBe(2);
+                extraInfo.AddressList.Value[1].ShouldBe(User6Address);
             }
             {
                 var tagInfo = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(
@@ -384,7 +378,7 @@ namespace AElf.Contracts.NFT
                         WhitelistId = whitelistId,
                         Address = User4Address
                     });
-                tagInfo.TagName.ShouldBe("INFO2");
+                tagInfo.TagName.ShouldBe("INFO3");
             }
             return whitelistId;
         }
@@ -414,7 +408,7 @@ namespace AElf.Contracts.NFT
         public async Task RemoveTagInfoTest()
         {
             var whitelistId = await AddExtraInfoTest_WithAddress();
-            await RemoveExtraInfo(whitelistId);
+            await RemoveExtraInfoTest(whitelistId);
             await WhitelistContractStub.RemoveTagInfo.SendAsync(new RemoveTagInfoInput()
             {
                 WhitelistId = whitelistId,
@@ -438,7 +432,7 @@ namespace AElf.Contracts.NFT
                         WhitelistId = whitelistId,
                         ExtraInfoId = new ExtraInfoId()
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = {User1Address }},
                             Id = CalculateId(DefaultAddress, _projectId, "INFO3")
                         }
                     });
@@ -472,225 +466,23 @@ namespace AElf.Contracts.NFT
             executionResult.TransactionResult.Error.ShouldContain("Incorrect tagInfoId.");
         }
         
-        private async Task RemoveExtraInfo(Hash whitelistId)
+        private async Task RemoveExtraInfoTest(Hash whitelistId)
         {
-            await WhitelistContractStub.RemoveAddressInfoFromWhitelist.SendAsync(
-                new RemoveAddressInfoFromWhitelistInput()
+            await WhitelistContractStub.RemoveAddressInfoListFromWhitelist.SendAsync(
+                new RemoveAddressInfoListFromWhitelistInput()
                 {
                     WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
+                    ExtraInfoIdList = new ExtraInfoIdList()
                     {
-                        Address = User1Address,
-                        Id = CalculateId(DefaultAddress, _projectId, "INFO1")
+                        Value = { new ExtraInfoId()
+                        {
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address,User2Address }},
+                            Id = CalculateId(DefaultAddress, _projectId, "INFO1")
+                        } }
                     }
                 });
         }
         
-        [Fact]
-        public async Task<Hash> AddAddressInfoToWhitelistTest()
-        {
-            var whitelistId = await CreateWhitelistTest();
-            await WhitelistContractStub.AddAddressInfoToWhitelist.SendAsync(
-                new AddAddressInfoToWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User4Address,
-                        Id = CalculateId(DefaultAddress, _projectId, "INFO1")
-                    }
-                });
-            {
-                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value[2].Address.ShouldBe(User4Address);
-                whitelist.ExtraInfoIdList.Value[2].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO1"));
-            }
-            {
-                var whitelistExtra = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
-                whitelistExtra.Value[2].Info.TagName.ShouldBe("INFO1");
-                whitelistExtra.Value[2].Info.Info.ShouldBe(Info1);
-            }
-            {
-                var extraInfo = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(new GetExtraInfoByTagInput()
-                {
-                    WhitelistId = whitelistId,
-                    TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO1")
-                });
-                extraInfo.Value.Count.ShouldBe(2);
-                extraInfo.Value[0].Address.ShouldBe(User1Address);
-                extraInfo.Value[1].Address.ShouldBe(User4Address);
-            }
-            {
-                var extraInfoIdList = await WhitelistContractStub.GetExtraInfoIdList.CallAsync(new GetExtraInfoIdListInput()
-                {
-                    Owner = DefaultAddress,
-                    ProjectId = _projectId,
-                    WhitelistId = whitelistId
-                });
-                extraInfoIdList.Value.Count.ShouldBe(2);
-                extraInfoIdList.Value[0].ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO1"));
-                extraInfoIdList.Value[1].ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO3"));
-            }
-            {
-                var tagInfo = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(
-                    new GetExtraInfoByAddressInput()
-                    {
-                        WhitelistId = whitelistId,
-                        Address = User1Address
-                    });
-                tagInfo.TagName.ShouldBe("INFO1");
-            }
-            return whitelistId;
-        }
-        
-        [Fact]
-        public async Task AddAddressInfoToWhitelistTest_WhitelistNotFound()
-        {
-            var whitelistId = await CreateWhitelistTest();
-            var executionResult = await WhitelistContractStub.AddAddressInfoToWhitelist.SendWithExceptionAsync(
-                new AddAddressInfoToWhitelistInput()
-                {
-                    WhitelistId = new Hash(),
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User4Address,
-                        Id = CalculateId(DefaultAddress, _projectId, "INFO1")
-                    }
-                });
-            executionResult.TransactionResult.Error.ShouldContain("Whitelist not found.");
-        }
-        
-        [Fact]
-        public async Task AddAddressInfoToWhitelistTest_ExtraInfoExist()
-        {
-            var whitelistId = await CreateWhitelistTest();
-            var executionResult = await WhitelistContractStub.AddAddressInfoToWhitelist.SendWithExceptionAsync(
-                new AddAddressInfoToWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User3Address,
-                        Id = CalculateId(DefaultAddress, _projectId, "INFO1")
-                    }
-                });
-            executionResult.TransactionResult.Error.ShouldContain("Duplicate address.");
-        }
-        
-        [Fact]
-        public async Task<Hash> AddAddressInfoToWhitelistTest_OnlyAddress()
-        {
-            var whitelistId = await CreateWhitelist_Address();
-            await WhitelistContractStub.AddAddressInfoToWhitelist.SendAsync(
-                new AddAddressInfoToWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User4Address
-                    }
-                });
-            {
-                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value[2].Address.ShouldBe(User4Address);
-                whitelist.ExtraInfoIdList.Value[2].Id.ShouldBeNull();
-            }
-            {
-                var exception = await WhitelistContractStub.GetExtraInfoByAddress.CallWithExceptionAsync(
-                    new GetExtraInfoByAddressInput()
-                    {
-                        WhitelistId = whitelistId,
-                        Address = User4Address
-                    });
-                exception.Value.ShouldContain("No Match tagInfo according to the address.");
-            }
-            return whitelistId;
-        }
-
-         [Fact]
-        public async Task RemoveAddressInfoFromWhitelistTest_AddressExtra()
-        {
-            var whitelistId = await AddAddressInfoToWhitelistTest();
-            await WhitelistContractStub.RemoveAddressInfoFromWhitelist.SendAsync(
-                new RemoveAddressInfoFromWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User1Address,
-                        Id = CalculateId(DefaultAddress,_projectId,"INFO1")
-                    }
-                });
-            {
-                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[0].Address.ShouldBe(User3Address);
-                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO3"));
-            }
-            {
-                var tagInfo = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(
-                    new GetExtraInfoByTagInput()
-                    {
-                        WhitelistId = whitelistId,
-                        TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO1")
-                    });
-                tagInfo.Value.Count.ShouldBe(1);
-                tagInfo.Value[0].Address.ShouldBe(User4Address);
-            }
-        }
-        
-        [Fact]
-        public async Task RemoveAddressInfoFromWhitelistTest_Address()
-        {
-            var whitelistId = await AddAddressInfoToWhitelistTest_OnlyAddress();
-            await WhitelistContractStub.RemoveAddressInfoFromWhitelist.SendAsync(
-                new RemoveAddressInfoFromWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User4Address
-                    }
-                });
-            {
-                var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User3Address);
-            }
-        }
-        
-        [Fact]
-        public async Task RemoveAddressInfoFromWhitelistTest_NoMatchAddress()
-        {
-            var whitelistId = await AddAddressInfoToWhitelistTest_OnlyAddress();
-            var executionResult1 = await WhitelistContractStub.RemoveAddressInfoFromWhitelist.SendWithExceptionAsync(
-                new RemoveAddressInfoFromWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User2Address
-                    }
-                });
-            executionResult1.TransactionResult.Error.ShouldContain("Address doesn't exist.");
-        }
-        
-        [Fact]
-        public async Task RemoveAddressInfoFromWhitelistTest_NoMatchAddressExtra()
-        {
-            var whitelistId = await AddAddressInfoToWhitelistTest();
-            var executionResult = await WhitelistContractStub.RemoveAddressInfoFromWhitelist.SendWithExceptionAsync(
-                new RemoveAddressInfoFromWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoId = new ExtraInfoId()
-                    {
-                        Address = User1Address,
-                        Id = CalculateId(DefaultAddress,_projectId,"INFO3")
-                    }
-                });
-            executionResult.TransactionResult.Error.ShouldContain("ExtraInfo doesn't exist");
-        }
 
         [Fact]
         public async Task<Hash> AddAddressInfoListToWhitelistTest()
@@ -705,12 +497,12 @@ namespace AElf.Contracts.NFT
                         Value = {
                             new ExtraInfoId()
                             {
-                                Address = User2Address,
+                                AddressList = new Whitelist.AddressList(){Value = {User5Address}},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                             },
                             new ExtraInfoId()
                             {
-                                Address = User4Address,
+                                AddressList = new Whitelist.AddressList(){Value = {User6Address}},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                             }
                         }
@@ -718,11 +510,12 @@ namespace AElf.Contracts.NFT
                 });
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(4);
-                whitelist.ExtraInfoIdList.Value[2].Address.ShouldBe(User2Address);
-                whitelist.ExtraInfoIdList.Value[2].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
-                whitelist.ExtraInfoIdList.Value[3].Address.ShouldBe(User4Address);
-                whitelist.ExtraInfoIdList.Value[3].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(3);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[2].ShouldBe(User5Address);
+                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
+                whitelist.ExtraInfoIdList.Value[1].AddressList.Value[2].ShouldBe(User6Address);
+                whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
             }
             {
                 var extraInfo = await WhitelistContractStub.GetTagInfoByHash.CallAsync(CalculateId(DefaultAddress,_projectId,"INFO1"));
@@ -739,9 +532,9 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(DefaultAddress,_projectId,"INFO3")
                 });
-                extra.Value.Count.ShouldBe(2);
-                extra.Value[0].Address.ShouldBe(User3Address);
-                extra.Value[1].Address.ShouldBe(User4Address);
+                extra.AddressList.Value.Count.ShouldBe(3);
+                extra.AddressList.Value[0].ShouldBe(User3Address);
+                extra.AddressList.Value[2].ShouldBe(User6Address);
             }
             {
                 var tagId = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(new GetExtraInfoByAddressInput()
@@ -759,7 +552,7 @@ namespace AElf.Contracts.NFT
                         WhitelistId = whitelistId,
                         ExtraInfoId = new ExtraInfoId()
                         {
-                            Address = User1Address,
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address }},
                             Id = CalculateId(DefaultAddress, _projectId, "INFO1")
                         }
                     });
@@ -782,24 +575,25 @@ namespace AElf.Contracts.NFT
                         {
                             new ExtraInfoId()
                             {
-                                Address = User2Address
+                                AddressList = new Whitelist.AddressList(){Value = { User2Address }}
                             },
                             new ExtraInfoId()
                             {
-                                Address = User4Address
+                                AddressList = new Whitelist.AddressList(){Value = { User4Address,User5Address }}
                             }
                         }
                     }
                 });
             {
                 var whitelistInfo = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelistInfo.ExtraInfoIdList.Value.Count.ShouldBe(4);
-                whitelistInfo.ExtraInfoIdList.Value[3].Address.ShouldBe(User4Address);
-                whitelistInfo.ExtraInfoIdList.Value[3].Id.ShouldBeNull();
+                whitelistInfo.ExtraInfoIdList.Value.Count.ShouldBe(1);
+                whitelistInfo.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(5);
+                whitelistInfo.ExtraInfoIdList.Value[0].AddressList.Value[4].ShouldBe(User5Address);
+                whitelistInfo.ExtraInfoIdList.Value[0].Id.ShouldBeNull();
             }
             {
                 var whitelistDetail = await WhitelistContractStub.GetWhitelistDetail.CallAsync(whitelistId);
-                whitelistDetail.Value[0].Address.ShouldBe(User1Address);
+                whitelistDetail.Value[0].AddressList.Value[4].ShouldBe(User5Address);
                 whitelistDetail.Value[0].Info.ShouldBeNull();
             }
             {
@@ -827,44 +621,71 @@ namespace AElf.Contracts.NFT
                         Value = { 
                             new ExtraInfoId()
                             {
-                                Address  = User1Address
+                                AddressList = new Whitelist.AddressList(){Value = { User1Address }}
                             },
                             new ExtraInfoId() 
                             {
-                                Address = User2Address
+                                AddressList = new Whitelist.AddressList(){Value = { User4Address }}
                             }
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("Address already exists in whitelist.");
+            executionResult.TransactionResult.Error.ShouldContain("Duplicate address.");
         }
         
         [Fact]
-        public async Task AddAddressInfoListToWhitelistTest_ExtraInfo_Duplicate()
-        {
-            var whitelistId = await CreateWhitelistTest();
-            var executionResult = await WhitelistContractStub.AddAddressInfoListToWhitelist.SendWithExceptionAsync(
-                new AddAddressInfoListToWhitelistInput()
-                {
-                    WhitelistId = whitelistId,
-                    ExtraInfoIdList = new ExtraInfoIdList()
-                    {
-                        Value = { 
-                            new ExtraInfoId()
-                            {
-                                Address  = User1Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO3")
+         public async Task AddAddressInfoListToWhitelistTest_ExtraInfo_Duplicate()
+         {
+             var whitelistId = await CreateWhitelistTest();
+             var executionResult = await WhitelistContractStub.AddAddressInfoListToWhitelist.SendWithExceptionAsync(
+                 new AddAddressInfoListToWhitelistInput()
+                 {
+                     WhitelistId = whitelistId,
+                     ExtraInfoIdList = new ExtraInfoIdList()
+                     {
+                         Value = { 
+                             new ExtraInfoId()
+                             {
+                                 AddressList  = new Whitelist.AddressList(){Value = { User1Address }},
+                                 Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                             },
                             new ExtraInfoId() 
                             {
-                                Address = User2Address,
+                                AddressList  = new Whitelist.AddressList(){Value = { User2Address }},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                             }
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("Address already exists in whitelist.");
+            executionResult.TransactionResult.Error.ShouldContain("Duplicate address.");
         }
+         
+         [Fact]
+         public async Task AddAddressInfoListToWhitelistTest_Incorrect_TagId()
+         {
+             var whitelistId = await CreateWhitelistTest();
+             var executionResult = await WhitelistContractStub.AddAddressInfoListToWhitelist.SendWithExceptionAsync(
+                 new AddAddressInfoListToWhitelistInput()
+                 {
+                     WhitelistId = whitelistId,
+                     ExtraInfoIdList = new ExtraInfoIdList()
+                     {
+                         Value = { 
+                             new ExtraInfoId()
+                             {
+                                 AddressList  = new Whitelist.AddressList(){Value = { User5Address }},
+                                 Id = CalculateId(DefaultAddress,_projectId,"INFO6")
+                             },
+                             new ExtraInfoId() 
+                             {
+                                 AddressList  = new Whitelist.AddressList(){Value = { User6Address }},
+                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                             }
+                         }
+                     }
+                 });
+             executionResult.TransactionResult.Error.ShouldContain("Incorrect TagId.");
+         }
         
         [Fact]
         public async Task RemoveAddressInfoListFromWhitelistTest()
@@ -880,13 +701,13 @@ namespace AElf.Contracts.NFT
                         {
                             new ExtraInfoId()
                             {
-                                Address = User1Address,
+                                AddressList = new Whitelist.AddressList(){Value = { User2Address,User1Address }},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                             },
                             new ExtraInfoId()
                             {
-                                Address = User2Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                                AddressList = new Whitelist.AddressList(){Value = { User3Address }},
+                                Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                             }
                         }
                     }
@@ -894,16 +715,8 @@ namespace AElf.Contracts.NFT
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[0].Address.ShouldBe(User3Address);
-                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO3"));
-            }
-            {
-                var exception = await WhitelistContractStub.GetExtraInfoByTag.CallWithExceptionAsync(new GetExtraInfoByTagInput()
-                {
-                    WhitelistId = whitelistId,
-                    TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO1")
-                });
-                exception.Value.ShouldContain("No address list under the current tag.");
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User5Address);
+                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO1"));
             }
         }
 
@@ -921,19 +734,19 @@ namespace AElf.Contracts.NFT
                         {
                             new ExtraInfoId()
                             {
-                                Address = User1Address
+                                AddressList = new Whitelist.AddressList(){Value = { User1Address }}
                             },
                             new ExtraInfoId()
                             {
-                                Address = User2Address
+                                AddressList = new Whitelist.AddressList(){Value = { User3Address }}
                             }
                         }
                     }
                 });
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
-                whitelist.ExtraInfoIdList.Value[0].Address.ShouldBe(User3Address);
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(1);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User2Address);
                 whitelist.ExtraInfoIdList.Value[0].Id.ShouldBeNull();
             }
             {
@@ -961,18 +774,13 @@ namespace AElf.Contracts.NFT
                         {
                             new ExtraInfoId()
                             {
-                                Address = new Address(),
+                                AddressList = new Whitelist.AddressList(){Value = { DefaultAddress }},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
-                            },
-                            new ExtraInfoId()
-                            {
-                                Address = new Address(),
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO1")
-                            },
+                            }
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("These extraInfos do not exist.");
+            executionResult.TransactionResult.Error.ShouldContain("ExtraInfo does not exist Or already been removed.");
         }
         
         [Fact]
@@ -989,18 +797,13 @@ namespace AElf.Contracts.NFT
                         {
                             new ExtraInfoId()
                             {
-                                Address = User1Address,
+                                AddressList = new Whitelist.AddressList(){Value = { User1Address,User1Address }},
                                 Id = CalculateId(DefaultAddress,_projectId,"INFO1")
-                            },
-                            new ExtraInfoId()
-                            {
-                                Address = User1Address,
-                                Id = CalculateId(DefaultAddress,_projectId,"INFO3")
-                            },
+                            }
                         }
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("Duplicate addresses.");
+            executionResult.TransactionResult.Error.ShouldContain("ExtraInfo does not exist Or already been removed.");
         }
         [Fact]
         public async Task DisableWhitelistTest()
@@ -1056,15 +859,16 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     ExtraInfoList = new ExtraInfoId()
                     {
-                        Address = User3Address,
-                        Id = CalculateId(DefaultAddress,_projectId,"INFO1")
+                        AddressList = new Whitelist.AddressList(){Value = { User2Address,User1Address }},
+                        Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                     }
                 });
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
-                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(4);
-                whitelist.ExtraInfoIdList.Value[1].Address.ShouldBe(User3Address);
-                whitelist.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO1"));
+                whitelist.ExtraInfoIdList.Value.Count.ShouldBe(2);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.Count.ShouldBe(1);
+                whitelist.ExtraInfoIdList.Value[0].AddressList.Value.ShouldNotContain(User2Address);
+                whitelist.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress, _projectId, "INFO1"));
             }
             {
                 var extraInfo = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(new GetExtraInfoByTagInput()
@@ -1072,9 +876,9 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO1")
                 });
-                extraInfo.Value.Count.ShouldBe(3);
-                extraInfo.Value[0].Address.ShouldBe(User1Address);
-                extraInfo.Value[2].Address.ShouldBe(User3Address);
+                extraInfo.AddressList.Value.Count.ShouldBe(1);
+                //extraInfo.AddressList.Value[0].ShouldBe(User1Address);
+                extraInfo.AddressList.Value[0].ShouldBe(User5Address);
             }
             {
                 var extraInfo = await WhitelistContractStub.GetExtraInfoByTag.CallAsync(new GetExtraInfoByTagInput()
@@ -1082,18 +886,19 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     TagInfoId = CalculateId(DefaultAddress, _projectId, "INFO3")
                 });
-                extraInfo.Value.Count.ShouldBe(1);
-                extraInfo.Value[0].Address.ShouldBe(User4Address);
+                extraInfo.AddressList.Value.Count.ShouldBe(5);
+                extraInfo.AddressList.Value.ShouldContain(User1Address);
+                extraInfo.AddressList.Value.ShouldContain(User2Address);
             }
             {
                 var tagInfo = await WhitelistContractStub.GetExtraInfoByAddress.CallAsync(
                     new GetExtraInfoByAddressInput()
                     {
                         WhitelistId = whitelistId,
-                        Address = User3Address
+                        Address = User2Address
                     });
-                tagInfo.TagName.ShouldBe("INFO1");
-                tagInfo.Info.ShouldBe(Info1);
+                tagInfo.TagName.ShouldBe("INFO3");
+                tagInfo.Info.ShouldBe(Info3);
             }
             {
                 var exist = await WhitelistContractStub.GetExtraInfoFromWhitelist.CallAsync(
@@ -1102,11 +907,37 @@ namespace AElf.Contracts.NFT
                         WhitelistId = whitelistId,
                         ExtraInfoId = new ExtraInfoId()
                         {
-                            Address = User3Address,
-                            Id = CalculateId(DefaultAddress, _projectId, "INFO3")
+                            AddressList = new Whitelist.AddressList(){Value = { User2Address }},
+                            Id = CalculateId(DefaultAddress, _projectId, "INFO1")
                         }
                     });
                 exist.Value.ShouldBe(false);
+            }
+            {
+                var exist = await WhitelistContractStub.GetExtraInfoFromWhitelist.CallAsync(
+                    new GetExtraInfoFromWhitelistInput()
+                    {
+                        WhitelistId = whitelistId,
+                        ExtraInfoId = new ExtraInfoId()
+                        {
+                            AddressList = new Whitelist.AddressList(){Value = { User2Address }},
+                            Id = CalculateId(DefaultAddress, _projectId, "INFO3")
+                        }
+                    });
+                exist.Value.ShouldBe(true);
+            }
+            {
+                var exist = await WhitelistContractStub.GetExtraInfoFromWhitelist.CallAsync(
+                    new GetExtraInfoFromWhitelistInput()
+                    {
+                        WhitelistId = whitelistId,
+                        ExtraInfoId = new ExtraInfoId()
+                        {
+                            AddressList = new Whitelist.AddressList(){Value = { User1Address }},
+                            Id = CalculateId(DefaultAddress, _projectId, "INFO3")
+                        }
+                    });
+                exist.Value.ShouldBe(true);
             }
         }
         
@@ -1120,11 +951,11 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     ExtraInfoList = new ExtraInfoId()
                     {
-                        Address = User5Address,
+                        AddressList = new Whitelist.AddressList(){Value = { DefaultAddress }},
                         Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                     }
                 });
-            executionResult.TransactionResult.Error.ShouldContain("ExtraInfo not match.");
+            executionResult.TransactionResult.Error.ShouldContain("Incorrect address and extraInfoId.");
         }
         
         [Fact]
@@ -1137,7 +968,7 @@ namespace AElf.Contracts.NFT
                     WhitelistId = whitelistId,
                     ExtraInfoList = new ExtraInfoId()
                     {
-                        Address = User2Address,
+                        AddressList = new Whitelist.AddressList(){Value = { User2Address }},
                         Id = CalculateId(DefaultAddress,_projectId,"INFO5")
                     }
                 });
@@ -1238,6 +1069,13 @@ namespace AElf.Contracts.NFT
                 WhitelistId = whitelistId,
                 ProjectId = _projectId
             });
+            var exceptionExecutionResult
+                = await WhitelistContractStub.ResetWhitelist.SendAsync(new ResetWhitelistInput()
+            {
+                WhitelistId = whitelistId,
+                ProjectId = HashHelper.ComputeFrom("aaa")
+            });
+            exceptionExecutionResult.TransactionResult.Error.ShouldContain("Incorrect project id.");
             {
                 var whitelist = await WhitelistContractStub.GetWhitelist.CallAsync(whitelistId);
                 whitelist.ExtraInfoIdList.Value.Count.ShouldBe(0);

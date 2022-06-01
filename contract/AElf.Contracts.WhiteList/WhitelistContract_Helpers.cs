@@ -70,14 +70,28 @@ namespace AElf.Contracts.Whitelist
         private ExtraInfoId AssertExtraInfoDuplicate(Hash whitelistId, ExtraInfoId id)
         {
             var whitelist = State.WhitelistInfoMap[whitelistId];
-            var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.Address).ToList();
-            var ifAddressDuplicate = addressList.Contains(id.Address);
-            Assert(!ifAddressDuplicate,$"Duplicate address.");
-            var ifExist = whitelist.ExtraInfoIdList.Value.Contains(id);
-            Assert(!ifExist, $"ExtraInfo already exists.{whitelistId}{id}");
+            foreach (var addressList in whitelist.ExtraInfoIdList.Value.Select(i => i.AddressList))
+            {
+                foreach (var address in id.AddressList.Value)
+                {
+                    if (addressList.Value.Contains(address))
+                    {
+                        throw new AssertionException($"Duplicate address.{address}");
+                    }
+                }
+                
+            }
+            // if ((from addressList in whitelist.ExtraInfoIdList.Value.Select(i => i.AddressList)
+            //         from address in id.AddressList.Value
+            //         where addressList.Value.Contains(address)
+            //         select addressList).Any())
+            // {
+            //     throw new AssertionException("Duplicate address.");
+            // }
+
             return id;
         }
-        
+
         private ExtraInfoId AssertExtraInfoIsNotExist(Hash subscribeId, ExtraInfoId info)
         {
             var whitelist = GetAvailableWhitelist(subscribeId);
@@ -91,7 +105,7 @@ namespace AElf.Contracts.Whitelist
             var extraInfo = State.TagInfoMap[extraInfoId.Id];
             return new ExtraInfo()
             {
-                Address = extraInfoId.Address,
+                AddressList = extraInfoId.AddressList,
                 Info = new TagInfo()
                 {
                     TagName = extraInfo.TagName,
@@ -110,7 +124,7 @@ namespace AElf.Contracts.Whitelist
                     var info = State.TagInfoMap[infoId];
                     return new ExtraInfo()
                     {
-                        Address = e.Address,
+                        AddressList = e.AddressList,
                         Info = new TagInfo()
                         {
                             TagName = info.TagName,
@@ -122,7 +136,7 @@ namespace AElf.Contracts.Whitelist
                 {
                     return new ExtraInfo()
                     {
-                        Address = e.Address,
+                        AddressList = e.AddressList,
                         Info = null
                     };
                 }

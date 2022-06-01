@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Whitelist.Extensions;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -31,24 +32,17 @@ namespace AElf.Contracts.Whitelist
             return State.TagInfoMap[input];
         }
 
-        public override ExtraInfoList GetExtraInfoByTag(GetExtraInfoByTagInput input)
+        public override ExtraInfo GetExtraInfoByTag(GetExtraInfoByTagInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
             var tagInfo = GetTagInfoByHash(input.TagInfoId);
             Assert(State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.TagInfoId].Value.Count != 0,$"No address list under the current tag.{input.TagInfoId.ToHex()}");
             var addressList = State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.TagInfoId];
-            var extraInfoList = new ExtraInfoList();
-            foreach (var address in addressList.Value)
+            return new ExtraInfo
             {
-                var extraInfo = new ExtraInfo()
-                {
-                    Address = address,
-                    Info = tagInfo
-                };
-                extraInfoList.Value.Add(extraInfo);
-            }
-
-            return extraInfoList;
+                Info = tagInfo,
+                AddressList = addressList
+            };
         }
 
         public override HashList GetExtraInfoIdList(GetExtraInfoIdListInput input)
@@ -110,15 +104,28 @@ namespace AElf.Contracts.Whitelist
         public override BoolValue GetAddressFromWhitelist(GetAddressFromWhitelistInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
-            var addressList = whitelist.ExtraInfoIdList.Value.Select(e => e.Address).ToList();
-            var ifExist = addressList.Contains(input.Address);
-            return new BoolValue(){ Value = ifExist };
+            var addressLists = whitelist.ExtraInfoIdList.Value.Select(e => e.AddressList).ToList();
+            return addressLists.Any(addressList => addressList.Value.Contains(input.Address)) ? new BoolValue {Value = true} : new BoolValue();
         }
 
         public override BoolValue GetExtraInfoFromWhitelist(GetExtraInfoFromWhitelistInput input)
         {
             var whitelist = GetWhitelist(input.WhitelistId);
-            var ifExist = whitelist.ExtraInfoIdList.Value.Contains(input.ExtraInfoId);
+            var extraInfoId = whitelist.ExtraInfoIdList.Value.SingleOrDefault(i=>i.Id == input.ExtraInfoId.Id);
+            if (extraInfoId == null)
+            {
+                throw new AssertionException($"TagInfo does not exist.{input.ExtraInfoId.Id}");
+            }
+            else
+            {
+                var addressList = State.TagInfoIdAddressListMap[whitelist.WhitelistId][input.ExtraInfoId.Id];
+                return input.ExtraInfoId.AddressList.Value.Any(address => !addressList.Value.Contains(address)) ? new BoolValue() {Value = false} : new BoolValue() {Value = true};
+            }
+        }
+
+        public override BoolValue GetManagerExistFromWhitelist(GetManagerExistFromWhitelistInput input)
+        {
+            var ifExist = State.ManagerListMap[input.WhitelistId].Value.Contains(input.Manager);
             return new BoolValue(){Value = ifExist};
         }
 

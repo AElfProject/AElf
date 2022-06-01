@@ -65,18 +65,18 @@ namespace AElf.Contracts.NFT
                 WhitelistId = subscribe.WhitelistId,
                 ExtraInfoId = new ExtraInfoId()
                 {
-                    Address = User1Address,
+                    AddressList = new Whitelist.AddressList(){Value = { User1Address }},
                     Id = tagId
                 }
             });
             var consumedList = await WhitelistContractStub.GetConsumedList.CallAsync(subscribeId);
             consumedList.ExtraInfoIdList.Value.Count.ShouldBe(1);
             consumedList.WhitelistId.ShouldBe(subscribe.WhitelistId);
-            consumedList.ExtraInfoIdList.Value[0].Address.ShouldBe(User1Address);
+            consumedList.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
             consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
             availableList.Value.Count.ShouldBe(1);
-            availableList.Value[0].Address.ShouldBe(User3Address);
+            availableList.Value[0].AddressList.Value[0].ShouldBe(User2Address);
             availableList.Value[0].Info.Info.ShouldBe(Info3);
 
             return subscribeId;
@@ -93,7 +93,7 @@ namespace AElf.Contracts.NFT
                 WhitelistId = subscribe.WhitelistId,
                 ExtraInfoId = new ExtraInfoId()
                 {
-                    Address = User1Address,
+                    AddressList = new Whitelist.AddressList(){Value = { User1Address }},
                     Id = CalculateId(DefaultAddress,_projectId,"INFO1")
                 }
             });
@@ -111,19 +111,20 @@ namespace AElf.Contracts.NFT
                 WhitelistId = subscribe.WhitelistId,
                 ExtraInfoId = new ExtraInfoId()
                 {
-                    Address = User3Address,
+                    AddressList = new Whitelist.AddressList(){Value = { User3Address }},
                     Id = CalculateId(DefaultAddress,_projectId,"INFO3")
                 }
             });
             var consumedList = await WhitelistContractStub.GetConsumedList.CallAsync(subscribeId);
             consumedList.ExtraInfoIdList.Value.Count.ShouldBe(2);
             consumedList.WhitelistId.ShouldBe(subscribe.WhitelistId);
-            consumedList.ExtraInfoIdList.Value[0].Address.ShouldBe(User1Address);
+            consumedList.ExtraInfoIdList.Value[0].AddressList.Value[0].ShouldBe(User1Address);
             consumedList.ExtraInfoIdList.Value[0].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO1"));
-            consumedList.ExtraInfoIdList.Value[1].Address.ShouldBe(User3Address);
+            consumedList.ExtraInfoIdList.Value[1].AddressList.Value[0].ShouldBe(User3Address);
             consumedList.ExtraInfoIdList.Value[1].Id.ShouldBe(CalculateId(DefaultAddress,_projectId,"INFO3"));
             var availableList = await WhitelistContractStub.GetAvailableWhitelist.CallAsync(subscribeId);
-            availableList.Value.Count.ShouldBe(0);
+            availableList.Value.Count.ShouldBe(2);
+            availableList.Value[1].AddressList.Value.Count.ShouldBe(1);
         }
 
         [Fact]
