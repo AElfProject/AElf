@@ -50,13 +50,13 @@ namespace AElf.Contracts.MultiToken
             }
 
             SetOrRefreshMethodFeeFreeAllowances(fromAddress);
-            var freeAllowances = State.MethodFeeFreeAllowancesMap[fromAddress];
+            var freeAllowances = CalculateMethodFeeFreeAllowances(fromAddress);
 
             // Update balances.
             foreach (var (symbol, amount) in bill.FeesMap)
             {
                 var actualAmount = amount;
-                var freeAllowance = freeAllowances.Value.FirstOrDefault(a => a.Symbol == symbol);
+                var freeAllowance = freeAllowances?.Value.FirstOrDefault(a => a.Symbol == symbol);
                 if (freeAllowance != null)
                 {
                     // Consume free allowance.
@@ -69,6 +69,7 @@ namespace AElf.Contracts.MultiToken
                         continue;
                     }
                 }
+
                 ModifyBalance(fromAddress, symbol, -actualAmount);
                 Context.Fire(new TransactionFeeCharged
                 {
@@ -734,7 +735,31 @@ namespace AElf.Contracts.MultiToken
 
         public override MethodFeeFreeAllowances GetMethodFeeFreeAllowances(Address input)
         {
-            return State.MethodFeeFreeAllowancesMap[input];
+            return CalculateMethodFeeFreeAllowances(input);
+        }
+
+        private MethodFeeFreeAllowances CalculateMethodFeeFreeAllowances(Address input)
+        {
+            var freeAllowances = State.MethodFeeFreeAllowancesMap[input];
+            var freeAllowancesConfig = State.MethodFeeFreeAllowancesConfig.Value;
+            var lastRefreshTime = State.MethodFeeFreeAllowancesLastRefreshTimeMap[input];
+
+            if (freeAllowances == null)
+            {
+                if (State.Balances[input][Context.Variables.NativeSymbol] >= freeAllowancesConfig.Threshold)
+                {
+                    return freeAllowancesConfig.FreeAllowances;
+                }
+            }
+
+            if (lastRefreshTime == null)
+            {
+                return freeAllowances;
+            }
+
+            return (Context.CurrentBlockTime - lastRefreshTime).Seconds > freeAllowancesConfig.RefreshSeconds
+                ? freeAllowancesConfig.FreeAllowances
+                : freeAllowances;
         }
 
         private long GetBalanceCalculatedBaseOnPrimaryToken(SymbolToPayTxSizeFee tokenInfo, string baseSymbol,
