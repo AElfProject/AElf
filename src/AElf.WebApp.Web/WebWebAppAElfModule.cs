@@ -103,11 +103,7 @@ namespace AElf.WebApp.Web
             services.AddAbpSwaggerGen(
                 options =>
                 {
-                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "AElf API", Version = "v1" });
-                    options.DocInclusionPredicate((docName, description) => true);
-                    options.CustomSchemaIds(type => type.FullName);
                     options.DocumentFilter<ApiOptionFilter>();
-                    options.HideAbpEndpoints();
                 }
             );
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -173,19 +169,19 @@ namespace AElf.WebApp.Web
     // The output object mapping returned object to Protobuf-serialized response body.
     public class ProtobufOutputFormatter : OutputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType =
+        private static readonly MediaTypeHeaderValue ProtoMediaType =
             MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
 
         public ProtobufOutputFormatter()
         {
-            SupportedMediaTypes.Add(protoMediaType);
+            SupportedMediaTypes.Add(ProtoMediaType);
         }
 
         public override bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
             MediaTypeHeaderValue.TryParse(context.ContentType, out var parsedContentType);
 
-            if (context.Object == null || parsedContentType == null || !parsedContentType.IsSubsetOf(protoMediaType))
+            if (context.Object == null || parsedContentType == null || !parsedContentType.IsSubsetOf(ProtoMediaType))
             {
                 return false;
             }
